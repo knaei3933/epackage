@@ -1,0 +1,82 @@
+%AI_Design_Template_for_Spout_Pouch
+%Package_Lab_Epackage_Design_Template
+%Japanese_Market_Standard_Dimensions
+
+Template_Name: スパウトパウチ (Spout Pouch)
+Product_Category: spout_pouch
+Standard_Sizes:
+  - 120mm x 200mm (with 18mm spout)
+  - 150mm x 250mm (with 22mm spout)
+  - 180mm x 300mm (with 25mm spout)
+  - 200mm x 320mm (with 28mm spout)
+
+Design_Specifications:
+  - Bleed: 3mm on all edges
+  - Safety Zone: 5mm from edges
+  - File Format: Adobe Illustrator CS6 or later
+  - Color Mode: CMYK
+  - Resolution: 300 DPI
+  - Spout placement: Top center or top corner
+
+Cutting_Guides:
+  - Solid line: Final cut line
+  - Circle: Spout opening
+  - Dashed line: Cap attachment line
+
+Design_Elements:
+  [Front_Panel]
+  - Product logo area: Top center (above spout)
+  - Product name: Below logo
+  - Product description: Center area
+  - Weight/Volume: Bottom left
+  - Barcode area: Bottom right
+  - Serving size info: Above bottom
+
+  [Back_Panel]
+  - Ingredients list: Top area
+  - Instructions: Center area
+  - Manufacturer info: Bottom area
+  - Expiry date: Bottom right
+  - Storage conditions: Bottom left
+
+  [Spout_Area]
+  - Clear zone around spout: 15mm radius
+  - "Twist to open" instruction
+  - Arrow indicators for opening direction
+  - Warning: "Do not microwave with cap"
+
+Color_Guidelines:
+  - Primary colors: Brand specific
+  - Text color: High contrast (minimum 60%)
+  - Background: Consider liquid visibility
+  - Spout area: Clear for transparent options
+
+Special_Features:
+  - Liquid-friendly design
+  - Easy pouring mechanism
+  - Leak-proof construction
+  - Re-sealable cap
+  - Handle options for larger sizes
+  - Transparent window for content visibility
+
+Usage_Instructions_Area:
+  - Step 1: Twist cap to open
+  - Step 2: Pour gently
+  - Step 3: Close cap tightly
+  - Storage: Refrigerate after opening (if applicable)
+
+Safety_Information:
+  - Keep away from children under 3 years
+  - Do not squeeze when hot
+  - Check seal integrity before use
+
+File_Naming_Convention:
+  - Client_Project_ProductCode_Size.ai
+  - Example: Epackage_Juice_Brand_SpoutPouch_150x250.ai
+
+Contact_Information:
+  Epackage Lab
+  Email: info@package-lab.com
+  Phone: 080-6942-7235
+
+End_of_Template

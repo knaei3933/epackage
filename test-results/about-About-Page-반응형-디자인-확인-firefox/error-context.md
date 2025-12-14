@@ -1,0 +1,150 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+      - generic [ref=e7]:
+        - 'button "言語を選択: 日本語" [ref=e9] [cursor=pointer]':
+          - generic [ref=e10]:
+            - img [ref=e11]
+            - img [ref=e15]
+        - button "メニュー" [ref=e17] [cursor=pointer]:
+          - img [ref=e19]
+  - navigation "Breadcrumb" [ref=e23]:
+    - link "ホーム" [ref=e25] [cursor=pointer]:
+      - /url: /
+      - img [ref=e26]
+      - generic [ref=e29]: ホーム
+    - generic [ref=e30]:
+      - generic [ref=e31]: /
+      - generic [ref=e32]: About
+  - main [ref=e33]:
+    - generic [ref=e35]:
+      - heading "404" [level=1] [ref=e36]
+      - heading "This page could not be found." [level=2] [ref=e38]
+  - button "페이지 상단으로 이동":
+    - img
+  - contentinfo [ref=e39]:
+    - generic [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e46] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e48]
+              - generic [ref=e49]: Epackage Lab
+            - paragraph [ref=e50]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - img [ref=e53]
+                - generic [ref=e56]: info@epackage-lab.com
+              - generic [ref=e57]:
+                - img [ref=e58]
+                - generic [ref=e60]: +81-80-6942-7235
+              - generic [ref=e61]:
+                - img [ref=e62]
+                - generic [ref=e65]: 兵庫県明石市上ノ丸2-11-21-102
+          - generic [ref=e66]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e67]
+            - generic [ref=e68]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e69] [cursor=pointer]:
+                - /url: /privacy/
+                - generic [ref=e70]:
+                  - img [ref=e72]
+                  - generic [ref=e74]:
+                    - heading "個人情報保護方針" [level=4] [ref=e75]
+                    - paragraph [ref=e76]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e77] [cursor=pointer]:
+                - /url: /terms/
+                - generic [ref=e78]:
+                  - img [ref=e80]
+                  - generic [ref=e86]:
+                    - heading "利用規約" [level=4] [ref=e87]
+                    - paragraph [ref=e88]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e89] [cursor=pointer]:
+                - /url: /legal/
+                - generic [ref=e90]:
+                  - img [ref=e92]
+                  - generic [ref=e97]:
+                    - heading "特定商取引法" [level=4] [ref=e98]
+                    - paragraph [ref=e99]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e100] [cursor=pointer]:
+                - /url: /csr/
+                - generic [ref=e101]:
+                  - img [ref=e103]
+                  - generic [ref=e105]:
+                    - heading "社会的責任" [level=4] [ref=e106]
+                    - paragraph [ref=e107]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - img [ref=e112]
+              - heading "最新情報をお届け" [level=3] [ref=e114]
+              - paragraph [ref=e115]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e116]:
+              - generic [ref=e118]:
+                - img [ref=e120]
+                - textbox "メールアドレスを入力" [ref=e123]
+              - button "購読する" [ref=e124] [cursor=pointer]:
+                - generic [ref=e125]:
+                  - img [ref=e126]
+                  - text: 購読する
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e131]
+            - paragraph [ref=e132]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e133]:
+            - link "Facebook에서 팔로우하기" [ref=e134] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e135]
+            - link "Twitter에서 팔로우하기" [ref=e138] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e139]
+            - link "LinkedIn에서 팔로우하기" [ref=e142] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e143]
+            - link "Instagram에서 팔로우하기" [ref=e148] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e149]
+            - link "YouTube에서 팔로우하기" [ref=e154] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e155]
+      - generic [ref=e161]:
+        - paragraph [ref=e163]: © 2025 Epackage Lab. 全著作権所有.
+        - generic [ref=e164]:
+          - link "個人情報保護方針" [ref=e165] [cursor=pointer]:
+            - /url: /privacy/
+          - link "利用規約" [ref=e166] [cursor=pointer]:
+            - /url: /terms/
+          - link "サイトマップ" [ref=e167] [cursor=pointer]:
+            - /url: /sitemap/
+  - generic [ref=e168]:
+    - generic [ref=e169]:
+      - heading "Performance Metrics" [level=3] [ref=e170]
+      - generic [ref=e172]:
+        - text: "Score:"
+        - generic [ref=e173]: 100%
+    - generic [ref=e174]:
+      - generic [ref=e175]:
+        - generic [ref=e176]: "FCP:"
+        - generic [ref=e177]:
+          - generic [ref=e178]: 150ms
+          - generic [ref=e179]: good
+      - generic [ref=e180]:
+        - generic [ref=e181]: "TTFB:"
+        - generic [ref=e182]:
+          - generic [ref=e183]: 70ms
+          - generic [ref=e184]: good
+    - generic [ref=e186]:
+      - generic [ref=e187]: LCP < 2.5s
+      - generic [ref=e188]: INP < 200ms
+      - generic [ref=e189]: CLS < 0.1
+      - generic [ref=e190]: FCP < 1.8s
+      - generic [ref=e191]: TTFB < 800ms
+  - button "Open Next.js Dev Tools" [ref=e197] [cursor=pointer]:
+    - img [ref=e198]
+  - alert [ref=e202]
+```

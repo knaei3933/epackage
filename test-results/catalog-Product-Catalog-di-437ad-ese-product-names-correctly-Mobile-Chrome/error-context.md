@@ -1,0 +1,552 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "製品カタログ" [ref=e12] [cursor=pointer]:
+          - /url: /catalog/
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19] [cursor=pointer]:
+          - /url: /archives/
+        - link "お見積り" [ref=e21] [cursor=pointer]:
+          - /url: /quote-simulator/
+      - generic [ref=e22]:
+        - 'button "言語を選択: 日本語" [ref=e24] [cursor=pointer]':
+          - generic [ref=e25]:
+            - img [ref=e26]
+            - text: 日本語
+            - img [ref=e29]
+        - link "お問い合わせ" [ref=e32] [cursor=pointer]:
+          - /url: /contact/
+          - button "お問い合わせ" [ref=e33]:
+            - generic [ref=e34]: お問い合わせ
+  - navigation "Breadcrumb" [ref=e35]:
+    - link "ホーム" [ref=e37] [cursor=pointer]:
+      - /url: /
+      - img [ref=e38]
+      - generic [ref=e41]: ホーム
+    - generic [ref=e42]:
+      - generic [ref=e43]: /
+      - generic [ref=e44]: Catalog
+  - main [ref=e45]:
+    - generic [ref=e46]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - img [ref=e55]
+            - text: 6種類の高品質パウチ
+          - heading "パウチ製品 カタログ" [level=1] [ref=e59]:
+            - generic [ref=e60]: パウチ製品
+            - generic [ref=e61]: カタログ
+        - paragraph [ref=e62]:
+          - text: 最適な包装ソリューションを見つけましょう。
+          - text: あらゆるニーズに対応する6種類のパウチ製品を取り揃えました。
+        - generic [ref=e63]:
+          - generic [ref=e64]: 全 5 種類の製品
+          - link "サンプルご依頼" [ref=e65] [cursor=pointer]:
+            - /url: /samples/
+            - button "サンプルご依頼" [ref=e66]:
+              - generic [ref=e67]:
+                - img [ref=e68]
+                - text: サンプルご依頼
+          - link "見積もり" [ref=e72] [cursor=pointer]:
+            - /url: /roi-calculator/
+            - button "見積もり" [ref=e73]:
+              - generic [ref=e74]:
+                - img [ref=e75]
+                - text: 見積もり
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - paragraph [ref=e79]: 5件の製品
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - button [ref=e82] [cursor=pointer]:
+                - img [ref=e83]
+              - button [ref=e85] [cursor=pointer]:
+                - img [ref=e86]
+            - combobox [ref=e87]:
+              - option "名前順" [selected]
+              - option "価格順"
+              - option "納期順"
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - generic [ref=e91]:
+                - img "BOX型パウチ" [ref=e92]
+                - img [ref=e94]
+                - generic [ref=e100]: ボックス型パウチ
+              - generic [ref=e101]:
+                - img [ref=e103]
+                - img [ref=e107]
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - heading "BOX型パウチ" [level=3] [ref=e111]
+                - paragraph [ref=e112]: 箱型形状で自立性が高く、内容物の保護性に優れた立体パッケージ。
+              - generic [ref=e113]:
+                - generic [ref=e114]:
+                  - img [ref=e115]
+                  - generic [ref=e118]: 10日
+                  - generic [ref=e119]: 納期
+                - generic [ref=e120]:
+                  - img [ref=e121]
+                  - generic [ref=e125]: 800個
+                  - generic [ref=e126]: 最低注文
+                - generic [ref=e127]:
+                  - img [ref=e128]
+                  - generic [ref=e130]: 優れた密封性
+                  - generic [ref=e131]: 特徴
+              - generic [ref=e132]:
+                - generic [ref=e134]: PET
+                - generic [ref=e136]: ALUMINUM
+                - generic [ref=e138]: PE
+              - generic [ref=e139]:
+                - generic [ref=e140]:
+                  - generic [ref=e141]:
+                    - paragraph [ref=e142]: 初期費用
+                    - paragraph [ref=e143]: ¥28,000
+                  - generic [ref=e144]:
+                    - paragraph [ref=e145]: 単価
+                    - paragraph [ref=e146]: ¥16/個
+                - generic [ref=e147]:
+                  - generic [ref=e148]:
+                    - generic [ref=e149]:
+                      - img [ref=e150]
+                      - img [ref=e152]
+                      - img [ref=e154]
+                      - img [ref=e156]
+                      - img [ref=e158]
+                    - generic [ref=e160]: (4.8)
+                  - generic [ref=e161]: 23件の評価
+              - generic [ref=e162]:
+                - button "詳細" [ref=e163] [cursor=pointer]:
+                  - generic [ref=e164]:
+                    - img [ref=e165]
+                    - text: 詳細
+                - link "サンプル" [ref=e167] [cursor=pointer]:
+                  - /url: /samples/
+                  - button "サンプル" [ref=e168]:
+                    - generic [ref=e169]:
+                      - img [ref=e170]
+                      - text: サンプル
+                - link "見積" [ref=e174] [cursor=pointer]:
+                  - /url: /quote-simulator/
+                  - button "見積" [ref=e175]:
+                    - generic [ref=e176]:
+                      - img [ref=e177]
+                      - text: 見積
+                - button "AI" [ref=e179] [cursor=pointer]:
+                  - generic [ref=e180]:
+                    - img [ref=e181]
+                    - text: AI
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - img "スタンドパウチ" [ref=e187]
+                - img [ref=e189]
+                - generic [ref=e195]: スタンドパウチ
+              - generic [ref=e196]:
+                - img [ref=e198]
+                - img [ref=e202]
+            - generic [ref=e204]:
+              - generic [ref=e205]:
+                - heading "スタンドパウチ" [level=3] [ref=e206]
+                - paragraph [ref=e207]: 自立型で陳列性に優れ、チャック付きで再封可能。食品・健康食品・化粧品まで幅広く対応。
+              - generic [ref=e208]:
+                - generic [ref=e209]:
+                  - img [ref=e210]
+                  - generic [ref=e213]: 7日
+                  - generic [ref=e214]: 納期
+                - generic [ref=e215]:
+                  - img [ref=e216]
+                  - generic [ref=e220]: 500個
+                  - generic [ref=e221]: 最低注文
+                - generic [ref=e222]:
+                  - img [ref=e223]
+                  - generic [ref=e225]: 優れた密封性
+                  - generic [ref=e226]: 特徴
+              - generic [ref=e227]:
+                - generic [ref=e229]: PE
+                - generic [ref=e231]: PP
+                - generic [ref=e233]: PET
+                - generic [ref=e235]: "+1"
+              - generic [ref=e236]:
+                - generic [ref=e237]:
+                  - generic [ref=e238]:
+                    - paragraph [ref=e239]: 初期費用
+                    - paragraph [ref=e240]: ¥18,000
+                  - generic [ref=e241]:
+                    - paragraph [ref=e242]: 単価
+                    - paragraph [ref=e243]: ¥12/個
+                - generic [ref=e244]:
+                  - generic [ref=e245]:
+                    - generic [ref=e246]:
+                      - img [ref=e247]
+                      - img [ref=e249]
+                      - img [ref=e251]
+                      - img [ref=e253]
+                      - img [ref=e255]
+                    - generic [ref=e257]: (4.8)
+                  - generic [ref=e258]: 23件の評価
+              - generic [ref=e259]:
+                - button "詳細" [ref=e260] [cursor=pointer]:
+                  - generic [ref=e261]:
+                    - img [ref=e262]
+                    - text: 詳細
+                - link "サンプル" [ref=e264] [cursor=pointer]:
+                  - /url: /samples/
+                  - button "サンプル" [ref=e265]:
+                    - generic [ref=e266]:
+                      - img [ref=e267]
+                      - text: サンプル
+                - link "見積" [ref=e271] [cursor=pointer]:
+                  - /url: /quote-simulator/
+                  - button "見積" [ref=e272]:
+                    - generic [ref=e273]:
+                      - img [ref=e274]
+                      - text: 見積
+                - button "AI" [ref=e276] [cursor=pointer]:
+                  - generic [ref=e277]:
+                    - img [ref=e278]
+                    - text: AI
+          - generic [ref=e281]:
+            - generic [ref=e282]:
+              - generic [ref=e283]:
+                - img "スパウトパウチ" [ref=e284]
+                - img [ref=e286]
+                - generic [ref=e292]: スパウトパウチ
+              - generic [ref=e293]:
+                - img [ref=e295]
+                - img [ref=e299]
+            - generic [ref=e301]:
+              - generic [ref=e302]:
+                - heading "スパウトパウチ" [level=3] [ref=e303]
+                - paragraph [ref=e304]: 液体食品・化粧品・健康食品に最適なスパウト付きパウチ。軽量で持ち運びやすく、使いやすいスパウトで注ぎやすさを実現。
+              - generic [ref=e305]:
+                - generic [ref=e306]:
+                  - img [ref=e307]
+                  - generic [ref=e310]: 12日
+                  - generic [ref=e311]: 納期
+                - generic [ref=e312]:
+                  - img [ref=e313]
+                  - generic [ref=e317]: 1,000個
+                  - generic [ref=e318]: 最低注文
+                - generic [ref=e319]:
+                  - img [ref=e320]
+                  - generic [ref=e322]: 優れた密封性
+                  - generic [ref=e323]: 特徴
+              - generic [ref=e324]:
+                - generic [ref=e326]: PET
+                - generic [ref=e328]: ALUMINUM
+                - generic [ref=e330]: PE
+                - generic [ref=e332]: "+1"
+              - generic [ref=e333]:
+                - generic [ref=e334]:
+                  - generic [ref=e335]:
+                    - paragraph [ref=e336]: 初期費用
+                    - paragraph [ref=e337]: ¥30,000
+                  - generic [ref=e338]:
+                    - paragraph [ref=e339]: 単価
+                    - paragraph [ref=e340]: ¥18/個
+                - generic [ref=e341]:
+                  - generic [ref=e342]:
+                    - generic [ref=e343]:
+                      - img [ref=e344]
+                      - img [ref=e346]
+                      - img [ref=e348]
+                      - img [ref=e350]
+                      - img [ref=e352]
+                    - generic [ref=e354]: (4.8)
+                  - generic [ref=e355]: 23件の評価
+              - generic [ref=e356]:
+                - button "詳細" [ref=e357] [cursor=pointer]:
+                  - generic [ref=e358]:
+                    - img [ref=e359]
+                    - text: 詳細
+                - link "サンプル" [ref=e361] [cursor=pointer]:
+                  - /url: /samples/
+                  - button "サンプル" [ref=e362]:
+                    - generic [ref=e363]:
+                      - img [ref=e364]
+                      - text: サンプル
+                - link "見積" [ref=e368] [cursor=pointer]:
+                  - /url: /quote-simulator/
+                  - button "見積" [ref=e369]:
+                    - generic [ref=e370]:
+                      - img [ref=e371]
+                      - text: 見積
+                - button "AI" [ref=e373] [cursor=pointer]:
+                  - generic [ref=e374]:
+                    - img [ref=e375]
+                    - text: AI
+          - generic [ref=e378]:
+            - generic [ref=e379]:
+              - generic [ref=e380]:
+                - img "ロールフィルム" [ref=e381]
+                - img [ref=e383]
+                - generic [ref=e389]: ロールフィルム
+              - generic [ref=e390]:
+                - img [ref=e392]
+                - img [ref=e396]
+            - generic [ref=e398]:
+              - generic [ref=e399]:
+                - heading "ロールフィルム" [level=3] [ref=e400]
+                - paragraph [ref=e401]: 自動包装機に対応。大量生産に最適で、コスト削減を実現します。
+              - generic [ref=e402]:
+                - generic [ref=e403]:
+                  - img [ref=e404]
+                  - generic [ref=e407]: 7日
+                  - generic [ref=e408]: 納期
+                - generic [ref=e409]:
+                  - img [ref=e410]
+                  - generic [ref=e414]: 1,000個
+                  - generic [ref=e415]: 最低注文
+                - generic [ref=e416]:
+                  - img [ref=e417]
+                  - generic [ref=e419]: 優れた密封性
+                  - generic [ref=e420]: 特徴
+              - generic [ref=e421]:
+                - generic [ref=e423]: PE
+                - generic [ref=e425]: PP
+                - generic [ref=e427]: PET
+                - generic [ref=e429]: "+1"
+              - generic [ref=e430]:
+                - generic [ref=e431]:
+                  - generic [ref=e432]:
+                    - paragraph [ref=e433]: 初期費用
+                    - paragraph [ref=e434]: ¥5,000
+                  - generic [ref=e435]:
+                    - paragraph [ref=e436]: 単価
+                    - paragraph [ref=e437]: ¥5/個
+                - generic [ref=e438]:
+                  - generic [ref=e439]:
+                    - generic [ref=e440]:
+                      - img [ref=e441]
+                      - img [ref=e443]
+                      - img [ref=e445]
+                      - img [ref=e447]
+                      - img [ref=e449]
+                    - generic [ref=e451]: (4.8)
+                  - generic [ref=e452]: 23件の評価
+              - generic [ref=e453]:
+                - button "詳細" [ref=e454] [cursor=pointer]:
+                  - generic [ref=e455]:
+                    - img [ref=e456]
+                    - text: 詳細
+                - link "サンプル" [ref=e458] [cursor=pointer]:
+                  - /url: /samples/
+                  - button "サンプル" [ref=e459]:
+                    - generic [ref=e460]:
+                      - img [ref=e461]
+                      - text: サンプル
+                - link "見積" [ref=e465] [cursor=pointer]:
+                  - /url: /quote-simulator/
+                  - button "見積" [ref=e466]:
+                    - generic [ref=e467]:
+                      - img [ref=e468]
+                      - text: 見積
+                - button "AI" [ref=e470] [cursor=pointer]:
+                  - generic [ref=e471]:
+                    - img [ref=e472]
+                    - text: AI
+          - generic [ref=e475]:
+            - generic [ref=e476]:
+              - generic [ref=e477]:
+                - img "平袋" [ref=e478]
+                - img [ref=e480]
+                - generic [ref=e486]: 三方シール袋
+              - generic [ref=e487]:
+                - img [ref=e489]
+                - img [ref=e493]
+            - generic [ref=e495]:
+              - generic [ref=e496]:
+                - heading "平袋" [level=3] [ref=e497]
+                - paragraph [ref=e498]: 3面シールのシンプルでコストパフォーマンスに優れた定番パッケージ。小物や試供品、サンプル配布に最適。
+              - generic [ref=e499]:
+                - generic [ref=e500]:
+                  - img [ref=e501]
+                  - generic [ref=e504]: 5日
+                  - generic [ref=e505]: 納期
+                - generic [ref=e506]:
+                  - img [ref=e507]
+                  - generic [ref=e511]: 500個
+                  - generic [ref=e512]: 最低注文
+                - generic [ref=e513]:
+                  - img [ref=e514]
+                  - generic [ref=e516]: 優れた密封性
+                  - generic [ref=e517]: 特徴
+              - generic [ref=e518]:
+                - generic [ref=e520]: PE
+                - generic [ref=e522]: PP
+                - generic [ref=e524]: PET
+                - generic [ref=e526]: "+1"
+              - generic [ref=e527]:
+                - generic [ref=e528]:
+                  - generic [ref=e529]:
+                    - paragraph [ref=e530]: 初期費用
+                    - paragraph [ref=e531]: ¥8,000
+                  - generic [ref=e532]:
+                    - paragraph [ref=e533]: 単価
+                    - paragraph [ref=e534]: ¥8/個
+                - generic [ref=e535]:
+                  - generic [ref=e536]:
+                    - generic [ref=e537]:
+                      - img [ref=e538]
+                      - img [ref=e540]
+                      - img [ref=e542]
+                      - img [ref=e544]
+                      - img [ref=e546]
+                    - generic [ref=e548]: (4.8)
+                  - generic [ref=e549]: 23件の評価
+              - generic [ref=e550]:
+                - button "詳細" [ref=e551] [cursor=pointer]:
+                  - generic [ref=e552]:
+                    - img [ref=e553]
+                    - text: 詳細
+                - link "サンプル" [ref=e555] [cursor=pointer]:
+                  - /url: /samples/
+                  - button "サンプル" [ref=e556]:
+                    - generic [ref=e557]:
+                      - img [ref=e558]
+                      - text: サンプル
+                - link "見積" [ref=e562] [cursor=pointer]:
+                  - /url: /quote-simulator/
+                  - button "見積" [ref=e563]:
+                    - generic [ref=e564]:
+                      - img [ref=e565]
+                      - text: 見積
+                - button "AI" [ref=e567] [cursor=pointer]:
+                  - generic [ref=e568]:
+                    - img [ref=e569]
+                    - text: AI
+  - button "페이지 상단으로 이동":
+    - img
+  - contentinfo [ref=e572]:
+    - generic [ref=e575]:
+      - generic [ref=e576]:
+        - generic [ref=e577]:
+          - generic [ref=e578]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e579] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e581]
+              - generic [ref=e582]: Epackage Lab
+            - paragraph [ref=e583]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e584]:
+              - generic [ref=e585]:
+                - img [ref=e586]
+                - generic [ref=e589]: info@epackage-lab.com
+              - generic [ref=e590]:
+                - img [ref=e591]
+                - generic [ref=e593]: +81-80-6942-7235
+              - generic [ref=e594]:
+                - img [ref=e595]
+                - generic [ref=e598]: 兵庫県明石市上ノ丸2-11-21-102
+          - generic [ref=e599]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e600]
+            - generic [ref=e601]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e602] [cursor=pointer]:
+                - /url: /privacy/
+                - generic [ref=e603]:
+                  - img [ref=e605]
+                  - generic [ref=e607]:
+                    - heading "個人情報保護方針" [level=4] [ref=e608]
+                    - paragraph [ref=e609]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e610] [cursor=pointer]:
+                - /url: /terms/
+                - generic [ref=e611]:
+                  - img [ref=e613]
+                  - generic [ref=e616]:
+                    - heading "利用規約" [level=4] [ref=e617]
+                    - paragraph [ref=e618]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e619] [cursor=pointer]:
+                - /url: /legal/
+                - generic [ref=e620]:
+                  - img [ref=e622]
+                  - generic [ref=e627]:
+                    - heading "特定商取引法" [level=4] [ref=e628]
+                    - paragraph [ref=e629]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e630] [cursor=pointer]:
+                - /url: /csr/
+                - generic [ref=e631]:
+                  - img [ref=e633]
+                  - generic [ref=e635]:
+                    - heading "社会的責任" [level=4] [ref=e636]
+                    - paragraph [ref=e637]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e639]:
+            - generic [ref=e640]:
+              - img [ref=e642]
+              - heading "最新情報をお届け" [level=3] [ref=e644]
+              - paragraph [ref=e645]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e646]:
+              - generic [ref=e648]:
+                - img [ref=e650]
+                - textbox "メールアドレスを入力" [ref=e653]
+              - button "購読する" [ref=e654] [cursor=pointer]:
+                - generic [ref=e655]:
+                  - img [ref=e656]
+                  - text: 購読する
+        - generic [ref=e659]:
+          - generic [ref=e660]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e661]
+            - paragraph [ref=e662]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e663]:
+            - link "Facebook에서 팔로우하기" [ref=e664] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e665]
+            - link "Twitter에서 팔로우하기" [ref=e668] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e669]
+            - link "LinkedIn에서 팔로우하기" [ref=e672] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e673]
+            - link "Instagram에서 팔로우하기" [ref=e678] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e679]
+            - link "YouTube에서 팔로우하기" [ref=e683] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e684]
+      - generic [ref=e690]:
+        - paragraph [ref=e692]: © 2025 Epackage Lab. 全著作権所有.
+        - generic [ref=e693]:
+          - link "個人情報保護方針" [ref=e694] [cursor=pointer]:
+            - /url: /privacy/
+          - link "利用規約" [ref=e695] [cursor=pointer]:
+            - /url: /terms/
+          - link "サイトマップ" [ref=e696] [cursor=pointer]:
+            - /url: /sitemap/
+  - generic [ref=e697]:
+    - generic [ref=e698]:
+      - heading "Performance Metrics" [level=3] [ref=e699]
+      - generic [ref=e701]:
+        - text: "Score:"
+        - generic [ref=e702]: 100%
+    - generic [ref=e703]:
+      - generic [ref=e704]:
+        - generic [ref=e705]: "FCP:"
+        - generic [ref=e706]:
+          - generic [ref=e707]: 276ms
+          - generic [ref=e708]: good
+      - generic [ref=e709]:
+        - generic [ref=e710]: "TTFB:"
+        - generic [ref=e711]:
+          - generic [ref=e712]: 39ms
+          - generic [ref=e713]: good
+    - generic [ref=e715]:
+      - generic [ref=e716]: LCP < 2.5s
+      - generic [ref=e717]: INP < 200ms
+      - generic [ref=e718]: CLS < 0.1
+      - generic [ref=e719]: FCP < 1.8s
+      - generic [ref=e720]: TTFB < 800ms
+  - button "Open Next.js Dev Tools" [ref=e726] [cursor=pointer]:
+    - img [ref=e727]
+  - alert [ref=e730]
+```

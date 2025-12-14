@@ -1,0 +1,334 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+      - generic [ref=e7]:
+        - 'button "言語を選択: 日本語" [ref=e9] [cursor=pointer]':
+          - generic [ref=e10]:
+            - img [ref=e11]
+            - img [ref=e14]
+        - button "メニュー" [ref=e16] [cursor=pointer]:
+          - img [ref=e18]
+  - navigation "Breadcrumb" [ref=e19]:
+    - link "ホーム" [ref=e21]:
+      - /url: /
+      - img [ref=e22]
+      - generic [ref=e25]: ホーム
+    - generic [ref=e26]:
+      - generic [ref=e27]: /
+      - generic [ref=e28]: Simulation
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - link "メインコンテンツにスキップ" [ref=e31]:
+        - /url: "#main-content"
+      - main [ref=e32]:
+        - generic [ref=e35]:
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - generic [ref=e40]:
+                - heading "パッケージ自動見積システム" [level=1] [ref=e41]
+                - paragraph [ref=e42]: ステップバイステップで簡単にパッケージの見積もりを作成
+              - button "リセット" [ref=e43] [cursor=pointer]:
+                - img [ref=e45]
+                - generic [ref=e47]: リセット
+            - generic [ref=e49]:
+              - generic [ref=e50]:
+                - img [ref=e52]
+                - heading "基本設定" [level=3] [ref=e57]
+              - generic [ref=e58]:
+                - img [ref=e60]
+                - heading "数量と納期" [level=3] [ref=e63]
+              - generic [ref=e64]:
+                - img [ref=e66]
+                - heading "見積り結果" [level=3] [ref=e70]
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - generic [ref=e76]: 入力中
+                - generic [ref=e77]: ステップ 1 / 3
+              - generic [ref=e78]: リアルタイム価格計算機能付き
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - heading "仕様選択" [level=2] [ref=e85]
+              - paragraph [ref=e86]: ご希望のパッケージ仕様を選択してください。リアルタイムで概算見積もりが表示されます。
+            - generic [ref=e87]:
+              - generic [ref=e88]:
+                - generic [ref=e89]:
+                  - generic [ref=e90]:
+                    - generic [ref=e91]: 注文タイプ *
+                    - combobox [ref=e94] [cursor=pointer]:
+                      - generic [ref=e95]: 新規注文
+                      - img [ref=e98]
+                  - generic [ref=e100]:
+                    - generic [ref=e101]: 内容物 *
+                    - combobox [ref=e104] [cursor=pointer]:
+                      - generic [ref=e105]: 固体
+                      - img [ref=e108]
+                - generic [ref=e110]:
+                  - generic [ref=e111]: 形状選択 *
+                  - generic [ref=e112]:
+                    - generic [ref=e114] [cursor=pointer]:
+                      - img [ref=e116]
+                      - generic [ref=e120]: 平袋（三方シール）
+                    - generic [ref=e122] [cursor=pointer]:
+                      - img [ref=e124]
+                      - generic [ref=e126]: スタンド袋
+                    - generic [ref=e128] [cursor=pointer]:
+                      - img [ref=e130]
+                      - generic [ref=e133]: ガゼット袋
+                - generic [ref=e134]:
+                  - generic [ref=e135]: サイズ (mm) *
+                  - generic [ref=e136]:
+                    - generic [ref=e137]:
+                      - text: 幅 (W)
+                      - generic [ref=e138]:
+                        - spinbutton [ref=e139]
+                        - generic [ref=e140]: mm
+                    - img [ref=e142]
+                    - generic [ref=e145]:
+                      - text: 高さ (H)
+                      - generic [ref=e146]:
+                        - spinbutton [ref=e147]
+                        - generic [ref=e148]: mm
+              - generic [ref=e150]:
+                - heading "素材構成" [level=3] [ref=e153]
+                - generic [ref=e154]:
+                  - generic [ref=e155]:
+                    - text: 素材ジャンル
+                    - combobox [ref=e158] [cursor=pointer]:
+                      - generic [ref=e159]: 選択してください
+                      - img [ref=e162]
+                  - generic [ref=e164]:
+                    - text: 構成詳細
+                    - combobox [ref=e167] [cursor=pointer]:
+                      - generic [ref=e168]: 選択してください
+                      - img [ref=e171]
+          - generic [ref=e174]:
+            - generic [ref=e175]: まず基本情報を設定してください
+            - generic [ref=e176]:
+              - button "次のステップ" [disabled]:
+                - generic:
+                  - img
+                - generic: 次のステップ
+      - generic [ref=e177]:
+        - button "페이지 상단으로 이동":
+          - img
+        - contentinfo [ref=e178]:
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - link "Epackage Lab - ホームへ戻る" [ref=e185]:
+                    - /url: /
+                    - img "Epackage Lab Logo" [ref=e187]
+                    - generic [ref=e188]: Epackage Lab
+                  - paragraph [ref=e189]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+                  - generic [ref=e190]:
+                    - generic [ref=e191]:
+                      - img [ref=e192]
+                      - generic [ref=e195]: info@epackage-lab.com
+                    - generic [ref=e196]:
+                      - img [ref=e197]
+                      - generic [ref=e199]: +81-80-6942-7235
+                    - generic [ref=e200]:
+                      - img [ref=e201]
+                      - generic [ref=e204]: 兵庫県明石市上ノ丸2-11-21-102
+                - generic [ref=e205]:
+                  - heading "プライバシーとご利用規約" [level=3] [ref=e206]
+                  - generic [ref=e207]:
+                    - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e208]:
+                      - /url: /privacy/
+                      - generic [ref=e209]:
+                        - img [ref=e211]
+                        - generic [ref=e213]:
+                          - heading "個人情報保護方針" [level=4] [ref=e214]
+                          - paragraph [ref=e215]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+                    - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e216]:
+                      - /url: /terms/
+                      - generic [ref=e217]:
+                        - img [ref=e219]
+                        - generic [ref=e222]:
+                          - heading "利用規約" [level=4] [ref=e223]
+                          - paragraph [ref=e224]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+                    - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e225]:
+                      - /url: /legal/
+                      - generic [ref=e226]:
+                        - img [ref=e228]
+                        - generic [ref=e233]:
+                          - heading "特定商取引法" [level=4] [ref=e234]
+                          - paragraph [ref=e235]: 表示事項に基づく事業内容と販売条件の詳細情報
+                    - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e236]:
+                      - /url: /csr/
+                      - generic [ref=e237]:
+                        - img [ref=e239]
+                        - generic [ref=e241]:
+                          - heading "社会的責任" [level=4] [ref=e242]
+                          - paragraph [ref=e243]: 環境配慮と社会的責任に関する当社の取り組みについて
+                - generic [ref=e245]:
+                  - generic [ref=e246]:
+                    - img [ref=e248]
+                    - heading "最新情報をお届け" [level=3] [ref=e250]
+                    - paragraph [ref=e251]: 新製品情報や限定オファーをメールでお知らせします
+                  - generic [ref=e252]:
+                    - generic [ref=e254]:
+                      - img [ref=e256]
+                      - textbox "メールアドレスを入力" [ref=e259]
+                    - button "購読する" [ref=e260] [cursor=pointer]:
+                      - generic [ref=e261]:
+                        - img [ref=e262]
+                        - text: 購読する
+              - generic [ref=e265]:
+                - generic [ref=e266]:
+                  - heading "ソーシャルメディアでフォロー" [level=3] [ref=e267]
+                  - paragraph [ref=e268]: 最新ニュースや製品情報をお届けしています
+                - generic [ref=e269]:
+                  - link "Facebook에서 팔로우하기" [ref=e270]:
+                    - /url: https://facebook.com/epackagelab
+                    - img [ref=e271]
+                  - link "Twitter에서 팔로우하기" [ref=e274]:
+                    - /url: https://twitter.com/epackagelab
+                    - img [ref=e275]
+                  - link "LinkedIn에서 팔로우하기" [ref=e278]:
+                    - /url: https://linkedin.com/company/epackagelab
+                    - img [ref=e279]
+                  - link "Instagram에서 팔로우하기" [ref=e284]:
+                    - /url: https://instagram.com/epackagelab
+                    - img [ref=e285]
+                  - link "YouTube에서 팔로우하기" [ref=e289]:
+                    - /url: https://youtube.com/epackagelab
+                    - img [ref=e290]
+            - generic [ref=e296]:
+              - paragraph [ref=e298]: © 2025 Epackage Lab. 全著作権所有.
+              - generic [ref=e299]:
+                - link "個人情報保護方針" [ref=e300]:
+                  - /url: /privacy/
+                - link "利用規約" [ref=e301]:
+                  - /url: /terms/
+                - link "サイトマップ" [ref=e302]:
+                  - /url: /sitemap/
+  - button "페이지 상단으로 이동":
+    - img
+  - contentinfo [ref=e303]:
+    - generic [ref=e306]:
+      - generic [ref=e307]:
+        - generic [ref=e308]:
+          - generic [ref=e309]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e310]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e312]
+              - generic [ref=e313]: Epackage Lab
+            - paragraph [ref=e314]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e315]:
+              - generic [ref=e316]:
+                - img [ref=e317]
+                - generic [ref=e320]: info@epackage-lab.com
+              - generic [ref=e321]:
+                - img [ref=e322]
+                - generic [ref=e324]: +81-80-6942-7235
+              - generic [ref=e325]:
+                - img [ref=e326]
+                - generic [ref=e329]: 兵庫県明石市上ノ丸2-11-21-102
+          - generic [ref=e330]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e331]
+            - generic [ref=e332]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e333]:
+                - /url: /privacy/
+                - generic [ref=e334]:
+                  - img [ref=e336]
+                  - generic [ref=e338]:
+                    - heading "個人情報保護方針" [level=4] [ref=e339]
+                    - paragraph [ref=e340]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e341]:
+                - /url: /terms/
+                - generic [ref=e342]:
+                  - img [ref=e344]
+                  - generic [ref=e347]:
+                    - heading "利用規約" [level=4] [ref=e348]
+                    - paragraph [ref=e349]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e350]:
+                - /url: /legal/
+                - generic [ref=e351]:
+                  - img [ref=e353]
+                  - generic [ref=e358]:
+                    - heading "特定商取引法" [level=4] [ref=e359]
+                    - paragraph [ref=e360]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e361]:
+                - /url: /csr/
+                - generic [ref=e362]:
+                  - img [ref=e364]
+                  - generic [ref=e366]:
+                    - heading "社会的責任" [level=4] [ref=e367]
+                    - paragraph [ref=e368]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e370]:
+            - generic [ref=e371]:
+              - img [ref=e373]
+              - heading "最新情報をお届け" [level=3] [ref=e375]
+              - paragraph [ref=e376]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e377]:
+              - generic [ref=e379]:
+                - img [ref=e381]
+                - textbox "メールアドレスを入力" [ref=e384]
+              - button "購読する" [ref=e385] [cursor=pointer]:
+                - generic [ref=e386]:
+                  - img [ref=e387]
+                  - text: 購読する
+        - generic [ref=e390]:
+          - generic [ref=e391]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e392]
+            - paragraph [ref=e393]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e394]:
+            - link "Facebook에서 팔로우하기" [ref=e395]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e396]
+            - link "Twitter에서 팔로우하기" [ref=e399]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e400]
+            - link "LinkedIn에서 팔로우하기" [ref=e403]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e404]
+            - link "Instagram에서 팔로우하기" [ref=e409]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e410]
+            - link "YouTube에서 팔로우하기" [ref=e414]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e415]
+      - generic [ref=e421]:
+        - paragraph [ref=e423]: © 2025 Epackage Lab. 全著作権所有.
+        - generic [ref=e424]:
+          - link "個人情報保護方針" [ref=e425]:
+            - /url: /privacy/
+          - link "利用規約" [ref=e426]:
+            - /url: /terms/
+          - link "サイトマップ" [ref=e427]:
+            - /url: /sitemap/
+  - generic [ref=e428]:
+    - generic [ref=e429]:
+      - heading "Performance Metrics" [level=3] [ref=e430]
+      - generic [ref=e432]:
+        - text: "Score:"
+        - generic [ref=e433]: 100%
+    - generic [ref=e434]:
+      - generic [ref=e435]:
+        - generic [ref=e436]: "FCP:"
+        - generic [ref=e437]:
+          - generic [ref=e438]: 147ms
+          - generic [ref=e439]: good
+      - generic [ref=e440]:
+        - generic [ref=e441]: "TTFB:"
+        - generic [ref=e442]:
+          - generic [ref=e443]: 65ms
+          - generic [ref=e444]: good
+    - generic [ref=e446]:
+      - generic [ref=e447]: LCP < 2.5s
+      - generic [ref=e448]: INP < 200ms
+      - generic [ref=e449]: CLS < 0.1
+      - generic [ref=e450]: FCP < 1.8s
+      - generic [ref=e451]: TTFB < 800ms
+  - button "Open Next.js Dev Tools" [ref=e457] [cursor=pointer]:
+    - img [ref=e458]
+  - alert [ref=e463]
+```

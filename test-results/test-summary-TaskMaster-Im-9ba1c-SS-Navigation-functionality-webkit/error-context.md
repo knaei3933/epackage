@@ -1,0 +1,436 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10]:
+          - /url: /
+        - link "製品カタログ" [ref=e12]:
+          - /url: /catalog/
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19]:
+          - /url: /archives/
+        - link "お見積り" [ref=e21]:
+          - /url: /quote-simulator/
+      - generic [ref=e22]:
+        - 'button "言語を選択: 日本語" [ref=e24] [cursor=pointer]':
+          - generic [ref=e25]:
+            - img [ref=e26]
+            - text: 日本語
+            - img [ref=e29]
+        - link "お問い合わせ" [ref=e32]:
+          - /url: /contact/
+          - button "お問い合わせ" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: お問い合わせ
+  - main [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - img "オリジナル包装材専門 - 高品質なスタンドパウチ製品" [ref=e40]
+          - img "高品質スタンドパウチ製品のアップショット" [ref=e47]
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - heading "あなたの製品を 最適な包装で 輝かせる" [level=1] [ref=e53]:
+              - generic [ref=e54]: あなたの製品を
+              - generic [ref=e55]: 最適な包装で
+              - generic [ref=e56]: 輝かせる
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - generic [ref=e59]:
+                  - img [ref=e60]
+                  - generic [ref=e63]:
+                    - generic [ref=e64]: "500"
+                    - generic [ref=e65]: 枚から製造可能
+                - generic [ref=e66]:
+                  - img [ref=e67]
+                  - generic [ref=e69]:
+                    - generic [ref=e70]: "10"
+                    - generic [ref=e71]: 日最短納期
+                - generic [ref=e72]:
+                  - img [ref=e73]
+                  - generic [ref=e75]:
+                    - generic [ref=e76]: "100"
+                    - generic [ref=e77]: 社以上実績
+              - paragraph [ref=e78]: 食品・化粧品・電子部品など、あらゆる業界に対応する高品質パウチ包装。 あなたの製品価値を最大限に引き出す最適な包装ソリューションをご提案します。
+          - generic [ref=e79]:
+            - link "全製品を見る 人気" [ref=e80]:
+              - /url: /catalog/
+              - button "全製品を見る" [ref=e81] [cursor=pointer]:
+                - generic [ref=e84]:
+                  - img [ref=e85]
+                  - text: 全製品を見る
+                  - img [ref=e89]
+              - generic [ref=e91]: 人気
+            - link "即時見積もり" [ref=e92]:
+              - /url: /quote-simulator/
+              - button "即時見積もり" [ref=e93] [cursor=pointer]:
+                - generic [ref=e95]:
+                  - img [ref=e96]
+                  - text: 即時見積もり
+            - link "無料サンプル" [ref=e98]:
+              - /url: /samples/
+              - button "無料サンプル" [ref=e99] [cursor=pointer]:
+                - generic [ref=e101]:
+                  - img [ref=e102]
+                  - text: 無料サンプル
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - img [ref=e110]
+              - generic [ref=e113]: 21日
+              - paragraph [ref=e114]: 最短納期
+              - generic [ref=e115]: 緊急対応可能
+            - generic [ref=e116]:
+              - img [ref=e118]
+              - generic [ref=e120]: 100%
+              - paragraph [ref=e121]: 品検合格率
+              - generic [ref=e122]: ISO9001認証
+            - generic [ref=e123]:
+              - img [ref=e125]
+              - generic [ref=e127]: 30%
+              - paragraph [ref=e128]: コスト削減
+              - generic [ref=e129]: 日本製比
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - img [ref=e132]
+              - generic [ref=e135]: 食品包装対応
+            - generic [ref=e136]:
+              - img [ref=e137]
+              - generic [ref=e140]: JIS規格対応
+            - generic [ref=e141]:
+              - img [ref=e142]
+              - generic [ref=e145]: 完全カスタマイズ
+            - generic [ref=e146]:
+              - img [ref=e147]
+              - generic [ref=e150]: 日本語サポート
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - heading "あなたの製品に最適な パッケージソリューション" [level=2] [ref=e159]:
+            - text: あなたの製品に最適な
+            - text: パッケージソリューション
+          - paragraph [ref=e160]: 食品・化粧品・電子部品など、あらゆる製品に対応する専門パウチ製品。 お客様のニーズに合わせて最適な包装ソリューションをご提案します。
+        - link "全製品を見る" [ref=e211]:
+          - /url: /catalog/
+          - button "全製品を見る" [ref=e212] [cursor=pointer]:
+            - generic [ref=e213]:
+              - text: 全製品を見る
+              - img [ref=e214]
+      - generic [ref=e217]:
+        - generic [ref=e219]:
+          - generic [ref=e220]:
+            - img [ref=e221]
+            - generic [ref=e224]: 製造工程の紹介
+          - heading "一貫したパウチ製造サービス 印刷、ラミネート、スリッティング、パウチ加工" [level=2] [ref=e225]:
+            - text: 一貫したパウチ製造サービス
+            - generic [ref=e226]: 印刷、ラミネート、スリッティング、パウチ加工
+          - paragraph [ref=e227]: 印刷、ラミネート、スリッティング、パウチ加工まで一貫して製作しています。 NON-VOC環境配慮型設備と精密加工技術で高品質包装材を生産します。
+        - generic [ref=e230]:
+          - generic [ref=e232]:
+            - generic [ref=e235]:
+              - generic [ref=e236]: "01"
+              - generic [ref=e237]:
+                - generic [ref=e238]:
+                  - heading "デジタル印刷" [level=3] [ref=e239]
+                  - paragraph [ref=e240]: Digital Printing
+                - paragraph [ref=e241]: HP Indigo 25000を活用した高品質デジタル印刷。小ロットから大量生産まで迅速なリードタイムと正確な色再現を実現します。
+                - generic [ref=e242]:
+                  - heading "主な特徴:" [level=4] [ref=e243]
+                  - generic [ref=e244]:
+                    - generic [ref=e245]:
+                      - img [ref=e246]
+                      - generic [ref=e249]: HP Indigo 25000
+                    - generic [ref=e250]:
+                      - img [ref=e251]
+                      - generic [ref=e254]: 高鮮明カラー
+                    - generic [ref=e255]:
+                      - img [ref=e256]
+                      - generic [ref=e259]: 迅速リードタイム
+                    - generic [ref=e260]:
+                      - img [ref=e261]
+                      - generic [ref=e264]: カスタム印刷
+            - img "デジタル印刷" [ref=e267]
+            - img [ref=e270]
+          - generic [ref=e274]:
+            - generic [ref=e277]:
+              - generic [ref=e278]: "02"
+              - generic [ref=e279]:
+                - generic [ref=e280]:
+                  - heading "ラミネート加工" [level=3] [ref=e281]
+                  - paragraph [ref=e282]: Laminating
+                - paragraph [ref=e283]: NON-VOC環境配慮型ラミネート工法。有機溶媒を使用しない環境配慮型設備で安全で清潔な包装材を生産します。
+                - generic [ref=e284]:
+                  - heading "主な特徴:" [level=4] [ref=e285]
+                  - generic [ref=e286]:
+                    - generic [ref=e287]:
+                      - img [ref=e288]
+                      - generic [ref=e291]: NON-VOC工法
+                    - generic [ref=e292]:
+                      - img [ref=e293]
+                      - generic [ref=e296]: 溶剤フリー(Solvent Free)
+                    - generic [ref=e297]:
+                      - img [ref=e298]
+                      - generic [ref=e301]: 環境配慮材料
+                    - generic [ref=e302]:
+                      - img [ref=e303]
+                      - generic [ref=e306]: 安全性確保
+            - img "ラミネート加工" [ref=e309]
+            - img [ref=e312]
+          - generic [ref=e315]:
+            - generic [ref=e318]:
+              - generic [ref=e319]: "03"
+              - generic [ref=e320]:
+                - generic [ref=e321]:
+                  - heading "スリッティング/切断" [level=3] [ref=e322]
+                  - paragraph [ref=e323]: Slitting/Cutting
+                - paragraph [ref=e324]: 精密スリッティング及び切断技術。島打刃を活用しμm単位の精密な加工精度を維持します。
+                - generic [ref=e325]:
+                  - heading "主な特徴:" [level=4] [ref=e326]
+                  - generic [ref=e327]:
+                    - generic [ref=e328]:
+                      - img [ref=e329]
+                      - generic [ref=e332]: 島打刃設備
+                    - generic [ref=e333]:
+                      - img [ref=e334]
+                      - generic [ref=e337]: μm単位精度
+                    - generic [ref=e338]:
+                      - img [ref=e339]
+                      - generic [ref=e342]: 自動品質検査
+                    - generic [ref=e343]:
+                      - img [ref=e344]
+                      - generic [ref=e347]: 一貫した規格
+            - img "スリッティング/切断" [ref=e350]
+            - img [ref=e353]
+          - generic [ref=e357]:
+            - generic [ref=e360]:
+              - generic [ref=e361]: "04"
+              - generic [ref=e362]:
+                - generic [ref=e363]:
+                  - heading "パウチ加工" [level=3] [ref=e364]
+                  - paragraph [ref=e365]: Pouch Forming
+                - paragraph [ref=e366]: 一貫した生産ラインシステム。印刷、ラミネート、スリッティング、パウチ加工まで一つのシステムで管理し品質の一貫性を保証します。
+                - generic [ref=e367]:
+                  - heading "主な特徴:" [level=4] [ref=e368]
+                  - generic [ref=e369]:
+                    - generic [ref=e370]:
+                      - img [ref=e371]
+                      - generic [ref=e374]: 統合生産ライン
+                    - generic [ref=e375]:
+                      - img [ref=e376]
+                      - generic [ref=e379]: 品質一貫性
+                    - generic [ref=e380]:
+                      - img [ref=e381]
+                      - generic [ref=e384]: 工期短縮
+                    - generic [ref=e385]:
+                      - img [ref=e386]
+                      - generic [ref=e389]: 費用効率性
+            - img "パウチ加工" [ref=e392]
+            - img [ref=e395]
+        - generic [ref=e400]:
+          - generic [ref=e401]:
+            - img [ref=e404]
+            - generic [ref=e407]: 99.8%
+            - generic [ref=e408]: 品質合格率
+          - generic [ref=e409]:
+            - img [ref=e412]
+            - generic [ref=e415]: 24時間
+            - generic [ref=e416]: 生産リードタイム
+          - generic [ref=e417]:
+            - img [ref=e420]
+            - generic [ref=e425]: 15年
+            - generic [ref=e426]: 平均従業年数
+          - generic [ref=e427]:
+            - img [ref=e430]
+            - generic [ref=e433]: ISO9001
+            - generic [ref=e434]: 国際品質規格
+      - generic [ref=e438]:
+        - generic [ref=e439]:
+          - img [ref=e440]
+          - generic [ref=e444]: 製品購入・見積もり
+        - heading "あなたの製品包装を今すぐ始める" [level=2] [ref=e445]
+        - paragraph [ref=e446]: 製品確認から価格計算、専門家相談まで、あなたのニーズに最適な方法をお選びください。
+        - generic [ref=e447]:
+          - link "全製品カタログ 全製品を詳しく確認。仕様と価格を比較。 おすすめ 全製品確認" [ref=e448]:
+            - /url: /catalog/
+            - generic [ref=e450]:
+              - img [ref=e452]
+              - heading "全製品カタログ" [level=3] [ref=e456]
+              - paragraph [ref=e457]: 全製品を詳しく確認。仕様と価格を比較。
+              - generic [ref=e458]:
+                - generic [ref=e459]: おすすめ
+                - generic [ref=e460]: 全製品確認
+          - link "価格計算 即座に製品価格を計算。仕様調整で最適コスト発見。 人気 即時計算" [ref=e461]:
+            - /url: /roi-calculator/
+            - generic [ref=e463]:
+              - img [ref=e465]
+              - heading "価格計算" [level=3] [ref=e467]
+              - paragraph [ref=e468]: 即座に製品価格を計算。仕様調整で最適コスト発見。
+              - generic [ref=e469]:
+                - generic [ref=e470]: 人気
+                - generic [ref=e471]: 即時計算
+          - link "無料サンプル 実際の製品品質を確認。最大5種類サンプル発送。 定番 実物確認" [ref=e472]:
+            - /url: /samples/
+            - generic [ref=e474]:
+              - img [ref=e476]
+              - heading "無料サンプル" [level=3] [ref=e481]
+              - paragraph [ref=e482]: 実際の製品品質を確認。最大5種類サンプル発送。
+              - generic [ref=e483]:
+                - generic [ref=e484]: 定番
+                - generic [ref=e485]: 実物確認
+          - link "カスタム注文 完全オリジナル包装をご要望。詳細仕様でご提案。 特注 完全カスタム" [ref=e486]:
+            - /url: /inquiry/detailed/
+            - generic [ref=e488]:
+              - img [ref=e490]
+              - heading "カスタム注文" [level=3] [ref=e492]
+              - paragraph [ref=e493]: 完全オリジナル包装をご要望。詳細仕様でご提案。
+              - generic [ref=e494]:
+                - generic [ref=e495]: 特注
+                - generic [ref=e496]: 完全カスタム
+          - link "簡単見積もり 手軽にご要望を送信。迅速な見積もりとご提案。 手軽 迅速対応" [ref=e497]:
+            - /url: /contact/
+            - generic [ref=e499]:
+              - img [ref=e501]
+              - heading "簡単見積もり" [level=3] [ref=e503]
+              - paragraph [ref=e504]: 手軽にご要望を送信。迅速な見積もりとご提案。
+              - generic [ref=e505]:
+                - generic [ref=e506]: 手軽
+                - generic [ref=e507]: 迅速対応
+          - link "製品資料 仕様書、事例集、ROI比較資料を無料ダウンロード。 新着 専門資料" [ref=e508]:
+            - /url: /premium-content/
+            - generic [ref=e510]:
+              - img [ref=e512]
+              - heading "製品資料" [level=3] [ref=e515]
+              - paragraph [ref=e516]: 仕様書、事例集、ROI比較資料を無料ダウンロード。
+              - generic [ref=e517]:
+                - generic [ref=e518]: 新着
+                - generic [ref=e519]: 専門資料
+        - generic [ref=e520]:
+          - generic [ref=e521]:
+            - img [ref=e522]
+            - generic [ref=e525]: 24時間対応
+          - generic [ref=e526]:
+            - img [ref=e527]
+            - generic [ref=e530]: 無料相談
+          - generic [ref=e531]:
+            - img [ref=e532]
+            - generic [ref=e535]: 100社以上実績
+          - generic [ref=e536]:
+            - img [ref=e537]
+            - generic [ref=e540]: 専門スタッフ
+  - button "페이지 상단으로 이동":
+    - img
+  - contentinfo [ref=e541]:
+    - generic [ref=e544]:
+      - generic [ref=e545]:
+        - generic [ref=e546]:
+          - generic [ref=e547]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e548]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e550]
+              - generic [ref=e551]: Epackage Lab
+            - paragraph [ref=e552]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e553]:
+              - generic [ref=e554]:
+                - img [ref=e555]
+                - generic [ref=e558]: info@epackage-lab.com
+              - generic [ref=e559]:
+                - img [ref=e560]
+                - generic [ref=e562]: +81-80-6942-7235
+              - generic [ref=e563]:
+                - img [ref=e564]
+                - generic [ref=e567]: 兵庫県明石市上ノ丸2-11-21-102
+          - generic [ref=e568]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e569]
+            - generic [ref=e570]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e571]:
+                - /url: /privacy/
+                - generic [ref=e572]:
+                  - img [ref=e574]
+                  - generic [ref=e576]:
+                    - heading "個人情報保護方針" [level=4] [ref=e577]
+                    - paragraph [ref=e578]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e579]:
+                - /url: /terms/
+                - generic [ref=e580]:
+                  - img [ref=e582]
+                  - generic [ref=e585]:
+                    - heading "利用規約" [level=4] [ref=e586]
+                    - paragraph [ref=e587]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e588]:
+                - /url: /legal/
+                - generic [ref=e589]:
+                  - img [ref=e591]
+                  - generic [ref=e596]:
+                    - heading "特定商取引法" [level=4] [ref=e597]
+                    - paragraph [ref=e598]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e599]:
+                - /url: /csr/
+                - generic [ref=e600]:
+                  - img [ref=e602]
+                  - generic [ref=e604]:
+                    - heading "社会的責任" [level=4] [ref=e605]
+                    - paragraph [ref=e606]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e608]:
+            - generic [ref=e609]:
+              - img [ref=e611]
+              - heading "最新情報をお届け" [level=3] [ref=e613]
+              - paragraph [ref=e614]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e615]:
+              - generic [ref=e617]:
+                - img [ref=e619]
+                - textbox "メールアドレスを入力" [ref=e622]
+              - button "購読する" [ref=e623] [cursor=pointer]:
+                - generic [ref=e624]:
+                  - img [ref=e625]
+                  - text: 購読する
+        - generic [ref=e628]:
+          - generic [ref=e629]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e630]
+            - paragraph [ref=e631]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e632]:
+            - link "Facebook에서 팔로우하기" [ref=e633]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e634]
+            - link "Twitter에서 팔로우하기" [ref=e637]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e638]
+            - link "LinkedIn에서 팔로우하기" [ref=e641]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e642]
+            - link "Instagram에서 팔로우하기" [ref=e647]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e648]
+            - link "YouTube에서 팔로우하기" [ref=e652]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e653]
+      - generic [ref=e659]:
+        - paragraph [ref=e661]: © 2025 Epackage Lab. 全著作権所有.
+        - generic [ref=e662]:
+          - link "個人情報保護方針" [ref=e663]:
+            - /url: /privacy/
+          - link "利用規約" [ref=e664]:
+            - /url: /terms/
+          - link "サイトマップ" [ref=e665]:
+            - /url: /sitemap/
+  - generic [ref=e666]:
+    - generic [ref=e667]:
+      - heading "Performance Metrics" [level=3] [ref=e668]
+      - generic [ref=e670]:
+        - text: "Score:"
+        - generic [ref=e671]: 0%
+    - generic [ref=e673]:
+      - generic [ref=e674]: LCP < 2.5s
+      - generic [ref=e675]: INP < 200ms
+      - generic [ref=e676]: CLS < 0.1
+      - generic [ref=e677]: FCP < 1.8s
+      - generic [ref=e678]: TTFB < 800ms
+  - button "Open Next.js Dev Tools" [ref=e684] [cursor=pointer]:
+    - img [ref=e685]
+  - alert [ref=e690]
+```

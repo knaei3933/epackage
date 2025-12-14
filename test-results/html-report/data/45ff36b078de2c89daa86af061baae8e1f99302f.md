@@ -1,0 +1,166 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "製品カタログ" [ref=e12] [cursor=pointer]:
+          - /url: /catalog/
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19] [cursor=pointer]:
+          - /url: /archives/
+        - link "お見積り" [ref=e21] [cursor=pointer]:
+          - /url: /quote-simulator/
+      - generic [ref=e22]:
+        - 'button "言語を選択: 日本語" [ref=e24] [cursor=pointer]':
+          - generic [ref=e25]:
+            - img [ref=e26]
+            - text: 日本語
+            - img [ref=e30]
+        - link "お問い合わせ" [ref=e33] [cursor=pointer]:
+          - /url: /contact/
+          - button "お問い合わせ" [ref=e34]:
+            - generic [ref=e35]: お問い合わせ
+  - navigation "Breadcrumb" [ref=e36]:
+    - link "ホーム" [ref=e38] [cursor=pointer]:
+      - /url: /
+      - img [ref=e39]
+      - generic [ref=e42]: ホーム
+    - generic [ref=e43]:
+      - generic [ref=e44]: /
+      - generic [ref=e45]: About
+  - main [ref=e46]:
+    - generic [ref=e48]:
+      - heading "404" [level=1] [ref=e49]
+      - heading "This page could not be found." [level=2] [ref=e51]
+  - button "페이지 상단으로 이동":
+    - img
+  - contentinfo [ref=e52]:
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e59] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e61]
+              - generic [ref=e62]: Epackage Lab
+            - paragraph [ref=e63]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - img [ref=e66]
+                - generic [ref=e69]: info@epackage-lab.com
+              - generic [ref=e70]:
+                - img [ref=e71]
+                - generic [ref=e73]: +81-80-6942-7235
+              - generic [ref=e74]:
+                - img [ref=e75]
+                - generic [ref=e78]: 兵庫県明石市上ノ丸2-11-21-102
+          - generic [ref=e79]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e80]
+            - generic [ref=e81]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e82] [cursor=pointer]:
+                - /url: /privacy/
+                - generic [ref=e83]:
+                  - img [ref=e85]
+                  - generic [ref=e87]:
+                    - heading "個人情報保護方針" [level=4] [ref=e88]
+                    - paragraph [ref=e89]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e90] [cursor=pointer]:
+                - /url: /terms/
+                - generic [ref=e91]:
+                  - img [ref=e93]
+                  - generic [ref=e99]:
+                    - heading "利用規約" [level=4] [ref=e100]
+                    - paragraph [ref=e101]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e102] [cursor=pointer]:
+                - /url: /legal/
+                - generic [ref=e103]:
+                  - img [ref=e105]
+                  - generic [ref=e110]:
+                    - heading "特定商取引法" [level=4] [ref=e111]
+                    - paragraph [ref=e112]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e113] [cursor=pointer]:
+                - /url: /csr/
+                - generic [ref=e114]:
+                  - img [ref=e116]
+                  - generic [ref=e118]:
+                    - heading "社会的責任" [level=4] [ref=e119]
+                    - paragraph [ref=e120]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e122]:
+            - generic [ref=e123]:
+              - img [ref=e125]
+              - heading "最新情報をお届け" [level=3] [ref=e127]
+              - paragraph [ref=e128]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e129]:
+              - generic [ref=e131]:
+                - img [ref=e133]
+                - textbox "メールアドレスを入力" [ref=e136]
+              - button "購読する" [ref=e137] [cursor=pointer]:
+                - generic [ref=e138]:
+                  - img [ref=e139]
+                  - text: 購読する
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e144]
+            - paragraph [ref=e145]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e146]:
+            - link "Facebook에서 팔로우하기" [ref=e147] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e148]
+            - link "Twitter에서 팔로우하기" [ref=e151] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e152]
+            - link "LinkedIn에서 팔로우하기" [ref=e155] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e156]
+            - link "Instagram에서 팔로우하기" [ref=e161] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e162]
+            - link "YouTube에서 팔로우하기" [ref=e167] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e168]
+      - generic [ref=e174]:
+        - paragraph [ref=e176]: © 2025 Epackage Lab. 全著作権所有.
+        - generic [ref=e177]:
+          - link "個人情報保護方針" [ref=e178] [cursor=pointer]:
+            - /url: /privacy/
+          - link "利用規約" [ref=e179] [cursor=pointer]:
+            - /url: /terms/
+          - link "サイトマップ" [ref=e180] [cursor=pointer]:
+            - /url: /sitemap/
+  - generic [ref=e181]:
+    - generic [ref=e182]:
+      - heading "Performance Metrics" [level=3] [ref=e183]
+      - generic [ref=e185]:
+        - text: "Score:"
+        - generic [ref=e186]: 100%
+    - generic [ref=e187]:
+      - generic [ref=e188]:
+        - generic [ref=e189]: "FCP:"
+        - generic [ref=e190]:
+          - generic [ref=e191]: 199ms
+          - generic [ref=e192]: good
+      - generic [ref=e193]:
+        - generic [ref=e194]: "TTFB:"
+        - generic [ref=e195]:
+          - generic [ref=e196]: 80ms
+          - generic [ref=e197]: good
+    - generic [ref=e199]:
+      - generic [ref=e200]: LCP < 2.5s
+      - generic [ref=e201]: INP < 200ms
+      - generic [ref=e202]: CLS < 0.1
+      - generic [ref=e203]: FCP < 1.8s
+      - generic [ref=e204]: TTFB < 800ms
+  - button "Open Next.js Dev Tools" [ref=e210] [cursor=pointer]:
+    - img [ref=e211]
+  - alert [ref=e215]
+```

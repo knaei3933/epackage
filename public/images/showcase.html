@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>패키징 이미지 쇼케이스 | パッケージング画像ショーケース</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            font-size: 36px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 18px;
+        }
+        .source-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .tab {
+            padding: 12px 30px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #4a90e2, #1e3a5f);
+            color: white;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .image-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .image-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .image-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+        .image-info {
+            padding: 20px;
+            background: linear-gradient(to bottom, #fff, #f8f9fa);
+        }
+        .image-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .image-source {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #e8f4fd;
+            color: #4a90e2;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        .stat-card {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎌 実際のパッケージング製品画像</h1>
+        <p class="subtitle">韓国・日本の高品質パッケージング製品サンプル</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">37</div>
+                <div class="stat-label">Total Images</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Sources</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Real Products</div>
+            </div>
+        </div>
+        
+        <div class="source-tabs">
+            <button class="tab active" onclick="filterImages('all')">All Images</button>
+            <button class="tab" onclick="filterImages('korea')">🇰🇷 Korean</button>
+            <button class="tab" onclick="filterImages('japan')">🇯🇵 Japanese</button>
+        </div>
+        
+        <div class="gallery">
+
+            <div class="image-card" data-source="korea">
+                <img src="auto-roll-real.jpg" alt="Auto Roll Real" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Auto Roll Real</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>auto-roll-real.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="cutting-process.jpg" alt="Cutting Process" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Cutting Process</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>cutting-process.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-deco-01.png" alt="Ixlab Deco 01" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Deco 01</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-deco-01.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-deco-02.png" alt="Ixlab Deco 02" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Deco 02</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-deco-02.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-deco-03.png" alt="Ixlab Deco 03" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Deco 03</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-deco-03.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-deco-04.png" alt="Ixlab Deco 04" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Deco 04</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-deco-04.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-feature-01.jpg" alt="Ixlab Feature 01" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Feature 01</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-feature-01.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-feature-02.jpg" alt="Ixlab Feature 02" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Feature 02</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-feature-02.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-feature-03.jpg" alt="Ixlab Feature 03" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Feature 03</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-feature-03.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-logo.png" alt="Ixlab Logo" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Logo</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-logo.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-main-visual.png" alt="Ixlab Main Visual" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Main Visual</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-main-visual.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-products-01.png" alt="Ixlab Products 01" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Products 01</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-products-01.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-products-02.png" alt="Ixlab Products 02" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Products 02</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-products-02.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-products-03.png" alt="Ixlab Products 03" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Products 03</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-products-03.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-voice-01.png" alt="Ixlab Voice 01" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Voice 01</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-voice-01.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-voice-02.png" alt="Ixlab Voice 02" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Voice 02</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-voice-02.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-voice-03.png" alt="Ixlab Voice 03" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Voice 03</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-voice-03.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="japan">
+                <img src="ixlab-voice-04.png" alt="Ixlab Voice 04" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Ixlab Voice 04</div>
+                    <div class="image-source">
+                        <span class="badge">🇯🇵 Japan</span>
+                        <span>ixlab-voice-04.png</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="m-bang-real.jpg" alt="M Bang Real" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">M Bang Real</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>m-bang-real.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="m-way-sample.jpg" alt="M Way Sample" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">M Way Sample</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>m-way-sample.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="material-kraft.jpg" alt="Material Kraft" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Material Kraft</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>material-kraft.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="material-ny.jpg" alt="Material Ny" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Material Ny</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>material-ny.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="material-pet.jpg" alt="Material Pet" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Material Pet</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>material-pet.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="option-valve.jpg" alt="Option Valve" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Option Valve</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>option-valve.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="option-window.jpg" alt="Option Window" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Option Window</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>option-window.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="option-zipper.jpg" alt="Option Zipper" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Option Zipper</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>option-zipper.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="printing-process.jpg" alt="Printing Process" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Printing Process</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>printing-process.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="product-banner-1.jpg" alt="Product Banner 1" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Product Banner 1</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>product-banner-1.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="product-banner-2.jpg" alt="Product Banner 2" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Product Banner 2</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>product-banner-2.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="product-banner-3.jpg" alt="Product Banner 3" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Product Banner 3</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>product-banner-3.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="product-banner-4.jpg" alt="Product Banner 4" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Product Banner 4</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>product-banner-4.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="roll-sample.jpg" alt="Roll Sample" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Roll Sample</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>roll-sample.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="sambangjil-real.jpg" alt="Sambangjil Real" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Sambangjil Real</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>sambangjil-real.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="sealing-process.jpg" alt="Sealing Process" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Sealing Process</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>sealing-process.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="stand-pouch-real.jpg" alt="Stand Pouch Real" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Stand Pouch Real</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>stand-pouch-real.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="stand-sample.jpg" alt="Stand Sample" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Stand Sample</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>stand-sample.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-card" data-source="korea">
+                <img src="threeway-sample.jpg" alt="Threeway Sample" loading="lazy">
+                <div class="image-info">
+                    <div class="image-title">Threeway Sample</div>
+                    <div class="image-source">
+                        <span class="badge">🇰🇷 Korea</span>
+                        <span>threeway-sample.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <script>
+        function filterImages(source) {
+            const cards = document.querySelectorAll('.image-card');
+            const tabs = document.querySelectorAll('.tab');
+            
+            // Update active tab
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter images
+            cards.forEach(card => {
+                if (source === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = card.dataset.source === source ? 'block' : 'none';
+                }
+            });
+        }
+        
+        // Add click to view larger
+        document.querySelectorAll('.image-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const img = this.querySelector('img');
+                window.open(img.src, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>

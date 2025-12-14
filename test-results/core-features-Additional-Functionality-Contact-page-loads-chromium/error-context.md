@@ -1,0 +1,257 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "製品カタログ" [ref=e12] [cursor=pointer]:
+          - /url: /catalog/
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19] [cursor=pointer]:
+          - /url: /archives/
+        - link "お見積り" [ref=e21] [cursor=pointer]:
+          - /url: /quote-simulator/
+      - generic [ref=e22]:
+        - 'button "言語を選択: 日本語" [ref=e24] [cursor=pointer]':
+          - generic [ref=e25]:
+            - img [ref=e26]
+            - text: 日本語
+            - img [ref=e29]
+        - link "お問い合わせ" [ref=e32] [cursor=pointer]:
+          - /url: /contact/
+          - button "お問い合わせ" [ref=e33]:
+            - generic [ref=e34]: お問い合わせ
+  - navigation "Breadcrumb" [ref=e35]:
+    - link "ホーム" [ref=e37] [cursor=pointer]:
+      - /url: /
+      - img [ref=e38]
+      - generic [ref=e41]: ホーム
+    - generic [ref=e42]:
+      - generic [ref=e43]: /
+      - generic [ref=e44]: Contact
+  - main [ref=e45]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - img [ref=e50]
+        - heading "パウチ専門お問い合わせ" [level=1] [ref=e54]
+        - paragraph [ref=e55]: 6種類のパウチ製品について、専門スタッフが詳しくご説明いたします。
+        - paragraph [ref=e56]: 24時間以内のご回答、無料サンプル対応可能
+      - generic [ref=e57]:
+        - heading "より良いご対応のため" [level=3] [ref=e58]:
+          - img [ref=e59]
+          - text: より良いご対応のため
+        - generic [ref=e62]:
+          - generic [ref=e63]: "製品用途: 何を包装するか"
+          - generic [ref=e64]: "必要数量: 月産やロット数"
+          - generic [ref=e65]: "希望納期: おおよその時期"
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - heading "お客様情報" [level=3] [ref=e69]:
+            - img [ref=e70]
+            - text: お客様情報
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - generic [ref=e75]:
+                - img [ref=e76]
+                - text: お名前
+                - generic [ref=e79]: "*"
+              - textbox "山田 太郎" [ref=e80]
+            - generic [ref=e81]:
+              - text: 会社名
+              - textbox "株式会社サンプル" [ref=e82]
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - generic [ref=e85]:
+                - img [ref=e86]
+                - text: メールアドレス
+                - generic [ref=e89]: "*"
+              - textbox "example@company.com" [ref=e90]
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - img [ref=e93]
+                - text: 電話番号
+                - generic [ref=e95]: "*"
+              - textbox "03-1234-5678" [ref=e96]
+        - generic [ref=e97]:
+          - heading "お関心のあるパウチ *" [level=3] [ref=e98]:
+            - img [ref=e99]
+            - text: お関心のあるパウチ
+            - generic [ref=e103]: "*"
+          - generic [ref=e104]:
+            - generic [ref=e105]:
+              - radio "ソフトパウチ 3シール・4シール" [ref=e106]
+              - generic [ref=e107] [cursor=pointer]:
+                - generic [ref=e108]: ソフトパウチ
+                - generic [ref=e109]: 3シール・4シール
+            - generic [ref=e110]:
+              - radio "スタンドパウチ 角底・チャック付き" [ref=e111]
+              - generic [ref=e112] [cursor=pointer]:
+                - generic [ref=e113]: スタンドパウチ
+                - generic [ref=e114]: 角底・チャック付き
+            - generic [ref=e115]:
+              - radio "ガゼットパウチ マチ付き" [ref=e116]
+              - generic [ref=e117] [cursor=pointer]:
+                - generic [ref=e118]: ガゼットパウチ
+                - generic [ref=e119]: マチ付き
+            - generic [ref=e120]:
+              - radio "ピローパウチ 最も一般的" [ref=e121]
+              - generic [ref=e122] [cursor=pointer]:
+                - generic [ref=e123]: ピローパウチ
+                - generic [ref=e124]: 最も一般的
+            - generic [ref=e125]:
+              - radio "三角パウチ 液体・粉末用" [ref=e126]
+              - generic [ref=e127] [cursor=pointer]:
+                - generic [ref=e128]: 三角パウチ
+                - generic [ref=e129]: 液体・粉末用
+            - generic [ref=e130]:
+              - radio "特殊形状パウチ カスタム対応" [ref=e131]
+              - generic [ref=e132] [cursor=pointer]:
+                - generic [ref=e133]: 特殊形状パウチ
+                - generic [ref=e134]: カスタム対応
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - img [ref=e137]
+            - text: お問い合わせ内容
+            - generic [ref=e139]: "*"
+          - textbox "お客様のパウチ包装に関するご要望やご質問をお聞かせください。 例： ・包装する製品の種類 ・月産数量やロットサイズ ・希望の仕様や機能 ・予算や納期についてなど" [ref=e140]:
+            - /placeholder: お客様のパウチ包装に関するご要望やご質問をお聞かせください。  例： ・包装する製品の種類 ・月産数量やロットサイズ ・希望の仕様や機能 ・予算や納期についてなど
+          - generic [ref=e141]:
+            - generic [ref=e142]: 10文字以上800文字以内
+            - generic [ref=e143]: 0/800
+        - button "パウチ専門家に相談する" [ref=e145] [cursor=pointer]:
+          - img [ref=e146]
+          - text: パウチ専門家に相談する
+      - generic [ref=e149]:
+        - paragraph [ref=e150]: "受付時間: 平日 9:00-18:00 | メール: 24時間対応"
+        - paragraph [ref=e151]: 専門スタッフによる無料相談・無料サンプル対応中
+  - button "페이지 상단으로 이동":
+    - img
+  - contentinfo [ref=e152]:
+    - generic [ref=e155]:
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e159] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e161]
+              - generic [ref=e162]: Epackage Lab
+            - paragraph [ref=e163]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - img [ref=e166]
+                - generic [ref=e169]: info@epackage-lab.com
+              - generic [ref=e170]:
+                - img [ref=e171]
+                - generic [ref=e173]: +81-80-6942-7235
+              - generic [ref=e174]:
+                - img [ref=e175]
+                - generic [ref=e178]: 兵庫県明石市上ノ丸2-11-21-102
+          - generic [ref=e179]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e180]
+            - generic [ref=e181]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e182] [cursor=pointer]:
+                - /url: /privacy/
+                - generic [ref=e183]:
+                  - img [ref=e185]
+                  - generic [ref=e187]:
+                    - heading "個人情報保護方針" [level=4] [ref=e188]
+                    - paragraph [ref=e189]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e190] [cursor=pointer]:
+                - /url: /terms/
+                - generic [ref=e191]:
+                  - img [ref=e193]
+                  - generic [ref=e196]:
+                    - heading "利用規約" [level=4] [ref=e197]
+                    - paragraph [ref=e198]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e199] [cursor=pointer]:
+                - /url: /legal/
+                - generic [ref=e200]:
+                  - img [ref=e202]
+                  - generic [ref=e207]:
+                    - heading "特定商取引法" [level=4] [ref=e208]
+                    - paragraph [ref=e209]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e210] [cursor=pointer]:
+                - /url: /csr/
+                - generic [ref=e211]:
+                  - img [ref=e213]
+                  - generic [ref=e215]:
+                    - heading "社会的責任" [level=4] [ref=e216]
+                    - paragraph [ref=e217]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e219]:
+            - generic [ref=e220]:
+              - img [ref=e222]
+              - heading "最新情報をお届け" [level=3] [ref=e224]
+              - paragraph [ref=e225]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e226]:
+              - generic [ref=e228]:
+                - img [ref=e230]
+                - textbox "メールアドレスを入力" [ref=e233]
+              - button "購読する" [ref=e234] [cursor=pointer]:
+                - generic [ref=e235]:
+                  - img [ref=e236]
+                  - text: 購読する
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e241]
+            - paragraph [ref=e242]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e243]:
+            - link "Facebook에서 팔로우하기" [ref=e244] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e245]
+            - link "Twitter에서 팔로우하기" [ref=e248] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e249]
+            - link "LinkedIn에서 팔로우하기" [ref=e252] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e253]
+            - link "Instagram에서 팔로우하기" [ref=e258] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e259]
+            - link "YouTube에서 팔로우하기" [ref=e263] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e264]
+      - generic [ref=e270]:
+        - paragraph [ref=e272]: © 2025 Epackage Lab. 全著作権所有.
+        - generic [ref=e273]:
+          - link "個人情報保護方針" [ref=e274] [cursor=pointer]:
+            - /url: /privacy/
+          - link "利用規約" [ref=e275] [cursor=pointer]:
+            - /url: /terms/
+          - link "サイトマップ" [ref=e276] [cursor=pointer]:
+            - /url: /sitemap/
+  - generic [ref=e277]:
+    - generic [ref=e278]:
+      - heading "Performance Metrics" [level=3] [ref=e279]
+      - generic [ref=e281]:
+        - text: "Score:"
+        - generic [ref=e282]: 100%
+    - generic [ref=e283]:
+      - generic [ref=e284]:
+        - generic [ref=e285]: "FCP:"
+        - generic [ref=e286]:
+          - generic [ref=e287]: 612ms
+          - generic [ref=e288]: good
+      - generic [ref=e289]:
+        - generic [ref=e290]: "TTFB:"
+        - generic [ref=e291]:
+          - generic [ref=e292]: 393ms
+          - generic [ref=e293]: good
+    - generic [ref=e295]:
+      - generic [ref=e296]: LCP < 2.5s
+      - generic [ref=e297]: INP < 200ms
+      - generic [ref=e298]: CLS < 0.1
+      - generic [ref=e299]: FCP < 1.8s
+      - generic [ref=e300]: TTFB < 800ms
+  - button "Open Next.js Dev Tools" [ref=e306] [cursor=pointer]:
+    - img [ref=e307]
+  - alert [ref=e310]
+```
