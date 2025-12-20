@@ -90,7 +90,7 @@ export default function FlowPage() {
       </section>
 
       {/* Manufacturing Process Showcase */}
-      <ManufacturingProcessShowcase language="ja" />
+      <ManufacturingProcessShowcase />
 
   
       {/* CTA Section */}

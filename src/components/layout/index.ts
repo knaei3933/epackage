@@ -7,7 +7,6 @@ export { Footer } from './Footer'
 export { Navigation, MobileNavigation, SidebarNavigation, defaultNavigationItems } from './Navigation'
 
 // Utility Components
-export { ErrorBoundary, ErrorBoundaryWrapper, PageErrorBoundary, ComponentErrorBoundary, AsyncErrorBoundary } from './ErrorBoundary'
 
 export {
   LoadingSkeleton,
