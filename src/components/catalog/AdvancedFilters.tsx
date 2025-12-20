@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { PRODUCT_CATEGORIES } from '@/app/api/products/route'
+import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import { Product } from '@/types/database'
 
 export interface FilterState {
@@ -108,11 +108,10 @@ export function AdvancedFilters({
           <div className="space-y-2">
             <button
               onClick={() => onFilterChange({ selectedCategory: 'all' })}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                filterState.selectedCategory === 'all'
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${filterState.selectedCategory === 'all'
                   ? 'bg-brixa-50 border border-brixa-600 text-brixa-600'
                   : 'hover:bg-gray-50 border border-transparent'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span>すべてのカテゴリー</span>
@@ -127,11 +126,10 @@ export function AdvancedFilters({
                 <button
                   key={key}
                   onClick={() => onFilterChange({ selectedCategory: key })}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    filterState.selectedCategory === key
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${filterState.selectedCategory === key
                       ? 'bg-brixa-50 border border-brixa-600 text-brixa-600'
                       : 'hover:bg-gray-50 border border-transparent'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

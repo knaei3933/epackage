@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Grid } from '@/components/ui/Grid'
 import { Badge } from '@/components/ui/Badge'
-import { PRODUCT_CATEGORIES } from '@/app/api/products/route'
+import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import { QuoteCalculationParams } from '@/lib/pricing-engine'
 import { Product } from '@/types/database'
 import { db } from '@/lib/supabase'
@@ -186,11 +186,10 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setSelectedCategory(category as Product['category'])}
-              className={`relative p-6 border-2 rounded-lg text-left transition-all ${
-                selectedCategory === category
+              className={`relative p-6 border-2 rounded-lg text-left transition-all ${selectedCategory === category
                   ? 'border-brixa-600 bg-brixa-50'
                   : 'border-gray-200 hover:border-gray-300'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-full ${info.icon === 'package' ? 'bg-navy-600' : info.icon === 'shopping-bag' ? 'bg-green-100' : 'bg-purple-100'} flex items-center justify-center`}>
@@ -287,9 +286,8 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                       >
                         <span className="text-sm font-medium">詳細設定</span>
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform ${
-                            expandedProducts.has(product.product.id) ? 'rotate-180' : ''
-                          }`}
+                          className={`w-4 h-4 transition-transform ${expandedProducts.has(product.product.id) ? 'rotate-180' : ''
+                            }`}
                         />
                       </button>
 
@@ -418,15 +416,15 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                     value={product.customOptions?.printing?.type}
                                     onChange={(e) =>
                                       updateProduct(index, {
-                                      customOptions: {
-                                        ...product.customOptions,
-                                        printing: {
-                                          ...product.customOptions?.printing,
-                                          type: e.target.value as 'digital' | 'gravure',
-                                          colors: product.customOptions?.printing?.colors || 1
+                                        customOptions: {
+                                          ...product.customOptions,
+                                          printing: {
+                                            ...product.customOptions?.printing,
+                                            type: e.target.value as 'digital' | 'gravure',
+                                            colors: product.customOptions?.printing?.colors || 1
+                                          }
                                         }
-                                      }
-                                    })
+                                      })
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                                   >
@@ -443,15 +441,15 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                     value={product.customOptions?.printing?.colors || 1}
                                     onChange={(e) =>
                                       updateProduct(index, {
-                                      customOptions: {
-                                        ...product.customOptions,
-                                        printing: {
-                                          ...product.customOptions?.printing,
-                                          colors: parseInt(e.target.value) || 1,
-                                          type: product.customOptions?.printing?.type || 'digital'
+                                        customOptions: {
+                                          ...product.customOptions,
+                                          printing: {
+                                            ...product.customOptions?.printing,
+                                            colors: parseInt(e.target.value) || 1,
+                                            type: product.customOptions?.printing?.type || 'digital'
+                                          }
                                         }
-                                      }
-                                    })
+                                      })
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                                     placeholder="1"
@@ -473,8 +471,8 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                 value={product.quantity}
                                 onChange={(e) =>
                                   updateProduct(index, {
-                                  quantity: parseInt(e.target.value) || 0
-                                })
+                                    quantity: parseInt(e.target.value) || 0
+                                  })
                                 }
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                                 placeholder="1000"

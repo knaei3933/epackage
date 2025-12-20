@@ -40,6 +40,9 @@
   ],
   "exclude": [
     "node_modules",
-    "server"
+    "server",
+    "temp-api-backup",
+    "backup-api",
+    "temp-disabled-api"
   ]
 }

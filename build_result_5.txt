@@ -1,0 +1,31 @@
+
+> epackage-lab-web@0.1.0 build
+> next build
+
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "redirects" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "headers" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "redirects" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "headers" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ✓ Compiled successfully in 4.6s
+   Running TypeScript ...
+Failed to compile.
+
+./temp-api-backup/catalog/[slug]/page.tsx:4:36
+Type error: Cannot find module '@/app/api/products/route' or its corresponding type declarations.
+
+[0m [90m 2 |[39m [36mimport[39m { notFound } [36mfrom[39m [32m'next/navigation'[39m
+ [90m 3 |[39m [36mimport[39m { [33mProductDetailClient[39m } [36mfrom[39m [32m'./ProductDetailClient'[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mPRODUCT_CATEGORIES[39m } [36mfrom[39m [32m'@/app/api/products/route'[39m
+ [90m   |[39m                                    [31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [90m// Mock data for static generation - in production, this would come from your API[39m
+ [90m 7 |[39m [36mconst[39m mockProducts [33m=[39m [[0m
+Next.js build worker exited with code: 1 and signal: null

@@ -19,7 +19,7 @@ import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { EnhancedProductCard } from '@/components/catalog/EnhancedProductCard'
 import { ProductListItem } from '@/components/catalog/ProductListItem'
 import Link from 'next/link'
-import { PRODUCT_CATEGORIES } from '@/app/api/products/route'
+import { PRODUCT_CATEGORIES, getAllProducts } from '@/lib/product-data'
 import { Product } from '@/types/database'
 
 interface FilterState {
@@ -51,187 +51,18 @@ export function CatalogClient() {
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/products?locale=ja')
-      const data = await response.json()
-      if (data.success && Array.isArray(data.products)) {
-        const safeProducts = data.products || []
-        setProducts(safeProducts)
-        setFilteredProducts(safeProducts)
-        // Initialize filter state after products are loaded
-        setFilterState({
-          sortBy: 'name',
-          viewMode: 'grid'
-        })
-      }
-    } catch (error) {
-      console.error('Failed to fetch products:', error)
-      // Fallback to mock data
-      const mockProducts: Product[] = [
-        {
-          id: 'soft-pouch-001',
-          category: 'soft_pouch',
-          name_ja: 'ソフトパウチ（平袋）',
-          name_en: 'Soft Pouch (3-Side Seal)',
-          description_ja: '優れた密封性で化粧品や食品など多用途に対応可能。透明度が高く、内容物を魅力的に見せます。',
-          description_en: 'Excellent sealing performance with high transparency. Perfect for cosmetics, food, and pharmaceutical applications.',
-          specifications: {
-            width_range: '50-300mm',
-            height_range: '80-500mm',
-            thickness_range: '50-150μm',
-            materials: ['PE', 'PP', 'PET', 'ALUMINUM']
-          },
-          materials: ['PE', 'PP', 'PET', 'ALUMINUM'],
-          pricing_formula: {
-            base_cost: 15000,
-            per_unit_cost: 5,
-            min_quantity: 1000
-          },
-          min_order_quantity: 1000,
-          lead_time_days: 14,
-          sort_order: 1,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'standing-pouch-002',
-          category: 'stand_up',
-          name_ja: 'スタンドパウチ',
-          name_en: 'Standing Pouch',
-          description_ja: '底面が自立するタイプで陳列効果が向上。店頭での展示に最適です。',
-          description_en: 'Self-standing design improves shelf presence. Perfect for retail display and point-of-sale applications.',
-          specifications: {
-            width_range: '80-200mm',
-            height_range: '120-350mm',
-            thickness_range: '80-200μm',
-            materials: ['PET', 'ALUMINUM', 'PE']
-          },
-          materials: ['PET', 'ALUMINUM', 'PE'],
-          pricing_formula: {
-            base_cost: 18000,
-            per_unit_cost: 7,
-            min_quantity: 1500
-          },
-          min_order_quantity: 1500,
-          lead_time_days: 21,
-          sort_order: 2,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'zipper-pouch-003',
-          category: 'flat_with_zip',
-          name_ja: 'ジッパーパウチ',
-          name_en: 'Zipper Pouch',
-          description_ja: '再封可能なジッパー付きで開閉が簡単。何度も使える便利な包装です。',
-          description_en: 'Reclosable zipper design for easy access. Perfect for products requiring multiple uses.',
-          specifications: {
-            width_range: '100-250mm',
-            height_range: '150-400mm',
-            thickness_range: '100-250μm',
-            materials: ['PET', 'PE', 'ALUMINUM']
-          },
-          materials: ['PET', 'PE', 'ALUMINUM'],
-          pricing_formula: {
-            base_cost: 25000,
-            per_unit_cost: 12,
-            min_quantity: 2000
-          },
-          min_order_quantity: 2000,
-          lead_time_days: 28,
-          sort_order: 3,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'quad-seal-004',
-          category: 'flat_3_side',
-          name_ja: '4面シールパウチ',
-          name_en: 'Quad Seal Pouch',
-          description_ja: '四面シールで最高レベルの密封性。液体や気密性が必要な製品に最適です。',
-          description_en: 'Four-side seal provides maximum protection. Ideal for liquids and airtight packaging requirements.',
-          specifications: {
-            width_range: '100-300mm',
-            height_range: '100-400mm',
-            thickness_range: '80-180μm',
-            materials: ['PET', 'ALUMINUM', 'PE']
-          },
-          materials: ['PET', 'ALUMINUM', 'PE'],
-          pricing_formula: {
-            base_cost: 22000,
-            per_unit_cost: 10,
-            min_quantity: 1800
-          },
-          min_order_quantity: 1800,
-          lead_time_days: 25,
-          sort_order: 4,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'flat-pouch-005',
-          category: 'flat_3_side',
-          name_ja: '平袋',
-          name_en: 'Flat Pouch',
-          description_ja: 'シンプルでコスト効率が高い基本タイプのパウチです。',
-          description_en: 'Simple and cost-effective basic pouch type. Versatile for various applications.',
-          specifications: {
-            width_range: '60-250mm',
-            height_range: '80-350mm',
-            thickness_range: '40-120μm',
-            materials: ['PE', 'PP', 'PET']
-          },
-          materials: ['PE', 'PP', 'PET'],
-          pricing_formula: {
-            base_cost: 12000,
-            per_unit_cost: 4,
-            min_quantity: 800
-          },
-          min_order_quantity: 800,
-          lead_time_days: 10,
-          sort_order: 5,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'special-shape-006',
-          category: 'special',
-          name_ja: '特殊形状パウチ',
-          name_en: 'Special Shape Pouch',
-          description_ja: '独自の形状で差別化を図るカスタムパッケージングソリューション。',
-          description_en: 'Custom shapes for product differentiation. Unique packaging solutions for special requirements.',
-          specifications: {
-            width_range: '80-400mm',
-            height_range: '100-600mm',
-            thickness_range: '100-300μm',
-            materials: ['PET', 'ALUMINUM', 'PE', 'PP']
-          },
-          materials: ['PET', 'ALUMINUM', 'PE', 'PP'],
-          pricing_formula: {
-            base_cost: 30000,
-            per_unit_cost: 15,
-            min_quantity: 2500
-          },
-          min_order_quantity: 2500,
-          lead_time_days: 35,
-          sort_order: 6,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ]
-      setProducts(mockProducts)
-      setFilteredProducts(mockProducts)
-
-      // Initialize filter state for mock data
+      // Use static data for export compatibility
+      const safeProducts = getAllProducts(null, 'ja') as unknown as Product[]
+      setProducts(safeProducts)
+      setFilteredProducts(safeProducts)
+      // Initialize filter state after products are loaded
       setFilterState({
         sortBy: 'name',
         viewMode: 'grid'
       })
+    } catch (error) {
+      console.error('Failed to fetch products:', error)
+      setProducts([])
     } finally {
       setIsLoading(false)
     }
@@ -454,7 +285,7 @@ export function CatalogClient() {
         )}
       </AnimatePresence>
 
-      </div>
+    </div>
   )
 }
 

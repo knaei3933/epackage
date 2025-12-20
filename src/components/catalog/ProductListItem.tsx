@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Grid } from '@/components/ui/Grid'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import Link from 'next/link'
-import { PRODUCT_CATEGORIES } from '@/app/api/products/route'
+import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import { Product } from '@/types/database'
 
 export interface ProductListItemProps {
@@ -84,7 +84,7 @@ export function ProductListItem({
                   見積もり
                 </Button>
               </Link>
-                          </div>
+            </div>
           </div>
         </div>
       </Card>

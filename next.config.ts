@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
   output: 'export',
   distDir: 'out',
 
+  // Image optimization disabled for static export
+  images: {
+    unoptimized: true,
+  },
+
   experimental: {
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js', 'framer-motion'],
   },

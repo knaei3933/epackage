@@ -1,0 +1,31 @@
+
+> epackage-lab-web@0.1.0 build
+> next build
+
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "redirects" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "headers" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "redirects" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "headers" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ✓ Compiled successfully in 3.7s
+   Running TypeScript ...
+Failed to compile.
+
+.next/dev/types/validator.ts:422:39
+Type error: Cannot find module '../../../src/app/api/catalog-download/progress/route.js' or its corresponding type declarations.
+
+[0m [90m 420 |[39m {
+ [90m 421 |[39m   type __IsExpected[33m<[39m[33mSpecific[39m [36mextends[39m [33mRouteHandlerConfig[39m[33m<[39m[32m"/api/catalog-download/progress"[39m[33m>>[39m [33m=[39m [33mSpecific[39m
+[31m[1m>[22m[39m[90m 422 |[39m   [36mconst[39m handler [33m=[39m {} [36mas[39m [36mtypeof[39m [36mimport[39m([32m"../../../src/app/api/catalog-download/progress/route.js"[39m)
+ [90m     |[39m                                       [31m[1m^[22m[39m
+ [90m 423 |[39m   type __Check [33m=[39m __IsExpected[33m<[39m[36mtypeof[39m handler[33m>[39m
+ [90m 424 |[39m   [90m// @ts-ignore[39m
+ [90m 425 |[39m   type __Unused [33m=[39m __Check[0m
+Next.js build worker exited with code: 1 and signal: null

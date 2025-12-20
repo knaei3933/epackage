@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
-import { PRODUCT_CATEGORIES } from '@/app/api/products/route'
+import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 
 interface ProductDetailClientProps {
   product: {
@@ -206,11 +206,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <button
                 key={tab.id}
                 onClick={() => setSelectedTab(tab.id as any)}
-                className={`flex items-center space-x-2 pb-4 px-2 border-b-2 transition-colors whitespace-nowrap ${
-                  selectedTab === tab.id
+                className={`flex items-center space-x-2 pb-4 px-2 border-b-2 transition-colors whitespace-nowrap ${selectedTab === tab.id
                     ? 'border-brixa-600 text-brixa-700'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 <span className="font-medium">{tab.label}</span>

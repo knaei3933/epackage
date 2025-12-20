@@ -1,0 +1,31 @@
+
+> epackage-lab-web@0.1.0 build
+> next build
+
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "redirects" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "headers" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "redirects" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "headers" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ✓ Compiled successfully in 3.8s
+   Running TypeScript ...
+Failed to compile.
+
+./src/components/catalog/AdvancedFilters.tsx:14:36
+Type error: Cannot find module '@/app/api/products/route' or its corresponding type declarations.
+
+[0m [90m 12 |[39m [36mimport[39m { [33mCard[39m } [36mfrom[39m [32m'@/components/ui/Card'[39m
+ [90m 13 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/Badge'[39m
+[31m[1m>[22m[39m[90m 14 |[39m [36mimport[39m { [33mPRODUCT_CATEGORIES[39m } [36mfrom[39m [32m'@/app/api/products/route'[39m
+ [90m    |[39m                                    [31m[1m^[22m[39m
+ [90m 15 |[39m [36mimport[39m { [33mProduct[39m } [36mfrom[39m [32m'@/types/database'[39m
+ [90m 16 |[39m
+ [90m 17 |[39m [36mexport[39m [36minterface[39m [33mFilterState[39m {[0m
+Next.js build worker exited with code: 1 and signal: null
