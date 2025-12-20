@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
-import { ElectronicsContent } from '@/components/industry/industries/ElectronicsContent'
+import { ElectronicsContent } from '@/components/industry/ElectronicsContent'
 
 // SEO Metadata for Electronics
 export async function generateMetadata(): Promise<Metadata> {

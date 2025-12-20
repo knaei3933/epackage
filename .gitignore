@@ -40,6 +40,21 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Development artifacts
+build_result*.txt
+build_error.txt
+lint_output.txt
+.next-build-timestamp
+
+# Testing artifacts
+test-results/
+playwright-report/
+
+# Temporary directories
+temp-*/
+backup-api/
+temp-disabled-api/
+
 # Logs
 logs
 *.log
