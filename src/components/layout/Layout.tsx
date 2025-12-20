@@ -2,7 +2,6 @@
 
 import React, { type ReactNode } from 'react'
 import { Footer } from './Footer'
-import { ErrorBoundary } from './ErrorBoundary'
 import { LoadingSkeleton } from './LoadingSkeleton'
 import { cn } from '@/lib/utils'
 
@@ -14,8 +13,7 @@ interface LayoutProps {
   headerClassName?: string
   footerClassName?: string
   mainClassName?: string
-  withErrorBoundary?: boolean
-  withLoadingState?: boolean
+    withLoadingState?: boolean
   isLoading?: boolean
   containerSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | 'full'
 }
@@ -32,8 +30,7 @@ export function Layout({
   headerClassName,
   footerClassName,
   mainClassName,
-  withErrorBoundary = true,
-  withLoadingState = false,
+    withLoadingState = false,
   isLoading = false,
   containerSize = '6xl',
 }: LayoutProps) {
@@ -70,13 +67,7 @@ export function Layout({
     </main>
   )
 
-  const content = withErrorBoundary ? (
-    <ErrorBoundary>
-      {mainContent}
-    </ErrorBoundary>
-  ) : (
-    mainContent
-  )
+  const content = mainContent
 
   return (
     <div className={cn(
@@ -118,8 +109,7 @@ export function SimpleLayout({
   children,
   className,
   mainClassName,
-  withErrorBoundary = true,
-  withLoadingState = false,
+    withLoadingState = false,
   isLoading = false,
 }: Omit<LayoutProps, 'showHeader' | 'showFooter' | 'headerClassName' | 'footerClassName' | 'containerSize'>) {
   const mainContent = (
@@ -138,13 +128,7 @@ export function SimpleLayout({
     </main>
   )
 
-  const content = withErrorBoundary ? (
-    <ErrorBoundary>
-      {mainContent}
-    </ErrorBoundary>
-  ) : (
-    mainContent
-  )
+  const content = mainContent
 
   return (
     <div className={cn(
@@ -176,8 +160,7 @@ export function CenteredLayout({
   children,
   className,
   mainClassName,
-  withErrorBoundary = true,
-  withLoadingState = false,
+    withLoadingState = false,
   isLoading = false,
   containerSize = 'md',
 }: Omit<LayoutProps, 'showHeader' | 'showFooter' | 'headerClassName' | 'footerClassName'>) {
@@ -212,13 +195,7 @@ export function CenteredLayout({
     </main>
   )
 
-  const content = withErrorBoundary ? (
-    <ErrorBoundary>
-      {mainContent}
-    </ErrorBoundary>
-  ) : (
-    mainContent
-  )
+  const content = mainContent
 
   return (
     <div className={cn(

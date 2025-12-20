@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { Button } from '@/components/ui/Button';
 import {
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function SharedComparisonPage() {
-  const searchParams = useSearchParams();
+  const params = useParams();
   const router = useRouter();
   const { loadComparison, exportComparison, state } = useMultiQuantityQuote();
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ export default function SharedComparisonPage() {
   const [comparisonData, setComparisonData] = useState<any>(null);
   const [shareUrl, setShareUrl] = useState('');
 
-  const shareId = searchParams.get('id');
+  const shareId = params.shareId as string;
 
   useEffect(() => {
     if (shareId) {
@@ -39,8 +39,6 @@ export default function SharedComparisonPage() {
   }, []);
 
   const loadSharedComparison = async () => {
-    if (!shareId) return;
-
     setLoading(true);
     setError(null);
 
@@ -58,8 +56,6 @@ export default function SharedComparisonPage() {
       setLoading(false);
     }
   };
-  // ... (rest of the component logic)
-
 
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     try {
@@ -405,26 +401,3 @@ export default function SharedComparisonPage() {
     </div>
   );
 }
-
-import { Suspense } from 'react';
-
-export default function SharedComparisonPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
-    }>
-      <SharedComparisonContent />
-    </Suspense>
-  );
-}
-
-function SharedComparisonContent() {
-  // All the logic previously in SharedComparisonPage
-  const searchParams = useSearchParams();
-// ... rest of the code is copied below but I can't easily instruct replace_file_content to do this rename + wrap cleanly in one go without pasting huge block.
-// Actually, I can just replace the bottom part and rename the function at top.

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { Layout } from '@/components/layout/Layout'
-import { ManufacturingProcessShowcase } from '@/components/manufacturing/ManufacturingProcessShowcase'
+import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingProcessShowcase'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { Button } from '@/components/ui/Button'
