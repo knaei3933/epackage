@@ -124,7 +124,7 @@ describe('EnhancedPostProcessingPreview', () => {
     render(<EnhancedPostProcessingPreview {...defaultProps} />)
 
     const categorySelect = screen.getByDisplayValue('すべてのカテゴリ')
-    fireEvent.change(categorySelect, { target: { value: 'closure' } })
+    fireEvent.change(categorySelect, { target: { value: 'opening-sealing' } })
 
     await waitFor(() => {
       const triggers = screen.getAllByTestId('processing-trigger')
@@ -266,7 +266,7 @@ describe('ProcessingPreviewTrigger', () => {
     features: ['Resealable', 'Freshness preservation'],
     featuresJa: ['再封可能', '鮮度保持'],
     compatibleWith: ['stand_up', 'flat_3_side'],
-    category: 'closure' as const,
+    category: 'opening-sealing' as const,
     processingTime: '+2-3 business days',
     processingTimeJa: '+2-3営業日',
     minimumQuantity: 1000,

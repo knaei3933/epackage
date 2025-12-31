@@ -42,7 +42,7 @@ import {
 import { PostProcessingComparisonTable } from './PostProcessingComparisonTable'
 import { PostProcessingItemReplacement } from './PostProcessingItemReplacement'
 import { PostProcessingCostImpact } from './PostProcessingCostImpact'
-import { useQuote } from '@/contexts/QuoteContext'
+import { useQuote, useQuoteState, canAddPostProcessingOptionForState, getPostProcessingLimitStatusForState } from '@/contexts/QuoteContext'
 import {
   processingOptionsConfig,
   getProcessingOptionsByCompatibility,
@@ -125,15 +125,16 @@ export function EnhancedPostProcessingSelector({
   quantities = [100, 500, 1000, 5000, 10000],
   basePrice = 10000
 }: EnhancedPostProcessingSelectorProps) {
+  const state = useQuoteState();
   const {
-    state,
     addPostProcessingOption,
     removePostProcessingOption,
     replacePostProcessingOption,
-    canAddPostProcessingOption,
-    clearPostProcessingValidationError,
-    getPostProcessingLimitStatus
-  } = useQuote()
+    clearPostProcessingValidationError
+  } = useQuote();
+
+  const canAddPostProcessingOption = () => canAddPostProcessingOptionForState(state);
+  const getPostProcessingLimitStatus = () => getPostProcessingLimitStatusForState(state);
 
   const [selectedCategory, setSelectedCategory] = useState<UserCentricCategory | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)

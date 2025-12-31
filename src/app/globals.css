@@ -143,6 +143,61 @@
 
   /* Dark Theme */
   .dark {
+    color-scheme: dark;
+
+    /* Brixa Primary (Green) - Dark Theme Brightened */
+    --brixa-primary: #4DD0C9;
+    --brixa-primary-50: #E6FFFD;
+    --brixa-primary-100: #B5F5F0;
+    --brixa-primary-200: #7DEAE4;
+    --brixa-primary-300: #5DDFD7;
+    --brixa-primary-400: #4DD0C9;
+    --brixa-primary-500: #3DBAB3;
+    --brixa-primary-600: #2FA39C;
+    --brixa-primary-700: #258C85;
+    --brixa-primary-800: #1D756E;
+    --brixa-primary-900: #155E57;
+
+    /* Brixa Secondary (Navy) - Dark Theme Brightened */
+    --brixa-secondary: #3D4452;
+    --brixa-secondary-50: #1E2937;
+    --brixa-secondary-100: #334155;
+    --brixa-secondary-200: #475569;
+    --brixa-secondary-300: #64748B;
+    --brixa-secondary-400: #94A3B8;
+    --brixa-secondary-500: #CBD5E1;
+    --brixa-secondary-600: #E2E8F0;
+    --brixa-secondary-700: #F1F5F9;
+    --brixa-secondary-800: #F8FAFC;
+    --brixa-secondary-900: #FFFFFF;
+
+    /* Metallic Accents - Dark Theme Adjusted */
+    --metallic-silver: #D1D5DB;
+    --metallic-gold: #D4AF37;
+    --metallic-copper: #CD7F32;
+    --metallic-blue: #60A5FA;
+
+    /* Semantic Colors - Dark Theme Adjusted */
+    --success-50: #064E3B;
+    --success-500: #10B981;
+    --success-600: #34D399;
+    --success-700: #6EE7B7;
+
+    --warning-50: #78350F;
+    --warning-500: #F59E0B;
+    --warning-600: #FBBF24;
+    --warning-700: #FDE68A;
+
+    --error-50: #7F1D1D;
+    --error-500: #EF4444;
+    --error-600: #F87171;
+    --error-700: #FCA5A5;
+
+    --info-50: #1E3A8A;
+    --info-500: #3B82F6;
+    --info-600: #60A5FA;
+    --info-700: #93C5FD;
+
     /* Background Colors - Dark Theme */
     --bg-primary: #0F172A;
     --bg-secondary: #1E293B;

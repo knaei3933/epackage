@@ -87,7 +87,7 @@ export interface PriceCalculation {
   calculatedAt: Date;
 }
 
-export interface ValidationError {
+export interface SimulationValidationError {
   field: string;
   message: string;
 }
@@ -111,7 +111,7 @@ export interface PricingRules {
 
 // Enhanced simulation context type
 export type EnhancedSimulationContextType = SimulationContextType & {
-  validationErrors: ValidationError[];
+  validationErrors: SimulationValidationError[];
   isFormValid: boolean;
   currentStep: number;
   clearErrors: () => void;

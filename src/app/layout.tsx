@@ -4,6 +4,7 @@ import "./globals.css";
 import { WebVitalsMonitor } from "@/components/performance/WebVitalsMonitor";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
 import { Footer } from "@/components/layout/Footer";
@@ -120,6 +121,10 @@ export default function RootLayout({
         {/* Viewport optimization */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 
+        {/* Color scheme for browser UI consistency */}
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
+
         {/* Theme color */}
         <meta name="theme-color" content="#1A365D" />
         <meta name="msapplication-TileColor" content="#1A365D" />
@@ -139,13 +144,15 @@ export default function RootLayout({
           enableSystem={true}
           attribute="class"
         >
-          <LanguageProvider>
-            <HeaderWrapper />
-            <BreadcrumbList />
-            <main>{children}</main>
-            <Footer />
-            <WebVitalsMonitor />
-          </LanguageProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <HeaderWrapper />
+              <BreadcrumbList />
+              <main>{children}</main>
+              <Footer />
+              <WebVitalsMonitor />
+            </LanguageProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

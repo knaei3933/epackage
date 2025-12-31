@@ -42,97 +42,21 @@ export default function LeadsDashboard() {
   })
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Mock data - in real app, this would come from API
+  // Mock data 제거됨 - 실제 API 호출 필요
+  // TODO: /api/admin/leads 엔드포인트에서 데이터 가져오기
   useEffect(() => {
-    const mockLeads: Lead[] = [
-      {
-        id: '1',
-        name: '山田 太郎',
-        company: '株式会社ABC食品',
-        email: 'yamada@abc-foods.com',
-        phone: '03-1234-5678',
-        leadScore: 85,
-        leadQuality: 'High',
-        priorityLevel: 'High',
-        source: '詳細お問い合わせ',
-        inquiryType: 'detailed_inquiry',
-        submissionDate: '2024-12-08T10:30:00Z',
-        status: 'new',
-        calculatedValue: 2500000,
-        notes: '大口案件、スタンディングパウチ 50000個'
-      },
-      {
-        id: '2',
-        name: '鈴木 花子',
-        company: 'XYZ化粧品',
-        email: 'suzuki@xyz-cosmetics.com',
-        phone: '03-9876-5432',
-        leadScore: 72,
-        leadQuality: 'High',
-        priorityLevel: 'High',
-        source: 'ROI計算',
-        inquiryType: 'roi_calculator',
-        submissionDate: '2024-12-08T09:15:00Z',
-        status: 'contacted',
-        calculatedValue: 1800000,
-        assignedTo: '田中 担当',
-        followUpDate: '2024-12-09T14:00:00Z',
-        notes: '高品質印刷要求、新製品向け'
-      },
-      {
-        id: '3',
-        name: '佐藤 健一',
-        company: 'DEF株式会社',
-        email: 'sato@def-corp.com',
-        phone: '03-5555-6666',
-        leadScore: 45,
-        leadQuality: 'Medium',
-        priorityLevel: 'Medium',
-        source: 'プレミアムコンテンツ',
-        inquiryType: 'premium_content',
-        submissionDate: '2024-12-07T16:45:00Z',
-        status: 'qualified',
-        calculatedValue: 850000,
-        assignedTo: '伊藤 担当',
-        followUpDate: '2024-12-10T11:00:00Z',
-        notes: '環境対応素材に関心'
-      },
-      {
-        id: '4',
-        name: '高橋 美咲',
-        company: 'GHI農産',
-        email: 'takahashi@ghi-agri.com',
-        phone: '03-7777-8888',
-        leadScore: 38,
-        leadQuality: 'Standard',
-        priorityLevel: 'Normal',
-        source: 'お問い合わせ',
-        inquiryType: 'general_contact',
-        submissionDate: '2024-12-07T11:20:00Z',
-        status: 'new',
-        notes: '農産物包装、ガゼットパウチ検討'
-      },
-      {
-        id: '5',
-        name: '渡部 大輔',
-        company: 'JKL電子',
-        email: 'watanabe@jkl-electronics.com',
-        phone: '03-9999-0000',
-        leadScore: 92,
-        leadQuality: 'High',
-        priorityLevel: 'High',
-        source: '詳細お問い合わせ',
-        inquiryType: 'detailed_inquiry',
-        submissionDate: '2024-12-06T14:30:00Z',
-        status: 'converted',
-        calculatedValue: 5200000,
-        assignedTo: '中村 担当',
-        notes: '大型案件、電子部品包装、完了'
-      }
-    ]
+    // API 호출 예시:
+    // fetch('/api/admin/leads')
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     setLeads(data.data || [])
+    //     setFilteredLeads(data.data || [])
+    //   })
+    //   .finally(() => setLoading(false))
 
-    setLeads(mockLeads)
-    setFilteredLeads(mockLeads)
+    // 현재는 빈 배열로 시작
+    setLeads([])
+    setFilteredLeads([])
     setLoading(false)
   }, [])
 

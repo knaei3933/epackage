@@ -7,6 +7,9 @@ export type { ButtonProps } from './Button';
 export { Input, inputVariants } from './Input';
 export type { InputProps } from './Input';
 
+export { Textarea } from './Textarea';
+export type { TextareaProps } from './Textarea';
+
 export { Select, selectVariants } from './Select';
 export type { SelectOption } from './Select';
 
@@ -55,3 +58,13 @@ export {
 
 // Empty State Component
 export { EmptyState } from './EmptyState';
+
+// Loading Component
+export {
+  LoadingSpinner,
+  PageSpinner,
+  ButtonSpinner,
+  CardSpinner,
+  FullPageSpinner,
+} from './LoadingSpinner';
+export type { LoadingSpinnerProps } from './LoadingSpinner';

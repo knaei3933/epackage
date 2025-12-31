@@ -6,6 +6,32 @@ export const metadata: Metadata = {
   title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
   description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
   keywords: ['環境表示', 'リサイクルマーク', 'サステナビリティ', '素材表示', '環境ラベル', 'エコマーク', '包装廃棄物法'],
+  openGraph: {
+    title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
+    description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
+    type: 'website',
+    images: [
+      {
+        url: '/images/guide/environmentaldisplay-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: '環境表示ガイド',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
+    description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
+    images: ['/images/guide/environmentaldisplay-og.jpg'],
+  },
+  alternates: {
+    canonical: '/guide/environmentaldisplay',
+    languages: {
+      ja: '/guide/environmentaldisplay',
+      en: '/en/guide/environmentaldisplay',
+    },
+  },
 }
 
 export default function EnvironmentalDisplayGuide() {

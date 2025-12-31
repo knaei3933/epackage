@@ -6,6 +6,32 @@ export const metadata: Metadata = {
   title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
   description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモード、制作時の注意点について詳しく説明します。',
   keywords: ['画像', '解像度', 'DPI', 'ファイル形式', 'CMYK', 'RGB', 'ベクター', 'ラスター', '印刷データ'],
+  openGraph: {
+    title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
+    description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモードについて詳しく説明します。',
+    type: 'website',
+    images: [
+      {
+        url: '/images/guide/image-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: '画像ガイド',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
+    description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモードについて詳しく説明します。',
+    images: ['/images/guide/image-og.jpg'],
+  },
+  alternates: {
+    canonical: '/guide/image',
+    languages: {
+      ja: '/guide/image',
+      en: '/en/guide/image',
+    },
+  },
 }
 
 export default function ImageGuide() {

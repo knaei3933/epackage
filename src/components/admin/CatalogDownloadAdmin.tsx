@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
   Download,
@@ -425,6 +426,3 @@ export function CatalogDownloadAdmin({
   );
 }
 
-function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ');
-}

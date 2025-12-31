@@ -16,17 +16,26 @@ export default function QuoteSimulatorPage() {
   return (
     <Layout showFooter={false}>
       <div className="min-h-screen">
-        {/* Breadcrumb */}
-        <section className="py-8 bg-white border-b">
+        {/* Page Title - Only show once */}
+        <section className="py-8 bg-gradient-to-br from-navy-700 to-navy-900 border-b">
           <Container size="6xl">
             <MotionWrapper delay={0.1}>
-              <nav className="flex items-center space-x-2 text-sm text-gray-600">
-                <Link href="/" className="hover:text-navy-700 transition-colors">
+              {/* Breadcrumb */}
+              <nav className="flex items-center space-x-2 text-sm text-navy-200 mb-4" aria-label="パンくずリスト">
+                <Link href="/" className="hover:text-white transition-colors">
                   ホーム
                 </Link>
                 <span>/</span>
-                <span className="text-gray-900 font-medium">統合見積もりシステム</span>
+                <span className="text-white font-medium">統合見積もりシステム</span>
               </nav>
+
+              {/* Page Title */}
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                統合見積もりシステム
+              </h1>
+              <p className="text-navy-100 text-lg">
+                AI-poweredでお客様のニーズに合わせた最適な包装ソリューションをご提案します
+              </p>
             </MotionWrapper>
           </Container>
         </section>

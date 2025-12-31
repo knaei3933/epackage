@@ -1,210 +1,330 @@
-# Epackage Lab - お問い合わせシステム
+# Epackage Lab Web - B2B Packaging Management System
 
-Epackage Labの製品に関するお問い合わせとサンプルリクエストを管理するNext.jsアプリケーションです。
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 
-## 🚀 主な機能
+A comprehensive B2B packaging management system for the Japanese market, featuring customer portals, admin dashboards, and integrated quotation systems.
 
-### お問い合わせシステム
-- **一般お問い合わせフォーム**: 製品やサービスに関する質問を受け付ける
-- **サンプルリクエストフォーム**: 製品サンプルを無料でリクエスト（最大5個まで）
-- **リアルタイムバリデーション**: 日本語のビジネスルールに対応した入力チェック
-- **自動メール送信**: SendGridを利用した確認メールと通知メール
-- **CRM連携**: お問い合わせデータの自動管理
+## Table of Contents
 
-### 技術仕様
-- **フレームワーク**: Next.js 16 with App Router
-- **UI**: React 19 + TypeScript + Tailwind CSS 4
-- **フォーム管理**: React Hook Form + Zodバリデーション
-- **メール送信**: SendGrid Node.js SDK
-- **データ管理**: Supabase (準備完了)
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [Environment Configuration](#environment-configuration)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Documentation](#documentation)
+- [License](#license)
 
-## 📋 ページ一覧
+## Overview
 
-### お問い合わせページ
-- **URL**: `/contact`
-- **機能**: 一般お問い合わせフォーム
-- **入力項目**: お名前、会社名、メールアドレス、電話番号、件名、お問い合わせ内容、種別、緊急度、希望連絡方法
+Epackage Lab Web is a modern Next.js 16 application designed for managing packaging inquiries, sample requests, and quotations in the Japanese B2B market. The system provides:
 
-### サンプルリクエストページ
-- **URL**: `/samples`
-- **機能**: 製品サンプルのリクエスト
-- **入力項目**: 基本情報、サンプル詳細（最大5個）、プロジェクト詳細、個人情報保護同意
+- **Customer Portal**: Product browsing, sample requests, quotation generation
+- **Admin Dashboard**: Order management, production tracking, shipment coordination
+- **Integrated Services**: SendGrid email, Supabase database, carrier API integration
+- **Japanese Market Focus**: Localized UI, business rules, and compliance
 
-### サンクスページ
-- **URL**: `/contact/thank-you` - お問い合わせ完了
-- **URL**: `/samples/thank-you` - サンプルリクエスト完了
+## Features
 
-## 🛠️ セットアップ
+### Customer Features
+- Product catalog with search and filtering
+- Sample request system (up to 5 samples per request)
+- Interactive quotation calculator with PDF generation
+- Real-time order tracking and status updates
+- Document management (quotations, invoices, delivery slips)
+- Profile management with company information
 
-### 1. リポジトリのクローン
+### Admin Features
+- Dashboard with key metrics and pending actions
+- Order management with approval workflows
+- Production tracking and scheduling
+- Shipment management with carrier integration
+- Customer and product management
+- Document generation and management
+
+### Technical Features
+- JWT-based authentication with role-based access control
+- Real-time updates via Supabase subscriptions
+- PDF generation for quotations and documents
+- Email notifications via SendGrid
+- API rate limiting and security measures
+- Comprehensive error handling and logging
+
+## Tech Stack
+
+### Frontend
+- **Framework**: Next.js 16 (App Router)
+- **UI Library**: React 19
+- **Language**: TypeScript 5.0
+- **Styling**: Tailwind CSS 4
+- **Forms**: React Hook Form + Zod validation
+- **State Management**: React Context + Zustand
+
+### Backend
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth + JWT
+- **API**: Next.js API Routes
+- **File Storage**: Supabase Storage
+- **Email**: SendGrid
+
+### Integration
+- **Carriers**: Yamato Transport, Sagawa Express, Japan Post
+- **e-Signature**: DocuSign (optional)
+- **Analytics**: Vercel Analytics (optional)
+- **Monitoring**: Sentry (optional)
+
+### Development
+- **Testing**: Playwright (E2E), Jest (unit)
+- **Linting**: ESLint, Prettier
+- **Build Tools**: Turbopack
+- **Deployment**: Vercel
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18.17+
+- npm or yarn
+- Supabase account
+- SendGrid account
+
+### Installation
+
 ```bash
-git clone <repository-url>
+# Clone the repository
+git clone https://github.com/your-org/epackage-lab-web.git
 cd epackage-lab-web
-```
 
-### 2. 依存関係のインストール
-```bash
+# Install dependencies
 npm install
-```
 
-### 3. 環境変数の設定
-`.env.local.example` を `.env.local` にコピーして、必要な値を設定してください：
-
-```bash
+# Copy environment template
 cp .env.local.example .env.local
-```
 
-#### 必須環境変数
-```env
-# SendGrid設定
-SENDGRID_API_KEY=SG.your-sendgrid-api-key-here
-ADMIN_EMAIL=admin@epackage-lab.com
-FROM_EMAIL=noreply@epackage-lab.com
+# Configure environment variables (see below)
+# Edit .env.local with your configuration
 
-# Supabase設定
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
-```
-
-### 4. 開発サーバーの起動
-```bash
+# Run development server
 npm run dev
 ```
 
-ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-## 📧 SendGrid設定
+## Environment Configuration
 
-### 1. SendGridアカウントの作成
-- [SendGrid](https://sendgrid.com/) でアカウントを作成
-- APIキーを発行（メール送信権限を付与）
+Create a `.env.local` file with the following variables:
 
-### 2. 送信者認証
-- 送信者メールアドレスを認証
-- ドメイン認証（推奨）または単一メール認証
-
-### 3. 環境変数の設定
-```env
-SENDGRID_API_KEY=発行したAPIキー
-FROM_EMAIL=認証済みの送信者メールアドレス
-ADMIN_EMAIL=通知を受け取る管理者メールアドレス
-```
-
-## 🎨 UIコンポーネント
-
-### ContactForm コンポーネント
-- お名前、会社名、連絡先情報の入力
-- お問い合わせ種別の選択（一般、技術、営業、サポート）
-- 緊急度設定（低、中、高）
-- リアルタイムバリデーション
-- 日本語エラーメッセージ
-
-### SampleRequestForm コンポーネント
-- 複数サンプルのリクエスト（最大5個）
-- 製品カタログからの選択
-- プロジェクト詳細の入力
-- 個人情報保護同意
-- 数量と仕様の指定
-
-## 📊 APIエンドポイント
-
-### POST `/api/contact`
-お問い合わせフォームの処理
-- リクエストボディのバリデーション
-- 管理者への通知メール送信
-- 顧客への確認メール送信
-- CRMシステムへのデータ保存
-
-### POST `/api/samples`
-サンプルリクエストの処理
-- サンプル在庫確認（連携準備）
-- 管理者への優先通知
-- 顧客への詳細確認メール
-- 発送準備の開始
-
-## 📝 メールテンプレート
-
-### 日本語ビジネスメール
-- 管理者向け通知メール（HTML形式）
-- 顧客向け確認メール（HTML形式）
-- ブランドカラーや企業ロゴの統一
-- レスポンシブデザイン対応
-
-### カスタマイズ可能項目
-- 企業情報とロゴ
-- 連絡先情報
-- 営業時間
-- ウェブサイトリンク
-
-## 🔄 CRM連携
-
-### データ保存項目
-- お客様情報（氏名、会社、連絡先）
-- お問い合わせ内容と種別
-- サンプルリクエスト詳細
-- タイムスタンプとステータス
-- 追跡IDの生成
-
-### 将来拡張
-- HubSpot/Salesforce連携
-- 顧客セグメント管理
-- フォローアップ自動化
-- レポートと分析
-
-## 🚀 デプロイ
-
-### Vercelへのデプロイ
 ```bash
-# Vercel CLIをインストール
-npm install -g vercel
+# Application
+NODE_ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# デプロイ
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# SendGrid
+SENDGRID_API_KEY=SG.your-sendgrid-api-key
+ADMIN_EMAIL=admin@epackage-lab.com
+FROM_EMAIL=noreply@epackage-lab.com
+
+# Carrier APIs (Optional - for shipment tracking)
+YAMATO_API_KEY=your-yamato-key
+SAGAWA_API_KEY=your-sagawa-key
+JP_POST_API_KEY=your-jp-post-key
+
+# DocuSign (Optional)
+DOCUSIGN_CLIENT_ID=your-docusign-client-id
+DOCUSIGN_CLIENT_SECRET=your-docusign-secret
+DOCUSIGN_ACCOUNT_ID=your-docusign-account-id
+
+# Analytics (Optional)
+NEXT_PUBLIC_GA_ID=your-google-analytics-id
+NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your-vercel-id
+
+# Monitoring (Optional)
+SENTRY_DSN=your-sentry-dsn
+SENTRY_AUTH_TOKEN=your-sentry-auth-token
+```
+
+See [`.env.local.example`](/.env.local.example) for a complete example.
+
+## Development
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev              # Start development server
+npm run build            # Production build
+npm run start            # Start production server
+npm run lint             # Run ESLint
+
+# Analysis & Performance
+npm run analyze          # Analyze bundle size
+npm run build:production # Build with NODE_ENV=production
+npm run lighthouse       # Run Lighthouse audit
+npm run test:performance # Build + Lighthouse audit
+
+# Testing
+npx playwright test      # Run all E2E tests
+npx playwright test --ui # Run tests with UI
+npx playwright dev       # Development mode for test authoring
+```
+
+### Development Workflow
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make changes and test**
+   ```bash
+   npm run dev
+   npx playwright test
+   ```
+
+3. **Build and verify**
+   ```bash
+   npm run build:production
+   npm run lighthouse
+   ```
+
+4. **Commit and push**
+   ```bash
+   git add .
+   git commit -m "feat: add your feature"
+   git push origin feature/your-feature-name
+   ```
+
+## Testing
+
+### E2E Testing with Playwright
+
+```bash
+# Run all tests
+npx playwright test
+
+# Run tests in UI mode
+npx playwright test --ui
+
+# Run specific test file
+npx playwright test tests/contact.spec.ts
+
+# Run tests for specific viewport
+npx playwright test --project="Mobile Chrome"
+
+# Debug tests
+npx playwright test --debug
+```
+
+### Performance Testing
+
+```bash
+# Build and analyze bundle
+npm run analyze
+
+# Run Lighthouse audit
+npm run lighthouse
+
+# Complete performance test
+npm run test:performance
+```
+
+Performance targets:
+- Lighthouse Performance: 90+
+- Lighthouse Accessibility: 95+
+- First Contentful Paint: < 1.5s
+- Largest Contentful Paint: < 2.5s
+- Cumulative Layout Shift: < 0.1
+
+## Deployment
+
+### Production Deployment to Vercel
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy to preview
+vercel
+
+# Deploy to production
 vercel --prod
+
+# Or use the deployment script
+bash scripts/deploy-production.sh
 ```
 
-### 環境変数の設定
-Vercelダッシュボードで環境変数を設定：
-- `SENDGRID_API_KEY`
-- `ADMIN_EMAIL`
-- `FROM_EMAIL`
-- Supabase関連の変数
+### Pre-deployment Checklist
 
-## 🔧 開発
+- [ ] All tests passing: `npx playwright test`
+- [ ] Build successful: `npm run build:production`
+- [ ] Lighthouse scores > 90: `npm run lighthouse`
+- [ ] Environment variables configured in Vercel
+- [ ] Supabase migrations applied
+- [ ] SendGrid templates configured
+- [ ] Domain DNS configured
+- [ ] SSL certificates valid
+- [ ] Monitoring and error tracking set up
 
-### コードスタイル
-- TypeScriptによる型安全性
-- ESLintによるコード品質
-- Prettierによるコードフォーマット
+See [docs/deployment.md](/docs/deployment.md) for detailed deployment instructions.
 
-### コンポーネント構造
+## Documentation
+
+- [Architecture](/docs/architecture.md) - System architecture and design
+- [API Reference](/docs/api.md) - Complete API documentation
+- [Deployment Guide](/docs/deployment.md) - Production deployment instructions
+- [Database Schema](/docs/database-schema.md) - Database structure and relationships
+- [Contributing](/docs/contributing.md) - Contribution guidelines
+
+## Project Structure
+
 ```
-src/
-├── components/
-│   └── contact/
-│       ├── ContactForm.tsx
-│       ├── SampleRequestForm.tsx
-│       └── index.ts
-├── app/
-│   ├── api/
-│   │   ├── contact/route.ts
-│   │   └── samples/route.ts
-│   ├── contact/
-│   │   ├── page.tsx
-│   │   └── thank-you/page.tsx
-│   └── samples/
-│       ├── page.tsx
-│       └── thank-you/page.tsx
-└── types/
-    └── contact.ts
+epackage-lab-web/
+├── docs/                      # Documentation
+├── scripts/                   # Build and deployment scripts
+├── src/
+│   ├── app/                   # Next.js App Router
+│   │   ├── (auth)/           # Auth group (signin, signup)
+│   │   ├── (customer)/       # Customer group (dashboard, orders)
+│   │   ├── (public)/         # Public pages (home, catalog)
+│   │   ├── admin/            # Admin dashboard
+│   │   ├── api/              # API routes
+│   │   └── layout.tsx        # Root layout
+│   ├── components/           # React components
+│   │   ├── ui/              # Design system components
+│   │   ├── forms/           # Form components
+│   │   └── layouts/         # Layout components
+│   ├── contexts/            # React contexts
+│   ├── hooks/               # Custom hooks
+│   ├── lib/                 # Utility libraries
+│   ├── types/               # TypeScript types
+│   └── utils/               # Utility functions
+├── tests/                   # Playwright E2E tests
+├── .env.local.example       # Environment template
+├── next.config.ts           # Next.js configuration
+├── tailwind.config.ts       # Tailwind configuration
+└── tsconfig.json            # TypeScript configuration
 ```
 
-## 📝 ライセンス
+## Support
 
-プロジェクトのライセンス情報をここに記載してください。
+For support, email [admin@epackage-lab.com](mailto:admin@epackage-lab.com) or open an issue on GitHub.
 
-## 🆘 サポート
+## License
 
-問題が発生した場合や質問がある場合は、以下の連絡先までご連絡ください：
-- メール: support@epackage-lab.com
-- ドキュメント: [プロジェクトWiki](link-to-wiki)
+This project is licensed under the MIT License - see the [LICENSE](/LICENSE) file for details.
+
+## Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- UI components inspired by [shadcn/ui](https://ui.shadcn.com/)
+- Authentication powered by [Supabase](https://supabase.com/)
+- Email delivery via [SendGrid](https://sendgrid.com/)

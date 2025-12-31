@@ -3,12 +3,15 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Menu, X, Globe, ChevronDown } from 'lucide-react'
 import { useLanguage, useTranslation } from '@/contexts/LanguageContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { languageNames, supportedLanguages, type Language } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
+import { UserMenu, AuthModal } from '@/components/auth'
 
 // Add suppressHydrationWarning to prevent console errors in development
 const suppressHydrationWarning = process.env.NODE_ENV === 'development'
@@ -26,7 +29,10 @@ export function Header() {
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const router = useRouter()
   const { language, setLanguage } = useLanguage()
+  const { isAuthenticated, isLoading } = useAuth()
   const { tn } = useTranslation()
 
   // Prevent hydration issues by setting mounted state
@@ -154,6 +160,15 @@ export function Header() {
     setIsMenuOpen(false) // Close mobile menu after language change
   }
 
+  const handleQuoteClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!isAuthenticated) {
+      setShowAuthModal(true)
+      return
+    }
+    router.push('/quote-simulator')
+  }
+
   const toggleMobileMenu = () => {
     setIsMenuOpen(!isMenuOpen)
     setIsLanguageMenuOpen(false) // Close language menu when opening mobile menu
@@ -229,18 +244,32 @@ export function Header() {
                   />
                 </button>
               ) : (
-                // Simple link
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary",
-                    "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
-                  )}
-                  {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
-                  title={item.description}
-                >
-                  <span suppressHydrationWarning={true}>{item.label}</span>
-                </Link>
+                // Simple link or quote link with auth check
+                item.label === 'お見積り' || item.label === 'Quote' ? (
+                  <button
+                    onClick={handleQuoteClick}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary",
+                      "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                    )}
+                    title={item.description}
+                    aria-label={item.label}
+                  >
+                    <span suppressHydrationWarning={true}>{item.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary",
+                      "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                    )}
+                    {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
+                    title={item.description}
+                  >
+                    <span suppressHydrationWarning={true}>{item.label}</span>
+                  </Link>
+                )
               )}
 
               {/* Dropdown content - only render after mount to prevent hydration issues */}
@@ -345,6 +374,28 @@ export function Header() {
               </div>
             )}
           </div>
+
+          {/* Auth UI - Desktop */}
+          {isMounted && !isLoading && (
+            <div className="hidden md:flex items-center space-x-2">
+              {isAuthenticated ? (
+                <UserMenu />
+              ) : (
+                <>
+                  <Link href="/auth/signin" className="inline-flex" aria-label="ログイン - 会員認証ページへ移動">
+                    <Button variant="ghost" size="sm">
+                      ログイン
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" className="inline-flex">
+                    <Button variant="primary" size="sm">
+                      会員登録
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
 
           {/* CTA Button - Desktop */}
           <div className="hidden md:block">
@@ -475,29 +526,100 @@ export function Header() {
                     )}
                   </div>
                 ) : (
-                  // Simple mobile link
-                  <Link
-                    href={item.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={cn(
-                      "block px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary",
-                      "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
-                    )}
-                    {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
-                    title={item.description}
-                  >
-                    <span suppressHydrationWarning={true}>{item.label}</span>
-                  </Link>
+                  // Simple mobile link or quote link with auth check
+                  item.label === 'お見積り' || item.label === 'Quote' ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleQuoteClick(e as any)
+                        setIsMenuOpen(false)
+                      }}
+                      className={cn(
+                        "block w-full text-left px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary",
+                        "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                      )}
+                      title={item.description}
+                      aria-label={item.label}
+                    >
+                      <span suppressHydrationWarning={true}>{item.label}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "block px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary",
+                        "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                      )}
+                      {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
+                      title={item.description}
+                    >
+                      <span suppressHydrationWarning={true}>{item.label}</span>
+                    </Link>
+                  )
                 )}
               </div>
             ))}
 
-            {/* Mobile CTA Button */}
-            <div className="pt-4 border-t border-border-medium mt-4">
-              <Link href="/contact" onClick={() => setIsMenuOpen(false)} className="inline-flex">
+            {/* Mobile Auth UI & CTA Button */}
+            <div className="pt-4 border-t border-border-medium mt-4 space-y-3">
+              {isMounted && !isLoading && (
+                <>
+                  {isAuthenticated ? (
+                    <>
+                      <Link
+                        href="/member/dashboard"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="inline-flex w-full"
+                      >
+                        <Button variant="outline" fullWidth>
+                          マイページ
+                        </Button>
+                      </Link>
+                      <Link
+                        href="/quote-simulator"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="inline-flex w-full"
+                      >
+                        <Button variant="primary" fullWidth>
+                          お見積り
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/auth/signin"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="inline-flex w-full"
+                        aria-label="ログイン - 会員認証ページへ移動"
+                      >
+                        <Button variant="outline" fullWidth>
+                          ログイン
+                        </Button>
+                      </Link>
+                      <Link
+                        href="/auth/register"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="inline-flex w-full"
+                      >
+                        <Button variant="primary" fullWidth>
+                          会員登録
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
+              <Link
+                href="/contact"
+                onClick={() => setIsMenuOpen(false)}
+                className="inline-flex w-full"
+              >
                 <Button
-                  variant="primary"
-                  className="w-full justify-center font-medium"
+                  variant="ghost"
+                  fullWidth
+                  className="justify-center font-medium"
                   aria-label="Get a quote - mobile CTA"
                 >
                   {tn('header', 'cta')}
@@ -507,6 +629,13 @@ export function Header() {
           </nav>
         </Container>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        featureName="お見積り"
+      />
     </header>
   )
 }

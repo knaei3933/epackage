@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useQuote } from '@/contexts/QuoteContext';
+import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState } from '@/contexts/QuoteContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import EnvelopePreview from './EnvelopePreview';
@@ -36,7 +37,8 @@ import {
   Clock,
   Calculator,
   RefreshCw,
-  BarChart3
+  BarChart3,
+  Download
 } from 'lucide-react';
 
 // Step configuration
@@ -50,7 +52,12 @@ const STEPS = [
 
 // Component for each step
 function SpecsStep() {
-  const { state, updateBasicSpecs, getStepSummary, isStepComplete } = useQuote();
+  const state = useQuoteState();
+  const { updateBasicSpecs } = useQuote();
+
+  // Helper functions using the exported utilities
+  const isStepComplete = (step: string) => checkStepComplete(state, step);
+  const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
 
   // Determine if gusset (マチ) should be shown based on bag type
   const shouldShowGusset = () => {
@@ -528,7 +535,9 @@ function SpecsStep() {
 // The old QuantityStep function has been replaced by MultiQuantityStep.tsx
 
 function PostProcessingStep() {
-  const { state, updatePostProcessing, getStepSummary } = useQuote();
+  const state = useQuoteState();
+  const { updatePostProcessing } = useQuote();
+  const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
 
   const postProcessingOptions = [
     {
@@ -937,7 +946,9 @@ function PostProcessingStep() {
 }
 
 function DeliveryStep() {
-  const { state, updateDelivery, getStepSummary } = useQuote();
+  const state = useQuoteState();
+  const { updateDelivery } = useQuote();
+  const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
 
   return (
     <div className="space-y-6">
@@ -1083,7 +1094,211 @@ function getPostProcessingLabel(optionId: string): string {
 }
 
 function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: () => void }) {
-  const { state } = useQuote();
+  const state = useQuoteState();
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleSave = async () => {
+    if (!user?.id) {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveStatus('idle');
+
+    try {
+      // Prepare quotation data for saving
+      const quotationData = {
+        userId: user.id,
+        quotationNumber: `QT-${Date.now()}`,
+        status: 'draft' as const,
+        totalAmount: result.totalPrice,
+        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        notes: null,
+        items: [
+          {
+            productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+            quantity: state.quantity,
+            unitPrice: result.unitPrice,
+            specifications: {
+              bagTypeId: state.bagTypeId,
+              materialId: state.materialId,
+              width: state.width,
+              height: state.height,
+              depth: state.depth,
+              thicknessSelection: state.thicknessSelection,
+              isUVPrinting: state.isUVPrinting,
+              printingType: state.printingType,
+              printingColors: state.printingColors,
+              doubleSided: state.doubleSided,
+              postProcessingOptions: state.postProcessingOptions,
+              deliveryLocation: state.deliveryLocation,
+              urgency: state.urgency,
+              dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
+            }
+          }
+        ]
+      };
+
+      // Call API to save quotation
+      const response = await fetch('/api/quotations/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quotationData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to save quotation');
+      }
+
+      const savedQuotation = await response.json();
+
+      console.log('Quotation saved successfully:', savedQuotation);
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Failed to save quote:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    setIsDownloading(true);
+    setDownloadStatus('idle');
+
+    try {
+      // Generate quotation number
+      const quoteNumber = `QT-${Date.now()}`;
+      const today = new Date();
+      const expiryDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      // Format dates as YYYY-MM-DD
+      const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      // Build quote item data
+      const quoteItem = {
+        id: 'ITEM-001',
+        name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+        description: `サイズ: ${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+        quantity: state.quantity,
+        unit: '個',
+        unitPrice: Math.round(result.unitPrice),
+        amount: Math.round(result.totalPrice),
+      };
+
+      // Build specifications for Excel
+      const specifications = {
+        bagType: getBagTypeLabel(state.bagTypeId),
+        contents: '粉体',
+        size: `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`,
+        material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
+        sealWidth: '5mm',
+        sealDirection: '上',
+        notchShape: 'V',
+        notchPosition: '指定位置',
+        hanging: 'なし',
+        hangingPosition: '指定位置',
+        zipperPosition: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
+        cornerR: 'R5',
+      };
+
+      // Build optional processing
+      const optionalProcessing = {
+        zipper: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
+        notch: state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
+        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hanging')),
+        cornerProcessing: state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
+        gasValve: state.postProcessingOptions.some((opt: string) => opt.includes('valve') || opt.includes('gas')),
+        easyCut: state.postProcessingOptions.some((opt: string) => opt.includes('easy') || opt.includes('cut')),
+        dieCut: state.postProcessingOptions.some((opt: string) => opt.includes('die')),
+      };
+
+      // Prepare Excel data
+      const excelData = {
+        quoteNumber,
+        issueDate: formatDate(today),
+        expiryDate: formatDate(expiryDate),
+        quoteCreator: 'EPACKAGE Lab 自動見積もりシステム',
+
+        // Customer information (from auth or defaults)
+        customerName: user?.companyName || user?.email?.split('@')[0] || 'お客様',
+        customerNameKana: '',
+        companyName: user?.companyName || '',
+        postalCode: user?.postalCode || '',
+        address: user?.city || user?.street
+          ? `${user?.prefecture || ''}${user?.city || ''}${user?.street || ''}`
+          : '',
+        contactPerson: user?.kanjiLastName && user?.kanjiFirstName
+          ? `${user.kanjiLastName} ${user.kanjiFirstName}`
+          : '',
+        phone: user?.corporatePhone || user?.personalPhone || '',
+        email: user?.email || '',
+
+        // Quote items
+        items: [quoteItem],
+
+        // Specifications for Excel template
+        specifications,
+
+        // Optional processing
+        optionalProcessing,
+      };
+
+      // Call Excel generation API
+      const response = await fetch('/api/quotes/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: excelData }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Excel generation failed' }));
+        throw new Error(errorData.error || 'Excel generation failed');
+      }
+
+      // Get the Excel blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${quoteNumber}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      console.log('Excel downloaded successfully:', quoteNumber);
+      setDownloadStatus('success');
+      setTimeout(() => setDownloadStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Failed to download Excel:', error);
+      setDownloadStatus('error');
+      setTimeout(() => setDownloadStatus('idle'), 3000);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const { state: multiQuantityState } = useMultiQuantityQuote();
 
   // Get multi-quantity calculations if available
@@ -1304,7 +1519,7 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center space-x-4">
+      <div className="flex flex-wrap justify-center gap-3">
         <motion.button
           onClick={onReset}
           className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
@@ -1315,8 +1530,76 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
           <RefreshCw className="w-4 h-4 inline mr-2" />
           新しい見積もり
         </motion.button>
-        <button className="px-8 py-3 bg-navy-700 text-white rounded-lg font-medium hover:bg-navy-600 transition-colors">
-          見積もりを保存
+        <button
+          onClick={handleDownloadExcel}
+          disabled={isDownloading}
+          className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center ${
+            isDownloading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : downloadStatus === 'success'
+              ? 'bg-green-600 hover:bg-green-700 text-white'
+              : downloadStatus === 'error'
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+        >
+          {isDownloading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Excel作成中...
+            </>
+          ) : downloadStatus === 'success' ? (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              Excel完了
+            </>
+          ) : downloadStatus === 'error' ? (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              Excel失敗
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              Excelダウンロード
+            </>
+          )}
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center ${
+            isSaving
+              ? 'bg-gray-400 cursor-not-allowed'
+              : saveStatus === 'success'
+              ? 'bg-green-600 hover:bg-green-700 text-white'
+              : saveStatus === 'error'
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : 'bg-navy-700 hover:bg-navy-600 text-white'
+          }`}
+        >
+          {isSaving ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              保存中...
+            </>
+          ) : saveStatus === 'success' ? (
+            <>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              保存完了
+            </>
+          ) : saveStatus === 'error' ? (
+            <>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              保存失敗
+            </>
+          ) : (
+            <>見積もりを保存</>
+          )}
         </button>
       </div>
     </div>
@@ -1325,7 +1608,7 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
 
 // Real-time price display component
 function RealTimePriceDisplay() {
-  const { state } = useQuote();
+  const state = useQuoteState();
   const [isCalculating, setIsCalculating] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [priceChange, setPriceChange] = useState<'increase' | 'decrease' | 'stable'>('stable');
@@ -1339,6 +1622,10 @@ function RealTimePriceDisplay() {
   }>>([]);
 
   const previousPriceRef = useRef<number | null>(null);
+  const priceResetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Track previous quantities to detect actual changes (not reference changes)
+  const prevQuantitiesRef = useRef<number[]>([]);
 
   // Initialize previous price ref on mount
   useEffect(() => {
@@ -1347,75 +1634,55 @@ function RealTimePriceDisplay() {
     }
   }, []);
 
-  // Create a stable key for quantities to prevent unnecessary re-calculations
-  const quantitiesKey = useMemo(() => {
-    return JSON.stringify(state.quantities.slice().sort());
-  }, [state.quantities]);
-
-  // Memoize calculation dependencies to prevent unnecessary re-calculations
-  const calculationDependencies = useMemo(() => ({
-    bagTypeId: state.bagTypeId,
-    materialId: state.materialId,
-    width: state.width,
-    height: state.height,
-    depth: state.depth,
-    quantities: state.quantities,
-    quantitiesKey,
-    thicknessSelection: state.thicknessSelection,
-    isUVPrinting: state.isUVPrinting,
-    printingType: state.printingType,
-    printingColors: state.printingColors,
-    doubleSided: state.doubleSided,
-    deliveryLocation: state.deliveryLocation,
-    urgency: state.urgency
-  }), [
-    state.bagTypeId,
-    state.materialId,
-    state.width,
-    state.height,
-    state.depth,
-    quantitiesKey,
-    state.thicknessSelection,
-    state.isUVPrinting,
-    state.printingType,
-    state.printingColors,
-    state.doubleSided,
-    state.deliveryLocation,
-    state.urgency
-  ]);
-
   // Calculate real-time price whenever essential form data changes
   useEffect(() => {
     const calculatePrice = async () => {
+      // Capture quantities at effect run time
+      const quantities = state.quantities;
+      const currentQuantity = state.quantity;
+
+      // Check if quantities have actually changed (not just reference)
+      const quantitiesChanged = quantities.length !== prevQuantitiesRef.current.length ||
+        !quantities.every((q, i) => q === prevQuantitiesRef.current[i]);
+
+      // Update ref for next comparison
+      prevQuantitiesRef.current = quantities.slice();
+
       // Basic validation before calculation
-      if (!calculationDependencies.materialId ||
-          !calculationDependencies.bagTypeId ||
-          calculationDependencies.quantities.length === 0) {
-        setCurrentPrice(null);
-        setQuantityQuotes([]);
+      if (!state.materialId || !state.bagTypeId || quantities.length === 0) {
+        // Only update state if values are actually different
+        setCurrentPrice(prev => prev !== null ? null : prev);
+        setQuantityQuotes(prev => prev.length !== 0 ? [] : prev);
         return;
       }
 
       setIsCalculating(true);
       try {
         // Calculate quotes for all quantities using unified pricing engine
-        const quotes = [];
+        const quotes: Array<{
+          quantity: number;
+          unitPrice: number;
+          totalPrice: number;
+          discountRate: number;
+          priceBreak: string;
+          minimumPriceApplied: boolean;
+        }> = [];
 
-        for (const quantity of calculationDependencies.quantities) {
+        for (const quantity of quantities) {
           const quoteResult = await unifiedPricingEngine.calculateQuote({
-            bagTypeId: calculationDependencies.bagTypeId,
-            materialId: calculationDependencies.materialId,
-            width: calculationDependencies.width,
-            height: calculationDependencies.height,
-            depth: calculationDependencies.depth,
+            bagTypeId: state.bagTypeId,
+            materialId: state.materialId,
+            width: state.width,
+            height: state.height,
+            depth: state.depth,
             quantity: quantity,
-            thicknessSelection: calculationDependencies.thicknessSelection,
-            isUVPrinting: calculationDependencies.isUVPrinting,
-            printingType: calculationDependencies.printingType,
-            printingColors: calculationDependencies.printingColors,
-            doubleSided: calculationDependencies.doubleSided,
-            deliveryLocation: calculationDependencies.deliveryLocation,
-            urgency: calculationDependencies.urgency
+            thicknessSelection: state.thicknessSelection,
+            isUVPrinting: state.isUVPrinting,
+            printingType: state.printingType,
+            printingColors: state.printingColors,
+            doubleSided: state.doubleSided,
+            deliveryLocation: state.deliveryLocation,
+            urgency: state.urgency
           });
 
           // Determine price break and discount rate
@@ -1447,12 +1714,22 @@ function RealTimePriceDisplay() {
         }
 
         // Set current price to the first (recommended) quantity - use a ref to avoid dependency issues
-        const currentQuantityRef = state.quantity;
-        const recommendedQuote = quotes.find(q => q.quantity === currentQuantityRef) || quotes[0];
+        const recommendedQuote = quotes.find(q => q.quantity === currentQuantity) || quotes[0];
         const previousPrice = previousPriceRef.current;
 
-        setCurrentPrice(recommendedQuote.totalPrice);
-        setQuantityQuotes(quotes);
+        // CRITICAL FIX: Only update state if values have actually changed
+        // This prevents infinite re-render loops
+        setCurrentPrice(prev => prev !== recommendedQuote.totalPrice ? recommendedQuote.totalPrice : prev);
+
+        // Deep comparison for quotes array to prevent unnecessary updates
+        setQuantityQuotes(prev => {
+          const quotesChanged = quotes.length !== prev.length ||
+            quotes.some((q, i) =>
+              q.quantity !== prev[i]?.quantity ||
+              q.totalPrice !== prev[i]?.totalPrice
+            );
+          return quotesChanged ? quotes : prev;
+        });
 
         // Detect price change for animation using ref instead of state
         if (previousPrice && recommendedQuote.totalPrice > previousPrice) {
@@ -1463,25 +1740,61 @@ function RealTimePriceDisplay() {
           setPriceChange('stable');
         }
 
-        // Reset animation after delay
+        // Reset animation after delay - clean up previous timeout
         if (previousPrice && recommendedQuote.totalPrice !== previousPrice) {
-          setTimeout(() => setPriceChange('stable'), 500);
+          if (priceResetTimeoutRef.current) {
+            clearTimeout(priceResetTimeoutRef.current);
+          }
+          priceResetTimeoutRef.current = setTimeout(() => setPriceChange('stable'), 500);
         }
 
         // Update the ref with the new price
         previousPriceRef.current = recommendedQuote.totalPrice;
       } catch (error) {
         console.error('Price calculation error:', error);
-        setCurrentPrice(null);
-        setQuantityQuotes([]);
+        // Only update state if values are actually different
+        setCurrentPrice(prev => prev !== null ? null : prev);
+        setQuantityQuotes(prev => prev.length !== 0 ? [] : prev);
       } finally {
         setIsCalculating(false);
       }
     };
 
     const timeoutId = setTimeout(calculatePrice, 300); // Debounce
-    return () => clearTimeout(timeoutId);
-  }, [calculationDependencies]); // Remove state.quantity from dependencies to prevent circular dependency
+    return () => {
+      clearTimeout(timeoutId);
+      // Also clean up the price reset timeout
+      if (priceResetTimeoutRef.current) {
+        clearTimeout(priceResetTimeoutRef.current);
+        priceResetTimeoutRef.current = null;
+      }
+    };
+  }, [
+    state.bagTypeId,
+    state.materialId,
+    state.width,
+    state.height,
+    state.depth,
+    state.quantity,
+    // NOTE: state.quantities is NOT in dependency array - we track it manually via ref
+    // to prevent infinite loops from array reference changes
+    state.thicknessSelection,
+    state.isUVPrinting,
+    state.printingType,
+    state.printingColors,
+    state.doubleSided,
+    state.deliveryLocation,
+    state.urgency
+  ]);
+
+  // Cleanup price reset timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (priceResetTimeoutRef.current) {
+        clearTimeout(priceResetTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!currentPrice || quantityQuotes.length === 0) {
     return (
@@ -1579,7 +1892,9 @@ export function ImprovedQuotingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<UnifiedQuoteResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  const { state, isStepComplete, resetQuote } = useQuote();
+  const state = useQuoteState();
+  const { resetQuote } = useQuote();
+  const isStepComplete = (step: string) => checkStepComplete(state, step);
   const { calculateMultiQuantity, canCalculateMultiQuantity } = useMultiQuantityQuote();
 
   const currentStepId = STEPS[currentStep]?.id;
@@ -1680,17 +1995,9 @@ export function ImprovedQuotingWizard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50" role="main">
       <div ref={wizardRef} className="max-w-7xl mx-auto p-4 lg:p-8" id="quote-wizard-content">
 
-        {/* Enhanced Header with Progress */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            見積もりシミュレーター
-          </h1>
-          <p className="text-gray-600 mb-6">
-            専門的な包装ソリューションのためのカスタマイズされたお見積もり
-          </p>
-
-          {/* Enhanced Progress Bar */}
-          <div className="max-w-2xl mx-auto" role="progressbar" aria-valuenow={Math.round(((currentStep + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="見積もり作成の進捗状況">
+        {/* Enhanced Progress Bar - Removed duplicate header title */}
+        <div className="mb-8 max-w-2xl mx-auto">
+          <div role="progressbar" aria-valuenow={Math.round(((currentStep + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="見積もり作成の進捗状況">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-600 font-medium">進捗状況</span>
               <span className="text-sm font-bold text-navy-700" aria-live="polite">

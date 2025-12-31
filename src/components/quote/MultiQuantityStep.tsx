@@ -9,10 +9,10 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
-import { useQuote } from '@/contexts/QuoteContext';
+import { useQuoteState } from '@/contexts/QuoteContext';
 
 function MultiQuantityStep() {
-  const quoteState = useQuote(); // Get basic specs from QuoteContext
+  const quoteState = useQuoteState(); // Get basic specs from QuoteContext
   const {
     state,
     setQuantities,
@@ -33,20 +33,20 @@ function MultiQuantityStep() {
   useEffect(() => {
     // Sync basic specs from QuoteContext
     updateMultiBasicSpecs({
-      bagTypeId: quoteState.state.bagTypeId,
-      materialId: quoteState.state.materialId,
-      width: quoteState.state.width,
-      height: quoteState.state.height,
-      depth: quoteState.state.depth,
-      thicknessSelection: quoteState.state.thicknessSelection
+      bagTypeId: quoteState.bagTypeId,
+      materialId: quoteState.materialId,
+      width: quoteState.width,
+      height: quoteState.height,
+      depth: quoteState.depth,
+      thicknessSelection: quoteState.thicknessSelection
     });
   }, [
-    quoteState.state.bagTypeId,
-    quoteState.state.materialId,
-    quoteState.state.width,
-    quoteState.state.height,
-    quoteState.state.depth,
-    quoteState.state.thicknessSelection,
+    quoteState.bagTypeId,
+    quoteState.materialId,
+    quoteState.width,
+    quoteState.height,
+    quoteState.depth,
+    quoteState.thicknessSelection,
     updateMultiBasicSpecs
   ]);
 

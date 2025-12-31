@@ -171,7 +171,7 @@ export function Footer() {
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-10 pointer-events-none"
         )}
-        aria-label="페이지 상단으로 이동"
+        aria-label="ページ上部に移動"
       >
         <ChevronUp className="h-5 w-5" />
       </button>
@@ -365,7 +365,7 @@ export function Footer() {
                         "group relative w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all duration-300 transform hover:scale-110",
                         social.color
                       )}
-                      aria-label={`${social.label}에서 팔로우하기`}
+                      aria-label={`${social.label}でフォローする`}
                       style={{ transition: 'all 0.3s ease-out', transitionDelay: `${index * 0.05}s` }}
                     >
                       <IconComponent className="h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors duration-300" />

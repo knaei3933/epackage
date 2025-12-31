@@ -40,8 +40,8 @@ const industryColors = {
 export function ArchiveGrid({ records, onRecordClick, loading }: ArchiveGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 9 }).map((_, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="animate-pulse">
             <div className="bg-gray-200 rounded-xl h-64"></div>
           </div>
@@ -70,7 +70,7 @@ export function ArchiveGrid({ records, onRecordClick, loading }: ArchiveGridProp
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {records.map((record) => (
         <Card
           key={record.id}
@@ -89,12 +89,17 @@ export function ArchiveGrid({ records, onRecordClick, loading }: ArchiveGridProp
           {/* Main Image */}
           <div className="relative h-48 bg-gray-100 overflow-hidden">
             <Image
-              src={record.images.find(img => img.isMain)?.url || "/images/archives/placeholder.jpg"}
+              src={record.images.find(img => img.isMain)?.url || "/images/archives/standing-pouch-1.jpg"}
               alt={record.images.find(img => img.isMain)?.alt || record.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 100vw, 50vw"
               loading="lazy"
+              onError={(e) => {
+                // Fallback to a default image if the specific image doesn't exist
+                const target = e.target as HTMLImageElement;
+                target.src = "/images/archives/standing-pouch-1.jpg";
+              }}
             />
 
             {/* Overlay on hover */}

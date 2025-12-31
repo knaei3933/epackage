@@ -274,7 +274,7 @@ export function RealTimePreviewEngine({
     const frameOffset = (previewState.currentFrame / previewState.totalFrames) * Math.PI * 2
 
     switch (option.category) {
-      case 'closure':
+      case 'opening-sealing':
         // Draw zipper/seal effects
         if (option.id.includes('zipper')) {
           ctx.strokeStyle = '#fbbf24'
@@ -287,9 +287,16 @@ export function RealTimePreviewEngine({
           ctx.stroke()
           ctx.setLineDash([])
         }
+        // Draw opening features (notch)
+        if (option.id.includes('notch')) {
+          ctx.fillStyle = '#ef4444'
+          ctx.beginPath()
+          ctx.arc(centerX, centerY - height * 0.2, 5, 0, Math.PI * 2)
+          ctx.fill()
+        }
         break
 
-      case 'finish':
+      case 'surface-treatment':
         // Draw finish effects
         if (option.id.includes('glossy')) {
           const glossGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.3)
@@ -300,18 +307,8 @@ export function RealTimePreviewEngine({
         }
         break
 
-      case 'opening':
-        // Draw opening features
-        if (option.id.includes('notch')) {
-          ctx.fillStyle = '#ef4444'
-          ctx.beginPath()
-          ctx.arc(centerX, centerY - height * 0.2, 5, 0, Math.PI * 2)
-          ctx.fill()
-        }
-        break
-
-      case 'display':
-        // Draw display features
+      case 'shape-structure':
+        // Draw display features (hang-hole)
         if (option.id.includes('hang-hole')) {
           ctx.strokeStyle = '#8b5cf6'
           ctx.lineWidth = 2
@@ -319,10 +316,7 @@ export function RealTimePreviewEngine({
           ctx.arc(centerX, centerY - height * 0.3, 8, 0, Math.PI * 2)
           ctx.stroke()
         }
-        break
-
-      case 'structure':
-        // Draw structural features
+        // Draw structural features (corner-round)
         if (option.id.includes('corner-round')) {
           ctx.strokeStyle = '#10b981'
           ctx.lineWidth = 4
@@ -335,6 +329,13 @@ export function RealTimePreviewEngine({
           ctx.lineTo(centerX - width * 0.2, centerY - height * 0.3 + cornerSize)
           ctx.stroke()
         }
+        break
+
+      case 'functionality':
+        // Draw functionality features (e.g., tamper evident, moisture barrier indicators)
+        ctx.fillStyle = '#06b6d4'
+        ctx.font = '10px sans-serif'
+        ctx.fillText('⚡', centerX + width * 0.1, centerY + height * 0.2)
         break
     }
 

@@ -220,11 +220,11 @@ export function SmartRecommendations({
       processingOptionsConfig.find(opt => opt.id === id)
     ).filter(Boolean) as ProcessingOptionConfig[]
 
-    const hasClosure = currentOptions.some(opt => opt.category === 'closure')
-    const hasFinish = currentOptions.some(opt => opt.category === 'finish')
+    const hasOpeningSealing = currentOptions.some(opt => opt.category === 'opening-sealing')
+    const hasSurfaceTreatment = currentOptions.some(opt => opt.category === 'surface-treatment')
 
-    if (!hasClosure && compatibleOptions.some(opt => opt.category === 'closure')) {
-      const closureOptions = compatibleOptions.filter(opt => opt.category === 'closure')
+    if (!hasOpeningSealing && compatibleOptions.some(opt => opt.category === 'opening-sealing')) {
+      const openingSealingOptions = compatibleOptions.filter(opt => opt.category === 'opening-sealing')
       recommendations.push({
         id: 'add-closure',
         title: language === 'ja' ? '閉鎖機能の追加' : 'Add Closure Feature',
@@ -233,7 +233,7 @@ export function SmartRecommendations({
           ? '再利用可能な閉鎖機能で利便性を向上'
           : 'Improve convenience with resealable closure',
         descriptionJa: '再利用可能な閉鎖機能で利便性を向上',
-        options: [closureOptions[0]?.id || 'zipper-yes'],
+        options: [openingSealingOptions[0]?.id || 'zipper-yes'],
         benefits: [
           language === 'ja' ? '消費者の利便性' : 'Consumer convenience',
           language === 'ja' ? '製品鮮度維持' : 'Product freshness',
@@ -252,9 +252,9 @@ export function SmartRecommendations({
       })
     }
 
-    if (!hasFinish && compatibleOptions.some(opt => opt.category === 'finish')) {
-      const finishOptions = compatibleOptions.filter(opt => opt.category === 'finish')
-      const recommendedFinish = finishOptions.find(opt => opt.id === 'matte') || finishOptions[0]
+    if (!hasSurfaceTreatment && compatibleOptions.some(opt => opt.category === 'surface-treatment')) {
+      const surfaceTreatmentOptions = compatibleOptions.filter(opt => opt.category === 'surface-treatment')
+      const recommendedSurfaceTreatment = surfaceTreatmentOptions.find(opt => opt.id === 'matte') || surfaceTreatmentOptions[0]
 
       recommendations.push({
         id: 'add-finish',
@@ -264,7 +264,7 @@ export function SmartRecommendations({
           ? '製品の外観と質感を向上させる仕上げ'
           : 'Enhance product appearance and texture',
         descriptionJa: '製品の外観と質感を向上させる仕上げ',
-        options: [recommendedFinish?.id || 'matte'],
+        options: [recommendedSurfaceTreatment?.id || 'matte'],
         benefits: [
           language === 'ja' ? '視覚的魅力' : 'Visual appeal',
           language === 'ja' ? 'ブランドイメージ' : 'Brand image',

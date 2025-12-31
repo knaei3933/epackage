@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useCallback, useState } from 'react';
-import { SimulationState, QuotationResult, ValidationError, EnhancedSimulationContextType } from '@/types/simulation';
+import { SimulationState, QuotationResult, SimulationValidationError, EnhancedSimulationContextType } from '@/types/simulation';
 import { validateStep, validateField, isFormComplete } from '@/lib/validation';
 import { priceCalculator } from '@/lib/pricing';
 
@@ -36,7 +36,7 @@ type SimulationAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_RESULTS'; payload: QuotationResult[] }
-  | { type: 'SET_VALIDATION_ERRORS'; payload: ValidationError[] };
+  | { type: 'SET_VALIDATION_ERRORS'; payload: SimulationValidationError[] };
 
 // Reducer
 function simulationReducer(state: SimulationState, action: SimulationAction): SimulationState {
@@ -79,7 +79,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   const [results, setResults] = useState<QuotationResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [validationErrors, setValidationErrors] = useState<SimulationValidationError[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
 
   // Real-time price calculation with debouncing
@@ -113,7 +113,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       return true;
     }
 
-    const errors: ValidationError[] = validation.error.errors.map((err) => ({
+    const errors: SimulationValidationError[] = validation.error.errors.map((err) => ({
       field: err.path.join('.'),
       message: err.message,
     }));

@@ -1,103 +1,77 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Package, User, Mail, Phone, Send, CheckCircle, Star, Box, Gift } from 'lucide-react'
+import { Package, User, Mail, Phone, Send, CheckCircle, Star, Box, Gift, Building, Plus, X, Copy } from 'lucide-react'
+import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
+
+// 配送先スキーマ
+const deliveryDestinationSchema = z.object({
+  id: z.string(),
+  companyName: z.string().optional(),
+  contactPerson: z.string().min(1, '担当者を入力してください'),
+  phone: z.string().min(1, '電話番号を入力してください'),
+  postalCode: z.string().optional(),
+  address: z.string().min(1, '住所を入力してください'),
+  sameAsCustomer: z.boolean().optional()
+})
 
 // パウチサンプルリクエストバリデーションスキーマ
 const pouchSampleRequestSchema = z.object({
-  name: z.string()
-    .min(1, 'お名前を入力してください')
-    .min(2, 'お名前は2文字以上で入力してください')
-    .max(50, 'お名前は50文字以内で入力してください'),
+  kanjiLastName: z.string()
+    .min(1, '姓（漢字）を入力してください')
+    .min(1, '姓（漢字）は1文字以上で入力してください')
+    .max(50, '姓（漢字）は50文字以内で入力してください'),
+  kanjiFirstName: z.string()
+    .min(1, '名（漢字）を入力してください')
+    .min(1, '名（漢字）は1文字以上で入力してください')
+    .max(50, '名（漢字）は50文字以内で入力してください'),
+  kanaLastName: z.string()
+    .min(1, '姓（ひらがな）を入力してください')
+    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
+    .max(50, '姓（ひらがな）は50文字以内で入力してください'),
+  kanaFirstName: z.string()
+    .min(1, '名（ひらがな）を入力してください')
+    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
+    .max(50, '名（ひらがな）は50文字以内で入力してください'),
   company: z.string()
     .max(100, '会社名は100文字以内で入力してください')
     .optional(),
-  email: z.string()
-    .min(1, 'メールアドレスを入力してください')
-    .email('有効なメールアドレスを入力してください'),
   phone: z.string()
     .min(1, '電話番号を入力してください')
     .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/,
       '有効な電話番号を入力してください（例: 03-1234-5678）'),
-  pouchSamples: z.array(z.object({
-    pouchType: z.enum(['soft', 'standing', 'gusset', 'pillow', 'triangle', 'special'], {
-      required_error: 'パウチタイプを選択してください'
-    }),
-    quantity: z.number()
-      .min(1, '数量は1以上で入力してください')
-      .max(5, '数量は5以下で入力してください'),
-    size: z.string().optional(),
-    application: z.string()
-      .min(1, '使用目的を入力してください')
-      .max(200, '使用目的は200文字以内で入力してください')
-  })).min(1, '少なくとも1つのパウチサンプルを選択してください')
-    .max(3, '最大3種類のパウチサンプルまで選択可能です'),
+  fax: z.string()
+    .optional()
+    .refine(val => !val || /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/.test(val),
+      '有効なFAX番号を入力してください（例: 03-1234-5678）'),
+  email: z.string()
+    .min(1, 'メールアドレスを入力してください')
+    .email('有効なメールアドレスを入力してください'),
+  postalCode: z.string()
+    .optional()
+    .refine(val => !val || /^\d{3}-\d{4}$/.test(val), '有効な郵便番号を入力してください（例: 100-0001）'),
+  address: z.string()
+    .max(200, '住所は200文字以内で入力してください')
+    .optional(),
   message: z.string()
     .min(10, 'お問い合わせ内容は10文字以上で入力してください')
     .max(500, 'お問い合わせ内容は500文字以内で入力してください'),
-  agreement: z.boolean().refine(val => val === true, '個人情報保護方針に同意してください')
+  agreement: z.boolean().refine(val => val === true, '個人情報保護方針に同意してください'),
+
+  // 配送タイプ
+  deliveryType: z.enum(['normal', 'other'], {
+    required_error: '配送タイプを選択してください'
+  }),
+
+  // 配送先リスト（複数可能）
+  deliveryDestinations: z.array(deliveryDestinationSchema).min(1, '少なくとも1つの配送先を入力してください')
 })
 
 type PouchSampleRequestFormData = z.infer<typeof pouchSampleRequestSchema>
 
-const pouchTypes = [
-  {
-    value: 'soft',
-    name: 'ソフトパウチ（3シール・4シール）',
-    description: '最も一般的なパウチ形状',
-    icon: Box
-  },
-  {
-    value: 'standing',
-    name: 'スタンドパウチ',
-    description: '自立するチャック付きパウチ',
-    icon: Package
-  },
-  {
-    value: 'gusset',
-    name: 'ガゼットパウチ',
-    description: 'マチ付きで容量アップ',
-    icon: Gift
-  },
-  {
-    value: 'pillow',
-    name: 'ピローパウチ',
-    description: '定番の枕型パウチ',
-    icon: Box
-  },
-  {
-    value: 'triangle',
-    name: '三角パウチ',
-    description: '液体・粉末包装に最適',
-    icon: Gift
-  },
-  {
-    value: 'special',
-    name: '特殊形状パウチ',
-    description: 'カスタム対応',
-    icon: Star
-  }
-]
-
-const commonSizes = [
-  '小サイズ（100x150mm）',
-  '標準サイズ（150x200mm）',
-  '中サイズ（200x300mm）',
-  '大サイズ（300x400mm）'
-]
-
-const commonApplications = [
-  '食品包装評価',
-  '化粧品容器検討',
-  '健康食品試験',
-  '新製品開発',
-  '品質比較検討',
-  '展示会用サンプル',
-  'その他'
-]
 
 export default function PouchSampleRequestForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -112,34 +86,74 @@ export default function PouchSampleRequestForm() {
     reset,
     watch,
     setValue,
-    getValues
+    getValues,
   } = useForm<PouchSampleRequestFormData>({
     resolver: zodResolver(pouchSampleRequestSchema),
     defaultValues: {
-      pouchSamples: [{ pouchType: 'soft', quantity: 1, application: '', size: '' }],
-      agreement: false
+      kanjiLastName: '',
+      kanjiFirstName: '',
+      kanaLastName: '',
+      kanaFirstName: '',
+      company: '',
+      email: '',
+      phone: '',
+      fax: '',
+      postalCode: '',
+      address: '',
+      agreement: false,
+      deliveryType: 'normal',
+      deliveryDestinations: [{
+        id: 'dest-1',
+        contactPerson: '',
+        phone: '',
+        address: '',
+        sameAsCustomer: true
+      }],
+      message: ''
     }
   })
 
-  const watchPouchSamples = watch('pouchSamples')
+  const {
+    fields: destinationFields,
+    append: appendDestination,
+    remove: removeDestination,
+    update: updateDestination
+  } = useFieldArray({
+    control,
+    name: 'deliveryDestinations'
+  })
 
-  const addPouchSample = () => {
-    const currentSamples = getValues('pouchSamples')
-    if (currentSamples.length < 3) {
-      setValue('pouchSamples', [...currentSamples, {
-        pouchType: 'soft',
-        quantity: 1,
-        application: '',
-        size: ''
-      }])
-    }
+  const deliveryType = watch('deliveryType')
+  const customerInfo = {
+    company: watch('company'),
+    phone: watch('phone'),
+    postalCode: watch('postalCode'),
+    address: watch('address'),
+    kanjiLastName: watch('kanjiLastName'),
+    kanjiFirstName: watch('kanjiFirstName')
   }
 
-  const removePouchSample = (index: number) => {
-    const currentSamples = getValues('pouchSamples')
-    if (currentSamples.length > 1) {
-      setValue('pouchSamples', currentSamples.filter((_, i) => i !== index))
-    }
+  // お客様情報を配送先にコピーする関数
+  const copyCustomerInfo = (index: number) => {
+    const destKey = `deliveryDestinations.${index}` as const
+    setValue(`${destKey}.companyName`, customerInfo.company || '')
+    setValue(`${destKey}.contactPerson`, `${customerInfo.kanjiLastName} ${customerInfo.kanjiFirstName}`)
+    setValue(`${destKey}.phone`, customerInfo.phone)
+    setValue(`${destKey}.postalCode`, customerInfo.postalCode || '')
+    setValue(`${destKey}.address`, customerInfo.address || '')
+    setValue(`${destKey}.sameAsCustomer`, true)
+  }
+
+  // 新しい配送先を追加
+  const addDestination = () => {
+    const newId = `dest-${Date.now()}`
+    appendDestination({
+      id: newId,
+      contactPerson: '',
+      phone: '',
+      address: '',
+      sameAsCustomer: false
+    })
   }
 
   const onSubmit = async (data: PouchSampleRequestFormData) => {
@@ -223,32 +237,13 @@ export default function PouchSampleRequestForm() {
           パウチサンプルご依頼
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-          6種類のパウチ製品を実際にお試しいただけます
+          パウチ製品のサンプルをご請求いただけます
         </p>
         <div className="flex justify-center items-center gap-2 text-sm text-gray-500">
           <CheckCircle className="w-4 h-4 text-green-500" />
           <span>完全無料</span>
           <Send className="w-4 h-4 text-navy-600 ml-4" />
           <span>迅速発送</span>
-        </div>
-      </div>
-
-      {/* サンプル請求ガイド */}
-      <div className="bg-gradient-to-r from-navy-50 to-navy-100 border border-navy-600 rounded-xl p-6 mb-8">
-        <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-          <Gift className="w-5 h-5 mr-2 text-navy-700" />
-          サンプル請求について
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
-          <div>
-            <span className="font-medium text-gray-800">選択可能:</span> 最大3種類のパウチ
-          </div>
-          <div>
-            <span className="font-medium text-gray-800">数量制限:</span> 1種類あたり最大5個
-          </div>
-          <div>
-            <span className="font-medium text-gray-800">発送時期:</span> 通常3-5営業日
-          </div>
         </div>
       </div>
 
@@ -269,23 +264,25 @@ export default function PouchSampleRequestForm() {
               お客様情報
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <User className="w-4 h-4 mr-2" />
-                  お名前 <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  {...register('name')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                  placeholder="山田 太郎"
-                />
-                {errors.name && (
-                  <p className="text-red-600 text-sm">{errors.name.message}</p>
-                )}
-              </div>
+            {/* JapaneseNameInput */}
+            <div className="mb-6">
+              <JapaneseNameInputController
+                control={control}
+                setValue={setValue}
+                kanjiLastNameName="kanjiLastName"
+                kanjiFirstNameName="kanjiFirstName"
+                kanaLastNameName="kanaLastName"
+                kanaFirstNameName="kanaFirstName"
+                kanjiLastNameError={errors.kanjiLastName?.message}
+                kanjiFirstNameError={errors.kanjiFirstName?.message}
+                kanaLastNameError={errors.kanaLastName?.message}
+                kanaFirstNameError={errors.kanaFirstName?.message}
+                required
+              />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 会社名 */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   会社名
@@ -301,6 +298,41 @@ export default function PouchSampleRequestForm() {
                 )}
               </div>
 
+              {/* 電話番号 */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Phone className="w-4 h-4 mr-2" />
+                  電話番号 <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="tel"
+                  {...register('phone')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="03-1234-5678"
+                />
+                {errors.phone && (
+                  <p className="text-red-600 text-sm">{errors.phone.message}</p>
+                )}
+              </div>
+
+              {/* FAX番号 */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Phone className="w-4 h-4 mr-2" />
+                  FAX番号
+                </label>
+                <input
+                  type="tel"
+                  {...register('fax')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="03-1234-5678"
+                />
+                {errors.fax && (
+                  <p className="text-red-600 text-sm">{errors.fax.message}</p>
+                )}
+              </div>
+
+              {/* メールアドレス */}
               <div className="space-y-2">
                 <label className="flex items-center text-sm font-medium text-gray-700">
                   <Mail className="w-4 h-4 mr-2" />
@@ -317,138 +349,283 @@ export default function PouchSampleRequestForm() {
                 )}
               </div>
 
+              {/* 郵便番号 */}
               <div className="space-y-2">
                 <label className="flex items-center text-sm font-medium text-gray-700">
-                  <Phone className="w-4 h-4 mr-2" />
-                  電話番号 <span className="text-red-500 ml-1">*</span>
+                  〒 郵便番号
                 </label>
                 <input
-                  type="tel"
-                  {...register('phone')}
+                  type="text"
+                  {...register('postalCode')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                  placeholder="03-1234-5678"
+                  placeholder="100-0001"
                 />
-                {errors.phone && (
-                  <p className="text-red-600 text-sm">{errors.phone.message}</p>
+                {errors.postalCode && (
+                  <p className="text-red-600 text-sm">{errors.postalCode.message}</p>
+                )}
+              </div>
+
+              {/* 住所 - Full width */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  住所
+                </label>
+                <input
+                  type="text"
+                  {...register('address')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="東京都〇〇区〇〇1-2-3"
+                />
+                {errors.address && (
+                  <p className="text-red-600 text-sm">{errors.address.message}</p>
                 )}
               </div>
             </div>
           </div>
 
-          {/* パウチサンプル選択 */}
+          {/* 配送タイプ選択 */}
           <div className="bg-brixa-50 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                <Package className="w-5 h-5 mr-2 text-brixa-700" />
-                パウチサンプル選択
-              </h2>
-              {watchPouchSamples.length < 3 && (
-                <button
-                  type="button"
-                  onClick={addPouchSample}
-                  className="px-4 py-2 bg-brixa-700 text-white rounded-lg hover:bg-brixa-600 transition-colors text-sm flex items-center"
-                >
-                  <Package className="w-4 h-4 mr-2" />
-                  パウチを追加
-                </button>
-              )}
-            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              <Building className="w-5 h-5 mr-2 text-brixa-700" />
+              配送タイプ <span className="text-red-500 ml-2">*</span>
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              サンプルの配送先を選択してください
+            </p>
 
-            <div className="space-y-4">
-              {watchPouchSamples.map((sample, index) => (
-                <div key={index} className="bg-white p-4 border border-brixa-600 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-gray-800 flex items-center">
-                      <Box className="w-4 h-4 mr-2 text-brixa-600" />
-                      サンプル {index + 1}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 一般配送 */}
+              <label className={`relative cursor-pointer`}>
+                <input
+                  {...register('deliveryType')}
+                  type="radio"
+                  value="normal"
+                  className="peer sr-only"
+                  onChange={() => {
+                    setValue('deliveryType', 'normal')
+                    // 一般配送時、最初の配送先にお客様情報を自動コピー
+                    if (destinationFields.length > 0) {
+                      copyCustomerInfo(0)
+                    }
+                  }}
+                />
+                <div className={`p-4 border-2 rounded-lg transition-all ${
+                  deliveryType === 'normal'
+                    ? 'border-brixa-600 bg-brixa-600'
+                    : 'border-gray-200 bg-white hover:border-brixa-400'
+                }`}>
+                  <div className="flex flex-col items-center text-center">
+                    <div className={`p-2 rounded-full mb-2 ${
+                      deliveryType === 'normal' ? 'bg-white' : 'bg-gray-100'
+                    }`}>
+                      <Building className={`w-5 h-5 ${
+                        deliveryType === 'normal' ? 'text-brixa-700' : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <h3 className={`font-semibold mb-1 ${
+                      deliveryType === 'normal' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      一般配送
                     </h3>
-                    {watchPouchSamples.length > 1 && (
+                    <p className={`text-xs ${
+                      deliveryType === 'normal' ? 'text-brixa-100' : 'text-gray-600'
+                    }`}>
+                      お客様情報に配送
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              {/* 別の場所に配送 */}
+              <label className={`relative cursor-pointer`}>
+                <input
+                  {...register('deliveryType')}
+                  type="radio"
+                  value="other"
+                  className="peer sr-only"
+                  onChange={() => {
+                    setValue('deliveryType', 'other')
+                  }}
+                />
+                <div className={`p-4 border-2 rounded-lg transition-all ${
+                  deliveryType === 'other'
+                    ? 'border-orange-600 bg-orange-600'
+                    : 'border-gray-200 bg-white hover:border-orange-400'
+                }`}>
+                  <div className="flex flex-col items-center text-center">
+                    <div className={`p-2 rounded-full mb-2 ${
+                      deliveryType === 'other' ? 'bg-white' : 'bg-gray-100'
+                    }`}>
+                      <Send className={`w-5 h-5 ${
+                        deliveryType === 'other' ? 'text-orange-700' : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <h3 className={`font-semibold mb-1 ${
+                      deliveryType === 'other' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      別の場所に配送
+                    </h3>
+                    <p className={`text-xs ${
+                      deliveryType === 'other' ? 'text-orange-100' : 'text-gray-600'
+                    }`}>
+                      別の場所を指定
+                    </p>
+                  </div>
+                </div>
+              </label>
+            </div>
+            {errors.deliveryType && (
+              <p className="text-red-600 text-sm mt-2">{errors.deliveryType.message}</p>
+            )}
+          </div>
+
+          {/* 配送先リスト */}
+          <div className="bg-orange-50 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <Building className="w-5 h-5 mr-2 text-orange-600" />
+                配送先 <span className="text-red-500 ml-2">*</span>
+              </h2>
+              <button
+                type="button"
+                onClick={addDestination}
+                className="flex items-center px-3 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                配送先を追加
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              サンプルを配送する場所を入力してください
+            </p>
+
+            {destinationFields.map((field, index) => (
+              <div key={field.id} className="bg-white rounded-lg p-4 mb-4 border-2 border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900">
+                    配送先 {index + 1}
+                  </h3>
+                  {destinationFields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeDestination(index)}
+                      className="text-red-600 hover:text-red-700 text-sm"
+                    >
+                      <X className="w-4 h-4 mr-1 inline" />
+                      削除
+                    </button>
+                  )}
+                </div>
+
+                {/* お客様情報と同じチェックボックス */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <label className="flex items-start cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...register(`deliveryDestinations.${index}.sameAsCustomer` as const)}
+                      className="mt-1 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          copyCustomerInfo(index)
+                        }
+                      }}
+                    />
+                    <div className="ml-3">
+                      <span className="text-sm font-medium text-gray-700">
+                        お客様情報と同じ
+                      </span>
                       <button
                         type="button"
-                        onClick={() => removePouchSample(index)}
-                        className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                        onClick={() => copyCustomerInfo(index)}
+                        className="ml-2 text-xs text-orange-600 hover:text-orange-700 flex items-center"
                       >
-                        削除
+                        <Copy className="w-3 h-3 mr-1 inline" />
+                        コピー
                       </button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        チェックするとお客様情報がコピーされます
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 会社名 */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      会社名
+                    </label>
+                    <input
+                      type="text"
+                      {...register(`deliveryDestinations.${index}.companyName` as const)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="株式会社〇〇"
+                    />
+                  </div>
+
+                  {/* 担当者 */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      担当者 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register(`deliveryDestinations.${index}.contactPerson` as const)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="山田 太郎"
+                    />
+                    {errors.deliveryDestinations?.[index]?.contactPerson && (
+                      <p className="text-red-600 text-xs">{errors.deliveryDestinations[index]?.contactPerson?.message}</p>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        パウチタイプ <span className="text-red-500 ml-1">*</span>
-                      </label>
-                      <select
-                        {...register(`pouchSamples.${index}.pouchType`)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                      >
-                        {pouchTypes.map(pouch => (
-                          <option key={pouch.value} value={pouch.value}>
-                            {pouch.name} - {pouch.description}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.pouchSamples?.[index]?.pouchType && (
-                        <p className="text-red-600 text-sm">{errors.pouchSamples[index]?.pouchType?.message}</p>
-                      )}
-                    </div>
+                  {/* 電話番号 */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      電話番号 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      {...register(`deliveryDestinations.${index}.phone` as const)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="03-1234-5678"
+                    />
+                    {errors.deliveryDestinations?.[index]?.phone && (
+                      <p className="text-red-600 text-xs">{errors.deliveryDestinations[index]?.phone?.message}</p>
+                    )}
+                  </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        数量 <span className="text-red-500 ml-1">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        {...register(`pouchSamples.${index}.quantity`, { valueAsNumber: true })}
-                        min="1"
-                        max="5"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                      />
-                      {errors.pouchSamples?.[index]?.quantity && (
-                        <p className="text-red-600 text-sm">{errors.pouchSamples[index]?.quantity?.message}</p>
-                      )}
-                    </div>
+                  {/* 郵便番号 */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      〒 郵便番号
+                    </label>
+                    <input
+                      type="text"
+                      {...register(`deliveryDestinations.${index}.postalCode` as const)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="100-0001"
+                    />
+                  </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        サイズ（任意）
-                      </label>
-                      <select
-                        {...register(`pouchSamples.${index}.size`)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                      >
-                        <option value="">サイズを選択してください</option>
-                        {commonSizes.map((size, idx) => (
-                          <option key={idx} value={size}>
-                            {size}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        使用目的 <span className="text-red-500 ml-1">*</span>
-                      </label>
-                      <select
-                        {...register(`pouchSamples.${index}.application`)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                      >
-                        <option value="">使用目的を選択してください</option>
-                        {commonApplications.map((app, idx) => (
-                          <option key={idx} value={app}>
-                            {app}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.pouchSamples?.[index]?.application && (
-                        <p className="text-red-600 text-sm">{errors.pouchSamples[index]?.application?.message}</p>
-                      )}
-                    </div>
+                  {/* 住所 - Full width */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      住所 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register(`deliveryDestinations.${index}.address` as const)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="東京都〇〇区〇〇1-2-3"
+                    />
+                    {errors.deliveryDestinations?.[index]?.address && (
+                      <p className="text-red-600 text-xs">{errors.deliveryDestinations[index]?.address?.message}</p>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* お問い合わせ内容 */}

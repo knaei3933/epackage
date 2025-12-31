@@ -7,7 +7,7 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 2 : 4,
     reporter: [
-        ['html', { outputFolder: 'test-results/html-report' }],
+        ['html', { outputFolder: 'playwright-report' }],
         ['json', { outputFile: 'test-results/results.json' }],
         ['junit', { outputFile: 'test-results/results.xml' }],
         ['list'],
@@ -46,12 +46,14 @@ export default defineConfig({
             use: { ...devices['iPad Pro'] },
         },
     ],
-    webServer: {
-        command: 'echo "Server already running"',
-        url: 'http://localhost:3000',
-        reuseExistingServer: true,
-        timeout: 1000,
-    },
+    // Don't start a web server - reuse existing server on port 3000
+    // Run tests when the dev server is already running
+    // webServer: {
+    //     command: 'npm run dev',
+    //     url: 'http://localhost:3000',
+    //     reuseExistingServer: !process.env.CI,
+    //     timeout: 120000,
+    // },
     expect: {
         timeout: 5000,
     },

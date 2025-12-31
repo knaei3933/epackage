@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { MultiQuantityQuoteState, SavedQuantityPattern, MultiQuantityResult } from '@/types/multi-quantity';
 import { multiQuantityCalculator } from '@/lib/multi-quantity-calculator';
 import { v4 as uuidv4 } from 'uuid';
@@ -368,8 +368,8 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
     loadSavedComparisons();
   }, []); // Only run once on mount since loadSavedComparisons is stable
 
-  // Action helpers
-  const updateBasicSpecs = (specs: Partial<MultiQuantityQuoteState>) => {
+  // Action helpers - wrapped in useCallback for stable references
+  const updateBasicSpecs = useCallback((specs: Partial<MultiQuantityQuoteState>) => {
     if (specs.bagTypeId || specs.materialId || specs.width || specs.height || specs.depth || specs.thicknessSelection) {
       dispatch({
         type: 'SET_BASIC_SPECS',
@@ -383,31 +383,31 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
         }
       });
     }
-  };
+  }, [state]); // state is captured via closure, will always be latest
 
-  const setQuantities = (quantities: number[]) => {
+  const setQuantities = useCallback((quantities: number[]) => {
     dispatch({ type: 'SET_QUANTITIES', payload: { quantities } });
-  };
+  }, []);
 
-  const addQuantity = (quantity: number) => {
+  const addQuantity = useCallback((quantity: number) => {
     if (quantity >= 500 && quantity <= 1000000) {
       dispatch({ type: 'ADD_QUANTITY', payload: quantity });
     }
-  };
+  }, []);
 
-  const removeQuantity = (quantity: number) => {
+  const removeQuantity = useCallback((quantity: number) => {
     dispatch({ type: 'REMOVE_QUANTITY', payload: quantity });
-  };
+  }, []);
 
-  const setSelectedQuantity = (quantity: number | null) => {
+  const setSelectedQuantity = useCallback((quantity: number | null) => {
     dispatch({ type: 'SET_SELECTED_QUANTITY', payload: quantity });
-  };
+  }, []);
 
-  const setComparisonQuantities = (quantities: number[]) => {
+  const setComparisonQuantities = useCallback((quantities: number[]) => {
     dispatch({ type: 'SET_COMPARISON_QUANTITIES', payload: quantities });
-  };
+  }, []);
 
-  const updatePrintingOptions = (options: Partial<MultiQuantityQuoteState>) => {
+  const updatePrintingOptions = useCallback((options: Partial<MultiQuantityQuoteState>) => {
     dispatch({
       type: 'SET_PRINTING_OPTIONS',
       payload: {
@@ -417,17 +417,17 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
         doubleSided: options.doubleSided
       }
     });
-  };
+  }, [state]);
 
-  const updatePostProcessing = (options: string[], multiplier: number) => {
+  const updatePostProcessing = useCallback((options: string[], multiplier: number) => {
     dispatch({ type: 'SET_POST_PROCESSING', payload: { options, multiplier } });
-  };
+  }, []);
 
-  const updateDelivery = (location: 'domestic' | 'international', urgency: 'standard' | 'express') => {
+  const updateDelivery = useCallback((location: 'domestic' | 'international', urgency: 'standard' | 'express') => {
     dispatch({ type: 'SET_DELIVERY', payload: { location, urgency } });
-  };
+  }, []);
 
-  const calculateMultiQuantity = async () => {
+  const calculateMultiQuantity = useCallback(async () => {
     if (!canCalculateMultiQuantity()) {
       dispatch({ type: 'SET_ERROR', payload: 'Required specifications not complete' });
       return;
@@ -463,9 +463,9 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
       console.error('Multi-quantity calculation error:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to calculate multi-quantity quotes' });
     }
-  };
+  }, [state]); // This needs state dependencies for the calculation
 
-  const saveQuantityPattern = (name: string, description: string) => {
+  const saveQuantityPattern = useCallback((name: string, description: string) => {
     const pattern: SavedQuantityPattern = {
       id: Date.now().toString(),
       name,
@@ -477,9 +477,9 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
     };
 
     dispatch({ type: 'ADD_SAVED_PATTERN', payload: pattern });
-  };
+  }, [state.quantities]);
 
-  const loadQuantityPattern = (pattern: SavedQuantityPattern) => {
+  const loadQuantityPattern = useCallback((pattern: SavedQuantityPattern) => {
     setQuantities(pattern.quantities);
     // Update last used time
     const updatedPattern = { ...pattern, lastUsed: new Date() };
@@ -492,14 +492,14 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
         )
       }
     });
-  };
+  }, [state.savedPatterns, setQuantities]);
 
-  const resetQuote = () => {
+  const resetQuote = useCallback(() => {
     dispatch({ type: 'RESET_QUOTE' });
-  };
+  }, []);
 
-  // Validation helpers
-  const isStepComplete = (step: string): boolean => {
+  // Validation helpers - wrapped in useCallback
+  const isStepComplete = useCallback((step: string): boolean => {
     switch (step) {
       case 'specs':
         const hasBasicSpecs = !!(state.bagTypeId && state.materialId && state.width > 0 && state.height > 0);
@@ -516,9 +516,9 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
       default:
         return false;
     }
-  };
+  }, [state]);
 
-  const getStepSummary = (step: string): React.ReactNode => {
+  const getStepSummary = useCallback((step: string): React.ReactNode => {
     switch (step) {
       case 'specs':
         return (
@@ -557,16 +557,16 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
       default:
         return null;
     }
-  };
+  }, [state]);
 
-  const canCalculateMultiQuantity = (): boolean => {
+  const canCalculateMultiQuantity = useCallback((): boolean => {
     return !!(state.bagTypeId &&
             state.materialId &&
             state.width > 0 &&
             state.height > 0 &&
             state.comparisonQuantities.length > 0 &&
             state.comparisonQuantities.every(q => q >= 500 && q <= 1000000));
-  };
+  }, [state]);
 
   // Save/Load functionality implementations
   const saveComparison = async (metadata: {
@@ -907,7 +907,10 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
     }
   };
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  // CRITICAL: state is NOT in dependency array - functions have access via closure
+  // Only include functions that change reference (none - all are useCallback)
+  const value = useMemo(() => ({
     state,
     dispatch,
     updateBasicSpecs,
@@ -932,7 +935,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
     isStepComplete,
     getStepSummary,
     canCalculateMultiQuantity
-  };
+  }), []); // Empty deps - all functions are memoized with useCallback, state updates trigger re-render via reducer
 
   return (
     <MultiQuantityQuoteContext.Provider value={value}>

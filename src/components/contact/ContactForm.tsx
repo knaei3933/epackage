@@ -5,25 +5,48 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Phone, User, Package, MessageSquare, Send, CheckCircle } from 'lucide-react'
+import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
 
-// パウチお問い合わせフォームバリデーションスキーマ
-const pouchContactSchema = z.object({
-  name: z.string()
-    .min(1, 'お名前を入力してください')
-    .min(2, 'お名前は2文字以上で入力してください')
-    .max(50, 'お名前は50文字以内で入力してください'),
+// お問い合わせフォームバリデーションスキーマ
+const contactSchema = z.object({
+  kanjiLastName: z.string()
+    .min(1, '姓（漢字）を入力してください')
+    .min(1, '姓（漢字）は1文字以上で入力してください')
+    .max(50, '姓（漢字）は50文字以内で入力してください'),
+  kanjiFirstName: z.string()
+    .min(1, '名（漢字）を入力してください')
+    .min(1, '名（漢字）は1文字以上で入力してください')
+    .max(50, '名（漢字）は50文字以内で入力してください'),
+  kanaLastName: z.string()
+    .min(1, '姓（ひらがな）を入力してください')
+    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
+    .max(50, '姓（ひらがな）は50文字以内で入力してください'),
+  kanaFirstName: z.string()
+    .min(1, '名（ひらがな）を入力してください')
+    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
+    .max(50, '名（ひらがな）は50文字以内で入力してください'),
   company: z.string()
     .max(100, '会社名は100文字以内で入力してください')
     .optional(),
-  email: z.string()
-    .min(1, 'メールアドレスを入力してください')
-    .email('有効なメールアドレスを入力してください'),
   phone: z.string()
     .min(1, '電話番号を入力してください')
     .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/,
       '有効な電話番号を入力してください（例: 03-1234-5678）'),
-  pouchType: z.enum(['soft', 'standing', 'gusset', 'pillow', 'triangle', 'special'], {
-    required_error: 'お関心のあるパウチタイプを選択してください'
+  fax: z.string()
+    .optional()
+    .refine(val => !val || /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/.test(val),
+      '有効なFAX番号を入力してください（例: 03-1234-5678）'),
+  email: z.string()
+    .min(1, 'メールアドレスを入力してください')
+    .email('有効なメールアドレスを入力してください'),
+  postalCode: z.string()
+    .optional()
+    .refine(val => !val || /^\d{3}-\d{4}$/.test(val), '有効な郵便番号を入力してください（例: 100-0001）'),
+  address: z.string()
+    .max(200, '住所は200文字以内で入力してください')
+    .optional(),
+  inquiryType: z.enum(['product', 'quotation', 'sample', 'delivery', 'other'], {
+    required_error: 'お問い合わせ種別を選択してください'
   }),
   message: z.string()
     .min(1, 'お問い合わせ内容を入力してください')
@@ -31,7 +54,7 @@ const pouchContactSchema = z.object({
     .max(800, 'お問い合わせ内容は800文字以内で入力してください'),
 })
 
-type PouchContactFormData = z.infer<typeof pouchContactSchema>
+type ContactFormData = z.infer<typeof contactSchema>
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -41,47 +64,44 @@ export default function ContactForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
-    watch
-  } = useForm<PouchContactFormData>({
-    resolver: zodResolver(pouchContactSchema),
+    watch,
+    setValue,
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactSchema),
   })
 
-  const pouchTypes = [
+  const inquiryTypes = [
     {
-      value: 'soft',
-      label: 'ソフトパウチ',
-      description: '3シール・4シール'
+      value: 'product',
+      label: '商品について',
+      description: '製品・仕様に関するお問い合わせ'
     },
     {
-      value: 'standing',
-      label: 'スタンドパウチ',
-      description: '角底・チャック付き'
+      value: 'quotation',
+      label: '見積について',
+      description: 'お見積もり・価格について'
     },
     {
-      value: 'gusset',
-      label: 'ガゼットパウチ',
-      description: 'マチ付き'
+      value: 'sample',
+      label: 'サンプルについて',
+      description: 'サンプル請求について'
     },
     {
-      value: 'pillow',
-      label: 'ピローパウチ',
-      description: '最も一般的'
+      value: 'delivery',
+      label: '納期・配送について',
+      description: '納期・配送に関するお問い合わせ'
     },
     {
-      value: 'triangle',
-      label: '三角パウチ',
-      description: '液体・粉末用'
-    },
-    {
-      value: 'special',
-      label: '特殊形状パウチ',
-      description: 'カスタム対応'
+      value: 'other',
+      label: 'その他',
+      description: 'その他のお問い合わせ'
     }
   ]
 
-  const onSubmit = async (data: PouchContactFormData) => {
+  const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true)
     setSubmitStatus('idle')
     setErrorMessage('')
@@ -94,8 +114,8 @@ export default function ContactForm() {
         },
         body: JSON.stringify({
           ...data,
-          inquiryType: 'pouch',
-          subject: `パウチお問い合わせ (${pouchTypes.find(pt => pt.value === data.pouchType)?.label})`
+          inquiryType: data.inquiryType,
+          subject: `お問い合わせ (${inquiryTypes.find(it => it.value === data.inquiryType)?.label})`
         }),
       })
 
@@ -159,10 +179,10 @@ export default function ContactForm() {
           <Package className="w-8 h-8 text-brixa-700" />
         </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          パウチ専門お問い合わせ
+          お問い合わせ
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-2">
-          6種類のパウチ製品について、専門スタッフが詳しくご説明いたします。
+          パウチ製品に関するお問い合わせ、専門スタッフが詳しくご対応いたします。
         </p>
         <p className="text-gray-500">
           24時間以内のご回答、無料サンプル対応可能
@@ -205,24 +225,24 @@ export default function ContactForm() {
               お客様情報
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* お名前 */}
-              <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <User className="w-4 h-4 mr-2" />
-                  お名前 <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  {...register('name')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                  placeholder="山田 太郎"
-                />
-                {errors.name && (
-                  <p className="text-red-600 text-sm">{errors.name.message}</p>
-                )}
-              </div>
+            {/* JapaneseNameInput */}
+            <div className="mb-6">
+              <JapaneseNameInputController
+                control={control}
+                setValue={setValue}
+                kanjiLastNameName="kanjiLastName"
+                kanjiFirstNameName="kanjiFirstName"
+                kanaLastNameName="kanaLastName"
+                kanaFirstNameName="kanaFirstName"
+                kanjiLastNameError={errors.kanjiLastName?.message}
+                kanjiFirstNameError={errors.kanjiFirstName?.message}
+                kanaLastNameError={errors.kanaLastName?.message}
+                kanaFirstNameError={errors.kanaFirstName?.message}
+                required
+              />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 会社名 */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
@@ -236,25 +256,6 @@ export default function ContactForm() {
                 />
                 {errors.company && (
                   <p className="text-red-600 text-sm">{errors.company.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              {/* メールアドレス */}
-              <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <Mail className="w-4 h-4 mr-2" />
-                  メールアドレス <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="email"
-                  {...register('email')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                  placeholder="example@company.com"
-                />
-                {errors.email && (
-                  <p className="text-red-600 text-sm">{errors.email.message}</p>
                 )}
               </div>
 
@@ -274,21 +275,87 @@ export default function ContactForm() {
                   <p className="text-red-600 text-sm">{errors.phone.message}</p>
                 )}
               </div>
+
+              {/* FAX番号 */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Phone className="w-4 h-4 mr-2" />
+                  FAX番号
+                </label>
+                <input
+                  type="tel"
+                  {...register('fax')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="03-1234-5678"
+                />
+                {errors.fax && (
+                  <p className="text-red-600 text-sm">{errors.fax.message}</p>
+                )}
+              </div>
+
+              {/* メールアドレス */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Mail className="w-4 h-4 mr-2" />
+                  メールアドレス <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="email"
+                  {...register('email')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="example@company.com"
+                />
+                {errors.email && (
+                  <p className="text-red-600 text-sm">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* 郵便番号 */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  〒 郵便番号
+                </label>
+                <input
+                  type="text"
+                  {...register('postalCode')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="100-0001"
+                />
+                {errors.postalCode && (
+                  <p className="text-red-600 text-sm">{errors.postalCode.message}</p>
+                )}
+              </div>
+
+              {/* 住所 - Full width */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  住所
+                </label>
+                <input
+                  type="text"
+                  {...register('address')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="東京都〇〇区〇〇1-2-3"
+                />
+                {errors.address && (
+                  <p className="text-red-600 text-sm">{errors.address.message}</p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* パウチタイプ選択 */}
+          {/* お問い合わせ種別選択 */}
           <div className="bg-brixa-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Package className="w-5 h-5 mr-2 text-brixa-700" />
-              お関心のあるパウチ <span className="text-red-500 ml-2">*</span>
+              お問い合わせ種別 <span className="text-red-500 ml-2">*</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {pouchTypes.map(type => (
+              {inquiryTypes.map(type => (
                 <div key={type.value} className="relative">
                   <input
-                    {...register('pouchType')}
+                    {...register('inquiryType')}
                     type="radio"
                     id={type.value}
                     value={type.value}
@@ -304,8 +371,8 @@ export default function ContactForm() {
                 </div>
               ))}
             </div>
-            {errors.pouchType && (
-              <p className="text-red-600 text-sm mt-2">{errors.pouchType.message}</p>
+            {errors.inquiryType && (
+              <p className="text-red-600 text-sm mt-2">{errors.inquiryType.message}</p>
             )}
           </div>
 
@@ -338,7 +405,7 @@ export default function ContactForm() {
               className="flex items-center px-12 py-4 bg-brixa-700 text-white text-lg font-semibold rounded-xl hover:bg-brixa-600 focus:outline-none focus:ring-2 focus:ring-brixa-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
             >
               <Send className="w-5 h-5 mr-3" />
-              {isSubmitting ? '送信中...' : 'パウチ専門家に相談する'}
+              {isSubmitting ? '送信中...' : '送信する'}
             </button>
           </div>
         </form>

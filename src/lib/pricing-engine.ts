@@ -5,7 +5,7 @@ import { Product } from '@/types/database'
 export const QuoteCalculationParamsSchema = z.object({
   product: z.object({
     id: z.string(),
-    category: z.enum(['flat_3_side', 'stand_up', 'gusset', 'box', 'flat_with_zip', 'special', 'soft_pouch']),
+    category: z.enum(['flat_3_side', 'stand_up', 'gusset', 'box', 'flat_with_zip', 'special', 'soft_pouch', 'spout_pouch', 'roll_film']),
     name_ja: z.string(),
     name_en: z.string(),
     description_ja: z.string(),
@@ -101,7 +101,9 @@ const PROCESSING_COSTS = {
   box: 22,            // 円/個
   flat_with_zip: 20,  // 円/個
   special: 25,        // 円/個
-  soft_pouch: 17       // 円/個
+  soft_pouch: 17,     // 円/個
+  spout_pouch: 19,    // 円/個
+  roll_film: 12       // 円/個
 } as const
 
 // Printing costs

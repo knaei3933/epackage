@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test'
 
+// Extend Window interface for FPS tracking
+declare global {
+  interface Window {
+    fpsFrameCount?: number
+  }
+}
+
 test.describe('Performance and Load Testing', () => {
   test.describe('Multi-Quantity Calculation Performance', () => {
     test('should handle small quantity sets efficiently', async ({ page }) => {
@@ -324,7 +331,7 @@ test.describe('Performance and Load Testing', () => {
 
       // Bundle sizes should be reasonable
       expect(jsSize).toBeLessThan(1024 * 1024) // < 1MB JS
-      expect(cssSize).toBeLessThan 100 * 1024) // < 100KB CSS
+      expect(cssSize).toBeLessThan(100 * 1024) // < 100KB CSS
     })
   })
 

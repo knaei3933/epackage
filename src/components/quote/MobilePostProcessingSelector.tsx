@@ -31,7 +31,7 @@ import {
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { useQuote } from '@/contexts/QuoteContext'
+import { useQuote, useQuoteState, canAddPostProcessingOptionForState, getPostProcessingLimitStatusForState } from '@/contexts/QuoteContext'
 import {
   processingOptionsConfig,
   getProcessingOptionsByCompatibility,
@@ -102,13 +102,14 @@ export function MobilePostProcessingSelector({
   language = 'ja',
   onPriceUpdate
 }: MobilePostProcessingSelectorProps) {
+  const state = useQuoteState();
   const {
-    state,
     addPostProcessingOption,
-    removePostProcessingOption,
-    canAddPostProcessingOption,
-    getPostProcessingLimitStatus
-  } = useQuote()
+    removePostProcessingOption
+  } = useQuote();
+
+  const canAddPostProcessingOption = () => canAddPostProcessingOptionForState(state);
+  const getPostProcessingLimitStatus = () => getPostProcessingLimitStatusForState(state);
 
   const [selectedCategory, setSelectedCategory] = useState<MobileCategory | null>(null)
   const [showDetails, setShowDetails] = useState<string | null>(null)

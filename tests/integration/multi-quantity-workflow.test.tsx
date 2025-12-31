@@ -1,15 +1,29 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axe, toHaveNoViolations } from 'jest-axe'
-import { MultiQuantityQuoteProvider } from '@/contexts/MultiQuantityQuoteContext'
+// @ts-ignore - jest-axe may not have full type support
+import { axe } from 'jest-axe'
+import { MultiQuantityQuoteProvider, useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext'
 import MultiQuantityComparisonTable from '@/components/quote/MultiQuantityComparisonTable'
 import MultiQuantityStep from '@/components/quote/MultiQuantityStep'
 import QuantityEfficiencyChart from '@/components/quote/QuantityEfficiencyChart'
-import { createMockMultiQuantityRequest } from '../../jest.setup'
 
-// Extend Jest matchers
-expect.extend(toHaveNoViolations)
+// Extend Jest matchers for jest-axe
+declare global {
+  namespace jest {
+    interface Matchers<R = any> {
+      toHaveNoViolations(): R
+    }
+  }
+}
+
+// Helper function to avoid type issues with jest-axe
+const checkAccessibility = async (container: HTMLElement) => {
+  // @ts-ignore - axe function from jest-axe
+  const results = await axe(container)
+  // @ts-ignore - custom matcher
+  expect(results).toHaveNoViolations()
+}
 
 // Mock the API
 jest.mock('next/navigation', () => ({
@@ -331,7 +345,7 @@ describe('Multi-Quantity Integration Tests', () => {
       expect(screen.getByText(/表示するデータがありません/i)).toBeInTheDocument()
 
       // Calculate quotes
-      await user.click(screen.getByText(/Set Quantities/')) // This would trigger calculation
+      await user.click(screen.getByText(/Set Quantities/)) // This would trigger calculation
 
       await waitFor(() => {
         expect(screen.getByRole('table')).toBeInTheDocument()
@@ -418,8 +432,8 @@ describe('Multi-Quantity Integration Tests', () => {
                 data: { calculations: new Map() }
               })
             }), 1000
+          )
         )
-      )
       )
 
       const AsyncTest = () => {
@@ -535,13 +549,13 @@ describe('Multi-Quantity Integration Tests', () => {
         })
       })
 
-      const startTime = performance.now()
+      const startTime = Date.now()
       renderWithContext(<MultiQuantityStep />)
 
       // Set large quantities
       await user.click(screen.getByText(/数量を追加/i))
 
-      const endTime = performance.now()
+      const endTime = Date.now()
       expect(endTime - startTime).toBeLessThan(100) // Should render quickly
     })
   })

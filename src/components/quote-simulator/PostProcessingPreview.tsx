@@ -11,7 +11,7 @@ interface PostProcessingOption {
   name: string
   nameJa: string
   imageName: string
-  category: 'zipper' | 'finish' | 'notch' | 'punching' | 'corner' | 'opening' | 'valve'
+  category: 'opening-sealing' | 'surface-treatment' | 'shape-structure' | 'functionality'
 }
 
 interface PostProcessingPreviewProps {
@@ -29,33 +29,33 @@ interface PostProcessingPreviewProps {
 }
 
 const postProcessingOptions: PostProcessingOption[] = [
-  // Zipper options
-  { id: 'zipper-no', name: 'No Zipper', nameJa: 'ジッパーなし', imageName: '1.지퍼 없음.png', category: 'zipper' },
-  { id: 'zipper-yes', name: 'With Zipper', nameJa: 'ジッパーあり', imageName: '1.지퍼 있음.png', category: 'zipper' },
+  // Zipper options -> opening-sealing
+  { id: 'zipper-no', name: 'No Zipper', nameJa: 'ジッパーなし', imageName: '1.지퍼 없음.png', category: 'opening-sealing' },
+  { id: 'zipper-yes', name: 'With Zipper', nameJa: 'ジッパーあり', imageName: '1.지퍼 있음.png', category: 'opening-sealing' },
 
-  // Finish options
-  { id: 'matte', name: 'Matte Finish', nameJa: '無光沢', imageName: '2.무광.png', category: 'finish' },
-  { id: 'glossy', name: 'Glossy Finish', nameJa: '有光沢', imageName: '2.유광.png', category: 'finish' },
+  // Finish options -> surface-treatment
+  { id: 'matte', name: 'Matte Finish', nameJa: '無光沢', imageName: '2.무광.png', category: 'surface-treatment' },
+  { id: 'glossy', name: 'Glossy Finish', nameJa: '有光沢', imageName: '2.유광.png', category: 'surface-treatment' },
 
-  // Notch options
-  { id: 'notch-no', name: 'No Notch', nameJa: 'ノッチなし', imageName: '3.노치 없음.png', category: 'notch' },
-  { id: 'notch-yes', name: 'With Notch', nameJa: 'ノッチあり', imageName: '3.노치 있음.png', category: 'notch' },
+  // Notch options -> opening-sealing
+  { id: 'notch-no', name: 'No Notch', nameJa: 'ノッチなし', imageName: '3.노치 없음.png', category: 'opening-sealing' },
+  { id: 'notch-yes', name: 'With Notch', nameJa: 'ノッチあり', imageName: '3.노치 있음.png', category: 'opening-sealing' },
 
-  // Hole punching options
-  { id: 'punching-no', name: 'No Hole Punching', nameJa: '穴あけなし', imageName: '4.걸이타공 없음.png', category: 'punching' },
-  { id: 'punching-yes', name: 'With Hole Punching', nameJa: '穴あけあり', imageName: '4.걸이타공 있음.png', category: 'punching' },
+  // Hole punching options -> shape-structure
+  { id: 'punching-no', name: 'No Hole Punching', nameJa: '穴あけなし', imageName: '4.걸이타공 없음.png', category: 'shape-structure' },
+  { id: 'punching-yes', name: 'With Hole Punching', nameJa: '穴あけあり', imageName: '4.걸이타공 있음.png', category: 'shape-structure' },
 
-  // Corner options
-  { id: 'corner-round', name: 'Round Corner', nameJa: '丸い角', imageName: '5.모서리_둥근.png', category: 'corner' },
-  { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.모서리_직각.png', category: 'corner' },
+  // Corner options -> shape-structure
+  { id: 'corner-round', name: 'Round Corner', nameJa: '丸い角', imageName: '5.모서리_둥근.png', category: 'shape-structure' },
+  { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.모서리_직각.png', category: 'shape-structure' },
 
-  // Opening options
-  { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.상단 오픈.png', category: 'opening' },
-  { id: 'opening-bottom', name: 'Bottom Opening', nameJa: '下開口', imageName: '6.하단 오픈.png', category: 'opening' },
+  // Opening options -> opening-sealing
+  { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.상단 오픈.png', category: 'opening-sealing' },
+  { id: 'opening-bottom', name: 'Bottom Opening', nameJa: '下開口', imageName: '6.하단 오픈.png', category: 'opening-sealing' },
 
-  // Valve options
-  { id: 'valve-no', name: 'No Valve', nameJa: 'バルブなし', imageName: '밸브 없음.png', category: 'valve' },
-  { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブあり', imageName: '밸브 있음.png', category: 'valve' },
+  // Valve options -> opening-sealing
+  { id: 'valve-no', name: 'No Valve', nameJa: 'バルブなし', imageName: '밸브 없음.png', category: 'opening-sealing' },
+  { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブあり', imageName: '밸브 있음.png', category: 'opening-sealing' },
 ]
 
 export function PostProcessingPreview({ selectedOptions, onPreviewToggle, className }: PostProcessingPreviewProps) {
@@ -64,52 +64,52 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, classN
   const getActiveImages = () => {
     const activeImages: PostProcessingOption[] = []
 
-    // Zipper
+    // Zipper -> opening-sealing
     if (selectedOptions.zipper !== undefined) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'zipper' && opt.id === (selectedOptions.zipper ? 'zipper-yes' : 'zipper-no'))!
+        postProcessingOptions.find(opt => opt.category === 'opening-sealing' && opt.id === (selectedOptions.zipper ? 'zipper-yes' : 'zipper-no'))!
       )
     }
 
-    // Finish
+    // Finish -> surface-treatment
     if (selectedOptions.finish) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'finish' && opt.id === selectedOptions.finish)!
+        postProcessingOptions.find(opt => opt.category === 'surface-treatment' && opt.id === selectedOptions.finish)!
       )
     }
 
-    // Notch
+    // Notch -> opening-sealing
     if (selectedOptions.notch !== undefined) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'notch' && opt.id === (selectedOptions.notch ? 'notch-yes' : 'notch-no'))!
+        postProcessingOptions.find(opt => opt.category === 'opening-sealing' && opt.id === (selectedOptions.notch ? 'notch-yes' : 'notch-no'))!
       )
     }
 
-    // Punching
+    // Punching -> shape-structure
     if (selectedOptions.punching !== undefined) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'punching' && opt.id === (selectedOptions.punching ? 'punching-yes' : 'punching-no'))!
+        postProcessingOptions.find(opt => opt.category === 'shape-structure' && opt.id === (selectedOptions.punching ? 'punching-yes' : 'punching-no'))!
       )
     }
 
-    // Corner
+    // Corner -> shape-structure
     if (selectedOptions.corner) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'corner' && opt.id === (selectedOptions.corner === 'round' ? 'corner-round' : 'corner-square'))!
+        postProcessingOptions.find(opt => opt.category === 'shape-structure' && opt.id === (selectedOptions.corner === 'round' ? 'corner-round' : 'corner-square'))!
       )
     }
 
-    // Opening
+    // Opening -> opening-sealing
     if (selectedOptions.opening) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'opening' && opt.id === (selectedOptions.opening === 'top' ? 'opening-top' : 'opening-bottom'))!
+        postProcessingOptions.find(opt => opt.category === 'opening-sealing' && opt.id === (selectedOptions.opening === 'top' ? 'opening-top' : 'opening-bottom'))!
       )
     }
 
-    // Valve
+    // Valve -> opening-sealing
     if (selectedOptions.valve !== undefined) {
       activeImages.push(
-        postProcessingOptions.find(opt => opt.category === 'valve' && opt.id === (selectedOptions.valve ? 'valve-yes' : 'valve-no'))!
+        postProcessingOptions.find(opt => opt.category === 'opening-sealing' && opt.id === (selectedOptions.valve ? 'valve-yes' : 'valve-no'))!
       )
     }
 

@@ -6,6 +6,32 @@ export const metadata: Metadata = {
   title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
   description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定、一般的なパッケージサイズについて詳しく説明します。',
   keywords: ['サイズ', '寸法', '展開図', 'パッケージサイズ', '製造仕様', 'パッケージ設計', '寸法指定'],
+  openGraph: {
+    title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
+    description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定について詳しく説明します。',
+    type: 'website',
+    images: [
+      {
+        url: '/images/guide/size-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'サイズガイド',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
+    description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定について詳しく説明します。',
+    images: ['/images/guide/size-og.jpg'],
+  },
+  alternates: {
+    canonical: '/guide/size',
+    languages: {
+      ja: '/guide/size',
+      en: '/en/guide/size',
+    },
+  },
 }
 
 export default function SizeGuide() {

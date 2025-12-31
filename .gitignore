@@ -73,7 +73,9 @@ node_modules/
 *.sw?
 # OS specific
 
-# Task files
-# tasks.json
-# tasks/ 
 node_modules/.next.env.local
+
+# MCP configuration (contains tokens)
+.mcp.json
+.claude/
+.env.local

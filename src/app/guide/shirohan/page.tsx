@@ -6,6 +6,32 @@ export const metadata: Metadata = {
   title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
   description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。パッケージ印刷品質を確保するための重要な工程です。',
   keywords: ['白版', 'しろはん', '校正刷', '印刷テスト', '品質確認', '校正', '印刷試作', '色確認'],
+  openGraph: {
+    title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
+    description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。',
+    type: 'website',
+    images: [
+      {
+        url: '/images/guide/shirohan-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: '白版ガイド',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
+    description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。',
+    images: ['/images/guide/shirohan-og.jpg'],
+  },
+  alternates: {
+    canonical: '/guide/shirohan',
+    languages: {
+      ja: '/guide/shirohan',
+      en: '/en/guide/shirohan',
+    },
+  },
 }
 
 export default function ShirohanGuide() {

@@ -6,6 +6,32 @@ export const metadata: Metadata = {
   title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
   description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
   keywords: ['カラー', '特色印刷', 'CMYK', 'カラーマッチング', 'DICカラーガイド', 'パッケージ印刷色', '色指定'],
+  openGraph: {
+    title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
+    description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチングについて詳しく説明します。',
+    type: 'website',
+    images: [
+      {
+        url: '/images/guide/color-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'カラーガイド',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
+    description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチングについて詳しく説明します。',
+    images: ['/images/guide/color-og.jpg'],
+  },
+  alternates: {
+    canonical: '/guide/color',
+    languages: {
+      ja: '/guide/color',
+      en: '/en/guide/color',
+    },
+  },
 }
 
 export default function ColorGuide() {

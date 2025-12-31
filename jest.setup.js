@@ -1,7 +1,17 @@
+// Polyfill fetch API first (must be before any other imports)
+try {
+  const { Response, Headers, Request, fetch } = require('undici')
+  global.Response = global.Response || Response
+  global.Headers = global.Headers || Headers
+  global.Request = global.Request || Request
+  global.fetch = global.fetch || fetch
+} catch (e) {
+  // undici not available
+}
+
 import '@testing-library/jest-dom'
 import 'jest-axe/extend-expect'
 import { configure } from '@testing-library/react'
-import { server } from './src/mocks/server'
 
 // Configure Testing Library
 configure({ testIdAttribute: 'data-testid' })
@@ -39,38 +49,40 @@ process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
 // Mock fetch API
 global.fetch = jest.fn()
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-})
+// Mock window.matchMedia (only in jsdom environment)
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  })
 
-// Mock ResizeObserver
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}))
+  // Mock ResizeObserver
+  global.ResizeObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  }))
 
-// Mock IntersectionObserver
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}))
+  // Mock IntersectionObserver
+  global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  }))
 
-// Mock canvas and html2canvas for PDF generation
-HTMLCanvasElement.prototype.getContext = jest.fn()
-HTMLCanvasElement.prototype.toDataURL = jest.fn(() => 'data:image/png;base64,mock')
+  // Mock canvas and html2canvas for PDF generation
+  HTMLCanvasElement.prototype.getContext = jest.fn()
+  HTMLCanvasElement.prototype.toDataURL = jest.fn(() => 'data:image/png;base64,mock')
+}
 
 // Mock jsPDF
 jest.mock('jspdf', () => {
@@ -89,18 +101,25 @@ jest.mock('html2canvas', () => {
   })
 })
 
-// Setup MSW for API mocking
-beforeAll(() => {
+// Setup MSW for API mocking (only in jsdom environment)
+let server
+beforeAll(async () => {
+  // Skip MSW in node environment (e.g., for pure unit tests)
+  if (process.env.NODE_ENV === 'test' && typeof window === 'undefined') {
+    return
+  }
+  const mswServer = await import('./src/mocks/server')
+  server = mswServer.server
   server.listen()
 })
 
 afterEach(() => {
-  server.resetHandlers()
+  server?.resetHandlers()
   jest.clearAllMocks()
 })
 
 afterAll(() => {
-  server.close()
+  server?.close()
 })
 
 // Performance testing utilities

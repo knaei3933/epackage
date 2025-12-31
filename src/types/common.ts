@@ -22,7 +22,7 @@ export interface ContactForm {
   newsletterConsent?: boolean;
 }
 
-export interface SampleRequest {
+export interface SampleRequestForm {
   companyName: string;
   contactPerson: string;
   email: string;

@@ -43,6 +43,8 @@
     "server",
     "temp-api-backup",
     "backup-api",
-    "temp-disabled-api"
+    "temp-disabled-api",
+    "tests",
+    "scripts"
   ]
 }

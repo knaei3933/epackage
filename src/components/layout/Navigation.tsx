@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X, ChevronDown, ChevronRight, Home, Building2, Package, CreditCard, Phone, BarChart3, Grid3X3, Calculator } from 'lucide-react'
 import { useTranslation } from '@/contexts/LanguageContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -16,6 +17,10 @@ interface NavigationItem {
   external?: boolean
   children?: NavigationItem[]
   badge?: string | number
+  // Authentication properties
+  requireAuth?: boolean      // Show only when authenticated
+  hideWhenAuth?: boolean     // Hide when authenticated
+  showWhenAuth?: boolean     // Show only when authenticated
 }
 
 interface NavigationProps {
@@ -232,6 +237,15 @@ export function SidebarNavigation({ items, className, collapsible = true, defaul
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const pathname = usePathname()
+  const { isAuthenticated } = useAuth()
+
+  // Filter navigation items based on authentication state
+  const filteredItems = items.filter(item => {
+    if (item.requireAuth && !isAuthenticated) return false
+    if (item.hideWhenAuth && isAuthenticated) return false
+    if (item.showWhenAuth && !isAuthenticated) return false
+    return true
+  })
 
   const toggleExpanded = (label: string) => {
     const newExpanded = new Set(expandedItems)
@@ -372,7 +386,7 @@ export function SidebarNavigation({ items, className, collapsible = true, defaul
         aria-label="Sidebar navigation"
       >
         <div className="space-y-1">
-          {items.map(renderNavigationItem)}
+          {filteredItems.map(renderNavigationItem)}
         </div>
       </nav>
     </Card>
@@ -423,6 +437,15 @@ export function Navigation({
   defaultCollapsed = false,
 }: NavigationProps) {
   const pathname = usePathname()
+  const { isAuthenticated } = useAuth()
+
+  // Filter navigation items based on authentication state
+  const filteredItems = items.filter(item => {
+    if (item.requireAuth && !isAuthenticated) return false
+    if (item.hideWhenAuth && isAuthenticated) return false
+    if (item.showWhenAuth && !isAuthenticated) return false
+    return true
+  })
 
   if (variant === 'mobile') {
     return null // Use MobileNavigation component directly
@@ -431,7 +454,7 @@ export function Navigation({
   if (variant === 'sidebar') {
     return (
       <SidebarNavigation
-        items={items}
+        items={filteredItems}
         className={className}
         collapsible={collapsible}
         defaultCollapsed={defaultCollapsed}
@@ -450,7 +473,7 @@ export function Navigation({
       role="navigation"
       aria-label="Main navigation"
     >
-      {items.map((item) => {
+      {filteredItems.map((item) => {
         const isActive = pathname === item.href
         const Icon = item.icon
 

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useQuote } from '@/contexts/QuoteContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Maximize2 } from 'lucide-react';
 
