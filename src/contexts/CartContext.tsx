@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
 import type { Cart, CartItem, QuoteRequest, QuoteResponse, CartContextType } from '@/types/cart'
+import { safeMap } from '@/lib/array-helpers'
 
 // Cart state type
 interface CartState {
@@ -168,7 +169,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ...cartData,
           createdAt: new Date(cartData.createdAt),
           updatedAt: new Date(cartData.updatedAt),
-          items: cartData.items.map((item: any) => ({
+          items: safeMap(cartData.items, (item: any) => ({
             ...item,
             addedAt: new Date(item.addedAt)
           }))

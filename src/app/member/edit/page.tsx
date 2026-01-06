@@ -1,0 +1,622 @@
+/**
+ * Member Profile Edit Page
+ *
+ * 会員情報編集ページ
+ * - 会社名・日本語名の編集
+ * - メールアドレス変更
+ * - パスワード変更
+ */
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, Input, Button } from '@/components/ui';
+import { useAuth } from '@/contexts/AuthContext';
+
+// =====================================================
+// Types
+// =====================================================
+
+interface DeletionSummary {
+  sampleRequests: number;
+  notifications: number;
+  contracts: number;
+  quotations: number;
+  orders: number;
+  activeOrders: number;
+  canDelete: boolean;
+  warning?: string;
+}
+
+interface UserProfile {
+  email: string;
+  companyName?: string;
+  kanjiLastName?: string;
+  kanjiFirstName?: string;
+  kanaLastName?: string;
+  kanaFirstName?: string;
+}
+
+interface ProfileFormData {
+  companyName: string;
+  kanjiLastName: string;
+  kanjiFirstName: string;
+  kanaLastName: string;
+  kanaFirstName: string;
+}
+
+interface PasswordFormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+// =====================================================
+// Page Component
+// =====================================================
+
+export default function ProfileEditPage() {
+  const router = useRouter();
+  const { user, isLoading: authLoading, updateProfile, updatePassword, signOut } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Account deletion states
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showDoubleConfirmation, setShowDoubleConfirmation] = useState(false);
+  const [deletionSummary, setDeletionSummary] = useState<DeletionSummary | null>(null);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/auth/signin?redirect=/member/edit');
+    }
+  }, [user, authLoading, router]);
+
+  // プロフィールフォーム
+  const [profileForm, setProfileForm] = useState<ProfileFormData>({
+    companyName: '',
+    kanjiLastName: '',
+    kanjiFirstName: '',
+    kanaLastName: '',
+    kanaFirstName: '',
+  });
+
+  // パスワードフォーム
+  const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  const [profileErrors, setProfileErrors] = useState<Partial<Record<keyof ProfileFormData, string>>>({});
+  const [passwordErrors, setPasswordErrors] = useState<Partial<Record<keyof PasswordFormData, string>>>({});
+
+  // Initialize form with user data
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        companyName: user.companyName || '',
+        kanjiLastName: user.kanjiLastName || '',
+        kanjiFirstName: user.kanjiFirstName || '',
+        kanaLastName: user.kanaLastName || '',
+        kanaFirstName: user.kanaFirstName || '',
+      });
+    }
+  }, [user]);
+
+  // プロフィールバリデーション
+  const validateProfile = (): boolean => {
+    const errors: Partial<Record<keyof ProfileFormData, string>> = {};
+
+    if (!profileForm.kanjiLastName.trim()) {
+      errors.kanjiLastName = '名字を入力してください';
+    }
+    if (!profileForm.kanjiFirstName.trim()) {
+      errors.kanjiFirstName = '名前を入力してください';
+    }
+    if (!profileForm.kanaLastName.trim()) {
+      errors.kanaLastName = '名字（カタカナ）を入力してください';
+    } else if (!/^[ァ-ヶー]+$/.test(profileForm.kanaLastName)) {
+      errors.kanaLastName = 'カタカナで入力してください';
+    }
+    if (!profileForm.kanaFirstName.trim()) {
+      errors.kanaFirstName = '名前（カタカナ）を入力してください';
+    } else if (!/^[ァ-ヶー]+$/.test(profileForm.kanaFirstName)) {
+      errors.kanaFirstName = 'カタカナで入力してください';
+    }
+
+    setProfileErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // パスワードバリデーション
+  const validatePassword = (): boolean => {
+    const errors: Partial<Record<keyof PasswordFormData, string>> = {};
+
+    if (passwordForm.newPassword && passwordForm.newPassword.length < 8) {
+      errors.newPassword = 'パスワードは8文字以上で入力してください';
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.confirmPassword = 'パスワードが一致しません';
+    }
+
+    setPasswordErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // プロフィール更新
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateProfile()) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await updateProfile({
+        companyName: profileForm.companyName || undefined,
+        kanjiLastName: profileForm.kanjiLastName,
+        kanjiFirstName: profileForm.kanjiFirstName,
+        kanaLastName: profileForm.kanaLastName,
+        kanaFirstName: profileForm.kanaFirstName,
+      });
+
+      setSuccessMessage('プロフィールを更新しました');
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      setError('プロフィールの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // パスワード更新
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validatePassword()) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await updatePassword(passwordForm.newPassword);
+
+      setSuccessMessage('パスワードを更新しました');
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (err) {
+      console.error('Failed to update password:', err);
+      setError('パスワードの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // =====================================================
+  // Account Deletion Handlers
+  // =====================================================
+
+  /**
+   * Fetch deletion summary before showing confirmation
+   */
+  const fetchDeletionSummary = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch('/api/member/delete-account', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('削除サマリーの取得に失敗しました');
+      }
+
+      const summary: DeletionSummary = await response.json();
+      setDeletionSummary(summary);
+
+      if (!summary.canDelete) {
+        alert(summary.warning || 'アカウントを削除できません');
+        return;
+      }
+
+      setShowDeleteConfirmation(true);
+    } catch (err) {
+      console.error('Failed to fetch deletion summary:', err);
+      alert('削除サマリーの取得に失敗しました。時間をおいて再度お試しください。');
+    }
+  };
+
+  /**
+   * First confirmation - show summary and confirm
+   */
+  const handleDeleteAccountFirstStep = async () => {
+    await fetchDeletionSummary();
+  };
+
+  /**
+   * Second confirmation - double confirm with text input
+   */
+  const handleDeleteAccountSecondStep = () => {
+    setShowDoubleConfirmation(true);
+  };
+
+  /**
+   * Final confirmation - execute deletion
+   */
+  const handleDeleteAccountFinal = async () => {
+    if (deleteConfirmationText !== 'DELETE') {
+      alert('「DELETE」と入力してください');
+      return;
+    }
+
+    if (!user) {
+      alert('ユーザー情報が見つかりません');
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/member/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'アカウント削除に失敗しました');
+      }
+
+      const result = await response.json();
+
+      // Show success message
+      alert(
+        `アカウントを削除しました。\n\n` +
+        `削除されたデータ:\n` +
+        `- サンプル要求: ${result.deletedCounts?.sampleRequests || 0}件\n` +
+        `- 通知: ${result.deletedCounts?.notifications || 0}件\n` +
+        `- 契約: ${result.deletedCounts?.contracts || 0}件\n` +
+        `- 見積もり: ${result.deletedCounts?.quotations || 0}件\n` +
+        `- 注文: ${result.deletedCounts?.orders || 0}件\n\n` +
+        `削除確認メールを送信いたしました。`
+      );
+
+      // Sign out and redirect to home
+      await signOut();
+      router.push('/?accountDeleted=true');
+    } catch (err) {
+      console.error('Account deletion error:', err);
+      setError(err instanceof Error ? err.message : 'アカウント削除に失敗しました');
+      alert(
+        'アカウント削除に失敗しました。\n' +
+        '時間をおいて再度お試しいただくか、管理者にお問い合わせください。'
+      );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirmation(false);
+      setShowDoubleConfirmation(false);
+      setDeleteConfirmationText('');
+    }
+  };
+
+  /**
+   * Cancel deletion process
+   */
+  const handleCancelDeletion = () => {
+    setShowDeleteConfirmation(false);
+    setShowDoubleConfirmation(false);
+    setDeleteConfirmationText('');
+    setDeletionSummary(null);
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-text-muted">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* ページヘッダー */}
+      <div>
+        <h1 className="text-2xl font-bold text-text-primary">会員情報編集</h1>
+        <p className="text-text-muted mt-1">
+          会員情報の変更・更新
+        </p>
+      </div>
+
+      {/* メッセージ */}
+      {error && (
+        <Card className="p-4 bg-red-50 border-red-200">
+          <p className="text-red-700">{error}</p>
+        </Card>
+      )}
+
+      {successMessage && (
+        <Card className="p-4 bg-green-50 border-green-200">
+          <p className="text-green-700">{successMessage}</p>
+        </Card>
+      )}
+
+      {/* 基本情報 */}
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold text-text-primary mb-4">基本情報</h2>
+        <form onSubmit={handleProfileUpdate} className="space-y-4">
+          {/* メールアドレス（読み取り専用） */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-1">
+              メールアドレス
+            </label>
+            <Input
+              type="email"
+              value={user.email}
+              disabled
+              className="bg-bg-muted"
+            />
+            <p className="text-xs text-text-muted mt-1">
+              ※メールアドレスの変更は管理者にお問い合わせください
+            </p>
+          </div>
+
+          {/* 会社名 */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-1">
+              会社名
+            </label>
+            <Input
+              type="text"
+              value={profileForm.companyName}
+              onChange={(e) => setProfileForm({ ...profileForm, companyName: e.target.value })}
+              placeholder="例: 株式会社〇〇"
+            />
+          </div>
+
+          {/* 漢字氏名 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">
+                名字（漢字）<span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={profileForm.kanjiLastName}
+                onChange={(e) => setProfileForm({ ...profileForm, kanjiLastName: e.target.value })}
+                placeholder="例: 山田"
+                error={profileErrors.kanjiLastName}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">
+                名前（漢字）<span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={profileForm.kanjiFirstName}
+                onChange={(e) => setProfileForm({ ...profileForm, kanjiFirstName: e.target.value })}
+                placeholder="例: 太郎"
+                error={profileErrors.kanjiFirstName}
+              />
+            </div>
+          </div>
+
+          {/* カタカナ氏名 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">
+                名字（カタカナ）<span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={profileForm.kanaLastName}
+                onChange={(e) => setProfileForm({ ...profileForm, kanaLastName: e.target.value })}
+                placeholder="例: ヤマダ"
+                error={profileErrors.kanaLastName}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">
+                名前（カタカナ）<span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={profileForm.kanaFirstName}
+                onChange={(e) => setProfileForm({ ...profileForm, kanaFirstName: e.target.value })}
+                placeholder="例: タロウ"
+                error={profileErrors.kanaFirstName}
+              />
+            </div>
+          </div>
+
+          {/* アクションボタン */}
+          <div className="flex gap-3">
+            <Button type="submit" variant="primary" disabled={isSaving}>
+              {isSaving ? '保存中...' : '変更を保存'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push('/member/dashboard')}
+            >
+              キャンセル
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* パスワード変更 */}
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold text-text-primary mb-4">パスワード変更</h2>
+        <form onSubmit={handlePasswordUpdate} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-1">
+              新しいパスワード<span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+              placeholder="8文字以上"
+              error={passwordErrors.newPassword}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-1">
+              新しいパスワード（確認）<span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+              placeholder="同じパスワードを入力"
+              error={passwordErrors.confirmPassword}
+            />
+          </div>
+
+          {/* アクションボタン */}
+          <div className="flex gap-3">
+            <Button type="submit" variant="primary" disabled={isSaving || !passwordForm.newPassword}>
+              {isSaving ? '更新中...' : 'パスワードを更新'}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* アカウント削除 */}
+      <Card className="p-6 border-red-200 bg-red-50">
+        <h2 className="text-lg font-semibold text-red-700 mb-2">アカウント削除</h2>
+        <p className="text-sm text-text-muted mb-4">
+          アカウントを削除すると、全てのデータが完全に削除されます。この操作は取り消せません。
+        </p>
+
+        {/* Initial state */}
+        {!showDeleteConfirmation && !showDoubleConfirmation && (
+          <Button
+            variant="secondary"
+            className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+            onClick={handleDeleteAccountFirstStep}
+            disabled={isDeleting}
+          >
+            アカウントを削除
+          </Button>
+        )}
+
+        {/* First confirmation - show summary */}
+        {showDeleteConfirmation && !showDoubleConfirmation && (
+          <div className="space-y-4">
+            <div className="bg-white border border-red-200 rounded-lg p-4">
+              <h3 className="font-semibold text-red-700 mb-2">削除されるデータ</h3>
+              {deletionSummary && (
+                <ul className="text-sm space-y-1">
+                  <li>• サンプル要求: {deletionSummary.sampleRequests}件</li>
+                  <li>• 通知: {deletionSummary.notifications}件</li>
+                  <li>• 契約（下書き・拒否）: {deletionSummary.contracts}件</li>
+                  <li>• 見積もり（未承認）: {deletionSummary.quotations}件</li>
+                  <li>• 注文（キャンセル・完了）: {deletionSummary.orders}件</li>
+                </ul>
+              )}
+              {deletionSummary && deletionSummary.activeOrders > 0 && (
+                <p className="text-sm text-amber-600 mt-2">
+                  ⚠️ 進行中の注文 {deletionSummary.activeOrders}件 は維持されます
+                </p>
+              )}
+              <p className="text-xs text-text-muted mt-3">
+                ※有効な契約がある場合は削除できません
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                onClick={handleDeleteAccountSecondStep}
+                disabled={isDeleting}
+              >
+                削除を確認
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancelDeletion}
+                disabled={isDeleting}
+              >
+                キャンセル
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Second confirmation - double confirm with text input */}
+        {showDoubleConfirmation && (
+          <div className="space-y-4">
+            <div className="bg-white border border-red-200 rounded-lg p-4">
+              <h3 className="font-semibold text-red-700 mb-2">最終確認</h3>
+              <p className="text-sm mb-3">
+                本当にアカウントを削除しますか？<br />
+                この操作は取り消すことができません。
+              </p>
+              <p className="text-sm font-medium mb-2">
+                確認のため、「DELETE」と入力してください：
+              </p>
+              <Input
+                type="text"
+                value={deleteConfirmationText}
+                onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                placeholder="DELETE と入力"
+                className="max-w-xs"
+                disabled={isDeleting}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                onClick={handleDeleteAccountFinal}
+                disabled={isDeleting || deleteConfirmationText !== 'DELETE'}
+              >
+                {isDeleting ? '削除中...' : 'アカウントを削除する'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancelDeletion}
+                disabled={isDeleting}
+              >
+                キャンセル
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}

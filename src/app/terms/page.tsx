@@ -1,6 +1,13 @@
 import React from 'react'
+import { Metadata } from 'next'
 import { FileText, Users, CreditCard, AlertTriangle, Scale, Clock, Mail, CheckCircle } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
+
+export const metadata: Metadata = {
+  title: '利用規約 | Epackage Lab',
+  description: 'Epackage Labサービスの利用規約。本サービスの利用条件、利用者の責任、知的財産権、禁止行為等について定めています。',
+  keywords: ['利用規約', 'サービス利用規約', '利用条件', '規約', 'terms of service'],
+}
 
 export default function TermsOfService() {
   const currentDate = new Date().toLocaleDateString('ja-JP', {

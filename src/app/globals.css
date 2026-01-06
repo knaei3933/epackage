@@ -56,6 +56,8 @@
     --info-500: #3B82F6;
     --info-600: #2563EB;
     --info-700: #1D4ED8;
+    --info-800: #1E40AF;
+    --info-900: #1E3A8A; /* Dark blue for text contrast on light backgrounds */
 
     /* Professional Grays */
     --gray-50: #F9FAFB;
@@ -197,6 +199,8 @@
     --info-500: #3B82F6;
     --info-600: #60A5FA;
     --info-700: #93C5FD;
+    --info-800: #BFDBFE;
+    --info-900: #DBEAFE; /* Light blue for text contrast on dark backgrounds */
 
     /* Background Colors - Dark Theme */
     --bg-primary: #0F172A;
@@ -456,12 +460,13 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
   }
 
-  /* Professional Button Enhancements */
+  /* Professional Button Enhancements - Enhanced System */
   .btn-premium {
     background: linear-gradient(135deg, var(--brixa-primary-600) 0%, var(--brixa-primary-700) 50%, var(--brixa-primary-800) 100%);
-    box-shadow: 0 4px 20px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 4px 20px rgba(94, 182, 172, 0.3);
     position: relative;
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .btn-premium::before {
@@ -477,6 +482,40 @@
 
   .btn-premium:hover::before {
     left: 100%;
+  }
+
+  .btn-premium:hover {
+    box-shadow: 0 8px 30px rgba(94, 182, 172, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .btn-premium:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 10px rgba(94, 182, 172, 0.3);
+  }
+
+  /* Enhanced Button Group for Action Bars */
+  .btn-action-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-action-group > * {
+    flex-shrink: 0;
+  }
+
+  /* Responsive Button Adjustments */
+  @media (max-width: 768px) {
+    .btn-action-group {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .btn-action-group > * {
+      width: 100%;
+    }
   }
 
   /* Professional Typography */
@@ -775,22 +814,32 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 0 0 1px var(--brixa-primary-500);
   }
 
-  /* Fix for Navy Button Text Visibility */
+  /* Fix for Navy Button Text Visibility - Using Design Token */
   .bg-navy-600,
   .bg-navy-700,
   .bg-blue-700,
   .bg-blue-800 {
     &,
     & * {
-      color: #FFFFFF !important;
+      color: var(--text-inverse) !important;
     }
 
     span,
     div,
     svg {
-      color: #FFFFFF !important;
-      fill: #FFFFFF !important;
+      color: var(--text-inverse) !important;
+      fill: var(--text-inverse) !important;
     }
+  }
+
+  /* Info-50 Background Text Contrast Fix */
+  .bg-info-50,
+  [class*="bg-info-50"] {
+    color: var(--text-primary) !important;
+  }
+
+  .text-info-900 {
+    color: #1E3A8A !important; /* Dark blue for better contrast on light backgrounds */
   }
 }
 

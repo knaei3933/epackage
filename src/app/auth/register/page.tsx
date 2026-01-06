@@ -1,0 +1,76 @@
+/**
+ * Registration Page
+ *
+ * 회원가입 페이지입니다.
+ * - 18개 필드 회원가입 폼
+ * - 일본어/한국어 이중 지원
+ * - 반응형 디자인
+ */
+
+import { Metadata } from 'next';
+import RegistrationForm from '@/components/auth/RegistrationForm';
+import Link from 'next/link';
+
+// =====================================================
+// Metadata
+// =====================================================
+
+export const metadata: Metadata = {
+  title: '会員登録 | Epackage Lab',
+  description: 'イパッケージLabの会員登録ページ。18項目の会員情報を入力してください。',
+  keywords: ['会員登録', 'Epackage Lab', 'イパッケージLab'],
+};
+
+// =====================================================
+// Page Component
+// =====================================================
+
+export default function RegisterPage() {
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* 헤더 */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-block mb-6">
+            <h1 className="text-3xl font-bold text-brixa-600 dark:text-brixa-400">
+              Epackage Lab
+            </h1>
+          </Link>
+          <h2 className="text-2xl font-semibold text-text-primary mb-2">
+            会員登録
+          </h2>
+          <p className="text-text-muted">
+            18項目の会員情報を入力してください。
+          </p>
+        </div>
+
+        {/* 회원가입 폼 */}
+        <RegistrationForm />
+
+        {/* ログインリンク */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-text-muted">
+            すでにアカウントをお持ちですか？{' '}
+            <Link
+              href="/auth/signin"
+              className="text-brixa-500 hover:text-brixa-600 font-medium"
+            >
+              ログイン
+            </Link>
+          </p>
+        </div>
+
+        {/* 利用規約リンク */}
+        <div className="text-center mt-4 text-xs text-text-muted">
+          <Link href="/terms" className="hover:underline">
+            利用規約
+          </Link>
+          {' | '}
+          <Link href="/privacy" className="hover:underline">
+            プライバシーポリシー
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}

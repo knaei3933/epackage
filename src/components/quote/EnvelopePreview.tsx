@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Maximize2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface EnvelopeDimensions {
   width: number;
@@ -139,12 +140,13 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions
                     const fallback = document.createElement('div');
                     fallback.className = 'absolute inset-0 flex items-center justify-center';
                     fallback.style.backgroundColor = `${config.color}15`;
-                    fallback.innerHTML = `
+                    // ✅ Sanitize HTML to prevent XSS
+                    fallback.innerHTML = DOMPurify.sanitize(`
                       <div class="text-center">
                         <div class="text-sm text-gray-500">${config.name}</div>
                         <div class="text-xs text-gray-400 mt-1">イメージ読み込みエラー</div>
                       </div>
-                    `;
+                    `);
                     parent.appendChild(fallback);
                   }
                 }}

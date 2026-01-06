@@ -1,11 +1,12 @@
 import { Metadata } from 'next'
 import { FileText, Layers, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
   description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。パッケージ印刷品質を確保するための重要な工程です。',
-  keywords: ['白版', 'しろはん', '校正刷', '印刷テスト', '品質確認', '校正', '印刷試作', '色確認'],
+  keywords: ['白版', 'しろはん', '校正刷', '印刷テスト', '品質確認', '校正', '印刷試作', '色確認', '白版 費用', '白版 納期', '色校正 刷', '白版 なし 印刷', '特色印刷 白版', '白版 見本 送料', '校正刷り 費用'],
   openGraph: {
     title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
     description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。',
@@ -35,8 +36,44 @@ export const metadata: Metadata = {
 }
 
 export default function ShirohanGuide() {
+  const shirohanHowToData = {
+    name: '白版（しろはん）の制作と確認方法',
+    description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。パッケージ印刷品質を確保するための重要な工程です。',
+    image: 'https://epackage-lab.com/images/guide/shirohan-howto.jpg',
+    supplies: [
+      '印刷データ',
+      '素材見本',
+      'DICカラーガイド',
+      '仕様書'
+    ],
+    steps: [
+      {
+        name: '仕様確認',
+        text: '素材、インク、サイズ、数量などの仕様を最終確認します。'
+      },
+      {
+        name: 'データ準備',
+        text: '印刷データを白版用に準備し、必要に応じて調整します。'
+      },
+      {
+        name: '試験印刷',
+        text: '実際の素材と工程で小ロット（通常5-10枚）を印刷します。'
+      },
+      {
+        name: '色と仕上がりを確認',
+        text: 'ブランドカラーの再現性、特色の色の濃さ、写真の色調、デザインの配置などを詳細に確認します。'
+      },
+      {
+        name: '承認後本番印刷',
+        text: '白版を承認後、本番印刷に移行します。'
+      }
+    ]
+  }
+
   return (
-    <div className="prose prose-gray max-w-none">
+    <>
+      <HowToSchema {...shirohanHowToData} />
+      <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-purple-100 rounded-lg text-purple-600">
           <FileText className="h-8 w-8" />
@@ -418,5 +455,6 @@ export default function ShirohanGuide() {
         </div>
       </section>
     </div>
+    </>
   )
 }

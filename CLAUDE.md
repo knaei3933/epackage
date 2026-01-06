@@ -2,20 +2,41 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Claude Code Best Practices
+
+### Slash Commands (`.claude/commands/`)
+Use these slash commands for common workflows:
+- `/commit` - Run lint & test, then create a commit
+- `/test` - Run appropriate tests based on context
+- `/lint` - Run ESLint and fix issues
+- `/build` - Build the project and check for errors
+- `/review` - Review code changes and provide feedback
+
+### Subagents (`.claude/agents/`)
+Use these agents for specialized tasks:
+- `code-simplifier` - Simplify code without changing functionality
+- `verify-app` - End-to-end testing of the application
+- `code-reviewer` - Comprehensive code review
+- `test-runner` - Run and analyze test results
+
+### Automated Hooks
+- **PostToolUse**: Auto-format code after Write/Edit operations
+- **Stop Hook**: Run tests after session completion
+- **PreToolUse**: Display message before code changes
+
+### Working with Claude
+1. **Start in Plan mode** for multi-step tasks (shift+tab twice)
+2. **Use slash commands** to avoid repeated prompting
+3. **Run the verify-app agent** after completing features
+4. **Check permissions** are set before running commands
+5. **Test your work** before marking tasks complete
+
 ## Project Overview
 
-Epackage Lab Web is a Next.js 16 application for managing product inquiries and sample requests for Epackage Lab. It's a Japanese-market focused system with comprehensive contact forms, product catalog, and quotation capabilities.
-
-### Core Features
-- Contact inquiry system with Japanese business rules
-- Sample request management (max 5 samples)
-- Product catalog with search and filtering
-- PDF quotation generation
-- Performance-optimized with Japanese SEO
+Epackage Lab Web is a comprehensive Japanese B2B packaging management system built with Next.js 16. It features customer portals, admin dashboards, quotation systems, and integrated workflow management for packaging materials.
 
 ## Development Commands
 
-### Essential Commands
 ```bash
 # Development
 npm run dev                    # Start development server (localhost:3000)
@@ -25,247 +46,354 @@ npm run lint                  # Run ESLint
 
 # Analysis & Performance
 npm run analyze               # Bundle size analysis (ANALYZE=true)
-npm run build:production      # Production build with NODE_ENV=production
 npm run lighthouse            # Run Lighthouse audit
 npm run test:performance      # Build + Lighthouse audit
-npm run test:lighthouse       # Build + server + Lighthouse testing
 
-# Testing (Playwright E2E)
-npx playwright test           # Run all E2E tests
-npx playwright test --ui     # Run tests with UI
-npx playwright dev            # Development mode for test authoring
+# Testing (Jest Unit + Playwright E2E)
+npm run test                  # Run Jest unit tests
+npm run test:e2e              # Run Playwright E2E tests
+npm run test:e2e:ui           # Run E2E with UI
+npx playwright test tests/contact.spec.ts  # Specific test file
 ```
-
-### Development Server Ports
-- Main development: 3000
-- Playwright testing: 3006 (automatically configured)
 
 ## Architecture Overview
 
-### Next.js 16 App Router Structure
+### Next.js 16 App Router with Route Groups
+
 ```
-src/
-├── app/                      # App Router pages and layouts
-│   ├── api/                 # API routes
-│   │   ├── contact/         # Contact form processing
-│   │   ├── samples/         # Sample request processing
-│   │   ├── quotation/       # PDF generation and calculation
-│   │   ├── robots/          # Dynamic robots.txt
-│   │   └── sitemap/         # Dynamic sitemap.xml
-│   ├── catalog/            # Product catalog pages
-│   ├── contact/            # Contact form pages
-│   └── samples/            # Sample request pages
-├── components/             # Reusable React components
-│   ├── catalog/           # Catalog-specific components
-│   ├── contact/           # Contact form components
-│   ├── layout/            # Layout and structural components
-│   └── ui/                # Design system components
-├── contexts/              # React contexts
-├── hooks/                 # Custom React hooks
-├── lib/                   # Utility libraries
-├── types/                 # TypeScript type definitions
-└── utils/                 # Utility functions
+src/app/
+├── (auth)/          # Authentication pages (signin, register, pending)
+├── (public)/        # Public pages (home, catalog, service, guide/*)
+├── admin/           # Admin dashboard (dashboard, approvals, production, shipments)
+├── member/          # Member portal (orders, quotations, profile, settings)
+├── portal/          # Alternative customer portal
+├── b2b/             # B2B registration and login
+├── auth/            # Auth routes (signout, error)
+└── api/             # API routes
 ```
 
-### Key Technologies
-- **Framework**: Next.js 16 with App Router
-- **UI**: React 19 + TypeScript + Tailwind CSS 4
-- **Forms**: React Hook Form + Zod validation
-- **Email**: SendGrid Node.js SDK
-- **Database**: Supabase (configured but not fully implemented)
-- **PDF**: jsPDF + html2canvas for quotation generation
-- **Testing**: Playwright for E2E testing
-- **Performance**: Bundle analyzer, Lighthouse, Web Vitals
+**Route groups (parentheses) don't affect URL structure** - they're for organization only.
+
+### Core Business Systems
+
+| System | Location | Purpose |
+|--------|----------|---------|
+| **Product Catalog** | `app/catalog/`, `app/guide/*` | Product browsing with Japanese specs |
+| **Quote Simulation** | `app/quote-simulator/`, `app/smart-quote/` | Interactive pricing calculator |
+| **Sample Requests** | `app/samples/` | Up to 5 samples per request |
+| **Member Portal** | `app/member/` | Orders, quotations, invoices, deliveries |
+| **Admin Dashboard** | `app/admin/` | Order management, production tracking, shipping |
+| **B2B Registration** | `app/b2b/` | Customer onboarding workflow |
+
+### Library Architecture (`src/lib/`)
+
+**Key Libraries** (not exhaustive - explore as needed):
+
+| Library | Purpose |
+|---------|---------|
+| `pdf-generator.ts` | Japanese quotation PDF (jsPDF + html2canvas) |
+| `pricing/` | Multi-version pricing engines |
+| `email/`, `email-templates.ts` | SendGrid integration with Japanese templates |
+| `supabase.ts` | Database client |
+| `ai-parser/` | AI-powered spec extraction from files |
+| `file-validator/` | **File upload security** (magic numbers, 10MB limit, virus scan) |
+| `api-cache.ts` | API response caching (LRU with TTL) |
+| `excel/` | Excel quotation generation |
+| `state-machine/` | Order approval workflow state machine |
+| `shipping-carriers.ts` | Yamato, Sagawa, Japan Post integration |
+| `notifications/` | Email/SMS notification service |
+
+### Type System (`src/types/`)
+
+Strongly-typed domain models for:
+- Contracts, orders, quotations
+- Production tracking, shipments
+- AI parsing results
+- Dashboard data
+- State machine transitions
 
 ## Environment Configuration
 
-### Required Environment Variables
-Copy `.env.local.example` to `.env.local` and configure:
+### Required Variables (`.env.local`)
 
 ```bash
-# SendGrid (Required for email functionality)
-SENDGRID_API_KEY=SG.your-sendgrid-api-key-here
+# SendGrid (Email)
+SENDGRID_API_KEY=SG.xxxxx
 ADMIN_EMAIL=admin@epackage-lab.com
 FROM_EMAIL=noreply@epackage-lab.com
 
-# Supabase (Ready for implementation)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+# Supabase (Database + Auth)
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxxx
+SUPABASE_SERVICE_ROLE_KEY=xxxxx
 ```
 
-### Email System Setup
-1. Configure SendGrid API key with send permissions
-2. Authenticate sender email/domain in SendGrid dashboard
-3. Set `ADMIN_EMAIL` to receive notifications
-4. Test email functionality through contact forms
+### Optional Integrations
+
+```bash
+# Carrier APIs
+YAMATO_API_KEY=xxxxx
+SAGAWA_API_KEY=xxxxx
+JP_POST_API_KEY=xxxxx
+
+# File Upload Security (Task #72)
+VIRUS_SCAN_API_KEY=xxxxx        # Optional: Third-party virus scanning service
+```
 
 ## Form Systems
 
-### Contact Form (`/contact`)
-- Japanese business form validation
-- Multiple inquiry types (general, technical, sales, support)
-- Urgency levels and preferred contact methods
+### Validation Stack
+- **React Hook Form** + **Zod** schemas
+- Japanese business rules (郵便番号, 電話番号 patterns)
 - Real-time validation with Japanese error messages
-- Auto-confirmation emails to customers
 
-### Sample Request Form (`/samples`)
-- Request up to 5 product samples
-- Product catalog integration
-- Project detail collection
-- Personal information consent (Japanese compliance)
-- Admin notification for sample requests
-
-### Quotation System
-- Dynamic price calculation via `/api/quotation/calculate`
-- PDF generation with `/api/quotation/pdf`
-- Japanese business quotation format
-- Email delivery integration
+### Key Forms
+- Contact inquiry (`/contact`) - Multiple inquiry types
+- Sample request (`/samples`) - Max 5 samples, product catalog integration
+- B2B registration (`/b2b/register`) - Multi-step approval workflow
 
 ## Design System
 
 ### UI Components (`src/components/ui/`)
-Built with Tailwind CSS 4 and class-variance-authority:
-- **Button**: Multiple variants (primary, secondary, metallic, etc.)
-- **Input**: Icon support, validation states, character counting
-- **Card**: Flexible layouts with hover and loading states
-- **Grid/Flex**: Responsive layout utilities
-- **Theme**: Dark mode support with system detection
 
-### Theme Configuration
-- Metallic design language for premium feel
-- Japanese and Korean typography optimization
-- CSS custom properties for flexible theming
-- Dark mode via `class` strategy
+Built with **Tailwind CSS 4** and **class-variance-authority**:
+- Button, Input, Card, Grid/Flex layouts
+- Japanese typography (Noto Sans JP)
+- Dark mode support
+- Metallic/premium design language
 
-## Performance Optimizations
+### Component Patterns
+- Co-located with `index.ts` exports
+- Variants using `cva()` for consistent styling
+- Icon support via `lucide-react`
 
-### Implemented Features
-- **Image Optimization**: WebP/AVIF support with Next.js Image
-- **Bundle Analysis**: @next/bundle-analyzer with `npm run analyze`
-- **Code Splitting**: Dynamic imports for heavy components
-- **Caching**: Service Worker, HTTP headers, static assets
-- **Web Vitals**: Real user monitoring
-- **SEO**: Japanese market optimization, structured data
+## Performance Configuration
+
+### Next.js Optimizations (`next.config.ts`)
+
+```typescript
+reactCompiler: true              // React Compiler auto-memoization
+optimizePackageImports: [...]     // For lucide-react, supabase, etc.
+images: { formats: ['webp', 'avif'] }
+```
+
+### Caching Strategy
+- Static assets: 1 year (immutable)
+- Images: 1 day (must-revalidate)
+- API: 5 minutes
 
 ### Performance Budgets
 - JS Bundle: < 250KB
-- CSS: < 50KB
-- LCP: < 2.5s
-- FID: < 100ms
-- CLS: < 0.1
+- Lighthouse: 90+ all categories
+- LCP: < 2.5s, CLS: < 0.1
 
-### Monitoring
-- Web Vitals console output
-- Performance dashboard (floating button)
-- Bundle analyzer at `/_next/analyze` when ANALYZE=true
+### Performance Modules (Task #77)
 
-## API Architecture
+| Module | Location | Purpose |
+|--------|----------|---------|
+| **API Cache** | `src/lib/api-cache.ts` | In-memory LRU cache with TTL for API responses |
+| **Optimized Fetch** | `src/hooks/use-optimized-fetch.ts` | Enhanced SWR hooks with cache optimization |
+| **Lazy Loading** | `src/lib/lazy-load.tsx` | Component and image lazy loading utilities |
 
-### Form Processing APIs
-- `POST /api/contact`: Validate, email, store contact submissions
-- `POST /api/samples`: Process sample requests with inventory checks
-- `POST /api/quotation/calculate`: Dynamic price calculation
-- `POST /api/quotation/pdf`: Generate PDF quotations
+### Code Splitting Strategy
 
-### SEO APIs
-- `GET /api/robots`: Dynamic robots.txt generation
-- `GET /api/sitemap`: Dynamic sitemap.xml generation
+Webpack split into 7 optimized chunks:
+1. **React** (priority 40) - Core React libraries
+2. **Supabase** (priority 35) - Database and auth client
+3. **Forms** (priority 30) - React Hook Form, Zod validation
+4. **UI** (priority 28) - Reusable UI components
+5. **DateUtils** (priority 26) - Date/fns utilities
+6. **PDF** (priority 24) - PDF generation libraries
+7. **Vendor** (priority 20) - Third-party dependencies
 
-### Data Flow
-1. Form submission → API route validation
-2. Email notifications (SendGrid)
-3. Database storage (Supabase - prepared)
-4. Customer confirmation emails
-5. Admin notifications
+Expected 40-60% reduction in initial load time.
+
+## PDF Generation
+
+### Japanese Document System (`src/lib/pdf-generator.ts`)
+
+Supports:
+- **見積書** (Quotations) - `QuoteData`
+- **契約書** (Contracts) - `ContractData`
+- **請求書** (Invoices)
+
+Features:
+- Noto Sans JP font embedding
+- Japanese era dates (令和)
+- Consumption tax (10%)
+- Company letterhead
+- Digital signatures
 
 ## Testing Strategy
 
-### E2E Testing with Playwright
-- Configuration in `playwright.config.ts`
-- Test server on port 3006
-- Tests in `/tests` directory
-- Coverage of contact forms, sample requests, catalog interactions
+### E2E Testing (Playwright)
+- Config: `playwright.config.ts`
+- Test server: Port 3006
+- Tests: `/tests` directory
+- Coverage: Forms, catalog, member flows
 
-### Running Tests
+### Unit Testing (Jest)
 ```bash
-npx playwright test           # All tests
-npx playwright test --ui     # Interactive mode
-npx playwright test tests/contact.spec.ts  # Specific test file
+npm run test                  # All unit tests
+npm run test:coverage         # With coverage
+npm run test:watch            # Watch mode
 ```
+
+## File Upload Security (Task #72)
+
+### Security Validator Module
+
+Location: `src/lib/file-validator/security-validator.ts`
+
+**Features**:
+- **Magic number validation** - File signature verification for 20+ file types
+- **10MB file size limit** - Enforced by default (configurable)
+- **Malicious content detection** - Pattern matching for XSS, SQL injection, path traversal, shell commands
+- **Executable file blocking** - Windows EXE, Linux ELF, macOS Mach-O detection
+- **Archive file handling** - ZIP, RAR, 7Z detection with strict mode option
+- **Suspicious extension blocking** - 18 dangerous extensions (.exe, .bat, .sh, .dll, etc.)
+- **Virus scanning integration** - Ready for third-party antivirus API
+
+### Usage
+
+```typescript
+import { validateFileSecurity, quickValidateFile, fullValidateFile } from '@/lib/file-validator';
+
+// Quick validation (no virus scan)
+const result = await quickValidateFile(file);
+
+// Full validation with virus scanning (requires API key)
+const fullResult = await fullValidateFile(file, { apiKey: process.env.VIRUS_SCAN_API });
+
+// Custom validation options
+const customResult = await validateFileSecurity(file, {
+  maxSize: 5 * 1024 * 1024,  // 5MB custom limit
+  requireMagicNumber: true,   // Enforce valid file signatures
+  strictMode: true,           // Treat archives as errors
+  checkForViruses: false,     // Skip virus scanning
+});
+```
+
+### Supported File Types
+
+**Images**: JPEG, PNG, GIF, WebP, SVG, BMP, TIFF, ICO
+**Documents**: PDF, PSD, AI
+**Office**: DOC, DOCX, XLS, XLSX, PPT, PPTX
+**Archives**: ZIP, RAR, 7Z, TAR, GZ (blocked in strict mode)
+
+### Security Test Suite
+
+Location: `src/lib/file-validator/__tests__/security-validator.test.ts`
+
+Comprehensive tests for:
+- Magic number validation for all file types
+- File size limit enforcement
+- Malicious pattern detection (XSS, SQL injection, eval, etc.)
+- Executable file blocking
+- Suspicious extension detection
+- Archive handling
+- Type mismatch warnings
+- Edge cases (empty files, tiny files, null bytes)
 
 ## Japanese Market Specifics
 
-### Language & Typography
+### Localization
 - Primary language: Japanese (ja)
-- Noto Sans JP font optimization
-- Japanese business email etiquette
-- Compliance with Japanese privacy laws
+- Noto Sans JP font
+- Business etiquette in emails
+- Privacy law compliance (個人情報保護方針)
 
-### SEO & Performance
-- Japanese keyword optimization
+### SEO
 - Tokyo CDN edge targeting
-- Mobile network optimization for Japan
-- hreflang tags for internationalization
+- Japanese keyword optimization
+- Mobile 3G network optimization (< 2s load)
+- Structured data for B2B
 
 ### Business Rules
-- Japanese form validation patterns
-- Business day calculations
-- Sample request limits (max 5)
-- Privacy consent requirements
+- Sample request limit: 5 per request
+- Japanese address format (〒XXX-XXXX)
+- Fiscal year calculations (4月開始)
+- Consumption tax handling (10%)
 
-## Database Integration (Supabase)
+## Database Schema (Supabase)
 
-### Configuration
-Tables are designed but not fully implemented:
-- `contact_submissions`: Contact form data
-- `sample_requests`: Sample request tracking
-- `quotations`: Quotation history
-- `products`: Product catalog data
+**Current Schema**: `docs/current/architecture/database-schema-v2.md` (Updated 2026-01-03)
 
-### Implementation Status
-- Environment variables configured
-- Type definitions in `types/`
-- API routes prepared for database integration
-- Ready for implementation when needed
+### Performance Indexes (Task #79)
 
-## Development Notes
+**28 performance-critical indexes** added for query optimization:
 
-### Code Style
-- TypeScript strict mode enabled
-- ESLint with Next.js configuration
-- Path aliases: `@/*` maps to `./src/*`
-- Component co-location with index.ts exports
+- **Priority 1**: Core query patterns (5 indexes)
+  - Quotation list queries, order dashboard, member recent activity
+- **Priority 2**: N+1 query prevention (5 indexes)
+  - Order items, quotation items, sample items, production jobs, shipments
+- **Priority 3**: Monitoring & alerting (5 indexes)
+  - Status tracking, time-based analytics, user activity
+- **Priority 4**: Partial indexes (4 indexes)
+  - Active quotations, pending orders, in-production jobs, active shipments
+- **Covering indexes**: (2 indexes)
+  - Admin dashboard widget with INCLUDE columns
+- **Full-text search**: (1 index)
+  - Product search with simple text configuration
+- **Additional optimization**: (6 indexes)
 
-### Performance Development
-- Use `npm run analyze` to monitor bundle size
-- Check Lighthouse scores with `npm run lighthouse`
-- Monitor Web Vitals in browser console
-- Test on mobile networks for Japanese market
+### Database Structure
 
-### Email Development
-- Test SendGrid integration early
-- Verify sender authentication
-- Check Japanese email rendering
-- Test both customer and admin emails
+Key tables:
+- `contact_submissions` - Contact form data
+- `sample_requests` - Sample request tracking
+- `quotations` - Quote history (with 28 performance indexes)
+- `products` - Product catalog
+- `orders` - Order management
+- `production_jobs` - Production tracking
+- `shipments` - Shipping tracking
+- `users`, `profiles` - User management
+- `approvals` - Approval workflow
 
-### Common Development Tasks
-1. **Adding new form fields**: Update Zod schemas, add to form components
-2. **New API endpoints**: Add to `src/app/api/` following existing patterns
-3. **UI components**: Use design system variants in `src/components/ui/`
-4. **Performance updates**: Check bundle impact with `npm run analyze`
+**Constraints**: 19 foreign key relationships, 19 database triggers
 
-## Deployment Considerations
+## Development Workflow
 
-### Environment Variables (Production)
-Set these in your deployment platform:
-- All SendGrid variables
-- Supabase configuration
-- `NEXT_PUBLIC_APP_URL` for proper links
+1. **Feature branches**: `git checkout -b feature/your-feature`
+2. **Development**: `npm run dev`
+3. **Testing**: `npm run test:e2e && npm run lint`
+4. **Build**: `npm run build:production`
+5. **Performance**: `npm run lighthouse`
 
-### Performance Targets
-- Lighthouse score: 90+ across all categories
-- Core Web Vitals: All green
-- Bundle size: Monitor with analyzer
-- Japanese network performance: < 2s load on 3G
+### Common Tasks
 
+| Task | Command/Location |
+|------|------------------|
+| Add form field | Update Zod schema in form component |
+| Add API endpoint | Create in `src/app/api/` |
+| Add UI variant | Use `cva()` in `src/components/ui/` |
+| Check bundle size | `npm run analyze` |
+| Test email | Check SendGrid templates in `src/lib/email-templates.ts` |
+| **Secure file upload** | Use `validateFileSecurity()` from `@/lib/file-validator` |
+| **Cache API response** | Use `apiCache.get/set()` from `@/lib/api-cache` |
+| **Optimize data fetch** | Use `useOptimizedFetch()` from `@/hooks/use-optimized-fetch` |
+
+## Important Notes
+
+- **Path aliases**: `@/*` → `./src/*`
+- **TypeScript strict mode**: Enabled
+- **Image optimization**: Enabled (WebP/AVIF auto-conversion)
+- **File upload limit**: 10MB default (configurable via `validateFileSecurity()`)
+- **Security headers**: Pre-configured in `next.config.ts`
+- **SEO**: Dynamic robots.txt and sitemap.xml via API routes
+
+## Deployment
+
+### Pre-deployment Checklist
+- [ ] All tests passing
+- [ ] Lighthouse scores > 90
+- [ ] Environment variables set
+- [ ] Supabase migrations applied
+- [ ] SendGrid sender authenticated
+
+### Platform: Vercel
+```bash
+vercel                          # Preview deployment
+vercel --prod                   # Production
+bash scripts/deploy-production.sh
+```

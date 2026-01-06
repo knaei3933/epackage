@@ -41,6 +41,15 @@ export const metadata: Metadata = {
     "B2B", "法人向け", "工場", "製造業", "メーカー",
     // 地域・言語関連
     "日本", "韓国", "アジア", "日本市場", "輸入",
+    // 地域別キーワード (追加)
+    "東京 パッケージング", "大阪 包装資材", "名古屋 パウチ",
+    "福岡 包装会社", "北海道 食品包装", "仙台 包装印刷",
+    "広島 パッケージ", "北陸 医薬品包装",
+    "愛知県 製造業 包装", "静岡県 食品包装", "滋賀県 工業包装",
+    // 季節別キーワード (追加)
+    "お中元 包装", "お歳暮 包装", "お年賀 包装",
+    "夏季ギフト 包装", "年末年始 包装",
+    "ギフト包装", "季節の包装", "贈答品 包装",
     // サービス関連
     "カスタマイズ", "OEM", "ODM", "小ロット", "試作",
     "自動見積もり", "オンライン見積", "無料サンプル", "技術相談"
@@ -107,7 +116,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" suppressHydrationWarning>
+    <html lang="ja" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
                 {/* Performance optimization: preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -140,7 +149,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem={true}
           attribute="class"
         >

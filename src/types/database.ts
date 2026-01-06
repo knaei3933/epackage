@@ -77,8 +77,10 @@ export interface Product {
     category: 'flat_3_side' | 'stand_up' | 'gusset' | 'box' | 'flat_with_zip' | 'special' | 'soft_pouch' | 'spout_pouch' | 'roll_film'
     name_ja: string
     name_en: string
+    name_ko?: string
     description_ja: string
     description_en: string
+    description_ko?: string
     specifications: Json
     materials: string[]
     pricing_formula: Json
@@ -89,6 +91,9 @@ export interface Product {
     created_at?: string
     updated_at?: string
     image?: string
+    tags?: string[]
+    applications?: string[]
+    features?: string[]
 }
 
 export interface Quote {
@@ -147,7 +152,6 @@ export interface QuotationItem {
   quotation_id: string
   product_id: string | null
   product_name: string
-  product_code: string | null
   category: string | null
   quantity: number
   unit_price: number
@@ -275,6 +279,7 @@ export type Database = {
                     business_document_path: string | null  // 사업자등록증 저장 경로
                     verification_token: string | null  // 이메일 인증 토큰
                     verification_expires_at: string | null  // 인증 토큰 만료일
+                    settings: Json | null  // User settings (notifications, language, timezone)
                     created_at: string
                     updated_at: string
                     last_login_at: string | null
@@ -416,7 +421,6 @@ export type Database = {
                     quotation_id: string  // FK to quotations
                     product_id: string | null  // FK to products (if available)
                     product_name: string  // Product name
-                    product_code: string | null  // Product code/SKU
                     category: string | null  // Product category
                     quantity: number  // Order quantity
                     unit_price: number  // Price per unit
@@ -733,6 +737,13 @@ export type Database = {
                     validation_status: 'PENDING' | 'VALID' | 'INVALID'  // 検証ステータス
                     validation_errors: Json | null  // 検証エラー
                     metadata: Json | null  // 追加メタデータ
+                    // AI Extraction fields
+                    ai_extraction_status: 'pending' | 'processing' | 'completed' | 'failed' | 'needs_revision' | null
+                    ai_extraction_data: Json | null  // 抽出されたデータ
+                    ai_confidence_score: number | null  // 信頼度スコア (0-1)
+                    ai_extraction_method: 'ai_parser' | 'manual' | 'hybrid' | 'adobe_api' | 'pattern_matching' | 'manual_entry' | 'ai_vision' | 'ocr' | null
+                    ai_extracted_at: string | null  // 抽出日時
+                    ai_validation_errors: Json | null  // AI抽出エラー
                     created_at: string
                 }
                 Insert: Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>
@@ -1047,6 +1058,164 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['company_invitations']['Row'], 'id' | 'created_at'>
                 Update: Partial<Omit<Database['public']['Tables']['company_invitations']['Row'], 'id' | 'created_at'>>
+            }
+
+            // ============================================================
+            // ELECTRONIC SIGNATURE SYSTEM TABLES (Phase 5)
+            // ============================================================
+
+            // Signatures table - 電子署名レコード (Signature Records)
+            signatures: {
+                Row: {
+                    id: string
+                    document_id: string
+                    order_id: string | null
+                    contract_id: string | null
+                    provider: 'docusign' | 'hellosign' | 'local'
+                    envelope_id: string | null
+                    status: 'pending' | 'viewed' | 'signed' | 'delivered' | 'cancelled' | 'expired' | 'declined'
+                    signature_type: 'handwritten' | 'hanko' | 'mixed' | null
+                    signers: Json
+                    signature_data: Json | null
+                    subject: string | null
+                    message: string | null
+                    sent_at: string | null
+                    viewed_at: string | null
+                    signed_at: string | null
+                    expires_at: string | null
+                    cancelled_at: string | null
+                    cancel_reason: string | null
+                    created_by: string | null
+                    created_at: string
+                    updated_at: string
+                    metadata: Json
+                }
+                Insert: Omit<Database['public']['Tables']['signatures']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['signatures']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Signature Events table - 署名イベント監査ログ (Signature Audit Trail)
+            signature_events: {
+                Row: {
+                    id: string
+                    envelope_id: string
+                    provider: string
+                    event: string
+                    metadata: Json
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['signature_events']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['signature_events']['Row']>
+            }
+
+            // Hanko Images table - はんこ画像 (Japanese Seal Images)
+            hanko_images: {
+                Row: {
+                    id: string
+                    user_id: string
+                    hanko_name: string
+                    image_url: string
+                    original_filename: string | null
+                    file_size: number | null
+                    mime_type: string | null
+                    is_default: boolean
+                    validation_data: Json | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['hanko_images']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['hanko_images']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Web Vitals table - Webパフォーマンス指標
+            web_vitals: {
+                Row: {
+                    id: string
+                    metric_name: string  // 'LCP', 'FID', 'CLS', 'FCP', 'TTFB'
+                    value: number
+                    rating: 'good' | 'needs-improvement' | 'poor'
+                    page: string | null  // URL path
+                    user_id: string | null
+                    metadata: Json | null
+                    device_type: string | null
+                    connection_type: string | null
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['web_vitals']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['web_vitals']['Row']>
+            }
+
+            // Audit Logs table - 監査ログ (Audit Logs for Electronic Signature System)
+            audit_logs: {
+                Row: {
+                    id: string
+                    timestamp: string
+                    event_type: 'system_start' | 'system_shutdown' | 'user_login' | 'user_logout' | 'timestamp_created' | 'timestamp_verified' | 'signature_created' | 'signature_verified' | 'contract_created' | 'contract_signed' | 'contract_status_changed' | 'ip_validation' | 'security_alert' | 'data_access' | 'data_modification' | 'data_deletion' | 'admin_action' | 'error_occurred'
+                    resource_type: 'timestamp_token' | 'signature' | 'contract' | 'user' | 'system' | 'ip_validation' | 'other'
+                    resource_id: string | null
+                    user_id: string | null
+                    user_email: string | null
+                    ip_address: string | null
+                    ip_validation: Json | null  // { trust_level, source, is_private, warnings }
+                    session_id: string | null
+                    user_agent: string | null
+                    request_id: string | null
+                    outcome: 'success' | 'failure' | 'partial'
+                    details: Json | null  // Structured details
+                    error_message: string | null
+                    jurisdiction: 'JP' | 'OTHER'  // Legal jurisdiction
+                    retention_period_days: number  // Data retention period (days)
+                    scheduled_deletion_at: string | null  // Scheduled deletion date
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['audit_logs']['Row']>
+            }
+
+            // Customer Notifications table - カスタマー通知 (Customer Notifications)
+            customer_notifications: {
+                Row: {
+                    id: string
+                    user_id: string  // FK to profiles
+                    notification_type: 'order_update' | 'shipment_update' | 'contract_ready' | 'quote_ready' | 'production_update' | 'document_ready' | 'delivery_scheduled'
+                    title: string
+                    title_ja: string
+                    message: string
+                    message_ja: string
+                    order_id: string | null  // FK to orders
+                    quotation_id: string | null  // FK to quotations
+                    shipment_id: string | null  // FK to shipments
+                    action_url: string | null
+                    action_label: string | null
+                    action_label_ja: string | null
+                    read: boolean  // Read status
+                    sent_via_email: boolean  // Email delivery status
+                    sent_via_sms: boolean  // SMS delivery status
+                    expires_at: string | null  // Notification expiry date
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['customer_notifications']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['customer_notifications']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Payment Confirmations table - 支払確認 (Task 108)
+            payment_confirmations: {
+                Row: {
+                    id: string
+                    quotation_id: string  // FK to quotations
+                    payment_method: 'bank_transfer' | 'credit_card' | 'paypal' | 'other'
+                    payment_date: string  // ISO timestamp
+                    amount: number  // Payment amount
+                    reference_number: string | null  // Transaction reference
+                    notes: string | null  // Additional notes
+                    confirmed_by: string  // FK to profiles (user who confirmed)
+                    confirmed_at: string  // Confirmation timestamp
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['payment_confirmations']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['payment_confirmations']['Row'], 'id' | 'created_at' | 'updated_at'>>
             }
         }
         Views: {

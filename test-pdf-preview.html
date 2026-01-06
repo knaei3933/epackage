@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>見積書プレビュー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      font-size: 9pt;
+      line-height: 1.2;
+      color: #000;
+      background: #fff;
+      padding: 8mm 10mm;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+    }
+
+    /* Header: Date (left) and Quote Number (right) */
+    .header-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 9pt;
+    }
+    .header-left {
+      flex: 1;
+    }
+    .header-right {
+      text-align: right;
+    }
+
+    /* Document title */
+    .doc-title {
+      text-align: center;
+      font-size: 20pt;
+      font-weight: bold;
+      margin-bottom: 12px;
+      letter-spacing: 0.3em;
+    }
+
+    /* Two column layout */
+    .main-container {
+      display: flex;
+      gap: 8mm;
+    }
+
+    .left-column {
+      flex: 0 0 60%;
+    }
+
+    .right-column {
+      flex: 1;
+    }
+
+    /* Client info section */
+    .client-section {
+      margin-bottom: 8px;
+      padding-left: 2mm;
+    }
+    .client-name {
+      font-size: 11pt;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .client-name-en {
+      font-size: 9pt;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    .client-detail {
+      font-size: 8pt;
+      margin-bottom: 1px;
+    }
+
+    /* Supplier info section (right column, no logo) */
+    .supplier-section {
+      text-align: right;
+      margin-bottom: 8px;
+    }
+    .supplier-brand {
+      font-size: 13pt;
+      font-weight: bold;
+      color: #008B8B;
+      margin-bottom: 1px;
+    }
+    .supplier-sub {
+      font-size: 8pt;
+      color: #666;
+      margin-bottom: 2px;
+    }
+    .supplier-desc {
+      font-size: 7pt;
+      color: #666;
+      margin-bottom: 3px;
+    }
+    .supplier-company {
+      font-size: 8pt;
+      font-weight: bold;
+      margin-bottom: 1px;
+    }
+    .supplier-detail {
+      font-size: 7pt;
+      margin-bottom: 0.5px;
+    }
+
+    /* Section headers */
+    .section-header {
+      background: #D3E4E4;
+      padding: 4px 8px;
+      font-weight: bold;
+      font-size: 9pt;
+      margin-bottom: 4px;
+      border: 1px solid #999;
+    }
+
+    /* Terms section */
+    .terms-section {
+      margin-bottom: 8px;
+    }
+    .term-row {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      padding: 2px 0;
+      font-size: 8pt;
+    }
+    .term-label {
+      font-weight: 500;
+      min-width: 70px;
+      padding-right: 5px;
+    }
+    .term-value {
+      flex: 1;
+    }
+
+    /* Specifications section */
+    .spec-section {
+      margin-bottom: 8px;
+    }
+    .spec-row {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      padding: 1.5px 0;
+      font-size: 8pt;
+    }
+    .spec-label {
+      min-width: 75px;
+      padding-right: 5px;
+      font-weight: 500;
+    }
+    .spec-value {
+      flex: 1;
+    }
+
+    /* Order table section (right column) */
+    .order-section {
+      margin-top: 5px;
+    }
+    .order-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+    }
+    .order-table th {
+      background: #D3E4E4;
+      padding: 4px 3px;
+      text-align: center;
+      font-weight: bold;
+      border: 1px solid #999;
+    }
+    .order-table td {
+      padding: 4px 3px;
+      text-align: center;
+      border: 1px solid #999;
+    }
+    .summary-row {
+      background: #E8F5E9;
+      font-weight: bold;
+    }
+
+    /* Processing section */
+    .processing-section {
+      margin-bottom: 8px;
+    }
+    .processing-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+    }
+    .processing-table td {
+      padding: 1.5px 5px;
+      border-bottom: 1px solid #ddd;
+    }
+    .processing-label {
+      min-width: 90px;
+    }
+    .processing-value {
+      text-align: center;
+      font-weight: bold;
+      width: 30px;
+    }
+
+    /* Remarks section */
+    .remarks-section {
+      margin-bottom: 8px;
+    }
+    .remarks-content {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      min-height: 30px;
+      font-size: 8pt;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header: Date (left) and Quote Number (right) -->
+  <div class="header-meta">
+    <div class="header-left">2025年1月1日</div>
+    <div class="header-right">No: 2025-001</div>
+  </div>
+
+  <!-- Document title -->
+  <div class="doc-title">見積書</div>
+
+  <!-- Main two-column layout -->
+  <div class="main-container">
+    <!-- Left Column -->
+    <div class="left-column">
+      <!-- Client information -->
+      <div class="client-section">
+        <div class="client-name">有限会社加豆フーズ (カトウフーズ)</div>
+        <div class="client-name-en">Kato Foods Co., Ltd.</div>
+        <div class="client-detail">〒379-2311</div>
+        <div class="client-detail">群馬県みどり市懸町阿佐美1940</div>
+        <div class="client-detail">担当: 田中 太郎</div>
+      </div>
+
+      <!-- Payment terms section -->
+      <div class="terms-section">
+        <div class="section-header">支払い・納期条件</div>
+        <div class="term-row">
+          <div class="term-label">支払い条件:</div>
+          <div class="term-value">先払い</div>
+        </div>
+        <div class="term-row">
+          <div class="term-label">納期:</div>
+          <div class="term-value">校了から約1か月</div>
+        </div>
+        <div class="term-row">
+          <div class="term-label">納品場所:</div>
+          <div class="term-value">指定なし</div>
+        </div>
+        <div class="term-row">
+          <div class="term-label">有効期間:</div>
+          <div class="term-value">見積発行から3ヶ月間</div>
+        </div>
+        <div class="term-row">
+          <div class="term-label">振込先:</div>
+          <div class="term-value">PayPay銀行 ビジネス営業部支店(005)普通 5630235</div>
+        </div>
+      </div>
+
+      <!-- Product specifications -->
+      <div class="spec-section">
+        <div class="section-header">製品仕様</div>
+        <div class="spec-row">
+          <div class="spec-label">仕様番号:</div>
+          <div class="spec-value">L</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">袋タイプ:</div>
+          <div class="spec-value">スタンドパウチ</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">内容物:</div>
+          <div class="spec-value">粉体</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">サイズ:</div>
+          <div class="spec-value">130×130×60mm</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">素材:</div>
+          <div class="spec-value">PET12μ+AL7μ+PET12μ+LLDPE60μ</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">シール幅:</div>
+          <div class="spec-value">5mm</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">封入方向:</div>
+          <div class="spec-value">上</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">ノッチ形状:</div>
+          <div class="spec-value">V</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">ノッチ位置:</div>
+          <div class="spec-value">指定位置</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">吊り下げ加工:</div>
+          <div class="spec-value">なし</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">吊り下げ位置:</div>
+          <div class="spec-value">指定位置</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">チャック位置:</div>
+          <div class="spec-value">指定位置</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-label">角加工:</div>
+          <div class="spec-value">R5</div>
+        </div>
+      </div>
+
+      <!-- Optional processing -->
+      <div class="processing-section">
+        <div class="section-header">オプション加工</div>
+        <table class="processing-table">
+          <tr>
+            <td class="processing-label">チャック</td>
+            <td class="processing-value">○</td>
+          </tr>
+          <tr>
+            <td class="processing-label">ノッチ</td>
+            <td class="processing-value">○</td>
+          </tr>
+          <tr>
+            <td class="processing-label">吊り下げ穴</td>
+            <td class="processing-value">-</td>
+          </tr>
+          <tr>
+            <td class="processing-label">角加工</td>
+            <td class="processing-value">○</td>
+          </tr>
+          <tr>
+            <td class="processing-label">ガス抜きバルブ</td>
+            <td class="processing-value">-</td>
+          </tr>
+          <tr>
+            <td class="processing-label">Easy Cut</td>
+            <td class="processing-value">-</td>
+          </tr>
+          <tr>
+            <td class="processing-label">型抜き</td>
+            <td class="processing-value">-</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Remarks section -->
+      <div class="remarks-section">
+        <div class="section-header">備考</div>
+        <div class="remarks-content">・サンプル確認後、正式注文となります。
+・デザインデータはAI形式でご提供ください。
+・納期はデザイン校了後からの目安となります。</div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      <!-- Supplier information (no logo) -->
+      <div class="supplier-section">
+        <div class="supplier-brand">EPACKAGE Lab</div>
+        <div class="supplier-sub">by kanei-trade</div>
+        <div class="supplier-desc">オーダーメイドバッグ印刷専門</div>
+        <div class="supplier-company">金井貿易株式会社</div>
+        <div class="supplier-detail">〒673-0846</div>
+        <div class="supplier-detail">兵庫県明石市上ノ丸2-11-21-102</div>
+        <div class="supplier-detail">TEL: 080-6942-7235</div>
+      </div>
+
+      <!-- Order table -->
+      <div class="order-section">
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th>番号</th>
+              <th>商品数<br>(SKU)</th>
+              <th>合計数量</th>
+              <th>単価</th>
+              <th>割引</th>
+              <th>合計<br>(税別)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>1</td>
+              <td>5,000</td>
+              <td>¥73.9</td>
+              <td>¥0</td>
+              <td>¥369,500</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>1</td>
+              <td>10,000</td>
+              <td>¥53.6</td>
+              <td>¥0</td>
+              <td>¥536,000</td>
+            </tr>
+            <tr class="summary-row">
+              <td colspan="2">合計</td>
+              <td>15,000</td>
+              <td>-</td>
+              <td>¥0</td>
+              <td>¥905,500</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

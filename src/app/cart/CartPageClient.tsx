@@ -10,7 +10,6 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
-  CreditCard
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 import { Button } from '@/components/ui/Button'
@@ -193,17 +192,6 @@ export default function CartPageClient() {
 
                         {/* Action Buttons */}
                         <div className="space-y-3 pt-4">
-                          <Link href="/checkout">
-                            <Button
-                              variant="primary"
-                              size="lg"
-                              className="w-full bg-gradient-to-r from-brixa-600 to-amber-600 hover:from-brixa-700 hover:to-amber-700"
-                            >
-                              <CreditCard className="w-5 h-5 mr-2" />
-                              レジに進む
-                            </Button>
-                          </Link>
-
                           <Button
                             variant="outline"
                             size="lg"

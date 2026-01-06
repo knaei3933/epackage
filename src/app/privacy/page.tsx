@@ -1,6 +1,13 @@
 import React from 'react'
+import { Metadata } from 'next'
 import { Shield, Lock, Mail, Database, Eye, Trash2, Globe, Clock, FileText } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
+
+export const metadata: Metadata = {
+  title: '個人情報保護方針 | Epackage Lab',
+  description: 'Epackage Labの個人情報保護方針。お客様の個人情報を適切に取得、利用、管理し、安全かつ公正に取り扱うことをお約束します。',
+  keywords: ['個人情報保護方針', 'プライバシーポリシー', '個人情報', 'データ保護', 'GDPR', 'プライバシー'],
+}
 
 export default function PrivacyPolicy() {
   const currentDate = new Date().toLocaleDateString('ja-JP', {

@@ -83,12 +83,12 @@ function multiQuoteReducer(state: MultiQuantityQuoteState, action: MultiQuoteAct
     case 'SET_BASIC_SPECS':
       return {
         ...state,
-        bagTypeId: action.payload.bagTypeId,
-        materialId: action.payload.materialId,
-        width: action.payload.width,
-        height: action.payload.height,
-        depth: action.payload.depth,
-        thicknessSelection: action.payload.thicknessSelection || state.thicknessSelection,
+        bagTypeId: action.payload.bagTypeId ?? state.bagTypeId,
+        materialId: action.payload.materialId ?? state.materialId,
+        width: action.payload.width ?? state.width,
+        height: action.payload.height ?? state.height,
+        depth: action.payload.depth ?? state.depth,
+        thicknessSelection: action.payload.thicknessSelection ?? state.thicknessSelection,
         // Clear previous results when specs change
         multiQuantityResults: new Map(),
         comparison: null,
@@ -296,7 +296,7 @@ const MultiQuantityQuoteContext = createContext<{
   updatePrintingOptions: (options: Partial<MultiQuantityQuoteState>) => void;
   updatePostProcessing: (options: string[], multiplier: number) => void;
   updateDelivery: (location: 'domestic' | 'international', urgency: 'standard' | 'express') => void;
-  calculateMultiQuantity: () => Promise<void>;
+  calculateMultiQuantity: () => Promise<MultiQuantityResult | null>;
   saveQuantityPattern: (name: string, description: string) => void;
   loadQuantityPattern: (pattern: SavedQuantityPattern) => void;
   resetQuote: () => void;
@@ -369,21 +369,12 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   }, []); // Only run once on mount since loadSavedComparisons is stable
 
   // Action helpers - wrapped in useCallback for stable references
-  const updateBasicSpecs = useCallback((specs: Partial<MultiQuantityQuoteState>) => {
-    if (specs.bagTypeId || specs.materialId || specs.width || specs.height || specs.depth || specs.thicknessSelection) {
-      dispatch({
-        type: 'SET_BASIC_SPECS',
-        payload: {
-          bagTypeId: specs.bagTypeId || state.bagTypeId,
-          materialId: specs.materialId || state.materialId,
-          width: specs.width || state.width,
-          height: specs.height || state.height,
-          depth: specs.depth !== undefined ? specs.depth : state.depth,
-          thicknessSelection: specs.thicknessSelection
-        }
-      });
-    }
-  }, [state]); // state is captured via closure, will always be latest
+  const updateBasicSpecs = useCallback((specs: Partial<Pick<MultiQuantityQuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'thicknessSelection'>>) => {
+    dispatch({
+      type: 'SET_BASIC_SPECS',
+      payload: specs
+    });
+  }, []); // Empty deps - reducer handles defaults via nullish coalescing
 
   const setQuantities = useCallback((quantities: number[]) => {
     dispatch({ type: 'SET_QUANTITIES', payload: { quantities } });
@@ -427,16 +418,44 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
     dispatch({ type: 'SET_DELIVERY', payload: { location, urgency } });
   }, []);
 
-  const calculateMultiQuantity = useCallback(async () => {
+  const calculateMultiQuantity = useCallback(async (): Promise<MultiQuantityResult | null> => {
+    console.log('[calculateMultiQuantity] Starting calculation with state:', {
+      comparisonQuantities: state.comparisonQuantities,
+      bagTypeId: state.bagTypeId,
+      materialId: state.materialId,
+      width: state.width,
+      height: state.height
+    });
+
     if (!canCalculateMultiQuantity()) {
+      console.error('[calculateMultiQuantity] Cannot calculate - requirements not met');
       dispatch({ type: 'SET_ERROR', payload: 'Required specifications not complete' });
-      return;
+      return null;
     }
 
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
+      console.log('[calculateMultiQuantity] Calling calculator with:', {
+        baseParams: {
+          bagTypeId: state.bagTypeId,
+          materialId: state.materialId,
+          width: state.width,
+          height: state.height,
+          depth: state.depth,
+          thicknessSelection: state.thicknessSelection,
+          isUVPrinting: state.isUVPrinting,
+          printingType: state.printingType,
+          printingColors: state.printingColors,
+          doubleSided: state.doubleSided,
+          postProcessingOptions: state.postProcessingOptions,
+          deliveryLocation: state.deliveryLocation,
+          urgency: state.urgency
+        },
+        quantities: state.comparisonQuantities
+      });
+
       const result = await multiQuantityCalculator.calculateMultiQuantity({
         baseParams: {
           bagTypeId: state.bagTypeId,
@@ -458,10 +477,20 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
         includeRecommendations: true
       });
 
+      console.log('[calculateMultiQuantity] Calculation completed:', {
+        calculationsSize: result.calculations.size,
+        hasComparison: !!result.comparison
+      });
+
+      // Dispatch state update
       dispatch({ type: 'SET_MULTI_QUANTITY_RESULTS', payload: result });
+
+      // Also return result for immediate use
+      return result;
     } catch (error) {
-      console.error('Multi-quantity calculation error:', error);
+      console.error('[calculateMultiQuantity] Error:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to calculate multi-quantity quotes' });
+      return null;
     }
   }, [state]); // This needs state dependencies for the calculation
 
@@ -908,8 +937,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   };
 
   // Memoize the context value to prevent unnecessary re-renders
-  // CRITICAL: state is NOT in dependency array - functions have access via closure
-  // Only include functions that change reference (none - all are useCallback)
+  // ✅ FIXED: state is NOW in dependency array - critical for consumers to receive latest state
   const value = useMemo(() => ({
     state,
     dispatch,
@@ -935,7 +963,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
     isStepComplete,
     getStepSummary,
     canCalculateMultiQuantity
-  }), []); // Empty deps - all functions are memoized with useCallback, state updates trigger re-render via reducer
+  }), [state]); // ✅ state in deps - ensures consumers always receive latest state
 
   return (
     <MultiQuantityQuoteContext.Provider value={value}>

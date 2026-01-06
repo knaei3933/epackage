@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   X,
   Search,
   Package,
   SlidersHorizontal,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -17,8 +18,16 @@ import { Product } from '@/types/database'
 export interface FilterState {
   searchQuery: string
   selectedCategory: string
-  sortBy: 'name' | 'leadTime'
+  sortBy: 'name' | 'leadTime' | 'price'
   viewMode: 'grid' | 'list'
+  // Advanced filters
+  materials?: string[]
+  priceRange?: [number, number]
+  features?: string[]
+  applications?: string[]
+  tags?: string[]
+  minOrderQuantity?: number
+  maxLeadTime?: number
 }
 
 interface AdvancedFiltersProps {
@@ -26,9 +35,11 @@ interface AdvancedFiltersProps {
   filterState: FilterState
   onFilterChange: (filters: Partial<FilterState>) => void
   onClearAll: () => void
+  onApplyFilters?: () => void
   filteredProductsCount: number
   isMobile?: boolean
   onClose?: () => void
+  useDBFiltering?: boolean
 }
 
 export function AdvancedFilters({
@@ -36,16 +47,87 @@ export function AdvancedFilters({
   filterState,
   onFilterChange,
   onClearAll,
+  onApplyFilters,
   filteredProductsCount,
   isMobile = false,
-  onClose
+  onClose,
+  useDBFiltering = false
 }: AdvancedFiltersProps) {
+  const [isApplying, setIsApplying] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  // Extract unique materials, features, and applications from products
+  const availableMaterials = useMemo(() => {
+    const materials = new Set<string>()
+    products.forEach(product => {
+      product.materials?.forEach(material => materials.add(material))
+    })
+    return Array.from(materials).sort()
+  }, [products])
+
+  const availableFeatures = useMemo(() => {
+    const features = new Set<string>()
+    products.forEach(product => {
+      product.features?.forEach(feature => features.add(feature))
+    })
+    return Array.from(features).sort()
+  }, [products])
+
+  const availableApplications = useMemo(() => {
+    const applications = new Set<string>()
+    products.forEach(product => {
+      product.applications?.forEach(app => applications.add(app))
+    })
+    return Array.from(applications).sort()
+  }, [products])
+
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (filterState.searchQuery) count++
     if (filterState.selectedCategory !== 'all') count++
+    if (filterState.materials && filterState.materials.length > 0) count++
+    if (filterState.priceRange) count++
+    if (filterState.features && filterState.features.length > 0) count++
+    if (filterState.applications && filterState.applications.length > 0) count++
+    if (filterState.minOrderQuantity) count++
+    if (filterState.maxLeadTime) count++
     return count
   }, [filterState])
+
+  const handleApplyFilters = async () => {
+    if (useDBFiltering && onApplyFilters) {
+      setIsApplying(true)
+      try {
+        await onApplyFilters()
+      } finally {
+        setIsApplying(false)
+      }
+    }
+  }
+
+  const handleMaterialToggle = (material: string) => {
+    const currentMaterials = filterState.materials || []
+    const newMaterials = currentMaterials.includes(material)
+      ? currentMaterials.filter(m => m !== material)
+      : [...currentMaterials, material]
+    onFilterChange({ materials: newMaterials })
+  }
+
+  const handleFeatureToggle = (feature: string) => {
+    const currentFeatures = filterState.features || []
+    const newFeatures = currentFeatures.includes(feature)
+      ? currentFeatures.filter(f => f !== feature)
+      : [...currentFeatures, feature]
+    onFilterChange({ features: newFeatures })
+  }
+
+  const handleApplicationToggle = (application: string) => {
+    const currentApplications = filterState.applications || []
+    const newApplications = currentApplications.includes(application)
+      ? currentApplications.filter(a => a !== application)
+      : [...currentApplications, application]
+    onFilterChange({ applications: newApplications })
+  }
 
   return (
     <div className={`${isMobile ? 'fixed inset-0 z-50 bg-white' : 'bg-white rounded-lg border'} ${isMobile ? 'flex flex-col' : ''}`}>
@@ -97,7 +179,7 @@ export function AdvancedFilters({
         </div>
 
         {/* Categories */}
-        <div className="p-4">
+        <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-2 mb-3">
             <Package className="w-4 h-4 text-gray-500" />
             <span className="font-medium text-gray-900">カテゴリー</span>
@@ -143,7 +225,190 @@ export function AdvancedFilters({
             })}
           </div>
         </div>
+
+        {/* Advanced Filters Toggle */}
+        <div className="p-4 border-b border-gray-200">
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="w-full flex items-center justify-between text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <span>詳細フィルター</span>
+            {activeFilterCount > 0 && (
+              <Badge variant="metallic" className="text-xs">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </button>
+        </div>
+
+        {/* Advanced Filters Section */}
+        {showAdvanced && (
+          <div className="p-4 space-y-6">
+            {/* Materials Filter */}
+            {availableMaterials.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-medium text-gray-900 text-sm">素材</span>
+                  {filterState.materials && filterState.materials.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filterState.materials.length}
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {availableMaterials.map(material => (
+                    <label key={material} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={filterState.materials?.includes(material) || false}
+                        onChange={() => handleMaterialToggle(material)}
+                        className="w-4 h-4 text-brixa-600 rounded focus:ring-brixa-500"
+                      />
+                      <span className="text-sm text-gray-700">{material}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Features Filter */}
+            {availableFeatures.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-medium text-gray-900 text-sm">特徴</span>
+                  {filterState.features && filterState.features.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filterState.features.length}
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {availableFeatures.slice(0, 5).map(feature => (
+                    <label key={feature} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={filterState.features?.includes(feature) || false}
+                        onChange={() => handleFeatureToggle(feature)}
+                        className="w-4 h-4 text-brixa-600 rounded focus:ring-brixa-500"
+                      />
+                      <span className="text-sm text-gray-700">{feature}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Applications Filter */}
+            {availableApplications.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-medium text-gray-900 text-sm">用途</span>
+                  {filterState.applications && filterState.applications.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filterState.applications.length}
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {availableApplications.slice(0, 5).map(application => (
+                    <label key={application} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={filterState.applications?.includes(application) || false}
+                        onChange={() => handleApplicationToggle(application)}
+                        className="w-4 h-4 text-brixa-600 rounded focus:ring-brixa-500"
+                      />
+                      <span className="text-sm text-gray-700">{application}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Price Range Filter */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="font-medium text-gray-900 text-sm">価格範囲</span>
+                {filterState.priceRange && (
+                  <Badge variant="secondary" className="text-xs">1</Badge>
+                )}
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="最小"
+                    value={filterState.priceRange?.[0] || ''}
+                    onChange={(e) => {
+                      const minPrice = parseInt(e.target.value) || 0
+                      const maxPrice = filterState.priceRange?.[1] || 100000
+                      onFilterChange({ priceRange: [minPrice, maxPrice] })
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                  />
+                  <span className="text-gray-500">-</span>
+                  <input
+                    type="number"
+                    placeholder="最大"
+                    value={filterState.priceRange?.[1] || ''}
+                    onChange={(e) => {
+                      const minPrice = filterState.priceRange?.[0] || 0
+                      const maxPrice = parseInt(e.target.value) || 100000
+                      onFilterChange({ priceRange: [minPrice, maxPrice] })
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">¥ (円)</p>
+              </div>
+            </div>
+
+            {/* Lead Time Filter */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="font-medium text-gray-900 text-sm">最大納期</span>
+                {filterState.maxLeadTime && (
+                  <Badge variant="secondary" className="text-xs">1</Badge>
+                )}
+              </div>
+              <div>
+                <input
+                  type="number"
+                  placeholder="最大納期（日数）"
+                  value={filterState.maxLeadTime || ''}
+                  onChange={(e) => {
+                    const maxLeadTime = parseInt(e.target.value) || undefined
+                    onFilterChange({ maxLeadTime })
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">最大納期を日数で入力してください</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Footer - Desktop with Apply Button */}
+      {!isMobile && useDBFiltering && (
+        <div className="p-4 border-t border-gray-200">
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={handleApplyFilters}
+            disabled={isApplying}
+          >
+            {isApplying ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                適用中...
+              </>
+            ) : (
+              'フィルター適用'
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Footer - Mobile Only */}
       {isMobile && (
@@ -156,13 +421,34 @@ export function AdvancedFilters({
               すべてクリア
             </Button>
           </div>
-          <Button
-            variant="primary"
-            className="w-full"
-            onClick={onClose}
-          >
-            結果を表示
-          </Button>
+          {useDBFiltering ? (
+            <Button
+              variant="primary"
+              className="w-full"
+              onClick={async () => {
+                await handleApplyFilters()
+                onClose()
+              }}
+              disabled={isApplying}
+            >
+              {isApplying ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  適用中...
+                </>
+              ) : (
+                'フィルター適用'
+              )}
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              className="w-full"
+              onClick={onClose}
+            >
+              結果を表示
+            </Button>
+          )}
         </div>
       )}
     </div>

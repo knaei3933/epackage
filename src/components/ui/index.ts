@@ -68,3 +68,11 @@ export {
   FullPageSpinner,
 } from './LoadingSpinner';
 export type { LoadingSpinnerProps } from './LoadingSpinner';
+
+// Wizard Component
+export { Wizard } from './Wizard';
+export type { WizardProps, WizardStep } from './Wizard';
+
+// Accordion Component
+export { AccordionItem, AccordionSection } from './Accordion';
+export type { AccordionItemProps, AccordionSectionProps } from './Accordion';

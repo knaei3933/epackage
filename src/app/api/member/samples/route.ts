@@ -1,0 +1,118 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase';
+
+/**
+ * ============================================================
+ * Member Sample Requests API
+ * ============================================================
+ *
+ * GET /api/member/samples - Get user's sample requests
+ *
+ * Uses cookie-based authentication (middleware sets headers)
+ */
+
+// ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * Get user ID from middleware headers (cookie-based auth or DEV_MODE header)
+ */
+async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
+  try {
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const userId = headersList.get('x-user-id');
+
+    // Log DEV_MODE usage for debugging
+    const isDevMode = headersList.get('x-dev-mode') === 'true';
+    if (isDevMode && userId) {
+      console.log('[Samples API] DEV_MODE: Using x-user-id header:', userId);
+    }
+
+    return userId;
+  } catch (error) {
+    console.error('[getUserIdFromRequest] Error:', error);
+    return null;
+  }
+}
+
+// ============================================================
+// GET Handler - List Sample Requests
+// ============================================================
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  try {
+    const userId = await getUserIdFromRequest(request);
+    if (!userId) {
+      return NextResponse.json(
+        { error: '認証されていません', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+
+    const supabase = createServiceClient();
+
+    let query = supabase
+      .from('sample_requests')
+      .select(`
+        *,
+        sample_items (
+          id,
+          product_name,
+          category,
+          quantity
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    // Apply status filter
+    if (status && status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    const { data: requests, error } = await query;
+
+    if (error) {
+      console.error('Sample requests fetch error:', error);
+      return NextResponse.json(
+        { error: 'サンプル依頼の取得に失敗しました', code: 'FETCH_ERROR' },
+        { status: 500 }
+      );
+    }
+
+    // Transform to dashboard format
+    const sampleRequests = requests?.map(req => ({
+      id: req.id,
+      userId: req.user_id,
+      requestNumber: req.request_number || `SMP-${String(req.id).padStart(6, '0')}`,
+      status: req.status || 'received',
+      samples: req.sample_items || [],
+      deliveryAddress: req.delivery_address,
+      trackingNumber: req.tracking_number,
+      createdAt: req.created_at,
+      shippedAt: req.shipped_at,
+      deliveredAt: req.delivered_at,
+    })) || [];
+
+    return NextResponse.json({
+      success: true,
+      data: sampleRequests,
+    });
+  } catch (error) {
+    console.error('Sample requests API error:', error);
+    return NextResponse.json(
+      {
+        error: 'サーバーエラーが発生しました',
+        code: 'INTERNAL_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}

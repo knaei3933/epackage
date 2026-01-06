@@ -1,0 +1,564 @@
+'use client'
+
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Package, User, Mail, Phone, Send, CheckCircle, Star, Box, Gift, MapPin, FileText } from 'lucide-react'
+
+// ?‘ã‚¦?ã‚µ?³ãƒ—?«ãƒª??‚¨?¹ãƒˆ?ãƒª?‡ãƒ¼?·ãƒ§?³ã‚¹??ƒ¼??const pouchSampleRequestSchema = z.object({
+  name: z.string()
+    .min(1, '?Šå?ã‚’?¥åŠ›?—ã¦?ã ?•ã„')
+    .min(2, '?Šå?ã¯2?‡å­—ä»¥ä¸Š?§å…¥?›ã—?¦ã? ã•??)
+    .max(50, '?Šå?ã¯50?‡å­—ä»¥å†…?§å…¥?›ã—?¦ã? ã•??),
+  company: z.string()
+    .max(100, 'ä¼šç¤¾?ã¯100?‡å­—ä»¥å†…?§å…¥?›ã—?¦ã? ã•??)
+    .optional(),
+  email: z.string()
+    .min(1, '?¡ãƒ¼?«ã‚¢?‰ãƒ¬?¹ã‚’?¥åŠ›?—ã¦?ã ?•ã„')
+    .email('?‰åŠ¹?ªãƒ¡?¼ãƒ«?¢ãƒ‰?¬ã‚¹?’å…¥?›ã—?¦ã? ã•??),
+  phone: z.string()
+    .min(1, '?»è©±?ªå·?’å…¥?›ã—?¦ã? ã•??)
+    .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/,
+      '?‰åŠ¹?ªé›»è©±ç•ª?·ã‚’?¥åŠ›?—ã¦?ã ?•ã„ï¼ˆä¾‹: 03-1234-5678ï¼?),
+  postalCode: z.string()
+    .regex(/^\d{3}-\d{4}$/, '?µä¾¿?ªå·?¯XXX-XXXX??½¢å¼ã§?¥åŠ›?—ã¦?ã ?•ã„')
+    .optional(),
+  address: z.string()
+    .min(1, 'ä½æ??’å…¥?›ã—?¦ã? ã•??)
+    .max(200, 'ä½æ???00?‡å­—ä»¥å†…?§å…¥?›ã—?¦ã? ã•??),
+  fax: z.string()
+    .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})?$/
+    .optional(),
+  pouchSamples: z.array(z.object({
+    pouchType: z.enum(['flat_3_side', 'stand_up'], {
+      required_error: '?‘ã‚¦?ã‚¿?¤ãƒ—?’é¸?ã—?¦ã? ã•??
+    }),
+    quantity: z.number()
+      .min(1, '?°é‡??ä»¥ä¸Š?§å…¥?›ã—?¦ã? ã•??)
+      .max(5, '?°é‡??ä»¥ä¸‹?§å…¥?›ã—?¦ã? ã•??),
+    size: z.string().optional(),
+    application: z.string()
+      .min(1, 'ä½¿ç”¨??š„?’å…¥?›ã—?¦ã? ã•??)
+      .max(200, 'ä½¿ç”¨??š„??00?‡å­—ä»¥å†…?§å…¥?›ã—?¦ã? ã•??)
+  })).min(1, 'å°‘ãª?ã¨???¤ã®?‘ã‚¦?ã‚µ?³ãƒ—?«ã‚’?¸æŠ?—ã¦?ã ?•ã„')
+    .max(3, '?€å¤?ç¨?¡??ƒ‘?¦ãƒ?µãƒ³?—ãƒ«?¾ã§?¸æŠ??ƒ½?§ã™'),
+  message: z.string()
+    .min(10, '?Šå•?„åˆ?ã›?…å???0?‡å­—ä»¥ä¸Š?§å…¥?›ã—?¦ã? ã•??)
+    .max(500, '?Šå•?„åˆ?ã›?…å???00?‡å­—ä»¥å†…?§å…¥?›ã—?¦ã? ã•??),
+  agreement: z.boolean().refine(val => val === true, '?‹äºº?…å ±ä¿è??¹é‡?«åŒ?ã—?¦ã? ã•??)
+})
+
+type PouchSampleRequestFormData = z.infer<typeof pouchSampleRequestSchema>
+
+const pouchTypes = [
+  {
+    value: 'flat_3_side',
+    name: 'å¹³è¢‹',
+    description: '3?¢ã‚·?¼ãƒ«??‚·?³ãƒ—?«ã§?³ã‚¹?ˆãƒ‘?•ã‚©?¼ãƒ?³ã‚¹?«å„ª?ŒãŸå®šç•ª?‘ãƒƒ?±ãƒ¼??,
+    icon: Box
+  },
+  {
+    value: 'stand_up',
+    name: '?¹ã‚¿?³ãƒ‰?‘ã‚¦??,
+    description: '?ªç«‹?‹ã§?³åˆ—?§ã«?ªã‚Œ?ãƒ?£ãƒƒ??»˜?ã§?å°??ƒ½',
+    icon: Package
+  }
+]
+
+const commonSizes = [
+  'å°ã‚µ?¤ã‚ºï¼?00x150mmï¼?,
+  'æ¨™æº–?µã‚¤?ºï¼ˆ150x200mmï¼?,
+  'ä¸?‚µ?¤ã‚ºï¼?00x300mmï¼?,
+  'å¤§ã‚µ?¤ã‚ºï¼?00x400mmï¼?
+]
+
+const commonApplications = [
+  'é£Ÿå“?…è£…è©•ä¾¡',
+  '?–ç²§?å??¨æ¤œè¨?,
+  '?¥åº·é£Ÿå“è©?¨“',
+  '?°è£½?é–‹??,
+  '?è³ªæ¯”è¼ƒæ¤œè¨',
+  'å±•ç¤ºä¼šç”¨?µãƒ³?—ãƒ«',
+  '?ã®ä»?
+]
+
+export default function PouchSampleRequestForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+    watch,
+    setValue,
+    getValues
+  } = useForm<PouchSampleRequestFormData>({
+    resolver: zodResolver(pouchSampleRequestSchema),
+    defaultValues: {
+      pouchSamples: [{ pouchType: 'flat_3_side', quantity: 1, application: '', size: '' }],
+      agreement: false
+    }
+  })
+
+  const watchPouchSamples = watch('pouchSamples')
+
+  const addPouchSample = () => {
+    const currentSamples = getValues('pouchSamples')
+    if (currentSamples.length < 3) {
+      setValue('pouchSamples', [...currentSamples, {
+        pouchType: 'flat_3_side',
+        quantity: 1,
+        application: '',
+        size: ''
+      }])
+    }
+  }
+
+  const removePouchSample = (index: number) => {
+    const currentSamples = getValues('pouchSamples')
+    if (currentSamples.length > 1) {
+      setValue('pouchSamples', currentSamples.filter((_, i) => i !== index))
+    }
+  }
+
+  const onSubmit = async (data: PouchSampleRequestFormData) => {
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+    setErrorMessage('')
+
+    try {
+      const response = await fetch('/api/samples', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          inquiryType: 'pouch_sample'
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '?ä¿¡?«å¤±?—ã—?¾ã—??)
+      }
+
+      setSubmitStatus('success')
+      reset()
+
+      // ?åŠŸå¾Œã«?ªã??¤ãƒ¬??ƒˆ
+      setTimeout(() => {
+        window.location.href = '/samples/thank-you'
+      }, 2000)
+
+    } catch (error) {
+      setSubmitStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : 'äºˆæœŸ?›ã¬?¨ãƒ©?¼ãŒ?ºç”Ÿ?—ã¾?—ãŸ')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (submitStatus === 'success') {
+    return (
+      <div className="max-w-3xl mx-auto p-8">
+        <div className="bg-gradient-to-br from-green-50 to-brixa-secondary-50 border-2 border-green-200 rounded-2xl p-12 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-green-800 mb-4">
+            ?‘ã‚¦?ã‚µ?³ãƒ—?«ã”è«‹æ±‚?‚ã‚Š?Œã¨?†ã”?–ã„?¾ã™
+          </h2>
+          <p className="text-green-700 mb-6 text-lg">
+            å°‚é??¹ã‚¿?ƒãƒ•?Œè¿…?Ÿã«?”å?å¿œã•?›ã¦?„ãŸ? ã?¾ã™??br />
+            ?”ç™»?²ã„?Ÿã ?„ãŸ?¡ãƒ¼?«ã‚¢?‰ãƒ¬?¹ã«?¦ã”?£çµ¡?„ãŸ?—ã¾?™ã€?          </p>
+          <div className="bg-white rounded-lg p-6 mb-6 text-left">
+            <h3 className="font-semibold text-gray-900 mb-3">æ¬¡ã®?¹ãƒ†?ƒãƒ—</h3>
+            <ul className="text-gray-600 space-y-2">
+              <li>??24?‚é–“ä»¥å†…?«ã”?£çµ¡?„ãŸ?—ã¾??/li>
+              <li>???µãƒ³?—ãƒ«?’éƒµ?ã•?›ã¦?„ãŸ? ã?¾ã™</li>
+              <li>???‘ã‚¦?ä»•æ§˜ã«?¢ã™?‹ã”?¸è«‡</li>
+              <li>??æ­£å¼?ªãŠè¦‹ç©?‚ã‚Š?’ã”?æ¡ˆ</li>
+            </ul>
+          </div>
+          <p className="text-sm text-green-600">
+            ?¾ã‚‚?ªã?µãƒ³?—ãƒ«è«‹æ±‚å®Œäº†?šãƒ¼?¸ã«?ªã??¤ãƒ¬??ƒˆ?—ã¾??..
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      {/* ?˜ãƒƒ?€??*/}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-brixa-600 rounded-full mb-6">
+          <Package className="w-8 h-8 text-brixa-700" />
+        </div>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          ?‘ã‚¦?ã‚µ?³ãƒ—?«ã”ä¾é ¼
+        </h1>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+          å¹³è¢‹?¨ã‚¹?¿ãƒ³?‰ãƒ‘?¦ãƒ??‚µ?³ãƒ—?«ã‚’å®Ÿéš›?«ãŠè©¦ã—?„ãŸ? ã‘?¾ã™
+        </p>
+        <div className="flex justify-center items-center gap-2 text-sm text-gray-500">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span>å®Œå…¨?¡æ–™</span>
+          <Send className="w-4 h-4 text-brixa-secondary-600 ml-4" />
+          <span>è¿…é€Ÿç™º??/span>
+        </div>
+      </div>
+
+      {/* ?µãƒ³?—ãƒ«è«‹æ±‚?¬ã‚¤??*/}
+      <div className="bg-gradient-to-r from-brixa-secondary-50 to-brixa-secondary-100 border border-brixa-secondary-600 rounded-xl p-6 mb-8">
+        <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+          <Gift className="w-5 h-5 mr-2 text-brixa-secondary-700" />
+          ?µãƒ³?—ãƒ«è«‹æ±‚?«ã¤?„ã¦
+        </h3>
+        <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+          <div>
+            <span className="font-medium text-gray-800">?¸æŠ??ƒ½:</span> ?€å¤?ç¨?¡??ƒ‘?¦ãƒ
+          </div>
+          <div>
+            <span className="font-medium text-gray-800">?°é‡?¶é™:</span> 1ç¨?¡?‚ãŸ?Šæ?å¤???          </div>
+          <div>
+            <span className="font-medium text-gray-800">?ºé€æ™‚??</span> ?šå¸¸3-5?¶æ???          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-8">
+        {submitStatus === 'error' && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800">
+              ?ä¿¡?¨ãƒ©?¼ãŒ?ºç”Ÿ?—ã¾?—ãŸ: {errorMessage}
+            </p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {/* ?ºæœ¬?…å ± */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <User className="w-5 h-5 mr-2 text-gray-600" />
+              ?Šå?æ§˜æƒ…??            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <User className="w-4 h-4 mr-2" />
+                  ?Šå??<span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  {...register('name')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="å±±ç”° å¤ªéƒ"
+                />
+                {errors.name && (
+                  <p className="text-red-600 text-sm">{errors.name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  ä¼šç¤¾??                </label>
+                <input
+                  type="text"
+                  {...register('company')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="?ªå¼ä¼šç¤¾?µãƒ³?—ãƒ«"
+                />
+                {errors.company && (
+                  <p className="text-red-600 text-sm">{errors.company.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Mail className="w-4 h-4 mr-2" />
+                  ?¡ãƒ¼?«ã‚¢?‰ãƒ¬??<span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="email"
+                  {...register('email')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="example@company.com"
+                />
+                {errors.email && (
+                  <p className="text-red-600 text-sm">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Phone className="w-4 h-4 mr-2" />
+                  ?»è©±?ªå· <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="tel"
+                  {...register('phone')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="03-1234-5678"
+                />
+                {errors.phone && (
+                  <p className="text-red-600 text-sm">{errors.phone.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  ?µä¾¿?ªå· <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  {...register('postalCode')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="100-0001"
+                  pattern="\d{3}-\d{4}"
+                />
+                {errors.postalCode && (
+                  <p className="text-red-600 text-sm">{errors.postalCode.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  ä½æ? <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  {...register('address')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="?±äº¬?½åƒä»£ç”°?ºä¸¸??†…1-2-3"
+                />
+                {errors.address && (
+                  <p className="text-red-600 text-sm">{errors.address.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FileText className="w-4 h-4 mr-2" />
+                  FAX?ªå·ï¼ˆä»»?ï¼‰
+                </label>
+                <input
+                  type="tel"
+                  {...register('fax')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  placeholder="03-1234-5679"
+                />
+                {errors.fax && (
+                  <p className="text-red-600 text-sm">{errors.fax.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ?‘ã‚¦?ã‚µ?³ãƒ—?«é¸??*/}
+          <div className="bg-brixa-50 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <Package className="w-5 h-5 mr-2 text-brixa-700" />
+                ?‘ã‚¦?ã‚µ?³ãƒ—?«é¸??              </h2>
+              {watchPouchSamples.length < 3 && (
+                <button
+                  type="button"
+                  onClick={addPouchSample}
+                  className="px-4 py-2 bg-brixa-700 text-white rounded-lg hover:bg-brixa-600 transition-colors text-sm flex items-center"
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  ?‘ã‚¦?ã‚’è¿½åŠ 
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {watchPouchSamples.map((sample, index) => (
+                <div key={index} className="bg-white p-4 border border-brixa-600 rounded-lg shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-800 flex items-center">
+                      <Box className="w-4 h-4 mr-2 text-brixa-600" />
+                      ?µãƒ³?—ãƒ« {index + 1}
+                    </h3>
+                    {watchPouchSamples.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removePouchSample(index)}
+                        className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                      >
+                        ?Šé™¤
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        ?‘ã‚¦?ã‚¿?¤ãƒ— <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <select
+                        {...register(`pouchSamples.${index}.pouchType`)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                      >
+                        {pouchTypes.map(pouch => (
+                          <option key={pouch.value} value={pouch.value}>
+                            {pouch.name} - {pouch.description}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.pouchSamples?.[index]?.pouchType && (
+                        <p className="text-red-600 text-sm">{errors.pouchSamples[index]?.pouchType?.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        ?°é‡ <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        {...register(`pouchSamples.${index}.quantity`, { valueAsNumber: true })}
+                        min="1"
+                        max="5"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                      />
+                      {errors.pouchSamples?.[index]?.quantity && (
+                        <p className="text-red-600 text-sm">{errors.pouchSamples[index]?.quantity?.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        ?µã‚¤?ºï¼ˆä»»æ„ï¼?                      </label>
+                      <select
+                        {...register(`pouchSamples.${index}.size`)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                      >
+                        <option value="">?µã‚¤?ºã‚’?¸æŠ?—ã¦?ã ?•ã„</option>
+                        {commonSizes.map((size, idx) => (
+                          <option key={idx} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        ä½¿ç”¨??š„ <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <select
+                        {...register(`pouchSamples.${index}.application`)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                      >
+                        <option value="">ä½¿ç”¨??š„?’é¸?ã—?¦ã? ã•??/option>
+                        {commonApplications.map((app, idx) => (
+                          <option key={idx} value={app}>
+                            {app}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.pouchSamples?.[index]?.application && (
+                        <p className="text-red-600 text-sm">{errors.pouchSamples[index]?.application?.message}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ?Šå•?„åˆ?ã›?…å? */}
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              <Send className="w-5 h-5 mr-2 text-gray-600" />
+              ?Šå•?„åˆ?ã›?…å?
+            </h2>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                ?¡ãƒƒ?»ãƒ¼??<span className="text-red-500 ml-1">*</span>
+              </label>
+              <textarea
+                {...register('message')}
+                rows={5}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent resize-none text-base"
+                placeholder="?©ã®?ˆã†?ªç”¨?”ã«?‘ã‚¦?ã‚’?”æ¤œè¨ã•?Œã¦?„ã¾?™ã‹ï¼Ÿå…·ä½“çš„?ªã”è¦æœ›?„è³ª?ãª?©ã‚’?Šè?‹ã›?ã ?•ã„??#10;&#10;ä¾‹ï¼š&#10;?»åŒ…è£…ã™?‹è£½?ã®ç¨?¡?¨ç‰¹å¾?#10;?»æœŸå¾…ã—?¦ã„?‹ãƒ‘?¦ãƒ??©Ÿ??#10;?»å¸Œ?›ã™?‹ç´?Ÿã‚„?°é‡&#10;?»ç¾?¨ä½¿?¨ã—?¦ã„?‹åŒ…è£…ã®èª²é¡Œ?ªã©"
+              />
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>10?‡å­—ä»¥ä¸Š500?‡å­—ä»¥å†…</span>
+                <span>{watch('message')?.length || 0}/500</span>
+              </div>
+              {errors.message && (
+                <p className="text-red-600 text-sm">{errors.message.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* ?‹äºº?…å ±ä¿è??Œæ„ */}
+          <div className="border-t pt-6">
+            <div className="space-y-4">
+              <div className="p-4 bg-brixa-secondary-50 border border-brixa-secondary-600 rounded-lg">
+                <h3 className="font-medium text-gray-800 mb-2 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2 text-brixa-secondary-700" />
+                  ?‹äºº?…å ±ä¿è??¹é‡
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  ?”æä¾›ã„?Ÿã ?„ãŸ?‹äºº?…å ±??€ãƒ‘?¦ãƒ?µãƒ³?—ãƒ«??™º?ã¨?€è¡“ã‚µ?ãƒ¼?ˆæä¾›ã®?Ÿã‚??¿?©ç”¨?•ã›?¦ã„?Ÿã ?ã¾?™ã€?                </p>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>???µãƒ³?—ãƒ«??™º?ã¨è¿½è·¡ç®¡ç†</p>
+                  <p>???‘ã‚¦?ä»•æ§˜ã«?¢ã™?‹æ?è¡“ç›¸è«?/p>
+                  <p>è£½å“?…å ±?¨ãŠè¦‹ç©?‚ã‚Š??”?ä¾›</p>
+                  <p>?¶æ?æ´»å‹•?¨ã‚¢?•ã‚¿?¼ã‚µ?©ãƒ­?¼ã‚«?ƒãƒ—</p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="agreement"
+                  {...register('agreement')}
+                  className="mt-1 w-5 h-5 text-brixa-700 border-gray-300 rounded focus:ring-brixa-600"
+                />
+                <label htmlFor="agreement" className="ml-3 text-sm text-gray-700 leading-relaxed">
+                  ä¸Šè¨˜??€‹äºº?…å ±ä¿è??¹é‡?«åŒ?ã—?¾ã™
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+              </div>
+              {errors.agreement && (
+                <p className="text-red-600 text-sm">{errors.agreement.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* ?ä¿¡?œã‚¿??*/}
+          <div className="flex justify-center pt-6">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex items-center px-12 py-4 bg-gradient-to-r from-brixa-700 to-amber-600 text-white font-semibold rounded-xl hover:from-brixa-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-brixa-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+            >
+              <Send className="w-5 h-5 mr-3" />
+              {isSubmitting ? '?ä¿¡ä¸?..' : '?µãƒ³?—ãƒ«?’ã”ä¾é ¼?™ã‚‹'}
+            </button>
+          </div>
+        </form>
+
+        {/* è£œè¶³?…å ± */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p className="mb-2">?—ä»˜?‚é–“: å¹³æ—¥ 9:00-18:00 | ?¡ãƒ¼?? 24?‚é–“å¯¾å¿œ</p>
+          <p className="mb-2">å°‚é??¹ã‚¿?ƒãƒ•?«ã‚ˆ?‹ç„¡?™ç›¸è«‡ãƒ»?€è¡“ã‚µ?ãƒ¼?ˆå?å¿?/p>
+          <p>?µãƒ³?—ãƒ«è«‹æ±‚?«é–¢?™ã‚‹?”è³ª?ã¯?Šå•?„åˆ?ã›?•ã‚©?¼ãƒ ?‹ã‚‰?‚ã”?£çµ¡?„ãŸ? ã‘?¾ã™</p>
+        </div>
+      </div>
+    </div>
+  )
+}

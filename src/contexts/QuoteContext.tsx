@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useReducer, ReactNode, useMemo, useCallback } from 'react';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
+import { safeMap } from '@/lib/array-helpers';
 import { BAG_TYPE_JA, MATERIAL_TYPE_JA, THICKNESS_TYPE_JA, PRINTING_TYPE_JA, UNIT_JA, LABEL_JA, POST_PROCESSING_JA, translateBagType, translateMaterialType, translateToJapanese } from '@/constants/enToJa';
 import {
   MAX_POST_PROCESSING_ITEMS,
@@ -14,7 +15,7 @@ import {
 import type { ProcessingOptionConfig } from '@/components/quote/processingConfig';
 
 // Quote state interface
-interface QuoteState {
+export interface QuoteState {
   bagTypeId: string;
   materialId: string;
   width: number;
@@ -188,8 +189,8 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
 
     case 'REPLACE_POST_PROCESSING_OPTION':
       const { oldOptionId, newOptionId } = action.payload;
-      const optionsAfterReplacement = state.postProcessingOptions
-        .map(id => id === oldOptionId ? newOptionId : id);
+      const optionsAfterReplacement = safeMap(state.postProcessingOptions,
+        id => id === oldOptionId ? newOptionId : id);
 
       const limitAfterReplacement = {
         selectedItems: optionsAfterReplacement,
@@ -335,9 +336,9 @@ export function createStepSummary(state: QuoteState, getLimitStatus: () => PostP
               {limitStatus.selectedItems.length} / {MAX_POST_PROCESSING_ITEMS}
             </span>
           </div>
-          {state.postProcessingOptions.length > 0 ? (
+          {state.postProcessingOptions && state.postProcessingOptions.length > 0 ? (
             <>
-              {state.postProcessingOptions.map(option => (
+              {safeMap(state.postProcessingOptions, option => (
                 <div key={option} className="ml-2">• {getOptionName(option)}</div>
               ))}
               {limitStatus.isAtLimit && (

@@ -1,0 +1,5 @@
+export { HeroSection } from './HeroSection'
+export { HomePageProductCard } from './HomePageProductCard'
+export { ProductShowcaseSection } from './ProductShowcaseSection'
+export { CTASection } from './CTASection'
+export { heroVariants, statVariants, ctaVariants, numberVariants } from './animations'

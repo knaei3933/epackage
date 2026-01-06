@@ -1,0 +1,127 @@
+{
+  "shipment": {
+    "title": "配送管理",
+    "description": "配送の作成、追跡、管理を行います",
+    "tabs": {
+      "shipments": "配送一覧",
+      "ready_orders": "配送準備完了"
+    },
+    "status": {
+      "pending": "待機中",
+      "picked_up": "引渡済み",
+      "in_transit": "輸送中",
+      "out_for_delivery": "配達中",
+      "delivered": "配達完了",
+      "failed": "配達失敗",
+      "returned": "返品"
+    },
+    "carrier": {
+      "yamato": "ヤマト運輸",
+      "sagawa": "佐川急便",
+      "jp_post": "日本郵便",
+      "seino": "西濃運輸"
+    },
+    "service_type": {
+      "cool": "クール宅急便",
+      "takkyubin": "宅急便",
+      "regular": "通常便",
+      "mail": "メール便"
+    },
+    "delivery_time_slot": {
+      "none": "指定なし",
+      "morning": "午前 (8-12時)",
+      "12_14": "12-14時",
+      "14_16": "14-16時",
+      "16_18": "16-18時",
+      "18_20": "18-20時",
+      "19_21": "19-21時"
+    },
+    "form": {
+      "create_shipment": "配送を作成",
+      "carrier": "配送業者",
+      "service_type": "サービス種別",
+      "pickup_date": "集荷予定日",
+      "delivery_time_slot": "配達時間帯指定",
+      "package_count": "荷物個数",
+      "weight": "重量 (kg)",
+      "customer_notes": "備考",
+      "delivery_date": "配達希望日",
+      "no_preference": "指定なしの場合、最短でお届けします",
+      "pickup_notice": "集荷は1営業日前までに予約してください"
+    },
+    "actions": {
+      "create": "配送を作成",
+      "bulk_create": "一括作成",
+      "refresh_tracking": "追跡更新",
+      "download_label": "ラベル",
+      "view_details": "詳細",
+      "schedule_pickup": "集荷を予約",
+      "cancel": "キャンセル",
+      "confirm": "確認"
+    },
+    "labels": {
+      "order_number": "注文番号",
+      "shipment_number": "配送番号",
+      "customer_name": "お客様名",
+      "tracking_number": "追跡番号",
+      "destination": "配送先",
+      "pickup_scheduled": "集荷予定",
+      "delivery_estimated": "配達予定",
+      "latest_info": "最新情報",
+      "tracking_history": "追跡履歴",
+      "shipping_address": "配送先住所",
+      "sender_address": "送付元住所",
+      "notes": "備考",
+      "internal_notes": "内部メモ",
+      "carrier_notes": "配送業者メモ"
+    },
+    "messages": {
+      "no_shipments": "配送がありません",
+      "no_ready_orders": "配送準備が完了した注文はありません",
+      "no_ready_orders_desc": "生産ステータスが「最終検査」または「完了」の注文が表示されます",
+      "loading": "読み込み中...",
+      "creating": "作成中...",
+      "shipment_created": "配送を作成しました",
+      "tracking_refreshed": "追跡情報を更新しました",
+      "status_updated": "ステータスを更新しました",
+      "pickup_scheduled": "集荷を予約しました",
+      "error_create_failed": "配送の作成に失敗しました",
+      "error_tracking_failed": "追跡情報の更新に失敗しました",
+      "error_label_failed": "ラベルのダウンロードに失敗しました"
+    },
+    "filters": {
+      "all_status": "すべてのステータス",
+      "all_carriers": "すべての配送業者",
+      "search_placeholder": "配送番号、お客様名で検索...",
+      "clear_filters": "フィルターをクリア"
+    },
+    "tracking": {
+      "created": "配送を作成しました",
+      "pickup_scheduled": "集荷を予約しました",
+      "picked_up": "集荷済み",
+      "in_transit": "輸送中",
+      "out_for_delivery": "配達中",
+      "delivered": "配達完了",
+      "failed_attempt": "配達失敗（再配達中）",
+      "returned": "返品されました"
+    },
+    "validation": {
+      "order_not_found": "注文が見つかりません",
+      "order_not_ready": "この注文はまだ配送準備ができていません",
+      "payment_pending": "決済が完了していません",
+      "shipment_exists": "この注文の配送は既に作成されています",
+      "invalid_carrier": "無効な配送業者です",
+      "invalid_pickup_time": "集荷日時は最低24時間先を指定してください",
+      "invalid_pickup_day": "集荷は平日のみ予約可能です",
+      "missing_tracking_number": "追跡番号がありません"
+    },
+    "help": {
+      "bulk_create_title": "一括作成について",
+      "bulk_create_desc": "複数の注文をまとめて配送を作成できます。最大20件まで選択可能です。",
+      "tracking_info_title": "追跡情報について",
+      "tracking_info_desc": "配送業者のAPIから最新の追跡情報を取得します。更新には数分かかる場合があります。",
+      "pickup_notice_title": "集荷予約について",
+      "pickup_notice_desc": "集荷は1〜2営業日前までに予約してください。当日集荷は利用できません。"
+    }
+  }
+}

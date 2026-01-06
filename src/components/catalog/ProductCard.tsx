@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { Badge, TagBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import type { PackageProduct } from '@/types/catalog'
+import { safeMap } from '@/lib/array-helpers'
 
 interface ProductCardProps {
   product: PackageProduct
@@ -140,12 +141,12 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
           {/* Tags */}
           <div className="flex flex-wrap gap-1">
-            {product.tags.slice(0, 3).map((tag, index) => (
+            {safeMap((product.tags || []).slice(0, 3), (tag, index) => (
               <TagBadge key={index} size="sm">
                 {tag}
               </TagBadge>
             ))}
-            {product.tags.length > 3 && (
+            {product.tags && product.tags.length > 3 && (
               <span className="text-xs text-gray-500">
                 +{product.tags.length - 3}
               </span>

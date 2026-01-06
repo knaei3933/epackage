@@ -80,3 +80,36 @@ export const getThicknessLabel = (thicknessId: string): string => {
 export const getWeightRange = (thicknessId: string): string => {
   return THICKNESS_WEIGHT_RANGES[thicknessId as ThicknessType] || '';
 };
+
+// Film structure labels (in micrometers) for PDF display
+export const FILM_STRUCTURE_LABELS: Record<string, Record<string, string>> = {
+  pet_al: {
+    light: 'PET 12 / AL 7',
+    medium: 'PET 12 / AL 9',
+    heavy: 'PET 12 / AL 12',
+    ultra: 'PET 12 / AL 15'
+  },
+  pet_vmpet: {
+    light: 'PET 12 / VMPET',
+    medium: 'PET 12 / VMPET',
+    heavy: 'PET 12 / VMPET',
+    ultra: 'PET 12 / VMPET'
+  },
+  pet_ldpe: {
+    light: 'PET 12 / LLDPE 50',
+    medium: 'PET 12 / LLDPE 70',
+    heavy: 'PET 12 / LLDPE 90',
+    ultra: 'PET 12 / LLDPE 100'
+  },
+  pet_ny_al: {
+    light: 'PET 12 / NY 15 / AL 7',
+    medium: 'PET 12 / NY 15 / AL 9',
+    heavy: 'PET 12 / NY 15 / AL 12',
+    ultra: 'PET 12 / NY 15 / AL 15'
+  }
+};
+
+export const getFilmStructureLabel = (materialId: string, thicknessId: string): string => {
+  const structures = FILM_STRUCTURE_LABELS[materialId];
+  return structures ? structures[thicknessId] || `${getMaterialLabel(materialId)} (${getThicknessLabel(thicknessId)})` : materialId;
+};

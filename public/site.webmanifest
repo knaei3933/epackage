@@ -34,9 +34,9 @@
   ],
   "screenshots": [
     {
-      "src": "/images/hero-screenshot.jpg",
+      "src": "/images/hero-packaging-closeup.webp",
       "sizes": "1280x720",
-      "type": "image/jpeg",
+      "type": "image/webp",
       "form_factor": "wide"
     }
   ]

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF 테스트</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 20px; font-family: Arial, sans-serif; }
+    #pdf-container {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #status { margin-top: 20px; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>PDF 생성 테스트</h1>
+  <button onclick="generatePDF()">PDF 생성</button>
+  <div id="status"></div>
+
+  <div id="pdf-content" style="display:none;">
+  <!DOCTYPE html>
+  <html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+        font-size: 9pt;
+        line-height: 1.4;
+        color: #000;
+        background: #fff;
+        padding: 10mm;
+        width: 210mm;
+        min-height: 297mm;
+      }
+      .header-top { display: flex; justify-content: space-between; margin-bottom: 5mm; font-size: 9pt; }
+      .doc-title { text-align: center; font-size: 18pt; font-weight: bold; margin-bottom: 5mm; letter-spacing: 0.2em; }
+      .intro-text { margin-bottom: 5mm; font-size: 9pt; }
+      .main-container { display: flex; gap: 5mm; margin-bottom: 5mm; }
+      .left-main { flex: 1; }
+      .right-supplier { width: 50mm; flex-shrink: 0; text-align: right; }
+      .customer-section { margin-bottom: 3mm; }
+      .customer-name { font-size: 12pt; font-weight: bold; margin-bottom: 1mm; }
+      .customer-detail { font-size: 9pt; margin-bottom: 0.5mm; }
+      .supplier-brand { font-size: 12pt; font-weight: bold; color: #008B8B; margin-bottom: 1mm; }
+      .supplier-subbrand { font-size: 10pt; font-weight: bold; color: #333; margin-bottom: 1mm; }
+      .supplier-company { font-size: 10pt; font-weight: bold; margin-bottom: 0.5mm; }
+      .supplier-detail { font-size: 8pt; margin-bottom: 0.5mm; }
+      .content-columns { display: flex; gap: 5mm; margin-bottom: 3mm; }
+      .left-column { width: 100mm; flex-shrink: 0; }
+      .right-column { flex: 1; }
+      .section-title { background: #D3E4E4; padding: 2mm 3mm; font-weight: bold; font-size: 9pt; margin-bottom: 1mm; border: 1px solid #999; }
+      .terms-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 3mm; }
+      .terms-table td { padding: 2mm 3mm; border: 1px solid #999; }
+      .term-label { width: 20mm; font-weight: 600; background: #f5f5f5; }
+      .order-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 3mm; table-layout: fixed; }
+      .order-table th { background: #D3E4E4; padding: 2mm 2mm; text-align: center; font-weight: bold; border: 1px solid #999; }
+      .order-table td { padding: 2mm 2mm; text-align: center; border: 1px solid #999; }
+      .col-no { width: 8mm; }
+      .col-sku { width: 10mm; }
+      .col-qty { width: 12mm; }
+      .col-unit { width: 14mm; }
+      .col-disc { width: 10mm; }
+      .col-total { width: 16mm; }
+      .summary-row { background: #E8F5E9; font-weight: bold; }
+      .remarks-section { margin-bottom: 3mm; }
+      .remarks-content { padding: 3mm; border: 1px solid #999; font-size: 8pt; white-space: pre-wrap; background: #FFF9E6; line-height: 1.5; min-height: 20mm; }
+    </style>
+  </head>
+  <body>
+    <div class="header-top">
+      <div>2026年1月1日</div>
+      <div>No: TEST-001</div>
+    </div>
+    <div class="doc-title">見　積　書</div>
+    <div class="intro-text">下記のとおり、御見積もり申し上げます。</div>
+
+    <div class="main-container">
+      <div class="left-main">
+        <div class="customer-section">
+          <div class="customer-name">有限会社加豆フーズ</div>
+          <div class="customer-detail">〒379-2311</div>
+          <div class="customer-detail">群馬県みどり市懸町阿佐美1940</div>
+          <div class="customer-detail">担当: 田中 太郎</div>
+        </div>
+
+        <div class="content-columns">
+          <div class="left-column">
+            <div class="remarks-section">
+              <div class="section-title">備考</div>
+              <div class="remarks-content">※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10％程度の過不足が生じる場合がございます。
+数量の完全保証はいたしかねますので、あらかじめご了承ください。
+※不足分につきましては、実際に納品した数量に基づきご請求いたします。
+前払いにてお支払いいただいた場合は、差額分を返金いたします。
+※原材料価格の変動等により、見積有効期限経過後は価格が変更となる場合がございます。
+再見積の際は、あらかじめご了承くださいますようお願いいたします。
+※本見積金額には郵送費を含んでおります。
+※お客様によるご確認の遅れ、その他やむを得ない事情により、納期が前後する場合がございます。
+※年末年始等の長期休暇期間を挟む場合、通常より納期が延びる可能性がございます。
+※天候不良、事故、交通事情等の影響により、やむを得ず納期が遅延する場合がございますので、あらかじめご了承ください。</div>
+            </div>
+          </div>
+
+          <div class="right-column">
+            <table class="terms-table">
+              <tr><td class="term-label">支払い条件</td><td>先払い</td></tr>
+              <tr><td class="term-label">納期</td><td>校了から約1か月</td></tr>
+              <tr><td class="term-label">納品場所</td><td>指定なし</td></tr>
+              <tr><td class="term-label">有効期間</td><td>見積発行から3ヶ月間</td></tr>
+              <tr><td class="term-label">振込先</td><td>PayPay銀行 ビジネス営業部支店(005)普通 5630235</td></tr>
+            </table>
+
+            <table class="order-table">
+              <thead>
+                <tr>
+                  <th class="col-no">番号</th>
+                  <th class="col-sku">商品数<br>(SKU)</th>
+                  <th class="col-qty">合計数量</th>
+                  <th class="col-unit">単価</th>
+                  <th class="col-disc">割引</th>
+                  <th class="col-total">合計<br>(税別)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-no">1</td>
+                  <td class="col-sku">1</td>
+                  <td class="col-qty">5,000</td>
+                  <td class="col-unit">¥73.9</td>
+                  <td class="col-disc">¥0</td>
+                  <td class="col-total">¥369,500</td>
+                </tr>
+                <tr>
+                  <td class="col-no">2</td>
+                  <td class="col-sku">1</td>
+                  <td class="col-qty">10,000</td>
+                  <td class="col-unit">¥53.6</td>
+                  <td class="col-disc">¥0</td>
+                  <td class="col-total">¥536,000</td>
+                </tr>
+                <tr class="summary-row">
+                  <td colspan="2">合計</td>
+                  <td class="col-qty">15,000</td>
+                  <td class="col-unit">-</td>
+                  <td class="col-disc">¥0</td>
+                  <td class="col-total">¥905,500</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-supplier">
+        <div class="supplier-brand">EPACKAGE Lab</div>
+        <div class="supplier-subbrand">by kanei-trade</div>
+        <div class="supplier-company">金井貿易株式会社</div>
+        <div class="supplier-detail">〒673-0846</div>
+        <div class="supplier-detail">兵庫県明石市上ノ丸2-11-21-102</div>
+        <div class="supplier-detail">TEL：080-6942-7235</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  </div>
+
+  <div id="pdf-container"></div>
+
+  <script>
+    async function generatePDF() {
+      const status = document.getElementById('status');
+      const content = document.getElementById('pdf-content').innerHTML;
+
+      document.getElementById('pdf-container').innerHTML = content;
+
+      status.textContent = 'PDF 생성 중...';
+
+      try {
+        const element = document.getElementById('pdf-container');
+
+        // Wait for fonts
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const imgWidth = doc.internal.pageSize.getWidth();
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        doc.save('test-quotation.pdf');
+
+        status.textContent = 'PDF 생성 완료! 다운로드 되었습니다.';
+        status.style.color = 'green';
+      } catch (error) {
+        status.textContent = '오류: ' + error.message;
+        status.style.color = 'red';
+      }
+    }
+  </script>
+</body>
+</html>

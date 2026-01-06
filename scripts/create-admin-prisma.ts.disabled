@@ -1,0 +1,117 @@
+/**
+ * Quick Admin Account Creation Script (for Development)
+ *
+ * Creates an admin user directly in the database using Prisma
+ * Usage: npx tsx scripts/create-admin-prisma.ts <email> <password>
+ */
+
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { config } from 'dotenv';
+
+// Load env variables
+config({ path: '.env.local' });
+
+const prisma = new PrismaClient();
+
+// Get email and password from command line arguments
+const email = process.argv[2] || 'admin@epackage-lab.com';
+const password = process.argv[3] || 'Admin1234';
+
+async function createAdminUser() {
+  console.log(`\n🔐 Creating admin user: ${email}`);
+  console.log('─────────────────────────────────────────────\n');
+
+  try {
+    // Check if user already exists
+    console.log('1. Checking if user exists...');
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    let userId: string;
+
+    if (existingUser) {
+      console.log('⚠️  User already exists, updating to admin...');
+      userId = existingUser.id;
+
+      // Update existing user to admin
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          role: 'ADMIN',
+          status: 'ACTIVE',
+        },
+      });
+
+      console.log('✅ User updated to ADMIN role');
+    } else {
+      // Hash the password
+      console.log('2. Hashing password...');
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user
+      console.log('3. Creating new user...');
+      const newUser = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          emailVerified: new Date(), // Auto-verify for development
+          kanjiLastName: '管理',
+          kanjiFirstName: '者',
+          kanaLastName: 'かんり',
+          kanaFirstName: 'しゃ',
+          businessType: 'CORPORATION',
+          productCategory: 'OTHER',
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          lastLoginAt: new Date(),
+        },
+      });
+
+      userId = newUser.id;
+      console.log('✅ User created:', userId);
+    }
+
+    // Verify the user
+    console.log('\n4. Verifying admin user...');
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    if (user) {
+      console.log('\n─────────────────────────────────────────────');
+      console.log('✅ Admin account ready!\n');
+      console.log('📧 Email:', email);
+      console.log('🔑 Password:', password);
+      console.log('👤 Name: 管理 者 (Kanri Sha)');
+      console.log('🔐 Role:', user.role);
+      console.log('📊 Status:', user.status);
+      console.log('─────────────────────────────────────────────\n');
+      console.log('🌐 Login at: http://localhost:3000/signin\n');
+    }
+
+  } catch (error) {
+    console.error('❌ Error:', error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+createAdminUser()
+  .then(() => {
+    console.log('✅ Done!');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Failed:', error);
+    process.exit(1);
+  });

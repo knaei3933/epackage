@@ -13,6 +13,20 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "sbp_1faccb500f13a6e17475e8018b09f361db4b9ffe"
       }
+    },
+    "task-master-ai": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "task-master-ai@latest",
+        "mcp"
+      ],
+      "env": {
+        "OPENROUTER_API_KEY": "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"
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { useQuoteState } from '@/contexts/QuoteContext';
+import { safeMap } from '@/lib/array-helpers';
 
 function MultiQuantityStep() {
   const quoteState = useQuoteState(); // Get basic specs from QuoteContext
@@ -29,10 +30,9 @@ function MultiQuantityStep() {
 
     const [inputQuantity, setInputQuantity] = useState('');
 
-  // Sync specs from QuoteContext to MultiQuantityQuoteContext
-  useEffect(() => {
-    // Sync basic specs from QuoteContext
-    updateMultiBasicSpecs({
+  // Cache key for basic specs to prevent infinite loops
+  const basicSpecsCacheKey = useMemo(() => {
+    return JSON.stringify({
       bagTypeId: quoteState.bagTypeId,
       materialId: quoteState.materialId,
       width: quoteState.width,
@@ -46,9 +46,38 @@ function MultiQuantityStep() {
     quoteState.width,
     quoteState.height,
     quoteState.depth,
-    quoteState.thicknessSelection,
-    updateMultiBasicSpecs
+    quoteState.thicknessSelection
   ]);
+
+  // Sync specs from QuoteContext to MultiQuantityQuoteContext
+  useEffect(() => {
+    // Sync basic specs from QuoteContext
+    console.log('[MultiQuantityStep] Syncing specs from QuoteContext:', {
+      bagTypeId: quoteState.bagTypeId,
+      materialId: quoteState.materialId,
+      width: quoteState.width,
+      height: quoteState.height,
+      depth: quoteState.depth,
+      thicknessSelection: quoteState.thicknessSelection
+    });
+
+    updateMultiBasicSpecs({
+      bagTypeId: quoteState.bagTypeId,
+      materialId: quoteState.materialId,
+      width: quoteState.width,
+      height: quoteState.height,
+      depth: quoteState.depth,
+      thicknessSelection: quoteState.thicknessSelection
+    });
+  }, [basicSpecsCacheKey, updateMultiBasicSpecs]); // Use stable cache key + now-stable callback
+
+  // DEBUG: Log when quantities change
+  useEffect(() => {
+    console.log('[MultiQuantityStep] Quantities updated:', {
+      quantities: state.quantities,
+      comparisonQuantities: state.comparisonQuantities
+    });
+  }, [state.quantities, state.comparisonQuantities]);
 
   // Initialize with empty quantities - no defaults
   useEffect(() => {
@@ -166,9 +195,9 @@ function MultiQuantityStep() {
 
           {/* Quantity Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {state.quantities.map((quantity, index) => {
+            {safeMap(state.quantities, (quantity, index) => {
               const isLowest = index === 0;
-              const isHighest = index === state.quantities.length - 1;
+              const isHighest = state.quantities && index === state.quantities.length - 1;
 
               return (
                 <motion.div

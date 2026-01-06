@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from 'react';
 
+interface Metric {
+  name: string;
+  value: number;
+  rating: 'good' | 'needs-improvement' | 'poor';
+  delta: number;
+  id: string;
+}
 
 interface VitalMetric {
   name: string;
@@ -29,7 +36,14 @@ export function WebVitalsMonitor() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    let importWebVitals: any;
+    let importWebVitals: {
+      onLCP: (callback: (metric: Metric) => void) => void;
+      onFID: (callback: (metric: Metric) => void) => void;
+      onINP: (callback: (metric: Metric) => void) => void;
+      onCLS: (callback: (metric: Metric) => void) => void;
+      onFCP: (callback: (metric: Metric) => void) => void;
+      onTTFB: (callback: (metric: Metric) => void) => void;
+    } | undefined;
 
     const loadWebVitals = async () => {
       try {
@@ -38,7 +52,7 @@ export function WebVitalsMonitor() {
         const vitalsCollector: WebVitalsData = {};
 
         // Largest Contentful Paint (LCP)
-        importWebVitals.onLCP((metric: any) => {
+        importWebVitals.onLCP((metric) => {
           const vitalMetric: VitalMetric = {
             name: metric.name,
             value: metric.value,
@@ -56,7 +70,7 @@ export function WebVitalsMonitor() {
         });
 
         // First Input Delay (FID) - Legacy
-        importWebVitals.onFID((metric: any) => {
+        importWebVitals.onFID((metric) => {
           const vitalMetric: VitalMetric = {
             name: metric.name,
             value: metric.value,
@@ -70,7 +84,7 @@ export function WebVitalsMonitor() {
         });
 
         // Interaction to Next Paint (INP) - New metric
-        importWebVitals.onINP((metric: any) => {
+        importWebVitals.onINP((metric) => {
           const vitalMetric: VitalMetric = {
             name: metric.name,
             value: metric.value,
@@ -84,7 +98,7 @@ export function WebVitalsMonitor() {
         });
 
         // Cumulative Layout Shift (CLS)
-        importWebVitals.onCLS((metric: any) => {
+        importWebVitals.onCLS((metric) => {
           const vitalMetric: VitalMetric = {
             name: metric.name,
             value: metric.value,
@@ -98,7 +112,7 @@ export function WebVitalsMonitor() {
         });
 
         // First Contentful Paint (FCP)
-        importWebVitals.onFCP((metric: any) => {
+        importWebVitals.onFCP((metric) => {
           const vitalMetric: VitalMetric = {
             name: metric.name,
             value: metric.value,
@@ -112,7 +126,7 @@ export function WebVitalsMonitor() {
         });
 
         // Time to First Byte (TTFB)
-        importWebVitals.onTTFB((metric: any) => {
+        importWebVitals.onTTFB((metric) => {
           const vitalMetric: VitalMetric = {
             name: metric.name,
             value: metric.value,
@@ -153,8 +167,8 @@ export function WebVitalsMonitor() {
   // Send metrics to analytics endpoint
   const sendToAnalytics = (metric: VitalMetric) => {
     // Send to your analytics service
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', metric.name, {
+    if (typeof window !== 'undefined' && 'gtag' in window && window.gtag) {
+      window.gtag('event', metric.name, {
         value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
         event_category: 'Web Vitals',
         event_label: metric.id,

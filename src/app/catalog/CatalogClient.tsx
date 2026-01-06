@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { EnhancedProductCard } from '@/components/catalog/EnhancedProductCard'
 import { ProductListItem } from '@/components/catalog/ProductListItem'
+import { AdvancedFilters } from '@/components/catalog/AdvancedFilters'
 import Link from 'next/link'
 import { PRODUCT_CATEGORIES, getAllProducts } from '@/lib/product-data'
 import { Product } from '@/types/database'
@@ -25,6 +26,16 @@ import { Product } from '@/types/database'
 interface FilterState {
   viewMode: 'grid' | 'list'
   sortBy: string
+  searchQuery: string
+  selectedCategory: string
+  // Advanced filters
+  materials?: string[]
+  priceRange?: [number, number]
+  features?: string[]
+  applications?: string[]
+  tags?: string[]
+  minOrderQuantity?: number
+  maxLeadTime?: number
 }
 
 export function CatalogClient() {
@@ -32,12 +43,15 @@ export function CatalogClient() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [useDBFiltering, setUseDBFiltering] = useState(true)
 
   // Calculate initial filter state
   const getInitialFilterState = (): FilterState => {
     return {
       sortBy: 'name',
-      viewMode: 'grid'
+      viewMode: 'grid',
+      searchQuery: '',
+      selectedCategory: 'all'
     }
   }
 
@@ -51,21 +65,131 @@ export function CatalogClient() {
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      // Use static data for export compatibility
+      // Try to fetch from database first
+      if (useDBFiltering) {
+        const response = await fetch('/api/products')
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.data) {
+            setProducts(result.data)
+            setFilteredProducts(result.data)
+            setIsLoading(false)
+            return
+          }
+        }
+      }
+
+      // Fallback to static data
       const safeProducts = getAllProducts(null, 'ja') as unknown as Product[]
       setProducts(safeProducts)
       setFilteredProducts(safeProducts)
-      // Initialize filter state after products are loaded
-      setFilterState({
-        sortBy: 'name',
-        viewMode: 'grid'
-      })
     } catch (error) {
       console.error('Failed to fetch products:', error)
-      setProducts([])
+      // Fallback to static data on error
+      const safeProducts = getAllProducts(null, 'ja') as unknown as Product[]
+      setProducts(safeProducts)
+      setFilteredProducts(safeProducts)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Apply filters using database API
+  const applyDBFilters = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/products/filter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: filterState.selectedCategory,
+          materials: filterState.materials,
+          priceRange: filterState.priceRange,
+          features: filterState.features,
+          applications: filterState.applications,
+          tags: filterState.tags,
+          minOrderQuantity: filterState.minOrderQuantity,
+          maxLeadTime: filterState.maxLeadTime,
+          searchQuery: filterState.searchQuery
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          setFilteredProducts(result.data)
+          return
+        }
+      }
+
+      // Fallback to client-side filtering
+      applyClientSideFilters()
+    } catch (error) {
+      console.error('DB filter error:', error)
+      // Fallback to client-side filtering
+      applyClientSideFilters()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Client-side filtering fallback
+  const applyClientSideFilters = () => {
+    let filtered = products
+
+    // Category filter
+    if (filterState.selectedCategory && filterState.selectedCategory !== 'all') {
+      filtered = filtered.filter(p => p.category === filterState.selectedCategory)
+    }
+
+    // Search query filter
+    if (filterState.searchQuery) {
+      const query = filterState.searchQuery.toLowerCase()
+      filtered = filtered.filter(p =>
+        p.name_ja?.toLowerCase().includes(query) ||
+        p.name_en?.toLowerCase().includes(query) ||
+        p.description_ja?.toLowerCase().includes(query) ||
+        p.description_en?.toLowerCase().includes(query)
+      )
+    }
+
+    // Materials filter
+    if (filterState.materials && filterState.materials.length > 0) {
+      filtered = filtered.filter(p =>
+        filterState.materials!.some(m => p.materials?.includes(m))
+      )
+    }
+
+    // Features filter
+    if (filterState.features && filterState.features.length > 0) {
+      filtered = filtered.filter(p =>
+        filterState.features!.some(f => p.features?.includes(f))
+      )
+    }
+
+    // Applications filter
+    if (filterState.applications && filterState.applications.length > 0) {
+      filtered = filtered.filter(p =>
+        filterState.applications!.some(a => p.applications?.includes(a))
+      )
+    }
+
+    // Price range filter
+    if (filterState.priceRange) {
+      const [min, max] = filterState.priceRange
+      filtered = filtered.filter(p => {
+        const baseCost = (p.pricing_formula as any)?.base_cost || 0
+        return baseCost >= min && baseCost <= max
+      })
+    }
+
+    // Max lead time filter
+    if (filterState.maxLeadTime) {
+      filtered = filtered.filter(p => p.lead_time_days <= filterState.maxLeadTime!)
+    }
+
+    setFilteredProducts(filtered)
+    setIsLoading(false)
   }
 
   // Get unique materials from products
@@ -75,7 +199,7 @@ export function CatalogClient() {
 
   // Sort products only
   useEffect(() => {
-    let sorted = products && Array.isArray(products) ? products : []
+    let sorted = filteredProducts && Array.isArray(filteredProducts) ? filteredProducts : []
 
     // Sort products
     sorted = [...sorted].sort((a, b) => {
@@ -97,11 +221,32 @@ export function CatalogClient() {
     })
 
     setFilteredProducts(sorted)
-  }, [products, filterState.sortBy])
+  }, [filterState.sortBy])
+
+  // Handle filter changes - apply client-side filtering for non-DB mode
+  useEffect(() => {
+    if (!useDBFiltering) {
+      applyClientSideFilters()
+    }
+  }, [
+    filterState.searchQuery,
+    filterState.selectedCategory,
+    filterState.materials,
+    filterState.priceRange,
+    filterState.features,
+    filterState.applications,
+    filterState.maxLeadTime
+  ])
 
   // Handle filter changes
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
     setFilterState(prev => ({ ...prev, ...newFilters }))
+  }
+
+  // Handle clear all filters
+  const handleClearAll = () => {
+    setFilterState(getInitialFilterState())
+    setFilteredProducts(products)
   }
 
   return (
@@ -170,93 +315,111 @@ export function CatalogClient() {
       </section>
 
       <Container size="6xl" className="py-8">
-        {/* Sort and View Controls */}
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-lg font-medium text-gray-900">
-            {isLoading ? '読み込み中...' : `${filteredProducts.length}件の製品`}
-          </p>
+        <div className="flex gap-8">
+          {/* Sidebar - Advanced Filters */}
+          <aside className="w-72 flex-shrink-0 hidden lg:block">
+            <AdvancedFilters
+              products={products}
+              filterState={filterState}
+              onFilterChange={handleFilterChange}
+              onClearAll={handleClearAll}
+              onApplyFilters={applyDBFilters}
+              filteredProductsCount={filteredProducts.length}
+              useDBFiltering={useDBFiltering}
+            />
+          </aside>
 
-          {/* View and Sort Controls */}
-          <div className="flex items-center gap-3">
-            {/* View Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1 shadow-sm">
-              <button
-                onClick={() => handleFilterChange({ viewMode: 'grid' })}
-                className={`p-2 rounded-md transition-all duration-200 ${filterState.viewMode === 'grid' ? 'bg-white shadow-sm text-brixa-600' : 'text-gray-600 hover:text-gray-900'}`}
-              >
-                <GridIcon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleFilterChange({ viewMode: 'list' })}
-                className={`p-2 rounded-md transition-all duration-200 ${filterState.viewMode === 'list' ? 'bg-white shadow-sm text-brixa-600' : 'text-gray-600 hover:text-gray-900'}`}
-              >
-                <List className="w-4 h-4" />
-              </button>
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            {/* Sort and View Controls */}
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-lg font-medium text-gray-900">
+                {isLoading ? '読み込み中...' : `${filteredProducts.length}件の製品`}
+              </p>
+
+              {/* View and Sort Controls */}
+              <div className="flex items-center gap-3">
+                {/* View Toggle */}
+                <div className="flex bg-gray-100 rounded-lg p-1 shadow-sm">
+                  <button
+                    onClick={() => handleFilterChange({ viewMode: 'grid' })}
+                    className={`p-2 rounded-md transition-all duration-200 ${filterState.viewMode === 'grid' ? 'bg-white shadow-sm text-brixa-600' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    <GridIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleFilterChange({ viewMode: 'list' })}
+                    className={`p-2 rounded-md transition-all duration-200 ${filterState.viewMode === 'list' ? 'bg-white shadow-sm text-brixa-600' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Sort */}
+                <select
+                  value={filterState.sortBy}
+                  onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent text-sm font-medium bg-white shadow-sm"
+                >
+                  <option value="name">名前順</option>
+                  <option value="price">価格順</option>
+                  <option value="leadTime">納期順</option>
+                </select>
+              </div>
             </div>
 
-            {/* Sort */}
-            <select
-              value={filterState.sortBy}
-              onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent text-sm font-medium bg-white shadow-sm"
-            >
-              <option value="name">名前順</option>
-              <option value="price">価格順</option>
-              <option value="leadTime">納期順</option>
-            </select>
-          </div>
+            {/* Products */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <Card key={index} className="animate-pulse">
+                    <div className="aspect-square bg-gray-200"></div>
+                    <div className="p-6 space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : filterState.viewMode === 'grid' ? (
+              <Grid xs={1} sm={2} lg={3} gap={6}>
+                {filteredProducts && Array.isArray(filteredProducts) ? filteredProducts.map((product, index) => (
+                  <EnhancedProductCard
+                    key={product?.id || index}
+                    product={product}
+                    index={index}
+                    onSelect={() => product && setSelectedProduct(product)}
+                  />
+                )) : []}
+              </Grid>
+            ) : (
+              <div className="space-y-4">
+                {filteredProducts && Array.isArray(filteredProducts) && filteredProducts.map((product, index) => (
+                  <ProductListItem
+                    key={product?.id || index}
+                    product={product}
+                    index={index}
+                    onSelect={() => setSelectedProduct(product)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* No Results */}
+            {!isLoading && (!filteredProducts || filteredProducts.length === 0) && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  製品が見つかりませんでした
+                </h3>
+                <p className="text-gray-600">
+                  現在利用可能な製品がありません
+                </p>
+              </div>
+            )}
+          </main>
         </div>
-
-        {/* Products */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
-              <Card key={index} className="animate-pulse">
-                <div className="aspect-square bg-gray-200"></div>
-                <div className="p-6 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-full"></div>
-                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : filterState.viewMode === 'grid' ? (
-          <Grid xs={1} sm={2} lg={3} gap={6}>
-            {filteredProducts && Array.isArray(filteredProducts) ? filteredProducts.map((product, index) => (
-              <EnhancedProductCard
-                key={product?.id || index}
-                product={product}
-                index={index}
-                onSelect={() => product && setSelectedProduct(product)}
-              />
-            )) : []}
-          </Grid>
-        ) : (
-          <div className="space-y-4">
-            {filteredProducts && Array.isArray(filteredProducts) && filteredProducts.map((product, index) => (
-              <ProductListItem
-                key={product?.id || index}
-                product={product}
-                index={index}
-                onSelect={() => setSelectedProduct(product)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* No Results */}
-        {!isLoading && (!filteredProducts || filteredProducts.length === 0) && (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              製品が見つかりませんでした
-            </h3>
-            <p className="text-gray-600">
-              現在利用可能な製品がありません
-            </p>
-          </div>
-        )}
       </Container>
 
       {/* Product Detail Modal */}

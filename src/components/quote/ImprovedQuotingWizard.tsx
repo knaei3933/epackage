@@ -6,6 +6,7 @@ import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStep
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
+import { safeMap } from '@/lib/array-helpers';
 import EnvelopePreview from './EnvelopePreview';
 import MultiQuantityStep from './MultiQuantityStep';
 import MultiQuantityComparisonTable from './MultiQuantityComparisonTable';
@@ -38,7 +39,9 @@ import {
   Calculator,
   RefreshCw,
   BarChart3,
-  Download
+  Download,
+  Save,
+  Send
 } from 'lucide-react';
 
 // Step configuration
@@ -840,7 +843,7 @@ function PostProcessingStep() {
                           <div className="mb-2 p-2 bg-amber-100 border border-amber-200 rounded">
                             <div className="text-xs text-amber-800 flex items-center">
                               <AlertCircle className="w-3 h-3 mr-1 flex-shrink-0" />
-                              <span className="font-medium">競合オプション:</span> {conflictingOptions.map(id => {
+                              <span className="font-medium">競合オプション:</span> {safeMap(conflictingOptions, id => {
                                 const conflictOption = postProcessingOptions.find(opt => opt.id === id);
                                 return conflictOption ? conflictOption.name : id;
                               }).join(', ')}
@@ -1098,8 +1101,13 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [savedQuotationId, setSavedQuotationId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [downloadStatusPDF, setDownloadStatusPDF] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleSave = async () => {
     if (!user?.id) {
@@ -1162,6 +1170,12 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
       const savedQuotation = await response.json();
 
       console.log('Quotation saved successfully:', savedQuotation);
+
+      // Store the quotation ID for potential submission
+      if (savedQuotation.quotation?.id) {
+        setSavedQuotationId(savedQuotation.quotation.id);
+      }
+
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
@@ -1170,6 +1184,109 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
       setTimeout(() => setSaveStatus('idle'), 3000);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      setSubmitStatus('error');
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      // If we don't have a saved quotation, save it first
+      let quotationId = savedQuotationId;
+
+      if (!quotationId) {
+        // Prepare and save quotation first
+        const quotationData = {
+          userId: user.id,
+          quotationNumber: `QT-${Date.now()}`,
+          status: 'draft' as const,
+          totalAmount: result.totalPrice,
+          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          notes: null,
+          items: [
+            {
+              productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+              quantity: state.quantity,
+              unitPrice: result.unitPrice,
+              specifications: {
+                bagTypeId: state.bagTypeId,
+                materialId: state.materialId,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                thicknessSelection: state.thicknessSelection,
+                isUVPrinting: state.isUVPrinting,
+                printingType: state.printingType,
+                printingColors: state.printingColors,
+                doubleSided: state.doubleSided,
+                postProcessingOptions: state.postProcessingOptions,
+                deliveryLocation: state.deliveryLocation,
+                urgency: state.urgency,
+                dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
+              }
+            }
+          ]
+        };
+
+        const saveResponse = await fetch('/api/quotations/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(quotationData),
+        });
+
+        if (!saveResponse.ok) {
+          throw new Error('Failed to save quotation');
+        }
+
+        const savedQuotation = await saveResponse.json();
+        quotationId = savedQuotation.quotation?.id;
+
+        if (!quotationId) {
+          throw new Error('No quotation ID returned');
+        }
+
+        setSavedQuotationId(quotationId);
+      }
+
+      // Submit the quotation
+      const submitResponse = await fetch('/api/quotations/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quotationId,
+          customerInfo: {
+            name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
+              ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
+              : user.email?.split('@')[0] || 'Customer',
+            email: user.email || 'customer@example.com',
+            phone: user.user_metadata?.phone || null,
+          }
+        }),
+      });
+
+      if (!submitResponse.ok) {
+        const errorData = await submitResponse.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to submit quotation');
+      }
+
+      const submitResult = await submitResponse.json();
+
+      console.log('Quotation submitted successfully:', submitResult);
+      setSubmitStatus('success');
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Failed to submit quotation:', error);
+      setSubmitStatus('error');
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1299,6 +1416,225 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
     }
   };
 
+  const handleDownloadPDF = async () => {
+    if (!user?.id) {
+      setDownloadStatusPDF('error');
+      setTimeout(() => setDownloadStatusPDF('idle'), 3000);
+      return;
+    }
+
+    setIsDownloadingPDF(true);
+    setDownloadStatusPDF('idle');
+
+    try {
+      // Generate quotation number (same for PDF and DB)
+      const quoteNumber = `QT-${Date.now()}`;
+      const today = new Date();
+      const expiryDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      // Format dates as YYYY-MM-DD
+      const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      // =====================================================
+      // Step 1: Generate PDF
+      // =====================================================
+      const { generateQuotePDF } = await import('@/lib/pdf-generator');
+
+      // Build quote items data (support multi-quantity patterns)
+      const quoteItems = hasMultiQuantityResults && multiQuantityQuotes.length > 0
+        ? multiQuantityQuotes.map((mq, index) => ({
+            id: `ITEM-${String(index + 1).padStart(3, '0')}`,
+            name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (${mq.quantity.toLocaleString()}個)`,
+            description: `サイズ: ${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+            quantity: mq.quantity,
+            unit: '個',
+            unitPrice: Math.round(mq.unitPrice),
+            amount: Math.round(mq.totalPrice),
+          }))
+        : [{
+            id: 'ITEM-001',
+            name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+            description: `サイズ: ${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+            quantity: state.quantity,
+            unit: '個',
+            unitPrice: Math.round(result.unitPrice),
+            amount: Math.round(result.totalPrice),
+          }];
+
+      // Build specifications for PDF
+      const specifications = {
+        bagType: getBagTypeLabel(state.bagTypeId),
+        contents: '粉体',
+        size: `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`,
+        material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
+        sealWidth: '5mm',
+        sealDirection: '上',
+        notchShape: 'V',
+        notchPosition: '指定位置',
+        hanging: 'なし',
+        hangingPosition: '指定位置',
+        zipperPosition: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
+        cornerR: 'R5',
+      };
+
+      // Build optional processing
+      const optionalProcessing = {
+        zipper: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
+        notch: state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
+        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hanging')),
+        cornerProcessing: state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
+        gasValve: state.postProcessingOptions.some((opt: string) => opt.includes('valve') || opt.includes('gas')),
+        easyCut: state.postProcessingOptions.some((opt: string) => opt.includes('easy') || opt.includes('cut')),
+        dieCut: state.postProcessingOptions.some((opt: string) => opt.includes('die')),
+      };
+
+      // Prepare PDF data
+      const pdfData = {
+        quoteNumber,
+        issueDate: formatDate(today),
+        expiryDate: formatDate(expiryDate),
+        quoteCreator: 'EPACKAGE Lab 自動見積もりシステム',
+
+        // Customer information (from auth or defaults)
+        customerName: user?.companyName || user?.email?.split('@')[0] || 'お客様',
+        customerNameKana: '',
+        companyName: user?.companyName || '',
+        postalCode: user?.postalCode || '',
+        address: user?.city || user?.street
+          ? `${user?.prefecture || ''}${user?.city || ''}${user?.street || ''}`
+          : '',
+        contactPerson: user?.kanjiLastName && user?.kanjiFirstName
+          ? `${user.kanjiLastName} ${user.kanjiFirstName}`
+          : '',
+        phone: user?.corporatePhone || user?.personalPhone || '',
+        email: user?.email || '',
+
+        // Quote items
+        items: quoteItems,
+
+        // Specifications for PDF template
+        specifications,
+
+        // Optional processing
+        optionalProcessing,
+      };
+
+      // Generate PDF directly in browser (client-side)
+      const pdfResult = await generateQuotePDF(pdfData, { filename: `${quoteNumber}.pdf` });
+
+      if (!pdfResult.success || !pdfResult.pdfBuffer) {
+        throw new Error(pdfResult.error || 'PDF generation failed');
+      }
+
+      // Create blob and download
+      const blob = new Blob([pdfResult.pdfBuffer], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${quoteNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      console.log('PDF downloaded successfully:', quoteNumber);
+
+      // =====================================================
+      // Step 2: Save to Database (Log)
+      // =====================================================
+      const quotationData = {
+        userId: user.id,
+        quotationNumber: quoteNumber, // Use same quote number
+        status: 'draft' as const,
+        totalAmount: hasMultiQuantityResults && multiQuantityQuotes.length > 0
+          ? multiQuantityQuotes[multiQuantityQuotes.length - 1].totalPrice  // Use largest quantity total
+          : result.totalPrice,
+        validUntil: expiryDate.toISOString(),
+        notes: null,
+        items: hasMultiQuantityResults && multiQuantityQuotes.length > 0
+          ? multiQuantityQuotes.map((mq) => ({
+              productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (${mq.quantity.toLocaleString()}個)`,
+              quantity: mq.quantity,
+              unitPrice: mq.unitPrice,
+              specifications: {
+                bagTypeId: state.bagTypeId,
+                materialId: state.materialId,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                thicknessSelection: state.thicknessSelection,
+                isUVPrinting: state.isUVPrinting,
+                printingType: state.printingType,
+                printingColors: state.printingColors,
+                doubleSided: state.doubleSided,
+                postProcessingOptions: state.postProcessingOptions,
+                deliveryLocation: state.deliveryLocation,
+                urgency: state.urgency,
+                dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
+              }
+            }))
+          : [
+              {
+                productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+                quantity: state.quantity,
+                unitPrice: result.unitPrice,
+                specifications: {
+                  bagTypeId: state.bagTypeId,
+                  materialId: state.materialId,
+                  width: state.width,
+                  height: state.height,
+                  depth: state.depth,
+                  thicknessSelection: state.thicknessSelection,
+                  isUVPrinting: state.isUVPrinting,
+                  printingType: state.printingType,
+                  printingColors: state.printingColors,
+                  doubleSided: state.doubleSided,
+                  postProcessingOptions: state.postProcessingOptions,
+                  deliveryLocation: state.deliveryLocation,
+                  urgency: state.urgency,
+                  dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
+                }
+              }
+            ]
+      };
+
+      // Call API to save quotation (log the PDF generation)
+      const response = await fetch('/api/quotations/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quotationData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.warn('Failed to save quotation to database:', errorData.error);
+        // Don't throw error - PDF download was successful
+        // Just log the save failure
+      } else {
+        const savedQuotation = await response.json();
+        console.log('Quotation saved successfully (logged):', savedQuotation);
+      }
+
+      setDownloadStatusPDF('success');
+      setTimeout(() => setDownloadStatusPDF('idle'), 3000);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      setDownloadStatusPDF('error');
+      setTimeout(() => setDownloadStatusPDF('idle'), 3000);
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  };
+
   const { state: multiQuantityState } = useMultiQuantityQuote();
 
   // Get multi-quantity calculations if available
@@ -1338,7 +1674,7 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
         <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl">
           <div className="text-sm font-medium mb-4">数量別見積もり</div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {multiQuantityQuotes.map((quote) => (
+            {safeMap(multiQuantityQuotes, (quote) => (
               <div key={quote.quantity} className="bg-white/10 rounded-lg p-4 text-center">
                 <div className="text-sm font-medium mb-1">{quote.quantity.toLocaleString()}個</div>
                 <div className="text-xl font-bold">¥{quote.totalPrice.toLocaleString()}</div>
@@ -1397,7 +1733,7 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
           <div className="mt-4">
             <h4 className="font-medium text-gray-700 mb-2">後加工</h4>
             <div className="text-sm text-gray-600">
-              {state.postProcessingOptions.map(option => (
+              {safeMap(state.postProcessingOptions, option => (
                 <span key={option} className="mr-2">
                   {getPostProcessingLabel(option)}
                 </span>
@@ -1530,78 +1866,56 @@ function ResultStep({ result, onReset }: { result: UnifiedQuoteResult; onReset: 
           <RefreshCw className="w-4 h-4 inline mr-2" />
           新しい見積もり
         </motion.button>
+
+        {/* PDF Download Button (Auto-saves to database) */}
         <button
-          onClick={handleDownloadExcel}
-          disabled={isDownloading}
+          onClick={handleDownloadPDF}
+          disabled={isDownloadingPDF}
           className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center ${
-            isDownloading
+            isDownloadingPDF
               ? 'bg-gray-400 cursor-not-allowed'
-              : downloadStatus === 'success'
+              : downloadStatusPDF === 'success'
               ? 'bg-green-600 hover:bg-green-700 text-white'
-              : downloadStatus === 'error'
-              ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          {isDownloading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Excel作成中...
-            </>
-          ) : downloadStatus === 'success' ? (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Excel完了
-            </>
-          ) : downloadStatus === 'error' ? (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Excel失敗
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Excelダウンロード
-            </>
-          )}
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center ${
-            isSaving
-              ? 'bg-gray-400 cursor-not-allowed'
-              : saveStatus === 'success'
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : saveStatus === 'error'
+              : downloadStatusPDF === 'error'
               ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'bg-navy-700 hover:bg-navy-600 text-white'
           }`}
         >
-          {isSaving ? (
+          {isDownloadingPDF ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              保存中...
+              PDF作成中...
             </>
-          ) : saveStatus === 'success' ? (
+          ) : downloadStatusPDF === 'success' ? (
             <>
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              保存完了
+              <Download className="w-4 h-4 mr-2" />
+              PDF完了 (自動保存済み)
             </>
-          ) : saveStatus === 'error' ? (
+          ) : downloadStatusPDF === 'error' ? (
             <>
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              保存失敗
+              <Download className="w-4 h-4 mr-2" />
+              PDF失敗
             </>
           ) : (
-            <>見積もりを保存</>
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              PDFダウンロード (自動保存)
+            </>
           )}
         </button>
       </div>
+
+      {/* Status Messages */}
+      {saveStatus === 'success' && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-center">
+          見積を下書きとして保存しました。後でマイページから続きを行えます。
+        </div>
+      )}
+      {submitStatus === 'success' && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-center">
+          見積を提出しました。管理者が確認次第、ご連絡いたします。
+        </div>
+      )}
     </div>
   );
 }
@@ -1624,8 +1938,40 @@ function RealTimePriceDisplay() {
   const previousPriceRef = useRef<number | null>(null);
   const priceResetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Track previous quantities to detect actual changes (not reference changes)
-  const prevQuantitiesRef = useRef<number[]>([]);
+  // Cache key for all pricing-related state to prevent infinite loops
+  const pricingCacheKey = useMemo(() => {
+    return JSON.stringify({
+      quantities: state.quantities || [],
+      bagTypeId: state.bagTypeId,
+      materialId: state.materialId,
+      width: state.width,
+      height: state.height,
+      depth: state.depth,
+      quantity: state.quantity,
+      thicknessSelection: state.thicknessSelection,
+      isUVPrinting: state.isUVPrinting,
+      printingType: state.printingType,
+      printingColors: state.printingColors,
+      doubleSided: state.doubleSided,
+      deliveryLocation: state.deliveryLocation,
+      urgency: state.urgency
+    });
+  }, [
+    state.quantities,
+    state.bagTypeId,
+    state.materialId,
+    state.width,
+    state.height,
+    state.depth,
+    state.quantity,
+    state.thicknessSelection,
+    state.isUVPrinting,
+    state.printingType,
+    state.printingColors,
+    state.doubleSided,
+    state.deliveryLocation,
+    state.urgency
+  ]);
 
   // Initialize previous price ref on mount
   useEffect(() => {
@@ -1640,13 +1986,6 @@ function RealTimePriceDisplay() {
       // Capture quantities at effect run time
       const quantities = state.quantities;
       const currentQuantity = state.quantity;
-
-      // Check if quantities have actually changed (not just reference)
-      const quantitiesChanged = quantities.length !== prevQuantitiesRef.current.length ||
-        !quantities.every((q, i) => q === prevQuantitiesRef.current[i]);
-
-      // Update ref for next comparison
-      prevQuantitiesRef.current = quantities.slice();
 
       // Basic validation before calculation
       if (!state.materialId || !state.bagTypeId || quantities.length === 0) {
@@ -1769,23 +2108,7 @@ function RealTimePriceDisplay() {
         priceResetTimeoutRef.current = null;
       }
     };
-  }, [
-    state.bagTypeId,
-    state.materialId,
-    state.width,
-    state.height,
-    state.depth,
-    state.quantity,
-    // NOTE: state.quantities is NOT in dependency array - we track it manually via ref
-    // to prevent infinite loops from array reference changes
-    state.thicknessSelection,
-    state.isUVPrinting,
-    state.printingType,
-    state.printingColors,
-    state.doubleSided,
-    state.deliveryLocation,
-    state.urgency
-  ]);
+  }, [pricingCacheKey]); // Single stable dependency - cache key includes all relevant state including quantities
 
   // Cleanup price reset timeout on unmount
   useEffect(() => {

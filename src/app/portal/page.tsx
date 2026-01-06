@@ -1,0 +1,264 @@
+/**
+ * Customer Portal Dashboard Page
+ * カスタマーポータルダッシュボード
+ *
+ * Main dashboard showing:
+ * - Order statistics cards
+ * - Recent orders
+ * - Upcoming deliveries
+ * - Recent notifications
+ * - Quick actions
+ */
+
+import React from 'react';
+import { cookies } from 'next/headers';
+import Link from 'next/link';
+import { OrderSummaryCard } from '@/components/portal/OrderSummaryCard';
+import { formatCurrency, formatDate, getDaysUntil } from '@/types/portal';
+import { cn } from '@/lib/utils';
+
+// Force dynamic rendering - this page requires authentication and cannot be pre-rendered
+export const dynamic = 'force-dynamic';
+
+async function getDashboardData() {
+  const cookieStore = await cookies();
+
+  // Fetch dashboard data from API (authentication is handled by the API)
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/customer/dashboard`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        // Forward auth cookie
+        Cookie: cookieStore
+          .getAll()
+          .map((c) => `${c.name}=${c.value}`)
+          .join('; '),
+      },
+      cache: 'no-store',
+    }
+  );
+
+  if (!response.ok) {
+    console.error('Dashboard API error:', await response.text());
+    return null;
+  }
+
+  const result = await response.json();
+  return result.data;
+}
+
+export default async function PortalDashboardPage() {
+  const dashboardData = await getDashboardData();
+
+  if (!dashboardData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-slate-500">ダッシュボードデータの読み込み中にエラーが発生しました。</p>
+      </div>
+    );
+  }
+
+  const { stats, recent_orders, upcoming_deliveries } = dashboardData;
+
+  const summaryCards = [
+    {
+      title: '総注文数',
+      value: stats.total_orders,
+      color: 'bg-blue-500',
+      href: '/portal/orders',
+    },
+    {
+      title: '見積中',
+      value: stats.pending_orders,
+      color: 'bg-yellow-500',
+      href: '/portal/orders?status=PENDING',
+    },
+    {
+      title: '製作中',
+      value: stats.in_production_orders,
+      color: 'bg-orange-500',
+      href: '/portal/orders?status=PRODUCTION',
+    },
+    {
+      title: '発送済',
+      value: stats.shipped_orders,
+      color: 'bg-green-500',
+      href: '/portal/orders?status=SHIPPED',
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          ダッシュボード
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-1">
+          ようこそ、お客様ダッシュボードへ
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {summaryCards.map((card) => (
+          <Link
+            key={card.title}
+            href={card.href}
+            className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{card.title}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                  {card.value}
+                </p>
+              </div>
+              <div className={cn('w-12 h-12 rounded-lg', card.color)} />
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3">
+        <Link
+          href="/quote-simulator"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          新規見積依頼
+        </Link>
+        <Link
+          href="/portal/support"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          お問い合わせ
+        </Link>
+        <Link
+          href="/catalog"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          製品カタログ
+        </Link>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Recent Orders */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+              最近の注文
+            </h2>
+            <Link
+              href="/portal/orders"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              すべて見る
+            </Link>
+          </div>
+
+          {recent_orders && recent_orders.length > 0 ? (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {recent_orders.map((order: any) => (
+                <OrderSummaryCard key={order.id} order={order} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 text-center">
+              <svg className="w-12 h-12 mx-auto text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <p className="text-slate-600 dark:text-slate-400 mb-4">
+                まだ注文がありません
+              </p>
+              <Link
+                href="/quote-simulator"
+                className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                最初の見積を依頼する
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Upcoming Deliveries */}
+          {upcoming_deliveries && upcoming_deliveries.length > 0 && (
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-3">
+                配達予定
+              </h3>
+              <div className="space-y-3">
+                {upcoming_deliveries.map((delivery: any) => {
+                  const daysUntil = delivery.days_until_delivery;
+                  const isUrgent = daysUntil <= 3 && daysUntil >= 0;
+                  const isOverdue = daysUntil < 0;
+
+                  return (
+                    <Link
+                      key={delivery.order_id}
+                      href={`/portal/orders/${delivery.order_id}`}
+                      className="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">
+                          {delivery.order_number}
+                        </span>
+                        <span
+                          className={cn(
+                            'text-xs px-2 py-1 rounded-full',
+                            isOverdue && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                            !isOverdue && isUrgent && 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                            !isOverdue && !isUrgent && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          )}
+                        >
+                          {isOverdue && '遅延'}
+                          {!isOverdue && isUrgent && 'まもなく'}
+                          {!isOverdue && !isUrgent && `${daysUntil}日後`}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {formatDate(delivery.estimated_delivery_date, 'ja')}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Notifications Preview */}
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-slate-900 dark:text-white">
+                通知
+              </h3>
+              {stats.unread_notifications > 0 && (
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {stats.unread_notifications}
+                </span>
+              )}
+            </div>
+            <Link
+              href="/portal?tab=notifications"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              すべての通知を見る
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

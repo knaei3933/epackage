@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 
 type Breakpoint = 'mobile' | 'tablet' | 'desktop' | 'large';
 
+interface NavigatorWithMS extends Navigator {
+  msMaxTouchPoints?: number;
+}
+
 const breakpoints = {
   mobile: 0,
   tablet: 640,
@@ -77,9 +81,10 @@ export function useIsTouchDevice(): boolean {
 
   useEffect(() => {
     const checkTouchDevice = () => {
+      const navigatorWithMS = navigator as NavigatorWithMS;
       const hasTouch = 'ontouchstart' in window ||
         navigator.maxTouchPoints > 0 ||
-        (navigator as any).msMaxTouchPoints > 0;
+        (navigatorWithMS.msMaxTouchPoints ?? 0) > 0;
       setIsTouchDevice(hasTouch);
     };
 

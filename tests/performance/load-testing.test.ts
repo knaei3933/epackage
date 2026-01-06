@@ -1,9 +1,16 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 // Extend Window interface for FPS tracking
 declare global {
   interface Window {
     fpsFrameCount?: number
+  }
+  interface Performance {
+    memory?: {
+      usedJSHeapSize: number
+      totalJSHeapSize: number
+      jsHeapSizeLimit: number
+    }
   }
 }
 
@@ -400,7 +407,7 @@ async function setQuantities(page: any, quantities: string[]) {
   }
 }
 
-async function setLargeQuantities(page: any) {
+async function setLargeQuantities(page: Page) {
   const quantityInputs = page.locator('[data-testid^="quantity-input-"]')
   const count = await quantityInputs.count()
 
@@ -410,10 +417,10 @@ async function setLargeQuantities(page: any) {
   }
 }
 
-async function getMemoryUsage(page: any): Promise<number> {
+async function getMemoryUsage(page: Page): Promise<number> {
   try {
     const metrics = await page.evaluate(() => {
-      return (performance as any).memory?.usedJSHeapSize || 0
+      return performance.memory?.usedJSHeapSize || 0
     })
     return metrics || 0
   } catch {
@@ -421,13 +428,13 @@ async function getMemoryUsage(page: any): Promise<number> {
   }
 }
 
-async function getNodeCount(page: any): Promise<number> {
+async function getNodeCount(page: Page): Promise<number> {
   return await page.evaluate(() => {
     return document.querySelectorAll('*').length
   })
 }
 
-async function measureFPS(page: any, action: () => Promise<void>): Promise<number> {
+async function measureFPS(page: Page, action: () => Promise<void>): Promise<number> {
   const frames: number[] = []
 
   // Start FPS monitoring

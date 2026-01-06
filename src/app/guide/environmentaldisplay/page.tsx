@@ -1,11 +1,12 @@
 import { Metadata } from 'next'
 import { Leaf, Recycle, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
   description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
-  keywords: ['環境表示', 'リサイクルマーク', 'サステナビリティ', '素材表示', '環境ラベル', 'エコマーク', '包装廃棄物法'],
+  keywords: ['環境表示', 'リサイクルマーク', 'サステナビリティ', '素材表示', '環境ラベル', 'エコマーク', '包装廃棄物法', '包装廃棄物法 表示義務', 'プラスチック識別表示', 'リサイクルマーク 種類', 'エコマーク 取得', 'FSC認証 包装', '環境表示 義務 化粧品'],
   openGraph: {
     title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
     description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
@@ -35,8 +36,44 @@ export const metadata: Metadata = {
 }
 
 export default function EnvironmentalDisplayGuide() {
+  const environmentalHowToData = {
+    name: 'パッケージの環境表示実装方法',
+    description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
+    image: 'https://epackage-lab.com/images/guide/environmental-howto.jpg',
+    supplies: [
+      '包装廃棄物法ガイドライン',
+      'リサイクルマークデータ',
+      '素材表示テキスト',
+      '認証マーク'
+    ],
+    steps: [
+      {
+        name: '法規制要件を確認',
+        text: '包装廃棄物法に基づき、表示義務のある項目を確認します（事業者名、素材識別表示など）。'
+      },
+      {
+        name: '素材識別表示を追加',
+        text: 'プラスチック（PET1-7）、紙、金属などの素材マークを適切に表示します。'
+      },
+      {
+        name: 'リサイクルマークを配置',
+        text: '国際リサイクルマークや日本のプラスチック容器包装マーク、紙マークを配置します。'
+      },
+      {
+        name: '環境認証マークを追加',
+        text: 'エコマーク、FSC認証、カーボンニュートラルなどの認証マークを必要に応じて追加します。'
+      },
+      {
+        name: '表示内容を検証',
+        text: '表示が法規制に準拠していることを確認し、誤解を招く表現がないかチェックします。'
+      }
+    ]
+  }
+
   return (
-    <div className="prose prose-gray max-w-none">
+    <>
+      <HowToSchema {...environmentalHowToData} />
+      <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-emerald-100 rounded-lg text-emerald-600">
           <Leaf className="h-8 w-8" />
@@ -400,5 +437,6 @@ export default function EnvironmentalDisplayGuide() {
         </div>
       </section>
     </div>
+    </>
   )
 }

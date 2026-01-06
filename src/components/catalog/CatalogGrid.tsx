@@ -7,6 +7,7 @@ import { ProductCard } from './ProductCard'
 import { Grid } from '@/components/ui/Grid'
 import { Container } from '@/components/ui/Container'
 import { EmptyState } from '@/components/ui'
+import { safeMap } from '@/lib/array-helpers'
 
 export function CatalogGrid() {
   const { language, t } = useLanguage()
@@ -51,7 +52,7 @@ export function CatalogGrid() {
       </div>
 
       <Grid cols={3} gap={6} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {sortedProducts.map((product) => (
+        {safeMap(sortedProducts, (product) => (
           <ProductCard
             key={product.id}
             product={product}

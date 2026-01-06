@@ -4,22 +4,43 @@ import { cn } from '@/lib/utils';
 
 // Button variants using class-variance-authority with Tailwind CSS 4 integration
 const buttonVariants = cva(
-  // Base styles
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2 whitespace-nowrap',
+  // Base styles - Enhanced with better transitions and accessibility
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2 whitespace-nowrap relative overflow-hidden group',
   {
     variants: {
       variant: {
-        primary: 'bg-brixa-600 text-white hover:bg-brixa-700 focus-visible:ring-brixa-500 shadow-sm active:scale-[0.98]',
-        secondary: 'bg-bg-primary text-brixa-700 border-2 border-brixa-200 hover:bg-brixa-50 focus-visible:ring-brixa-500 dark:bg-bg-secondary dark:text-brixa-300 dark:border-brixa-700',
-        outline: 'border-2 border-brixa-300 text-brixa-700 bg-transparent hover:bg-brixa-50 focus-visible:ring-brixa-500 dark:border-brixa-600 dark:text-brixa-300 dark:hover:bg-brixa-900/20',
-        ghost: 'text-brixa-600 hover:bg-brixa-50 hover:text-brixa-700 focus-visible:ring-brixa-500 dark:text-brixa-400 dark:hover:bg-brixa-800/30',
-        link: 'text-brixa-600 underline-offset-4 hover:underline focus-visible:ring-brixa-500 dark:text-brixa-400',
-        destructive: 'bg-error-500 text-white hover:bg-error-600 focus-visible:ring-error-500 active:scale-[0.98]',
-        success: 'bg-success-500 text-white hover:bg-success-600 focus-visible:ring-success-500 active:scale-[0.98]',
-        warning: 'bg-warning-500 text-white hover:bg-warning-600 focus-visible:ring-warning-500 active:scale-[0.98]',
-        info: 'bg-info-500 text-white hover:bg-info-600 focus-visible:ring-info-500 active:scale-[0.98]',
-        metallic: 'bg-gradient-metallic text-white hover:from-metallic-gold hover:to-metallic-silver focus-visible:ring-metallic-silver shadow-md active:scale-[0.98]',
-        'brixa-gradient': 'bg-gradient-brixa text-white hover:shadow-lg focus-visible:ring-brixa-500 active:scale-[0.98] transition-shadow',
+        // Primary - Enhanced with gradient, shadow, and micro-interactions
+        primary: 'bg-gradient-to-br from-[var(--brixa-primary-500)] to-[var(--brixa-primary-700)] text-white hover:from-[var(--brixa-primary-600)] hover:to-[var(--brixa-primary-800)] focus-visible:ring-[var(--brixa-primary-500)] shadow-md hover:shadow-lg active:scale-[0.98] active:shadow-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500',
+
+        // Secondary - Cleaner with better hover state
+        secondary: 'bg-[var(--bg-primary)] text-[var(--brixa-primary-700)] border-2 border-[var(--brixa-primary-200)] hover:bg-[var(--brixa-primary-50)] hover:border-[var(--brixa-primary-300)] focus-visible:ring-[var(--brixa-primary-500)] dark:bg-[var(--bg-secondary)] dark:text-[var(--brixa-primary-300)] dark:border-[var(--brixa-primary-700)] dark:hover:bg-[var(--brixa-primary-800)] dark:hover:bg-opacity-20 shadow-sm hover:shadow active:scale-[0.98]',
+
+        // Outline - Enhanced with smoother hover
+        outline: 'border-2 border-[var(--brixa-primary-300)] text-[var(--brixa-primary-700)] bg-transparent hover:bg-[var(--brixa-primary-50)] hover:border-[var(--brixa-primary-400)] focus-visible:ring-[var(--brixa-primary-500)] dark:border-[var(--brixa-primary-600)] dark:text-[var(--brixa-primary-300)] dark:hover:bg-[var(--brixa-primary-800)] dark:hover:bg-opacity-20 dark:hover:border-[var(--brixa-primary-500)] transition-all active:scale-[0.98]',
+
+        // Ghost - Subtle with better visibility
+        ghost: 'text-[var(--brixa-primary-600)] hover:bg-[var(--brixa-primary-50)] hover:text-[var(--brixa-primary-700)] focus-visible:ring-[var(--brixa-primary-500)] dark:text-[var(--brixa-primary-400)] dark:hover:bg-[var(--brixa-primary-700)] dark:hover:bg-opacity-30 dark:hover:text-[var(--brixa-primary-300)] active:bg-[var(--brixa-primary-100)] dark:active:bg-[var(--brixa-primary-800)] dark:active:bg-opacity-30',
+
+        // Link - Enhanced with better hover
+        link: 'text-[var(--brixa-primary-600)] underline-offset-4 hover:underline hover:text-[var(--brixa-primary-700)] focus-visible:ring-[var(--brixa-primary-500)] dark:text-[var(--brixa-primary-400)] dark:hover:text-[var(--brixa-primary-300)] transition-all',
+
+        // Destructive - Enhanced with gradient
+        destructive: 'bg-gradient-to-br from-[var(--error-500)] to-[var(--error-600)] text-white hover:from-[var(--error-600)] hover:to-[var(--error-700)] focus-visible:ring-[var(--error-500)] shadow-md hover:shadow-lg hover:shadow-error-500/20 active:scale-[0.98] active:shadow-sm',
+
+        // Success - Enhanced with gradient
+        success: 'bg-gradient-to-br from-[var(--success-500)] to-[var(--success-600)] text-white hover:from-[var(--success-600)] hover:to-[var(--success-700)] focus-visible:ring-[var(--success-500)] shadow-md hover:shadow-lg hover:shadow-success-500/20 active:scale-[0.98] active:shadow-sm',
+
+        // Warning - Enhanced with gradient
+        warning: 'bg-gradient-to-br from-[var(--warning-500)] to-[var(--warning-600)] text-white hover:from-[var(--warning-600)] hover:to-[var(--warning-700)] focus-visible:ring-[var(--warning-500)] shadow-md hover:shadow-lg hover:shadow-warning-500/20 active:scale-[0.98] active:shadow-sm',
+
+        // Info - Enhanced with gradient
+        info: 'bg-gradient-to-br from-[var(--info-500)] to-[var(--info-600)] text-white hover:from-[var(--info-600)] hover:to-[var(--info-700)] focus-visible:ring-[var(--info-500)] shadow-md hover:shadow-lg hover:shadow-info-500/20 active:scale-[0.98] active:shadow-sm',
+
+        // Metallic - Premium metallic effect
+        metallic: 'bg-gradient-metallic text-white hover:from-metallic-gold hover:to-metallic-silver focus-visible:ring-metallic-silver shadow-md hover:shadow-lg active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700',
+
+        // Brixa Gradient - Premium brand gradient
+        'brixa-gradient': 'bg-gradient-brixa text-white hover:shadow-xl hover:shadow-brixa-500/30 focus-visible:ring-[var(--brixa-primary-500)] active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-600',
       },
       size: {
         xs: 'h-7 px-2 text-xs gap-1',

@@ -1,11 +1,18 @@
 import { Metadata } from 'next'
 import { Palette, Droplets, Eye, CheckCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
   description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
-  keywords: ['カラー', '特色印刷', 'CMYK', 'カラーマッチング', 'DICカラーガイド', 'パッケージ印刷色', '色指定'],
+  keywords: [
+    'カラー', '特色印刷', 'CMYK', 'カラーマッチング', 'DICカラーガイド', 'パッケージ印刷色', '色指定',
+    // 롱테일 키워드 추가
+    'DICカラーガイド 使い方', '特色印刷 費用', 'DIC色指定', 'パッケージ ブランドカラー 再現',
+    '特色とCMYK 違い', '印刷色合わせ 方法', 'パッケージ印刷 色合わせ', 'DIC色番号 指定',
+    'CMYK 特色 混合印刷', 'ブランドカラー 印刷 再現'
+  ],
   openGraph: {
     title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
     description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチングについて詳しく説明します。',
@@ -35,8 +42,45 @@ export const metadata: Metadata = {
 }
 
 export default function ColorGuide() {
+  // HowTo 스키마 데이터
+  const colorHowToData = {
+    name: 'パッケージ印刷の色指定方法',
+    description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
+    image: 'https://epackage-lab.com/images/guide/color-howto.jpg',
+    supplies: [
+      'DICカラーガイド',
+      'デザインデータ',
+      'カラープルーフ',
+      '特色見本'
+    ],
+    steps: [
+      {
+        name: '色指定方法を選択',
+        text: 'CMYKカラーまたは特色印刷のどちらかを選択します。写真やグラデーションにはCMYK、ブランドカラーの正確な再現には特色印刷が適しています。'
+      },
+      {
+        name: 'DICカラーガイドで色を選択',
+        text: 'DICカラーガイドを使用して色番号を指定します。日本国内で最も広く使用されているカラーシステムで、再現性が高いのが特徴です。'
+      },
+      {
+        name: 'CMYK値を設定',
+        text: 'CMYKカラーを使用する場合、各色の濃度をパーセンテージで指定します（例: C100 M80 Y0 K0）。'
+      },
+      {
+        name: 'カラープルーフを確認',
+        text: '実際の印刷で色を確認するために、白版（しろはん）を作成して色の仕上がりを確認します。'
+      },
+      {
+        name: '本番印刷',
+        text: '色を確認した後、本番印刷に移行します。'
+      }
+    ]
+  }
+
   return (
-    <div className="prose prose-gray max-w-none">
+    <>
+      <HowToSchema {...colorHowToData} />
+      <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-red-100 rounded-lg text-red-600">
           <Palette className="h-8 w-8" />
@@ -279,5 +323,6 @@ export default function ColorGuide() {
         </div>
       </section>
     </div>
+    </>
   )
 }

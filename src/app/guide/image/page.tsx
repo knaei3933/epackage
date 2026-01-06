@@ -1,11 +1,12 @@
 import { Metadata } from 'next'
 import { Image, FileText, Download, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
   description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモード、制作時の注意点について詳しく説明します。',
-  keywords: ['画像', '解像度', 'DPI', 'ファイル形式', 'CMYK', 'RGB', 'ベクター', 'ラスター', '印刷データ'],
+  keywords: ['画像', '解像度', 'DPI', 'ファイル形式', 'CMYK', 'RGB', 'ベクター', 'ラスター', '印刷データ', '印刷データ 350dpi', 'AI データ 印刷', 'PDF 印刷用', '画像 アウトライン 方法', 'CMYK RGB 変換', '印刷用画像 作成 ソフト', 'パッケージ印刷 解像度'],
   openGraph: {
     title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
     description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモードについて詳しく説明します。',
@@ -35,8 +36,44 @@ export const metadata: Metadata = {
 }
 
 export default function ImageGuide() {
+  const imageHowToData = {
+    name: '印刷用画像データの作成方法',
+    description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモード、制作時の注意点について詳しく説明します。',
+    image: 'https://epackage-lab.com/images/guide/image-howto.jpg',
+    supplies: [
+      'Adobe Illustrator',
+      'Adobe Photoshop',
+      '画像データ',
+      'DICカラーガイド'
+    ],
+    steps: [
+      {
+        name: '解像度を設定',
+        text: '印刷品質を確保するため350dpi以上でデータを作成します。'
+      },
+      {
+        name: 'カラーモードをCMYKに設定',
+        text: 'RGBではなくCMYKモードでデータを作成します。変換時は色の変化に注意が必要です。'
+      },
+      {
+        name: 'ファイル形式を選択',
+        text: 'ベクター形式（AI, EPS, SVG）を推奨。ラスター画像は350dpi以上で保存します。'
+      },
+      {
+        name: 'フォントをアウトライン化',
+        text: 'テキストはすべてアウトライン化してフォントデータを埋め込みます。'
+      },
+      {
+        name: 'カラープルーフで確認',
+        text: '完成したデータでカラープルーフを作成し、色や画質を確認します。'
+      }
+    ]
+  }
+
   return (
-    <div className="prose prose-gray max-w-none">
+    <>
+      <HowToSchema {...imageHowToData} />
+      <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-green-100 rounded-lg text-green-600">
           <Image className="h-8 w-8" />
@@ -422,5 +459,6 @@ export default function ImageGuide() {
         </div>
       </section>
     </div>
+    </>
   )
 }

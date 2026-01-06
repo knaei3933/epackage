@@ -46,11 +46,14 @@ jest.mock('next/image', () => ({
 process.env.NODE_ENV = 'test'
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
 
-// Mock fetch API
-global.fetch = jest.fn()
+// Mock fetch API (but keep undici polyfill)
+global.fetch = global.fetch || jest.fn()
 
 // Mock window.matchMedia (only in jsdom environment)
 if (typeof window !== 'undefined') {
+  // Mock scrollTo (needed by PDF generator)
+  window.scrollTo = jest.fn();
+
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: jest.fn().mockImplementation(query => ({
@@ -84,33 +87,54 @@ if (typeof window !== 'undefined') {
   HTMLCanvasElement.prototype.toDataURL = jest.fn(() => 'data:image/png;base64,mock')
 }
 
-// Mock jsPDF
+// Mock jsPDF - properly mock the constructor
 jest.mock('jspdf', () => {
-  return jest.fn().mockImplementation(() => ({
-    text: jest.fn(),
-    addImage: jest.fn(),
-    save: jest.fn(),
-    output: jest.fn(() => 'mock-pdf-data'),
+  const mockJsPDF = jest.fn().mockImplementation(() => ({
+    text: jest.fn().mockReturnThis(),
+    addImage: jest.fn().mockReturnThis(),
+    addPage: jest.fn().mockReturnThis(),
+    setPage: jest.fn().mockReturnThis(),
+    save: jest.fn().mockReturnThis(),
+    output: jest.fn(() => new Uint8Array([1, 2, 3])),
+    internal: {
+      pages: [{}, {}],
+      pageSize: { width: 210, height: 297 },
+    },
   }))
+  return {
+    __esModule: true,
+    default: mockJsPDF,
+  }
 })
 
 // Mock html2canvas
 jest.mock('html2canvas', () => {
-  return jest.fn().mockResolvedValue({
-    toDataURL: jest.fn(() => 'data:image/png;base64,mock'),
-  })
+  return {
+    __esModule: true,
+    default: jest.fn().mockResolvedValue({
+      toDataURL: jest.fn(() => 'data:image/png;base64,mockImageData'),
+      width: 794,
+      height: 1123,
+    }),
+  }
 })
 
 // Setup MSW for API mocking (only in jsdom environment)
-let server
+let server = null
+
 beforeAll(async () => {
-  // Skip MSW in node environment (e.g., for pure unit tests)
-  if (process.env.NODE_ENV === 'test' && typeof window === 'undefined') {
+  // Only setup MSW if explicitly enabled via environment variable
+  if (process.env.ENABLE_MSW !== 'true') {
     return
   }
-  const mswServer = await import('./src/mocks/server')
-  server = mswServer.server
-  server.listen()
+
+  try {
+    const { server: mswServer } = await import('./src/mocks/server')
+    server = mswServer
+    server.listen()
+  } catch (error) {
+    console.warn('MSW setup failed, continuing without mock server:', error.message)
+  }
 })
 
 afterEach(() => {

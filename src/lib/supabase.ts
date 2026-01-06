@@ -1,29 +1,60 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
 
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-ignore is used here because Supabase type inference doesn't work correctly for chained query builders
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// Enhanced client for client-side usage
+// =====================================================
+// Browser Client - CLIENT-SIDE ONLY (NO COOKIE ACCESS)
+// =====================================================
+// This client is specifically designed to NEVER access cookies.
+// It uses in-memory storage only and relies on server-side
+// cookie management via API routes.
+let browserClient: ReturnType<typeof createClient<Database>> | null = null
+
+export const getBrowserClient = () => {
+  if (browserClient) return browserClient
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return null
+  }
+
+  // Create a minimal client with NO storage and NO auth state management
+  browserClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false, // CRITICAL: Never auto-refresh on client
+      persistSession: false, // CRITICAL: Never persist session on client
+      detectSessionInUrl: false, // CRITICAL: Don't detect session in URL on client
+      storage: {
+        // NO-OP storage - prevents ALL cookie/localStorage access
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+      },
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    },
+    global: {
+      headers: {
+        'x-application-name': 'epackage-lab-web'
+      }
+    }
+  })
+
+  return browserClient
+}
+
+// Legacy export for backward compatibility - DEPRECATED
+// Use getBrowserClient() instead for new code
 export const supabase = supabaseUrl && supabaseAnonKey
-    ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true
-        },
-        realtime: {
-          params: {
-            eventsPerSecond: 10
-          }
-        },
-        global: {
-          headers: {
-            'x-application-name': 'epackage-lab-web'
-          }
-        }
-      })
+    ? getBrowserClient()
     : null
 
 // Service client for admin operations (server-side only)
@@ -49,12 +80,15 @@ export const isSupabaseConfigured = () => {
 }
 
 // Database helper functions for B2B e-commerce
+// NOTE: These functions use the browser client for client-side queries only.
+// For server-side operations, use createServiceClient() instead.
 export const db = {
-    // Products
+    // Products (public data - safe for client-side)
     async getProducts(category?: string) {
-        if (!supabase) return []
+        const client = getBrowserClient()
+        if (!client) return []
 
-        let query = supabase
+        let query = client
             .from('products')
             .select('*')
             .eq('is_active', true)
@@ -64,50 +98,31 @@ export const db = {
             query = query.eq('category', category)
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { data, error } = await query
         return data || []
     },
 
-    // Quotes
+    // Quotes - DEPRECATED: Use API routes instead for auth-required operations
     async createQuote(quoteData: Database['public']['Tables']['quotations']['Insert']) {
-        if (!supabase) throw new Error('Database not configured')
-
-        const { data, error } = await supabase
-            .from('quotations')
-            .insert(quoteData as any)
-            .select()
-            .single()
-
-        if (error) throw error
-        return data
+        // CRITICAL: Database writes should go through API routes, not client-side
+        // This function is kept for backward compatibility but should NOT be used
+        console.warn('[db.createQuote] DEPRECATED: Use /api/quotations/save instead')
+        throw new Error('Client-side database writes are disabled. Use API routes instead.')
     },
 
-    // Contact inquiries
+    // Contact inquiries - DEPRECATED: Use API routes instead
     async createInquiry(inquiryData: Database['public']['Tables']['inquiries']['Insert']) {
-        if (!supabase) throw new Error('Database not configured')
-
-        const { data, error } = await supabase
-            .from('inquiries')
-            .insert(inquiryData as any)
-            .select()
-            .single()
-
-        if (error) throw error
-        return data
+        // CRITICAL: Database writes should go through API routes, not client-side
+        console.warn('[db.createInquiry] DEPRECATED: Use /api/contact instead')
+        throw new Error('Client-side database writes are disabled. Use API routes instead.')
     },
 
-    // Sample requests
+    // Sample requests - DEPRECATED: Use API routes instead
     async createSampleRequest(sampleData: Database['public']['Tables']['sample_requests']['Insert']) {
-        if (!supabase) throw new Error('Database not configured')
-
-        const { data, error } = await supabase
-            .from('sample_requests')
-            .insert(sampleData as any)
-            .select()
-            .single()
-
-        if (error) throw error
-        return data
+        // CRITICAL: Database writes should go through API routes, not client-side
+        console.warn('[db.createSampleRequest] DEPRECATED: Use /api/samples/request instead')
+        throw new Error('Client-side database writes are disabled. Use API routes instead.')
     }
 }
 
@@ -147,15 +162,11 @@ export interface Profile {
 export const auth = {
     /**
      * Get current user profile
+     * NOTE: This should only be called from server-side code. Use /api/auth/session for client-side.
      */
     async getProfile(userId: string): Promise<Profile | null> {
-        if (!supabase) {
-            console.warn('[getProfile] Supabase client not initialized');
-            return null;
-        }
-
-        // DEV MODE: Skip database query for mock users
-        if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+        // DEV MODE: Skip database query for mock users (SECURE: server-side only)
+        if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
             // Check if this is a mock user ID (starts with 'dev-user-')
             if (userId.startsWith('dev-user-') || userId.startsWith('dev-admin-')) {
                 console.log('[getProfile] Dev mode: Skipping database query for mock user:', userId);
@@ -163,8 +174,10 @@ export const auth = {
             }
         }
 
-        const sb = supabase as any;
-        const { data, error } = await sb
+        // Use service client for server-side profile queries
+        const serviceClient = createServiceClient();
+
+        const { data, error } = await serviceClient
             .from('profiles')
             .select('*')
             .eq('id', userId)
@@ -209,11 +222,11 @@ export const auth = {
      * Update last login timestamp
      */
     async updateLastLogin(userId: string): Promise<void> {
-        if (!supabase) return;
+        const serviceClient = createServiceClient();
 
-        const sb = supabase as any;
-        await sb
+        await serviceClient
             .from('profiles')
+            // @ts-ignore - Supabase update type inference issue
             .update({ last_login_at: new Date().toISOString() })
             .eq('id', userId);
     },
@@ -222,10 +235,23 @@ export const auth = {
      * Update user profile fields (user-accessible fields only)
      */
     async updateProfile(userId: string, updates: Partial<Omit<Profile, 'id' | 'email' | 'role' | 'status' | 'created_at' | 'updated_at' | 'last_login_at' | 'kanji_last_name' | 'kanji_first_name' | 'kana_last_name' | 'kana_first_name' | 'business_type' | 'product_category'>>) {
-        if (!supabase) throw new Error('Database not configured');
+        const serviceClient = createServiceClient();
 
-        // Convert camelCase to snake_case
-        const dbUpdates: Record<string, any> = {};
+        // Convert camelCase to snake_case - use indexed type for dynamic keys
+        type ProfileUpdate = {
+            corporate_phone?: string | null;
+            personal_phone?: string | null;
+            company_name?: string | null;
+            position?: string | null;
+            department?: string | null;
+            company_url?: string | null;
+            acquisition_channel?: string | null;
+            postal_code?: string | null;
+            prefecture?: string | null;
+            city?: string | null;
+            street?: string | null;
+        };
+        const dbUpdates: ProfileUpdate = {};
         if (updates.corporate_phone !== undefined) dbUpdates.corporate_phone = updates.corporate_phone;
         if (updates.personal_phone !== undefined) dbUpdates.personal_phone = updates.personal_phone;
         if (updates.company_name !== undefined) dbUpdates.company_name = updates.company_name;
@@ -238,9 +264,9 @@ export const auth = {
         if (updates.city !== undefined) dbUpdates.city = updates.city;
         if (updates.street !== undefined) dbUpdates.street = updates.street;
 
-        const sb = supabase as any;
-        const { data, error } = await sb
+        const { data, error } = await serviceClient
             .from('profiles')
+            // @ts-ignore - Supabase update type inference issue
             .update(dbUpdates)
             .eq('id', userId)
             .select()
@@ -254,9 +280,9 @@ export const auth = {
      * Get all users (admin only)
      */
     async getAllUsers(filters?: { status?: Profile['status']; role?: Profile['role'] }): Promise<Profile[]> {
-        if (!supabase) return [];
+        const serviceClient = createServiceClient();
 
-        let query = supabase
+        let query = serviceClient
             .from('profiles')
             .select('*')
             .order('created_at', { ascending: false });
@@ -282,10 +308,11 @@ export const auth = {
      * Update user status (admin only)
      */
     async updateUserStatus(userId: string, status: Profile['status']): Promise<Profile | null> {
-        const serviceClient = createServiceClient() as any;
+        const serviceClient = createServiceClient();
 
         const { data, error } = await serviceClient
             .from('profiles')
+            // @ts-ignore - Supabase update type inference issue
             .update({ status })
             .eq('id', userId)
             .select()
@@ -303,10 +330,11 @@ export const auth = {
      * Update user role (admin only)
      */
     async updateUserRole(userId: string, role: Profile['role']): Promise<Profile | null> {
-        const serviceClient = createServiceClient() as any;
+        const serviceClient = createServiceClient();
 
         const { data, error } = await serviceClient
             .from('profiles')
+            // @ts-ignore - Supabase update type inference issue
             .update({ role })
             .eq('id', userId)
             .select()
@@ -342,9 +370,13 @@ export const getUserEmail = async (userId: string): Promise<string | null> => {
 };
 
 // Helper to create Supabase client with custom cookie storage (for API routes)
-export const createSupabaseWithCookies = async (cookieStore: any) => {
-    // DEV_MODE: Create a mock client for testing
-    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+export const createSupabaseWithCookies = async (cookieStore: {
+    get: (key: string) => { value?: string } | undefined;
+    set: (key: string, value: string, options?: { httpOnly?: boolean; secure?: boolean; sameSite?: string; path?: string }) => void;
+    delete: (key: string) => void;
+}) => {
+    // DEV_MODE: Create a mock client for testing (SECURE: server-side only)
+    if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
         console.log('[createSupabaseWithCookies] DEV_MODE: Creating mock client');
 
         // Try to get mock user ID from cookies
@@ -378,7 +410,8 @@ export const createSupabaseWithCookies = async (cookieStore: any) => {
                         const cookie = cookieStore.get(key);
                         return cookie?.value ?? null;
                     },
-                    setItem: (key: string, value: string) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    setItem: (key: string, _value: string) => {
                         // In DEV_MODE, don't actually set cookies on server
                         console.log('[createSupabaseWithCookies] DEV_MODE: Skipping cookie set on server:', key);
                     },

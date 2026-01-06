@@ -372,7 +372,7 @@ export function QuoteWizard({ onQuoteComplete, initialData = [] }: QuoteWizardPr
             disabled={isLoading}
             className="flex items-center space-x-2"
           >
-            <span>{currentStep === steps.length - 1 ? '見積を送信' : '次へ'}</span>
+            <span>次へ</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

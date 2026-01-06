@@ -1,11 +1,18 @@
 import { Metadata } from 'next'
 import { Ruler, Package, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
   description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定、一般的なパッケージサイズについて詳しく説明します。',
-  keywords: ['サイズ', '寸法', '展開図', 'パッケージサイズ', '製造仕様', 'パッケージ設計', '寸法指定'],
+  keywords: [
+    'サイズ', '寸法', '展開図', 'パッケージサイズ', '製造仕様', 'パッケージ設計', '寸法指定',
+    // 롱테일 키워드 추가
+    'スタンドパウチ 寸法 計算', '三方シール袋 サイズ', 'マチ 有るパウチ 寸法', 'パッケージ 容量 計算',
+    '展開図 作成 ソフト', 'パッケージ寸法 決め方', '袋 寸法 見本', 'パウチ サイズ 規積',
+    '包装袋 寸法 規積表', 'パッケージ 厚み 計算', '袋 マチ 幅 計算'
+  ],
   openGraph: {
     title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
     description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定について詳しく説明します。',
@@ -35,8 +42,45 @@ export const metadata: Metadata = {
 }
 
 export default function SizeGuide() {
+  // HowTo 스키마 데이터
+  const sizeHowToData = {
+    name: 'パッケージサイズの決定方法',
+    description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定について詳しく説明します。',
+    image: 'https://epackage-lab.com/images/guide/size-howto.jpg',
+    supplies: [
+      '内容物のサンプル',
+      '定規やメジャー',
+      '展開図用紙',
+      '製造仕様書'
+    ],
+    steps: [
+      {
+        name: '内容物を実際に測定',
+        text: '最も大きな寸法で、内容物の体積を考慮して測定します。'
+      },
+      {
+        name: '余裕率を考慮してサイズ決定',
+        text: '内容物の体積の120-150%のサイズを確保します。これにより開封性と輸送時の安全性が確保されます。'
+      },
+      {
+        name: 'パッケージタイプを選択',
+        text: '三方シール袋、スタンドパウチ、BOX型パウチなどから用途に合わせて選択します。'
+      },
+      {
+        name: '展開図を作成',
+        text: 'シール幅は10-15mm、トリムマージンは3-5mmを確保し、折り曲げ部にはR1.5以上の半径を設けます。'
+      },
+      {
+        name: '製造可能範囲を確認',
+        text: '各パッケージタイプの最小・最大寸法を確認し、製造可能な範囲内であることを確認します。'
+      }
+    ]
+  }
+
   return (
-    <div className="prose prose-gray max-w-none">
+    <>
+      <HowToSchema {...sizeHowToData} />
+      <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
           <Ruler className="h-8 w-8" />
@@ -287,5 +331,6 @@ export default function SizeGuide() {
         </div>
       </section>
     </div>
+    </>
   )
 }

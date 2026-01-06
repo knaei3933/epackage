@@ -3,13 +3,26 @@
  * Optimized for Japanese B2B mobile experience
  */
 
+interface NavigatorWithMS extends Navigator {
+  msMaxTouchPoints?: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 // Touch detection
 export const isTouchDevice = () => {
   if (typeof window === 'undefined') return false;
+  const navigatorWithMS = navigator as NavigatorWithMS;
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
-    (navigator as any).msMaxTouchPoints > 0
+    (navigatorWithMS.msMaxTouchPoints ?? 0) > 0
   );
 };
 
@@ -220,8 +233,9 @@ export const startMobilePerformanceMonitoring = () => {
   // Monitor memory usage
   if ('memory' in performance) {
     setInterval(() => {
-      const memory = (performance as any).memory;
-      if (memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB threshold
+      const performanceWithMemory = performance as PerformanceWithMemory;
+      const memory = performanceWithMemory.memory;
+      if (memory && memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB threshold
         console.warn('High memory usage detected:', memory.usedJSHeapSize);
       }
     }, 30000); // Check every 30 seconds

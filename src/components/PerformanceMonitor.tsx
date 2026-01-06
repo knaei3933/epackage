@@ -9,6 +9,16 @@ interface PerformanceMetrics {
   ttfb: number | null
 }
 
+interface PerformanceEventTimingEntry extends PerformanceEntry {
+  processingStart: number
+  startTime: number
+}
+
+interface LayoutShiftEntry extends PerformanceEntry {
+  value: number
+  hadRecentInput: boolean
+}
+
 export function PerformanceMonitor() {
   useEffect(() => {
     // Core Web Vitals monitoring
@@ -27,13 +37,13 @@ export function PerformanceMonitor() {
         }
 
         if (entry.entryType === 'first-input') {
-          const firstInput = entry as any
+          const firstInput = entry as PerformanceEventTimingEntry
           metrics.fid = firstInput.processingStart - firstInput.startTime
           console.log(`FID: ${metrics.fid.toFixed(2)}ms`)
         }
 
         if (entry.entryType === 'layout-shift') {
-          const layoutShiftEntry = entry as any
+          const layoutShiftEntry = entry as LayoutShiftEntry
           if (!layoutShiftEntry.hadRecentInput) {
             metrics.cls = (metrics.cls || 0) + layoutShiftEntry.value
             console.log(`CLS: ${(metrics.cls || 0).toFixed(3)}`)

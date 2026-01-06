@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前金契約書 - 金井貿易株式会社</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "MS Mincho", "Yu Mincho", "Hiragino Mincho ProN", serif;
+            font-size: 10.5pt;
+            line-height: 1.6;
+            color: #000;
+            margin: 0;
+            padding: 15mm;
+            background: #fff;
+        }
+
+        .document {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: #fefefe;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #333;
+            padding-bottom: 20px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 20pt;
+            margin: 0 0 5px 0;
+            letter-spacing: 4px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .header .subtitle {
+            font-size: 9pt;
+            color: #666;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .contract-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            font-size: 10pt;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .meta-left,
+        .meta-right {
+            flex: 1;
+        }
+
+        .meta-right {
+            text-align: right;
+        }
+
+        .party-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .party {
+            flex: 1;
+            border: 2px solid #333;
+            padding: 15px;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .party::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: #333;
+            color: #fff;
+            font-size: 9pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .party h3 {
+            margin: 25px 0 10px 0;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .party p {
+            margin: 3px 0;
+            font-size: 9.5pt;
+            line-height: 1.5;
+        }
+
+        .party .name {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #000;
+            margin: 5px 0 8px 0;
+        }
+
+        .preamble {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-left: 5px solid #333;
+            font-size: 10.5pt;
+            line-height: 1.8;
+        }
+
+        .article {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .article h4 {
+            font-size: 11.5pt;
+            margin: 0 0 10px 0;
+            background: #333;
+            color: #fff;
+            padding: 8px 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .article h4::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: #666;
+        }
+
+        .article ol {
+            margin: 10px 0 10px 25px;
+            padding: 0;
+        }
+
+        .article ol li {
+            margin: 6px 0;
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+
+        .article table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 10pt;
+        }
+
+        .article table th,
+        .article table td {
+            border: 1px solid #333;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .article table th {
+            background: #666;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .article table td {
+            background: #fafafa;
+        }
+
+        .signature-section {
+            display: flex;
+            gap: 40px;
+            margin-top: 50px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            flex: 1;
+            text-align: center;
+        }
+
+        .signature-box .title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #000;
+            letter-spacing: 1px;
+        }
+
+        .stamp-area {
+            margin: 20px 0;
+            height: 80px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 9pt;
+            position: relative;
+        }
+
+        .stamp-area::before {
+            content: '捺印';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #fff;
+            padding: 0 5px;
+            font-size: 8pt;
+        }
+
+        .signature-box .sign-line {
+            border-top: 2px solid #000;
+            margin: 60px 0 10px 0;
+            height: 60px;
+        }
+
+        .signature-box p {
+            margin: 5px 0;
+            font-size: 9.5pt;
+        }
+
+        .signature-box .company-info {
+            font-size: 9pt;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 2px solid #333;
+            font-size: 8pt;
+            color: #666;
+            text-align: center;
+        }
+
+        .footer-notice {
+            display: inline-block;
+            text-align: left;
+            margin: 0 0 10px 0;
+        }
+
+        .footer-notice li {
+            margin: 4px 0;
+        }
+
+        .footer .contact {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+
+        .legal-notice {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            font-size: 8.5pt;
+        }
+
+        .warning-text {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="document">
+        <div class="header">
+            <h1>前 金 契 約 書</h1>
+            <p class="subtitle">DEPOSIT AGREEMENT</p>
+        </div>
+
+        <div class="contract-meta">
+            <div class="meta-left">
+                <strong>契約番号：</strong>&nbsp;&nbsp;KT-2025-<span
+                    style="border-bottom: 1px solid #000; padding: 0 2px;">________</span>
+            </div>
+            <div class="meta-right">
+                <strong>契約日：</strong>&nbsp;&nbsp;202___年___月___日
+            </div>
+        </div>
+
+        <div class="party-section">
+            <div class="party">
+                <h3>甲（販売者）SELLER</h3>
+                <p class="name">金井貿易株式会社</p>
+                <p><strong>代表者：</strong>&nbsp;&nbsp;代表取締役&nbsp;&nbsp;金&nbsp;乾雄</p>
+                <p><strong>所在地：</strong></p>
+                <p>〒673-0846</p>
+                <p>兵庫県明石市上ノ丸2-11-21</p>
+                <p>リラフォート102号</p>
+                <p><strong>電話番号：</strong>&nbsp;&nbsp;+81-80-6942-7235</p>
+                <p><strong>Email：</strong>&nbsp;&nbsp;kim@kanei-trade.co.jp</p>
+            </div>
+
+            <div class="party">
+                <h3>乙（購入者）BUYER</h3>
+                <p class="name">_________________________ 様</p>
+                <p><strong>代表者：</strong>&nbsp;&nbsp;_____________________</p>
+                <p><strong>所在地：</strong></p>
+                <p>〒___-____</p>
+                <p>_______________________________</p>
+                <p>_______________________________</p>
+                <p><strong>電話番号：</strong>&nbsp;&nbsp;+81-___-____-____</p>
+                <p><strong>Email：</strong>&nbsp;&nbsp;_______________________</p>
+            </div>
+        </div>
+
+        <div class="preamble">
+            甲および乙（以下「甲乙」という）は、対象製品の売買に関し、以下の通り前金契約（以下「本契約」という）を締結することに合意する。本契約は、日本の法規に準拠し、誠実に履行されるものとする。
+        </div>
+
+        <div class="article">
+            <h4>第1条 対象製品</h4>
+            <p style="margin-bottom: 10px;">本契約の対象製品は、以下のとおりとする。</p>
+            <table>
+                <tr>
+                    <th style="width: 25%;">品名</th>
+                    <th style="width: 30%;">型式・仕様</th>
+                    <th style="width: 12%;">数量</th>
+                    <th style="width: 15%;">単価（円）</th>
+                    <th style="width: 18%;">金額（円）</th>
+                </tr>
+                <tr>
+                    <td>___________________________</td>
+                    <td>___________________________</td>
+                    <td>_____</td>
+                    <td>_____________</td>
+                    <td>_____________</td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align: right; padding-right: 15px; font-weight: bold;">小計（税別）</td>
+                    <td><strong>_____________</strong></td>
+                </tr>
+            </table>
+            <p style="text-align: right; margin-top: 10px;">
+                <strong style="font-size: 12pt;">販売総額：&nbsp;&nbsp;¥_____________（税別）</strong>
+            </p>
+            <p style="margin-top: 10px; font-size: 9.5pt; color: #666;">
+                ※ 消費税は別途計上するものとする。
+            </p>
+        </div>
+
+        <div class="article">
+            <h4>第2条 前金の支払</h4>
+            <ol>
+                <li>乙は、本契約第1条に定める販売総額の<strong>___％</strong>（¥_____________）を前金として、本契約締結後<strong>___日以内</strong>に支払うものとする。
+                </li>
+                <li>前金の支払方法は、以下のとおりとする。
+                    <table style="margin-top: 10px; margin-left: 20px;">
+                        <tr>
+                            <th style="width: 20%; background: #444;">項目</th>
+                            <th style="width: 80%; background: #444;">内容</th>
+                        </tr>
+                        <tr>
+                            <td>銀行名</td>
+                            <td>___________________________</td>
+                        </tr>
+                        <tr>
+                            <td>支店名</td>
+                            <td>___________________________</td>
+                        </tr>
+                        <tr>
+                            <td>口座番号</td>
+                            <td>___________________________</td>
+                        </tr>
+                        <tr>
+                            <td>口座名義</td>
+                            <td>金井貿易株式会社</td>
+                        </tr>
+                        <tr>
+                            <td>支払人名</td>
+                            <td>___________________________</td>
+                        </tr>
+                    </table>
+                </li>
+                <li>前金の支払完了後、甲は乙に受領証を交付するものとする。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第3条 前金の充当</h4>
+            <ol>
+                <li>前金は、最終代金の一部に充当するものとし、残金は製品納入時に支払われるものとする。</li>
+                <li>乙は、残金を納入検収完了後<strong>___日以内</strong>に支払うものとする。</li>
+                <li>前金は、将来の契約にも充当することができる。この場合、甲は書面にて通知するものとする。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第4条 製品の納期</h4>
+            <ol>
+                <li>甲は、前金の全額入金確認後、<strong>20___年___月___日</strong>までに対象製品を納入するものとする。</li>
+                <li>納期の変更が必要な場合、甲は納期の<strong>___週間前</strong>までに乙に書面で通知するものとする。</li>
+                <li>納期の遅延が発生した場合、甲は遅延の理由を直ちに乙に通知するものとする。</li>
+                <li>乙が特別注文をした製品の納期は、別途協議の上決定するものとする。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第5条 前金の返還</h4>
+            <p>前金の返還は、以下の場合に限り行うものとする。</p>
+            <ol>
+                <li><strong>甲の責任による納期遅延：</strong>甲の責に帰すべき事由により対象製品を納期までに納入できない場合。</li>
+                <li><strong>製品の重大な欠陥：</strong>対象製品に欠陥があり、そのため目的を達成することができない場合。</li>
+                <li><strong>契約の解除：</strong>第7条及び第8条に定める契約解除の場合。</li>
+                <li><strong>不可抗力：</strong>地震、火災、戦争等やむを得ない事由により契約を履行できなくなった場合。</li>
+            </ol>
+            <p style="margin-top: 10px;">
+                前金を返還する場合、甲は遅滞なく受領後<strong>___営業日以内</strong>に返還し、年<strong>___％</strong>の遅延損害金を併せて支払うものとする。</p>
+        </div>
+
+        <div class="article">
+            <h4>第6条 乙の解除権</h4>
+            <p>乙は、以下の場合に本契約を解除することができる。</p>
+            <ol>
+                <li>甲が前金受領後<strong>___営業日以内</strong>に製品の製造に着手しない場合。</li>
+                <li>甲の経営状態が著しく悪化し、契約の履行が困難となった場合。</li>
+                <li>甲が第10条に違反し、製品の欠陥を補修しない場合。</li>
+                <li>その他、本契約の条項に重大な違反があった場合。</li>
+            </ol>
+            <p style="margin-top: 10px;">乙が本契約を解除する場合、書面により甲に通知し、甲は受領後<strong>___営業日以内</strong>に前金を全額返還するものとする。</p>
+        </div>
+
+        <div class="article">
+            <h4>第7条 契約の解除</h4>
+            <ol>
+                <li>甲乙いずれか一方が本契約を解除する場合は、書面で相手方に通知するものとする。</li>
+                <li>解除の通知には、解除の理由及び解除の効力が発生する日を明記するものとする。</li>
+                <li>契約の解除により生じた損害は、違反した一方が負担するものとする。</li>
+                <li>本契約の解除後、両者は誠実に清算手続きを行うものとする。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第8条 残金の支払</h4>
+            <ol>
+                <li>乙は、対象製品の納入検収完了後<strong>___営業日以内</strong>に残金（¥_____________）を支払うものとする。</li>
+                <li>残金の支払遅延がある場合、乙は年<strong>___％</strong>の遅延損害金を支払うものとする。</li>
+                <li>支払遅延が<strong>___営業日以上</strong>継続した場合、甲は本契約を解除することができる。</li>
+                <li>支払方法は、前金の場合に準ずるものとする。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第9条 所有権の移転</h4>
+            <ol>
+                <li>対象製品の所有権は、残金の全額支払完了時に甲から乙に移転する。</li>
+                <li>検収前に製品に損傷等があった場合、その損害は乙の負担とする。</li>
+                <li>所有権が移転するまで、製品に関する一切の危険は甲が負担する。</li>
+                <li>乙は、所有権移転前に製品を第三者に譲渡することはできない。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第10条 品質保証</h4>
+            <ol>
+                <li>甲は、対象製品が仕様書に適合し、通常の使用条件下で<strong>___ヶ月間</strong>品質を保証する。</li>
+                <li>保証期間内に欠陥が発見された場合、甲は無償で修理、交換または返金する。</li>
+                <li>保証の対象は、材料および製造上の欠陥に限る。過失、改造または不適切な取り扱いによる損害は対象外とする。</li>
+                <li>保証期間経過後も、甲は合理的な範囲内で製品の保守・修理に協力するものとする。</li>
+                <li>製品の品質に関する紛争は、日本工業規格（JIS）または関連業界規格に準拠して解決する。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第11条 協議事項</h4>
+            <ol>
+                <li>本契約に定めのない事項については、甲乙は誠意をもって協議の上、決定するものとする。</li>
+                <li>協議によっても合意に至らない場合は、甲の本店所在地を管轄する地方裁判所を専属的合意管轄裁判所とする。</li>
+                <li>本契約の修正または変更は、書面で双方の合意があった場合にのみ有効とする。</li>
+                <li>通知は、書面により相手方の住所に送付することで効力を発する。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第12条 管轄裁判所</h4>
+            <ol>
+                <li>本契約に関して紛争が生じた場合、甲乙はまず協議によって解決を図るものとする。</li>
+                <li>協議によっても解決しない場合、本契約に係る一切の紛争は、甲の本店所在地を管轄する神戸地方裁判所を専属的合意管轄裁判所とする。</li>
+                <li>本契約の準拠法は日本法とする。</li>
+                <li>支払遅延、債務不履行、契約違反等に関する一切の請求は、前項の管轄裁判所において行うものとする。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第13条 契約の発行</h4>
+            <ol>
+                <li>本契約書は、正本を2通作成し、甲乙各1通を保有するものとする。</li>
+                <li>両者は、各々の正本を保管し、本契約の履行に努めるものとする。</li>
+                <li>本契約書の写しまたは電子データは、両者の合意があった場合にのみ証拠として有効とする。</li>
+                <li>本契約は、双方の署名捺印により効力を発する。</li>
+            </ol>
+        </div>
+
+        <div class="article">
+            <h4>第14条 雑則</h4>
+            <ol>
+                <li>本契約は、甲乙の合意に基づき締結されるものであり、いずれか一方の単方的な解約はできない。</li>
+                <li>本契約の条項の一部が無効または執行不能であった場合、他の条項の有効性には影響しない。</li>
+                <li>通知は、書面による場合に限り有効とし、郵送または電子メールによって行うものとする。</li>
+                <li>本契約に関する一切の費用は、契約当事者が各自負担する。</li>
+                <li>本契約に基づいて生じた一切の権利は、第三者に譲渡できない。ただし、甲の書面による承認があった場合はこの限りでない。</li>
+            </ol>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="title">甲（販売者）SELLER</div>
+                <div class="stamp-area">
+                    <span style="font-weight: bold;">会社捺印</span>
+                </div>
+                <div class="sign-line"></div>
+                <p style="font-weight: bold; margin-top: 10px;">代表者署名捺印</p>
+            </div>
+            <div class="signature-box">
+                <div class="title">乙（購入者）BUYER</div>
+                <div class="stamp-area">
+                    <span style="font-weight: bold;">会社捺印</span>
+                </div>
+                <div class="sign-line"></div>
+                <p style="font-weight: bold; margin-top: 10px;">代表者署名捺印</p>
+            </div>
+        </div>
+
+        <div class="signature-section" style="margin-top: 40px;">
+            <div class="signature-box">
+                <div class="company-info">
+                    <strong>金井貿易株式会社</strong><br>
+                    〒673-0846 兵庫県明石市上ノ丸2-11-21 レラフォール102号室<br>
+                    代表取締役 金 乾雄<br>
+                    電話番号: +81-80-6942-7235<br>
+                    Email: kim@kanei-trade.co.jp<br>
+                    <span style="font-size: 8pt; color: #666;">銀行口座情報は第2条を参照のこと</span>
+                </div>
+            </div>
+            <div class="signature-box">
+                <div class="company-info" style="color: #666;">
+                    乙（購入者）BUYER<br><br><br><br>
+                    <strong>会社名：</strong>_________________________<br>
+                    <strong>住所：</strong>〒___-____<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;_______________________________<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;_______________________________<br>
+                    <strong>電話番号：</strong>+81-___-____-____<br>
+                    <strong>代表者：</strong>_______________________
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div style="margin-bottom: 15px;">
+                <p><strong class="warning-text">重要注意事項：</strong></p>
+                <ul class="footer-notice">
+                    <li>本契約書は日本の法律に基づき作成され、日本語が正文とします。</li>
+                    <li>お支払いは日本円（JPY）でのお支払いとなります。</li>
+                    <li>消費税は別途申し受けます。税率変更の際は改訂いたします。</li>
+                    <li>契約内容の変更、追加、削除は必ず書面で行ってください。</li>
+                    <li>契約書の原本は安全な場所に保管してください。</li>
+                </ul>
+            </div>
+            <p class="contact">
+                <strong>金井貿易株式会社</strong>&nbsp;&nbsp;|&nbsp;&nbsp;
+                Email: kim@kanei-trade.co.jp&nbsp;&nbsp;|&nbsp;&nbsp;
+                Tel: +81-80-6942-7235
+            </p>
+
+            <div class="legal-notice">
+                <p style="margin: 0; text-align: center;">
+                    <strong>※ 契約締結前に必ず全条項をご確認ください。※</strong><br>
+                    <span style="font-size: 8pt;">This contract is governed by Japanese law. In case of disputes, Kobe
+                        District Court shall have exclusive jurisdiction.</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="no-print"
+            style="margin-top: 40px; text-align: center; padding: 20px; background: #f0f0f0; border-radius: 5px;">
+            <button onclick="window.print()"
+                style="padding: 15px 50px; font-size: 15pt; cursor: pointer; border: 2px solid #333; background: #fff; border-radius: 5px; font-weight: bold;">
+                🖨️ 印刷する (Print)
+            </button>
+            <p style="margin-top: 10px; font-size: 9pt; color: #666;">
+                ご使用の前に内容をご確認ください。<br>
+                Please review all terms before use.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
