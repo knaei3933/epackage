@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { withAdminAuth } from '@/lib/api-auth';
+import { handleApiError, ValidationError } from '@/lib/api-error-handler';
+import { uuidSchema } from '@/lib/validation-schemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,32 +11,28 @@ export const dynamic = 'force-dynamic';
 /**
  * POST handler - Send signature request for contract
  */
-export async function POST(request: NextRequest) {
+
+// ============================================================
+// Validation Schema
+// ============================================================
+
+const requestSignatureSchema = z.object({
+  contractId: uuidSchema,
+  method: z.enum(['email', 'portal']),
+  message: z.string().optional(),
+});
+
+export const POST = withAdminAuth(async (request: NextRequest, auth) => {
   try {
-    // ✅ Verify admin authentication first
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
-      return unauthorizedResponse();
-    }
-
     const body = await request.json();
-    const { contractId, method, message } = body;
+    const validationResult = requestSignatureSchema.safeParse(body);
 
-    // Validate required fields
-    if (!contractId || !method) {
-      return NextResponse.json(
-        { error: { code: 'MISSING_FIELDS', message: '必須フィールドが不足しています' } },
-        { status: 400 }
-      );
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid request data', validationResult.error.errors);
     }
 
-    // Validate method
-    if (!['email', 'portal'].includes(method)) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_METHOD', message: '無効な送信方法です' } },
-        { status: 400 }
-      );
-    }
+    const data = validationResult.data;
+    const { contractId, method, message } = data;
 
     // Get Supabase client
     const supabase = createServiceClient();
@@ -56,33 +54,19 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (contractError || !contract) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: '契約書が見つかりません' } },
-        { status: 404 }
-      );
+      throw new Error('Contract not found');
     }
 
     // Check if contract can be sent for signature
     if (!['DRAFT', 'SENT', 'EXPIRED'].includes(contract.status)) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'INVALID_STATUS',
-            message: `現在のステータスでは署名リクエストを送信できません: ${contract.status}`,
-          },
-        },
-        { status: 400 }
-      );
+      throw new Error(`Cannot send signature request for current status: ${contract.status}`);
     }
 
     const customerEmail = contract.orders?.customer_email;
 
     // Check if customer email exists for email method
     if (method === 'email' && !customerEmail) {
-      return NextResponse.json(
-        { error: { code: 'NO_EMAIL', message: '顧客のメールアドレスが登録されていません' } },
-        { status: 400 }
-      );
+      throw new Error('Customer email not registered');
     }
 
     // Generate signature token and expiration
@@ -107,10 +91,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError || !updatedContract) {
-      return NextResponse.json(
-        { error: { code: 'UPDATE_FAILED', message: '契約書の更新に失敗しました' } },
-        { status: 500 }
-      );
+      throw new Error('Failed to update contract');
     }
 
     // Create signature request log entry
@@ -151,15 +132,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Contract signature request error:', error);
-    return NextResponse.json(
-      {
-        error: {
-          code: 'REQUEST_FAILED',
-          message: error instanceof Error ? error.message : '署名リクエストの送信に失敗しました',
-        },
-      },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
+});

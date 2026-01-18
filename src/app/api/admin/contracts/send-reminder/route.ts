@@ -1,30 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createSupabaseClient } from '@/lib/supabase';
+import { withAdminAuth } from '@/lib/api-auth';
+import { handleApiError, ValidationError } from '@/lib/api-error-handler';
+import { uuidSchema } from '@/lib/validation-schemas';
 import { Resend } from 'resend';
 import type { Database } from '@/types/database';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 /**
  * POST /api/admin/contracts/send-reminder
  * 契約署名リマインダーメールを送信
  */
-export async function POST(request: NextRequest) {
+
+// ============================================================
+// Validation Schema
+// ============================================================
+
+const sendReminderSchema = z.object({
+  contractId: uuidSchema,
+  message: z.string().min(1, 'Message is required'),
+});
+
+export const POST = withAdminAuth(async (request: NextRequest, auth) => {
   try {
-    // ✅ Verify admin authentication first
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
-      return unauthorizedResponse();
-    }
-
     const body = await request.json();
-    const { contractId, message } = body;
+    const validationResult = sendReminderSchema.safeParse(body);
 
-    if (!contractId) {
-      return NextResponse.json(
-        { error: '契約IDは必須です' },
-        { status: 400 }
-      );
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid request data', validationResult.error.errors);
     }
+
+    const data = validationResult.data;
+    const { contractId, message } = data;
 
     const supabase = createSupabaseClient();
 
@@ -42,29 +49,20 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (contractError || !contract) {
-      return NextResponse.json(
-        { error: '契約が見つかりません' },
-        { status: 404 }
-      );
+      throw new Error('Contract not found');
     }
 
     // リマインダー送信可能チェック
     const contractTyped = contract as Database['public']['Tables']['contracts']['Row'] & { orders?: { customer_name: string; customer_email: string } };
     if (!['SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'].includes(contractTyped.status)) {
-      return NextResponse.json(
-        { error: 'リマインダーを送信できるステータスではありません' },
-        { status: 400 }
-      );
+      throw new Error('Contract status does not allow reminder sending');
     }
 
     // Get customer email from joined orders table
     const customerEmail = contractTyped.orders?.customer_email || '';
 
     if (!customerEmail) {
-      return NextResponse.json(
-        { error: '顧客メールアドレスが見つかりません' },
-        { status: 400 }
-      );
+      throw new Error('Customer email not found');
     }
 
     // Resend初期化
@@ -114,10 +112,7 @@ export async function POST(request: NextRequest) {
 
     if (emailResult.error) {
       console.error('メール送信エラー:', emailResult.error);
-      return NextResponse.json(
-        { error: 'メールの送信に失敗しました' },
-        { status: 500 }
-      );
+      throw new Error('Failed to send email');
     }
 
     // リマインター送信履歴を記録
@@ -141,10 +136,6 @@ export async function POST(request: NextRequest) {
       emailId: emailResult.data?.id
     });
   } catch (error) {
-    console.error('API エラー:', error);
-    return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
+});

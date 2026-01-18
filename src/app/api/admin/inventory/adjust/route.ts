@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createSupabaseClient } from '@/lib/supabase';
-import type { Database } from '@/types/database';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { withAdminAuth } from '@/lib/api-auth';
+import { handleApiError, ValidationError } from '@/lib/api-error-handler';
+import { uuidSchema } from '@/lib/validation-schemas';
 import type { Database } from '@/types/database';
 
 /**
@@ -12,24 +14,29 @@ import type { Database } from '@/types/database';
  * - Previously: check-then-update pattern (vulnerable)
  * - Now: Atomic database operation with negative check
  */
-export async function POST(request: NextRequest) {
-  try {
-    // ✅ Verify admin authentication first
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
-      return unauthorizedResponse();
-    }
 
+// ============================================================
+// Validation Schema
+// ============================================================
+
+const inventoryAdjustSchema = z.object({
+  inventoryId: uuidSchema,
+  quantity: z.number().int(),
+  reason: z.string().optional(),
+});
+
+export const POST = withAdminAuth(async (request: NextRequest, auth) => {
+  try {
     const supabase = createSupabaseClient();
     const body = await request.json();
-    const { inventoryId, quantity, reason } = body;
+    const validationResult = inventoryAdjustSchema.safeParse(body);
 
-    if (!inventoryId || quantity === undefined) {
-      return NextResponse.json(
-        { error: '在庫IDと調整数量は必須です' },
-        { status: 400 }
-      );
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid request data', validationResult.error.errors);
     }
+
+    const data = validationResult.data;
+    const { inventoryId, quantity, reason } = data;
 
     // =====================================================
     // ATOMIC INVENTORY UPDATE (Race Condition Fix)
@@ -93,7 +100,7 @@ export async function POST(request: NextRequest) {
         quantity_before: previousQuantity,
         quantity_after: newQuantity,
         reason: reason || '手動調整',
-        performed_by: user?.id,
+        performed_by: auth.userId,
         transaction_at: new Date().toISOString()
       });
 
@@ -109,10 +116,6 @@ export async function POST(request: NextRequest) {
       newQuantity: newQuantity
     });
   } catch (error) {
-    console.error('API エラー:', error);
-    return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
+});

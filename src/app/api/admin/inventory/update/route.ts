@@ -1,53 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { withAdminAuth } from '@/lib/api-auth';
+import { handleApiError, ValidationError } from '@/lib/api-error-handler';
+import { uuidSchema } from '@/lib/validation-schemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// ============================================================
+// Validation Schema
+// ============================================================
+
+const inventoryUpdateSchema = z.object({
+  inventoryId: uuidSchema,
+  productId: uuidSchema,
+  quantity: z.number().int().nonzero(),
+  transactionType: z.enum(['receipt', 'issue', 'adjustment', 'transfer', 'return', 'production_in', 'production_out']),
+  reason: z.string().optional(),
+});
+
 /**
  * POST handler - Update inventory quantity
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request: NextRequest, auth) => {
   try {
-    // ✅ Verify admin authentication first
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
-      return unauthorizedResponse();
-    }
-
     const body = await request.json();
-    const { inventoryId, productId, quantity, transactionType, reason } = body;
+    const validationResult = inventoryUpdateSchema.safeParse(body);
 
-    // Validate required fields
-    if (!inventoryId || !productId || quantity === undefined || !transactionType) {
-      return NextResponse.json(
-        { error: { code: 'MISSING_FIELDS', message: '必須フィールドが不足しています' } },
-        { status: 400 }
-      );
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid request data', validationResult.error.errors);
     }
 
-    // Validate transaction type
-    const validTransactionTypes = ['receipt', 'issue', 'adjustment', 'transfer', 'return', 'production_in', 'production_out'];
-    if (!validTransactionTypes.includes(transactionType)) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_TRANSACTION_TYPE', message: '無効な取引タイプです' } },
-        { status: 400 }
-      );
-    }
-
-    // Calculate new quantities
-    const quantityChange = parseInt(quantity.toString());
-    if (isNaN(quantityChange) || quantityChange === 0) {
-      return NextResponse.json(
-        { error: { code: 'INVALID_QUANTITY', message: '有効な数量を入力してください' } },
-        { status: 400 }
-      );
-    }
-
-    // Get Supabase client
-    const supabase = createServiceClient();
+    const data = validationResult.data;
+    const { inventoryId, productId, quantity, transactionType, reason } = data;
 
     // Get current inventory
     const { data: currentInventory, error: fetchError } = await supabase
@@ -57,15 +43,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError || !currentInventory) {
-      return NextResponse.json(
-        { error: { code: 'NOT_FOUND', message: '在庫レコードが見つかりません' } },
-        { status: 404 }
-      );
+      throw new Error('Inventory record not found');
     }
 
     // Update inventory
-    const newQuantityOnHand = Math.max(0, currentInventory.quantity_on_hand + quantityChange);
-    const newQuantityAvailable = Math.max(0, currentInventory.quantity_available + quantityChange);
+    const newQuantityOnHand = Math.max(0, currentInventory.quantity_on_hand + quantity);
+    const newQuantityAvailable = Math.max(0, currentInventory.quantity_available + quantity);
 
     const { data: updatedInventory, error: updateError } = await supabase
       .from('inventory')
@@ -79,10 +62,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError || !updatedInventory) {
-      return NextResponse.json(
-        { error: { code: 'UPDATE_FAILED', message: '在庫の更新に失敗しました' } },
-        { status: 500 }
-      );
+      throw new Error('Failed to update inventory');
     }
 
     // Create inventory transaction record
@@ -94,7 +74,7 @@ export async function POST(request: NextRequest) {
         inventory_id: inventoryId,
         product_id: productId,
         transaction_type: transactionType,
-        quantity: quantityChange,
+        quantity: quantity,
         reference_number: referenceNumber,
         notes: reason || null,
         transaction_at: new Date().toISOString(),
@@ -111,20 +91,11 @@ export async function POST(request: NextRequest) {
         inventory: updatedInventory,
         transaction: {
           type: transactionType,
-          quantity: quantityChange,
+          quantity: quantity,
         },
       },
     });
   } catch (error) {
-    console.error('Inventory update error:', error);
-    return NextResponse.json(
-      {
-        error: {
-          code: 'UPDATE_FAILED',
-          message: error instanceof Error ? error.message : '在庫更新に失敗しました',
-        },
-      },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
-}
+});

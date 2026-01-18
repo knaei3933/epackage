@@ -329,15 +329,9 @@ async function getClientIp(request: NextRequest): Promise<string> {
 // GET Handler - List Pending Members
 // ============================================================
 
-export async function GET(request: NextRequest) {
+export const GET = withAdminAuth(async (request: NextRequest, auth) => {
   const clientIp = await getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-
-  // Verify admin auth using centralized helper
-  const auth = await verifyAdminAuth(request);
-  if (!auth) {
-    return unauthorizedResponse();
-  }
 
   const supabase = createServiceClient();
 
@@ -361,10 +355,7 @@ export async function GET(request: NextRequest) {
         'failure',
         { query_error: error.message }
       );
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch pending members' } as ListPendingMembersResponse,
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch pending members');
     }
 
     // Log successful list action
@@ -384,74 +375,54 @@ export async function GET(request: NextRequest) {
       data: (members || []) as PendingMember[],
     } as ListPendingMembersResponse);
 
-  } catch (error: unknown) {
-    console.error('Pending members error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' } as ListPendingMembersResponse,
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
-}
+});
 
 // ============================================================
 // POST Handler - Approve/Reject Member
 // ============================================================
 
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request: NextRequest, auth) => {
   const clientIp = await getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-
-  // Verify admin auth using centralized helper
-  const auth = await verifyAdminAuth(request);
-  if (!auth) {
-    return unauthorizedResponse();
-  }
 
   const supabase = createServiceClient();
 
   try {
-    const body: ApprovalRequestBody = await request.json();
+    const body = await request.json();
+    const validationResult = approvalSchema.safeParse(body);
 
-    if (!body.userId || !body.action) {
-      return NextResponse.json(
-        { success: false, error: 'userId and action are required' } as ApprovalResponse,
-        { status: 400 }
-      );
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid request data', validationResult.error.errors);
     }
 
-    if (!['approve', 'reject'].includes(body.action)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid action. Must be "approve" or "reject"' } as ApprovalResponse,
-        { status: 400 }
-      );
-    }
+    const data = validationResult.data;
 
     // Get target user
     const { data: targetUser } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', body.userId)
+      .eq('id', data.userId)
       .single();
 
     if (!targetUser) {
       await logAdminAction(
         supabase,
-        body.action,
+        data.action,
         auth.userId,
-        body.userId,
+        data.userId,
         clientIp,
         userAgent,
         'failure',
         { user_not_found: true }
       );
-      return NextResponse.json(
-        { success: false, error: 'User not found' } as ApprovalResponse,
-        { status: 404 }
-      );
+      throw new Error('User not found');
     }
 
     // Process approve or reject
-    if (body.action === 'approve') {
+    if (data.action === 'approve') {
       // Update user status to ACTIVE
       const { error: updateError } = (await supabase
         .from('profiles')
@@ -459,7 +430,7 @@ export async function POST(request: NextRequest) {
           status: 'ACTIVE',
           updated_at: new Date().toISOString(),
         })
-        .eq('id', body.userId));
+        .eq('id', data.userId));
 
       if (updateError) {
         console.error('User approval error:', updateError);
@@ -467,16 +438,13 @@ export async function POST(request: NextRequest) {
           supabase,
           'approve',
           auth.userId,
-          body.userId,
+          data.userId,
           clientIp,
           userAgent,
           'failure',
           { update_error: updateError.message }
         );
-        return NextResponse.json(
-          { success: false, error: 'Failed to approve user' } as ApprovalResponse,
-          { status: 500 }
-        );
+        throw new Error('Failed to approve user');
       }
 
       // Send approval email
@@ -488,7 +456,7 @@ export async function POST(request: NextRequest) {
         supabase,
         'approve',
         auth.userId,
-        body.userId,
+        data.userId,
         clientIp,
         userAgent,
         'success',
@@ -512,7 +480,7 @@ export async function POST(request: NextRequest) {
           status: 'DELETED',
           updated_at: new Date().toISOString(),
         })
-        .eq('id', body.userId);
+        .eq('id', data.userId);
 
       if (updateError) {
         console.error('User rejection error:', updateError);
@@ -520,28 +488,25 @@ export async function POST(request: NextRequest) {
           supabase,
           'reject',
           auth.userId,
-          body.userId,
+          data.userId,
           clientIp,
           userAgent,
           'failure',
           { update_error: updateError.message }
         );
-        return NextResponse.json(
-          { success: false, error: 'Failed to reject user' } as ApprovalResponse,
-          { status: 500 }
-        );
+        throw new Error('Failed to reject user');
       }
 
       // Send rejection email
       const userName = `${targetUser.kanji_last_name} ${targetUser.kanji_first_name}`;
-      await sendRejectionEmail(targetUser.email, userName, body.reason);
+      await sendRejectionEmail(targetUser.email, userName, data.reason);
 
       // Log rejection
       await logAdminAction(
         supabase,
         'reject',
         auth.userId,
-        body.userId,
+        data.userId,
         clientIp,
         userAgent,
         'success',
@@ -549,7 +514,7 @@ export async function POST(request: NextRequest) {
           user_email: targetUser.email,
           user_type: targetUser.user_type,
           company_name: targetUser.company_name,
-          reason: body.reason,
+          reason: data.reason,
         }
       );
 
@@ -559,46 +524,36 @@ export async function POST(request: NextRequest) {
       } as ApprovalResponse);
     }
 
-  } catch (error: unknown) {
-    console.error('Approval error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' } as ApprovalResponse,
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
-}
+});
 
 // ============================================================
 // PATCH Handler - Update Member Details
 // ============================================================
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withAdminAuth(async (request: NextRequest, auth) => {
   const clientIp = await getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-
-  // Verify admin auth using centralized helper
-  const auth = await verifyAdminAuth(request);
-  if (!auth) {
-    return unauthorizedResponse();
-  }
 
   const supabase = createServiceClient();
 
   try {
-    const body: UpdateRequestBody = await request.json();
+    const body = await request.json();
+    const validationResult = updateSchema.safeParse(body);
 
-    if (!body.userId || !body.updates) {
-      return NextResponse.json(
-        { success: false, error: 'userId and updates are required' } as UpdateResponse,
-        { status: 400 }
-      );
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid request data', validationResult.error.errors);
     }
+
+    const data = validationResult.data;
 
     // Get target user first
     const { data: existingUser } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', body.userId)
+      .eq('id', data.userId)
       .single();
 
     if (!existingUser) {
@@ -606,26 +561,23 @@ export async function PATCH(request: NextRequest) {
         supabase,
         'update',
         auth.userId,
-        body.userId,
+        data.userId,
         clientIp,
         userAgent,
         'failure',
         { user_not_found: true }
       );
-      return NextResponse.json(
-        { success: false, error: 'User not found' } as UpdateResponse,
-        { status: 404 }
-      );
+      throw new Error('User not found');
     }
 
     // Update user
     const { data: updatedUser, error: updateError } = await supabase
       .from('profiles')
       .update({
-        ...body.updates,
+        ...data.updates,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', body.userId)
+      .eq('id', data.userId)
       .select()
       .single();
 
@@ -635,16 +587,13 @@ export async function PATCH(request: NextRequest) {
         supabase,
         'update',
         auth.userId,
-        body.userId,
+        data.userId,
         clientIp,
         userAgent,
         'failure',
-        { update_error: updateError.message, updates: body.updates }
+        { update_error: updateError.message, updates: data.updates }
       );
-      return NextResponse.json(
-        { success: false, error: 'Failed to update user' } as UpdateResponse,
-        { status: 500 }
-      );
+      throw new Error('Failed to update user');
     }
 
     // Log update
@@ -652,14 +601,14 @@ export async function PATCH(request: NextRequest) {
       supabase,
       'update',
       auth.userId,
-      body.userId,
+      data.userId,
       clientIp,
       userAgent,
       'success',
       {
         user_email: existingUser.email,
-        updated_fields: Object.keys(body.updates),
-        changes: body.updates,
+        updated_fields: Object.keys(data.updates),
+        changes: data.updates,
       }
     );
 
@@ -669,41 +618,33 @@ export async function PATCH(request: NextRequest) {
       data: updatedUser as PendingMember,
     } as UpdateResponse);
 
-  } catch (error: unknown) {
-    console.error('Update error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' } as UpdateResponse,
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
-}
+});
 
 // ============================================================
 // DELETE Handler - Alias for Reject (alternative to POST)
 // ============================================================
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAdminAuth(async (request: NextRequest, auth) => {
   const clientIp = await getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-
-  // Verify admin auth using centralized helper
-  const auth = await verifyAdminAuth(request);
-  if (!auth) {
-    return unauthorizedResponse();
-  }
 
   const supabase = createServiceClient();
 
   try {
     const url = new URL(request.url);
     const userId = url.searchParams.get('userId');
-    const reason = url.searchParams.get('reason') || undefined;
 
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'userId query parameter is required' } as ApprovalResponse,
-        { status: 400 }
-      );
+      throw new ValidationError('userId query parameter is required');
+    }
+
+    // Validate UUID
+    const uuidValidation = uuidSchema.safeParse(userId);
+    if (!uuidValidation.success) {
+      throw new ValidationError('Invalid userId format');
     }
 
     // Get target user
@@ -724,10 +665,7 @@ export async function DELETE(request: NextRequest) {
         'failure',
         { user_not_found: true }
       );
-      return NextResponse.json(
-        { success: false, error: 'User not found' } as ApprovalResponse,
-        { status: 404 }
-      );
+      throw new Error('User not found');
     }
 
     // Update user status to DELETED
@@ -751,14 +689,12 @@ export async function DELETE(request: NextRequest) {
         'failure',
         { update_error: updateError.message }
       );
-      return NextResponse.json(
-        { success: false, error: 'Failed to reject user' } as ApprovalResponse,
-        { status: 500 }
-      );
+      throw new Error('Failed to reject user');
     }
 
     // Send rejection email
     const userName = `${targetUser.kanji_last_name} ${targetUser.kanji_first_name}`;
+    const reason = url.searchParams.get('reason') || undefined;
     await sendRejectionEmail(targetUser.email, userName, reason);
 
     // Log rejection
@@ -783,11 +719,7 @@ export async function DELETE(request: NextRequest) {
       message: 'User rejected successfully',
     } as ApprovalResponse);
 
-  } catch (error: unknown) {
-    console.error('Delete error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' } as ApprovalResponse,
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
-}
+});
