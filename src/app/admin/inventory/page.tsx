@@ -70,7 +70,7 @@ export default function InventoryManagementPage() {
     };
   }, [supabase, mutate]);
 
-  // inventory가 배열인지 확인 (에러 응답일 경우 대비)
+  // inventoryが配列か確認（エラー応答の場合に備え）
   const inventoryArray = Array.isArray(inventory) ? inventory : [];
   const errorResponse = inventory && !Array.isArray(inventory) && 'error' in inventory
     ? (inventory as { error: string }).error

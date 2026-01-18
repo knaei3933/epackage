@@ -1,15 +1,15 @@
 /**
  * Login Form Component
  *
- * 로그인 폼 컴포넌트입니다.
+ * ログインフォームコンポーネントです。
  * - Supabase Authentication (via /api/auth/signin)
- * - React Hook Form + Zod 검증
- * - 서버 사이드 쿠키 설정
+ * - React Hook Form + Zod検証
+ * - サーバーサイドCookie設定
  */
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,11 +21,11 @@ import { loginSchema, type LoginFormData } from '@/types/auth';
 // =====================================================
 
 export interface LoginFormProps {
-  /** 제출 성공 시 콜백 */
+  /** 送信成功時コールバック */
   onSuccess?: () => void;
-  /** 제출 실패 시 콜백 */
+  /** 送信失敗時コールバック */
   onError?: (error: string) => void;
-  /** 추가 클래스명 */
+  /** 追加クラス名 */
   className?: string;
 }
 
@@ -33,7 +33,7 @@ export interface LoginFormProps {
 // Component
 // =====================================================
 
-export default function LoginForm({ onSuccess, onError, className }: LoginFormProps) {
+function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -52,7 +52,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  // React Hook Form 설정
+  // React Hook Form設定
   const {
     register,
     handleSubmit,
@@ -66,7 +66,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
     mode: 'onBlur',
   });
 
-  // 폼 제출 핸들러
+  // フォーム送信ハンドラー
   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
     setIsSubmitting(true);
     setServerError(null);
@@ -74,7 +74,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
     try {
       console.log('[LoginForm] Attempting login for:', data.email);
 
-      // API를 호출하여 로그인 (서버 사이드에서 쿠키 설정)
+      // APIを呼び出してログイン (サーバーサイドでCookie設定)
       // Note: Use trailing slash to avoid 308 redirect (next.config.ts has trailingSlash: true)
       const response = await fetch('/api/auth/signin/', {
         method: 'POST',
@@ -88,12 +88,12 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || '로그인에 실패했습니다.');
+        throw new Error(result.error || 'ログインに失敗しました。');
       }
 
       console.log('[LoginForm] Login successful:', result);
 
-      // 성공 처리
+      // 成功処理
       onSuccess?.();
 
       // Determine redirect URL based on user role from API response
@@ -118,7 +118,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
   return (
     <Card className="p-6 md:p-8">
       <form onSubmit={handleSubmit(onSubmit)} className={className}>
-        {/* 서버 에러 메시지 */}
+        {/* サーバーエラーメッセージ */}
         {serverError && (
           <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
             <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
@@ -126,7 +126,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
         )}
 
         {/* =====================================================
-            이메일
+            メールアドレス
             ===================================================== */}
         <Input
           label="メールアドレス"
@@ -161,7 +161,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
         />
 
         {/* =====================================================
-            로그인 유지 & 비밀번호 재설정
+            ログイン維持 & パスワード再設定
             ===================================================== */}
         <div className="flex items-center justify-between mb-6">
           <label className="flex items-center space-x-2 cursor-pointer">
@@ -184,7 +184,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
         </div>
 
         {/* =====================================================
-            전송 버튼
+            送信ボタン
             ===================================================== */}
         <Button
           type="submit"
@@ -197,7 +197,7 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
         </Button>
 
         {/* =====================================================
-            회원가입 링크
+            会員登録リンク
             ===================================================== */}
         <div className="text-center">
           <p className="text-sm text-text-muted">
@@ -212,5 +212,14 @@ export default function LoginForm({ onSuccess, onError, className }: LoginFormPr
         </div>
       </form>
     </Card>
+  );
+}
+
+// Suspense boundary for useSearchParams
+export default function LoginForm(props: LoginFormProps) {
+  return (
+    <Suspense fallback={<div className="animate-pulse bg-gray-200 rounded-lg h-96" />}>
+      <LoginFormContent {...props} />
+    </Suspense>
   );
 }

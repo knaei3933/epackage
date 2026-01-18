@@ -2228,7 +2228,7 @@ ${itemsList}
 // =====================================================
 
 /**
- * 한국 파트너로 데이터 전송 이메일
+ * 韓国パートナーへデータ転送メール
  */
 export interface KoreaDataTransferEmailData extends TemplateData {
   orderId: string;
@@ -2257,11 +2257,11 @@ export interface KoreaDataTransferEmailData extends TemplateData {
 }
 
 /**
- * 한국 파트너 데이터 전송 이메일 템플릿
+ * 韓国パートナーデータ転送メールテンプレート
  */
 export function getKoreaDataTransferEmail(data: KoreaDataTransferEmailData): EmailTemplate {
   const itemsList = data.items.map((item, index) => {
-    return `${index + 1}. ${item.productName} x ${item.quantity}개`;
+    return `${index + 1}. ${item.productName} x ${item.quantity}点`;
   }).join('\n');
 
   const filesList = data.files.map((file, index) => {
@@ -2272,7 +2272,7 @@ export function getKoreaDataTransferEmail(data: KoreaDataTransferEmailData): Ema
   const aiDataJson = JSON.stringify(data.aiExtractedData, null, 2);
 
   return {
-    subject: `[Epackage Japan] 데이터 전송 요청 - ${data.quotationNumber}`,
+    subject: `[Epackage Japan] データ転送依頼 - ${data.quotationNumber}`,
     text: `
 한국 파트너팀 귀하,
 
@@ -2327,7 +2327,7 @@ Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>데이터 전송 요청</title>
+  <title>データ転送依頼</title>
   <style>
     body {
       font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
@@ -2544,59 +2544,59 @@ Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
   <div class="email-container">
     <div class="header">
       <div class="header-icon">📤</div>
-      <h1>데이터 전송 요청</h1>
+      <h1>データ転送依頼</h1>
       <div class="header-subtitle">New Design Data from Japan Epackage Lab</div>
     </div>
 
     <div class="content">
       <div class="greeting">
-        한국 파트너팀 귀한,<br><br>
-        일본 Epackage Lab에서 새로운 주문 데이터를 전송합니다.
+        韓国パートナーチーム 御中,<br><br>
+        日本Epackage Labより新しい注文データを送信いたします。
       </div>
 
       <div class="info-box">
-        <h3 class="info-box-title">주문 정보</h3>
+        <h3 class="info-box-title">注文情報</h3>
         <div class="info-item">
-          <div class="info-label">주문번호</div>
+          <div class="info-label">注文番号</div>
           <div class="info-value"><code>${sanitizeContent(data.orderId)}</code></div>
         </div>
         <div class="info-item">
-          <div class="info-label">견적번호</div>
+          <div class="info-label">見積番号</div>
           <div class="info-value"><code>${sanitizeContent(data.quotationNumber)}</code></div>
         </div>
         <div class="info-item">
-          <div class="info-label">고객명</div>
+          <div class="info-label">顧客名</div>
           <div class="info-value">
             ${sanitizeContent(data.customerName)}
             ${data.customerCompany ? `(${sanitizeContent(data.customerCompany)})` : ''}
           </div>
         </div>
         <div class="info-item">
-          <div class="info-label">긴급도</div>
+          <div class="info-label">緊急度</div>
           <div class="info-value">
-            ${data.urgency === 'urgent' ? '<span class="urgency-badge urgency-urgent">긴급</span>' :
-              data.urgency === 'expedited' ? '<span class="urgency-badge urgency-expedited">우선</span>' :
-              '<span class="urgency-badge urgency-normal">일반</span>'}
+            ${data.urgency === 'urgent' ? '<span class="urgency-badge urgency-urgent">緊急</span>' :
+              data.urgency === 'expedited' ? '<span class="urgency-badge urgency-expedited">優先</span>' :
+              '<span class="urgency-badge urgency-normal">通常</span>'}
           </div>
         </div>
       </div>
 
       <div class="items-list">
-        <h4 style="margin-top: 0; color: #78350f; font-size: 16px;">📦 제품 목록</h4>
+        <h4 style="margin-top: 0; color: #78350f; font-size: 16px;">📦 製品リスト</h4>
         ${data.items.map((item, index) => `
         <div class="item-row">
-          <strong>${index + 1}. ${sanitizeContent(item.productName)}</strong> × ${item.quantity}개
+          <strong>${index + 1}. ${sanitizeContent(item.productName)}</strong> × ${item.quantity}点
         </div>
         `).join('')}
       </div>
 
       <div class="ai-data-box">
-        <h4 class="ai-data-title">🤖 AI 추출 데이터</h4>
+        <h4 class="ai-data-title">🤖 AI抽出データ</h4>
         <div class="ai-data-content">${sanitizeContent(aiDataJson)}</div>
       </div>
 
       <div class="files-list">
-        <h4 class="files-title">📎 첨부 파일</h4>
+        <h4 class="files-title">📎 添付ファイル</h4>
         ${data.files.map((file) => {
           const sizeMB = (file.fileSize / (1024 * 1024)).toFixed(2);
           return `
@@ -2610,41 +2610,41 @@ Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
 
       ${data.notes ? `
       <div class="info-box">
-        <h3 class="info-box-title">비고</h3>
+        <h3 class="info-box-title">備考</h3>
         <div style="white-space: pre-wrap; line-height: 1.8;">${sanitizeContent(data.notes)}</div>
       </div>
       ` : ''}
 
       <div class="steps-box">
-        <h4 class="steps-title">다음 단계</h4>
+        <h4 class="steps-title">次のステップ</h4>
         <div class="step-item">
           <div class="step-number">1</div>
-          <div class="step-content">첨부된 AI 파일과 참조 이미지를 검토합니다</div>
+          <div class="step-content">添付されたAIファイルと参照画像を確認します</div>
         </div>
         <div class="step-item">
           <div class="step-number">2</div>
-          <div class="step-content">AI 추출 데이터를 확인합니다</div>
+          <div class="step-content">AI抽出データを確認します</div>
         </div>
         <div class="step-item">
           <div class="step-number">3</div>
-          <div class="step-content">생산 가능 여부와 일정을 회신합니다</div>
+          <div class="step-content">生産可能かどうかとスケジュールをご返信いたします</div>
         </div>
         <div class="step-item">
           <div class="step-number">4</div>
-          <div class="step-content">필요한 경우 추가 정보를 요청합니다</div>
+          <div class="step-content">必要に応じて追加情報を要求いたします</div>
         </div>
       </div>
     </div>
 
     <div class="footer">
       <p style="margin: 10px 0;">
-        문의사항이 있으시면 언제든 연락주십시오.<br>
+        ご不明な点がございましたら、いつでもご連絡ください。<br>
         <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}" class="contact-link">
           ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
         </a>
       </p>
       <p style="margin: 20px 0 0 0; font-size: 12px; color: #999;">
-        ※ 이 이메일은 시스템에 의해 자동으로 전송되었습니다.
+        ※このメールはシステムにより自動送信されました。
       </p>
     </div>
   </div>
@@ -2659,7 +2659,7 @@ Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
 // =====================================================
 
 /**
- * 한국 파트너 수정사항 완료 알림 메일（顧客向け）
+ * 韓国パートナー修正事項完了通知メール（顧客向け）
  * Korean partner correction completed notification
  */
 export function getKoreaCorrectionNotificationEmail(data: KoreaCorrectionNotificationEmailData): EmailTemplate {
@@ -2823,7 +2823,7 @@ ${footer}
 // =====================================================
 
 /**
- * 사양서 승인 알림 이메일 (고객/관리자용)
+ * 仕様書承認通知メール（顧客/管理者用）
  * Spec sheet approval notification
  */
 export function getSpecSheetApprovalEmail(data: SpecSheetApprovalEmailData): EmailTemplate {
@@ -2831,7 +2831,7 @@ export function getSpecSheetApprovalEmail(data: SpecSheetApprovalEmailData): Ema
   const footer = getJapaneseEmailFooter();
 
   return {
-    subject: `【Epackage Lab】사양서 승인 완료 - ${data.specNumber}`,
+    subject: `【Epackage Lab】仕様書承認完了 - ${data.specNumber}`,
     text: `
 ${recipientHeader}
 
@@ -2876,7 +2876,7 @@ ${footer}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>사양서 승인 완료</title>
+  <title>仕様書承認完了</title>
 </head>
 <body style="font-family: 'Noto Sans JP', sans-serif; line-height: 1.8; color: #333; background-color: #f0fdf4; margin: 0; padding: 20px;">
   <div class="email-container" style="max-width: 700px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -2949,7 +2949,7 @@ ${footer}
 }
 
 /**
- * 사양서 반려/수정요청 알림 이메일 (관리자용)
+ * 仕様書却下/修正依頼通知メール（管理者用）
  * Spec sheet rejection notification (admin)
  */
 export function getSpecSheetRejectionEmail(data: SpecSheetRejectionEmailData): EmailTemplate {
@@ -2961,38 +2961,38 @@ export function getSpecSheetRejectionEmail(data: SpecSheetRejectionEmailData): E
     : 'なし';
 
   return {
-    subject: `【Epackage Lab】사양서 수정 요청 - ${data.specNumber}`,
+    subject: `【Epackage Lab】仕様書修正依頼 - ${data.specNumber}`,
     text: `
 ${recipientHeader}
 
-사양서에 대한 수정 요청이 접수되었습니다.
+仕様書に対する修正依頼が受付されました。
 
 ================================
-요청 정보
+依頼情報
 ================================
 仕様書番号: ${data.specNumber}
 注文番号: ${data.orderNumber}
 お客様: ${data.customerName}
-요청일시: ${data.rejectedAt}
+要請日時: ${data.rejectedAt}
 
 ================================
-반려/수정 사유
+却下/修正事由
 ================================
 ${data.reason}
 
 ${data.requestedChanges && data.requestedChanges.length > 0 ? `
 ================================
-요청된 수정사항
+要求された修正事項
 ================================
 ${changesList}
 ` : ''}
 
 ================================
-조치 필요
+対応が必要
 ================================
-1. 고객의 요청사항을 검토합니다
-2. 수정된 사양서를 재작성합니다
-3. 재승인을 요청합니다
+1. 顧客の要求事項を確認します
+2. 修正された仕様書を再作成します
+3. 再承認を要求いたします
 
 ${footer}
     `.trim(),
@@ -3002,7 +3002,7 @@ ${footer}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>사양서 수정 요청</title>
+  <title>仕様書修正依頼</title>
 </head>
 <body style="font-family: 'Noto Sans JP', sans-serif; line-height: 1.8; color: #333; background-color: #fef2f2; margin: 0; padding: 20px;">
   <div class="email-container" style="max-width: 700px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">

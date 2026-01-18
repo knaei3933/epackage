@@ -1,8 +1,9 @@
 /**
- * Order Confirmation API (Member Portal)
+ * Order Confirmation API (Unified B2B + Member)
  *
  * Task 110: Order Confirmation Flow
  * - POST: Convert an APPROVED quotation to an order
+ * - GET: Check if quotation can be confirmed
  *
  * Process:
  * 1. Receive quotation_id
@@ -16,6 +17,7 @@
  * Database Operations:
  * - Uses Supabase client for all DB operations
  * - Transaction-safe: order creation + items copy
+ * - Supports both B2B (company_id) and Member (user_id) patterns
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -331,13 +333,127 @@ export async function POST(request: NextRequest) {
 }
 
 /**
+ * GET /api/member/orders/confirm
+ * Check if quotation can be confirmed (converted to order)
+ *
+ * Query Parameters:
+ * - quotationId: The quotation ID to check
+ *
+ * Response:
+ * {
+ *   "canConfirm": boolean,
+ *   "order": { ... } | null,
+ *   "message": string
+ * }
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const quotationId = searchParams.get('quotationId');
+
+    if (!quotationId) {
+      return NextResponse.json(
+        { error: '見積IDは必須です', errorEn: 'quotationId is required' },
+        { status: 400 }
+      );
+    }
+
+    // Authenticate user
+    const cookieStore = await cookies();
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: {
+          getItem: (key: string) => {
+            const cookie = cookieStore.get(key);
+            return cookie?.value ?? null;
+          },
+          setItem: (key: string, value: string) => {
+            cookieStore.set(key, value, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+            });
+          },
+          removeItem: (key: string) => {
+            cookieStore.delete(key);
+          },
+        },
+      },
+    });
+
+    // Check for DEV_MODE header from middleware
+    const devModeUserId = request.headers.get('x-user-id');
+    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+
+    let userId: string;
+
+    if (isDevMode && devModeUserId) {
+      // DEV_MODE: Use header from middleware
+      console.log('[Order Confirm API GET] DEV_MODE: Using x-user-id header:', devModeUserId);
+      userId = devModeUserId;
+    } else {
+      // Normal auth: Use cookie-based auth
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        return NextResponse.json(
+          { error: '認証されていません', errorEn: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      userId = user.id;
+    }
+
+    // Check if quotation has been ordered
+    const { data: order } = await supabase
+      .from('orders')
+      .select('id, order_number, status, created_at')
+      .eq('quotation_id', quotationId)
+      .maybeSingle();
+
+    if (!order) {
+      return NextResponse.json(
+        {
+          canConfirm: true,
+          message: '注文可能です',
+          messageEn: 'Order can be created'
+        },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        canConfirm: false,
+        order: {
+          id: order.id,
+          orderNumber: order.order_number,
+          status: order.status,
+          createdAt: order.created_at,
+        },
+        message: 'この見積は既に注文されています',
+        messageEn: 'This quotation has already been ordered'
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[Order Confirm API GET] Error:', error);
+    return NextResponse.json(
+      { error: 'ステータスの取得に失敗しました', errorEn: 'Failed to check status' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * OPTIONS handler for CORS preflight
  */
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     },

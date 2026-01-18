@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import { supabase } from '@/lib/supabase';
 import { ContractWorkflowList } from '@/components/admin/contract-workflow/ContractWorkflowList';
@@ -28,7 +28,7 @@ export default function ContractWorkflowPage() {
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  const { data: contracts, error, mutate } = useSWR(
+  const { data: contracts, mutate } = useSWR(
     '/api/admin/contracts/workflow',
     fetcher,
     { refreshInterval: 10000 } // 10秒ごとに更新
@@ -56,23 +56,32 @@ export default function ContractWorkflowPage() {
     return () => {
       if (supabase) supabase.removeChannel(channel);
     };
-  }, [supabase, mutate]);
+  }, [mutate]);
 
-  // contracts가 배열인지 확인 (에러 응답일 경우 대비)
+  // contractsが配列か確認 (エラー応答の場合に備え)
   const contractsArray = Array.isArray(contracts) ? contracts : [];
 
   const filteredContracts = contractsArray.filter((c: Contract) =>
     filterStatus === 'all' || c.status === filterStatus
   );
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: contractsArray.length || 0,
     draft: contractsArray.filter((c: Contract) => c.status === 'DRAFT').length || 0,
     sent: contractsArray.filter((c: Contract) => c.status === 'SENT').length || 0,
     pending: contractsArray.filter((c: Contract) => ['PENDING_SIGNATURE', 'CUSTOMER_SIGNED', 'ADMIN_SIGNED'].includes(c.status)).length || 0,
     signed: contractsArray.filter((c: Contract) => c.status === 'SIGNED').length || 0,
     active: contractsArray.filter((c: Contract) => c.status === 'ACTIVE').length || 0,
-  };
+  }), [contractsArray]);
+
+  // Calculate expiring contracts safely (avoid Date.now() in render)
+  const expiringSoonCount = useMemo(() => {
+    const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    return contractsArray.filter((c: Contract) => {
+      if (!c.expiresAt || c.status === 'SIGNED' || c.status === 'ACTIVE') return false;
+      return new Date(c.expiresAt) < sevenDaysFromNow;
+    }).length || 0;
+  }, [contractsArray]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -99,10 +108,7 @@ export default function ContractWorkflowPage() {
           <StatsCard label="有効中" value={stats.active} color="blue" />
           <StatsCard
             label="期限切れリスク"
-            value={contractsArray.filter((c: Contract) => {
-              if (!c.expiresAt || c.status === 'SIGNED' || c.status === 'ACTIVE') return false;
-              return new Date(c.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-            }).length || 0}
+            value={expiringSoonCount}
             color="red"
           />
         </div>

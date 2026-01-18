@@ -1,9 +1,9 @@
 /**
  * Quotation API Route (Supabase)
  *
- * 견적 생성 및 목록 조회 API (회원 전용)
- * - POST: 새 견적 생성
- * - GET: 견적 목록 조회
+ * 見積作成および一覧取得API（会員専用）
+ * - POST: 新しい見積を作成
+ * - GET: 見積一覧を取得
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,7 +22,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabaseUrlTyped = supabaseUrl as string;
 const supabaseAnonKeyTyped = supabaseAnonKey as string;
 
-// Zod 스키마
+// Zodスキーマ
 const createQuotationSchema = z.object({
   projectName: z.string().min(1, 'プロジェクト名を入力してください。').max(200),
   productCategory: z.enum(['COSMETICS', 'CLOTHING', 'ELECTRONICS', 'KITCHEN', 'FURNITURE', 'OTHER']),
@@ -58,12 +58,12 @@ async function createSupabaseClient() {
   });
 }
 
-// POST: 새 견적 생성
+// POST: 新しい見積を作成
 export async function POST(request: NextRequest) {
   try {
     const supabase = createSupabaseClient();
 
-    // 세션 확인 (SECURE: using getUser() instead of getSession())
+    // セッション確認 (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 프로필에서 사용자 상태 확인
+    // プロフィールからユーザー状態を確認
     const { data: profile } = await supabase
       .from('profiles')
       .select('status')
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // 스키마 검증
+    // スキーマ検証
     const validationResult = createQuotationSchema.safeParse(body);
 
     if (!validationResult.success) {
@@ -104,16 +104,16 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // 견적 번호 생성 (Q + 연도 + 월 + 일 + sequential)
+    // 見積番号生成 (Q + 年 + 月 + 日 + 連番)
     const quotationNumber = `Q${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Date.now().toString(36).toUpperCase()}`;
 
-    // 가격 계산
+    // 価格計算
     const unitPrice = data.unitPrice || 0;
     const totalPrice = unitPrice * data.quantity;
-    const tax = Math.floor(totalPrice * 0.1); // 10% 소비세
+    const tax = Math.floor(totalPrice * 0.1); // 10%消費税
     const grandTotal = totalPrice + tax;
 
-    // 견적 생성 (Supabase quotations 테이블)
+    // 見積作成 (Supabase quotationsテーブル)
     const { data: quotation, error: insertError } = await supabase
       .from('quotations')
       .insert({
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       throw insertError;
     }
 
-    // 견적 항목 생성 (quotation_items 테이블)
+    // 見積項目作成 (quotation_itemsテーブル)
     const { error: itemError } = await supabase
       .from('quotation_items')
       .insert({
@@ -181,12 +181,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET: 견적 목록 조회
+// GET: 見積一覧を取得
 export async function GET(request: NextRequest) {
   try {
     const supabase = createSupabaseClient();
 
-    // 세션 확인 (SECURE: using getUser() instead of getSession())
+    // セッション確認 (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
@@ -196,14 +196,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 쿼리 파라미터
+    // クエリパラメータ
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    // 견적 목록 조회 (Supabase quotations 테이블)
+    // 見積一覧取得 (Supabase quotationsテーブル)
     let query = supabase
       .from('quotations')
       .select('*', { count: 'exact' })

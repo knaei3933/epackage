@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'MISSING_FILE_ID',
-          message: '파일 ID가 필요합니다.',
+          message: 'ファイルIDが必要です。',
         },
       }, { status: 400 });
     }
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'FILE_NOT_FOUND',
-          message: '파일을 찾을 수 없습니다.',
+          message: 'ファイルが見つかりません。',
         },
       }, { status: 404 });
     }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'NO_EXTRACTION_DATA',
-          message: '추출된 데이터가 없습니다.',
+          message: '抽出されたデータがありません。',
         },
       }, { status: 400 });
     }
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: '서버 오류가 발생했습니다.',
+        message: 'サーバーエラーが発生しました。',
       },
     }, { status: 500 });
   }

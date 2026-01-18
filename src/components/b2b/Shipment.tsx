@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 출하 처리 컴포넌트 (Shipment Component)
- * 배송 처리 및 송장 번호 입력
+ * 出荷処理コンポーネント (Shipment Component)
+ * 配送処理および送付番号入力
  */
 
 import React, { useState, useCallback } from 'react';
@@ -39,22 +39,22 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
   }>({ type: null, message: '' });
 
   const carriers = [
-    { value: 'yamato', label: '야마토 운송 (ヤマト運輸)' },
-    { value: 'sagawa', label: '사가와 급급 (佐川急便)' },
-    { value: 'jp_post', label: '우편 (ゆうパック)' },
-    { value: 'seino', label: '세이노 운수 (西濃運輸)' },
-    { value: 'fukuyama', label: '후쿠야마 운송 (福山通運)' },
-    { value: 'other', label: '기타' }
+    { value: 'yamato', label: 'ヤマト運輸' },
+    { value: 'sagawa', label: '佐川急便' },
+    { value: 'jp_post', label: 'ゆうパック' },
+    { value: 'seino', label: '西濃運輸' },
+    { value: 'fukuyama', label: '福山通運' },
+    { value: 'other', label: 'その他' }
   ];
 
   const handleShip = useCallback(async () => {
     if (!invoiceNumber) {
-      setStatus({ type: 'error', message: '송장 번호를 입력해주세요.' });
+      setStatus({ type: 'error', message: '送付番号を入力してください。' });
       return;
     }
 
     if (!carrier) {
-      setStatus({ type: 'error', message: '배송업체를 선택해주세요.' });
+      setStatus({ type: 'error', message: '配送業者を選択してください。' });
       return;
     }
 
@@ -62,7 +62,7 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
     setStatus({ type: null, message: '' });
 
     try {
-      const response = await fetch('/api/b2b/shipments', {
+      const response = await fetch('/api/member/shipments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -78,17 +78,17 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
       const result = await response.json();
 
       if (result.success) {
-        setStatus({ type: 'success', message: '출하 처리가 완료되었습니다.' });
+        setStatus({ type: 'success', message: '出荷処理が完了しました。' });
 
         if (onComplete) {
           onComplete();
         }
       } else {
-        setStatus({ type: 'error', message: result.error || '출하 처리 중 오류가 발생했습니다.' });
+        setStatus({ type: 'error', message: result.error || '出荷処理中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Shipment error:', error);
-      setStatus({ type: 'error', message: '출하 처리 중 오류가 발생했습니다.' });
+      setStatus({ type: 'error', message: '出荷処理中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -98,7 +98,7 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
         <Truck className="w-5 h-5" />
-        출하 처리
+        出荷処理
       </h2>
 
       <div className="space-y-4">
@@ -106,7 +106,7 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
         <div>
           <label className="block text-sm font-medium mb-2">
             <FileText className="w-4 h-4 inline mr-1" />
-            송장 번호 *
+            送付番号 *
           </label>
           <Input
             type="text"
@@ -120,14 +120,14 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
         <div>
           <label className="block text-sm font-medium mb-2">
             <Truck className="w-4 h-4 inline mr-1" />
-            배송업체 *
+            配送業者 *
           </label>
           <select
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             value={carrier}
             onChange={(e) => setCarrier(e.target.value)}
           >
-            <option value="">배송업체를 선택하세요</option>
+            <option value="">配送業者を選択してください</option>
             {carriers.map(c => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
@@ -136,18 +136,18 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
 
         {/* Tracking Number */}
         <div>
-          <label className="block text-sm font-medium mb-2">송장 번호 (운송장 번호)</label>
+          <label className="block text-sm font-medium mb-2">送付番号 (追跡番号)</label>
           <Input
             type="text"
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="예: 1234-5678-9012"
+            placeholder="例: 1234-5678-9012"
           />
         </div>
 
         {/* Tracking URL */}
         <div>
-          <label className="block text-sm font-medium mb-2">추적 URL</label>
+          <label className="block text-sm font-medium mb-2">追跡URL</label>
           <Input
             type="url"
             value={trackingUrl}
@@ -160,7 +160,7 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
         <div>
           <label className="block text-sm font-medium mb-2">
             <Package className="w-4 h-4 inline mr-1" />
-            출하일
+            出荷日
           </label>
           <Input
             type="date"
@@ -197,7 +197,7 @@ export default function ShipmentComponent({ orderId, onComplete }: ShipmentProps
             size="lg"
           >
             <Send className="w-4 h-4 mr-2" />
-            출하 완료
+            出荷完了
           </Button>
         </div>
       </div>

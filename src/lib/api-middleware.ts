@@ -163,11 +163,11 @@ async function verifyAuthentication(): Promise<{
       result: {
         session: {
           user: {
-            id: session.user.id,
-            email: session.user.email || '',
-            email_verified: session.user.email_confirmed_at !== null,
+            id: user.id,
+            email: user.email || '',
+            email_verified: user.email_confirmed_at !== null,
           },
-          access_token: session.access_token,
+          access_token: '', // Not available when using getUser() (secure method)
         },
         profile: profile as UserProfile,
       },

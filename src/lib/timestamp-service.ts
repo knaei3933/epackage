@@ -1,8 +1,8 @@
 /**
  * Timestamp Service for Japanese Electronic Signature Law Compliance
  *
- * 일본 전자서명법 (電子署名法) 및 e-문서법 (電子文書法) 준수를 위한
- * 타임스탬프 서비스입니다.
+ * 日本電子署名法（電子署名法）およびe-文書法（電子文書法）準拠の
+ * タイムスタンプサービスです。
  *
  * Legal References:
  * - 電子署名法 (Law No. 102 of 2000)
@@ -48,22 +48,22 @@ interface TimestampTokenDbRow {
 
 export interface TimestampToken {
   /**
-   * 타임스탬프 고유 ID
+   * タイムスタンプ一意ID
    */
   id: string;
 
   /**
-   * 타임스탬프 값 (RFC 3339 / ISO 8601)
+   * タイムスタンプ値 (RFC 3339 / ISO 8601)
    */
   timestamp: string;
 
   /**
-   * 서명 또는 문서의 해시값
+   * 署名または文書のハッシュ値
    */
   documentHash: string;
 
   /**
-   * 타임스탬프 제공자 정보
+   * タイムスタンプ提供者情報
    */
   tsaInfo: {
     name: string;
@@ -72,7 +72,7 @@ export interface TimestampToken {
   };
 
   /**
-   * 알고리즘 정보
+   * アルゴリズム情報
    */
   algorithm: {
     hashAlgorithm: 'SHA-256' | 'SHA-384' | 'SHA-512';
@@ -80,17 +80,17 @@ export interface TimestampToken {
   };
 
   /**
-   * 무결성 검증용 서명
+   * 完全性検証用署名
    */
   signature?: string;
 
   /**
-   * 검증 상태
+   * 検証ステータス
    */
   verificationStatus: 'valid' | 'invalid' | 'pending';
 
   /**
-   * 메타데이터
+   * メタデータ
    */
   metadata: {
     createdAt: string;
@@ -128,25 +128,25 @@ export interface TimestampVerificationResult {
 // =====================================================
 
 /**
- * 일본 전자서명법에 따른 타임스탬프 유효기간
- * - 기본: 3년 (상법에 따른 상업 장부 보존 기간)
- * - e-문서법: 7년 (전자 장부 보존 기간)
- * - 세법 관련: 7년 (법인세법에 따른 장부 보존 기간)
+ * 日本電子署名法に基づくタイムスタンプ有効期間
+ * - 基本期間: 3年（商法に基づく商業帳簿保存期間）
+ * - e-文書法: 7年（電子帳簿保存期間）
+ * - 税法関連: 7年（法人税法に基づく帳簿保存期間）
  */
 export const TIMESTAMP_VALIDITY_PERIODS = {
-  DEFAULT: 3 * 365 * 24 * 60 * 60 * 1000, // 3년
-  EDOC: 7 * 365 * 24 * 60 * 60 * 1000,     // 7년 (e-문서법)
-  TAX: 7 * 365 * 24 * 60 * 60 * 1000,      // 7년 (세법)
-  PERMANENT: -1,                           // 영구 보존
+  DEFAULT: 3 * 365 * 24 * 60 * 60 * 1000, // 3年
+  EDOC: 7 * 365 * 24 * 60 * 60 * 1000,     // 7年 (e-文書法)
+  TAX: 7 * 365 * 24 * 60 * 60 * 1000,      // 7年 (税法)
+  PERMANENT: -1,                           // 永久保存
 } as const;
 
 /**
- * 타임스탬프 알고리즘 (일본 JIS X 5070 표준)
+ * タイムスタンプアルゴリズム（日本JIS X 5070標準）
  */
 const DEFAULT_HASH_ALGORITHM = 'SHA-256' as const;
 
 /**
- * 타임스탬프 제공자 정보
+ * タイムスタンプ提供者情報
  */
 const TSA_INFO = {
   name: process.env.TSA_NAME || 'Epackage Lab Timestamp Authority',
@@ -159,7 +159,7 @@ const TSA_INFO = {
 // =====================================================
 
 /**
- * 문서 내용으로부터 해시값 생성
+ * 文書内容からハッシュ値生成
  */
 export async function generateDocumentHash(
   content: string | Buffer,
@@ -176,7 +176,7 @@ export async function generateDocumentHash(
 }
 
 /**
- * 파일로부터 해시값 생성
+ * ファイルからハッシュ値生成
  */
 export async function generateFileHash(
   file: File,
@@ -191,7 +191,7 @@ export async function generateFileHash(
 // =====================================================
 
 /**
- * 타임스탬프 토큰 생성
+ * タイムスタンプトークン生成
  */
 export async function createTimestampToken(
   request: TimestampRequest
@@ -199,15 +199,15 @@ export async function createTimestampToken(
   const now = new Date();
   const timestamp = now.toISOString();
 
-  // 타임스탬프 ID 생성 (UUID)
+  // タイムスタンプID生成 (UUID)
   const id = crypto.randomUUID();
 
-  // 만료일 계산 (기본 7년, e-문서법 준수)
+  // 有効期限計算（基本7年、e-文書法準拠）
   const expiresAt = new Date(
     now.getTime() + TIMESTAMP_VALIDITY_PERIODS.EDOC
   ).toISOString();
 
-  // 타임스탬프 토큰 생성
+  // タイムスタンプトークン生成
   const token: TimestampToken = {
     id,
     timestamp,
@@ -227,7 +227,7 @@ export async function createTimestampToken(
     },
   };
 
-  // 서명 생성 (무결성 보장)
+  // 署名生成（完全性保証）
   const signature = await signTimestampToken(token);
   token.signature = signature;
 
@@ -235,10 +235,10 @@ export async function createTimestampToken(
 }
 
 /**
- * 타임스탬프 토큰 서명
+ * タイムスタンプトークン署名
  */
 async function signTimestampToken(token: TimestampToken): Promise<string> {
-  // 토큰의 핵심 필드만 포함하여 서명 데이터 생성
+  // トークンの核フィールドのみを含む署名データ生成
   const signatureData = JSON.stringify({
     id: token.id,
     timestamp: token.timestamp,
@@ -249,7 +249,7 @@ async function signTimestampToken(token: TimestampToken): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(signatureData);
 
-  // HMAC-SHA256 서명 생성
+  // HMAC-SHA256署名生成
   const secretKey = process.env.TSA_SECRET_KEY || 'default-secret-key';
   const key = await crypto.subtle.importKey(
     'raw',
@@ -271,7 +271,7 @@ async function signTimestampToken(token: TimestampToken): Promise<string> {
 // =====================================================
 
 /**
- * 타임스탬프 토큰 검증
+ * タイムスタンプトークン検証
  */
 export async function verifyTimestampToken(
   token: TimestampToken,
@@ -281,52 +281,52 @@ export async function verifyTimestampToken(
   const warnings: string[] = [];
   let valid = true;
 
-  // 1. 해시값 일치 검증
+  // 1. ハッシュ値一致検証
   if (token.documentHash !== documentHash) {
-    issues.push('문서 해시값이 일치하지 않습니다. 위・변조 가능성.');
+    issues.push('文書ハッシュ値が一致しません。偽装・改ざんの可能性があります。');
     valid = false;
   }
 
-  // 2. 서명 검증
+  // 2. 署名検証
   if (token.signature) {
     const signatureValid = await verifySignature(token);
     if (!signatureValid) {
-      issues.push('타임스탬프 서명이 유효하지 않습니다.');
+      issues.push('タイムスタンプ署名が有効ではありません。');
       valid = false;
     }
   } else {
-    warnings.push('서명이 없습니다. 무결성을 보장할 수 없습니다.');
+    warnings.push('署名がありません。完全性を保証できません。');
   }
 
-  // 3. 만료일 검증
+  // 3. 有効期限検証
   if (token.metadata.expiresAt) {
     const now = new Date();
     const expiresAt = new Date(token.metadata.expiresAt);
 
     if (now > expiresAt) {
-      issues.push('타임스탬프 유효기간이 만료되었습니다.');
+      issues.push('タイムスタンプ有効期限が切れています。');
       valid = false;
     }
   }
 
-  // 4. 시간 순서 검증 (타임스탬프가 현재 시간보다 미래인지)
+  // 4. 時間順序検証（タイムスタンプが現在時刻より未来であるか）
   const timestampDate = new Date(token.timestamp);
   const now = new Date();
 
   if (timestampDate > now) {
-    issues.push('타임스탬프가 미래 시간입니다. 시스템 시간 오류 가능성.');
+    issues.push('タイムスタンプが未来の時刻です。システム時刻エラーの可能性があります。');
     valid = false;
   }
 
-  // 5. 일본 전자서명법 준수 검증
+  // 5. 日本電子署名法準拠検証
   const complianceCheck = checkJapaneseLawCompliance(token, valid);
 
   if (!complianceCheck.japanESignLaw) {
-    issues.push('일본 전자서명법 요구사항을 충족하지 않습니다.');
+    issues.push('日本電子署名法の要件を満たしていません。');
   }
 
   if (!complianceCheck.japanEDocLaw) {
-    warnings.push('e-문서법 권장사항을 충족하지 않습니다.');
+    warnings.push('e-文書法の推奨事項を満たしていません。');
   }
 
   return {
@@ -339,7 +339,7 @@ export async function verifyTimestampToken(
 }
 
 /**
- * 타임스탬프 서명 검증
+ * タイムスタンプ署名検証
  */
 async function verifySignature(token: TimestampToken): Promise<boolean> {
   if (!token.signature) return false;
@@ -364,7 +364,7 @@ async function verifySignature(token: TimestampToken): Promise<boolean> {
       ['verify']
     );
 
-    // 서명을 hex에서 Uint8Array로 변환
+    // 署名をhexからUint8Arrayに変換
     const signatureBytes = new Uint8Array(
       token.signature.match(/[\da-f]{2}/gi)!.map(h => parseInt(h, 16))
     );
@@ -381,7 +381,7 @@ async function verifySignature(token: TimestampToken): Promise<boolean> {
 // =====================================================
 
 /**
- * 일본 전자서명법 및 e-문서법 준수 검증
+ * 日本電子署名法およびe-文書法準拠検証
  */
 function checkJapaneseLawCompliance(
   token: TimestampToken,
@@ -396,65 +396,65 @@ function checkJapaneseLawCompliance(
 }
 
 /**
- * 일본 전자서명법 (電子署名法) 준수 검증
+ * 日本電子署名法（電子署名法）準拠検証
  *
- * 제4조 (전자署名의 作成等)
- * - 전자서명 작성 시각의 기록
- * - 전자서명 작성 장소의 IP 주소 기록
- * - 위조・변조 방지를 위한 무결성 확보
+ * 第4条（電子署名の作成等）
+ * - 電子署名作成時刻の記録
+ * - 電子署名作成場所のIPアドレス記録
+ * - 偽造・改ざん防止のための完全性確保
  */
 function validateESignLaw(token: TimestampToken): boolean {
-  // 1. 타임스탬프 존재
+  // 1. タイムスタンプ存在
   if (!token.timestamp) return false;
 
-  // 2. 문서 해시값 존재
+  // 2. 文書ハッシュ値存在
   if (!token.documentHash) return false;
 
-  // 3. 무결성 확보 (서명)
+  // 3. 完全性確保（署名）
   if (!token.signature) return false;
 
-  // 4. TSA 정보 존재
+  // 4. TSA情報存在
   if (!token.tsaInfo || !token.tsaInfo.name) return false;
 
-  // 5. 일본 관할권
+  // 5. 日本管轄権
   if (token.metadata.jurisdiction !== 'JP') return false;
 
   return true;
 }
 
 /**
- * 일본 e-문서법 (電子文書法) 준수 검증
+ * 日本e-文書法（電子文書法）準拠検証
  *
- * e-문서법 제3조 (전자장부의 작성 등)
- * - 작성 시각의 기록
- * - 작성자의 식별
- * - 7년간 보존
- * - 진정성 확보
+ * e-文書法第3条（電子帳簿の作成等）
+ * - 作成時刻の記録
+ * - 作成者の識別
+ * - 7年間保存
+ * - 真正性確保
  */
 function validateEDocLaw(token: TimestampToken): boolean {
-  // 1. 작성 시각 기록
+  // 1. 作成時刻記録
   if (!token.metadata.createdAt) return false;
 
-  // 2. 작성자 식별 (userId 또는 IP)
+  // 2. 作成者識別（userIdまたはIP）
   if (!token.metadata.userId && !token.metadata.ipAddress) return false;
 
-  // 3. 7년 보존 기간 (만료일 설정)
+  // 3. 7年保存期間（有効期限設定）
   if (!token.metadata.expiresAt) return false;
 
   const expiresAt = new Date(token.metadata.expiresAt);
   const createdAt = new Date(token.metadata.createdAt);
-  const preservationPeriod = 7 * 365 * 24 * 60 * 60 * 1000; // 7년
+  const preservationPeriod = 7 * 365 * 24 * 60 * 60 * 1000; // 7年
   const expectedExpiry = new Date(createdAt.getTime() + preservationPeriod);
 
-  // 만료일이 7년 이상으로 설정되어 있는지 확인
+  // 有効期限が7年以上に設定されているか確認
   if (expiresAt < expectedExpiry) {
     return false;
   }
 
-  // 4. 진정성 확보 (서명)
+  // 4. 真正性確保（署名）
   if (!token.signature) return false;
 
-  // 5. 문서 유형 분류
+  // 5. 文書タイプ分類
   if (!token.metadata.documentType) return false;
 
   return true;
@@ -465,7 +465,7 @@ function validateEDocLaw(token: TimestampToken): boolean {
 // =====================================================
 
 /**
- * 타임스탬프 저장
+ * タイムスタンプ保存
  */
 export async function saveTimestampToDatabase(
   token: TimestampToken
@@ -518,7 +518,7 @@ export async function saveTimestampToDatabase(
 }
 
 /**
- * 데이터베이스에서 타임스탬프 조회
+ * データベースからタイムスタンプ取得
  */
 export async function getTimestampFromDatabase(
   id: string
@@ -570,7 +570,7 @@ export async function getTimestampFromDatabase(
 // =====================================================
 
 /**
- * 전자서명 타임스탬프 API 핸들러
+ * 電子署名タイムスタンプAPIハンドラー
  */
 export async function handleTimestampRequest(
   request: TimestampRequest
@@ -580,20 +580,20 @@ export async function handleTimestampRequest(
   error?: string;
 }> {
   try {
-    // 1. 타임스탬프 생성
+    // 1. タイムスタンプ生成
     const token = await createTimestampToken(request);
 
-    // 2. 데이터베이스 저장
+    // 2. データベース保存
     const saveResult = await saveTimestampToDatabase(token);
 
     if (!saveResult.success) {
       return {
         success: false,
-        error: `타임스탬프 저장 실패: ${saveResult.error}`,
+        error: `タイムスタンプ保存失敗: ${saveResult.error}`,
       };
     }
 
-    // 3. 감사 로그 생성
+    // 3. 監査ログ生成
     await createAuditLog(token, request);
 
     return {
@@ -601,7 +601,7 @@ export async function handleTimestampRequest(
       token,
     };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '타임스탬프 생성 실패';
+    const errorMessage = error instanceof Error ? error.message : 'タイムスタンプ生成失敗';
     return {
       success: false,
       error: errorMessage,
@@ -610,21 +610,21 @@ export async function handleTimestampRequest(
 }
 
 /**
- * 타임스탬프 검증 API 핸들러
+ * タイムスタンプ検証APIハンドラー
  */
 export async function handleTimestampVerification(
   tokenId: string,
   documentHash: string
 ): Promise<TimestampVerificationResult & { success: boolean }> {
   try {
-    // 1. 데이터베이스에서 토큰 조회
+    // 1. データベースからトークン取得
     const { success, token, error } = await getTimestampFromDatabase(tokenId);
 
     if (!success || !token) {
       return {
         success: false,
         valid: false,
-        issues: [error || '타임스탬프를 찾을 수 없습니다.'],
+        issues: [error || 'タイムスタンプが見つかりません。'],
         warnings: [],
         complianceCheck: {
           japanESignLaw: false,
@@ -635,7 +635,7 @@ export async function handleTimestampVerification(
       };
     }
 
-    // 2. 토큰 검증
+    // 2. トークン検証
     const verification = await verifyTimestampToken(token, documentHash);
 
     return {
@@ -643,7 +643,7 @@ export async function handleTimestampVerification(
       ...verification,
     };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '검증 실패';
+    const errorMessage = error instanceof Error ? error.message : '検証失敗';
     return {
       success: false,
       valid: false,
@@ -660,7 +660,7 @@ export async function handleTimestampVerification(
 }
 
 /**
- * 감사 로그 생성
+ * 監査ログ生成
  */
 async function createAuditLog(
   token: TimestampToken,
@@ -703,7 +703,7 @@ async function createAuditLog(
       .from('audit_logs')
       .insert(auditLogData as unknown as AuditLogInsert);
   } catch (error) {
-    // 감사 로그 실패는 타임스탬프 생성 실패로 처리하지 않음
+    // 監査ログ失敗はタイムスタンプ生成失敗として処理しない
     console.error('Audit log creation failed:', error);
   }
 }
@@ -713,14 +713,14 @@ async function createAuditLog(
 // =====================================================
 
 /**
- * 타임스탬프 토큰을 JSON 형식으로 변환 (출력용)
+ * タイムスタンプトークンをJSON形式に変換（出力用）
  */
 export function formatTimestampToken(token: TimestampToken): string {
   return JSON.stringify(token, null, 2);
 }
 
 /**
- * 타임스탬프 검증 결과를 보고서 형식으로 변환
+ * タイムスタンプ検証結果をレポート形式に変換
  */
 export function formatVerificationReport(
   result: TimestampVerificationResult
@@ -728,30 +728,30 @@ export function formatVerificationReport(
   const lines: string[] = [];
 
   lines.push('='.repeat(50));
-  lines.push('타임스탬프 검증 보고서');
+  lines.push('タイムスタンプ検証レポート');
   lines.push('='.repeat(50));
   lines.push('');
 
-  lines.push(`[기본 정보]`);
-  lines.push(`  토큰 ID: ${result.token.id}`);
-  lines.push(`  타임스탬프: ${result.token.timestamp}`);
-  lines.push(`  문서 해시: ${result.token.documentHash}`);
+  lines.push(`[基本情報]`);
+  lines.push(`  トークンID: ${result.token.id}`);
+  lines.push(`  タイムスタンプ: ${result.token.timestamp}`);
+  lines.push(`  文書ハッシュ: ${result.token.documentHash}`);
   lines.push(`  TSA: ${result.token.tsaInfo.name}`);
   lines.push('');
 
-  lines.push(`[검증 결과]`);
-  lines.push(`  유효성: ${result.valid ? 'O' : 'X'}`);
-  lines.push(`  상태: ${result.token.verificationStatus}`);
+  lines.push(`[検証結果]`);
+  lines.push(`  有効性: ${result.valid ? 'O' : 'X'}`);
+  lines.push(`  ステータス: ${result.token.verificationStatus}`);
   lines.push('');
 
-  lines.push(`[일본 법규 준수]`);
-  lines.push(`  전자서명법: ${result.complianceCheck.japanESignLaw ? 'O' : 'X'}`);
-  lines.push(`  e-문서법: ${result.complianceCheck.japanEDocLaw ? 'O' : 'X'}`);
-  lines.push(`  무결성 확보: ${result.complianceCheck.integrityPreserved ? 'O' : 'X'}`);
+  lines.push(`[日本法規準拠]`);
+  lines.push(`  電子署名法: ${result.complianceCheck.japanESignLaw ? 'O' : 'X'}`);
+  lines.push(`  e-文書法: ${result.complianceCheck.japanEDocLaw ? 'O' : 'X'}`);
+  lines.push(`  完全性確保: ${result.complianceCheck.integrityPreserved ? 'O' : 'X'}`);
   lines.push('');
 
   if (result.issues.length > 0) {
-    lines.push(`[발견된 문제]`);
+    lines.push(`[検出された問題]`);
     result.issues.forEach(issue => {
       lines.push(`  - ${issue}`);
     });
@@ -759,7 +759,7 @@ export function formatVerificationReport(
   }
 
   if (result.warnings.length > 0) {
-    lines.push(`[경고]`);
+    lines.push(`[警告]`);
     result.warnings.forEach(warning => {
       lines.push(`  - ${warning}`);
     });
@@ -772,7 +772,7 @@ export function formatVerificationReport(
 }
 
 /**
- * 일본 전자서명법 요약 정보
+ * 日本電子署名法要約情報
  */
 export function getJapaneseESignLawSummary(): {
   lawName: string;
@@ -787,18 +787,18 @@ export function getJapaneseESignLawSummary(): {
     lawNumber: 'Law No. 102 of 2000',
     enactedDate: '2001-04-01',
     keyRequirements: [
-      '전자서명 작성 시각의 기록',
-      '전자서명 작성 장소의 식별 (IP 주소 등)',
-      '위조・변조 방지를 위한 무결성 확보',
-      '전자서명 작성자의 식별',
-      'TSA(타임스탬프 제공자) 정보',
+      '電子署名作成時刻の記録',
+      '電子署名作成場所の識別（IPアドレス等）',
+      '偽造・改ざん防止のための完全性確保',
+      '電子署名作成者の識別',
+      'TSA（タイムスタンプ提供者）情報',
     ],
     timestampRequirements: [
-      'UTC 기준 정확한 시각 기록',
-      'RFC 3339 또는 ISO 8601 형식',
-      'TSA에 의한 서명',
-      '검증 가능한 형식',
+      'UTC基準正確な時刻記録',
+      'RFC 3339またはISO 8601形式',
+      'TSAによる署名',
+      '検証可能な形式',
     ],
-    preservationPeriod: '7년 (e-문서법 기준), 세법 관련 문서는 7년',
+    preservationPeriod: '7年（e-文書法基準）、税法関連文書は7年',
   };
 }

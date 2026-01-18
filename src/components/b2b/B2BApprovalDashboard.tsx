@@ -1,10 +1,10 @@
 /**
  * B2B Admin Approval Dashboard
  *
- * B2B 관리자 승인 대시보드 컴포넌트입니다.
- * - PENDING 상태 회원 목록 조회
- * - 회원 승인/거부 처리
- * - 상세 정보 보기
+ * B2B管理者承認ダッシュボードコンポーネントです。
+ * - PENDING状態会員一覧表示
+ * - 会員承認/拒否処理
+ * - 詳細情報表示
  */
 
 'use client';
@@ -66,7 +66,7 @@ export default function B2BApprovalDashboard({ currentUserId }: ApprovalDashboar
     setError(null);
 
     try {
-      const response = await fetch('/api/b2b/admin/pending-users');
+      const response = await fetch('/api/admin/users/pending');
       const result = await response.json();
 
       if (!response.ok) {
@@ -87,7 +87,7 @@ export default function B2BApprovalDashboard({ currentUserId }: ApprovalDashboar
     setSuccessMessage(null);
 
     try {
-      const response = await fetch('/api/b2b/admin/approve-user', {
+      const response = await fetch('/api/admin/users/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
@@ -117,7 +117,7 @@ export default function B2BApprovalDashboard({ currentUserId }: ApprovalDashboar
     setSuccessMessage(null);
 
     try {
-      const response = await fetch('/api/b2b/admin/reject-user', {
+      const response = await fetch('/api/admin/users/reject', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, reason }),
@@ -142,9 +142,9 @@ export default function B2BApprovalDashboard({ currentUserId }: ApprovalDashboar
   const getBusinessTypeLabel = (type: string) => {
     switch (type) {
       case 'CORPORATION':
-        return '법인사업자';
+        return '法人事業者';
       case 'SOLE_PROPRIETOR':
-        return '개인사업자';
+        return '個人事業者';
       default:
         return type;
     }

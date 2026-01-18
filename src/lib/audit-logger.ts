@@ -1,11 +1,11 @@
 /**
  * Audit Logger for Electronic Signature System
  *
- * 일본 전자서명법 및 개인정보보호법 준수를 위한 감사 로그 시스템
- * - 전자서명 작성/검증 기록
- * - IP 주소 추적 로그
- * - 시스템 접근 기록
- * - 무결성 확보
+ * 日本電子署名法および個人情報保護法準拠の監査ログシステム
+ * - 電子署名作成/検証記録
+ * - IPアドレス追跡ログ
+ * - システムアクセス記録
+ * - 完全性確保
  *
  * Legal References:
  * - 日本電子署名法 (電子署名法)
@@ -58,47 +58,47 @@ export type AuditEventType =
 
 export interface AuditLogEntry {
   /**
-   * 감사 로그 고유 ID
+   * 監査ログ一意ID
    */
   id: string;
 
   /**
-   * 이벤트 발생 타임스탬프 (UTC)
+   * イベント発生タイムスタンプ (UTC)
    */
   timestamp: string;
 
   /**
-   * 이벤트 유형
+   * イベントタイプ
    */
   event_type: AuditEventType;
 
   /**
-   * 리소스 유형
+   * リソースタイプ
    */
   resource_type: 'timestamp_token' | 'signature' | 'contract' | 'user' | 'system' | 'ip_validation' | 'other';
 
   /**
-   * 리소스 ID (외래 키)
+   * リソースID (外部キー)
    */
   resource_id?: string;
 
   /**
-   * 사용자 ID
+   * ユーザーID
    */
   user_id?: string;
 
   /**
-   * 사용자 이메일 (개인정보보호법에 따라 마스킹 가능)
+   * ユーザーメール（個人情報保護法に従いマスキング可能）
    */
   user_email?: string;
 
   /**
-   * IP 주소 (검증됨)
+   * IPアドレス（検証済み）
    */
   ip_address?: string;
 
   /**
-   * IP 검증 결과
+   * IP検証結果
    */
   ip_validation?: {
     trust_level: 'trusted' | 'verified' | 'suspicious' | 'untrusted';
@@ -108,124 +108,124 @@ export interface AuditLogEntry {
   };
 
   /**
-   * 세션 ID
+   * セッションID
    */
   session_id?: string;
 
   /**
-   * 사용자 에이전트
+   * ユーザーエージェント
    */
   user_agent?: string;
 
   /**
-   * 요청 ID (추적용)
+   * リクエストID（追跡用）
    */
   request_id?: string;
 
   /**
-   * 작업 결과
+   * 操作結果
    */
   outcome: 'success' | 'failure' | 'partial';
 
   /**
-   * 상세 정보 (구조화된 데이터)
+   * 詳細情報（構造化データ）
    */
   details?: {
-    // 타임스탬프 관련
+    // タイムスタンプ関連
     timestamp_id?: string;
     document_hash?: string;
     document_type?: string;
 
-    // 서명 관련
+    // 署名関連
     signature_id?: string;
     contract_id?: string;
 
-    // 계약 관련
+    // 契約関連
     contract_number?: string;
     contract_status?: string;
 
-    // 보안 관련
+    // セキュリティ関連
     security_event?: string;
     threat_level?: 'low' | 'medium' | 'high' | 'critical';
 
-    // 기타
+    // その他
     [key: string]: any;
   };
 
   /**
-   * 오류 메시지
+   * エラーメッセージ
    */
   error_message?: string;
 
   /**
-   * 관할권 (일본: JP)
+   * 管轄権（日本: JP）
    */
   jurisdiction: 'JP' | 'OTHER';
 
   /**
-   * 데이터 보존 기간 (일)
+   * データ保存期間（日）
    */
   retention_period_days: number;
 
   /**
-   * 삭제 예정일
+   * 削除予定日
    */
   scheduled_deletion_at?: string;
 
   /**
-   * 생성일
+   * 作成日
    */
   created_at: string;
 }
 
 export interface AuditLogFilter {
   /**
-   * 이벤트 유형 필터
+   * イベントタイプフィルター
    */
   event_type?: AuditEventType[];
 
   /**
-   * 리소스 유형 필터
+   * リソースタイプフィルター
    */
   resource_type?: AuditLogEntry['resource_type'][];
 
   /**
-   * 리소스 ID 필터
+   * リソースIDフィルター
    */
   resource_id?: string;
 
   /**
-   * 사용자 ID 필터
+   * ユーザーIDフィルター
    */
   user_id?: string;
 
   /**
-   * 시작일 필터
+   * 開始日フィルター
    */
   from_date?: string;
 
   /**
-   * 종료일 필터
+   * 終了日フィルター
    */
   to_date?: string;
 
   /**
-   * 결과 필터
+   * 結果フィルター
    */
   outcome?: 'success' | 'failure' | 'partial';
 
   /**
-   * IP 주소 필터
+   * IPアドレスフィルター
    */
   ip_address?: string;
 
   /**
-   * 제한
+   * 制限
    */
   limit?: number;
 
   /**
-   * 오프셋
+   * オフセット
    */
   offset?: number;
 }
@@ -250,30 +250,30 @@ export interface AuditLogSummary {
 // =====================================================
 
 /**
- * 일본 법규에 따른 감사 로그 보존 기간
+ * 日本法規に基づく監査ログ保存期間
  */
 export const AUDIT_LOG_RETENTION_PERIODS = {
-  // 전자서명법: 7년
+  // 電子署名法: 7年
   E_SIGNATURE: 7 * 365,
 
-  // e-문서법: 7년
+  // e-文書法: 7年
   E_DOC: 7 * 365,
 
-  // 세법 관련: 7년
+  // 税法関連: 7年
   TAX: 7 * 365,
 
-  // 상법: 10년 (일부 상업 장부)
+  // 商法: 10年（一部商業帳簿）
   COMMERCIAL: 10 * 365,
 
-  // 보안 이벤트: 3년 (不正アクセス禁止法)
+  // セキュリティイベント: 3年（不正アクセス禁止法）
   SECURITY: 3 * 365,
 
-  // 기본: 1년
+  // デフォルト: 1年
   DEFAULT: 1 * 365,
 } as const;
 
 /**
- * 보안 이벤트 유형
+ * セキュリティイベントタイプ
  */
 export const SECURITY_EVENT_TYPES: AuditEventType[] = [
   'security_alert',
@@ -287,7 +287,7 @@ export const SECURITY_EVENT_TYPES: AuditEventType[] = [
 // =====================================================
 
 /**
- * 감사 로거 클래스
+ * 監査ロガークラス
  */
 export class AuditLogger {
   private supabase = createServiceClient();
@@ -299,7 +299,7 @@ export class AuditLogger {
   }
 
   /**
-   * 요청 컨텍스트 설정
+   * リクエストコンテキスト設定
    */
   setRequestContext(context: { requestId?: string; userAgent?: string }): void {
     if (context.requestId) {
@@ -311,13 +311,13 @@ export class AuditLogger {
   }
 
   /**
-   * 감사 로그 생성
+   * 監査ログ生成
    */
   async log(entry: Omit<AuditLogEntry, 'id' | 'timestamp' | 'created_at' | 'jurisdiction' | 'retention_period_days'>): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
       const now = new Date().toISOString();
 
-      // 보존 기간 결정
+      // 保存期間決定
       const retentionPeriod = this.determineRetentionPeriod(entry.event_type, entry.resource_type);
 
       const logEntry: Database['public']['Tables']['audit_logs']['Insert'] = {
@@ -358,7 +358,7 @@ export class AuditLogger {
   }
 
   /**
-   * 타임스탬프 생성 로그
+   * タイムスタンプ生成ログ
    */
   async logTimestampCreated(
     token: TimestampToken,
@@ -390,7 +390,7 @@ export class AuditLogger {
   }
 
   /**
-   * 서명 생성 로그
+   * 署名生成ログ
    */
   async logSignatureCreated(
     signatureId: string,
@@ -421,7 +421,7 @@ export class AuditLogger {
   }
 
   /**
-   * 계약 서명 로그
+   * 契約署名ログ
    */
   async logContractSigned(
     contractId: string,
@@ -451,7 +451,7 @@ export class AuditLogger {
   }
 
   /**
-   * IP 검증 로그
+   * IP検証ログ
    */
   async logIPValidation(
     validation: IPValidationResult,
@@ -483,7 +483,7 @@ export class AuditLogger {
   }
 
   /**
-   * 보안 알림 로그
+   * セキュリティアラートログ
    */
   async logSecurityAlert(
     event: string,
@@ -513,7 +513,7 @@ export class AuditLogger {
   }
 
   /**
-   * 감사 로그 조회
+   * 監査ログ取得
    */
   async query(filter: AuditLogFilter): Promise<{ success: boolean; data?: AuditLogEntry[]; error?: string }> {
     try {
@@ -521,37 +521,37 @@ export class AuditLogger {
         .from('audit_logs')
         .select('*');
 
-      // 이벤트 유형 필터
+      // イベントタイプフィルター
       if (filter.event_type && filter.event_type.length > 0) {
         query = query.in('event_type', filter.event_type);
       }
 
-      // 리소스 유형 필터
+      // リソースタイプフィルター
       if (filter.resource_type && filter.resource_type.length > 0) {
         query = query.in('resource_type', filter.resource_type);
       }
 
-      // 리소스 ID 필터
+      // リソースIDフィルター
       if (filter.resource_id) {
         query = query.eq('resource_id', filter.resource_id);
       }
 
-      // 사용자 ID 필터
+      // ユーザーIDフィルター
       if (filter.user_id) {
         query = query.eq('user_id', filter.user_id);
       }
 
-      // 결과 필터
+      // 結果フィルター
       if (filter.outcome) {
         query = query.eq('outcome', filter.outcome);
       }
 
-      // IP 주소 필터
+      // IPアドレスフィルター
       if (filter.ip_address) {
         query = query.eq('ip_address', filter.ip_address);
       }
 
-      // 날짜 범위 필터
+      // 日付範囲フィルター
       if (filter.from_date) {
         query = query.gte('timestamp', filter.from_date);
       }
@@ -559,10 +559,10 @@ export class AuditLogger {
         query = query.lte('timestamp', filter.to_date);
       }
 
-      // 정렬 (최신순)
+      // ソート（最新順）
       query = query.order('timestamp', { ascending: false });
 
-      // 제한
+      // 制限
       if (filter.limit) {
         query = query.limit(filter.limit);
       }
@@ -583,7 +583,7 @@ export class AuditLogger {
   }
 
   /**
-   * 감사 로그 요약 생성
+   * 監査ログ要約生成
    */
   async getSummary(filter?: AuditLogFilter): Promise<{ success: boolean; summary?: AuditLogSummary; error?: string }> {
     try {
@@ -625,28 +625,28 @@ export class AuditLogger {
   // =====================================================
 
   /**
-   * 이벤트 유형에 따른 보존 기간 결정
+   * イベントタイプに基づく保存期間決定
    */
   private determineRetentionPeriod(
     eventType: AuditEventType,
     resourceType: AuditLogEntry['resource_type']
   ): number {
-    // 보안 이벤트
+    // セキュリティイベント
     if (SECURITY_EVENT_TYPES.includes(eventType)) {
       return AUDIT_LOG_RETENTION_PERIODS.SECURITY;
     }
 
-    // 전자서명/계약 관련
+    // 電子署名/契約関連
     if (resourceType === 'timestamp_token' || resourceType === 'signature' || resourceType === 'contract') {
       return AUDIT_LOG_RETENTION_PERIODS.E_SIGNATURE;
     }
 
-    // 기본
+    // デフォルト
     return AUDIT_LOG_RETENTION_PERIODS.DEFAULT;
   }
 
   /**
-   * 삭제 예정일 계산
+   * 削除予定日計算
    */
   private calculateDeletionDate(retentionDays: number): string {
     const deletionDate = new Date();
@@ -655,13 +655,13 @@ export class AuditLogger {
   }
 
   /**
-   * 이메일 마스킹 (개인정보보호법 준수)
+   * メールマスキング（個人情報保護法準拠）
    */
   private maskEmail(email: string): string {
     const [local, domain] = email.split('@');
     if (!domain) return email;
 
-    // 로컬 파트의 첫 2文字와 마지막 2文字만 표시
+    // ローカルパートの最初の2文字と最後の2文字のみ表示
     const maskedLocal = local.length <= 4
       ? local.substring(0, 1) + '***'
       : local.substring(0, 2) + '***' + local.substring(local.length - 2);
@@ -677,7 +677,7 @@ export class AuditLogger {
 let defaultLogger: AuditLogger | null = null;
 
 /**
- * 기본 감사 로거 인스턴스 반환
+ * デフォルト監査ロガーインスタンス返却
  */
 export function getAuditLogger(sessionId?: string): AuditLogger {
   if (!defaultLogger) {
@@ -691,7 +691,7 @@ export function getAuditLogger(sessionId?: string): AuditLogger {
 // =====================================================
 
 /**
- * API 라우트용 감사 로그 래퍼
+ * APIルート用監査ログラッパー
  */
 export async function withAuditLog<T>(
   eventType: AuditEventType,
@@ -708,7 +708,7 @@ export async function withAuditLog<T>(
   try {
     const result = await fn();
 
-    // 감사 로그 생성
+    // 監査ログ生成
     await logger.log({
       event_type: eventType,
       resource_type: resourceType,
@@ -730,7 +730,7 @@ export async function withAuditLog<T>(
 
     return result;
   } catch (error: unknown) {
-    // 오류 발생 시 감사 로그
+    // エラー発生時監査ログ
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     await logger.log({
       event_type: 'error_occurred',
@@ -755,7 +755,7 @@ export async function withAuditLog<T>(
 // =====================================================
 
 /**
- * 일본 전자서명법 준수 보고서 생성
+ * 日本電子署名法準拠レポート生成
  */
 export async function generateComplianceReport(
   filter: AuditLogFilter
@@ -783,32 +783,32 @@ export async function generateComplianceReport(
       return { success: false, error: 'Failed to generate summary' };
     }
 
-    // 준수 검증
+    // 準拠検証
     const compliance = {
       timestampCreation: summary.by_event_type['timestamp_created'] > 0,
       ipTracking: summary.unique_ips > 0,
       integrityPreservation: summary.failure_count === 0 || summary.failure_count < summary.total_events * 0.05,
-      retentionPeriod: true, // 자동으로 설정됨
+      retentionPeriod: true, // 自動設定
       accessControl: summary.unique_users > 0,
     };
 
-    // 권장사항 생성
+    // 推奨事項生成
     const recommendations: string[] = [];
 
     if (!compliance.timestampCreation) {
-      recommendations.push('타임스탬프 생성 로그가 없습니다. 모든 전자서명에 타임스탬프를 적용해야 합니다.');
+      recommendations.push('タイムスタンプ生成ログがありません。すべての電子署名にタイムスタンプを適用する必要があります。');
     }
 
     if (!compliance.ipTracking) {
-      recommendations.push('IP 추적 기록이 부족합니다. 모든 서명 요청에 IP 검증을 구현해야 합니다.');
+      recommendations.push('IP追跡記録が不足しています。すべての署名リクエストにIP検証を実装する必要があります。');
     }
 
     if (!compliance.integrityPreservation) {
-      recommendations.push(`실패율이 높습니다 (${((summary.failure_count / summary.total_events) * 100).toFixed(1)}%). 시스템 안정성을 개선해야 합니다.`);
+      recommendations.push(`失敗率が高いです (${((summary.failure_count / summary.total_events) * 100).toFixed(1)}%)。システム安定性を改善する必要があります。`);
     }
 
     if (summary.security_alerts > 0) {
-      recommendations.push(`${summary.security_alerts}건의 보안 알림이 있습니다. 보안 정책을 검토해야 합니다.`);
+      recommendations.push(`${summary.security_alerts}件のセキュリティアラートがあります。セキュリティポリシーを検討する必要があります。`);
     }
 
     return {
@@ -829,7 +829,7 @@ export async function generateComplianceReport(
 // =====================================================
 
 /**
- * 만료된 감사 로그 삭제 (주기적 실행용)
+ * 期限切れ監査ログ削除（定期実行用）
  */
 export async function cleanupExpiredAuditLogs(): Promise<{ deleted: number; error?: string }> {
   try {
@@ -857,7 +857,7 @@ export async function cleanupExpiredAuditLogs(): Promise<{ deleted: number; erro
 // =====================================================
 
 /**
- * 감사 로그 항목을 텍스트 형식으로 변환
+ * 監査ログ項目をテキスト形式に変換
  */
 export function formatAuditLogEntry(entry: AuditLogEntry): string {
   const lines: string[] = [];
@@ -880,7 +880,7 @@ export function formatAuditLogEntry(entry: AuditLogEntry): string {
 }
 
 /**
- * 감사 로그 CSV 내보내기
+ * 監査ログCSVエクスポート
  */
 export async function exportAuditLogsToCSV(
   filter: AuditLogFilter

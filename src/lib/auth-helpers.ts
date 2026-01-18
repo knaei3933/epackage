@@ -1,21 +1,40 @@
 /**
  * Admin Authentication Helpers
  *
- * 관리자 API용 인증 검증 헬퍼 함수들
+ * 管理者API用認証検証ヘルパー関数
  * Updated to use @supabase/ssr for proper cookie handling
+ *
+ * SECURITY: Proper JWT verification with DEV_MODE support
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
 import { Database } from '@/types/database';
 
 /**
- * Admin 사용자 인증 및 권한 확인
- *
- * @param request NextRequest 객체
- * @returns 인증된 사용자 정보 또는 null
+ * Result interface for admin authentication
  */
-export async function verifyAdminAuth(request: NextRequest) {
+export interface AdminAuthResult {
+  userId: string;
+  role: 'ADMIN' | 'MEMBER';
+  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
+  isDevMode: boolean;
+}
+
+/**
+ * Adminユーザー認証及び権限確認
+ *
+ * SECURITY: This function performs proper JWT verification and admin role checking.
+ * Only returns admin user data if authenticated with valid JWT and has ADMIN role.
+ *
+ * DEV_MODE: When ENABLE_DEV_MOCK_AUTH=true and x-dev-mode=true header is present,
+ * accepts x-user-id header for testing purposes.
+ *
+ * @param request NextRequestオブジェクト
+ * @returns 認証されたユーザー情報またはnull (null if authentication fails)
+ */
+export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthResult | null> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -24,16 +43,60 @@ export async function verifyAdminAuth(request: NextRequest) {
     return null;
   }
 
-  // TEMPORARY TEST: Always return admin user
-  console.log('[verifyAdminAuth] TEMPORARY TEST: Returning mock admin');
-  return {
-    userId: 'test-admin-user',
-    role: 'ADMIN' as const,
-    status: 'ACTIVE' as const,
-    isDevMode: true,
-  };
+  // DEV MODE: Check for development mock authentication
+  const isDevModeEnabled = process.env.NODE_ENV === 'development' &&
+                           process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+  const devModeHeader = request.headers.get('x-dev-mode');
 
-  // Create SSR client with cookie support
+  if (isDevModeEnabled && devModeHeader === 'true') {
+    const devUserId = request.headers.get('x-user-id');
+    if (devUserId) {
+      console.log('[verifyAdminAuth] DEV MODE: Using mock authentication for user:', devUserId);
+
+      // Verify the dev user exists in profiles table
+      try {
+        const serviceClient = createServiceClient();
+        const { data: profile, error } = await serviceClient
+          .from('profiles')
+          .select('role, status')
+          .eq('id', devUserId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('[verifyAdminAuth] DEV MODE: Database error:', error);
+          return null;
+        }
+
+        if (!profile) {
+          console.warn('[verifyAdminAuth] DEV MODE: User not found in database:', devUserId);
+          return null;
+        }
+
+        const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
+
+        if (typedProfile.role !== 'ADMIN' || typedProfile.status !== 'ACTIVE') {
+          console.warn('[verifyAdminAuth] DEV MODE: User not admin or not active:', {
+            userId: devUserId,
+            role: typedProfile.role,
+            status: typedProfile.status,
+          });
+          return null;
+        }
+
+        return {
+          userId: devUserId,
+          role: typedProfile.role,
+          status: typedProfile.status,
+          isDevMode: true,
+        };
+      } catch (error) {
+        console.error('[verifyAdminAuth] DEV MODE: Error verifying user:', error);
+        return null;
+      }
+    }
+  }
+
+  // Create SSR client with cookie support for production JWT verification
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
@@ -48,22 +111,7 @@ export async function verifyAdminAuth(request: NextRequest) {
     },
   });
 
-  // DEV MODE: Bypass for testing
-  const isDevMode = process.env.NODE_ENV === 'development' &&
-                    process.env.ENABLE_DEV_MOCK_AUTH === 'true';
-
-  if (isDevMode) {
-    console.log('[verifyAdminAuth] DEV MODE: Using mock admin user');
-    const mockUserId = request.cookies.get('dev-mock-user-id')?.value;
-    return {
-      userId: mockUserId || 'dev-admin-user-123',
-      role: 'ADMIN' as const,
-      status: 'ACTIVE' as const,
-      isDevMode: true,
-    };
-  }
-
-  // Get user from session
+  // Get user from session using JWT verification
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -71,38 +119,45 @@ export async function verifyAdminAuth(request: NextRequest) {
     return null;
   }
 
-  // Check ADMIN role in profiles
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, status')
-    .eq('id', user.id)
-    .single();
+  // Check ADMIN role in profiles using service client (bypasses RLS for admin checks)
+  try {
+    const serviceClient = createServiceClient();
+    const { data: profile, error: profileError } = await serviceClient
+      .from('profiles')
+      .select('role, status')
+      .eq('id', user.id)
+      .maybeSingle();
 
-  if (profileError || !profile) {
-    console.log('[verifyAdminAuth] Profile not found or error:', profileError?.message);
-    return null;
-  }
+    if (profileError || !profile) {
+      console.log('[verifyAdminAuth] Profile not found or error:', profileError?.message);
+      return null;
+    }
 
-  const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
+    const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
 
-  if (typedProfile.role !== 'ADMIN' || typedProfile.status !== 'ACTIVE') {
-    console.log('[verifyAdminAuth] User not admin or not active:', {
+    if (typedProfile.role !== 'ADMIN' || typedProfile.status !== 'ACTIVE') {
+      console.log('[verifyAdminAuth] User not admin or not active:', {
+        userId: user.id,
+        role: typedProfile.role,
+        status: typedProfile.status,
+      });
+      return null;
+    }
+
+    return {
+      userId: user.id,
       role: typedProfile.role,
       status: typedProfile.status,
-    });
+      isDevMode: false,
+    };
+  } catch (error) {
+    console.error('[verifyAdminAuth] Error checking admin role:', error);
     return null;
   }
-
-  return {
-    userId: user.id,
-    role: typedProfile.role,
-    status: typedProfile.status,
-    isDevMode: false,
-  };
 }
 
 /**
- * 인증 실패 응답 생성
+ * 認証失敗応答生成
  */
 export function unauthorizedResponse() {
   return NextResponse.json(
@@ -112,7 +167,7 @@ export function unauthorizedResponse() {
 }
 
 /**
- * 권한 없음 응답 생성
+ * 権限なし応答生成
  */
 export function forbiddenResponse() {
   return NextResponse.json(

@@ -12,9 +12,8 @@
  * Access: Admin only
  */
 
-import { useEffect, useState } from 'react';
-import useSWR, { mutate } from 'swr';
-import { supabase } from '@/lib/supabase';
+import { useState } from 'react';
+import useSWR from 'swr';
 import {
   Card,
   CardContent,
@@ -150,7 +149,7 @@ export default function AdminApprovalsPage() {
       } else {
         setToast({ type: 'error', message: result.error || '承認に失敗しました' });
       }
-    } catch (error) {
+    } catch {
       setToast({ type: 'error', message: 'エラーが発生しました' });
     } finally {
       setIsProcessing(null);
@@ -181,7 +180,7 @@ export default function AdminApprovalsPage() {
       } else {
         setToast({ type: 'error', message: result.error || '拒否に失敗しました' });
       }
-    } catch (error) {
+    } catch {
       setToast({ type: 'error', message: 'エラーが発生しました' });
     } finally {
       setIsProcessing(null);

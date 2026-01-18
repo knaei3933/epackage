@@ -1,9 +1,9 @@
 /**
  * Notes API Route
  *
- * 노트 시스템 API:
- * - GET: 노트 목록 조회
- * - POST: 새 노트 생성
+ * ノートシステムAPI：
+ * - GET: ノート一覧の取得
+ * - POST: 新しいノートの作成
  *
  * Notes can be attached to:
  * - Orders (order_id)
@@ -11,9 +11,9 @@
  * - Customers (user_id)
  *
  * Security:
- * - 인증된 사용자만 접근 가능
- * - 관리자는 모든 노트 접근 가능
- * - 일반 사용자는 자신의 노트만 접근 가능
+ * - 認証されたユーザーのみアクセス可能
+ * - 管理者はすべてのノートにアクセス可能
+ * - 一般ユーザーは自分のノートのみアクセス可能
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -26,17 +26,17 @@ import { z } from 'zod';
 
 // Note schema
 const noteSchema = z.object({
-  content: z.string().min(1, '노트 내용을 입력하세요').max(5000, '노트는 최대 5000자까지 가능합니다'),
+  content: z.string().min(1, 'ノートの内容を入力してください').max(5000, 'ノートは最大5000文字まで可能です'),
   orderId: z.string().optional(),
   quoteId: z.string().optional(),
   userId: z.string().optional(),
-  isPrivate: z.boolean().default(false), // true면 관리자만 볼 수 있음
+  isPrivate: z.boolean().default(false), // trueの場合は管理者のみ閲覧可能
 });
 
 type Note = z.infer<typeof noteSchema>;
 
 // =====================================================
-// GET: List Notes
+// GET: ノート一覧の取得
 // =====================================================
 
 export async function GET(request: NextRequest) {
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
 }
 
 // =====================================================
-// POST: Create Note
+// POST: ノートの作成
 // =====================================================
 
 export async function POST(request: NextRequest) {

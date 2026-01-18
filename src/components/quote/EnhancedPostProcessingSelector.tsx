@@ -70,7 +70,7 @@ interface UserCentricCategory {
 const userCentricCategories: UserCentricCategory[] = [
   {
     id: 'opening-sealing',
-    name: '개봉/파지 기능',
+    name: '開封/密閉機能',
     nameJa: '開封/密閉機能',
     description: 'Package opening and sealing functionality',
     descriptionJa: 'パッケージの開封と密閉機能',
@@ -80,7 +80,7 @@ const userCentricCategories: UserCentricCategory[] = [
   },
   {
     id: 'surface-treatment',
-    name: '표면 처리',
+    name: '表面処理',
     nameJa: '表面処理',
     description: 'Surface treatment finishes',
     descriptionJa: '表面仕上げ処理',
@@ -90,7 +90,7 @@ const userCentricCategories: UserCentricCategory[] = [
   },
   {
     id: 'shape-structure',
-    name: '형태/구조',
+    name: '形状/構造',
     nameJa: '形状/構造',
     description: 'Shape and structural modifications',
     descriptionJa: '形状と構造の修正',
@@ -100,7 +100,7 @@ const userCentricCategories: UserCentricCategory[] = [
   },
   {
     id: 'functionality',
-    name: '기능성',
+    name: '機能性',
     nameJa: '機能性',
     description: 'Additional functional capabilities',
     descriptionJa: '追加機能性',

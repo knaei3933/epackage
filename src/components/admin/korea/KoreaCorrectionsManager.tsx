@@ -1,11 +1,11 @@
 /**
  * Korea Corrections Manager Component
  *
- * 한국 파트너 수정사항 관리 컴포넌트
- * - 수정사항 목록 표시
- * - 상태 업데이트
- * - 수정 파일 업로드
- * - 고객 알림 발송
+ * 韓国パートナー修正事項管理コンポーネント
+ * - 修正事項リスト表示
+ * - ステータス更新
+ * - 修正ファイルアップロード
+ * - 顧客通知送信
  *
  * @admin
  */
@@ -86,10 +86,10 @@ function getStatusBadge(status: KoreaCorrection['status']) {
   };
 
   const labels = {
-    pending: '대기 중',
-    in_progress: '진행 중',
-    completed: '완료',
-    rejected: '거부',
+    pending: '待機中',
+    in_progress: '進行中',
+    completed: '完了',
+    rejected: '拒否',
   };
 
   const icons = {
@@ -115,9 +115,9 @@ function getUrgencyBadge(urgency: KoreaCorrection['urgency']) {
   };
 
   const labels = {
-    normal: '일반',
-    urgent: '긴급',
-    expedited: '최우선',
+    normal: '通常',
+    urgent: '緊急',
+    expedited: '最優先',
   };
 
   return (
@@ -160,8 +160,8 @@ export function KoreaCorrectionsManager({
 
     try {
       const url = orderId
-        ? `/api/b2b/korea/corrections?orderId=${orderId}`
-        : '/api/b2b/korea/corrections';
+        ? `/api/member/korea/corrections?orderId=${orderId}`
+        : '/api/member/korea/corrections';
 
       const response = await fetch(url);
       const data = await response.json();
@@ -181,7 +181,7 @@ export function KoreaCorrectionsManager({
   // Update correction status
   const updateStatus = async (correctionId: string, status: KoreaCorrection['status']) => {
     try {
-      const response = await fetch('/api/b2b/korea/corrections', {
+      const response = await fetch('/api/member/korea/corrections', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -211,7 +211,7 @@ export function KoreaCorrectionsManager({
     Array.from(files).forEach(file => formData.append('files', file));
 
     try {
-      const response = await fetch(`/api/b2b/korea/corrections/${correctionId}/upload`, {
+      const response = await fetch(`/api/member/korea/corrections/${correctionId}/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -219,7 +219,7 @@ export function KoreaCorrectionsManager({
       const data = await response.json();
 
       if (data.success) {
-        alert(`${data.data.uploadedFiles.length}개 파일 업로드 완료`);
+        alert(`${data.data.uploadedFiles.length}個ファイルアップロード完了`);
         fetchCorrections(); // Refresh to show updated files
       } else {
         alert(data.error || 'Upload failed');
@@ -232,7 +232,7 @@ export function KoreaCorrectionsManager({
   // Notify customer
   const notifyCustomer = async (correction: KoreaCorrection) => {
     try {
-      const response = await fetch('/api/b2b/korea/corrections', {
+      const response = await fetch('/api/member/korea/corrections', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -247,7 +247,7 @@ export function KoreaCorrectionsManager({
         setCorrections(prev =>
           prev.map(c => c.id === correction.id ? { ...c, customer_notified: true } : c)
         );
-        alert('고객 알림 발송 완료');
+        alert('顧客通知送信完了');
       } else {
         alert(data.error || 'Failed to notify customer');
       }
@@ -270,7 +270,7 @@ export function KoreaCorrectionsManager({
     return (
       <div className="flex items-center justify-center py-12">
         <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
-        <span className="ml-3 text-gray-600">로딩 중...</span>
+        <span className="ml-3 text-gray-600">読み込み中...</span>
       </div>
     );
   }
@@ -281,7 +281,7 @@ export function KoreaCorrectionsManager({
         <div className="flex items-center gap-3 text-red-800">
           <AlertCircle className="w-5 h-5" />
           <div>
-            <p className="font-medium">오류 발생</p>
+            <p className="font-medium">エラー発生</p>
             <p className="text-sm">{error}</p>
           </div>
         </div>
@@ -296,10 +296,10 @@ export function KoreaCorrectionsManager({
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <FileText className="w-6 h-6" />
-            한국 파트너 수정사항 관리
+            韓国パートナー修正事項管理
           </h2>
           <p className="text-gray-500 mt-1">
-            총 {corrections.length}건의 수정사항
+            合計 {corrections.length}件の修正事項
           </p>
         </div>
         <Button
@@ -308,7 +308,7 @@ export function KoreaCorrectionsManager({
           className="gap-2"
         >
           <RefreshCw className="w-4 h-4" />
-          새로고침
+          更新
         </Button>
       </div>
 
@@ -321,11 +321,11 @@ export function KoreaCorrectionsManager({
             onChange={(e) => setFilterStatus(e.target.value)}
             className="border rounded-lg px-3 py-2 text-sm"
           >
-            <option value="all">전체 ({corrections.length})</option>
-            <option value="pending">대기 중 ({corrections.filter(c => c.status === 'pending').length})</option>
-            <option value="in_progress">진행 중 ({corrections.filter(c => c.status === 'in_progress').length})</option>
-            <option value="completed">완료 ({corrections.filter(c => c.status === 'completed').length})</option>
-            <option value="rejected">거부 ({corrections.filter(c => c.status === 'rejected').length})</option>
+            <option value="all">全件 ({corrections.length})</option>
+            <option value="pending">待機中 ({corrections.filter(c => c.status === 'pending').length})</option>
+            <option value="in_progress">進行中 ({corrections.filter(c => c.status === 'in_progress').length})</option>
+            <option value="completed">完了 ({corrections.filter(c => c.status === 'completed').length})</option>
+            <option value="rejected">拒否 ({corrections.filter(c => c.status === 'rejected').length})</option>
           </select>
         </div>
       )}
@@ -334,7 +334,7 @@ export function KoreaCorrectionsManager({
       {filteredCorrections.length === 0 ? (
         <Card className="p-12 text-center text-gray-500">
           <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p>수정사항이 없습니다</p>
+          <p>修正事項がありません</p>
         </Card>
       ) : (
         <div className="space-y-4">
@@ -438,13 +438,13 @@ function CorrectionCard({
         <div className="border-t border-gray-200 p-4 space-y-4">
           {/* Issue Details */}
           <div>
-            <h4 className="text-sm font-bold text-gray-700 mb-2">수정사항</h4>
+            <h4 className="text-sm font-bold text-gray-700 mb-2">修正事項</h4>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-sm text-gray-700">{correction.issue_description}</p>
             </div>
             {correction.issue_category && (
               <div className="mt-2 text-xs text-gray-500">
-                카테고리: {correction.issue_category}
+                カテゴリー: {correction.issue_category}
               </div>
             )}
           </div>
@@ -452,7 +452,7 @@ function CorrectionCard({
           {/* Correction Notes */}
           {correction.correction_notes && (
             <div>
-              <h4 className="text-sm font-bold text-gray-700 mb-2">한국 파트너 코멘트</h4>
+              <h4 className="text-sm font-bold text-gray-700 mb-2">韓国パートナーコメント</h4>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{correction.correction_notes}</p>
               </div>
@@ -461,18 +461,18 @@ function CorrectionCard({
 
           {/* Admin Notes */}
           <div>
-            <h4 className="text-sm font-bold text-gray-700 mb-2">관리자 메모</h4>
+            <h4 className="text-sm font-bold text-gray-700 mb-2">管理者メモ</h4>
             <textarea
               className="w-full border rounded-lg p-3 text-sm"
               rows={2}
-              placeholder={correction.admin_notes || '메모를 입력하세요...'}
+              placeholder={correction.admin_notes || 'メモを入力してください...'}
               readOnly={readOnly}
             />
           </div>
 
           {/* Corrected Files */}
           <div>
-            <h4 className="text-sm font-bold text-gray-700 mb-2">수정된 파일</h4>
+            <h4 className="text-sm font-bold text-gray-700 mb-2">修正されたファイル</h4>
             {correction.corrected_files && correction.corrected_files.length > 0 ? (
               <div className="space-y-2">
                 {correction.corrected_files.map((fileUrl, index) => (
@@ -491,7 +491,7 @@ function CorrectionCard({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">첨부된 파일이 없습니다</p>
+              <p className="text-sm text-gray-500">添付ファイルがありません</p>
             )}
           </div>
 
@@ -513,7 +513,7 @@ function CorrectionCard({
                   className="gap-2"
                 >
                   <Upload className="w-4 h-4" />
-                  {uploading ? '업로드 중...' : '파일 첨부'}
+                  {uploading ? 'アップロード中...' : 'ファイル添付'}
                 </Button>
               </label>
 
@@ -523,10 +523,10 @@ function CorrectionCard({
                 onChange={(e) => onUpdateStatus(e.target.value as KoreaCorrection['status'])}
                 className="border rounded-lg px-3 py-2 text-sm"
               >
-                <option value="pending">대기 중</option>
-                <option value="in_progress">진행 중</option>
-                <option value="completed">완료</option>
-                <option value="rejected">거부</option>
+                <option value="pending">待機中</option>
+                <option value="in_progress">進行中</option>
+                <option value="completed">完了</option>
+                <option value="rejected">拒否</option>
               </select>
 
               {/* Notify Customer */}
@@ -537,14 +537,14 @@ function CorrectionCard({
                   className="gap-2"
                 >
                   <Send className="w-4 h-4" />
-                  고객 알림
+                  顧客通知
                 </Button>
               )}
 
               {correction.customer_notified && (
                 <span className="text-sm text-green-600 flex items-center gap-1">
                   <Check className="w-4 h-4" />
-                  알림 완료
+                  通知完了
                 </span>
               )}
             </div>

@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'edge';
@@ -14,31 +13,30 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // 1. 인증 확인
+    const { client: supabase } = createSupabaseSSRClient(request);
+    // 1. 認証確認
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
+        { error: '認証が必要です。' },
         { status: 401 }
       );
     }
 
     const { id: quotationId } = await params;
 
-    // 2. 요청 데이터 파싱
+    // 2. リクエストデータ解析
     const body: ConfirmTransferRequest = await request.json();
     const { transferDate, amount } = body;
 
     if (!transferDate || !amount) {
       return NextResponse.json(
-        { error: '송금일과 송금액을 모두 입력해주세요.' },
+        { error: '送金日と送金額を両方入力してください。' },
         { status: 400 }
       );
     }
 
-    // 3. 견적 조회 및 소유권 확인
+    // 3. 見積照会および所有権確認
     const { data: quotation, error: quoteError } = await supabase
       .from('quotations')
       .select('*')
@@ -48,12 +46,12 @@ export async function POST(
 
     if (quoteError || !quotation) {
       return NextResponse.json(
-        { error: '견적서를 찾을 수 없거나 접근 권한이 없습니다.' },
+        { error: '見積書が見つからないか、アクセス権限がありません。' },
         { status: 404 }
       );
     }
 
-    // 4. 송금 정보 저장
+    // 4. 送金情報保存
     const { error: updateError } = await supabase
       .from('quotations')
       .update({
@@ -65,14 +63,14 @@ export async function POST(
       .eq('id', quotationId);
 
     if (updateError) {
-      console.error('송금 정보 저장 실패:', updateError);
+      console.error('送金情報保存失敗:', updateError);
       return NextResponse.json(
-        { error: '송금 정보 저장에 실패했습니다.' },
+        { error: '送金情報の保存に失敗しました。' },
         { status: 500 }
       );
     }
 
-    // 5. 주문 생성
+    // 5. 注文作成
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -91,14 +89,14 @@ export async function POST(
       .single();
 
     if (orderError) {
-      console.error('주문 생성 실패:', orderError);
+      console.error('注文作成失敗:', orderError);
       return NextResponse.json(
-        { error: '주문 생성에 실패했습니다.' },
+        { error: '注文の作成に失敗しました。' },
         { status: 500 }
       );
     }
 
-    // 6. 견적 상품 정보를 주문 상품으로 복사
+    // 6. 見積商品情報を注文商品にコピー
     const { data: quoteItems } = await supabase
       .from('quotation_items')
       .select('*')
@@ -120,22 +118,22 @@ export async function POST(
         .insert(orderItems);
 
       if (itemsError) {
-        console.error('주문 상품 복사 실패:', itemsError);
-        // 주문은 생성되었으므로 경고만 로그
+        console.error('注文商品コピー失敗:', itemsError);
+        // 注文は作成されているため警告のみログ
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: '송금 확인이 완료되고 주문이 생성되었습니다.',
+      message: '送金確認が完了し、注文が作成されました。',
       orderId: order.id,
       quotationId,
     });
 
   } catch (error) {
-    console.error('송금 확인 API 에러:', error);
+    console.error('送金確認APIエラー:', error);
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }

@@ -1,13 +1,15 @@
 // Polyfill fetch API first (must be before any other imports)
+/* eslint-disable @typescript-eslint/no-require-imports */
 try {
   const { Response, Headers, Request, fetch } = require('undici')
   global.Response = global.Response || Response
   global.Headers = global.Headers || Headers
   global.Request = global.Request || Request
   global.fetch = global.fetch || fetch
-} catch (e) {
+} catch {
   // undici not available
 }
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 import '@testing-library/jest-dom'
 import 'jest-axe/extend-expect'
@@ -37,10 +39,12 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock Next.js Image component
+/* eslint-disable @next/next/no-img-element */
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props) => <img {...props} />,
+  default: (props) => <img {...props} alt={props.alt || ''} />,
 }))
+/* eslint-enable @next/next/no-img-element */
 
 // Mock environment variables
 process.env.NODE_ENV = 'test'
@@ -132,8 +136,8 @@ beforeAll(async () => {
     const { server: mswServer } = await import('./src/mocks/server')
     server = mswServer
     server.listen()
-  } catch (error) {
-    console.warn('MSW setup failed, continuing without mock server:', error.message)
+  } catch {
+    // MSW setup failed, continuing without mock server
   }
 })
 

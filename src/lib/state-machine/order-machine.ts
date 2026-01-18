@@ -1,8 +1,8 @@
 /**
  * B2B Order State Machine (XState-based)
  *
- * B2B 주문 상태 머신 구현
- * 10단계 주문 워크플로우 상태 전환 관리
+ * B2B 注文ステータスマシン実装
+ * 10段階注文ワークフローステータス遷移管理
  */
 
 import {
@@ -26,7 +26,7 @@ import { OrderStatus } from '@/types/order-status';
 
 /**
  * Check if a state transition is allowed
- * 상태 전환이 허용되는지 확인
+ * ステータス遷移が許可されているか確認
  */
 export function canTransition(
   from: OrderState,
@@ -48,7 +48,7 @@ export function canTransition(
 
 /**
  * Check if rollback is allowed
- * 되돌아가기 허용 여부 확인
+ * ロールバック許可確認
  */
 export function canRollback(
   from: OrderState,
@@ -60,7 +60,7 @@ export function canRollback(
 
 /**
  * Get all possible next states
- * 가능한 다음 상태 목록 반환
+ * 可能な次のステータス一覧を返す
  */
 export function getNextStates(current: OrderState): OrderState[] {
   return STATE_TRANSITIONS[current] || [];
@@ -68,7 +68,7 @@ export function getNextStates(current: OrderState): OrderState[] {
 
 /**
  * Check if state is terminal
- * 최종 상태 여부 확인
+ * 最終ステータスか確認
  */
 export function isTerminalState(state: OrderState): boolean {
   return TERMINAL_STATES.includes(state);
@@ -80,7 +80,7 @@ export function isTerminalState(state: OrderState): boolean {
 
 /**
  * Execute state transition
- * 상태 전환 실행 (with side effects)
+ * ステータス遷移実行 (副作用あり)
  */
 export async function executeTransition(
   context: OrderContext,
@@ -155,7 +155,7 @@ export async function executeTransition(
 
 /**
  * Determine target state from event
- * 이벤트에서 대상 상태 결정
+ * イベントから対象ステータスを決定
  */
 function determineTargetState(from: OrderState, event: OrderEvent): OrderState {
   switch (event.type) {
@@ -190,7 +190,7 @@ function determineTargetState(from: OrderState, event: OrderEvent): OrderState {
 
 /**
  * Check if transition requires approval
- * 승인 필요 여부 확인
+ * 承認が必要か確認
  */
 function checkApprovalRequired(from: OrderState, event: OrderEvent): boolean {
   // Rollback always requires approval
@@ -208,7 +208,7 @@ function checkApprovalRequired(from: OrderState, event: OrderEvent): boolean {
 
 /**
  * Generate side effects for state transition
- * 상태 전환에 대한 부작용 생성
+ * ステータス遷移に対する副作用生成
  */
 function generateSideEffects(
   from: OrderState,

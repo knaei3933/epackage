@@ -2,31 +2,31 @@ import { z } from 'zod';
 
 export const simulationSchema = z.object({
   orderType: z.enum(['new', 'repeat'], {
-    required_error: '주문 유형을 선택해주세요.',
+    required_error: '注文タイプを選択してください。',
   }),
   contentsType: z.enum(['solid', 'liquid', 'powder'], {
-    required_error: '내용물 유형을 선택해주세요.',
+    required_error: '内容物タイプを選択してください。',
   }),
   bagType: z.enum(['flat_3_side', 'stand_up', 'gusset'], {
-    required_error: '백 유형을 선택해주세요.',
+    required_error: 'バッグタイプを選択してください。',
   }),
   width: z
     .number({
-      required_error: '가로 크기를 입력해주세요.',
-      invalid_type_error: '숫자로 입력해주세요.',
+      required_error: '横サイズを入力してください。',
+      invalid_type_error: '数値で入力してください。',
     })
-    .min(50, '가로 크기는 최소 50mm 이상이어야 합니다.')
-    .max(500, '가로 크기는 최대 500mm 이하여야 합니다.'),
+    .min(50, '横サイズは最小50mm以上である必要があります。')
+    .max(500, '横サイズは最大500mm以下である必要があります。'),
   height: z
     .number({
-      required_error: '세로 크기를 입력해주세요.',
-      invalid_type_error: '숫자로 입력해주세요.',
+      required_error: '縦サイズを入力してください。',
+      invalid_type_error: '数値で入力してください。',
     })
-    .min(50, '세로 크기는 최소 50mm 이상이어야 합니다.')
-    .max(1000, '세로 크기는 최대 1000mm 이하여야 합니다.'),
-  materialGenre: z.string().min(1, '재료 장르를 선택해주세요.'),
-  surfaceMaterial: z.string().min(1, '표면 재질을 선택해주세요.'),
-  materialComposition: z.string().min(1, '재료 구성을 선택해주세요.'),
+    .min(50, '縦サイズは最小50mm以上である必要があります。')
+    .max(1000, '縦サイズは最大1000mm以下である必要があります。'),
+  materialGenre: z.string().min(1, '材料ジャンルを選択してください。'),
+  surfaceMaterial: z.string().min(1, '表面材質を選択してください。'),
+  materialComposition: z.string().min(1, '材料構成を選択してください。'),
   quantities: z
     .array(
       z
@@ -108,22 +108,22 @@ export const validateSizeConstraints = (
   height: number,
   bagType: string
 ): { isValid: boolean; message: string } => {
-  const maxRatio = 5; // 가로:세로 최대 비율
-  const minRatio = 0.2; // 가로:세로 최소 비율
+  const maxRatio = 5; // 横:縦 最大比率
+  const minRatio = 0.2; // 横:縦 最小比率
 
   const ratio = width / height;
 
   if (ratio > maxRatio) {
     return {
       isValid: false,
-      message: `가로:세로 비율은 ${maxRatio}:1을 초과할 수 없습니다.`,
+      message: `横:縦 比率は${maxRatio}:1を超えることはできません。`,
     };
   }
 
   if (ratio < minRatio) {
     return {
       isValid: false,
-      message: `가로:세로 비율은 ${minRatio}:1 미만일 수 없습니다.`,
+      message: `横:縦 比率は${minRatio}:1未満であることはできません。`,
     };
   }
 
@@ -139,14 +139,14 @@ export const validateSizeConstraints = (
     if (width > constraints.maxWidth) {
       return {
         isValid: false,
-        message: `${bagType}의 최대 가로 크기는 ${constraints.maxWidth}mm입니다.`,
+        message: `${bagType}の最大横サイズは${constraints.maxWidth}mmです。`,
       };
     }
 
     if (height > constraints.maxHeight) {
       return {
         isValid: false,
-        message: `${bagType}의 최대 세로 크기는 ${constraints.maxHeight}mm입니다.`,
+        message: `${bagType}の最大縦サイズは${constraints.maxHeight}mmです。`,
       };
     }
   }
@@ -157,23 +157,23 @@ export const validateSizeConstraints = (
 // Quantity pattern validation
 export const validateQuantityPatterns = (patterns: number[]): { isValid: boolean; message: string } => {
   if (patterns.length === 0) {
-    return { isValid: false, message: '최소 1개 이상의 수량을 입력해주세요.' };
+    return { isValid: false, message: '最小1つ以上の数量を入力してください。' };
   }
 
   if (patterns.length > 5) {
-    return { isValid: false, message: '최대 5개까지 수량을 입력할 수 있습니다.' };
+    return { isValid: false, message: '最大5つまで数量を入力できます。' };
   }
 
   // Check for duplicates
   const uniquePatterns = new Set(patterns);
   if (uniquePatterns.size !== patterns.length) {
-    return { isValid: false, message: '중복된 수량이 있습니다. 다른 수량을 입력해주세요.' };
+    return { isValid: false, message: '重複した数量があります。異なる数量を入力してください。' };
   }
 
   // Check ascending order
   for (let i = 1; i < patterns.length; i++) {
     if (patterns[i] <= patterns[i - 1]) {
-      return { isValid: false, message: '수량은 오름차순으로 정렬되어야 합니다.' };
+      return { isValid: false, message: '数量は昇順にソートする必要があります。' };
     }
   }
 
@@ -193,7 +193,7 @@ export const validateField = (
     if (!result.success) {
       return {
         isValid: false,
-        message: result.error.errors[0]?.message || '유효하지 않은 값입니다.',
+        message: result.error.errors[0]?.message || '無効な値です。',
       };
     }
 
@@ -209,7 +209,7 @@ export const validateField = (
 
     return { isValid: true, message: '' };
   } catch {
-    return { isValid: false, message: '유효성 검사 중 오류가 발생했습니다.' };
+    return { isValid: false, message: '妥当性検証中にエラーが発生しました。' };
   }
 };
 

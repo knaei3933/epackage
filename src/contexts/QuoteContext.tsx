@@ -1,9 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useMemo, useCallback, useEffect } from 'react';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
 import { safeMap } from '@/lib/array-helpers';
 import { BAG_TYPE_JA, MATERIAL_TYPE_JA, THICKNESS_TYPE_JA, PRINTING_TYPE_JA, UNIT_JA, LABEL_JA, POST_PROCESSING_JA, translateBagType, translateMaterialType, translateToJapanese } from '@/constants/enToJa';
+import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
+import { distributeLengthEvenly } from '@/lib/roll-film-utils';
+import { determineMaterialWidth } from '@/lib/material-width-selector';
 import {
   MAX_POST_PROCESSING_ITEMS,
   calculateRemainingSlots,
@@ -34,6 +37,23 @@ export interface QuoteState {
   doubleSided?: boolean;
   deliveryLocation?: 'domestic' | 'international';
   urgency?: 'standard' | 'express';
+  spoutPosition?: 'top-left' | 'top-right' | 'center-left' | 'center-right' | 'bottom-left' | 'bottom-right';
+  // Roll film specific fields
+  totalLength?: number;           // Total length (m) - for roll_film
+  rollCount?: number;             // Number of rolls - for roll_film
+  distributedQuantities?: number[]; // Auto-distributed lengths per roll
+  editableQuantities?: number[];   // User-modified lengths per roll
+  materialWidth?: number;         // Film material width (540 or 740mm) - for roll_film
+  filmLayers?: Array<{           // Film structure layers - for roll_film
+    materialId: string;
+    thickness: number;
+  }>;
+  // SKU-related fields (新增: SKU別原価計算対応)
+  skuCount: number;               // Number of SKUs (1-100)
+  skuQuantities: number[];        // Quantity for each SKU [500, 500] for 2 SKUs
+  skuNames?: string[];            // Optional design names for each SKU
+  quantityMode: 'single' | 'sku'; // Single quantity vs SKU-specific mode
+  useSKUCalculation: boolean;     // Enable SKU-based cost calculation
 }
 
 // Action types
@@ -49,7 +69,52 @@ type QuoteAction =
   | { type: 'REMOVE_POST_PROCESSING_OPTION'; payload: string }
   | { type: 'REPLACE_POST_PROCESSING_OPTION'; payload: { oldOptionId: string; newOptionId: string } }
   | { type: 'CLEAR_POST_PROCESSING_VALIDATION_ERROR' }
-  | { type: 'RESET_QUOTE' };
+  | { type: 'SET_ROLL_FILM_QUANTITY'; payload: { totalLength: number; rollCount: number } }
+  | { type: 'SET_DISTRIBUTED_QUANTITIES'; payload: number[] }
+  | { type: 'UPDATE_SINGLE_QUANTITY'; payload: { index: number; value: number } }
+  | { type: 'RESET_QUOTE' }
+  // SKU-related actions (新增: SKU別原価計算対応)
+  | { type: 'SET_SKU_COUNT'; payload: number }
+  | { type: 'SET_SKU_QUANTITIES'; payload: number[] }
+  | { type: 'UPDATE_SKU_QUANTITY'; payload: { index: number; value: number } }
+  | { type: 'UPDATE_SKU_NAME'; payload: { index: number; name: string } }
+  | { type: 'SET_QUANTITY_MODE'; payload: 'single' | 'sku' }
+  | { type: 'TOGGLE_SKU_CALCULATION'; payload: boolean };
+
+// Helper function to get default film layers based on material ID
+// Default LLDPE thickness is 90μm (standard selection)
+function getDefaultFilmLayers(materialId: string): Array<{ materialId: string; thickness: number }> {
+  const layerMap: Record<string, Array<{ materialId: string; thickness: number }>> = {
+    'pet_al': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: 90 }
+    ],
+    'pet_ny': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'NY', thickness: 15 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: 90 }
+    ],
+    'kp_pe': [
+      { materialId: 'KP', thickness: 12 },
+      { materialId: 'PE', thickness: 60 }
+    ],
+    'pet': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: 90 }
+    ],
+    'pet_al_pet': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: 90 }
+    ]
+  };
+
+  return layerMap[materialId] || layerMap['pet_al']; // Default to pet_al
+}
 
 // Initial state
 const initialState: QuoteState = {
@@ -73,21 +138,58 @@ const initialState: QuoteState = {
   printingColors: 1,
   doubleSided: false,
   deliveryLocation: 'domestic',
-  urgency: 'standard'
+  urgency: 'standard',
+  // Roll film specific fields
+  totalLength: undefined,
+  rollCount: undefined,
+  distributedQuantities: undefined,
+  editableQuantities: undefined,
+  materialWidth: determineMaterialWidth(200), // 幅200mmに基づいて動的に決定（590mm）
+  filmLayers: getDefaultFilmLayers('pet_al'), // Default film layers
+  // SKU-related fields (新增: SKU別原価計算対応)
+  skuCount: 1,
+  skuQuantities: [500],
+  skuNames: [],
+  quantityMode: 'single',
+  useSKUCalculation: false
 };
+
+// DEBUG: Log initial state to verify
+console.log('[QuoteContext] initialState created:', {
+  materialWidth: initialState.materialWidth,
+  filmLayers: initialState.filmLayers,
+  filmLayersCount: initialState.filmLayers?.length
+});
 
 // Reducer function
 function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
   switch (action.type) {
     case 'SET_BASIC_SPECS':
+      const newMaterialId = action.payload.materialId ?? state.materialId;
+      const materialIdChanged = newMaterialId !== state.materialId;
+      const newWidth = action.payload.width ?? state.width;
+      const widthChanged = newWidth !== state.width;
+      const newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
+
+      // 幅変更またはbagTypeId変更時に原反幅を再計算
+      let newMaterialWidth = state.materialWidth;
+      if (widthChanged || (newBagTypeId !== state.bagTypeId && newBagTypeId === 'roll_film')) {
+        newMaterialWidth = determineMaterialWidth(newWidth);
+      }
+
       return {
         ...state,
-        bagTypeId: action.payload.bagTypeId ?? state.bagTypeId,
-        materialId: action.payload.materialId ?? state.materialId,
-        width: action.payload.width ?? state.width,
+        bagTypeId: newBagTypeId,
+        materialId: newMaterialId,
+        width: newWidth,
         height: action.payload.height ?? state.height,
         depth: action.payload.depth ?? state.depth,
-        thicknessSelection: action.payload.thicknessSelection ?? state.thicknessSelection
+        thicknessSelection: action.payload.thicknessSelection ?? state.thicknessSelection,
+        materialWidth: newMaterialWidth,
+        // Update filmLayers when materialId changes
+        ...(materialIdChanged ? {
+          filmLayers: getDefaultFilmLayers(newMaterialId)
+        } : {})
       };
 
     case 'SET_QUANTITY_OPTIONS':
@@ -228,6 +330,163 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
     case 'RESET_QUOTE':
       return initialState;
 
+    case 'SET_ROLL_FILM_QUANTITY': {
+      const { totalLength, rollCount } = action.payload;
+      const distributed = distributeLengthEvenly(totalLength, rollCount);
+      return {
+        ...state,
+        totalLength,
+        rollCount,
+        distributedQuantities: distributed,
+        editableQuantities: [...distributed],
+        quantities: distributed,
+        quantity: distributed[0] || 0,
+      };
+    }
+
+    case 'SET_DISTRIBUTED_QUANTITIES':
+      return {
+        ...state,
+        distributedQuantities: action.payload,
+        editableQuantities: [...action.payload],
+        quantities: action.payload,
+        quantity: action.payload[0] || state.quantity,
+      };
+
+    case 'UPDATE_SINGLE_QUANTITY': {
+      const { index, value } = action.payload;
+      const newEditable = [...(state.editableQuantities || state.quantities || [])];
+      newEditable[index] = value;
+      return {
+        ...state,
+        editableQuantities: newEditable,
+        quantities: newEditable,
+        quantity: newEditable[0] || state.quantity,
+      };
+    }
+
+    // SKU-related actions (新增: SKU別原価計算対応)
+    case 'SET_SKU_COUNT': {
+      const newCount = action.payload;
+      const currentQuantities = state.skuQuantities || [state.quantity];
+      console.log('[SET_SKU_COUNT] Changing SKU count from', state.skuCount, 'to', newCount);
+      console.log('[SET_SKU_COUNT] Current quantities:', currentQuantities);
+      console.log('[SET_SKU_COUNT] Current quantities length:', currentQuantities.length);
+
+      // CRITICAL FIX: If quantities array already matches new count, preserve it exactly
+      // This prevents the reducer from overwriting quantities set by copySKUToAddNew
+      if (currentQuantities.length === newCount) {
+        console.log('[SET_SKU_COUNT] Quantities array already matches new count, preserving as-is');
+        return {
+          ...state,
+          skuCount: newCount,
+          skuQuantities: currentQuantities, // Preserve exact array
+          // When SKU count > 1, automatically enable SKU mode
+          quantityMode: newCount > 1 ? 'sku' : state.quantityMode,
+          useSKUCalculation: newCount > 1 ? true : state.useSKUCalculation
+        };
+      }
+
+      // Preserve existing quantities when increasing count
+      let newSkuQuantities: number[];
+      if (newCount > currentQuantities.length) {
+        // Find the last valid quantity (>= 100) to use for new SKUs
+        const lastValidQuantity = currentQuantities.slice().reverse().find(q => q >= 100) || 100;
+        console.log('[SET_SKU_COUNT] Last valid quantity to fill new SKUs:', lastValidQuantity);
+        newSkuQuantities = [
+          ...currentQuantities,
+          ...Array(newCount - currentQuantities.length).fill(lastValidQuantity)
+        ];
+      } else {
+        // Reduce to new count
+        newSkuQuantities = currentQuantities.slice(0, newCount);
+      }
+      console.log('[SET_SKU_COUNT] New quantities:', newSkuQuantities);
+      return {
+        ...state,
+        skuCount: newCount,
+        skuQuantities: newSkuQuantities,
+        // When SKU count > 1, automatically enable SKU mode
+        quantityMode: newCount > 1 ? 'sku' : state.quantityMode,
+        useSKUCalculation: newCount > 1 ? true : state.useSKUCalculation
+      };
+    }
+
+    case 'SET_SKU_QUANTITIES': {
+      const quantities = action.payload;
+      console.log('[SET_SKU_QUANTITIES] Setting quantities:', quantities);
+      console.log('[SET_SKU_QUANTITIES] Current skuCount:', state.skuCount);
+
+      // CRITICAL FIX: If quantities array is longer than skuCount, update skuCount to match
+      // This allows copySKUToAddNew to work correctly by setting quantities first
+      const newSkuCount = Math.max(state.skuCount, quantities.length);
+      console.log('[SET_SKU_QUANTITIES] New skuCount will be:', newSkuCount);
+
+      // Only fill with 100s if quantities array is shorter than new skuCount
+      const adjustedQuantities = quantities.length < newSkuCount
+        ? [...quantities, ...Array(newSkuCount - quantities.length).fill(100)]
+        : quantities;
+
+      console.log('[SET_SKU_QUANTITIES] Adjusted quantities:', adjustedQuantities);
+      return {
+        ...state,
+        skuCount: newSkuCount,
+        skuQuantities: adjustedQuantities,
+        // Auto-enable SKU mode if count > 1
+        quantityMode: newSkuCount > 1 ? 'sku' : state.quantityMode,
+        useSKUCalculation: newSkuCount > 1 ? true : state.useSKUCalculation
+      };
+    }
+
+    case 'UPDATE_SKU_QUANTITY': {
+      const { index, value } = action.payload;
+      const currentQuantities = state.skuQuantities || [];
+      console.log('[UPDATE_SKU_QUANTITY] Updating index:', index, 'to value:', value);
+      console.log('[UPDATE_SKU_QUANTITY] Current quantities:', currentQuantities);
+      // Ensure array is long enough for the index
+      const newSkuQuantities = [...currentQuantities];
+      while (newSkuQuantities.length <= index) {
+        newSkuQuantities.push(100); // Fill with default quantity
+      }
+      newSkuQuantities[index] = value;
+      console.log('[UPDATE_SKU_QUANTITY] New quantities:', newSkuQuantities);
+      return {
+        ...state,
+        skuQuantities: newSkuQuantities
+      };
+    }
+
+    case 'TOGGLE_SKU_CALCULATION': {
+      return {
+        ...state,
+        useSKUCalculation: action.payload
+      };
+    }
+
+    case 'UPDATE_SKU_NAME': {
+      const { index, name } = action.payload;
+      const currentNames = state.skuNames || [];
+      // Ensure array is long enough for the index
+      const newSkuNames = [...currentNames];
+      while (newSkuNames.length <= index) {
+        newSkuNames.push(''); // Fill with empty string
+      }
+      newSkuNames[index] = name;
+      console.log('[UPDATE_SKU_NAME] Updated SKU names:', newSkuNames);
+      return {
+        ...state,
+        skuNames: newSkuNames
+      };
+    }
+
+    case 'SET_QUANTITY_MODE': {
+      return {
+        ...state,
+        quantityMode: action.payload,
+        useSKUCalculation: action.payload === 'sku'
+      };
+    }
+
     default:
       return state;
   }
@@ -240,22 +499,46 @@ interface QuoteContextType {
   updateQuantityOptions: (options: Partial<Pick<QuoteState, 'quantities' | 'quantity' | 'isUVPrinting' | 'printingType' | 'printingColors' | 'doubleSided'>> & { isUVPrinting?: boolean }) => void;
   updatePostProcessing: (options: string[], multiplier: number) => void;
   updateDelivery: (location: 'domestic' | 'international', urgency: 'standard' | 'express') => void;
+  updateField: (field: keyof QuoteState, value: any) => void;
   resetQuote: () => void;
   addPostProcessingOption: (optionId: string, allOptions?: Array<{ id: string; category: string; compatibility?: string[]; priority: number; impact: number }>) => boolean;
   removePostProcessingOption: (optionId: string) => void;
   replacePostProcessingOption: (oldOptionId: string, newOptionId: string) => void;
   clearPostProcessingValidationError: () => void;
+  // SKU-related helpers (新增: SKU別原価計算対応)
+  setSKUCount: (count: number) => void;
+  setSKUQuantities: (quantities: number[]) => void;
+  updateSKUQuantity: (index: number, value: number) => void;
+  updateSKUName: (index: number, name: string) => void;
+  setQuantityMode: (mode: 'single' | 'sku') => void;
+  toggleSKUCalculation: (enabled: boolean) => void;
 }
 
 // Helper functions that need state access - accept state as parameter
 export function checkStepComplete(state: QuoteState, step: string): boolean {
   switch (step) {
     case 'specs':
-      const hasBasicSpecs = !!(state.bagTypeId && state.materialId && state.width > 0 && state.height > 0);
+      const hasBasicSpecs = !!(state.bagTypeId && state.materialId && state.width > 0);
+      // roll_film doesn't require height input
+      const requiresHeight = state.bagTypeId !== 'roll_film';
+      const hasHeight = !requiresHeight || state.height > 0;
       const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
       const requiresThickness = materialsWithThickness.includes(state.materialId);
       const hasThickness = !!state.thicknessSelection;
-      return hasBasicSpecs && (!requiresThickness || hasThickness);
+      return hasBasicSpecs && hasHeight && (!requiresThickness || hasThickness);
+    case 'sku-selection':
+      // SKU selection is complete if at least one SKU has valid quantity
+      return state.skuQuantities.length > 0 && state.skuQuantities.every(qty => qty >= 100);
+    case 'sku-quantity':
+      // Unified SKU & Quantity step - check based on mode
+      if (state.quantityMode === 'sku') {
+        // SKU mode: all SKUs must have valid quantities
+        return state.skuCount > 0 &&
+               state.skuQuantities.length === state.skuCount &&
+               state.skuQuantities.every(qty => qty >= 100);
+      }
+      // Single quantity mode
+      return state.quantity >= 100;
     case 'quantity':
       return state.quantity >= 100;
     case 'post-processing':
@@ -280,17 +563,133 @@ export function canAddPostProcessingOptionForState(state: QuoteState): boolean {
   return !isSelectionLimitReached(state.postProcessingOptions.length);
 }
 
+/**
+ * Get film layers for a material and thickness selection
+ * Used for displaying film structure in roll film specs
+ * Patterns from MATERIAL_THICKNESS_OPTIONS in unified-pricing-engine.ts
+ */
+function getFilmLayersForMaterial(
+  materialId: string,
+  thicknessSelection?: string
+): FilmStructureLayer[] {
+  // LLDPE base thickness for each thickness selection - 50, 70, 90, 100, 110μm
+  const lldpeBaseThickness: Record<string, number> = {
+    'light': 50,
+    'medium': 70,
+    'standard': 90,
+    'heavy': 100,
+    'ultra': 110
+  };
+  const baseLldpeThickness = lldpeBaseThickness[thicknessSelection || 'standard'] || 90;
+
+  // Default layers for each material type - matching MATERIAL_THICKNESS_OPTIONS
+  const defaultLayers: Record<string, FilmStructureLayer[]> = {
+    // PET+AL+PET+LLDPE (4 layers) - matching 'opp-alu-foil' pattern
+    'pet_al': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    // PET+VMPET+PET+LLDPE (4 layers) - VMPET 12μm
+    'pet_vmpet': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'VMPET', thickness: 12 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    // PET+LDPE+LLDPE (3 layers) or PET+LLDPE (2 layers for 'pet-transparent')
+    'pet_ldpe': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LDPE', thickness: 7 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    // PET+NY+AL+LLDPE (4 layers)
+    'pet_ny_al': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'NY', thickness: 15 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    // PET+LLDPE (2 layers) - matching 'pet-transparent' pattern
+    'pet_transparent': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    // Kraft+PE (2 layers) - matching 'kraft-pe' pattern
+    'kraft_pe': [
+      { materialId: 'KRAFT', thickness: 80 }, // Kraft paper
+      { materialId: 'PE', thickness: 40 }
+    ]
+  };
+
+  // Get base layers
+  const layers = defaultLayers[materialId] || defaultLayers['pet_al'];
+
+  // Apply thickness multiplier (only affects LLDPE/LDPE layers) - 0.85, 0.95, 1.0, 1.1, 1.2
+  const thicknessMultipliers: Record<string, number> = {
+    'light': 0.85,
+    'medium': 0.95,
+    'standard': 1.0,
+    'heavy': 1.1,
+    'ultra': 1.2
+  };
+  const multiplier = thicknessMultipliers[thicknessSelection || 'standard'] || 1.0;
+
+  // Only apply multiplier if not 1.0
+  if (multiplier !== 1.0) {
+    return layers.map(layer => {
+      // Only apply to sealant layers (LLDPE, LDPE, PE)
+      if (layer.materialId === 'LLDPE' || layer.materialId === 'LDPE' || layer.materialId === 'PE') {
+        // Calculate based on base thickness for this selection
+        if (layer.materialId === 'LLDPE' || layer.materialId === 'LDPE') {
+          return { ...layer, thickness: baseLldpeThickness };
+        }
+      }
+      return layer;
+    });
+  }
+
+  return layers;
+}
+
+/**
+ * Get film layer display text (e.g., "PET 12μm + AL 7μm + LLDPE 80μm")
+ */
+function getFilmLayerDisplay(layers: FilmStructureLayer[]): string {
+  return layers.map(layer => {
+    const materialName = layer.materialId;
+    return `${materialName} ${layer.thickness}μm`;
+  }).join(' + ');
+}
+
 export function createStepSummary(state: QuoteState, getLimitStatus: () => PostProcessingLimitState, step: string): React.ReactNode {
   switch (step) {
     case 'specs':
+      // 필름 구조를 가져와서 모든 파우치 타입에 상세 표시
+      const filmLayers = getFilmLayersForMaterial(state.materialId, state.thicknessSelection);
+      const filmLayerDisplay = getFilmLayerDisplay(filmLayers);
+
+      // 롤 필름: 폭만 표시, 길이는 quantity 단계에서 입력
+      if (state.bagTypeId === 'roll_film') {
+        return (
+          <div className="text-sm space-y-1">
+            <div><span className="font-medium">{LABEL_JA['Type:']}</span> {translateBagType(state.bagTypeId)}</div>
+            <div><span className="font-medium">{LABEL_JA['Material:']}</span> {translateMaterialType(state.materialId)}</div>
+            <div><span className="font-medium">幅:</span> {state.width}mm</div>
+            <div><span className="font-medium">フィルム構造:</span> {filmLayerDisplay}</div>
+          </div>
+        );
+      }
+
+      // 일반 파우치: 사이즈와 필름 구조 상세 표시
       return (
         <div className="text-sm space-y-1">
           <div><span className="font-medium">{LABEL_JA['Type:']}</span> {translateBagType(state.bagTypeId)}</div>
           <div><span className="font-medium">{LABEL_JA['Material:']}</span> {translateMaterialType(state.materialId)}</div>
           <div><span className="font-medium">{LABEL_JA['Size:']}</span> {state.width} × {state.height} {state.depth > 0 && `× ${state.depth}`} mm</div>
-          {state.thicknessSelection && (
-            <div><span className="font-medium">{LABEL_JA['Thickness:']}</span> {state.thicknessSelection}</div>
-          )}
+          {/* 필름 구조 상세 표시 (모든 파우치 공통) */}
+          <div><span className="font-medium">フィルム構造:</span> {filmLayerDisplay}</div>
         </div>
       );
     case 'quantity':
@@ -380,6 +779,16 @@ interface QuoteProviderProps {
 export function QuoteProvider({ children }: QuoteProviderProps) {
   const [state, dispatch] = useReducer(quoteReducer, initialState);
 
+  // DEBUG: Log state changes to track materialWidth and filmLayers
+  useEffect(() => {
+    console.log('[QuoteProvider] State updated:', {
+      materialWidth: state.materialWidth,
+      filmLayers: state.filmLayers,
+      filmLayersCount: state.filmLayers?.length,
+      materialId: state.materialId
+    });
+  }, [state.materialWidth, state.filmLayers, state.materialId]);
+
   // Action helpers - wrapped in useCallback with NO state dependencies
   // The reducer handles merging with existing state
   const updateBasicSpecs = useCallback((specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'thicknessSelection'>>) => {
@@ -436,12 +845,62 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     });
   }, []);
 
+  const updateField = useCallback((field: keyof QuoteState, value: any) => {
+    dispatch({
+      type: 'UPDATE_FIELD',
+      payload: { field, value }
+    });
+  }, []);
+
   const resetQuote = useCallback(() => {
     dispatch({ type: 'RESET_QUOTE' });
   }, []);
 
   const clearPostProcessingValidationError = useCallback(() => {
     dispatch({ type: 'CLEAR_POST_PROCESSING_VALIDATION_ERROR' });
+  }, []);
+
+  // SKU-related helper functions (新增: SKU別原価計算対応)
+  const setSKUCount = useCallback((count: number) => {
+    dispatch({
+      type: 'SET_SKU_COUNT',
+      payload: Math.min(100, Math.max(1, count)) // Limit to 1-100 SKUs
+    });
+  }, []);
+
+  const setSKUQuantities = useCallback((quantities: number[]) => {
+    dispatch({
+      type: 'SET_SKU_QUANTITIES',
+      payload: quantities
+    });
+  }, []);
+
+  const updateSKUQuantity = useCallback((index: number, value: number) => {
+    dispatch({
+      type: 'UPDATE_SKU_QUANTITY',
+      payload: { index, value }
+    });
+  }, []);
+
+  const toggleSKUCalculation = useCallback((enabled: boolean) => {
+    dispatch({
+      type: 'TOGGLE_SKU_CALCULATION',
+      payload: enabled
+    });
+  }, []);
+
+  const updateSKUName = useCallback((index: number, name: string) => {
+    dispatch({
+      type: 'UPDATE_SKU_NAME',
+      payload: { index, name }
+    });
+  }, []);
+
+  const setQuantityMode = useCallback((mode: 'single' | 'sku') => {
+    dispatch({
+      type: 'SET_QUANTITY_MODE',
+      payload: mode
+    });
   }, []);
 
   // Memoize the context value with ONLY functions - never changes
@@ -451,11 +910,18 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     updateQuantityOptions,
     updatePostProcessing,
     updateDelivery,
+    updateField,
     resetQuote,
     addPostProcessingOption,
     removePostProcessingOption,
     replacePostProcessingOption,
-    clearPostProcessingValidationError
+    clearPostProcessingValidationError,
+    setSKUCount,
+    setSKUQuantities,
+    updateSKUQuantity,
+    updateSKUName,
+    setQuantityMode,
+    toggleSKUCalculation
   }), []); // Empty dependency array - these functions NEVER change
 
   return (

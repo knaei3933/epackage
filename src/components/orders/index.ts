@@ -13,3 +13,5 @@ export {
   OrderHistoryButtons,
 } from './OrderManagementButtons'
 export { OrderStatusTimeline } from './OrderStatusTimeline'
+export { OrderCommentsSection } from './OrderCommentsSection'
+export { CustomerApprovalSection } from './CustomerApprovalSection'

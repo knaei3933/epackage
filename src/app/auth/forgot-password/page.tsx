@@ -12,6 +12,9 @@ import { Metadata } from 'next';
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm';
 import Link from 'next/link';
 
+// Disable static generation for this page due to client-side form
+export const dynamic = 'force-dynamic';
+
 // =====================================================
 // Metadata
 // =====================================================

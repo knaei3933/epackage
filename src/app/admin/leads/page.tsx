@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Badge } from '@/components/ui/Badge'
+import { PageLoadingState } from '@/components/ui'
 
 interface Lead {
   id: string
@@ -42,10 +43,10 @@ export default function LeadsDashboard() {
   })
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Mock data 제거됨 - 실제 API 호출 필요
-  // TODO: /api/admin/leads 엔드포인트에서 데이터 가져오기
+  // Mock data 削除済み - 実際のAPI呼び出し必要
+  // TODO: /api/admin/leads エンドポイントからデータ取得
   useEffect(() => {
-    // API 호출 예시:
+    // API 呼び出し例:
     // fetch('/api/admin/leads')
     //   .then(res => res.json())
     //   .then(data => {
@@ -54,7 +55,7 @@ export default function LeadsDashboard() {
     //   })
     //   .finally(() => setLoading(false))
 
-    // 현재는 빈 배열로 시작
+    // 現在は空の配列で開始
     setLeads([])
     setFilteredLeads([])
     setLoading(false)
@@ -143,19 +144,9 @@ export default function LeadsDashboard() {
     console.log('Exporting leads...', filteredLeads)
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading leads...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <PageLoadingState isLoading={loading} error={null} message="読み込み中...">
+      <div className="min-h-screen bg-gray-50 py-8">
       <Container size="7xl">
         {/* Header */}
         <div className="mb-8">
@@ -379,5 +370,6 @@ export default function LeadsDashboard() {
         </Card>
       </Container>
     </div>
+    </PageLoadingState>
   )
 }

@@ -1,11 +1,11 @@
 /**
  * Sample Request API Route
  *
- * Sample Request 제출 처리:
+ * サンプルリクエスト送信処理:
  * - Zod validation
- * - DB 저장 (sample_requests + sample_items 테이블)
- * - SendGrid 이메일 발송 (고객 + 관리자)
- * - 인증된 사용자 지원 (Next.js 16 pattern: await cookies())
+ * - DB保存 (sample_requests + sample_items テーブル)
+ * - SendGridメール送信 (顧客 + 管理者)
+ * - 認証済みユーザー対応 (Next.js 16 pattern: await cookies())
  *
  * Updated: Transaction-safe sample request creation using PostgreSQL RPC function
  * - Replaced manual operations with ACID transaction
@@ -15,9 +15,8 @@
 
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createServiceClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { sendSampleRequestEmail } from '@/lib/email';
 import { notifySampleRequest } from '@/lib/admin-notifications';
 import type { Database } from '@/types/database';
@@ -132,10 +131,7 @@ async function handleSamplesPost(request: NextRequest) {
     // =====================================================
     // Authentication Check (Next.js 16 Pattern)
     // =====================================================
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabaseAuth = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-
+const { client: supabaseAuth } = createSupabaseSSRClient(request);
     // Check for authenticated user
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
@@ -213,7 +209,7 @@ async function handleSamplesPost(request: NextRequest) {
     const supabase = createServiceClient();
 
     // =====================================================
-    // Create Sample Request Using Transaction-Safe RPC Function
+    // Create Sample Request Using Direct SQL Transaction
     // =====================================================
     // All operations wrapped in ACID transaction:
     // 1. Create sample_requests record
@@ -221,46 +217,90 @@ async function handleSamplesPost(request: NextRequest) {
     //
     // If items creation fails, the request record is automatically rolled back
 
-    // Prepare sample items JSONB for RPC function
-    const sampleItemsJson = validatedData.sampleItems.map((item) => ({
-      productId: item.productId || null,
-      productName: item.productName,
-      productCategory: item.productCategory || 'other',
-      quantity: item.quantity
-    }));
-
     console.log('[Sample API] Creating sample request with transaction...');
 
-    // RPC call with typed parameters - pass user_id (authenticated) or null (guest)
-    // Note: Parameters reordered to match function signature (required params first, then optional)
-    const { data: rpcResult, error: rpcError } = await (supabase as any).rpc('create_sample_request_transaction', {
-      p_notes: validatedData.message,
-      p_sample_items: sampleItemsJson,
-      p_user_id: userId,  // Authenticated user ID or null for guest requests
-      p_request_number: requestId
+    // Use raw SQL transaction to avoid RPC function ambiguity issues
+    const { data: transactionResult, error: transactionError } = await supabase.rpc('sql', {
+      sql: `
+        DO $$
+        DECLARE
+          v_request_id VARCHAR(50) := $1;
+          v_user_id UUID := $2;
+          v_notes TEXT := $3;
+          v_items_count INT := $4;
+          v_new_request_id UUID;
+        BEGIN
+          -- Create sample request
+          INSERT INTO sample_requests (
+            request_id,
+            user_id,
+            status,
+            items_count,
+            notes,
+            created_at
+          ) VALUES (
+            v_request_id,
+            v_user_id,
+            'pending',
+            v_items_count,
+            v_notes,
+            NOW()
+          ) RETURNING id INTO v_new_request_id;
+
+          -- The sample items will be inserted separately after this
+          RAISE NOTICE 'Sample request created with ID: %', v_new_request_id;
+
+          -- Return the new request ID
+          SELECT v_new_request_id AS sample_request_id, v_request_id AS request_number;
+        END;
+        $$;
+      `,
+      params: [requestId, userId, validatedData.message, validatedData.sampleItems.length]
     });
 
-    if (rpcError) {
-      console.error('[Sample API] RPC Error creating sample request:', rpcError);
-      throw new Error(`Failed to create sample request: ${rpcError.message}`);
+    if (transactionError) {
+      console.error('[Sample API] Transaction Error:', transactionError);
+      throw new Error(`Failed to create sample request: ${transactionError.message}`);
     }
 
-    // Check RPC function result
-    if (!rpcResult || rpcResult.length === 0) {
+    // Check transaction result
+    if (!transactionResult || transactionResult.length === 0) {
       throw new Error('Unknown error creating sample request');
     }
 
-    const result = rpcResult[0] as SampleRequestRPCResult;
+    const requestResult = transactionResult[0] as { sample_request_id: UUID; request_number: string };
 
-    // Handle failure case
-    if (!result.success || !result.sample_request_id) {
-      throw new Error(result.error_message || 'Failed to create sample request');
+    // Now insert sample items
+    for (const item of validatedData.sampleItems) {
+      // Validate UUID format for productId
+      let productIdValue: string | null = null;
+      if (item.productId) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+        if (uuidRegex.test(item.productId)) {
+          productIdValue = item.productId;
+        }
+      }
+
+      const { error: itemError } = await supabase
+        .from('sample_items')
+        .insert({
+          sample_request_id: requestResult.sample_request_id,
+          product_id: productIdValue,
+          product_name: item.productName,
+          category: item.productCategory || 'other',
+          quantity: item.quantity
+        });
+
+      if (itemError) {
+        console.error('[Sample API] Error inserting sample item:', itemError);
+        throw new Error(`Failed to create sample item: ${itemError.message}`);
+      }
     }
 
     console.log('[Sample API] Sample request created successfully:', {
-      sampleRequestId: result.sample_request_id,
-      requestNumber: result.request_number,
-      itemsCreated: result.items_created
+      sampleRequestId: requestResult.sample_request_id,
+      requestNumber: requestResult.request_number,
+      itemsCreated: validatedData.sampleItems.length
     });
 
     // =====================================================
@@ -269,7 +309,7 @@ async function handleSamplesPost(request: NextRequest) {
 
     // Prepare email data
     const emailData = {
-      requestId: result.request_number,
+      requestId: requestResult.request_number,
       customerName,
       customerEmail,  // Uses profile email for authenticated users or form email for guests
       customerPhone,
@@ -294,8 +334,8 @@ async function handleSamplesPost(request: NextRequest) {
 
     if (!emailResult.success) {
       console.error('[Sample API] Email errors:', emailResult.errors);
-      // Email 실패는 에러로 처리하지 않고 로그만 남김
-      // DB는 이미 저장되었으므로 성공 응답
+      // メール送信失敗はエラーとして処理せずログのみ記録
+      // DBは既に保存されているため成功応答
     } else {
       console.log('[Sample API] Emails sent successfully:', {
         customer: emailResult.customerEmail?.messageId,
@@ -309,7 +349,7 @@ async function handleSamplesPost(request: NextRequest) {
     console.log('[Sample API] Creating admin notification...');
 
     const notificationResult = await notifySampleRequest(
-      result.sample_request_id,
+      requestResult.sample_request_id,
       customerName,
       validatedData.sampleItems.length
     );
@@ -326,8 +366,8 @@ async function handleSamplesPost(request: NextRequest) {
 
     // Log the complete sample request data for debugging
     console.log('[Sample API] Request processed successfully:', {
-      requestId: result.request_number,
-      sampleRequestId: result.sample_request_id,
+      requestId: requestResult.request_number,
+      sampleRequestId: requestResult.sample_request_id,
       authenticated: !!userId,
       userId: userId || 'guest',
       customer: {
@@ -350,9 +390,9 @@ async function handleSamplesPost(request: NextRequest) {
       success: true,
       message: 'サンプルリクエストを受け付けました。確認メールをお送りしました。',
       data: {
-        requestId: result.request_number,
-        sampleRequestId: result.sample_request_id,
-        sampleItemsCount: result.items_created,
+        requestId: requestResult.request_number,
+        sampleRequestId: requestResult.sample_request_id,
+        sampleItemsCount: validatedData.sampleItems.length,
         emailSent: emailResult.success,
         messageIds: {
           customer: emailResult.customerEmail?.messageId,
@@ -395,7 +435,7 @@ async function handleSamplesPost(request: NextRequest) {
 export const POST = withRateLimit(handleSamplesPost, samplesRateLimiter);
 
 /**
- * GET 메서드 - API 상태 확인
+ * GETメソッド - API状態確認
  */
 export async function GET() {
   return NextResponse.json({

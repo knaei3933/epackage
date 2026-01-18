@@ -1,5 +1,5 @@
 // Google Analytics 4 and Performance Monitoring
-// Google Analytics 4 및 성능 모니터링 설정
+// Google Analytics 4 および性能モニタリング設定
 
 import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals';
 

@@ -18,9 +18,28 @@ import {
   createShipmentWithCarrier,
   calculateEstimatedDelivery,
 } from '@/lib/shipping-carriers';
+import { sendShipmentNotificationEmail, createRecipient } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * Generate tracking URL based on carrier
+ */
+function getTrackingUrl(carrier: CarrierType, trackingNumber: string): string {
+  switch (carrier) {
+    case 'yamato':
+      return `https://tokky.kuronekoyamato.co.jp/tokky.jsp?nob=${trackingNumber}`;
+    case 'sagawa':
+      return `https://k2k.sagawa-exp.co.jp/web/search.html?no=${trackingNumber}`;
+    case 'jp_post':
+      return `https://tracking.post.japanpost.jp/services/srv/search/direct?searchKind=S004&locale=ja&reqCodeNo1=${trackingNumber}`;
+    case 'seino':
+      return `https://track.seino.co.jp/kamotsu/TrackNo?n=${trackingNumber}`;
+    default:
+      return '';
+  }
+}
 
 // Default sender address (warehouse)
 const DEFAULT_SENDER_ADDRESS = {
@@ -220,8 +239,47 @@ export async function POST(request: NextRequest) {
     // Step 6: Send notification to customer
     // =====================================================
 
-    // TODO: Send email notification with tracking number
-    // await sendShipmentNotification(order.customer_email, shipment);
+    try {
+      if (orderTyped.customer_email) {
+        const recipient = createRecipient(
+          orderTyped.customer_name || 'お客様',
+          orderTyped.customer_email
+        );
+
+        const orderInfo = {
+          orderId: orderTyped.id,
+          orderDate: new Date().toISOString(),
+          totalAmount: orderTyped.total_amount,
+          items: [], // Items can be fetched if needed
+        };
+
+        const shipmentInfo = {
+          trackingNumber: carrierResponse.trackingNumber,
+          carrier: body.carrier,
+          estimatedDelivery: estimatedDelivery.toISOString(),
+          shippingAddress: orderTyped.shipping_address,
+        };
+
+        // Generate tracking URL based on carrier
+        const trackingUrl = getTrackingUrl(body.carrier, carrierResponse.trackingNumber);
+
+        await sendShipmentNotificationEmail(
+          recipient,
+          orderInfo,
+          shipmentInfo,
+          { trackingUrl }
+        );
+
+        console.log('[Shipment] Notification email sent:', {
+          orderId: body.order_id,
+          customerEmail: orderTyped.customer_email,
+          trackingNumber: carrierResponse.trackingNumber,
+        });
+      }
+    } catch (emailError) {
+      console.error('[Shipment] Email error:', emailError);
+      // Don't fail the request if email fails
+    }
 
     // =====================================================
     // Step 7: Return response

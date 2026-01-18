@@ -8,8 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 // =====================================================
@@ -28,8 +27,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
-
+    const { client: supabase } = createSupabaseSSRClient(request);
     // Fetch production job details using execute_sql
     const { data: productionJob, error: jobError } = await supabase
       .from('production_orders')
@@ -110,8 +108,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const supabase = createRouteHandlerClient({ cookies });
-
+    const { client: supabase } = createSupabaseSSRClient(request);
     const body = await request.json();
     const { action, reason } = body;
 

@@ -181,69 +181,139 @@ describe('File Upload Security Validator', () => {
   });
 
   describe('Task #72.4: Malicious File Detection', () => {
-    it('should detect script injection patterns', async () => {
-      const maliciousContent = '<script>alert("XSS")</script>';
-      const buffer = Buffer.concat([
-        createBufferWithMagicNumber([0xFF, 0xD8, 0xFF]), // JPEG header
-        Buffer.from(maliciousContent),
-      ]);
-      const file = createMockFile(buffer, 'image.jpg', 'image/jpeg');
+    describe('Text-based files should be checked for malicious patterns', () => {
+      it('should detect script injection patterns in text files', async () => {
+        const maliciousContent = '<script>alert("XSS")</script>';
+        const buffer = Buffer.from(maliciousContent);
+        const file = createMockFile(buffer, 'malicious.html', 'text/html');
 
-      const result = await validateFileSecurity(file);
+        const result = await validateFileSecurity(file);
 
-      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+      });
+
+      it('should detect SQL injection patterns in text files', async () => {
+        const maliciousContent = "SELECT * FROM users WHERE id = 1 OR 1=1; DROP TABLE users; --";
+        const buffer = Buffer.from(maliciousContent);
+        const file = createMockFile(buffer, 'malicious.txt', 'text/plain');
+
+        const result = await validateFileSecurity(file);
+
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+      });
+
+      it('should detect path traversal patterns in text files', async () => {
+        const maliciousContent = '../../../etc/passwd';
+        const buffer = Buffer.from(maliciousContent);
+        const file = createMockFile(buffer, 'malicious.txt', 'text/plain');
+
+        const result = await validateFileSecurity(file);
+
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+      });
+
+      it('should detect shell command patterns in text files', async () => {
+        const maliciousContent = 'exec("rm -rf /")';
+        const buffer = Buffer.from(maliciousContent);
+        const file = createMockFile(buffer, 'malicious.sh', 'text/x-shellscript');
+
+        const result = await validateFileSecurity(file);
+
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+      });
+
+      it('should detect eval() patterns in text files', async () => {
+        const maliciousContent = 'eval(base64_decode("malicious"))';
+        const buffer = Buffer.from(maliciousContent);
+        const file = createMockFile(buffer, 'malicious.js', 'text/javascript');
+
+        const result = await validateFileSecurity(file);
+
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+      });
     });
 
-    it('should detect SQL injection patterns', async () => {
-      const maliciousContent = "SELECT * FROM users WHERE id = 1 OR 1=1; DROP TABLE users; --";
-      const buffer = Buffer.concat([
-        createBufferWithMagicNumber([0xFF, 0xD8, 0xFF]),
-        Buffer.from(maliciousContent),
-      ]);
-      const file = createMockFile(buffer, 'image.jpg', 'image/jpeg');
+    describe('Binary files should NOT be checked for content patterns (magic number is sufficient)', () => {
+      it('should NOT flag binary AI files with byte sequences that look like text patterns', async () => {
+        // AI (Adobe Illustrator) files are PDF-based and start with %PDF
+        const aiContent = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x27, 0x2D, 0x2D, 0x23]); // %PDF'--#
+        const file = createMockFile(aiContent, 'design.ai', 'application/illustrator');
 
-      const result = await validateFileSecurity(file);
+        const result = await validateFileSecurity(file);
 
-      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+        // Should NOT have malicious content errors for binary files
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(false);
+        // Should pass magic number validation
+        expect(result.fileInfo.hasValidMagicNumber).toBe(true);
+        expect(result.fileInfo.detectedType).toContain('pdf');
+      });
+
+      it('should NOT flag PDF files with byte sequences that look like SQL injection', async () => {
+        // PDF with bytes that could be misinterpreted as SQL patterns when read as text
+        const pdfContent = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x27, 0x27]); // %PDF''
+        const file = createMockFile(pdfContent, 'document.pdf', 'application/pdf');
+
+        const result = await validateFileSecurity(file);
+
+        // Should NOT have malicious content errors for binary files
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(false);
+        expect(result.fileInfo.hasValidMagicNumber).toBe(true);
+      });
+
+      it('should NOT flag PSD files with arbitrary byte sequences', async () => {
+        // PSD with various byte patterns
+        const psdContent = Buffer.concat([
+          Buffer.from([0x38, 0x42, 0x50, 0x53]), // 8BPS magic number
+          Buffer.from([0x27, 0x2D, 0x23, 0x3B]), // Bytes that look like patterns
+        ]);
+        const file = createMockFile(psdContent, 'design.psd', 'image/vnd.adobe.photoshop');
+
+        const result = await validateFileSecurity(file);
+
+        // Should NOT have malicious content errors for binary files
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(false);
+        expect(result.fileInfo.hasValidMagicNumber).toBe(true);
+      });
+
+      it('should NOT flag JPEG files with arbitrary byte sequences', async () => {
+        const jpegContent = Buffer.concat([
+          Buffer.from([0xFF, 0xD8, 0xFF]), // JPEG magic number
+          Buffer.from([0x27, 0x27, 0x2D, 0x2D, 0x23, 0x23]), // Bytes that look like patterns
+        ]);
+        const file = createMockFile(jpegContent, 'image.jpg', 'image/jpeg');
+
+        const result = await validateFileSecurity(file);
+
+        // Should NOT have malicious content errors for binary files
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(false);
+        expect(result.fileInfo.hasValidMagicNumber).toBe(true);
+      });
+
+      it('should NOT flag PNG files with arbitrary byte sequences', async () => {
+        const pngContent = Buffer.concat([
+          Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), // PNG magic number
+          Buffer.from([0x27, 0x2D, 0x23, 0x3B, 0x26, 0x7C]), // Bytes that look like patterns
+        ]);
+        const file = createMockFile(pngContent, 'image.png', 'image/png');
+
+        const result = await validateFileSecurity(file);
+
+        // Should NOT have malicious content errors for binary files
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(false);
+        expect(result.fileInfo.hasValidMagicNumber).toBe(true);
+      });
     });
 
-    it('should detect path traversal patterns', async () => {
-      const maliciousContent = '../../../etc/passwd';
-      const buffer = Buffer.concat([
-        createBufferWithMagicNumber([0xFF, 0xD8, 0xFF]),
-        Buffer.from(maliciousContent),
-      ]);
-      const file = createMockFile(buffer, 'image.jpg', 'image/jpeg');
+    describe('SVG files should be checked (they are XML-based and can contain scripts)', () => {
+      it('should detect malicious scripts in SVG files', async () => {
+        const svgContent = '<svg><script>alert("XSS")</script></svg>';
+        const buffer = Buffer.from(svgContent);
+        const file = createMockFile(buffer, 'malicious.svg', 'image/svg+xml');
 
-      const result = await validateFileSecurity(file);
+        const result = await validateFileSecurity(file);
 
-      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
-    });
-
-    it('should detect shell command patterns', async () => {
-      const maliciousContent = 'exec("rm -rf /")';
-      const buffer = Buffer.concat([
-        createBufferWithMagicNumber([0xFF, 0xD8, 0xFF]),
-        Buffer.from(maliciousContent),
-      ]);
-      const file = createMockFile(buffer, 'image.jpg', 'image/jpeg');
-
-      const result = await validateFileSecurity(file);
-
-      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
-    });
-
-    it('should detect eval() patterns', async () => {
-      const maliciousContent = 'eval(base64_decode("malicious"))';
-      const buffer = Buffer.concat([
-        createBufferWithMagicNumber([0xFF, 0xD8, 0xFF]),
-        Buffer.from(maliciousContent),
-      ]);
-      const file = createMockFile(buffer, 'image.jpg', 'image/jpeg');
-
-      const result = await validateFileSecurity(file);
-
-      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+        expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+      });
     });
   });
 
@@ -466,16 +536,14 @@ describe('File Upload Security Validator', () => {
   describe('Integration: Multiple Security Checks', () => {
     it('should catch multiple security issues in one file', async () => {
       // File with multiple issues:
-      // 1. Wrong extension
-      // 2. Script injection content
+      // 1. Executable file type
+      // 2. Wrong extension (.txt but detected as executable)
       // 3. Over size limit
-      const maliciousContent = '<script>XSS</script>';
       const largeBuffer = Buffer.concat([
-        createBufferWithMagicNumber([0xFF, 0xD8, 0xFF]), // JPEG header
-        Buffer.from(maliciousContent),
+        createBufferWithMagicNumber([0x4D, 0x5A]), // EXE header
         Buffer.alloc(11 * 1024 * 1024), // Make it 11MB
       ]);
-      const file = createMockFile(largeBuffer, 'malicious.exe', 'application/x-executable');
+      const file = createMockFile(largeBuffer, 'malicious.txt', 'application/x-executable');
 
       const result = await validateFileSecurity(file);
 
@@ -485,19 +553,36 @@ describe('File Upload Security Validator', () => {
       // Check for specific error types
       const errorCodes = result.errors.map(e => e.code);
       expect(errorCodes).toContain('EXECUTABLE_FILE_DETECTED');
-      expect(errorCodes).toContain('SUSPICIOUS_FILE_EXTENSION');
-      expect(errorCodes).toContain('MALICIOUS_CONTENT_DETECTED');
+      expect(errorCodes).toContain('FILE_TOO_LARGE');
     });
 
-    it('should pass clean files with no issues', async () => {
-      // Clean JPEG file under size limit
+    it('should catch malicious content in text files', async () => {
+      // Text file with malicious content
+      const maliciousContent = '<script>XSS</script>SELECT * FROM users; --';
+      const buffer = Buffer.from(maliciousContent);
+      const file = createMockFile(buffer, 'malicious.html', 'text/html');
+
+      const result = await validateFileSecurity(file);
+
+      // Should detect malicious content
+      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(true);
+    });
+
+    it('should pass clean binary files with no issues', async () => {
+      // Clean JPEG file under size limit with arbitrary bytes
       const cleanBuffer = createBufferWithMagicNumber([0xFF, 0xD8, 0xFF], 1000);
+      // Add some bytes that would look suspicious if interpreted as text
+      cleanBuffer[10] = 0x27; // '
+      cleanBuffer[11] = 0x2D; // -
+      cleanBuffer[12] = 0x23; // #
       const file = createMockFile(cleanBuffer, 'clean.jpg', 'image/jpeg');
 
       const result = await validateFileSecurity(file);
 
+      // Binary files should NOT be flagged for content patterns
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
+      expect(result.errors.some(e => e.code === 'MALICIOUS_CONTENT_DETECTED')).toBe(false);
     });
   });
 });

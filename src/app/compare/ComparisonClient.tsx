@@ -6,19 +6,15 @@ import {
   ArrowLeft,
   GitCompare,
   Trophy,
-  TrendingUp,
   Clock,
   DollarSign,
   Package,
   CheckCircle,
-  Star,
   BarChart3,
   Download,
-  Share2,
   Eye,
   Zap,
-  Shield,
-  Target
+  Shield
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 import { Button } from '@/components/ui/Button'
@@ -301,7 +297,7 @@ export function ComparisonClient() {
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
                           <span className="font-semibold text-gray-900">
-                            {formatCurrency((product.pricing_formula as any)?.base_cost || 0)}
+                            {formatCurrency((product.pricing_formula as { base_cost?: number })?.base_cost || 0)}
                           </span>
                         </td>
                       ))}
@@ -312,7 +308,7 @@ export function ComparisonClient() {
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
                           <span className="font-medium text-gray-900">
-                            {formatCurrency((product.pricing_formula as any)?.per_unit_cost || 0)}/個
+                            {formatCurrency((product.pricing_formula as { per_unit_cost?: number })?.per_unit_cost || 0)}/個
                           </span>
                         </td>
                       ))}
@@ -426,13 +422,13 @@ export function ComparisonClient() {
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <p className="text-xs text-gray-600 mb-1">初期費用</p>
                         <p className="font-bold text-gray-900">
-                          {formatCurrency((product.pricing_formula as any)?.base_cost || 0)}
+                          {formatCurrency((product.pricing_formula as { base_cost?: number })?.base_cost || 0)}
                         </p>
                       </div>
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <p className="text-xs text-gray-600 mb-1">単価</p>
                         <p className="font-bold text-gray-900">
-                          {formatCurrency((product.pricing_formula as any)?.per_unit_cost || 0)}/個
+                          {formatCurrency((product.pricing_formula as { per_unit_cost?: number })?.per_unit_cost || 0)}/個
                         </p>
                       </div>
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -487,7 +483,7 @@ export function ComparisonClient() {
                           詳細
                         </Button>
                       </Link>
-                      <Link href="/roi-calculator/">
+                      <Link href="/roi-calculator">
                         <Button variant="primary" size="sm" className="flex-1">
                           <BarChart3 className="w-4 h-4 mr-2" />
                           見積
@@ -559,7 +555,7 @@ export function ComparisonClient() {
                 専門スタッフが最適な包装ソリューションをご提案いたします
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact/">
+                <Link href="/contact">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -568,7 +564,7 @@ export function ComparisonClient() {
                     専門家に相談
                   </Button>
                 </Link>
-                <Link href="/roi-calculator/">
+                <Link href="/roi-calculator">
                   <Button
                     variant="outline"
                     size="lg"

@@ -1,11 +1,11 @@
 /**
  * IP Address Validator for Electronic Signature System
  *
- * 일본 전자서명법 준수를 위한 IP 주소 검증 시스템
- * - x-forwarded-for 헤더 스푸핑 방지
- * - Cloudflare cf-connecting-ip 우선 검증
- * - 프록시 체인 검증
- * - 사설 IP 탐지
+ * 日本電子署名法準拠のためのIPアドレス検証システム
+ * - x-forwarded-forヘッダースプーフィング防止
+ * - Cloudflare cf-connecting-ip優先検証
+ * - プロキシチェーン検証
+ * - プライベートIP検知
  *
  * References:
  * - 日本電子署名法 (電子署名法, Law No. 102 of 2000)
@@ -19,31 +19,31 @@
 
 export interface IPValidationResult {
   /**
-   * 검증된 클라이언트 IP 주소
+   * 検証されたクライアントIPアドレス
    */
   clientIP: string;
 
   /**
-   * IP 주소의 신뢰도 레벨
+   * IPアドレスの信頼度レベル
    */
   trustLevel: 'trusted' | 'verified' | 'suspicious' | 'untrusted';
 
   /**
-   * 검증에 사용된 소스 헤더
+   * 検証に使用されたソースヘッダー
    */
   source: 'cf-connecting-ip' | 'x-forwarded-for' | 'x-real-ip' | 'fallback';
 
   /**
-   * 검증 경고 메시지
+   * 検証警告メッセージ
    */
   warnings: string[];
 
   /**
-   * 감사 로그용 메타데이터
+   * 監査ログ用メタデータ
    */
   metadata: {
     /**
-     * 원본 헤더 값들
+     * 元のヘッダー値
      */
     rawHeaders: {
       cfConnectingIP?: string;
@@ -52,22 +52,22 @@ export interface IPValidationResult {
     };
 
     /**
-     * 프록시 체인 (있는 경우)
+     * プロキシチェーン (ある場合)
      */
     proxyChain?: string[];
 
     /**
-     * IP 버전 (IPv4/IPv6)
+     * IPバージョン (IPv4/IPv6)
      */
     ipVersion: 'IPv4' | 'IPv6';
 
     /**
-     * 사설 IP 여부
+     * プライベートIPかどうか
      */
     isPrivate: boolean;
 
     /**
-     * 검증 타임스탬프
+     * 検証タイムスタンプ
      */
     validatedAt: string;
   };
@@ -75,17 +75,17 @@ export interface IPValidationResult {
 
 export interface IPValidatorOptions {
   /**
-   * 신뢰할 수 있는 프록시 IP 목록
+   * 信頼できるプロキシIPリスト
    */
   trustedProxies?: string[];
 
   /**
-   * 사설 IP 허용 여부 (개발 환경용)
+   * プライベートIP許可 (開発環境用)
    */
   allowPrivateIP?: boolean;
 
   /**
-   * 엄격한 검증 모드 (프로덕션 권장)
+   * 厳格な検証モード (本番推奨)
    */
   strictMode?: boolean;
 }
@@ -95,7 +95,7 @@ export interface IPValidatorOptions {
 // =====================================================
 
 /**
- * 사설 IP 주소 범위 (RFC 1918, RFC 4193)
+ * プライベートIPアドレス範囲 (RFC 1918, RFC 4193)
  */
 const PRIVATE_IP_RANGES = [
   // IPv4 Private Ranges
@@ -113,7 +113,7 @@ const PRIVATE_IP_RANGES = [
 ];
 
 /**
- * 로컬호스트 주소
+ * ローカルホストアドレス
  */
 const LOCALHOST_ADDRESSES = [
   '127.0.0.1',
@@ -124,8 +124,8 @@ const LOCALHOST_ADDRESSES = [
 ];
 
 /**
- * Cloudflare IP 범위 (일부)
- * 전체 목록: https://www.cloudflare.com/ips/
+ * Cloudflare IP範囲 (一部)
+ * 完全リスト: https://www.cloudflare.com/ips/
  */
 const CLOUDFLARE_IP_PATTERNS = [
   /^173\.245\./,
@@ -145,14 +145,14 @@ const CLOUDFLARE_IP_PATTERNS = [
 // =====================================================
 
 /**
- * IP 주소 정규화 (공백 제거, 소문자 변환)
+ * IPアドレス正規化 (空白削除、小文字変換)
  */
 function normalizeIP(ip: string): string {
   return ip.trim().toLowerCase();
 }
 
 /**
- * IPv4 주소 유효성 검증
+ * IPv4アドレス有効性検証
  */
 function isValidIPv4(ip: string): boolean {
   const ipv4Pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
@@ -160,7 +160,7 @@ function isValidIPv4(ip: string): boolean {
 
   if (!match) return false;
 
-  // 각 옥텟이 0-255 범위인지 확인
+  // 各オクテットが0-255範囲か確認
   return match.slice(1, 5).every(octet => {
     const num = parseInt(octet, 10);
     return num >= 0 && num <= 255;
@@ -168,10 +168,10 @@ function isValidIPv4(ip: string): boolean {
 }
 
 /**
- * IPv6 주소 유효성 검증
+ * IPv6アドレス有効性検証
  */
 function isValidIPv6(ip: string): boolean {
-  // 간단한 IPv6 패턴 검증
+  // 簡単なIPv6パターン検証
   const ipv6Pattern = /^([0-9a-f]{0,4}:){7}[0-9a-f]{0,4}$/i;
   const compressedPattern = /^((?:[0-9a-f]{0,4}:)*::(?:[0-9a-f]{0,4}:*)*)[0-9a-f]{0,4}$/i;
 
@@ -179,14 +179,14 @@ function isValidIPv6(ip: string): boolean {
 }
 
 /**
- * IP 주소 유효성 검증 (IPv4/IPv6)
+ * IPアドレス有効性検証 (IPv4/IPv6)
  */
 function isValidIP(ip: string): boolean {
   return isValidIPv4(ip) || isValidIPv6(ip);
 }
 
 /**
- * IP 주소가 사설 대역인지 확인
+ * IPアドレスがプライベート範囲か確認
  */
 function isPrivateIP(ip: string): boolean {
   const normalized = normalizeIP(ip);
@@ -201,15 +201,15 @@ function isPrivateIP(ip: string): boolean {
 }
 
 /**
- * IP 버전 확인
+ * IPバージョン確認
  */
 function getIPVersion(ip: string): 'IPv4' | 'IPv6' {
   return ip.includes(':') ? 'IPv6' : 'IPv4';
 }
 
 /**
- * x-forwarded-for 헤더 파싱
- * 형식: "client, proxy1, proxy2"
+ * x-forwarded-forヘッダーパース
+ * 形式: "client, proxy1, proxy2"
  */
 function parseXForwardedFor(header: string | null): string[] {
   if (!header) return [];
@@ -221,7 +221,7 @@ function parseXForwardedFor(header: string | null): string[] {
 }
 
 /**
- * Cloudflare IP인지 확인
+ * Cloudflare IPか確認
  */
 function isCloudflareIP(ip: string): boolean {
   return CLOUDFLARE_IP_PATTERNS.some(pattern => pattern.test(ip));
@@ -232,13 +232,13 @@ function isCloudflareIP(ip: string): boolean {
 // =====================================================
 
 /**
- * HTTP 헤더에서 클라이언트 IP 주소를 추출하고 검증합니다.
+ * HTTPヘッダーからクライアントIPアドレスを抽出・検証します。
  *
- * 우선순위:
- * 1. cf-connecting-ip (Cloudflare) - 가장 신뢰
- * 2. x-forwarded-for (프록시 체인 검증)
+ * 優先順位:
+ * 1. cf-connecting-ip (Cloudflare) - 最も信頼
+ * 2. x-forwarded-for (プロキシチェーン検証)
  * 3. x-real-ip (nginx)
- * 4. fallback (직접 연결)
+ * 4. fallback (直接接続)
  */
 export function validateClientIP(
   headers: {
@@ -259,7 +259,7 @@ export function validateClientIP(
   let proxyChain: string[] | undefined;
 
   // ===================================================
-  // 1. Cloudflare cf-connecting-ip 확인 (가장 신뢰)
+  // 1. Cloudflare cf-connecting-ip確認 (最も信頼)
   // ===================================================
 
   const cfIP = headers['cf-connecting-ip'];
@@ -270,7 +270,7 @@ export function validateClientIP(
     const isPrivate = isPrivateIP(normalizedCF);
 
     if (isPrivate && !allowPrivateIP) {
-      warnings.push('Cloudflare IP가 사설 대역입니다. 헤더 스푸핑 가능성.');
+      warnings.push('Cloudflare IPがプライベート範囲です。ヘッダースプーフィングの可能性。');
     }
 
     return {
@@ -289,7 +289,7 @@ export function validateClientIP(
   }
 
   // ===================================================
-  // 2. x-forwarded-for 헤더 확인 (프록시 체인)
+  // 2. x-forwarded-forヘッダー確認 (プロキシチェーン)
   // ===================================================
 
   const xff = headers['x-forwarded-for'];
@@ -299,7 +299,7 @@ export function validateClientIP(
     proxyChain = parseXForwardedFor(xff);
 
     if (proxyChain.length > 0) {
-      // 첫 번째 IP가 클라이언트 IP (가장 왼쪽)
+      // 最初のIPがクライアントIP (最左)
       const clientIP = proxyChain[0];
 
       if (isValidIP(clientIP)) {
@@ -308,15 +308,15 @@ export function validateClientIP(
           trustedProxies.includes(proxy) || isCloudflareIP(proxy)
         );
 
-        // 프록시 체인 검증
+        // プロキシチェーン検証
         if (strictMode && !isTrustedProxy && proxyChain.length > 1) {
           warnings.push(
-            `프록시 체인에 신뢰할 수 없는 IP가 포함되어 있습니다: ${proxyChain.slice(1).join(', ')}`
+            `プロキシチェーンに信頼できないIPが含まれています: ${proxyChain.slice(1).join(', ')}`
           );
         }
 
         if (isPrivate && !allowPrivateIP) {
-          warnings.push('x-forwarded-for의 클라이언트 IP가 사설 대역입니다.');
+          warnings.push('x-forwarded-forのクライアントIPがプライベート範囲です。');
         }
 
         return {
@@ -337,7 +337,7 @@ export function validateClientIP(
   }
 
   // ===================================================
-  // 3. x-real-ip 헤더 확인 (nginx)
+  // 3. x-real-ipヘッダー確認 (nginx)
   // ===================================================
 
   const realIP = headers['x-real-ip'];
@@ -348,10 +348,10 @@ export function validateClientIP(
     const isPrivate = isPrivateIP(normalizedReal);
 
     if (isPrivate && !allowPrivateIP) {
-      warnings.push('x-real-ip가 사설 대역입니다.');
+      warnings.push('x-real-ipがプライベート範囲です。');
     }
 
-    warnings.push('cf-connecting-ip과 x-forwarded-for이 없어 x-real-ip를 사용합니다.');
+    warnings.push('cf-connecting-ipとx-forwarded-forがないためx-real-ipを使用します。');
 
     return {
       clientIP: normalizedReal,
@@ -369,11 +369,11 @@ export function validateClientIP(
   }
 
   // ===================================================
-  // 4. Fallback (헤더 없음)
+  // 4. Fallback (ヘッダーなし)
   // ===================================================
 
   warnings.push(
-    'IP 추적 헤더가 없습니다. 직접 연결 또는 헤더 전달 안 됨.'
+    'IP追跡ヘッダーがありません。直接接続またはヘッダー転送なし。'
   );
 
   return {
@@ -392,9 +392,9 @@ export function validateClientIP(
 }
 
 /**
- * IP 주소로 지역 정보 조회 (선택적 기능)
+ * IPアドレスで地域情報取得 (オプション機能)
  *
- * GeoIP 데이터베이스 연동 시 사용
+ * GeoIPデータベース連携時使用
  */
 export async function getGeoLocation(
   ip: string
@@ -404,14 +404,14 @@ export async function getGeoLocation(
   city?: string;
   timezone?: string;
 } | null> {
-  // 구현 필요: GeoIP 데이터베이스 또는 API 연동
-  // 예: MaxMind GeoLite2, IP-API.com 등
+  // 実装必要: GeoIPデータベースまたはAPI連携
+  // 例: MaxMind GeoLite2, IP-API.com等
 
   if (ip === 'unknown') {
     return null;
   }
 
-  // TODO: GeoIP 조회 구현
+  // TODO: GeoIP検索実装
   return null;
 }
 
@@ -420,7 +420,7 @@ export async function getGeoLocation(
 // =====================================================
 
 /**
- * IP 검증 결과를 감사 로그 형식으로 변환
+ * IP検証結果を監査ログ形式に変換
  */
 export function formatAuditLog(
   validation: IPValidationResult,
@@ -442,7 +442,7 @@ export function formatAuditLog(
 }
 
 /**
- * IP 검증 결과를 데이터베이스 저장용 객체로 변환
+ * IP検証結果をデータベース保存用オブジェクトに変換
  */
 export function toDatabaseRecord(
   validation: IPValidationResult,
@@ -478,12 +478,12 @@ export function toDatabaseRecord(
 // =====================================================
 
 /**
- * 일본 전자서명법 준수를 위한 IP 검증 규칙
+ * 日本電子署名法準拠のためのIP検証ルール
  *
- * 전자서명법 제4조 (전자署名의 作成 등)
- * - 전자서명 작성 시작・완료 시각의 기록
- * - 전자서명 작성 장소의 IP 주소 기록
- * - 위조・변조 방지를 위한 무결성 확보
+ * 電子署名法第4条 (電子署名の作成等)
+ * - 電子署名作成開始・完了時刻の記録
+ * - 電子署名作成場所のIPアドレス記録
+ * - 偽造・変造防止のための完全性確保
  */
 export function checkJapaneseESignCompliance(
   validation: IPValidationResult
@@ -493,28 +493,28 @@ export function checkJapaneseESignCompliance(
   issues: string[];
 } {
   const requirements: string[] = [
-    '전자서명 작성 시각 기록 (timestamp)',
-    '전자서명 작성 장소의 IP 주소 기록',
-    'IP 주소 검증 및 신뢰도 평가',
-    '데이터 무결성 확보 (audit log)',
+    '電子署名作成時刻記録 (timestamp)',
+    '電子署名作成場所のIPアドレス記録',
+    'IPアドレス検証および信頼度評価',
+    'データ完全性確保 (audit log)',
   ];
 
   const issues: string[] = [];
 
   if (validation.clientIP === 'unknown') {
-    issues.push('클라이언트 IP를 식별할 수 없습니다.');
+    issues.push('クライアントIPを識別できません。');
   }
 
   if (validation.trustLevel === 'untrusted') {
-    issues.push('IP 주소 신뢰도가 낮습니다. 헤더 스푸핑 가능성.');
+    issues.push('IPアドレス信頼度が低いです。ヘッダースプーフィングの可能性。');
   }
 
   if (validation.metadata.isPrivate) {
-    issues.push('사설 IP 주소입니다. 실제 위치 추적이 어렵습니다.');
+    issues.push('プライベートIPアドレスです。実際の位置追跡が困難です。');
   }
 
   if (validation.warnings.length > 0) {
-    issues.push(`IP 검증 경고: ${validation.warnings.join(', ')}`);
+    issues.push(`IP検証警告: ${validation.warnings.join(', ')}`);
   }
 
   return {
@@ -525,11 +525,11 @@ export function checkJapaneseESignCompliance(
 }
 
 /**
- * 개인정보보호법 (APPI) 준수를 위한 데이터 마스킹
+ * 個人情報保護法 (APPI) 準拠のためのデータマスキング
  *
- * 일본 개인정보보호법에 따라 IP 주소 일부를 마스킹
- * - IPv4: 마지막 옥텟 마스킹 (예: 192.168.1.xxx)
- * - IPv6: 마지막 64비트 마스킹
+ * 日本個人情報保護法に従いIPアドレスの一部をマスキング
+ * - IPv4: 最後のオクテットマスキング (例: 192.168.1.xxx)
+ * - IPv6: 最後の64ビットマスキング
  */
 export function maskIPForPrivacy(ip: string): string {
   if (!isValidIP(ip)) {
@@ -537,11 +537,11 @@ export function maskIPForPrivacy(ip: string): string {
   }
 
   if (ip.includes(':')) {
-    // IPv6: 마지막 4그룹 마스킹
+    // IPv6: 最後の4グループマスキング
     const parts = ip.split(':');
     return parts.slice(0, 4).join(':') + ':xxxx:xxxx:xxxx:xxxx';
   } else {
-    // IPv4: 마지막 옥텟 마스킹
+    // IPv4: 最後のオクテットマスキング
     const parts = ip.split('.');
     return `${parts[0]}.${parts[1]}.${parts[2]}.xxx`;
   }
@@ -552,7 +552,7 @@ export function maskIPForPrivacy(ip: string): string {
 // =====================================================
 
 /**
- * Next.js API Request 헤더에서 IP 추출
+ * Next.js APIリクエストヘッダーからIP抽出
  */
 export function extractIPFromNextRequest(
   request: Request

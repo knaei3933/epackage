@@ -2,6 +2,8 @@ import { PerformanceMonitor } from '@/components/PerformanceMonitor'
 import { OrganizationSchema, LocalBusinessSchema, FAQSchema } from '@/components/seo/StructuredData'
 import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingProcessShowcase'
 import { HeroSection, ProductShowcaseSection, CTASection } from '@/components/home'
+import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
+import { getFeaturedProducts, getLatestAnnouncements } from '@/lib/products'
 
 // FAQ Schema data for homepage
 const faqData = [
@@ -28,7 +30,13 @@ const faqData = [
 ]
 
 // Main Home Page Component with Performance Monitoring and SEO
-export default function Home() {
+export default async function Home() {
+  // Fetch dynamic data from Supabase
+  const [featuredProducts, announcements] = await Promise.all([
+    getFeaturedProducts(6),
+    getLatestAnnouncements(3)
+  ])
+
   return (
     <>
       {/* Structured Data for SEO */}
@@ -37,9 +45,16 @@ export default function Home() {
       <FAQSchema faqs={faqData} />
 
       <div className="min-h-screen">
+        {/* Announcement Banner - Dynamic from Supabase */}
+        {announcements.length > 0 && (
+          <AnnouncementBanner announcements={announcements} />
+        )}
+
         <PerformanceMonitor />
         <HeroSection />
-        <ProductShowcaseSection />
+
+        {/* Product Showcase - Dynamic from Supabase */}
+        <ProductShowcaseSection products={featuredProducts} />
 
         {/* Manufacturing Process Showcase - Real Production Images */}
         <ManufacturingProcessShowcase />

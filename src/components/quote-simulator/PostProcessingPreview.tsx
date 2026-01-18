@@ -30,32 +30,32 @@ interface PostProcessingPreviewProps {
 
 const postProcessingOptions: PostProcessingOption[] = [
   // Zipper options -> opening-sealing
-  { id: 'zipper-no', name: 'No Zipper', nameJa: 'ジッパーなし', imageName: '1.지퍼 없음.png', category: 'opening-sealing' },
-  { id: 'zipper-yes', name: 'With Zipper', nameJa: 'ジッパーあり', imageName: '1.지퍼 있음.png', category: 'opening-sealing' },
+  { id: 'zipper-no', name: 'No Zipper', nameJa: 'ジッパーなし', imageName: '1.ジッパーなし.png', category: 'opening-sealing' },
+  { id: 'zipper-yes', name: 'With Zipper', nameJa: 'ジッパーあり', imageName: '1.ジッパーあり.png', category: 'opening-sealing' },
 
   // Finish options -> surface-treatment
-  { id: 'matte', name: 'Matte Finish', nameJa: '無光沢', imageName: '2.무광.png', category: 'surface-treatment' },
-  { id: 'glossy', name: 'Glossy Finish', nameJa: '有光沢', imageName: '2.유광.png', category: 'surface-treatment' },
+  { id: 'matte', name: 'Matte Finish', nameJa: '無光沢', imageName: '2.マット.png', category: 'surface-treatment' },
+  { id: 'glossy', name: 'Glossy Finish', nameJa: '有光沢', imageName: '2.光沢.png', category: 'surface-treatment' },
 
   // Notch options -> opening-sealing
-  { id: 'notch-no', name: 'No Notch', nameJa: 'ノッチなし', imageName: '3.노치 없음.png', category: 'opening-sealing' },
-  { id: 'notch-yes', name: 'With Notch', nameJa: 'ノッチあり', imageName: '3.노치 있음.png', category: 'opening-sealing' },
+  { id: 'notch-no', name: 'No Notch', nameJa: 'ノッチなし', imageName: '3.ノッチなし.png', category: 'opening-sealing' },
+  { id: 'notch-yes', name: 'With Notch', nameJa: 'ノッチあり', imageName: '3.ノッチあり.png', category: 'opening-sealing' },
 
   // Hole punching options -> shape-structure
-  { id: 'punching-no', name: 'No Hole Punching', nameJa: '穴あけなし', imageName: '4.걸이타공 없음.png', category: 'shape-structure' },
-  { id: 'punching-yes', name: 'With Hole Punching', nameJa: '穴あけあり', imageName: '4.걸이타공 있음.png', category: 'shape-structure' },
+  { id: 'punching-no', name: 'No Hole Punching', nameJa: '穴あけなし', imageName: '4.吊り穴なし.png', category: 'shape-structure' },
+  { id: 'punching-yes', name: 'With Hole Punching', nameJa: '穴あけあり', imageName: '4.吊り穴あり.png', category: 'shape-structure' },
 
   // Corner options -> shape-structure
-  { id: 'corner-round', name: 'Round Corner', nameJa: '丸い角', imageName: '5.모서리_둥근.png', category: 'shape-structure' },
-  { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.모서리_직각.png', category: 'shape-structure' },
+  { id: 'corner-round', name: 'Round Corner', nameJa: '丸い角', imageName: '5.角丸.png', category: 'shape-structure' },
+  { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.角直角.png', category: 'shape-structure' },
 
   // Opening options -> opening-sealing
-  { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.상단 오픈.png', category: 'opening-sealing' },
-  { id: 'opening-bottom', name: 'Bottom Opening', nameJa: '下開口', imageName: '6.하단 오픈.png', category: 'opening-sealing' },
+  { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.上端開封.png', category: 'opening-sealing' },
+  { id: 'opening-bottom', name: 'Bottom Opening', nameJa: '下開口', imageName: '6.下端開封.png', category: 'opening-sealing' },
 
   // Valve options -> opening-sealing
-  { id: 'valve-no', name: 'No Valve', nameJa: 'バルブなし', imageName: '밸브 없음.png', category: 'opening-sealing' },
-  { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブあり', imageName: '밸브 있음.png', category: 'opening-sealing' },
+  { id: 'valve-no', name: 'No Valve', nameJa: 'バルブなし', imageName: 'バルブなし.png', category: 'opening-sealing' },
+  { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブあり', imageName: 'バルブあり.png', category: 'opening-sealing' },
 ]
 
 export function PostProcessingPreview({ selectedOptions, onPreviewToggle, className }: PostProcessingPreviewProps) {

@@ -13,14 +13,26 @@ import {
 import { DashboardSkeleton } from '@/components/ui/SkeletonLoader';
 import { AlertCircle, TrendingUp, Package, FileText, Activity } from 'lucide-react';
 
-// データフェッチャー - エラーハンドリング強化
+// データフェッチャー - エラーハンドリング強化 + DEV_MODE対応
 const fetcher = async (url: string) => {
   try {
+    // DEV_MODE用ヘッダーの設定
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // DEV_MODEの場合はヘッダーを追加
+    if (typeof window !== 'undefined') {
+      const devUserId = localStorage.getItem('dev-mock-user-id');
+      if (devUserId) {
+        headers['x-dev-mode'] = 'true';
+        headers['x-user-id'] = devUserId;
+      }
+    }
+
     const response = await fetch(url, {
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -57,16 +69,16 @@ export default function AdminDashboardPage() {
   const [realtimeOrders, setRealtimeOrders] = useState<any[]>([]);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [period, setPeriod] = useState(30); // 기간 필터 (일)
+  const [period, setPeriod] = useState(30); // 期間フィルター (日)
 
-  // SWRによるデータフェッチ - 에러 핸들링 옵션 추가
+  // SWRによるデータフェッチ - エラーハンドリングオプション追加
   const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR(
     `/api/admin/dashboard/statistics?period=${period}`,
     fetcher,
     {
-      refreshInterval: 30000, // 30초마다 갱신
+      refreshInterval: 30000, // 30秒ごとに更新
       revalidateOnFocus: true,
-      shouldRetryOnError: false, // 자동 재시도 비활성화 (수동 재시도 버튼 제공)
+      shouldRetryOnError: false, // 自動再試行無効化 (手動再試行ボタン提供)
       errorRetryCount: 3,
       onError: (err) => {
         console.error('SWR Error:', err);
@@ -206,28 +218,28 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* 헤더 - 갱신 표시기 추가 */}
+        {/* ヘッダー - 更新表示器追加 */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               管理ダッシュボード
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              시스템 통계 및 실시간 모니터링
+              システム統計およびリアルタイム監視
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {/* 기간 필터 */}
+            {/* 期間フィルター */}
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">기간:</label>
+              <label className="text-sm text-gray-600">期間:</label>
               <select
                 value={period}
                 onChange={(e) => setPeriod(parseInt(e.target.value))}
                 className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="7">최근 7일</option>
-                <option value="30">최근 30일</option>
-                <option value="90">최근 90일</option>
+                <option value="7">最近7日</option>
+                <option value="30">最近30日</option>
+                <option value="90">最近90日</option>
               </select>
             </div>
 
@@ -246,70 +258,70 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* 주문 통계 위젯 */}
+        {/* 注文統計ウィジェット */}
         <OrderStatisticsWidget statistics={orderStats} />
 
-        {/* 상세 통계 카드 (추가) */}
+        {/* 詳細統計カード (追加) */}
         {orderStats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 견적 통계 */}
+            {/* 見積統計 */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">견적 전환율</p>
+                  <p className="text-sm text-gray-600">見積コンバージョン率</p>
                   <p className="text-2xl font-bold text-blue-600 mt-1">
                     {orderStats.quotations?.conversionRate || 0}%
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {orderStats.quotations?.approved || 0} / {orderStats.quotations?.total || 0} 승인
+                    {orderStats.quotations?.approved || 0} / {orderStats.quotations?.total || 0} 承認
                   </p>
                 </div>
                 <FileText className="h-10 w-10 text-blue-500" />
               </div>
             </div>
 
-            {/* 샘플 요청 */}
+            {/* サンプル依頼 */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">샘플 요청</p>
+                  <p className="text-sm text-gray-600">サンプル依頼</p>
                   <p className="text-2xl font-bold text-purple-600 mt-1">
                     {orderStats.samples?.total || 0}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {orderStats.samples?.processing || 0} 처리 중
+                    {orderStats.samples?.processing || 0} 処理中
                   </p>
                 </div>
                 <Package className="h-10 w-10 text-purple-500" />
               </div>
             </div>
 
-            {/* 생산 통계 */}
+            {/* 生産統計 */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">평균 생산 기간</p>
+                  <p className="text-sm text-gray-600">平均生産期間</p>
                   <p className="text-2xl font-bold text-green-600 mt-1">
-                    {orderStats.production?.avgDays || 0}일
+                    {orderStats.production?.avgDays || 0}日
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {orderStats.production?.completed || 0} 완료
+                    {orderStats.production?.completed || 0} 完了
                   </p>
                 </div>
                 <Activity className="h-10 w-10 text-green-500" />
               </div>
             </div>
 
-            {/* 배송 통계 */}
+            {/* 配送統計 */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">오늘 배송</p>
+                  <p className="text-sm text-gray-600">本日配送</p>
                   <p className="text-2xl font-bold text-orange-600 mt-1">
                     {orderStats.shipments?.today || 0}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {orderStats.shipments?.inTransit || 0} 배송 중
+                    {orderStats.shipments?.inTransit || 0} 配送中
                   </p>
                 </div>
                 <TrendingUp className="h-10 w-10 text-orange-500" />

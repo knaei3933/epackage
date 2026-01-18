@@ -1,6 +1,9 @@
 import { Metadata } from 'next'
 import { NewsClient } from './NewsClient'
 
+// Disable static generation for this page due to client-side interactivity
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'パウチ包装ニュース | Epackage Lab',
   description: 'Epackage Labのパウチ包装に関する最新ニュース、製品情報、導入事例などをお届けします。連包裝材業界の最新動向をご確認ください。',

@@ -7,16 +7,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 export async function POST(request: NextRequest) {
   try {
     // ✅ STEP 1: Check authentication (SECURE: using getUser() instead of getSession())
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Initialize Supabase client using modern @supabase/ssr pattern
+    const { client: supabase } = createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

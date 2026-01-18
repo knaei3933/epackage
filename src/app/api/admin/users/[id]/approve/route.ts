@@ -1,14 +1,13 @@
 /**
  * Admin User Approval API
  *
- * 관리자 사용자 승인 API
- * - POST: PENDING 상태의 사용자를 ACTIVE로 승인
- * - REJECT: 사용자 가입 거절
+ * 管理者ユーザー承認API
+ * - POST: PENDING状態のユーザーをACTIVEに承認
+ * - REJECT: ユーザー登録拒否
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Database } from '@/types/database';
 import { z } from 'zod';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
@@ -97,11 +96,7 @@ export async function POST(
     }
 
     const { id: userId } = await params;
-
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-
+const { client: supabase } = createSupabaseSSRClient(request);
     // Parse and validate request body
     const body: ApprovalRequestBody = await request.json();
     const validatedData = approvalSchema.parse(body);

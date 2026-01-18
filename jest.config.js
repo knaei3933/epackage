@@ -39,7 +39,10 @@ const customJestConfig = {
   transformIgnorePatterns: [
     '/node_modules/(?!(supertest|@react-pdf)/)',
   ],
-  maxWorkers: '50%',
+  // Reduce workers to prevent memory issues with Next.js 16 + Turbopack
+  maxWorkers: 1,
+  // Increase timeout for slower tests
+  testTimeout: 10000,
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

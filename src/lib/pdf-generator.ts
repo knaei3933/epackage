@@ -107,6 +107,26 @@ export interface QuoteData {
   /** 備考 / Remarks */
   remarks?: string;
 
+  // SKU data (optional, for multi-SKU quotes)
+  /** SKUデータ / SKU data */
+  skuData?: {
+    /** SKU数 / Number of SKUs */
+    count: number;
+    /** SKU明細 / SKU items */
+    items: Array<{
+      /** SKU番号 / SKU number */
+      skuNumber: number;
+      /** デザイン名 / Design name */
+      designName?: string;
+      /** 数量 / Quantity */
+      quantity: number;
+      /** 単価 / Unit price */
+      unitPrice: number;
+      /** 金額 / Amount */
+      totalPrice: number;
+    }>;
+  };
+
   // Payment information
   /** 振込口座 / Bank account */
   bankInfo?: {
@@ -165,6 +185,15 @@ export interface QuoteItem {
   unitPrice: number;
   /** 金額（円）/ Amount (JPY) - calculated if not provided */
   amount?: number;
+  /** SKU内訳 (optional) / SKU breakdown */
+  skuBreakdown?: Array<{
+    /** SKU番号 / SKU number */
+    skuNumber: number;
+    /** デザイン名 / Design name */
+    designName?: string;
+    /** 数量 / Quantity */
+    quantity: number;
+  }>;
 }
 
 /**
@@ -977,9 +1006,18 @@ function generateQuoteHTML(
     return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
   };
 
-  // Calculate totals from items
-  const totalQuantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = data.items.reduce((sum, item) => sum + (item.amount || item.unitPrice * item.quantity), 0);
+  // Check for SKU data
+  const hasSKUData = data.skuData && data.skuData.count > 1;
+  console.log('[PDF HTML Generator] hasSKUData:', hasSKUData);
+  console.log('[PDF HTML Generator] skuData:', data.skuData);
+
+  // Calculate totals from items (or SKU data)
+  const totalQuantity = hasSKUData
+    ? data.skuData!.items.reduce((sum, sku) => sum + sku.quantity, 0)
+    : data.items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = hasSKUData
+    ? data.skuData!.items.reduce((sum, sku) => sum + sku.totalPrice, 0)
+    : data.items.reduce((sum, item) => sum + (item.amount || item.unitPrice * item.quantity), 0);
 
   // Default remarks if not provided (matching quotation.md template)
   const defaultRemarks = `※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10％程度の過不足が生じる場合がございます。
@@ -1655,16 +1693,27 @@ function generateQuoteHTML(
           </tr>
         </thead>
         <tbody>
-          ${data.items.map((item, index) => `
-            <tr>
-              <td class="col-no">${index + 1}</td>
-              <td class="col-sku">1</td>
-              <td class="col-qty">${item.quantity.toLocaleString('ja-JP')}</td>
-              <td class="col-unit">${formatYen(item.unitPrice)}</td>
-              <td class="col-disc">¥0</td>
-              <td class="col-total">${formatYen(item.amount || item.unitPrice * item.quantity)}</td>
-            </tr>
-          `).join('')}
+          ${hasSKUData
+            ? data.skuData!.items.map((sku, index) => `
+              <tr>
+                <td class="col-no">${index + 1}</td>
+                <td class="col-sku">SKU ${sku.skuNumber}${sku.designName ? `<br><span style="font-size: 7pt;">${sku.designName}</span>` : ''}</td>
+                <td class="col-qty">${sku.quantity.toLocaleString('ja-JP')}</td>
+                <td class="col-unit">${formatYen(sku.unitPrice)}</td>
+                <td class="col-disc">¥0</td>
+                <td class="col-total">${formatYen(sku.totalPrice)}</td>
+              </tr>
+            `).join('')
+            : data.items.map((item, index) => `
+              <tr>
+                <td class="col-no">${index + 1}</td>
+                <td class="col-sku">1</td>
+                <td class="col-qty">${item.quantity.toLocaleString('ja-JP')}</td>
+                <td class="col-unit">${formatYen(item.unitPrice)}</td>
+                <td class="col-disc">¥0</td>
+                <td class="col-total">${formatYen(item.amount || item.unitPrice * item.quantity)}</td>
+              </tr>
+            `).join('')}
           <tr class="summary-row">
             <td colspan="2">合計</td>
             <td class="col-qty">${totalQuantity.toLocaleString('ja-JP')}</td>
@@ -1676,6 +1725,27 @@ function generateQuoteHTML(
       </table>
     </div>
   </div>
+
+  ${hasSKUData ? `
+  <!-- SKU Summary Section -->
+  <div class="section" style="margin-top: 3mm;">
+    <div style="border: 1px solid #000; padding: 3mm; background-color: #f8f9fa;">
+      <div style="font-size: 10pt; font-weight: bold; margin-bottom: 2mm; border-bottom: 1px solid #000; padding-bottom: 1mm;">
+        SKU構成: ${data.skuData!.count}種類
+      </div>
+      ${data.skuData!.items.map(sku => `
+        <div style="display: flex; justify-content: space-between; padding: 1.5mm 0; border-bottom: 1px solid #ddd; font-size: 9pt;">
+          <span style="font-weight: 500;">SKU ${sku.skuNumber}${sku.designName ? `: ${sku.designName}` : ''}</span>
+          <span>${sku.quantity.toLocaleString('ja-JP')}個 × ${formatYen(sku.unitPrice)} = ${formatYen(sku.totalPrice)}</span>
+        </div>
+      `).join('')}
+      <div style="display: flex; justify-content: space-between; padding: 2mm 0 0 0; margin-top: 1mm; border-top: 1px solid #000; font-weight: bold; font-size: 10pt;">
+        <span>総数量</span>
+        <span>${totalQuantity.toLocaleString('ja-JP')}個</span>
+      </div>
+    </div>
+  </div>
+  ` : ''}
 
   <!-- Row 2: Processing (35%) + Remarks (65%) -->
   <div class="two-column-row">

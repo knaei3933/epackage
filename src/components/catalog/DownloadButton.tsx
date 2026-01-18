@@ -59,6 +59,12 @@ export function DownloadButton({
         },
       })
 
+      // Handle 404 gracefully - categories without templates return empty array
+      if (response.status === 404) {
+        setTemplates([])
+        return
+      }
+
       if (!response.ok) {
         throw new Error('テンプレートの取得に失敗しました')
       }
@@ -71,7 +77,7 @@ export function DownloadButton({
         setTemplates([])
       }
     } catch (error) {
-      console.error('Failed to fetch templates:', error)
+      // Silently handle errors - no console error for missing templates
       setTemplates([])
     } finally {
       setDownloadState(prev => ({ ...prev, loading: false }))

@@ -183,7 +183,47 @@ const MAGIC_NUMBERS: Record<string, { signature: number[]; offset: number; descr
   },
 };
 
-// Malicious content patterns to detect
+// File types that should undergo content pattern checking (text-based files)
+const TEXT_BASED_TYPES = [
+  'text/plain',
+  'text/html',
+  'text/css',
+  'text/javascript',
+  'application/javascript',
+  'application/json',
+  'application/xml',
+  'text/xml',
+  'text/csv',
+  'application/x-httpd-php',
+  'text/x-python',
+  'text/x-shellscript',
+  'image/svg+xml', // SVG is XML-based and can contain scripts
+];
+
+// Binary file types (skip content pattern checks - magic number validation is sufficient)
+const BINARY_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/bmp',
+  'image/tiff',
+  'application/pdf',
+  'application/illustrator',
+  'application/photoshop',
+  'image/vnd.adobe.photoshop',
+  'application/postscript',
+  'image/x-eps',
+  'application/zip',
+  'application/x-rar',
+  'application/x-7z',
+  'application/x-executable',
+  'application/x-elf',
+  'application/x-mach-binary',
+];
+
+// Malicious content patterns to detect (only applied to text-based files)
 const MALICIOUS_PATTERNS = [
   // Script injection patterns
   /<script[\s\S]*?>[\s\S]*?<\/script>/gi,
@@ -508,15 +548,22 @@ export async function validateFileSecurity(
   // 5. Malicious Content Pattern Detection
   // ============================================================
 
-  const maliciousPatterns = checkMaliciousPatterns(buffer);
-  for (const pattern of maliciousPatterns) {
-    errors.push({
-      code: 'MALICIOUS_CONTENT_DETECTED',
-      message_ja: ERROR_MESSAGES.MALICIOUS_CONTENT_DETECTED.ja.replace('{pattern}', pattern),
-      message_en: ERROR_MESSAGES.MALICIOUS_CONTENT_DETECTED.en.replace('{pattern}', pattern),
-      severity: 'critical',
-      category: 'malicious-content',
-    });
+  // Only apply content pattern checks to text-based files
+  // Binary files are secured by magic number validation and executable blocking
+  const isTextBased = TEXT_BASED_TYPES.includes(detectedType) ||
+                      TEXT_BASED_TYPES.some(t => detectedType.includes(t));
+
+  if (isTextBased) {
+    const maliciousPatterns = checkMaliciousPatterns(buffer);
+    for (const pattern of maliciousPatterns) {
+      errors.push({
+        code: 'MALICIOUS_CONTENT_DETECTED',
+        message_ja: ERROR_MESSAGES.MALICIOUS_CONTENT_DETECTED.ja.replace('{pattern}', pattern),
+        message_en: ERROR_MESSAGES.MALICIOUS_CONTENT_DETECTED.en.replace('{pattern}', pattern),
+        severity: 'critical',
+        category: 'malicious-content',
+      });
+    }
   }
 
   // ============================================================
@@ -666,6 +713,8 @@ export const SECURITY_CONSTANTS = {
   DEFAULT_ALLOWED_TYPES,
   SUSPICIOUS_EXTENSIONS,
   MAGIC_NUMBERS,
+  TEXT_BASED_TYPES,
+  BINARY_TYPES,
 };
 
 // ============================================================

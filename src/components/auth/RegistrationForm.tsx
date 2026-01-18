@@ -1,11 +1,11 @@
 /**
  * Registration Form Component
  *
- * 18개 필드 회원가입 폼 컴포넌트입니다.
- * - React Hook Form + Zod 검증
- * - JapaneseNameInput 통합
- * - 법인번호 API 연동 (회사명 자동 검색)
- * - 일본어/한국어 이중 지원
+ * 18フィールド会員登録フォームコンポーネントです。
+ * - React Hook Form + Zod検証
+ * - JapaneseNameInput統合
+ * - 法人番号API連動 (会社名自動検索)
+ * - 日本語対応
  */
 
 'use client';
@@ -33,13 +33,13 @@ import {
 // =====================================================
 
 export interface RegistrationFormProps {
-  /** 제출 성공 시 콜백 */
+  /** 送信成功時コールバック */
   onSuccess?: (data: RegistrationFormData) => void;
-  /** 제출 실패 시 콜백 */
+  /** 送信失敗時コールバック */
   onError?: (error: string) => void;
-  /** 초기 데이터 */
+  /** 初期データ */
   defaultValues?: Partial<RegistrationFormData>;
-  /** 추가 클래스명 */
+  /** 追加クラス名 */
   className?: string;
 }
 
@@ -95,7 +95,7 @@ export default function RegistrationForm({
   const [isSearchingPostal, setIsSearchingPostal] = useState(false);
   const [postalSearchError, setPostalSearchError] = useState<string | null>(null);
 
-  // React Hook Form 설정
+  // React Hook Form設定
   const {
     register,
     handleSubmit,
@@ -112,12 +112,12 @@ export default function RegistrationForm({
     mode: 'onBlur',
   });
 
-  // 사업자 유형 감시
+  // 事業者タイプ監視
   const businessType = watch('businessType');
   const companyName = watch('companyName', '');
   const postalCode = watch('postalCode', '');
 
-  // 법인번호 검색 함수
+  // 法人番号検索関数
   const searchCorporateNumber = async (name: string) => {
     if (!name || name.length < 2) {
       setCorporateSearchError('会社名を2文字以上入力してください。');
@@ -138,7 +138,7 @@ export default function RegistrationForm({
 
       if (data.length > 0) {
         const result = data[0];
-        // 검색 결과를 폼에 자동 반영
+        // 検索結果をフォームに自動反映
         setValue('legalEntityNumber', result.corporateNumber);
         setValue('companyName', result.name);
         if (result.postalCode) setValue('postalCode', result.postalCode);
@@ -191,13 +191,13 @@ export default function RegistrationForm({
     }
   };
 
-  // 폼 제출 핸들러
+  // フォーム送信ハンドラー
   const onSubmit: SubmitHandler<RegistrationFormData> = async (data) => {
     setIsSubmitting(true);
     setServerError(null);
 
     try {
-      // API 호출
+      // API呼び出し
       const response = await fetch('/api/auth/register/', {
         method: 'POST',
         headers: {
@@ -229,7 +229,7 @@ export default function RegistrationForm({
   return (
     <Card className="p-6 md:p-8">
       <form onSubmit={handleSubmit(onSubmit)} className={className}>
-        {/* 서버 에러 메시지 */}
+        {/* サーバーエラーメッセージ */}
         {serverError && (
           <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
             <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
@@ -392,7 +392,7 @@ export default function RegistrationForm({
             </h2>
 
             <div className="space-y-4">
-              {/* 회사명 입력 - 자동 검색 표시 */}
+              {/* 会社名入力 - 自動検索表示 */}
               <div>
                 <Input
                   label="会社名"
@@ -416,7 +416,7 @@ export default function RegistrationForm({
                 )}
               </div>
 
-              {/* 법인번호 - 자동 입력됨 */}
+              {/* 法人番号 - 自動入力 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="法人番号"
@@ -518,7 +518,44 @@ export default function RegistrationForm({
         </div>
 
         {/* =====================================================
-            SECTION 7: 商品種別
+            SECTION 7: B2B追加情報 (法人のみ表示)
+            ===================================================== */}
+        {businessType === BusinessType.CORPORATION && (
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-text-primary mb-4">
+              法人追加情報
+            </h2>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  label="設立年"
+                  placeholder="2020"
+                  error={errors.foundedYear?.message}
+                  {...register('foundedYear')}
+                  helperText="西暦4桁（例: 2020）"
+                />
+                <Input
+                  label="資本金"
+                  placeholder="1,000万円"
+                  error={errors.capital?.message}
+                  {...register('capital')}
+                  helperText="例: 1,000万円、5億円"
+                />
+                <Input
+                  label="代表者名"
+                  placeholder="山田 太郎"
+                  error={errors.representativeName?.message}
+                  {...register('representativeName')}
+                  helperText="姓と名の間にスペース"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================
+            SECTION 8: 商品種別
             ===================================================== */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -541,7 +578,7 @@ export default function RegistrationForm({
         </div>
 
         {/* =====================================================
-            SECTION 8: 知ったきっかけ
+            SECTION 9: 知ったきっかけ
             ===================================================== */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -562,7 +599,7 @@ export default function RegistrationForm({
         </div>
 
         {/* =====================================================
-            SECTION 9: プライバシーポリシー同意
+            SECTION 10: プライバシーポリシー同意
             ===================================================== */}
         <div className="mb-8">
           <label className="flex items-start space-x-3 cursor-pointer">
@@ -584,7 +621,7 @@ export default function RegistrationForm({
         </div>
 
         {/* =====================================================
-            SECTION 10: 送信ボタン
+            SECTION 11: 送信ボタン
             ===================================================== */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Button

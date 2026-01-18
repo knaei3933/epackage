@@ -17,13 +17,13 @@ export async function GET(request: NextRequest) {
 
     const supabase = createSupabaseClient();
 
-    // URL 파라미터에서 필터링 조건 추출
+    // URLパラメータからフィルタ条件を抽出
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // 쿼리 빌드
+    // クエリビルド
     let query = supabase
       .from('contracts')
       .select(`
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    // 상태 필터링
+    // ステータスフィルタ
     if (status && status !== 'all') {
       query = query.eq('status', status);
     }
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 데이터 변환
+    // データ変換
     const transformedContracts = contracts?.map((contract: ContractRow) => ({
       id: contract.id,
       contractNumber: contract.contract_number,

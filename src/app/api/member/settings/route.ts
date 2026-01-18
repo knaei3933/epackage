@@ -93,6 +93,13 @@ async function getUserIdFromRequest(request: NextRequest): Promise<string | null
     return devModeUserId;
   }
 
+  // Check for dev-mock-user-id cookie (set by signin API in DEV_MODE)
+  const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+  if (devMockUserId && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
+    console.log('[Settings API] DEV_MODE: Using dev-mock-user-id cookie:', devMockUserId);
+    return devMockUserId;
+  }
+
   // Normal auth: Use Bearer token
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {

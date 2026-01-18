@@ -1,7 +1,7 @@
 /**
  * Approval Workflow Service (Ringi - 稟議)
  *
- * 일본식 승인 워크플로우 서비스
+ * 日本式承認ワークフローサービス
  * Japanese traditional approval workflow system
  */
 
@@ -18,7 +18,7 @@ import {
 
 /**
  * Create new approval request
- * 새로운 승인 요청 생성
+ * 新しい承認リクエスト作成
  */
 export async function createApprovalRequest(request: {
   orderId: string;
@@ -59,7 +59,7 @@ export async function createApprovalRequest(request: {
 
 /**
  * Approve a request
- * 승인 요청 승인
+ * 承認リクエスト承認
  */
 export async function approveRequest(
   approvalId: string,
@@ -111,7 +111,7 @@ export async function approveRequest(
 
 /**
  * Reject a request
- * 승인 요청 거부
+ * 承認リクエスト却下
  */
 export async function rejectRequest(
   approvalId: string,
@@ -149,7 +149,7 @@ export async function rejectRequest(
 
 /**
  * Get approval request
- * 승인 요청 조회
+ * 承認リクエスト照会
  */
 export async function getApprovalRequest(approvalId: string): Promise<ApprovalRequest | null> {
   // In production, fetch from database
@@ -158,7 +158,7 @@ export async function getApprovalRequest(approvalId: string): Promise<ApprovalRe
 
 /**
  * Get pending approvals for a user
- * 사용자의 보류 중 승인 목록 조회
+ * ユーザーの保留中承認一覧照会
  */
 export async function getPendingApprovals(userId: string): Promise<ApprovalRequest[]> {
   // In production, fetch from database
@@ -167,7 +167,7 @@ export async function getPendingApprovals(userId: string): Promise<ApprovalReque
 
 /**
  * Get approval status
- * 승인 상태 조회
+ * 承認ステータス照会
  */
 export function getApprovalStatus(request: ApprovalRequest): {
   status: string;
@@ -335,15 +335,15 @@ export function formatApprovalRequest(request: ApprovalRequest): {
   }>;
 } {
   const changeTypeLabels: Record<typeof request.changeType, string> = {
-    status_change: '상태 변경 (Status Change)',
-    modification: '수정 (Modification)',
-    cancellation: '취소 (Cancellation)',
+    status_change: 'ステータス変更 (Status Change)',
+    modification: '修正 (Modification)',
+    cancellation: 'キャンセル (Cancellation)',
   };
 
   const statusLabels: Record<typeof request.status, string> = {
-    pending: '보류 중 (Pending)',
-    approved: '승인됨 (Approved)',
-    rejected: '거부됨 (Rejected)',
+    pending: '保留中 (Pending)',
+    approved: '承認済み (Approved)',
+    rejected: '却下済み (Rejected)',
   };
 
   return {

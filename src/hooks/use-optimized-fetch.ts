@@ -116,15 +116,13 @@ export function useOptimizedFetch<T>(
     loadingTimeout: 10000,
     // Fallback data
     fallbackData: options?.fallbackData,
-    // Custom fetcher
-    fetcher: options?.fetcher || fetcher,
     // onSuccess callback
     onSuccess: options?.onSuccess,
     // onError callback
     onError: options?.onError,
   };
 
-  return useSWR<T>(key, config);
+  return useSWR<T>(key, options?.fetcher || fetcher, config);
 }
 
 /**
@@ -135,12 +133,11 @@ export function useFetchWithTimeout<T>(
   timeout?: number,
   options?: SWRConfiguration
 ) {
-  const config: SWRConfiguration = {
-    ...options,
-    fetcher: (url: string) => fetcherWithTimeout<T>(url, timeout),
-  };
-
-  return useSWR<T>(key, config);
+  return useSWR<T>(
+    key,
+    (url: string) => fetcherWithTimeout<T>(url, timeout),
+    options
+  );
 }
 
 /**
@@ -150,44 +147,41 @@ export function useBatchFetch<T>(
   keys: Key[],
   options?: SWRConfiguration
 ) {
-  const config: SWRConfiguration = {
-    ...options,
-    // Batch fetch requests
-    fetcher: async (urls: string) => {
-      // If single URL, fetch normally
-      if (typeof urls === 'string') {
-        return fetcher<T>(urls);
-      }
+  // Batch fetch requests
+  const batchFetcher = async (urls: string | string[]) => {
+    // If single URL, fetch normally
+    if (typeof urls === 'string') {
+      return fetcher<T>(urls);
+    }
 
-      // If array of URLs, fetch in parallel
-      if (Array.isArray(urls)) {
-        const results = await Promise.allSettled(
-          urls.map((url) => fetcher<T>(url))
-        );
+    // If array of URLs, fetch in parallel
+    if (Array.isArray(urls)) {
+      const results = await Promise.allSettled(
+        urls.map((url) => fetcher<T>(url))
+      );
 
-        return results.map((result) =>
-          result.status === 'fulfilled' ? result.value : null
-        );
-      }
+      return results.map((result) =>
+        result.status === 'fulfilled' ? result.value : null
+      );
+    }
 
-      throw new Error('Invalid fetcher input');
-    },
+    throw new Error('Invalid fetcher input');
   };
 
-  return useSWR<T[]>(keys.length > 0 ? keys : null, config);
+  return useSWR<T[]>(keys.length > 0 ? keys : null, batchFetcher, options);
 }
 
 /**
  * Infinite scroll data fetching
  */
 export function useInfiniteFetch<T>(
-  key: Key | null,
-  getPage: (pageIndex: number, previousPageData: T[] | null) => T[] | null,
+  getKey: (pageIndex: number, previousPageData: T[] | null) => Key | null,
+  fetcher: (url: string) => Promise<T[]>,
   options?: SWRConfiguration
 ) {
   const { data, error, isValidating, size, setSize } = useSWRInfinite<T[]>(
-    key,
-    getPage,
+    getKey,
+    fetcher,
     {
       revalidateFirstPage: false,
       revalidateAllPages: false,

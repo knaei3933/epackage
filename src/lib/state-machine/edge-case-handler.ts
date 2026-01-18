@@ -1,7 +1,7 @@
 /**
  * Edge Case Handler for State Machine
  *
- * 상태 머신 에지 케이스 핸들러
+ * ステータスマシンエッジケースハンドラー
  * Handle exceptional cases and edge scenarios in state transitions
  */
 
@@ -42,7 +42,7 @@ export type RecoveryAction =
 
 /**
  * Detect edge cases in state transition
- * 상태 전환의 에지 케이스 감지
+ * ステータス遷移のエッジケース検出
  */
 export async function detectEdgeCases(
   context: OrderContext,
@@ -144,7 +144,7 @@ export async function detectEdgeCases(
 
 /**
  * Handle concurrent modification
- * 동시 수정 처리
+ * 同時変更処理
  */
 async function isConcurrentlyModified(context: OrderContext): Promise<boolean> {
   // In production, check if state has been modified since last read
@@ -158,7 +158,7 @@ async function isConcurrentlyModified(context: OrderContext): Promise<boolean> {
 
 /**
  * Handle stale state
- * 오래된 상태 처리
+ * 旧ステータス処理
  */
 async function isStaleState(context: OrderContext): Promise<boolean> {
   const now = new Date();
@@ -171,7 +171,7 @@ async function isStaleState(context: OrderContext): Promise<boolean> {
 
 /**
  * Handle expired approval
- * 만료된 승인 처리
+ * 期限切れ承認処理
  */
 async function isApprovalExpired(context: OrderContext): Promise<boolean> {
   if (!context.validation?.approvedAt) {
@@ -187,7 +187,7 @@ async function isApprovalExpired(context: OrderContext): Promise<boolean> {
 
 /**
  * Check rollback limit
- * 되돌아가기 제한 확인
+ * ロールバック制限確認
  */
 async function exceedsRollbackLimit(
   context: OrderContext,
@@ -200,7 +200,7 @@ async function exceedsRollbackLimit(
 
 /**
  * Check if transition is invalid
- * 유효하지 않은 전환 확인
+ * 無効な遷移確認
  */
 async function isInvalidTransition(
   context: OrderContext,
@@ -228,7 +228,7 @@ async function isInvalidTransition(
 
 /**
  * Check for missing context
- * 필수 컨텍스트 누락 확인
+ * 必須コンテキスト欠落確認
  */
 async function isMissingContext(
   context: OrderContext,
@@ -247,7 +247,7 @@ async function isMissingContext(
 
 /**
  * Check if action is unauthorized
- * 권한 없는 작업 확인
+ * 権限なし操作確認
  */
 async function isUnauthorizedAction(
   context: OrderContext,
@@ -316,7 +316,7 @@ function getRequiredRoleForEvent(event: OrderEvent): string {
 
 /**
  * Execute recovery actions
- * 복구 작업 실행
+ * 復旧操作実行
  */
 export async function executeRecoveryActions(
   errors: EdgeCaseError[],
@@ -386,7 +386,7 @@ export class DefaultEdgeCaseExecutor implements EdgeCaseExecutor {
 
 /**
  * Set timeout for state transition
- * 상태 전환 타임아웃 설정
+ * ステータス遷移タイムアウト設定
  */
 export function setTimeoutForTransition(
   state: OrderState,

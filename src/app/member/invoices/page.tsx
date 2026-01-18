@@ -14,6 +14,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Badge, Button, Input } from '@/components/ui';
+import { PageLoadingState } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -273,20 +274,9 @@ export default function InvoicesPage() {
     setFilteredInvoices(filtered);
   }, [invoices, filters]);
 
-  // Show loading state
-  if (authLoading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-text-muted">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
+    <PageLoadingState isLoading={authLoading || isLoading} error={error} message="読み込み中...">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -533,6 +523,7 @@ export default function InvoicesPage() {
           })}
         </div>
       )}
-    </div>
+      </div>
+    </PageLoadingState>
   );
 }

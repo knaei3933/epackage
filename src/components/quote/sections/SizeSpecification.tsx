@@ -36,7 +36,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
             min="50"
             value={state.width || ''}
             onChange={(e) => updateBasicSpecs({ width: parseInt(e.target.value) || 0 })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
             placeholder="200"
             aria-label="袋の幅 (mm)"
           />
@@ -48,7 +48,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
             min="50"
             value={state.height || ''}
             onChange={(e) => updateBasicSpecs({ height: parseInt(e.target.value) || 0 })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
             placeholder="300"
             aria-label="袋の高さ (mm)"
           />
@@ -61,7 +61,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
               min="0"
               value={state.depth || ''}
               onChange={(e) => updateBasicSpecs({ depth: parseInt(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               placeholder="0"
               aria-label="袋のマチ深さ (mm)"
             />

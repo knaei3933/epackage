@@ -16,40 +16,112 @@ import {
   Font,
   StyleSheet,
   pdf,
+  renderToStream,
 } from '@react-pdf/renderer';
-
-// @ts-ignore - These may not be available in all versions
-const ReactPDF = require('@react-pdf/renderer') as any;
-const PDFDownloadButton = ReactPDF.PDFDownloadButton;
-const PDFViewer = ReactPDF.PDFViewer;
-const BlobProvider = ReactPDF.BlobProvider;
-// @ts-ignore - Font files
-import NotoSansJP_Regular from '@fontsource/noto-sans-jp/files/noto-sans-jp-japanese-400-normal.woff2';
-// @ts-ignore - Font files
-import NotoSansJP_Bold from '@fontsource/noto-sans-jp/files/noto-sans-jp-japanese-700-normal.woff2';
 import type { QuotationData } from './excelQuotationTypes';
 
+// Client-side components (PDFDownloadButton, PDFViewer, BlobProvider) are not used
+// in server-side PDF generation. They are available but need to be imported separately
+// if needed for client-side rendering.
+
 // =====================================================
-// Font Registration
+// Font Registration (Dynamic)
 // =====================================================
 
 /**
- * Register Japanese font for PDF rendering
- * Using local font files from @fontsource/noto-sans-jp
+ * Helper function to read font file from local node_modules
+ * Works in Node.js server-side environment without Webpack issues
  */
-Font.register({
-  family: 'Noto Sans JP',
-  fonts: [
-    {
-      src: NotoSansJP_Regular,
-      fontWeight: 400,
-    },
-    {
-      src: NotoSansJP_Bold,
-      fontWeight: 700,
-    },
-  ],
-});
+async function fetchFontBuffer(): Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> {
+  const fs = require('fs');
+  const path = require('path');
+
+  try {
+    console.log('[PDF] Loading fonts from local node_modules...');
+
+    // Read font files directly from node_modules
+    // Using .woff format which works better with @react-pdf/renderer
+    const regularPath = path.join(
+      process.cwd(),
+      'node_modules',
+      '@fontsource',
+      'noto-sans-jp',
+      'files',
+      'noto-sans-jp-0-400-normal.woff'
+    );
+
+    const boldPath = path.join(
+      process.cwd(),
+      'node_modules',
+      '@fontsource',
+      'noto-sans-jp',
+      'files',
+      'noto-sans-jp-0-700-normal.woff'
+    );
+
+    const regularBuffer = fs.readFileSync(regularPath);
+    const boldBuffer = fs.readFileSync(boldPath);
+
+    // Convert Buffer to ArrayBuffer
+    const regularArrayBuffer = regularBuffer.buffer.slice(
+      regularBuffer.byteOffset,
+      regularBuffer.byteOffset + regularBuffer.byteLength
+    );
+    const boldArrayBuffer = boldBuffer.buffer.slice(
+      boldBuffer.byteOffset,
+      boldBuffer.byteOffset + boldBuffer.byteLength
+    );
+
+    console.log('[PDF] Fonts loaded successfully from local files');
+    return { regular: regularArrayBuffer, bold: boldArrayBuffer };
+  } catch (error) {
+    console.error('[PDF] Failed to load fonts from local files:', error);
+    throw error;
+  }
+}
+
+/**
+ * Font registration cache to avoid fetching multiple times
+ */
+let fontsRegistered = false;
+
+/**
+ * Register Japanese font for PDF rendering
+ * Uses native https module to load font from CDN as ArrayBuffer for server-side compatibility
+ */
+async function registerFonts() {
+  if (fontsRegistered) {
+    return;
+  }
+
+  try {
+    console.log('[PDF] Registering fonts...');
+
+    // Load fonts from local node_modules
+    const { regular: regularBuffer, bold: boldBuffer } = await fetchFontBuffer();
+
+    // Register fonts with @react-pdf/renderer
+    Font.register({
+      family: 'Noto Sans JP',
+      fonts: [
+        {
+          src: regularBuffer,
+          fontWeight: 400,
+        },
+        {
+          src: boldBuffer,
+          fontWeight: 700,
+        },
+      ],
+    });
+
+    fontsRegistered = true;
+    console.log('[PDF] Fonts registered successfully');
+  } catch (error) {
+    console.error('[PDF] Failed to register fonts:', error);
+    throw error;
+  }
+}
 
 // =====================================================
 // PDF Styles
@@ -460,6 +532,9 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
 export async function generatePdfDocument(
   data: QuotationData
 ): Promise<Blob> {
+  // Ensure fonts are registered before generating PDF
+  await registerFonts();
+
   const blob = await pdf(<QuotationPDFDocument data={data} />).toBlob();
   return blob;
 }
@@ -472,10 +547,50 @@ export async function generatePdfDocument(
 export async function generatePdfBuffer(
   data: QuotationData
 ): Promise<Uint8Array> {
-  const stream = await pdf(<QuotationPDFDocument data={data} />).toBuffer();
-  // Convert ReadableStream to Uint8Array
-  const arrayBuffer = await (stream as any).arrayBuffer();
-  return new Uint8Array(arrayBuffer);
+  // Ensure fonts are registered before generating PDF
+  await registerFonts();
+
+  // Use pdf() directly and handle the result with proper type checking
+  const doc = pdf(<QuotationPDFDocument data={data} />);
+
+  // Wait for the document to be ready
+  await doc.toBlob(); // This triggers the PDF generation
+
+  // The pdf() function's internal state now contains the generated PDF
+  // We need to access it through the blob, but toBlob has the dataUrl.split issue
+  // Let's try a workaround: use the base64 approach with proper type handling
+
+  try {
+    // Try toString() which returns base64 data URL
+    const result = await doc.toString();
+
+    // Handle different return types
+    if (typeof result === 'string') {
+      // Remove data URL prefix if present
+      const base64Data = result.replace(/^data:application\/pdf;base64,/, '');
+      return Uint8Array.from(Buffer.from(base64Data, 'base64'));
+    } else if (result instanceof Uint8Array) {
+      return result;
+    } else if (Buffer.isBuffer(result)) {
+      return new Uint8Array(result.buffer, result.byteOffset, result.byteLength);
+    } else {
+      // Last resort: try to convert whatever we got
+      console.warn('[PDF] Unexpected return type from toString():', typeof result);
+      throw new Error(`Unexpected PDF generation result type: ${typeof result}`);
+    }
+  } catch (error) {
+    console.error('[PDF] Failed to generate PDF using toString():', error);
+
+    // Fallback: Try to get the blob and convert it
+    try {
+      const blob = await doc.toBlob();
+      const arrayBuffer = await blob.arrayBuffer();
+      return new Uint8Array(arrayBuffer);
+    } catch (blobError) {
+      console.error('[PDF] Fallback toBlob() also failed:', blobError);
+      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
 
 /**
@@ -486,17 +601,44 @@ export async function generatePdfBuffer(
 export async function generatePdfBase64(
   data: QuotationData
 ): Promise<string> {
-  const blob = await pdf(<QuotationPDFDocument data={data} />).toBlob();
-  // Convert blob to base64
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = (reader.result as string)?.split(',')[1] || '';
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  // Ensure fonts are registered before generating PDF
+  await registerFonts();
+
+  // Use pdf() directly and handle the result with proper type checking
+  const doc = pdf(<QuotationPDFDocument data={data} />);
+
+  // Wait for the document to be ready
+  await doc.toBlob(); // This triggers the PDF generation
+
+  try {
+    // Try toString() which returns base64 data URL
+    const result = await doc.toString();
+
+    // Handle different return types
+    if (typeof result === 'string') {
+      // Remove data URL prefix if present and return just the base64
+      return result.replace(/^data:application\/pdf;base64,/, '');
+    } else if (result instanceof Uint8Array) {
+      return Buffer.from(result.buffer, result.byteOffset, result.byteLength).toString('base64');
+    } else if (Buffer.isBuffer(result)) {
+      return result.toString('base64');
+    } else {
+      console.warn('[PDF] Unexpected return type from toString():', typeof result);
+      throw new Error(`Unexpected PDF generation result type: ${typeof result}`);
+    }
+  } catch (error) {
+    console.error('[PDF] Failed to generate PDF using toString():', error);
+
+    // Fallback: Try to get the blob and convert it
+    try {
+      const blob = await doc.toBlob();
+      const arrayBuffer = await blob.arrayBuffer();
+      return Buffer.from(arrayBuffer).toString('base64');
+    } catch (blobError) {
+      console.error('[PDF] Fallback toBlob() also failed:', blobError);
+      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
 
 /**
@@ -522,63 +664,29 @@ export async function downloadPdf(
 /**
  * Preview PDF in browser
  * @param data - Excel quotation data
+ *
+ * NOTE: Client-side components (PDFViewer, PDFDownloadButton, BlobProvider) are not exported
+ * because @react-pdf/renderer's client components cause ESM import issues in Next.js 16.
+ * Use the server-side generatePdfBuffer() and downloadPdf() functions instead.
  */
-export function previewPdf(data: QuotationData): React.ReactElement {
-  return (
-    <PDFViewer>
-      <QuotationPDFDocument data={data} />
-    </PDFViewer>
-  );
-}
+// export function previewPdf(data: QuotationData): React.ReactElement {
+//   Client-side PDF preview not available due to ESM import restrictions.
+//   Use server-side PDF generation via /api/member/quotations/[id]/export endpoint.
+// }
 
 /**
  * PDF Download Button Component
- * @param data - Excel quotation data
- * @param filename - Optional filename
- * @param className - Optional CSS class
- * @param children - Button children
+ * NOTE: Client-side components are not exported due to ESM import restrictions.
+ * Use the downloadPdf() function or the API endpoint instead.
  */
-export function PdfDownloadButton({
-  data,
-  filename,
-  className,
-  children,
-}: {
-  data: QuotationData;
-  filename?: string;
-  className?: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <PDFDownloadButton
-      document={<QuotationPDFDocument data={data} />}
-      fileName={filename || `${data.metadata.quotationNumber}.pdf`}
-      className={className}
-    >
-      {children || 'PDFをダウンロード'}
-    </PDFDownloadButton>
-  );
-}
+// export function PdfDownloadButton(...) { ... }
 
 /**
  * PDF Blob Provider Component
- * Provides PDF blob to child function
- * @param data - Excel quotation data
- * @param children - Function receiving blob and url
+ * NOTE: Client-side components are not exported due to ESM import restrictions.
+ * Use the server-side PDF generation functions instead.
  */
-export function PdfBlobProvider({
-  data,
-  children,
-}: {
-  data: QuotationData;
-  children: (params: { blob: Blob | null; url: string | null; loading: boolean; error: Error | null }) => React.ReactElement;
-}) {
-  return (
-    <BlobProvider document={<QuotationPDFDocument data={data} />}>
-      {children}
-    </BlobProvider>
-  );
-}
+// export function PdfBlobProvider(...) { ... }
 
 // =====================================================
 // Utility Functions
@@ -588,6 +696,10 @@ export function PdfBlobProvider({
  * Validate quotation data for PDF generation
  * @param data - Excel quotation data
  * @returns Validation result with errors
+ *
+ * Note: Customer fields like postalCode can be empty - the PDF template
+ * will use default values. We only validate critical fields that prevent
+ * PDF generation entirely.
  */
 export function validatePdfData(data: QuotationData): {
   isValid: boolean;
@@ -595,17 +707,18 @@ export function validatePdfData(data: QuotationData): {
 } {
   const errors: string[] = [];
 
-  if (!data.customer?.companyName) {
-    errors.push('Customer company name is required');
-  }
-  if (!data.customer?.postalCode) {
-    errors.push('Customer postal code is required');
-  }
+  // Only validate critical fields - customer details have defaults in the template
   if (!data.metadata?.quotationNumber) {
     errors.push('Quotation number is required');
   }
   if (!data.orders?.length) {
     errors.push('At least one order item is required');
+  }
+  if (!data.supplier) {
+    errors.push('Supplier information is required');
+  }
+  if (!data.paymentTerms) {
+    errors.push('Payment terms are required');
   }
 
   return {

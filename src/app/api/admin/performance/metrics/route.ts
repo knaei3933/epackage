@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Performance metrics API error:', error);
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -125,13 +125,13 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: '성능 지표가 초기화되었습니다.'
+      message: 'パフォーマンス指標が初期化されました。'
     });
 
   } catch (error) {
     console.error('Performance metrics reset error:', error);
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }

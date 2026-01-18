@@ -1,12 +1,12 @@
 /**
  * Sample Request API Route
  *
- * Sample Request 제출 처리:
- * - Zod validation (1-5 samples max)
- * - Supabase MCP execute_sql을 통한 DB 저장 (sample_requests, sample_items 테이블)
- * - 인증 사용자 + 비인증 게스트 지원
- * - 관리자 알림 (admin_notifications 테이블)
- * - 이메일 발송 (고객 + 관리자)
+ * Sample Request送信処理:
+ * - Zod検証（最大5サンプルまで）
+ * - Supabase MCP execute_sqlによるDB保存（sample_requests、sample_itemsテーブル）
+ * - 認証ユーザー＋非認証ゲスト対応
+ * - 管理者通知（admin_notificationsテーブル）
+ * - メール送信（顧客＋管理者）
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -335,7 +335,7 @@ export async function POST(request: NextRequest) {
 
     if (!emailResult.success) {
       console.error('[Sample Request API] Email errors:', emailResult.errors);
-      // Email 실패는 에러로 처리하지 않고 로그만 남김
+      // Email失敗はエラーとして処理せずログのみ記録
     } else {
       console.log('[Sample Request API] Emails sent successfully');
     }
@@ -392,7 +392,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET 메서드 - API 상태 확인
+ * GETメソッド - API状態確認
  */
 export async function GET() {
   return NextResponse.json({

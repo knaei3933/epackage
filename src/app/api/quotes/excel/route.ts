@@ -1,7 +1,7 @@
 /**
  * Quote Excel Generation API
  *
- * 견적서 Excel 생성 API
+ * 見積書Excel生成API
  * API endpoint for generating quotation Excel files using ExcelJS
  */
 
@@ -73,7 +73,7 @@ const API_INFO: InfoResponse = {
 /**
  * Generate quote Excel file
  *
- * 견적서 Excel 파일 생성
+ * 見積書Excelファイル生成
  */
 export async function POST(request: NextRequest) {
   try {

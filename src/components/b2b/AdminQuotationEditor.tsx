@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 관리자 견적 에디터 (Admin Quotation Editor)
- * 관리자가 견적을 검토하고 가격을 계산/편집
+ * 管理者見積エディタ (Admin Quotation Editor)
+ * 管理者が見積を検討し価格を計算/編集
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -135,7 +135,7 @@ export default function AdminQuotationEditor({
     setSaveStatus({ type: null, message: '' });
 
     try {
-      const response = await fetch(`/api/b2b/quotations/${quotationId}`, {
+      const response = await fetch(`/api/member/quotations/${quotationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -151,16 +151,16 @@ export default function AdminQuotationEditor({
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus({ type: 'success', message: '저장되었습니다.' });
+        setSaveStatus({ type: 'success', message: '保存されました。' });
         if (onUpdate) {
           onUpdate(result.data);
         }
       } else {
-        setSaveStatus({ type: 'error', message: result.error || '저장 중 오류가 발생했습니다.' });
+        setSaveStatus({ type: 'error', message: result.error || '保存中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Save error:', error);
-      setSaveStatus({ type: 'error', message: '저장 중 오류가 발생했습니다.' });
+      setSaveStatus({ type: 'error', message: '保存中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -168,29 +168,29 @@ export default function AdminQuotationEditor({
 
   // Send to customer
   const handleSendToCustomer = useCallback(async () => {
-    if (!confirm('이 견적을 고객에게 송부하시겠습니까?')) {
+    if (!confirm('この見積を顧客に送信しますか？')) {
       return;
     }
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/b2b/quotations/${quotationId}/send`, {
+      const response = await fetch(`/api/member/quotations/${quotationId}/send`, {
         method: 'POST'
       });
 
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus({ type: 'success', message: '고객에게 견적을 송부했습니다.' });
+        setSaveStatus({ type: 'success', message: '顧客に見積を送信しました。' });
         if (onStatusChange) {
           onStatusChange('SENT');
         }
       } else {
-        setSaveStatus({ type: 'error', message: result.error || '송부 중 오류가 발생했습니다.' });
+        setSaveStatus({ type: 'error', message: result.error || '送信中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Send error:', error);
-      setSaveStatus({ type: 'error', message: '송부 중 오류가 발생했습니다.' });
+      setSaveStatus({ type: 'error', message: '送信中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -198,29 +198,29 @@ export default function AdminQuotationEditor({
 
   // Approve quotation
   const handleApprove = useCallback(async () => {
-    if (!confirm('이 견적을 승인하시겠습니까?')) {
+    if (!confirm('この見積を承認しますか？')) {
       return;
     }
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/b2b/quotations/${quotationId}/approve`, {
+      const response = await fetch(`/api/member/quotations/${quotationId}/approve`, {
         method: 'POST'
       });
 
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus({ type: 'success', message: '견적이 승인되었습니다.' });
+        setSaveStatus({ type: 'success', message: '見積が承認されました。' });
         if (onStatusChange) {
           onStatusChange('APPROVED');
         }
       } else {
-        setSaveStatus({ type: 'error', message: result.error || '승인 중 오류가 발생했습니다.' });
+        setSaveStatus({ type: 'error', message: result.error || '承認中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Approve error:', error);
-      setSaveStatus({ type: 'error', message: '승인 중 오류가 발생했습니다.' });
+      setSaveStatus({ type: 'error', message: '承認中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -228,12 +228,12 @@ export default function AdminQuotationEditor({
 
   // Reject quotation
   const handleReject = useCallback(async () => {
-    const reason = prompt('거부 사유를 입력하세요:');
+    const reason = prompt('拒否理由を入力してください:');
     if (!reason) return;
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/b2b/quotations/${quotationId}/reject`, {
+      const response = await fetch(`/api/member/quotations/${quotationId}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason })
@@ -242,16 +242,16 @@ export default function AdminQuotationEditor({
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus({ type: 'success', message: '견적이 거부되었습니다.' });
+        setSaveStatus({ type: 'success', message: '見積が拒否されました。' });
         if (onStatusChange) {
           onStatusChange('REJECTED');
         }
       } else {
-        setSaveStatus({ type: 'error', message: result.error || '거부 중 오류가 발생했습니다.' });
+        setSaveStatus({ type: 'error', message: result.error || '拒否中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Reject error:', error);
-      setSaveStatus({ type: 'error', message: '거부 중 오류가 발생했습니다.' });
+      setSaveStatus({ type: 'error', message: '拒否中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -269,9 +269,9 @@ export default function AdminQuotationEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">견적 #{quotation.quotation_number}</h1>
+          <h1 className="text-2xl font-bold">見積 #{quotation.quotation_number}</h1>
           <p className="text-gray-600">
-            {quotation.companies?.name || '개인 고객'} - {quotation.customer_name}
+            {quotation.companies?.name || '個人顧客'} - {quotation.customer_name}
           </p>
         </div>
 
@@ -282,7 +282,7 @@ export default function AdminQuotationEditor({
             onClick={() => setPreviewMode(!previewMode)}
           >
             <Eye className="w-4 h-4 mr-2" />
-            {previewMode ? '편집 모드' : '미리보기'}
+            {previewMode ? '編集モード' : 'プレビュー'}
           </Button>
 
           {quotation.status === 'DRAFT' && (
@@ -294,7 +294,7 @@ export default function AdminQuotationEditor({
                 disabled={isSaving}
               >
                 <Save className="w-4 h-4 mr-2" />
-                저장
+                保存
               </Button>
 
               <Button
@@ -304,7 +304,7 @@ export default function AdminQuotationEditor({
                 disabled={isSaving}
               >
                 <Send className="w-4 h-4 mr-2" />
-                송부
+                送信
               </Button>
             </>
           )}
@@ -318,7 +318,7 @@ export default function AdminQuotationEditor({
                 disabled={isSaving}
               >
                 <Check className="w-4 h-4 mr-2" />
-                승인
+                承認
               </Button>
 
               <Button
@@ -328,7 +328,7 @@ export default function AdminQuotationEditor({
                 disabled={isSaving}
               >
                 <X className="w-4 h-4 mr-2" />
-                거부
+                拒否
               </Button>
             </>
           )}
@@ -366,14 +366,14 @@ export default function AdminQuotationEditor({
 
       {/* Quotation Info */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">견적 정보</h2>
+        <h2 className="text-lg font-semibold mb-4">見積情報</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label className="text-sm text-gray-600">상태</label>
+            <label className="text-sm text-gray-600">ステータス</label>
             <p className="font-medium">{getStatusText(quotation.status)}</p>
           </div>
           <div>
-            <label className="text-sm text-gray-600">유효기간</label>
+            <label className="text-sm text-gray-600">有効期限</label>
             <p className="font-medium">
               {quotation.valid_until
                 ? new Date(quotation.valid_until).toLocaleDateString('ja-JP')
@@ -381,13 +381,13 @@ export default function AdminQuotationEditor({
             </p>
           </div>
           <div>
-            <label className="text-sm text-gray-600">생성일</label>
+            <label className="text-sm text-gray-600">作成日</label>
             <p className="font-medium">
               {new Date(quotation.created_at).toLocaleDateString('ja-JP')}
             </p>
           </div>
           <div>
-            <label className="text-sm text-gray-600">고객 이메일</label>
+            <label className="text-sm text-gray-600">顧客メール</label>
             <p className="font-medium">{quotation.customer_email}</p>
           </div>
         </div>
@@ -395,7 +395,7 @@ export default function AdminQuotationEditor({
 
       {/* Quotation Items */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">견적 항목</h2>
+        <h2 className="text-lg font-semibold mb-4">見積項目</h2>
 
         {previewMode ? (
           // Preview Mode
@@ -408,7 +408,7 @@ export default function AdminQuotationEditor({
                       {index + 1}. {item.product_name}
                     </h3>
                     {item.product_code && (
-                      <p className="text-sm text-gray-600">코드: {item.product_code}</p>
+                      <p className="text-sm text-gray-600">コード: {item.product_code}</p>
                     )}
                     {item.category && (
                       <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs mt-1">
@@ -428,13 +428,13 @@ export default function AdminQuotationEditor({
 
                 {Object.keys(item.specifications || {}).length > 0 && (
                   <div className="mt-2 text-sm text-gray-600">
-                    <strong>사양:</strong> {formatSpecifications(item.specifications)}
+                    <strong>仕様:</strong> {formatSpecifications(item.specifications)}
                   </div>
                 )}
 
                 {item.notes && (
                   <div className="mt-2 text-sm text-gray-600">
-                    <strong>메모:</strong> {item.notes}
+                    <strong>メモ:</strong> {item.notes}
                   </div>
                 )}
               </div>
@@ -459,18 +459,18 @@ export default function AdminQuotationEditor({
 
       {/* Price Summary */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">가격 내역</h2>
+        <h2 className="text-lg font-semibold mb-4">価格内訳</h2>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span>소계 (세전)</span>
+            <span>小計 (税抜)</span>
             <span className="font-medium">¥{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
-            <span>소비세 (10%)</span>
+            <span>消費税 (10%)</span>
             <span className="font-medium">¥{tax.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-lg border-t pt-2">
-            <span className="font-bold">합계</span>
+            <span className="font-bold">合計</span>
             <span className="font-bold">¥{total.toLocaleString()}</span>
           </div>
         </div>
@@ -479,10 +479,10 @@ export default function AdminQuotationEditor({
       {/* Admin Notes */}
       {!previewMode && (
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">관리자 메모 (내부용)</h2>
+          <h2 className="text-lg font-semibold mb-4">管理者メモ (内部用)</h2>
           <textarea
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 min-h-[100px]"
-            placeholder="관리자용 메모를 입력하세요..."
+            placeholder="管理者用メモを入力してください..."
             value={quotation.admin_notes || ''}
             onChange={(e) => setQuotation(prev => ({ ...prev, admin_notes: e.target.value }))}
           />
@@ -511,7 +511,7 @@ function QuotationItemEditor({
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between mb-4">
-        <h3 className="font-medium">항목 {index + 1}</h3>
+        <h3 className="font-medium">項目 {index + 1}</h3>
         <Button
           variant="ghost"
           size="sm"
@@ -523,17 +523,17 @@ function QuotationItemEditor({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">제품명</label>
+          <label className="block text-sm font-medium mb-1">製品名</label>
           <p className="font-medium">{item.product_name}</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">수량</label>
+          <label className="block text-sm font-medium mb-1">数量</label>
           <p className="font-medium">{item.quantity.toLocaleString()}</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">단가</label>
+          <label className="block text-sm font-medium mb-1">単価</label>
           {isEditing ? (
             <Input
               type="number"
@@ -549,19 +549,19 @@ function QuotationItemEditor({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">합계</label>
+          <label className="block text-sm font-medium mb-1">合計</label>
           <p className="font-bold">¥{item.total_price.toLocaleString()}</p>
         </div>
       </div>
 
       {isEditing && (
         <div className="mt-4">
-          <label className="block text-sm font-medium mb-1">항목 메모</label>
+          <label className="block text-sm font-medium mb-1">項目メモ</label>
           <Input
             type="text"
             value={item.notes || ''}
             onChange={(e) => onChange('notes', e.target.value || null)}
-            placeholder="관리자용 메모..."
+            placeholder="管理者用メモ..."
           />
         </div>
       )}
@@ -572,23 +572,23 @@ function QuotationItemEditor({
 // Helper functions
 function getStatusText(status: string): string {
   const statusMap: Record<string, string> = {
-    'DRAFT': '드래프트',
-    'SENT': '송부됨',
-    'APPROVED': '승인됨',
-    'REJECTED': '거부됨',
-    'EXPIRED': '만료됨',
-    'CONVERTED': '주문 전환'
+    'DRAFT': 'ドラフト',
+    'SENT': '送信済み',
+    'APPROVED': '承認済み',
+    'REJECTED': '拒否',
+    'EXPIRED': '期限切れ',
+    'CONVERTED': '注文変換'
   };
   return statusMap[status] || status;
 }
 
 function formatSpecifications(specs: Record<string, any>): string {
   const labels: Record<string, string> = {
-    width: '폭',
-    length: '길이',
-    gusset: '마치',
-    thickness: '두께',
-    material: '재질'
+    width: '幅',
+    length: '長さ',
+    gusset: 'マチ',
+    thickness: '厚み',
+    material: '材質'
   };
 
   return Object.entries(specs)

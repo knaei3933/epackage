@@ -1,7 +1,7 @@
 /**
  * B2B Order State Machine Types (XState-based)
  *
- * B2B 주문 상태 머신 타입 정의
+ * B2B 注文ステータスマシン型定義
  * 10단계 주문 워크플로우 상태 관리
  */
 
@@ -12,7 +12,7 @@ import { OrderStatus } from './database';
 // ============================================================
 
 /**
- * 10단계 주문 상태 (10-Step Order Status)
+ * 10段階注文ステータス (10-Step Order Status)
  */
 export type OrderState =
   | 'pending'        // 1. 등록 대기 (Registration pending)
@@ -28,7 +28,7 @@ export type OrderState =
   | 'cancelled';     // 취소됨 (Cancelled)
 
 /**
- * 주문 하위 상태 (Production sub-states)
+ * 注文サブステータス (Production sub-states)
  */
 export type ProductionSubState =
   | 'design_received'    // 디자인 수령
@@ -42,7 +42,7 @@ export type ProductionSubState =
   | 'packaged';         // 포장 완료
 
 /**
- * 주문 상태 컨텍스트 (Context data)
+ * 注文ステータスコンテキスト (Context data)
  */
 export interface OrderContext {
   orderId: string;
@@ -97,7 +97,7 @@ export interface OrderContext {
 }
 
 /**
- * 상태 전환 이벤트 (Events)
+ * ステータス遷移イベント (Events)
  */
 export type OrderEvent =
   | { type: 'SUBMIT_QUOTATION'; quotationId: string; amount: number }
@@ -122,7 +122,7 @@ export type OrderEvent =
   | { type: 'REJECT_CHANGE'; rejectedBy: string; changeRequestId: string; reason: string };
 
 /**
- * 상태 전환 결과 (Transition result)
+ * ステータス遷移結果 (Transition result)
  */
 export interface StateTransition {
   from: OrderState;
@@ -135,7 +135,7 @@ export interface StateTransition {
 }
 
 /**
- * 부작용 (Side effects of state transitions)
+ * 副作用 (Side effects of state transitions)
  */
 export type SideEffect =
   | { type: 'SEND_EMAIL'; to: string[]; template: string; data: any }
@@ -146,7 +146,7 @@ export type SideEffect =
   | { type: 'NOTIFY_PARTY'; party: 'customer' | 'admin'; message: string };
 
 /**
- * 승인 요청 (Approval/Ringi request)
+ * 承認リクエスト (Approval/Ringi request)
  */
 export interface ApprovalRequest {
   id: string;
@@ -172,7 +172,7 @@ export interface ApprovalRequest {
 }
 
 /**
- * 상태 변경 이력 (State change history)
+ * ステータス変更履歴 (State change history)
  */
 export interface StateChangeHistory {
   id: string;
@@ -193,7 +193,7 @@ export interface StateChangeHistory {
 // ============================================================
 
 /**
- * 상태 전환 규칙 (State transition rules)
+ * ステータス遷移ルール (State transition rules)
  */
 export const STATE_TRANSITIONS: Record<OrderState, OrderState[]> = {
   pending: ['quotation', 'cancelled'],
@@ -210,7 +210,7 @@ export const STATE_TRANSITIONS: Record<OrderState, OrderState[]> = {
 };
 
 /**
- * 되돌아가기 가능한 상태 (Rollback allowed)
+ * ロールバック可能なステータス (Rollback allowed)
  */
 export const ROLLBACK_ALLOWED: Record<OrderState, OrderState[]> = {
   pending: [],
@@ -227,7 +227,7 @@ export const ROLLBACK_ALLOWED: Record<OrderState, OrderState[]> = {
 };
 
 /**
- * 승인이 필요한 전환 (Transitions requiring approval)
+ * 承認が必要な遷移 (Transitions requiring approval)
  */
 export const REQUIRES_APPROVAL: Record<OrderState, OrderEvent['type'][]> = {
   pending: [],
@@ -244,12 +244,12 @@ export const REQUIRES_APPROVAL: Record<OrderState, OrderEvent['type'][]> = {
 };
 
 /**
- * 최종 상태 (Terminal states)
+ * 最終ステータス (Terminal states)
  */
 export const TERMINAL_STATES: OrderState[] = ['delivered', 'cancelled'];
 
 /**
- * 자동 전환 (Automatic transitions with conditions)
+ * 自動遷移 (Automatic transitions with conditions)
  */
 export interface AutoTransition {
   from: OrderState;
@@ -282,7 +282,7 @@ export const AUTO_TRANSITIONS: AutoTransition[] = [
 ];
 
 /**
- * 상태 메타데이터 (State metadata for display)
+ * ステータスメタデータ (State metadata for display)
  */
 export const STATE_METADATA: Record<OrderState, {
   label: { ja: string; ko: string; en: string };

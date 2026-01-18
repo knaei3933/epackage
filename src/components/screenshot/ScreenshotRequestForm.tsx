@@ -1,10 +1,10 @@
 /**
  * Screenshot Request Form Component
  *
- * 스크린샷 요청 폼 컴포넌트입니다.
- * - URL 입력
- * - 여러 URL 관리
- * - 우선순위 설정
+ * スクリーンショットリクエストフォームコンポーネントです。
+ * - URL入力
+ * - 複数URL管理
+ * - 優先順位設定
  */
 
 'use client';
@@ -34,7 +34,7 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
     const description = formData.get('description') as string;
     const priority = formData.get('priority') as string;
 
-    // 유효한 URL만 필터링
+    // 有効なURLのみフィルタリング
     const validUrls = urls.filter(url => {
       try {
         new URL(url);
@@ -45,7 +45,7 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
     });
 
     if (validUrls.length === 0) {
-      setServerError('최소 1개의 유효한 URL을 입력해주세요.');
+      setServerError('最低1つの有効なURLを入力してください。');
       setIsSubmitting(false);
       return;
     }
@@ -67,15 +67,15 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || '스크린샷 요청에 실패했습니다.');
+        throw new Error(result.error || 'スクリーンショットリクエストが失敗しました。');
       }
 
       onSuccess?.();
 
-      // 생성된 요청의 상세 페이지로 이동 또는 목록으로 이동
+      // 生成されたリクエストの詳細ページへ移動または一覧へ移動
       router.push('/screenshot/history');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '스크린샷 요청에 실패했습니다.';
+      const errorMessage = error instanceof Error ? error.message : 'スクリーンショットリクエストが失敗しました。';
       setServerError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -102,36 +102,36 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
   return (
     <Card className="p-6 md:p-8">
       <form onSubmit={handleSubmit}>
-        {/* 서버 에러 메시지 */}
+        {/* サーバーエラーメッセージ */}
         {serverError && (
           <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
             <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
           </div>
         )}
 
-        {/* 제목 */}
+        {/* タイトル */}
         <Input
           label="제목 / タイトル"
           name="title"
-          placeholder="스크린샷 요청 제목"
+          placeholder="スクリーンショットリクエストタイトル"
           required
           className="mb-4"
         />
 
-        {/* 설명 */}
+        {/* 説明 */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-text-primary mb-2">
-            설명 / 説明 (선택사항)
+            説明 / 説明 (オプション)
           </label>
           <Textarea
             name="description"
-            placeholder="스크린샷 요청에 대한 설명을 입력하세요."
+            placeholder="スクリーンショットリクエストの説明を入力してください。"
             rows={3}
             className="w-full"
           />
         </div>
 
-        {/* URL 목록 */}
+        {/* URL一覧 */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-text-primary">
@@ -142,7 +142,7 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
               onClick={addUrl}
               className="text-sm text-brixa-500 hover:text-brixa-600"
             >
-              + URL 추가 / 追加
+              + URL追加 / 追加
             </button>
           </div>
 
@@ -162,14 +162,14 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
                   onClick={() => removeUrl(index)}
                   className="px-3 py-2 text-error-500 hover:text-error-600"
                 >
-                  삭제 / 削除
+                  削除 / 削除
                 </button>
               )}
             </div>
           ))}
         </div>
 
-        {/* 우선순위 */}
+        {/* 優先順位 */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-text-primary mb-2">
             우선순위 / 優先順位
@@ -179,14 +179,14 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
             defaultValue="NORMAL"
             className="w-full px-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500"
           >
-            <option value="LOW">낮음 / 低</option>
-            <option value="NORMAL">보통 / 普通</option>
-            <option value="HIGH">높음 / 高</option>
-            <option value="URGENT">긴급 / 緊急</option>
+            <option value="LOW">低 / 低</option>
+            <option value="NORMAL">普通 / 普通</option>
+            <option value="HIGH">高 / 高</option>
+            <option value="URGENT">緊急 / 緊急</option>
           </select>
         </div>
 
-        {/* 제출 버튼 */}
+        {/* 送信ボタン */}
         <div className="flex gap-4">
           <Button
             type="submit"
@@ -195,7 +195,7 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
             disabled={isSubmitting}
             className="flex-1"
           >
-            {isSubmitting ? '제출 중... / 提出中...' : '스크린샷 요청 / リクエスト'}
+            {isSubmitting ? '送信中... / 送信中...' : 'スクリーンショットリクエスト / リクエスト'}
           </Button>
           <Button
             type="button"
@@ -204,7 +204,7 @@ export default function ScreenshotRequestForm({ onSuccess, onError }: Screenshot
             onClick={() => router.back()}
             disabled={isSubmitting}
           >
-            취소 / キャンセル
+            キャンセル / キャンセル
           </Button>
         </div>
       </form>

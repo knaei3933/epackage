@@ -23,8 +23,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import {
   getQuotationProfile,
   generateQuotationNumber,
@@ -52,11 +51,8 @@ interface SubmitRequestBody {
 
 export async function POST(request: NextRequest) {
   try {
-    // Next.js 16: cookies() must be awaited
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({
-      cookies: () => cookieStore,
-    });
+    // Initialize Supabase client using modern @supabase/ssr pattern
+    const { client: supabase } = createSupabaseSSRClient(request);
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

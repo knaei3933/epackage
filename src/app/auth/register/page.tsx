@@ -1,10 +1,10 @@
 /**
  * Registration Page
  *
- * 회원가입 페이지입니다.
- * - 18개 필드 회원가입 폼
- * - 일본어/한국어 이중 지원
- * - 반응형 디자인
+ * 会員登録ページです。
+ * - 18項目の会員登録フォーム
+ * - 日本語UI
+ * - レスポンシブデザイン
  */
 
 import { Metadata } from 'next';
@@ -29,7 +29,7 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* 헤더 */}
+        {/* ヘッダー */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
             <h1 className="text-3xl font-bold text-brixa-600 dark:text-brixa-400">
@@ -44,7 +44,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* 회원가입 폼 */}
+        {/* 会員登録フォーム */}
         <RegistrationForm />
 
         {/* ログインリンク */}

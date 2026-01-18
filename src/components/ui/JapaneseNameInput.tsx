@@ -256,12 +256,6 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 disabled={kanaLastNameDisabled}
                 size={size}
                 maxLength={50}
-                onBlur={(e) => {
-                  if (!validateKana(e.target.value)) {
-                    onKanaLastNameChange?.('');
-                    setKanaLastNameInput('');
-                  }
-                }}
                 helperText="全角ひらがなで入力してください（読み仮名）"
               />
             </div>
@@ -280,12 +274,6 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 disabled={kanaFirstNameDisabled}
                 size={size}
                 maxLength={50}
-                onBlur={(e) => {
-                  if (!validateKana(e.target.value)) {
-                    onKanaFirstNameChange?.('');
-                    setKanaFirstNameInput('');
-                  }
-                }}
                 helperText="全角ひらがなで入力してください（読み仮名）"
               />
             </div>
@@ -320,6 +308,8 @@ export interface JapaneseNameInputControllerProps<TFieldValues extends FieldValu
   control: Control<TFieldValues>;
   /** React Hook Form setValue */
   setValue: UseFormSetValue<TFieldValues>;
+  /** React Hook Form trigger for validation */
+  trigger?: (name?: FieldPath<TFieldValues> | FieldPath<TFieldValues>[]) => Promise<boolean>;
   /** 漢字・姓フィールド名 */
   kanjiLastNameName: FieldPath<TFieldValues>;
   /** 漢字・名フィールド名 */
@@ -349,6 +339,7 @@ export interface JapaneseNameInputControllerProps<TFieldValues extends FieldValu
 export function JapaneseNameInputController<TFieldValues extends FieldValues = FieldValues>({
   control,
   setValue,
+  trigger,
   kanjiLastNameName,
   kanjiFirstNameName,
   kanaLastNameName,
@@ -363,7 +354,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanjiLastNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} />
+            <input {...field} data-testid={`${kanjiLastNameName}-hidden`} />
           </div>
         )}
       />
@@ -373,7 +364,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanjiFirstNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} />
+            <input {...field} data-testid={`${kanjiFirstNameName}-hidden`} />
           </div>
         )}
       />
@@ -383,7 +374,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanaLastNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} />
+            <input {...field} data-testid={`${kanaLastNameName}-hidden`} />
           </div>
         )}
       />
@@ -393,7 +384,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanaFirstNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} />
+            <input {...field} data-testid={`${kanaFirstNameName}-hidden`} />
           </div>
         )}
       />
@@ -404,16 +395,37 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         kanaLastName={useWatch({ control, name: kanaLastNameName }) as string}
         kanaFirstName={useWatch({ control, name: kanaFirstNameName }) as string}
         onKanjiLastNameChange={(value) => {
-          setValue(kanjiLastNameName, value as any);
+          setValue(kanjiLastNameName, value as any, { shouldValidate: true });
+          // Trigger validation for all name fields together
+          if (trigger) {
+            setTimeout(() => {
+              trigger([kanjiLastNameName, kanjiFirstNameName, kanaLastNameName, kanaFirstNameName]);
+            }, 0);
+          }
         }}
         onKanjiFirstNameChange={(value) => {
-          setValue(kanjiFirstNameName, value as any);
+          setValue(kanjiFirstNameName, value as any, { shouldValidate: true });
+          if (trigger) {
+            setTimeout(() => {
+              trigger([kanjiLastNameName, kanjiFirstNameName, kanaLastNameName, kanaFirstNameName]);
+            }, 0);
+          }
         }}
         onKanaLastNameChange={(value) => {
-          setValue(kanaLastNameName, value as any);
+          setValue(kanaLastNameName, value as any, { shouldValidate: true });
+          if (trigger) {
+            setTimeout(() => {
+              trigger([kanjiLastNameName, kanjiFirstNameName, kanaLastNameName, kanaFirstNameName]);
+            }, 0);
+          }
         }}
         onKanaFirstNameChange={(value) => {
-          setValue(kanaFirstNameName, value as any);
+          setValue(kanaFirstNameName, value as any, { shouldValidate: true });
+          if (trigger) {
+            setTimeout(() => {
+              trigger([kanjiLastNameName, kanjiFirstNameName, kanaLastNameName, kanaFirstNameName]);
+            }, 0);
+          }
         }}
         {...props}
       />

@@ -1,15 +1,14 @@
 /**
  * Admin User Management API
  *
- * 관리자 사용자 관리 API
- * - GET: 사용자 목록 조회 (검색, 필터, 정렬)
- * - PATCH: 사용자 정보 수정
- * - DELETE: 사용자 삭제
+ * 管理者ユーザー管理API
+ * - GET: ユーザーリスト取得 (検索、フィルター、ソート)
+ * - PATCH: ユーザー情報更新
+ * - DELETE: ユーザー削除
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Database } from '@/types/database';
 import { z } from 'zod';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
@@ -147,11 +146,7 @@ export async function GET(request: NextRequest) {
     if (!auth) {
       return unauthorizedResponse();
     }
-
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-
+const { client: supabase } = createSupabaseSSRClient(request);
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const query: UserListQuery = {

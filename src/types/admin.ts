@@ -1,7 +1,7 @@
 import { OrderStatus } from './database';
 
 export interface DashboardStatistics {
-  // 주문 통계 (Order Statistics)
+  // 注文統計（Order Statistics）
   ordersByStatus: Array<{
     status: OrderStatus;
     count: number;
@@ -16,7 +16,7 @@ export interface DashboardStatistics {
   totalOrders: number;
   totalRevenue: number;
 
-  // 추가 통계 (Enhanced Statistics)
+  // 追加統計（Enhanced Statistics）
   orders?: {
     total: number;
     pending: number;

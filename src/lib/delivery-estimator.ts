@@ -20,11 +20,11 @@ import { createClient } from '@supabase/supabase-js';
  * 生産スケジュール（営業日）
  */
 export const PRODUCTION_TIMELINE = {
-  totalWeeks: 4,                    // 총 4주
-  businessDays: 20,                 // 20 영업일
-  trackingNumberWeek: 3,            // 3주차에 송장번호 발생
-  shippingDaysMin: 4,               // 배송 최소 4일
-  shippingDaysMax: 5,               // 배송 최대 5일
+  totalWeeks: 4,                    // 総4週間
+  businessDays: 20,                 // 20営業日
+  trackingNumberWeek: 3,            // 3週目に送り状番号発行
+  shippingDaysMin: 4,               // 配送最小4日
+  shippingDaysMax: 5,               // 配送最大5日
 };
 
 /**
@@ -220,7 +220,7 @@ function getCurrentPhase(
   if (daysPassed >= totalDays) {
     return {
       phase: 'production_complete',
-      phaseJa: '생산 완료',
+      phaseJa: '生産完了',
       weekNumber: 4,
     };
   }
@@ -229,10 +229,10 @@ function getCurrentPhase(
   const weekPhase = Math.min(weekNumber, 4);
 
   const phases: Record<number, { phase: string; phaseJa: string }> = {
-    1: { phase: 'production_week_1', phaseJa: '생산 1주차' },
-    2: { phase: 'production_week_2', phaseJa: '생산 2주차' },
-    3: { phase: 'production_week_3', phaseJa: '생산 3주차 (송장번호 발생)' },
-    4: { phase: 'production_week_4', phaseJa: '생산 4주차' },
+    1: { phase: 'production_week_1', phaseJa: '生産1週目' },
+    2: { phase: 'production_week_2', phaseJa: '生産2週目' },
+    3: { phase: 'production_week_3', phaseJa: '生産3週目（送り状番号発行）' },
+    4: { phase: 'production_week_4', phaseJa: '生産4週目' },
   };
 
   return {
@@ -271,15 +271,15 @@ export function formatDateWithWeekdayJP(date: string | Date): string {
 // =====================================================
 
 export interface DeliverySchedule {
-  approvalDate: string;              // 승인일
-  productionCompleteDate: string;    // 생산 완료 예정일
-  trackingNumberDate: string;        // 송장번호 발생 예정일
-  deliveryDateMin: string;           // 배송 도착 예정일 (최소)
-  deliveryDateMax: string;           // 배송 도착 예정일 (최대)
-  businessDaysTotal: number;         // 총 영업일
-  businessDaysPassed: number;        // 경과 영업일
-  progressPercentage: number;        // 진행률 (%)
-  isOverdue: boolean;                // 지연 여부
+  approvalDate: string;              // 承認日
+  productionCompleteDate: string;    // 生産完了予定日
+  trackingNumberDate: string;        // 送り状番号発行予定日
+  deliveryDateMin: string;           // 配送到着予定日（最小）
+  deliveryDateMax: string;           // 配送到着予定日（最大）
+  businessDaysTotal: number;         // 総営業日
+  businessDaysPassed: number;        // 経過営業日
+  progressPercentage: number;        // 進行率（%）
+  isOverdue: boolean;                // 遅延有無
   currentPhase: {
     phase: string;
     phaseJa: string;
@@ -288,11 +288,11 @@ export interface DeliverySchedule {
 }
 
 export interface ManualDeliveryAdjustment {
-  trackingNumber?: string;           // 송장번호
-  shippingDate?: string;             // 출하일
-  estimatedDeliveryDate?: string;    // 예상 도착일
-  actualDeliveryDate?: string;       // 실제 도착일
-  notes?: string;                    // 관리자 메모
+  trackingNumber?: string;           // 送り状番号
+  shippingDate?: string;             // 出荷日
+  estimatedDeliveryDate?: string;    // 予定到着日
+  actualDeliveryDate?: string;       // 実際到着日
+  notes?: string;                    // 管理者メモ
 }
 
 // =====================================================

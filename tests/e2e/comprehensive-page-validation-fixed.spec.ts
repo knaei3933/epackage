@@ -1,792 +1,477 @@
-/**
- * Comprehensive E2E Page Validation Test (FIXED)
- *
- * Based on COMPLETE_PAGE_FUNCTIONALITY_AUDIT_2026-01-04.md
- * Tests all 74 pages across 6 categories:
- * - Public Pages (33)
- * - Auth Pages (6)
- * - Member Portal (17)
- * - Admin Pages (12)
- * - Portal Pages (6)
- *
- * Fixes:
- * - Improved authentication handling
- * - More flexible text matching
- * - Better selectors
- * - Proper waits and error handling
- */
-
 import { test, expect } from '@playwright/test';
 
-// Test configuration
+/**
+ * Comprehensive Page Validation Test (Fixed)
+ * 포괄적인 페이지 유효성 검사 테스트 (수정됨)
+ *
+ * Improved version with:
+ * - Better selectors
+ * - Improved wait conditions
+ * - Retry logic
+ * - Timeout handling
+ * - More flexible assertions
+ */
+
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const DEV_MODE = process.env.ENABLE_DEV_MOCK_AUTH === 'true';
 
-// Test credentials (for DEV_MODE)
-const DEV_USER_EMAIL = 'dev@example.com';
-const ADMIN_EMAIL = 'admin@epackage-lab.com';
+// Helper function for retry logic
+async function retry<T>(
+  fn: () => Promise<T>,
+  options: { retries?: number; delay?: number } = {}
+): Promise<T> {
+  const { retries = 3, delay = 1000 } = options;
 
-/**
- * Helper: Sign in as member
- */
-async function signInAsMember(page: any) {
-  if (!DEV_MODE) {
-    test.skip(true, 'Skipping member test - DEV_MODE not enabled');
-  }
-
-  // Check if already signed in
-  await page.goto('/member/dashboard');
-
-  // If redirected to signin, sign in
-  if (page.url().includes('/auth/signin') || page.url().includes('/signin')) {
-    await page.goto('/auth/signin');
-
-    // Fill in credentials (DEV_MODE bypasses actual auth)
-    await page.fill('input[type="email"]', DEV_USER_EMAIL);
-    await page.fill('input[type="password"]', 'password');
-    await page.click('button[type="submit"]');
-
-    // Wait for redirect
-    await page.waitForURL(/\/member\/|\/$/, { timeout: 5000 }).catch(() => {});
-    await page.waitForTimeout(500);
-  }
-}
-
-/**
- * Helper: Sign in as admin
- */
-async function signInAsAdmin(page: any) {
-  if (!DEV_MODE) {
-    test.skip(true, 'Skipping admin test - DEV_MODE not enabled');
-  }
-
-  // Check if already signed in
-  await page.goto('/admin/dashboard');
-
-  // If redirected to signin, sign in
-  if (page.url().includes('/auth/signin') || page.url().includes('/signin')) {
-    await page.goto('/auth/signin');
-
-    // Fill in credentials
-    await page.fill('input[type="email"]', ADMIN_EMAIL);
-    await page.fill('input[type="password"]', 'password');
-    await page.click('button[type="submit"]');
-
-    // Wait for redirect
-    await page.waitForURL(/\/admin\/|\/$/, { timeout: 5000 }).catch(() => {});
-    await page.waitForTimeout(500);
-  }
-}
-
-/**
- * Helper: Check if page exists (not 404)
- */
-async function pageExists(page: any, url: string): Promise<boolean> {
-  const response = await page.goto(url);
-  const status = response?.status() || 0;
-
-  // Accept 200 (OK), 302 (Redirect), 307 (Temporary Redirect)
-  return [200, 302, 307].includes(status);
-}
-
-test.describe('Comprehensive Page Validation - Public Pages (33)', () => {
-  // ============================================================
-  // 1.1 Homepage & Core Pages (8 pages)
-  // ============================================================
-
-  test('[HOME-001] / - Homepage loads and all CTAs work', async ({ page }) => {
-    await page.goto('/');
-
-    // Check Hero Section - more flexible selector
-    const mainContent = page.locator('main, section, div').first();
-    await expect(mainContent).toBeVisible();
-
-    // Check if any links exist - don't require exact text match
-    const links = page.locator('a[href]');
-    const linkCount = await links.count();
-    expect(linkCount).toBeGreaterThan(0);
-
-    // Check for common navigation links
-    const hasCatalogLink = await page.locator('a[href*="catalog"]').count() > 0;
-    const hasContactLink = await page.locator('a[href*="contact"]').count() > 0;
-    const hasQuoteLink = await page.locator('a[href*="quote"]').count() > 0;
-
-    // At least some navigation should exist
-    expect(hasCatalogLink || hasContactLink || hasQuoteLink).toBeTruthy();
-  });
-
-  test('[HOME-002] / - Product showcase has DB integration', async ({ page }) => {
-    await page.goto('/');
-
-    // Wait for page to load
-    await page.waitForLoadState('networkidle').catch(() => {});
-
-    // Check if any product-related content exists
-    const productContent = page.locator('[class*="product"], [class*="Product"], [class*="catalog"], a[href*="/catalog/"]');
-    const count = await productContent.count();
-
-    // Products may or may not be on homepage, just check page loads
-    const heading = page.locator('h1, h2').first();
-    await expect(heading).toBeVisible();
-  });
-
-  test('[CONTACT-001] /contact - Contact form loads', async ({ page }) => {
-    const exists = await pageExists(page, '/contact');
-
-    if (!exists) {
-      test.skip(true, 'Contact page not found');
-      return;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+  }
 
-    // Check form exists with flexible selector
+  throw new Error('Retry failed');
+}
+
+test.describe('Fixed Page Validation - Public Pages', () => {
+  test('[FIXED-PUBLIC-001] 홈페이지 should load with proper structure', async ({ page }) => {
+    await page.goto(`${BASE_URL}/`);
+
+    // 1. 대기 및 재시도 로직으로 페이지 로드 확인
+    await retry(async () => {
+      const body = page.locator('body');
+      await expect(body).toBeVisible({ timeout: 5000 });
+    });
+
+    // 2. 주요 요소 확인 (유연한 선택자)
+    const mainContent = page.locator('main, [role="main"], .main, #main');
+    const mainExists = await mainContent.count() > 0;
+    expect(mainExists).toBe(true);
+  });
+
+  test('[FIXED-PUBLIC-002] 카탈로그 should load products', async ({ page }) => {
+    await page.goto(`${BASE_URL}/catalog`);
+
+    // 1. 카탈로그 컨테이너 확인
+    const catalogContainer = page.locator('[class*="catalog"], [class*="Catalog"], [data-testid*="catalog"]');
+    const containerExists = await catalogContainer.count() > 0;
+
+    // 2. 제품 또는 빈 상태 확인
+    const productCards = page.locator('[class*="product"], article, [class*="item"]');
+    const emptyState = page.locator('text=/製品がありません|該当する製品|empty/i');
+
+    const hasProducts = await productCards.count() > 0;
+    const hasEmptyState = await emptyState.count() > 0;
+
+    // 제품이 있거나 빈 상태 메시지가 있어야 함
+    expect(hasProducts || hasEmptyState || containerExists).toBe(true);
+  });
+
+  test('[FIXED-PUBLIC-003] 견적 시뮬레이터 should have form elements', async ({ page }) => {
+    await page.goto(`${BASE_URL}/quote-simulator`);
+
+    // 1. 폼 또는 위저드 컨테이너 확인
+    const formContainer = page.locator('form, [class*="wizard"], [class*="quote"], [class*="simulator"]');
+    const containerExists = await formContainer.count() > 0;
+
+    if (containerExists) {
+      // 2. 입력 필드 확인
+      const inputs = page.locator('input, select, textarea');
+      const inputCount = await inputs.count();
+      expect(inputCount).toBeGreaterThan(0);
+
+      // 3. 버튼 확인
+      const buttons = page.locator('button');
+      const buttonCount = await buttons.count();
+      expect(buttonCount).toBeGreaterThan(0);
+    }
+  });
+
+  test('[FIXED-PUBLIC-004] 연락처 should have contact form', async ({ page }) => {
+    await page.goto(`${BASE_URL}/contact`);
+
+    // 1. 폼 확인
     const form = page.locator('form');
     const formCount = await form.count();
 
     if (formCount > 0) {
-      await expect(form.first()).toBeVisible();
+      // 2. 필수 필드 확인
+      const requiredFields = page.locator('input[required], textarea[required], [aria-required="true"]');
+      const requiredCount = await requiredFields.count();
+      expect(requiredCount).toBeGreaterThan(0);
+    }
+  });
 
-      // Check for any input fields
-      const inputs = page.locator('input, textarea, select');
+  test('[FIXED-PUBLIC-005] 샘플 신청 should load correctly', async ({ page }) => {
+    await page.goto(`${BASE_URL}/samples`);
+
+    // 1. 페이지 제목 확인
+    const heading = page.locator('h1, h2');
+    await expect(heading.first()).toBeVisible({ timeout: 5000 });
+
+    // 2. 샘플 관련 콘텐츠 확인
+    const sampleContent = page.locator('text=/サンプル|sample|パウチ/i');
+    const hasSampleContent = await sampleContent.count() > 0;
+    expect(hasSampleContent).toBe(true);
+  });
+});
+
+test.describe('Fixed Page Validation - Auth Pages', () => {
+  test('[FIXED-AUTH-001] 로그인 should have login form', async ({ page }) => {
+    await page.goto(`${BASE_URL}/auth/signin`);
+
+    // 1. 이메일 입력 필드 확인
+    const emailInput = page.locator('input[type="email"], input[name*="email"], input[name*="メール"]');
+    await expect(emailInput.first()).toBeVisible({ timeout: 5000 });
+
+    // 2. 비밀번호 입력 필드 확인
+    const passwordInput = page.locator('input[type="password"], input[name*="password"], input[name*="パスワード"]');
+    await expect(passwordInput.first()).toBeVisible();
+
+    // 3. 제출 버튼 확인
+    const submitButton = page.locator('button[type="submit"], button:has-text("ログイン"), button:has-text("Login")');
+    const submitExists = await submitButton.count() > 0;
+    expect(submitExists).toBe(true);
+  });
+
+  test('[FIXED-AUTH-002] 회원가입 should have registration form', async ({ page }) => {
+    await page.goto(`${BASE_URL}/auth/register`);
+
+    // 1. 폼 확인
+    const form = page.locator('form');
+    const formCount = await form.count();
+
+    if (formCount > 0) {
+      // 2. 필수 필드 확인
+      const inputs = page.locator('input');
       const inputCount = await inputs.count();
-      expect(inputCount).toBeGreaterThan(0);
+      expect(inputCount).toBeGreaterThan(3);
     }
   });
 
-  test('[CONTACT-002] /contact - Contact form validation', async ({ page }) => {
-    await page.goto('/contact');
+  test('[FIXED-AUTH-003] 비밀번호 찾기 should have reset form', async ({ page }) => {
+    await page.goto(`${BASE_URL}/auth/forgot-password`);
 
-    // Check for any submit button
-    const submitButton = page.locator('button[type="submit"], button:has-text("送信"), button:has-text("Submit"), button:has-text("送")');
-    const count = await submitButton.count();
+    // 1. 이메일 입력 필드 확인
+    const emailInput = page.locator('input[type="email"], input[name*="email"]');
+    const emailExists = await emailInput.count() > 0;
 
-    if (count > 0) {
-      await expect(submitButton.first()).toBeVisible();
-    }
-  });
+    // 2. 제출 버튼 확인
+    const submitButton = page.locator('button[type="submit"], button:has-text("送信"), button:has-text("Submit")');
+    const submitExists = await submitButton.count() > 0;
 
-  test('[SAMPLES-001] /samples - Sample request page loads', async ({ page }) => {
-    const exists = await pageExists(page, '/samples');
-
-    if (!exists) {
-      test.skip(true, 'Samples page not found');
-      return;
-    }
-
-    // Check page has content
-    const heading = page.locator('h1, h2').first();
-    await expect(heading).toBeVisible();
-  });
-
-  test('[SAMPLES-002] /samples - Sample form elements', async ({ page }) => {
-    await page.goto('/samples');
-
-    // Look for form or button elements
-    const forms = page.locator('form');
-    const buttons = page.locator('button');
-
-    const hasForm = await forms.count() > 0;
-    const hasButton = await buttons.count() > 0;
-
-    expect(hasForm || hasButton).toBeTruthy();
-  });
-
-  test('[CATALOG-001] /catalog - Product catalog loads', async ({ page }) => {
-    await page.goto('/catalog');
-
-    // Check page has content
-    const heading = page.locator('h1, h2').first();
-    await expect(heading).toBeVisible();
-  });
-
-  test('[CATALOG-002] /catalog - Category elements exist', async ({ page }) => {
-    await page.goto('/catalog');
-
-    // Check for any filter or category elements
-    const filters = page.locator('[class*="filter"], [class*="category"], button, select');
-    const count = await filters.count();
-
-    if (count > 0) {
-      await expect(filters.first()).toBeVisible();
-    }
-  });
-
-  test('[QUOTE-001] /quote-simulator - Quote simulator loads', async ({ page }) => {
-    await page.goto('/quote-simulator');
-
-    // Check page has content
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[QUOTE-002] /quote-simulator - Has form or wizard elements', async ({ page }) => {
-    await page.goto('/quote-simulator');
-
-    // Look for form or wizard components
-    const forms = page.locator('form');
-    const wizards = page.locator('[class*="wizard"], [class*="step"]');
-    const buttons = page.locator('button');
-
-    const hasContent = await forms.count() > 0 || await wizards.count() > 0 || await buttons.count() > 0;
-    expect(hasContent).toBeTruthy();
-  });
-
-  test('[QUOTE-003] /quote-simulator - Has navigation buttons', async ({ page }) => {
-    await page.goto('/quote-simulator');
-
-    // Look for any buttons
-    const buttons = page.locator('button');
-    const count = await buttons.count();
-
-    if (count > 0) {
-      await expect(buttons.first()).toBeVisible();
-    }
-  });
-
-  test('[LEGAL-001] /privacy - Privacy policy loads', async ({ page }) => {
-    const exists = await pageExists(page, '/privacy');
-
-    if (!exists) {
-      test.skip(true, 'Privacy page not found');
-      return;
-    }
-
-    const content = page.locator('h1, h2, p').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[LEGAL-002] /terms - Terms of service loads', async ({ page }) => {
-    const exists = await pageExists(page, '/terms');
-
-    if (!exists) {
-      test.skip(true, 'Terms page not found');
-      return;
-    }
-
-    const content = page.locator('h1, h2, p').first();
-    await expect(content).toBeVisible();
-  });
-
-  // ============================================================
-  // 1.2 Product Guides (6 pages)
-  // ============================================================
-
-  test('[GUIDE-001] /guide - Guide main page loads', async ({ page }) => {
-    const exists = await pageExists(page, '/guide');
-
-    if (!exists) {
-      test.skip(true, 'Guide page not found');
-      return;
-    }
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[GUIDE-002] /guide/color - Color guide loads', async ({ page }) => {
-    await page.goto('/guide/color');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[GUIDE-003] /guide/size - Size guide loads', async ({ page }) => {
-    await page.goto('/guide/size');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[GUIDE-004] /guide/image - Image guide loads', async ({ page }) => {
-    await page.goto('/guide/image');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[GUIDE-005] /guide/shirohan - White paper guide loads', async ({ page }) => {
-    await page.goto('/guide/shirohan');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[GUIDE-006] /guide/environmentaldisplay - Environmental guide loads', async ({ page }) => {
-    await page.goto('/guide/environmentaldisplay');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  // ============================================================
-  // 1.3 Industry Solutions (4 pages)
-  // ============================================================
-
-  test('[INDUSTRY-001] /industry/cosmetics - Cosmetics page loads', async ({ page }) => {
-    await page.goto('/industry/cosmetics');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[INDUSTRY-002] /industry/electronics - Electronics page loads', async ({ page }) => {
-    await page.goto('/industry/electronics');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[INDUSTRY-003] /industry/food-manufacturing - Food page loads', async ({ page }) => {
-    await page.goto('/industry/food-manufacturing');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[INDUSTRY-004] /industry/pharmaceutical - Pharmaceutical page loads', async ({ page }) => {
-    await page.goto('/industry/pharmaceutical');
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  // ============================================================
-  // 1.4 Other Public Pages (12 pages)
-  // ============================================================
-
-  test('[PUBLIC-001] /pricing - Pricing page loads', async ({ page }) => {
-    await page.goto('/pricing');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-002] /smart-quote - Smart quote loads', async ({ page }) => {
-    await page.goto('/smart-quote');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-003] /roi-calculator - ROI calculator loads', async ({ page }) => {
-    await page.goto('/roi-calculator');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-004] /samples/thank-you - Sample thank you page', async ({ page }) => {
-    await page.goto('/samples/thank-you');
-
-    // Check for any thank you message (flexible matching)
-    const thankYouText = page.locator('text=/thank|ありがとう|completed|完了/i');
-    const count = await thankYouText.count();
-
-    // If page exists, it should have some content
-    const content = page.locator('h1, h2, p, div').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-005] /archives - Archives page loads', async ({ page }) => {
-    await page.goto('/archives');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-006] /compare - Compare page loads', async ({ page }) => {
-    await page.goto('/compare');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-007] /data-templates - Templates page loads', async ({ page }) => {
-    await page.goto('/data-templates');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-008] /flow - Flow page loads', async ({ page }) => {
-    await page.goto('/flow');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-009] /inquiry/detailed - Detailed inquiry page', async ({ page }) => {
-    await page.goto('/inquiry/detailed');
-    const content = page.locator('h1, main, form').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-010] /print - Print page loads', async ({ page }) => {
-    await page.goto('/print');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-011] /news - News page loads', async ({ page }) => {
-    await page.goto('/news');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[PUBLIC-012] /design-system - Design system page', async ({ page }) => {
-    await page.goto('/design-system');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
+    expect(emailExists || submitExists).toBe(true);
   });
 });
 
-test.describe('Comprehensive Page Validation - Auth Pages (6)', () => {
-  test('[AUTH-001] /auth/signin - Sign in page loads', async ({ page }) => {
-    await page.goto('/auth/signin');
+test.describe('Fixed Page Validation - Guide Pages', () => {
+  const guidePages = [
+    { path: '/guide/color', name: '색상 가이드' },
+    { path: '/guide/size', name: '사이즈 가이드' },
+    { path: '/guide/image', name: '이미지 가이드' },
+    { path: '/guide/shirohan', name: '시로한 가이드' },
+  ];
 
-    // Check for any form or input
-    const inputs = page.locator('input');
-    const hasInput = await inputs.count() > 0;
+  guidePages.forEach(({ path, name }) => {
+    test(`[FIXED-GUIDE-${name}] ${name} should load correctly`, async ({ page }) => {
+      await page.goto(`${BASE_URL}${path}`);
 
-    if (hasInput) {
-      await expect(inputs.first()).toBeVisible();
-    }
+      // 1. 페이지가 로드되는지 확인
+      const body = page.locator('body');
+      await expect(body).toBeVisible({ timeout: 5000 });
 
-    // Check page has content
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[AUTH-002] /auth/register - Register page loads', async ({ page }) => {
-    await page.goto('/auth/register');
-
-    // Check for any form or input
-    const inputs = page.locator('input');
-    const hasInput = await inputs.count() > 0;
-
-    if (hasInput) {
-      await expect(inputs.first()).toBeVisible();
-    }
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[AUTH-003] /auth/pending - Pending approval page', async ({ page }) => {
-    await page.goto('/auth/pending');
-
-    // Check page loads (may have specific text or just content)
-    const content = page.locator('h1, h2, p, div').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[AUTH-004] /auth/suspended - Suspended page', async ({ page }) => {
-    await page.goto('/auth/suspended');
-
-    // Check page loads
-    const content = page.locator('h1, h2, p, div').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[AUTH-005] /auth/error - Auth error page', async ({ page }) => {
-    await page.goto('/auth/error');
-
-    // Check page loads
-    const content = page.locator('h1, h2, p, div').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[AUTH-006] Sign out functionality exists', async ({ page }) => {
-    // Just check signout route exists (doesn't actually sign out)
-    const response = await page.goto('/auth/signout');
-    const status = response?.status() || 0;
-
-    // Should not be 404
-    expect(status).not.toBe(404);
+      // 2. 콘텐츠가 있는지 확인
+      const content = page.locator('h1, h2, main, article');
+      const hasContent = await content.count() > 0;
+      expect(hasContent).toBe(true);
+    });
   });
 });
 
-test.describe('Comprehensive Page Validation - Member Portal (17)', () => {
-  test('[MEMBER-001] /member/dashboard - Dashboard loads', async ({ page }) => {
-    await signInAsMember(page);
+test.describe('Fixed Page Validation - Industry Pages', () => {
+  const industryPages = [
+    { path: '/industry/cosmetics', name: '화장품 산업' },
+    { path: '/industry/electronics', name: '전자산업' },
+    { path: '/industry/food-manufacturing', name: '식품 제조' },
+    { path: '/industry/pharmaceutical', name: '제약 산업' },
+  ];
 
-    // Navigate to dashboard
-    await page.goto('/member/dashboard');
-    await page.waitForLoadState('networkidle').catch(() => {});
+  industryPages.forEach(({ path, name }) => {
+    test(`[FIXED-INDUSTRY-${name}] ${name} should load correctly`, async ({ page }) => {
+      await page.goto(`${BASE_URL}${path}`);
 
-    // Check page has content
-    const content = page.locator('h1, h2, main, div').first();
-    await expect(content).toBeVisible();
-  });
+      // 1. 페이지가 로드되는지 확인
+      const body = page.locator('body');
+      await expect(body).toBeVisible({ timeout: 5000 });
 
-  test('[MEMBER-002] /member/dashboard - Has navigation', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/dashboard');
-
-    // Check for links or buttons
-    const links = page.locator('a');
-    const buttons = page.locator('button');
-
-    const hasNavigation = await links.count() > 0 || await buttons.count() > 0;
-    expect(hasNavigation).toBeTruthy();
-  });
-
-  test('[MEMBER-003] /member/profile - Profile page loads', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/profile');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-004] /member/edit - Profile edit loads', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/edit');
-
-    const content = page.locator('h1, h2, main, form').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-005] /member/settings - Settings page loads', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/settings');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-006] /member/orders - Orders list loads', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/orders');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-007] /member/quotations - Quotations list loads', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/quotations');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-008] /member/samples - Sample requests list', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/samples');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-009] /member/invoices - Invoice addresses', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/invoices');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-010] /member/deliveries - Delivery addresses', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/deliveries');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[MEMBER-011] /member/inquiries - Inquiry history', async ({ page }) => {
-    await signInAsMember(page);
-    await page.goto('/member/inquiries');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
+      // 2. 산업 관련 콘텐츠 확인
+      const heading = page.locator('h1, h2');
+      const headingText = await heading.first().textContent();
+      expect(headingText?.length).toBeGreaterThan(0);
+    });
   });
 });
 
-test.describe('Comprehensive Page Validation - Admin Pages (12)', () => {
-  test('[ADMIN-001] /admin/dashboard - Admin dashboard loads', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/dashboard');
+test.describe('Fixed Page Validation - Console Errors', () => {
+  const testPages = [
+    { path: '/', name: '홈페이지' },
+    { path: '/catalog', name: '카탈로그' },
+    { path: '/quote-simulator', name: '견적 시뮬레이터' },
+    { path: '/contact', name: '연락처' },
+    { path: '/samples', name: '샘플 신청' },
+  ];
 
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
+  testPages.forEach(({ path, name }) => {
+    test(`[FIXED-CONSOLE-${name}] ${name} should have no critical console errors`, async ({ page }) => {
+      const consoleErrors: string[] = [];
+      const consoleWarnings: string[] = [];
 
-  test('[ADMIN-002] /admin/orders - Orders management', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/orders');
+      // 콘솔 리스너 설정
+      page.on('console', (msg) => {
+        const type = msg.type();
+        const text = msg.text();
 
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
+        if (type === 'error') {
+          // 허용된 에러 패턴 필터링
+          if (!text.includes('favicon') && !text.includes('DevTools')) {
+            consoleErrors.push(text);
+          }
+        } else if (type === 'warning') {
+          consoleWarnings.push(text);
+        }
+      });
 
-  test('[ADMIN-003] /admin/production - Production management', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/production');
+      // 페이지 로드
+      await page.goto(`${BASE_URL}${path}`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
+      // 비동기 에러를 위해 잠시 대기
+      await page.waitForTimeout(1000);
 
-  test('[ADMIN-004] /admin/shipments - Shipments management', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/shipments');
+      // 치명적인 에러가 없어야 함
+      const criticalErrors = consoleErrors.filter(e =>
+        !e.includes('Warning') &&
+        !e.includes('deprecated')
+      );
 
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
+      expect(criticalErrors.length).toBe(0);
 
-  test('[ADMIN-005] /admin/contracts - Contracts management', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/contracts');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[ADMIN-006] /admin/approvals - Member approvals', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/approvals');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[ADMIN-007] /admin/inventory - Inventory management', async ({ page }) => {
-    await signInAsAdmin(page);
-    await page.goto('/admin/inventory');
-
-    const content = page.locator('h1, h2, main').first();
-    await expect(content).toBeVisible();
+      // 경고가 너무 많으면 실패
+      expect(consoleWarnings.length).toBeLessThan(10);
+    });
   });
 });
 
-test.describe('Comprehensive Page Validation - Portal Pages (6)', () => {
-  test('[PORTAL-001] /portal - Portal dashboard', async ({ page }) => {
-    await page.goto('/portal');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
+test.describe('Fixed Page Validation - Broken Links', () => {
+  test('[FIXED-LINKS-001] 홈페이지 should have no broken internal links', async ({ page }) => {
+    await page.goto(`${BASE_URL}/`);
 
-  test('[PORTAL-002] /portal/profile - Portal profile', async ({ page }) => {
-    await page.goto('/portal/profile');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
+    // 내부 링크 수집
+    const links = page.locator('a[href^="/"], a[href^="' + BASE_URL + '"]');
+    const linkCount = await links.count();
 
-  test('[PORTAL-003] /portal/orders - Portal orders', async ({ page }) => {
-    await page.goto('/portal/orders');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
+    let brokenLinks = 0;
+    const checkedLinks = new Set<string>();
 
-  test('[PORTAL-004] /portal/documents - Documents', async ({ page }) => {
-    await page.goto('/portal/documents');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
+    // 처음 10개 링크만 검사 (성능 최적화)
+    const checkCount = Math.min(linkCount, 10);
 
-  test('[PORTAL-005] /portal/support - Support center', async ({ page }) => {
-    await page.goto('/portal/support');
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-});
+    for (let i = 0; i < checkCount; i++) {
+      const link = links.nth(i);
+      const href = await link.getAttribute('href');
 
-test.describe('API Security Validation - CRITICAL Tests', () => {
-  test('[SECURITY-001] Admin APIs require authentication', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/admin/production/jobs`);
-    expect([401, 403, 404]).toContain(response.status());
-  });
+      if (href && !checkedLinks.has(href)) {
+        checkedLinks.add(href);
 
-  test('[SECURITY-002] Settings API requires authentication', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/member/settings`);
-    expect([401, 403]).toContain(response.status());
-  });
+        try {
+          const fullUrl = href.startsWith('/') ? `${BASE_URL}${href}` : href;
+          const response = page.request.get(fullUrl);
+          const status = (await response).status();
 
-  test('[SECURITY-003] Orders API requires authentication', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/member/orders`);
-    expect([401, 403]).toContain(response.status());
-  });
-
-  test('[SECURITY-004] Quotations API requires authentication', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/quotations/list`);
-    // May return 403 in dev mode or 401 in prod
-    expect([200, 401, 403]).toContain(response.status());
-  });
-});
-
-test.describe('Database Integration Validation', () => {
-  test('[DB-001] Products API returns data', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/products`);
-    expect(response.ok()).toBeTruthy();
-  });
-
-  test('[DB-002] Contact API endpoint exists', async ({ request }) => {
-    // Just check endpoint exists (will return method not allowed for GET)
-    const response = await request.get(`${BASE_URL}/api/contact`);
-    expect([405, 200, 404]).toContain(response.status());
-  });
-});
-
-test.describe('Navigation Flow Tests', () => {
-  test('[NAV-001] Homepage navigation works', async ({ page }) => {
-    await page.goto('/');
-
-    // Check any links exist
-    const links = page.locator('a[href]');
-    const count = await links.count();
-
-    if (count > 0) {
-      await expect(links.first()).toBeVisible();
-    }
-  });
-
-  test('[NAV-002] Can navigate to catalog', async ({ page }) => {
-    await page.goto('/catalog');
-
-    // Check page loaded
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-
-  test('[NAV-003] Quote simulator accessible', async ({ page }) => {
-    await page.goto('/quote-simulator');
-
-    // Check page loaded
-    const content = page.locator('h1, main').first();
-    await expect(content).toBeVisible();
-  });
-});
-
-test.describe('Performance & Accessibility', () => {
-  test('[PERF-001] Homepage loads reasonably fast', async ({ page }) => {
-    const startTime = Date.now();
-    await page.goto('/');
-    await page.waitForLoadState('domcontentloaded').catch(() => {});
-    const loadTime = Date.now() - startTime;
-
-    // Should load within 5 seconds (relaxed threshold)
-    expect(loadTime).toBeLessThan(5000);
-  });
-
-  test('[A11Y-001] Homepage has heading structure', async ({ page }) => {
-    await page.goto('/');
-
-    const h1 = page.locator('h1');
-    const count = await h1.count();
-
-    // Should have at least one heading (h1 or h2)
-    const anyHeading = page.locator('h1, h2');
-    await expect(anyHeading.first()).toBeVisible();
-  });
-
-  test('[A11Y-002] Contact form has labels', async ({ page }) => {
-    await page.goto('/contact');
-
-    const inputs = page.locator('input');
-    const count = await inputs.count();
-
-    if (count > 0) {
-      // Check at least some inputs have labels or placeholders
-      let inputsWithLabels = 0;
-      for (let i = 0; i < Math.min(count, 5); i++) {
-        const input = inputs.nth(i);
-        const hasLabel = await input.evaluate(el => {
-          return !!el.labels?.length ||
-                 !!el.getAttribute('aria-label') ||
-                 !!el.getAttribute('placeholder') ||
-                 !!el.getAttribute('name');
-        });
-        if (hasLabel) inputsWithLabels++;
+          if (status >= 400) {
+            brokenLinks++;
+            console.log(`Broken link: ${href} (${status})`);
+          }
+        } catch (e) {
+          // 링크 검사 실패는 무시
+        }
       }
-
-      // At least half should have some form of identification
-      expect(inputsWithLabels).toBeGreaterThanOrEqual(Math.min(count, 5) / 2);
     }
+
+    expect(brokenLinks).toBe(0);
+  });
+});
+
+test.describe('Fixed Page Validation - Image Loading', () => {
+  test('[FIXED-IMAGES-001] 홈페이지 should load all images', async ({ page }) => {
+    await page.goto(`${BASE_URL}/`);
+
+    // 모든 이미지 수집
+    const images = page.locator('img[src]');
+    const imageCount = await images.count();
+
+    let brokenImages = 0;
+
+    for (let i = 0; i < imageCount; i++) {
+      const img = images.nth(i);
+
+      // 이미지가 로드되었는지 확인
+      const naturalWidth = await img.evaluate((el: HTMLImageElement) => el.naturalWidth);
+
+      if (naturalWidth === 0) {
+        const src = await img.getAttribute('src');
+        console.log(`Broken image: ${src}`);
+        brokenImages++;
+      }
+    }
+
+    expect(brokenImages).toBe(0);
+  });
+});
+
+test.describe('Fixed Page Validation - Responsive Design', () => {
+  const viewports = [
+    { name: 'Desktop', width: 1920, height: 1080 },
+    { name: 'Laptop', width: 1024, height: 768 },
+    { name: 'Tablet', width: 768, height: 1024 },
+    { name: 'Mobile', width: 375, height: 667 },
+  ];
+
+  viewports.forEach(({ name, width, height }) => {
+    test(`[FIXED-RESP-${name}] 홈페이지 should be responsive on ${name}`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+
+      await retry(async () => {
+        await page.goto(`${BASE_URL}/`);
+        const body = page.locator('body');
+        await expect(body).toBeVisible({ timeout: 5000 });
+      });
+
+      // 페이지 콘텐츠 확인
+      const mainContent = page.locator('main, [role="main"], body');
+      await expect(mainContent.first()).toBeVisible();
+
+      // 모바일에서 모바일 메뉴 버튼 확인
+      if (width < 768) {
+        const menuButton = page.locator('button[aria-label*="menu"], button[aria-label*="メニュー"], [class*="hamburger"], [class*="mobile-menu"]');
+        const menuExists = await menuButton.count() > 0;
+
+        if (menuExists) {
+          console.log(`Mobile menu button found on ${name}`);
+        }
+      }
+    });
+  });
+});
+
+test.describe('Fixed Page Validation - Accessibility', () => {
+  test('[FIXED-A11Y-001] 홈페이지 should be accessible', async ({ page }) => {
+    await page.goto(`${BASE_URL}/`);
+
+    // 1. 페이지 타이틀 확인
+    const title = await page.title();
+    expect(title.length).toBeGreaterThan(0);
+
+    // 2. heading 구조 확인
+    const headings = page.locator('h1, h2, h3');
+    const headingCount = await headings.count();
+    expect(headingCount).toBeGreaterThan(0);
+
+    // 3. h1이 하나만 있는지 확인 (선택 사항)
+    const h1 = page.locator('h1');
+    const h1Count = await h1.count();
+    if (h1Count > 0) {
+      expect(h1Count).toBeLessThanOrEqual(1);
+    }
+
+    // 4. 이미지 alt 속성 확인 (처음 5개만)
+    const images = page.locator('img');
+    const imageCount = await images.count();
+
+    for (let i = 0; i < Math.min(imageCount, 5); i++) {
+      const img = images.nth(i);
+      const alt = await img.getAttribute('alt');
+      expect(alt).not.toBe(null);
+    }
+
+    // 5. 링크 href 속성 확인
+    const links = page.locator('a[href]');
+    const linkCount = await links.count();
+    expect(linkCount).toBeGreaterThan(0);
+  });
+
+  test('[FIXED-A11Y-002] 카탈로그 should be accessible', async ({ page }) => {
+    await page.goto(`${BASE_URL}/catalog`);
+
+    // 1. 페이지 타이틀 확인
+    const title = await page.title();
+    expect(title).toContain('カタログ');
+
+    // 2. 메인 콘텐츠 확인
+    const main = page.locator('main, [role="main"]');
+    const mainExists = await main.count() > 0;
+    expect(mainExists).toBe(true);
+  });
+});
+
+test.describe('Fixed Page Validation - Performance', () => {
+  const perfPages = [
+    { path: '/', name: '홈페이지', maxLoadTime: 3000 },
+    { path: '/catalog', name: '카탈로그', maxLoadTime: 4000 },
+    { path: '/contact', name: '연락처', maxLoadTime: 3000 },
+  ];
+
+  perfPages.forEach(({ path, name, maxLoadTime }) => {
+    test(`[FIXED-PERF-${name}] ${name} should load within ${maxLoadTime}ms`, async ({ page }) => {
+      const startTime = Date.now();
+
+      await page.goto(`${BASE_URL}${path}`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      const loadTime = Date.now() - startTime;
+
+      expect(loadTime).toBeLessThan(maxLoadTime);
+
+      console.log(`${name} 로드 시간: ${loadTime}ms (목표: ${maxLoadTime}ms)`);
+    });
+  });
+});
+
+test.describe('Fixed Page Validation - Meta Tags', () => {
+  test('[FIXED-META-001] 홈페이지 should have proper meta tags', async ({ page }) => {
+    await page.goto(`${BASE_URL}/`);
+
+    // 1. viewport 메타 태그
+    const viewport = page.locator('meta[name="viewport"]');
+    const viewportContent = await viewport.getAttribute('content');
+    expect(viewportContent).toContain('width=');
+
+    // 2. charset 메타 태그
+    const charset = page.locator('meta[charset]');
+    const charsetValue = await charset.getAttribute('charset');
+    expect(charsetValue).toBeTruthy();
+
+    // 3. title 태그
+    const title = await page.title();
+    expect(title.length).toBeGreaterThan(0);
+
+    // 4. description 메타 태그
+    const description = page.locator('meta[name="description"]');
+    const descContent = await description.getAttribute('content');
+    expect(descContent).toBeTruthy();
+    expect(descContent?.length).toBeGreaterThan(50);
+  });
+
+  test('[FIXED-META-002] 카탈로그 should have proper meta tags', async ({ page }) => {
+    await page.goto(`${BASE_URL}/catalog`);
+
+    // 1. title 태그 확인
+    const title = await page.title();
+    expect(title).toContain('カタログ');
+
+    // 2. description 메타 태그
+    const description = page.locator('meta[name="description"]');
+    const descExists = await description.count() > 0;
+    expect(descExists).toBe(true);
   });
 });

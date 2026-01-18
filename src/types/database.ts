@@ -256,10 +256,10 @@ export type Database = {
                     corporate_phone: string | null
                     personal_phone: string | null
                     business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR'
-                    user_type: 'B2C' | 'B2B' | null  // B2C: 일반 소비자, B2B: 기업 고객
+                    user_type: 'B2C' | 'B2B' | null  // B2C: 一般消費者, B2B: 企業顧客
                     company_name: string | null
                     legal_entity_number: string | null
-                    corporate_number: string | null  // 사업자등록번호 (13자리) - 법인번호와 별도
+                    corporate_number: string | null  // 登録番号 (13桁) - 法人番号とは別
                     position: string | null
                     department: string | null
                     company_url: string | null
@@ -269,17 +269,19 @@ export type Database = {
                     prefecture: string | null
                     city: string | null
                     street: string | null
-                    building: string | null  // 건물명
+                    building: string | null  // 建物名
                     role: 'ADMIN' | 'MEMBER'
                     status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'
-                    // B2B 추가 필드
-                    founded_year: string | null  // 설립연도
-                    capital: string | null  // 자본금
-                    representative_name: string | null  // 대표자명
-                    business_document_path: string | null  // 사업자등록증 저장 경로
-                    verification_token: string | null  // 이메일 인증 토큰
-                    verification_expires_at: string | null  // 인증 토큰 만료일
+                    // B2B追加フィールド
+                    founded_year: string | null  // 設立年
+                    capital: string | null  // 資本金
+                    representative_name: string | null  // 代表者名
+                    business_document_path: string | null  // 事業登錄証保存パス
+                    verification_token: string | null  // メール認証トークン
+                    verification_expires_at: string | null  // 認証トークン有効期限
                     settings: Json | null  // User settings (notifications, language, timezone)
+                    markup_rate: number  // Customer-specific markup rate (default 0.5 = 50%)
+                    markup_rate_note: string | null  // Note for custom markup rate
                     created_at: string
                     updated_at: string
                     last_login_at: string | null
@@ -289,34 +291,29 @@ export type Database = {
             }
 
             // Orders table
-            // Orders table - B2B 확장 (Extended for B2B Order Management)
             orders: {
                 Row: {
                     id: string
-                    user_id: string  // FK to profiles
-                    company_id: string | null  // FK to companies
-                    quotation_id: string | null  // FK to quotations (created from approved quotation)
-                    order_number: string  // ORD-YYYY-NNNN format
-                    current_state: string  // Current state in 10-step workflow
-                    state_metadata: Json | null  // State-related data
-                    status: 'PENDING' | 'QUOTATION' | 'DATA_RECEIVED' | 'WORK_ORDER' | 'CONTRACT_SENT' | 'CONTRACT_SIGNED' | 'PRODUCTION' | 'STOCK_IN' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+                    user_id: string  // FK to auth.users
+                    order_number: string  // Unique order number
+                    status: OrderStatus  // Order status enum
                     total_amount: number  // Order total amount
-                    subtotal: number  // Subtotal amount
-                    tax_amount: number  // Tax amount
-                    customer_name: string  // Customer name snapshot
-                    customer_email: string  // Customer email snapshot
                     notes: string | null  // Order notes
                     created_at: string
                     updated_at: string
                     shipped_at: string | null
                     delivered_at: string | null
-                    // Order confirmation fields
-                    payment_term: 'credit' | 'advance'  // 掛け払い | 前払
-                    shipping_address: Json | null  // Shipping address
-                    billing_address: Json | null  // Billing address
-                    requested_delivery_date: string | null  // Requested delivery date
-                    delivery_notes: string | null  // Delivery notes
-                    estimated_delivery_date: string | null  // Estimated delivery date
+                    cancelled_at: string | null
+                    delivery_address: Json | null  // Delivery address JSON
+                    billing_address: Json | null  // Billing address JSON
+                    subtotal: number | null  // Subtotal amount
+                    tax_amount: number | null  // Tax amount
+                    customer_name: string | null  // Customer name snapshot
+                    customer_email: string | null  // Customer email snapshot
+                    customer_phone: string | null  // Customer phone snapshot
+                    delivery_address_id: string | null  // FK to delivery_addresses
+                    billing_address_id: string | null  // FK to billing_addresses
+                    quotation_id: string | null  // FK to quotations
                 }
                 Insert: Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>>
@@ -382,7 +379,7 @@ export type Database = {
                 Update: Partial<Omit<Database['public']['Tables']['billing_addresses']['Row'], 'id' | 'created_at' | 'updated_at'>>
             }
 
-            // Quotations table - B2B 확장 (Extended for B2B)
+            // Quotations table - B2B拡張 (Extended for B2B)
             quotations: {
                 Row: {
                     id: string
@@ -414,7 +411,7 @@ export type Database = {
                 Update: Partial<Omit<Database['public']['Tables']['quotations']['Row'], 'id' | 'created_at' | 'updated_at'>>
             }
 
-            // Quotation items table - B2B 확장 (Extended for B2B)
+            // Quotation items table - B2B拡張 (Extended for B2B)
             quotation_items: {
                 Row: {
                     id: string
@@ -929,9 +926,9 @@ export type Database = {
                     customer_contact_info: Json | null
                     received_at: string
                     // AI Extraction fields
-                    extracted_data: Json | null  // AI 추출된 제품 사양 데이터
-                    confidence_score: number | null  // 추출 신뢰도 (0-1)
-                    extraction_metadata: Json | null  // 추출 메타데이터 (provider, model, processingTime, etc.)
+                    extracted_data: Json | null  // AI抽出された製品仕様データ
+                    confidence_score: number | null  // 抽出信頼度 (0-1)
+                    extraction_metadata: Json | null  // 抽出メタデータ (provider, model, processingTime, etc.)
                     created_at: string
                     updated_at: string
                 }
@@ -1217,6 +1214,77 @@ export type Database = {
                 Insert: Omit<Database['public']['Tables']['payment_confirmations']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['payment_confirmations']['Row'], 'id' | 'created_at' | 'updated_at'>>
             }
+
+            // ============================================================
+            // FILM COST SYSTEM NEW TABLES (Phase 4)
+            // ============================================================
+
+            // System Settings table - 시스템 설정 (film material prices, processing costs, etc.)
+            system_settings: {
+                Row: {
+                    id: string
+                    category: string  // e.g., 'film_material', 'pouch_processing', 'printing', 'lamination', 'slitter', 'exchange_rate', 'duty_rate', 'delivery', 'production', 'pricing'
+                    key: string  // e.g., 'PET_unit_price', 'AL_density', 'flat_3_side_cost', 'cost_per_m2'
+                    value: Json  // JSONB value (number, string, boolean, or object)
+                    value_type: string  // 'number', 'string', 'boolean', 'object'
+                    description: string | null
+                    unit: string | null  // e.g., '원/kg', 'kg/m³', '원', '원/m²', '%'
+                    is_active: boolean
+                    effective_date: string  // TIMESTAMPTZ
+                    updated_by: string | null  // FK to profiles
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['system_settings']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['system_settings']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Coupons table - 쿠폰 관리
+            coupons: {
+                Row: {
+                    id: string
+                    code: string  // Unique coupon code
+                    name: string  // Coupon name
+                    name_ja: string | null  // Japanese name
+                    description: string | null
+                    description_ja: string | null
+                    type: 'percentage' | 'fixed_amount' | 'free_shipping'  // coupon_type enum
+                    value: number  // Discount value (percentage or fixed amount)
+                    minimum_order_amount: number  // Minimum order amount to qualify
+                    maximum_discount_amount: number | null  // Maximum discount cap
+                    max_uses: number | null  // Total usage limit (null = unlimited)
+                    current_uses: number  // Current usage count
+                    max_uses_per_customer: number  // Per-customer usage limit
+                    status: 'active' | 'inactive' | 'expired' | 'scheduled'  // coupon_status enum
+                    valid_from: string  // TIMESTAMPTZ
+                    valid_until: string | null  // TIMESTAMPTZ
+                    applicable_customers: string[] | null  // Array of customer IDs
+                    applicable_customer_types: string[] | null  // e.g., ['VIP', 'NEW']
+                    created_by: string | null  // FK to profiles
+                    notes: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['coupons']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['coupons']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Coupon Usage table - 쿠폰 사용 기록
+            coupon_usage: {
+                Row: {
+                    id: string
+                    coupon_id: string  // FK to coupons
+                    user_id: string  // FK to profiles
+                    order_id: string | null  // FK to orders
+                    quotation_id: string | null  // FK to quotations
+                    discount_amount: number  // Applied discount amount
+                    original_amount: number  // Original amount before discount
+                    final_amount: number  // Final amount after discount
+                    used_at: string  // TIMESTAMPTZ
+                }
+                Insert: Omit<Database['public']['Tables']['coupon_usage']['Row'], 'id' | 'used_at'>
+                Update: Partial<Database['public']['Tables']['coupon_usage']['Row']>
+            }
         }
         Views: {
             [_ in never]: never
@@ -1324,6 +1392,16 @@ export type Database = {
 
             // Signature provider
             signature_provider: 'docusign' | 'hellosign' | 'local'
+
+            // ============================================================
+            // FILM COST SYSTEM NEW ENUMS (Phase 4)
+            // ============================================================
+
+            // Coupon type
+            coupon_type: 'percentage' | 'fixed_amount' | 'free_shipping'
+
+            // Coupon status
+            coupon_status: 'active' | 'inactive' | 'expired' | 'scheduled'
         }
         CompositeTypes: {
             [_ in never]: never

@@ -14,6 +14,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { AIExtractionPreview } from './AIExtractionPreview';
 import type { Order } from '@/types/dashboard';
 
 // =====================================================
@@ -33,6 +34,7 @@ interface UploadedFile {
   downloadUrl: string;
   dataType: string;
   uploadedAt: string;
+  aiExtractionStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
 
 interface ValidationError {
@@ -60,11 +62,72 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showAIPreview, setShowAIPreview] = useState(false);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollingRetries, setPollingRetries] = useState(0);
+  const [extractionResults, setExtractionResults] = useState<Record<string, any>>({});
+
+  // Polling configuration
+  const POLLING_INTERVAL = 5000; // 5 seconds
+  const MAX_POLL_RETRIES = 60; // 60 retries = 5 minutes max
 
   // Load existing files on mount
   useEffect(() => {
     loadUploadedFiles();
   }, [order.id]);
+
+  // Poll for AI extraction results
+  useEffect(() => {
+    // Check if any file has pending or processing status
+    const hasPendingExtractions = uploadedFiles.some(
+      file => file.aiExtractionStatus === 'pending' || file.aiExtractionStatus === 'processing'
+    );
+
+    if (!hasPendingExtractions || pollingRetries >= MAX_POLL_RETRIES) {
+      if (isPolling) {
+        setIsPolling(false);
+        setPollingRetries(0);
+      }
+      return;
+    }
+
+    // Start polling if not already active
+    if (!isPolling) {
+      setIsPolling(true);
+    }
+
+    // Set up polling interval
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/member/orders/${order.id}/data-receipt`);
+        if (response.ok) {
+          const data = await response.json();
+          const updatedFiles = data.data.files || [];
+
+          // Check for newly completed extractions
+          updatedFiles.forEach((file: UploadedFile) => {
+            const previousFile = uploadedFiles.find(f => f.id === file.id);
+
+            // If status changed to completed, fetch extraction details
+            if (previousFile &&
+                previousFile.aiExtractionStatus !== 'completed' &&
+                file.aiExtractionStatus === 'completed') {
+              fetchExtractionDetails(file.id);
+            }
+          });
+
+          setUploadedFiles(updatedFiles);
+          setPollingRetries(prev => prev + 1);
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, POLLING_INTERVAL);
+
+    // Cleanup interval when component unmounts or polling stops
+    return () => clearInterval(intervalId);
+  }, [uploadedFiles, isPolling, pollingRetries, order.id]);
 
   // Load uploaded files
   const loadUploadedFiles = async () => {
@@ -76,6 +139,22 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
       }
     } catch (err) {
       console.error('Failed to load uploaded files:', err);
+    }
+  };
+
+  // Fetch AI extraction details for a completed file
+  const fetchExtractionDetails = async (fileId: string) => {
+    try {
+      const response = await fetch(`/api/member/orders/${order.id}/data-receipt/files/${fileId}/extraction`);
+      if (response.ok) {
+        const data = await response.json();
+        setExtractionResults(prev => ({
+          ...prev,
+          [fileId]: data.data
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch extraction details:', err);
     }
   };
 
@@ -444,9 +523,20 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
       {/* Uploaded Files List */}
       {uploadedFiles.length > 0 && (
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            アップロード済みファイル ({uploadedFiles.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              アップロード済みファイル ({uploadedFiles.length})
+            </h2>
+            {isPolling && (
+              <div className="flex items-center space-x-2 text-sm text-blue-600">
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>AI抽出結果を確認中...</span>
+              </div>
+            )}
+          </div>
           <div className="space-y-3">
             {uploadedFiles.map((file) => (
               <div
@@ -454,14 +544,97 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{file.fileName}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="font-medium text-gray-900">{file.fileName}</p>
+                    {file.aiExtractionStatus === 'completed' && (
+                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+                        AI抽出完了
+                      </span>
+                    )}
+                    {file.aiExtractionStatus === 'processing' && (
+                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded animate-pulse">
+                        AI抽出中
+                      </span>
+                    )}
+                    {file.aiExtractionStatus === 'pending' && (
+                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
+                        待機中
+                      </span>
+                    )}
+                    {file.aiExtractionStatus === 'failed' && (
+                      <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
+                        AI抽出失敗
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                     <span>{formatFileSize(file.fileSize)}</span>
                     <span>{getDataTypeLabel(file.dataType)}</span>
                     <span>{new Date(file.uploadedAt).toLocaleString('ja-JP')}</span>
                   </div>
+                  {extractionResults[file.id] && (
+                    <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium text-purple-900">抽出された仕様</h4>
+                        <button
+                          onClick={() => {
+                            setSelectedFileId(file.id);
+                            setShowAIPreview(true);
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                        >
+                          詳細を表示
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {extractionResults[file.id]?.specifications?.dimensions && (
+                          <div>
+                            <span className="text-gray-600">サイズ:</span>{' '}
+                            <span className="font-medium text-gray-900">
+                              {extractionResults[file.id].specifications.dimensions}
+                            </span>
+                          </div>
+                        )}
+                        {extractionResults[file.id]?.specifications?.material && (
+                          <div>
+                            <span className="text-gray-600">素材:</span>{' '}
+                            <span className="font-medium text-gray-900">
+                              {extractionResults[file.id].specifications.material}
+                            </span>
+                          </div>
+                        )}
+                        {extractionResults[file.id]?.specifications?.quantity && (
+                          <div>
+                            <span className="text-gray-600">数量:</span>{' '}
+                            <span className="font-medium text-gray-900">
+                              {extractionResults[file.id].specifications.quantity}
+                            </span>
+                          </div>
+                        )}
+                        {extractionResults[file.id]?.confidence && (
+                          <div>
+                            <span className="text-gray-600">信頼度:</span>{' '}
+                            <span className="font-medium text-gray-900">
+                              {Math.round(extractionResults[file.id].confidence * 100)}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex space-x-2">
+                  {(file.dataType === 'design_file' || file.dataType === 'production_data') && file.aiExtractionStatus === 'completed' && (
+                    <button
+                      onClick={() => {
+                        setSelectedFileId(file.id);
+                        setShowAIPreview(true);
+                      }}
+                      className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                    >
+                      AI抽出結果
+                    </button>
+                  )}
                   <a
                     href={file.downloadUrl}
                     target="_blank"
@@ -475,6 +648,41 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
             ))}
           </div>
         </Card>
+      )}
+
+      {/* AI Extraction Preview Modal */}
+      {showAIPreview && selectedFileId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                AI抽出プレビュー
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAIPreview(false);
+                  setSelectedFileId(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <AIExtractionPreview
+                fileId={selectedFileId}
+                orderId={order.id}
+                onComplete={() => {
+                  setShowAIPreview(false);
+                  setSelectedFileId(null);
+                  loadUploadedFiles();
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Actions */}

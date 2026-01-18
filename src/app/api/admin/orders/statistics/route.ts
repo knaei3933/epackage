@@ -5,7 +5,7 @@ import type { Database } from '@/types/database';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // 인증 검증
+  // 認証検証
   const auth = await verifyAdminAuth(request);
   if (!auth) {
     return unauthorizedResponse();

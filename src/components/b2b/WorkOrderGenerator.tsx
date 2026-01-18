@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 작업표준서 생성 컴포넌트 (Work Order Generator)
- * 주문에서 제조 사양서를 생성
+ * 作業標準書生成コンポーネント (Work Order Generator)
+ * 注文から製造仕様書を生成
  */
 
 import React, { useState, useCallback } from 'react';
@@ -88,7 +88,7 @@ export default function WorkOrderGenerator({
     visual_inspection: true,
     dimension_tolerance: '±2mm',
     seal_strength: '≥10N/15mm',
-    appearance_standard: 'A급',
+    appearance_standard: 'A級',
     additional_checks: [] as string[]
   });
 
@@ -106,12 +106,12 @@ export default function WorkOrderGenerator({
 
   // Post processing options
   const postProcessingOptions = [
-    { id: 'zipper', label: '지퍼 (チャック)' },
-    { id: 'valve', label: '밸브 (バルブ)' },
-    { id: 'spout', label: '주불 (ノズル)' },
-    { id: 'hang_hole', label: '행홀 (ハングホール)' },
-    { id: 'tear_notch', label: '티어노치 (切欠き)' },
-    { id: 'eu_hole', label: '유로홀 (ユーロホール)' }
+    { id: 'zipper', label: 'チャック' },
+    { id: 'valve', label: 'バルブ' },
+    { id: 'spout', label: 'ノズル' },
+    { id: 'hang_hole', label: 'ハングホール' },
+    { id: 'tear_notch', label: '切欠き' },
+    { id: 'eu_hole', label: 'ユーロホール' }
   ];
 
   // Update specifications
@@ -141,7 +141,7 @@ export default function WorkOrderGenerator({
     setStatus({ type: null, message: '' });
 
     try {
-      const response = await fetch('/api/b2b/work-orders', {
+      const response = await fetch('/api/member/work-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -159,7 +159,7 @@ export default function WorkOrderGenerator({
       if (result.success) {
         setStatus({
           type: 'success',
-          message: '작업표준서가 생성되었습니다.'
+          message: '作業標準書が生成されました。'
         });
 
         if (onGenerated) {
@@ -168,14 +168,14 @@ export default function WorkOrderGenerator({
       } else {
         setStatus({
           type: 'error',
-          message: result.error || '작업표준서 생성 중 오류가 발생했습니다.'
+          message: result.error || '作業標準書の生成中にエラーが発生しました。'
         });
       }
     } catch (error) {
       console.error('Generate work order error:', error);
       setStatus({
         type: 'error',
-        message: '작업표준서 생성 중 오류가 발생했습니다.'
+        message: '作業標準書の生成中にエラーが発生しました。'
       });
     } finally {
       setIsGenerating(false);
@@ -189,10 +189,10 @@ export default function WorkOrderGenerator({
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Factory className="w-6 h-6" />
-            작업표준서 생성
+            作業標準書生成
           </h1>
           <p className="text-gray-600 mt-1">
-            주문 #{order.order_number} - {order.customer_name}
+            注文 #{order.order_number} - {order.customer_name}
           </p>
         </div>
         <div className="flex gap-2">
@@ -200,14 +200,14 @@ export default function WorkOrderGenerator({
             variant="outline"
             onClick={() => router.back()}
           >
-            취소
+            キャンセル
           </Button>
           <Button
             onClick={handleGenerate}
             disabled={isGenerating}
           >
             <FileText className="w-4 h-4 mr-2" />
-            작업표준서 생성
+            作業標準書生成
           </Button>
         </div>
       </div>
@@ -236,32 +236,32 @@ export default function WorkOrderGenerator({
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <Package className="w-5 h-5" />
-          제품 사양
+          製品仕様
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Pouch Type */}
           <div>
-            <label className="block text-sm font-medium mb-2">파우치 타입</label>
+            <label className="block text-sm font-medium mb-2">パウチタイプ</label>
             <select
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               value={specifications.pouch_type}
               onChange={(e) => handleSpecChange('pouch_type', 'type', e.target.value)}
             >
-              <option value="stand_up">스탠드파우치 (スタンドパウチ)</option>
-              <option value="flat_3_side">3면 시일 평판 (三方シール平袋)</option>
-              <option value="flat_2_side">2면 시일 평판 (両方シール平袋)</option>
-              <option value="zipper">지퍼백 (チャック袋)</option>
-              <option value="roll">롤 필름 (ロールフィルム)</option>
+              <option value="stand_up">スタンドパウチ</option>
+              <option value="flat_3_side">三方シール平袋</option>
+              <option value="flat_2_side">両方シール平袋</option>
+              <option value="zipper">チャック袋</option>
+              <option value="roll">ロールフィルム</option>
             </select>
           </div>
 
           {/* Dimensions */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium">치수 (mm)</label>
+            <label className="block text-sm font-medium">寸法 (mm)</label>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">폭</label>
+                <label className="block text-xs text-gray-600 mb-1">幅</label>
                 <Input
                   type="number"
                   value={specifications.dimensions.width}
@@ -269,7 +269,7 @@ export default function WorkOrderGenerator({
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">길이</label>
+                <label className="block text-xs text-gray-600 mb-1">長さ</label>
                 <Input
                   type="number"
                   value={specifications.dimensions.length}
@@ -277,7 +277,7 @@ export default function WorkOrderGenerator({
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">마치</label>
+                <label className="block text-xs text-gray-600 mb-1">マチ</label>
                 <Input
                   type="number"
                   value={specifications.dimensions.gusset}
@@ -289,23 +289,23 @@ export default function WorkOrderGenerator({
 
           {/* Material */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium">재질</label>
+            <label className="block text-sm font-medium">材質</label>
             <select
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               value={specifications.material.type}
               onChange={(e) => handleSpecChange('material', 'type', e.target.value)}
             >
-              <option value="PET_AL_PE">PET/AL/PE (알루미늄 증착)</option>
-              <option value="PET_PE">PET/PE (투명)</option>
-              <option value="NY_PE">NY/PE (나일론)</option>
-              <option value="KPET_AL_PE">KPET/AL/PE (유광 알루미늄)</option>
-              <option value="MPET_AL_PE">MPET/AL/PE (증착 알루미늄)</option>
-              <option value="PE">PE (폴리에틸린 단층)</option>
+              <option value="PET_AL_PE">PET/AL/PE (アルミニウム蒸着)</option>
+              <option value="PET_PE">PET/PE (透明)</option>
+              <option value="NY_PE">NY/PE (ナイロン)</option>
+              <option value="KPET_AL_PE">KPET/AL/PE (光沢アルミニウム)</option>
+              <option value="MPET_AL_PE">MPET/AL/PE (蒸着アルミニウム)</option>
+              <option value="PE">PE (ポリエチレン単層)</option>
             </select>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">두께 (μm)</label>
+                <label className="block text-xs text-gray-600 mb-1">厚み (μm)</label>
                 <Input
                   type="number"
                   value={specifications.material.thickness}
@@ -313,14 +313,14 @@ export default function WorkOrderGenerator({
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">투명도</label>
+                <label className="block text-xs text-gray-600 mb-1">透明度</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   value={specifications.material.transparent ? 'transparent' : 'opaque'}
                   onChange={(e) => handleSpecChange('material', 'transparent', e.target.value === 'transparent')}
                 >
-                  <option value="transparent">투명</option>
-                  <option value="opaque">불투명</option>
+                  <option value="transparent">透明</option>
+                  <option value="opaque">不透明</option>
                 </select>
               </div>
             </div>
@@ -328,22 +328,22 @@ export default function WorkOrderGenerator({
 
           {/* Printing */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium">인쇄</label>
+            <label className="block text-sm font-medium">印刷</label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">인쇄 방식</label>
+                <label className="block text-xs text-gray-600 mb-1">印刷方式</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   value={specifications.printing.type}
                   onChange={(e) => handleSpecChange('printing', 'type', e.target.value)}
                 >
-                  <option value="flexo">그라비아 인쇄 (グラビア印刷)</option>
-                  <option value="rotogravure">로토그라비아 (ロトグラビア)</option>
-                  <option value="digital">디지털 인쇄 (デジタル印刷)</option>
+                  <option value="flexo">グラビア印刷</option>
+                  <option value="rotogravure">ロトグラビア</option>
+                  <option value="digital">デジタル印刷</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">색상 수</label>
+                <label className="block text-xs text-gray-600 mb-1">色数</label>
                 <Input
                   type="number"
                   min="1"
@@ -355,15 +355,15 @@ export default function WorkOrderGenerator({
             </div>
 
             <div>
-              <label className="block text-xs text-gray-600 mb-1">인쇄 위치</label>
+              <label className="block text-xs text-gray-600 mb-1">印刷位置</label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 value={specifications.printing.sides}
                 onChange={(e) => handleSpecChange('printing', 'sides', e.target.value)}
               >
-                <option value="outer">외부 (外側のみ)</option>
-                <option value="inner">내부 (内側のみ)</option>
-                <option value="both">양면 (両面)</option>
+                <option value="outer">外側のみ</option>
+                <option value="inner">内側のみ</option>
+                <option value="both">両面</option>
               </select>
             </div>
           </div>
@@ -371,7 +371,7 @@ export default function WorkOrderGenerator({
 
         {/* Post Processing */}
         <div className="mt-6">
-          <label className="block text-sm font-medium mb-3">후가공</label>
+          <label className="block text-sm font-medium mb-3">後加工</label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {postProcessingOptions.map(option => (
               <label key={option.id} className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
@@ -392,7 +392,7 @@ export default function WorkOrderGenerator({
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5" />
-          생산 공정 플로우
+          生産工程フロー
         </h2>
 
         <div className="space-y-3">
@@ -413,38 +413,38 @@ export default function WorkOrderGenerator({
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <Target className="w-5 h-5" />
-          품질 기준
+          品質基準
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">외관 검사</label>
+            <label className="block text-sm font-medium mb-2">外観検査</label>
             <select
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               value={qualityStandards.appearance_standard}
               onChange={(e) => setQualityStandards(prev => ({ ...prev, appearance_standard: e.target.value }))}
             >
-              <option value="S급">S급 (프리미엄)</option>
-              <option value="A급">A급 (일반)</option>
-              <option value="B급">B급 (허용 범위)</option>
+              <option value="S級">S級 (プレミアム)</option>
+              <option value="A級">A級 (一般)</option>
+              <option value="B級">B級 (許容範囲)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">치수 공차</label>
+            <label className="block text-sm font-medium mb-2">寸法公差</label>
             <select
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               value={qualityStandards.dimension_tolerance}
               onChange={(e) => setQualityStandards(prev => ({ ...prev, dimension_tolerance: e.target.value }))}
             >
-              <option value="±1mm">±1mm (엄격)</option>
-              <option value="±2mm">±2mm (표준)</option>
-              <option value="±3mm">±3mm (허용)</option>
+              <option value="±1mm">±1mm (厳格)</option>
+              <option value="±2mm">±2mm (標準)</option>
+              <option value="±3mm">±3mm (許容)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">시일 강도</label>
+            <label className="block text-sm font-medium mb-2">シール強度</label>
             <Input
               type="text"
               value={qualityStandards.seal_strength}
@@ -460,18 +460,18 @@ export default function WorkOrderGenerator({
               onChange={(e) => setQualityStandards(prev => ({ ...prev, visual_inspection: e.target.checked }))}
               className="rounded"
             />
-            <label htmlFor="visual-inspection" className="text-sm">외관 검사 실시</label>
+            <label htmlFor="visual-inspection" className="text-sm">外観検査実施</label>
           </div>
         </div>
       </Card>
 
       {/* Packaging & Completion */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">포장 및 납기</h2>
+        <h2 className="text-xl font-semibold mb-4">包装及び納期</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">포장 단위 (매/박스)</label>
+            <label className="block text-sm font-medium mb-2">包装単位 (枚/箱)</label>
             <Input
               type="number"
               min="1"
@@ -481,7 +481,7 @@ export default function WorkOrderGenerator({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">예정 완료일</label>
+            <label className="block text-sm font-medium mb-2">予定完了日</label>
             <Input
               type="date"
               value={estimatedCompletion}
@@ -493,24 +493,24 @@ export default function WorkOrderGenerator({
 
       {/* Order Summary */}
       <Card className="p-6 bg-gray-50">
-        <h3 className="font-semibold mb-3">주문 정보</h3>
+        <h3 className="font-semibold mb-3">注文情報</h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span>주문 번호:</span>
+            <span>注文番号:</span>
             <span className="font-medium">#{order.order_number}</span>
           </div>
           <div className="flex justify-between">
-            <span>고객:</span>
+            <span>顧客:</span>
             <span className="font-medium">{order.customer_name}</span>
           </div>
           <div className="flex justify-between">
-            <span>주문 항목:</span>
-            <span className="font-medium">{order.order_items.length}종류</span>
+            <span>注文項目:</span>
+            <span className="font-medium">{order.order_items.length}種類</span>
           </div>
           <div className="flex justify-between">
-            <span>총 수량:</span>
+            <span>総数量:</span>
             <span className="font-medium">
-              {order.order_items.reduce((sum, item) => sum + item.quantity, 0).toLocaleString()}매
+              {order.order_items.reduce((sum, item) => sum + item.quantity, 0).toLocaleString()}枚
             </span>
           </div>
         </div>
@@ -522,13 +522,13 @@ export default function WorkOrderGenerator({
 // Helper function
 function getProductionStepName(step: string): string {
   const names: Record<string, string> = {
-    'design_file_check': '디자인 파일 확인 (デザインファイル確認)',
-    'printing': '인쇄 (印刷)',
-    'lamination': '라미네이션 (ラミネート)',
-    'slitting': '슬릿 (スリット)',
-    'pouch_making': '파우치 성형 (パウチ成形)',
-    'qc_inspection': '품질 검사 (品質検査)',
-    'packaging': '포장 (包装)'
+    'design_file_check': 'デザインファイル確認',
+    'printing': '印刷',
+    'lamination': 'ラミネート',
+    'slitting': 'スリット',
+    'pouch_making': 'パウチ成形',
+    'qc_inspection': '品質検査',
+    'packaging': '包装'
   };
   return names[step] || step;
 }

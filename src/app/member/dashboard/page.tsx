@@ -86,7 +86,7 @@ async function DashboardContent() {
     };
   }
 
-  // stats가 undefined인 경우 안전하게 처리
+  // statsがundefinedの場合は安全に処理
   if (!stats) {
     console.error('[Dashboard] stats is undefined, using default values');
     stats = {
@@ -100,7 +100,7 @@ async function DashboardContent() {
     };
   }
 
-  // 안전하게 각 속성 추출
+  // 安全に各属性を抽出
   const orders = safeGet(stats.orders, { new: [], processing: [], total: 0 });
   const quotations = safeGet(stats.quotations, { pending: [], total: 0 });
   const samples = safeGet(stats.samples, { pending: [], total: 0 });
@@ -344,7 +344,7 @@ async function DashboardContent() {
                       {sample.requestNumber}
                     </p>
                     <p className="text-sm text-text-muted">
-                      {sample.samples.length}点
+                      {safeGet(sample.samples, []).length}点
                     </p>
                   </div>
                   <span className="text-xs text-text-muted whitespace-nowrap">

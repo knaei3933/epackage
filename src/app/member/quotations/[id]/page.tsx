@@ -99,6 +99,9 @@ export default function QuotationDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadHistory, setDownloadHistory] = useState<any[]>([]);
+  const [downloadCount, setDownloadCount] = useState(0);
+  const [lastDownloadedAt, setLastDownloadedAt] = useState<string | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -134,9 +137,28 @@ export default function QuotationDetailPage() {
     }
   };
 
+  // Fetch download history
+  const fetchDownloadHistory = async () => {
+    try {
+      const response = await fetch(`/api/member/documents/history?quotation_id=${quotationId}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const { data } = await response.json();
+        setDownloadHistory(data.history || []);
+        setDownloadCount(data.statistics.downloadCount || 0);
+        setLastDownloadedAt(data.statistics.lastDownloadedAt);
+      }
+    } catch (err) {
+      console.error('Failed to fetch download history:', err);
+    }
+  };
+
   useEffect(() => {
     if (user?.id && quotationId) {
       fetchQuotation();
+      fetchDownloadHistory();
     }
   }, [user?.id, quotationId]);
 
@@ -251,6 +273,26 @@ export default function QuotationDetailPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Log PDF download to database
+      try {
+        await fetch('/api/member/documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            document_type: 'quote',
+            document_id: quotation.id,
+            quotation_id: quotation.id,
+            action: 'downloaded',
+          }),
+        });
+        // Refresh download history after logging
+        fetchDownloadHistory();
+      } catch (logError) {
+        console.error('Failed to log PDF download:', logError);
+        // Don't alert user about logging failure
+      }
     } catch (error) {
       console.error('Failed to download PDF:', error);
       alert('PDFのダウンロードに失敗しました');
@@ -491,6 +533,53 @@ export default function QuotationDetailPage() {
 
       {/* Payment Confirmation & Data Import Status (Task 108, 109) */}
       <DataImportStatusPanel quotationId={quotation.id} orderId={quotation.orderId} />
+
+      {/* Download History */}
+      {downloadCount > 0 && (
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              PDFダウンロード履歴
+            </h3>
+            <Badge variant="secondary" size="sm">
+              計{downloadCount}回
+            </Badge>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-muted">最終ダウンロード</span>
+              <span className="text-text-primary">
+                {lastDownloadedAt
+                  ? new Date(lastDownloadedAt).toLocaleString('ja-JP')
+                  : '-'}
+              </span>
+            </div>
+            {downloadHistory.length > 0 && (
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm text-text-muted hover:text-text-primary">
+                  全履歴を表示 ({downloadHistory.length}件)
+                </summary>
+                <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                  {downloadHistory.map((log, index) => (
+                    <div
+                      key={log.id || index}
+                      className="flex items-center justify-between text-sm p-2 rounded bg-bg-secondary"
+                    >
+                      <span className="text-text-muted">
+                        {new Date(log.accessed_at).toLocaleString('ja-JP')}
+                      </span>
+                      <span className="text-xs text-text-muted">
+                        {log.ip_address || '-'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Action Buttons - Enhanced with better visual hierarchy */}
       <Card className="p-6 bg-gradient-to-br from-[var(--bg-secondary)] to-[var(--bg-primary)] border border-[var(--border-light)]">

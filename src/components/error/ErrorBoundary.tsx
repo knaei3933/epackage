@@ -2,6 +2,14 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
+import {
+  isAppError,
+  getErrorTypeFromCode,
+  AuthenticationError,
+  ValidationError,
+  NetworkError,
+  NotFoundError,
+} from '@/types/errors';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -114,6 +122,96 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
   };
 
+  /**
+   * エラータイプに基づいてUI要素を決定
+   */
+  private getErrorUIConfig() {
+    const error = this.state.error;
+
+    // カスタムエラータイプの判定
+    if (isAppError(error)) {
+      const errorType = getErrorTypeFromCode(error.code);
+
+      switch (errorType) {
+        case 'authentication':
+        case 'session':
+          return {
+            icon: '🔒',
+            title: '認証エラー',
+            message: error.getUserMessage(),
+            showRetry: true,
+            showReload: true,
+            showHome: true,
+          };
+
+        case 'validation':
+          return {
+            icon: '⚠️',
+            title: '入力エラー',
+            message: error.getUserMessage(),
+            showRetry: false,
+            showReload: true,
+            showHome: false,
+          };
+
+        case 'network':
+        case 'api':
+        case 'timeout':
+          return {
+            icon: '🌐',
+            title: 'ネットワークエラー',
+            message: error.getUserMessage(),
+            showRetry: true,
+            showReload: true,
+            showHome: true,
+          };
+
+        case 'not_found':
+          return {
+            icon: '🔍',
+            title: 'ページが見つかりません',
+            message: error.getUserMessage(),
+            showRetry: false,
+            showReload: false,
+            showHome: true,
+          };
+
+        case 'file':
+          return {
+            icon: '📁',
+            title: 'ファイルエラー',
+            message: error.getUserMessage(),
+            showRetry: false,
+            showReload: false,
+            showHome: false,
+          };
+
+        case 'database':
+          return {
+            icon: '🗄️',
+            title: 'データベースエラー',
+            message: error.getUserMessage(),
+            showRetry: true,
+            showReload: true,
+            showHome: true,
+          };
+
+        default:
+          break;
+      }
+    }
+
+    // デフォルトエラーUI
+    return {
+      icon: '⚠️',
+      title: '予期しないエラーが発生しました',
+      message: error?.message || '申し訳ございません。予期しないエラーが発生しました。',
+      showRetry: true,
+      showReload: true,
+      showHome: true,
+    };
+  }
+
   render() {
     if (this.state.hasError) {
       // Custom fallback UI if provided
@@ -121,96 +219,113 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return this.props.fallback;
       }
 
+      // Get UI configuration based on error type
+      const uiConfig = this.getErrorUIConfig();
+
       // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
             {/* Error Icon */}
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-red-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
+            <div className="w-20 h-20 bg-gradient-to-br from-red-50 to-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">{uiConfig.icon}</span>
             </div>
 
             {/* Error Message */}
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
-              予期しないエラーが発生しました
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">
+              {uiConfig.title}
             </h1>
-            <p className="text-gray-600 mb-6">
-              申し訳ございません。予期しないエラーが発生しました。ページを更新するか、サポートまでご連絡ください。
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              {uiConfig.message}
             </p>
 
             {/* Retry Count */}
             {this.state.retryCount > 0 && (
-              <p className="text-sm text-gray-500 mb-4">
-                再試行回数: {this.state.retryCount}/{this.maxRetries}
-              </p>
+              <div className="mb-6 px-4 py-2 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  再試行回数: {this.state.retryCount} / {this.maxRetries}
+                </p>
+              </div>
             )}
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              {this.props.enableRetry && this.state.retryCount < this.maxRetries && (
+              {this.props.enableRetry && uiConfig.showRetry && this.state.retryCount < this.maxRetries && (
                 <Button
                   onClick={this.handleRetry}
                   variant="primary"
-                  className="w-full"
+                  className="w-full shadow-lg hover:shadow-xl transition-shadow"
                 >
                   再試行する
                 </Button>
               )}
 
-              <Button
-                onClick={() => window.location.reload()}
-                variant="secondary"
-                className="w-full"
-              >
-                ページを更新
-              </Button>
+              {uiConfig.showReload && (
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  ページを更新
+                </Button>
+              )}
 
-              <Button
-                onClick={() => window.location.href = '/'}
-                variant="outline"
-                className="w-full"
-              >
-                ホームに戻る
-              </Button>
+              {uiConfig.showHome && (
+                <Button
+                  onClick={() => window.location.href = '/'}
+                  variant="outline"
+                  className="w-full"
+                >
+                  ホームに戻る
+                </Button>
+              )}
+
+              {/* Support Contact */}
+              <div className="pt-4 mt-6 border-t border-gray-200">
+                <p className="text-sm text-gray-500 mb-2">
+                  問題が解決しない場合は
+                </p>
+                <a
+                  href="/contact"
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700 underline"
+                >
+                  お問い合わせフォーム
+                </a>
+                <span className="text-sm text-gray-500">からご連絡ください</span>
+              </div>
             </div>
 
             {/* Error Details (Development Only) */}
             {process.env.NODE_ENV === 'development' && this.props.showDetails && this.state.error && (
-              <details className="mt-6 text-left">
-                <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
-                  エラー詳細 (開発モード)
+              <details className="mt-8 text-left">
+                <summary className="cursor-pointer text-sm font-semibold text-gray-700 mb-3 hover:text-gray-900 transition-colors">
+                  🔍 エラー詳細 (開発モード)
                 </summary>
-                <div className="bg-gray-50 rounded p-3 text-xs">
-                  <div className="mb-2">
-                    <strong>Error:</strong>
-                    <pre className="mt-1 whitespace-pre-wrap text-red-600">
+                <div className="bg-gray-900 rounded-lg p-4 text-xs overflow-auto max-h-64">
+                  {isAppError(this.state.error) && (
+                    <div className="mb-3 pb-3 border-b border-gray-700">
+                      <div className="text-gray-400 mb-1">Error Code:</div>
+                      <div className="text-red-400 font-mono">{this.state.error.code}</div>
+                    </div>
+                  )}
+                  <div className="mb-3">
+                    <div className="text-gray-400 mb-1">Error:</div>
+                    <pre className="whitespace-pre-wrap text-red-400 font-mono">
                       {this.state.error.message}
                     </pre>
                   </div>
                   {this.state.error.stack && (
-                    <div className="mb-2">
-                      <strong>Stack Trace:</strong>
-                      <pre className="mt-1 whitespace-pre-wrap text-gray-600">
+                    <div className="mb-3">
+                      <div className="text-gray-400 mb-1">Stack Trace:</div>
+                      <pre className="whitespace-pre-wrap text-gray-300 font-mono text-xs">
                         {this.state.error.stack}
                       </pre>
                     </div>
                   )}
                   {this.state.errorInfo?.componentStack && (
                     <div>
-                      <strong>Component Stack:</strong>
-                      <pre className="mt-1 whitespace-pre-wrap text-gray-600">
+                      <div className="text-gray-400 mb-1">Component Stack:</div>
+                      <pre className="whitespace-pre-wrap text-gray-300 font-mono text-xs">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     </div>

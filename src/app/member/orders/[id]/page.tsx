@@ -11,12 +11,14 @@ import { Suspense } from 'react';
 import { redirect, notFound } from 'next/navigation';
 import { requireAuth } from '@/lib/dashboard';
 import { getOrderById, getOrderStatusHistory } from '@/lib/dashboard';
-import { Card, Badge, Button, FullPageSpinner } from '@/components/ui';
+import { Card, Badge, FullPageSpinner } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Order } from '@/types/dashboard';
-import { OrderManagementButtons } from '@/components/orders';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
+import { OrderActions } from './OrderActions';
+import { OrderFileUploadSection } from './OrderFileUploadSection';
+import { OrderCommentsSection, CustomerApprovalSection } from '@/components/orders';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
@@ -158,51 +160,84 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
       {/* 商品明細 */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-4">商品明細</h2>
-        <div className="space-y-4">
-          {order.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-start justify-between py-3 border-b border-border-secondary last:border-0"
-            >
-              <div className="flex-1">
-                <h3 className="font-medium text-text-primary">
-                  {item.productName}
-                </h3>
-                <p className="text-sm text-text-muted mt-1">
-                  数量: {item.quantity} × {item.unitPrice.toLocaleString()}円
-                </p>
-                {item.specifications && Object.keys(item.specifications).length > 0 && (
-                  <div className="mt-2 text-sm text-text-muted">
-                    <p className="font-medium">仕様:</p>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      {item.specifications.size && (
-                        <li>サイズ: {item.specifications.size}</li>
-                      )}
-                      {item.specifications.material && (
-                        <li>素材: {item.specifications.material}</li>
-                      )}
-                      {item.specifications.printing && (
-                        <li>印刷: {item.specifications.printing}</li>
-                      )}
-                      {item.specifications.postProcessing && (
-                        <li>
-                          後加工:{' '}
-                          {Array.isArray(item.specifications.postProcessing)
-                            ? item.specifications.postProcessing.join(', ')
-                            : item.specifications.postProcessing}
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-text-primary">
-                  {item.totalPrice.toLocaleString()}円
-                </p>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-border-secondary">
+                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">商品名</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">数量</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">単価</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">仕様・オプション</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-text-muted">金額</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map((item) => (
+                <tr key={item.id} className="border-b border-border-secondary">
+                  <td className="py-3 px-4">
+                    <p className="font-medium text-text-primary">{item.productName}</p>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-text-primary">
+                    {item.quantity.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-text-primary">
+                    {item.unitPrice.toLocaleString()}円
+                  </td>
+                  <td className="py-3 px-4 text-sm">
+                    {item.specifications && Object.keys(item.specifications).length > 0 ? (
+                      <div className="space-y-1">
+                        {item.specifications.size && (
+                          <div className="flex">
+                            <span className="text-text-muted w-20">サイズ:</span>
+                            <span className="text-text-primary">{item.specifications.size}</span>
+                          </div>
+                        )}
+                        {item.specifications.material && (
+                          <div className="flex">
+                            <span className="text-text-muted w-20">素材:</span>
+                            <span className="text-text-primary">{item.specifications.material}</span>
+                          </div>
+                        )}
+                        {item.specifications.printing && (
+                          <div className="flex">
+                            <span className="text-text-muted w-20">印刷:</span>
+                            <span className="text-text-primary">{item.specifications.printing}</span>
+                          </div>
+                        )}
+                        {item.specifications.postProcessing && (
+                          <div className="flex">
+                            <span className="text-text-muted w-20">後加工:</span>
+                            <span className="text-text-primary">
+                              {Array.isArray(item.specifications.postProcessing)
+                                ? item.specifications.postProcessing.join(', ')
+                                : item.specifications.postProcessing}
+                            </span>
+                          </div>
+                        )}
+                        {item.specifications.thickness && (
+                          <div className="flex">
+                            <span className="text-text-muted w-20">厚さ:</span>
+                            <span className="text-text-primary">{item.specifications.thickness}</span>
+                          </div>
+                        )}
+                        {item.specifications.zipper && (
+                          <div className="flex">
+                            <span className="text-text-muted w-20">ジッパー:</span>
+                            <span className="text-text-primary">{item.specifications.zipper}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-text-muted">-</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4 text-right font-medium text-text-primary">
+                    {item.totalPrice.toLocaleString()}円
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         <div className="mt-4 pt-4 border-t border-border-secondary space-y-2">
           {order.subtotal !== undefined && (
@@ -314,27 +349,17 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
         />
       </Card>
 
-      {/* アクションボタン */}
-      <div className="space-y-4">
-        <OrderManagementButtons
-          order={order}
-          showPDFDownload={true}
-          showDetailView={false}
-          onOrderCancelled={() => {
-            redirect('/member/orders');
-          }}
-          onOrderModified={() => {
-            window.location.reload();
-          }}
-          onReordered={(newOrderId) => {
-            redirect(`/member/orders/${newOrderId}`);
-          }}
-        />
+      {/* デザインファイル入稿 */}
+      <OrderFileUploadSection order={order} />
 
-        <Button variant="secondary" onClick={() => window.history.back()}>
-          戻る
-        </Button>
-      </div>
+      {/* コメントセクション */}
+      <OrderCommentsSection orderId={order.id} />
+
+      {/* 承認待ちリクエストセクション */}
+      <CustomerApprovalSection orderId={order.id} />
+
+      {/* アクションボタン */}
+      <OrderActions order={order} />
     </div>
   );
 }
@@ -351,14 +376,15 @@ function OrderDetailLoading() {
 // Page Component
 // =====================================================
 
-export default function OrderDetailPage({
+export default async function OrderDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   return (
     <Suspense fallback={<OrderDetailLoading />}>
-      <OrderDetailContent orderId={params.id} />
+      <OrderDetailContent orderId={id} />
     </Suspense>
   );
 }
@@ -370,13 +396,14 @@ export default function OrderDetailPage({
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<{
   title: string;
   description: string;
 }> {
+  const { id } = await params;
   return {
-    title: `注文詳細 ${params.id} | マイページ`,
+    title: `注文詳細 ${id} | マイページ`,
     description: '注文詳細情報',
   };
 }

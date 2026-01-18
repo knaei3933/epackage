@@ -84,15 +84,15 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             category: 'flat_3_side' as const,
             name_ja: '平袋',
             name_en: 'Three-Side Seal Pouch',
-            name_ko: '3방실 파우치',
+            name_ja: '三方シール平袋',
             description_ja: '3面シールのシンプルでコストパフォーマンスに優れた定番パッケージ。小物や試供品、サンプル配布に最適。',
             description_en: 'Simple three-side seal packaging with excellent cost performance. Ideal for small items, samples, and trial products.',
-            description_ko: '3면 실링의 간단하고 비용 대비 효율이 뛰어난 기본 패키지. 소품이나 시험품, 샘플 배포에 최적.',
+            description_ja: '3面シールのシンプルでコストパフォーマンスに優れた定番パッケージ。小物や試供品、サンプル配布に最適。',
             specifications: {
                 width_range: '50-300mm',
                 height_range: '80-500mm',
                 thickness_range: '50-150μm',
-                materials: ['PE', 'PP', 'PET', '알루미늄 라미네이트']
+                materials: ['PE', 'PP', 'PET', 'アルミニウムラミネート']
             },
             materials: ['PE', 'PP', 'PET', 'ALUMINUM'],
             image: '/images/real-products/3sealpouch.png',
@@ -130,7 +130,7 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 width_range: '80-250mm',
                 height_range: '120-350mm',
                 thickness_range: '60-180μm',
-                materials: ['PE', 'PP', 'PET', '알루미늄 라미네이트']
+                materials: ['PE', 'PP', 'PET', 'アルミニウムラミネート']
             },
             materials: ['PE', 'PP', 'PET', 'ALUMINUM'],
             image: '/images/portfolio/granola-standpouch-real.jpg',
@@ -246,7 +246,7 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 width_range: '200-1200mm',
                 length_range: '100-1000m',
                 thickness_range: '30-150μm',
-                materials: ['PE', 'PP', 'PET', '알루미늄 라미네이트']
+                materials: ['PE', 'PP', 'PET', 'アルミニウムラミネート']
             },
             materials: ['PE', 'PP', 'PET', 'ALUMINUM'],
             image: '/images/auto-roll-real.jpg',

@@ -370,13 +370,14 @@ export function UnifiedQuoteSystem() {
   // Get product image path
   const getProductImage = (productType: string) => {
     const imageMap: Record<string, string> = {
-      'flat_3_side': '/images/processing-icons/삼방.png',
-      'stand_up': '/images/processing-icons/삼방스탠드.png',
-      'box': '/images/processing-icons/지퍼삼방.png',  // Closest available image
-      'spout_pouch': '/images/processing-icons/T방.png',  // Closest available image
-      'roll_film': '/images/processing-icons/M방 MT방.png'  // Closest available image
+      'flat_3_side': '/images/processing-icons/三方.png',
+      'stand_up': '/images/processing-icons/三方スタンド.png',
+      'lap_seal': '/images/processing-icons/合掌.png',
+      'box': '/images/processing-icons/ボックス型パウチ.png',
+      'spout_pouch': '/images/processing-icons/スパウト.png',
+      'roll_film': '/images/processing-icons/ロールフィルム.png'
     }
-    return imageMap[productType] || '/images/processing-icons/삼방.png'
+    return imageMap[productType] || '/images/processing-icons/三方.png'
   }
 
   // Calculate lead score

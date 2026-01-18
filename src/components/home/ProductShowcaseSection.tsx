@@ -5,11 +5,13 @@ import { ArrowRight } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { HomePageProductCard } from './HomePageProductCard'
-import { getAllProducts } from '@/lib/product-data'
+import type { FeaturedProduct } from '@/lib/products'
 
-export function ProductShowcaseSection() {
-  const products = getAllProducts(null, 'ja').slice(0, 6) // Show only 6 products on homepage
+interface ProductShowcaseSectionProps {
+  products: FeaturedProduct[]
+}
 
+export function ProductShowcaseSection({ products }: ProductShowcaseSectionProps) {
   return (
     <section className="py-20 bg-gray-50">
       <MotionWrapper delay={0.2}>
@@ -28,7 +30,7 @@ export function ProductShowcaseSection() {
             </p>
           </div>
 
-          {/* Products Grid - No loading states needed with static data */}
+          {/* Products Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {products.map((product, index) => (
               <HomePageProductCard

@@ -1,8 +1,8 @@
 /**
  * Admin Notification Icon Component
  *
- * 관리자 알림 아이콘 컴포넌트
- * 안읽은 알림 수 표시 및 드롭다운 토글
+ * 管理者通知アイコンコンポーネント
+ * 未読通知数表示及びドロップダウントグル
  *
  * @module components/admin/notifications
  */
@@ -21,7 +21,7 @@ export function NotificationIcon({ onToggle, unreadCount }: NotificationIconProp
   const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
-    // 애니메이션 효과 (새 알림이 도착했을 때)
+    // アニメーション効果（新しい通知が到着した時）
     if (unreadCount > 0) {
       setIsAnimating(true)
       const timer = setTimeout(() => setIsAnimating(false), 1000)

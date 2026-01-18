@@ -1,11 +1,13 @@
 /**
  * Supabase Authentication Middleware
  *
- * Supabase 인증을 사용하여 회원 전용 페이지를 보호합니다.
- * - 인증되지 않은 사용자를 로그인 페이지로 리다이렉트
- * - 역할 기반 접근 제어 (ADMIN 전용 페이지)
- * - CSRF 보호 (Origin/Referer 헤더 검증)
- * - 보안 헤더 추가
+ * Supabase認証を使用して会員専用ページを保護します。
+ * - 認証されていないユーザーをログインページにリダイレクト
+ * - ロールベースアクセス制御 (ADMIN専用ページ)
+ * - /admin/customers/* はADMINとACTIVE MEMBERの両方がアクセス可能
+ * - /portal/* → /admin/customers/* への301リダイレクト
+ * - CSRF保護 (Origin/Refererヘッダー検証)
+ * - セキュリティヘッダー追加
  */
 
 import { createServerClient } from '@supabase/ssr';
@@ -15,18 +17,18 @@ import { NextResponse, type NextRequest } from 'next/server';
 // CSRF Protection Configuration
 // =====================================================
 
-// 허용된 오리진 리스트 (프로덕션 환경에서는 실제 도메인으로 설정)
+// 許可されたオリジンリスト (本番環境では実際のドメインで設定)
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3004', // Dev server might use port 3004
   'http://localhost:3005', // Dev server might use port 3005
-  // 프로덕션 환경에서 실제 도메인 추가
+  // 本番環境で実際のドメイン追加
   // ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
 ];
 
-// CSRF 검증이 필요한 API 경로
+// CSRF検証が必要なAPIパス
 const CSRF_PROTECTED_API_PATHS = [
   '/api/contact',
   '/api/samples',
@@ -34,13 +36,14 @@ const CSRF_PROTECTED_API_PATHS = [
   '/api/quotation',
 ];
 
-// CSRF 검증에서 제외할 API 경로 (공개 API)
+// CSRF検証から除外するAPIパス (公開API)
 const CSRF_EXEMPT_API_PATHS = [
   '/api/robots',
   '/api/sitemap',
   '/api/auth',
   '/api/products', // Public catalog API
   '/api/categories', // Public categories API
+  '/api/member', // Member API - handles its own auth via SSR
 ];
 
 // =====================================================
@@ -48,7 +51,7 @@ const CSRF_EXEMPT_API_PATHS = [
 // =====================================================
 
 const PROTECTED_ROUTES = {
-  member: ['/member', '/quote-simulator'],
+  member: ['/member'],
   admin: ['/admin'],
 };
 
@@ -58,10 +61,30 @@ const PUBLIC_ROUTES = [
   '/catalog',
   '/samples',
   '/print',
+  '/guide',
+  '/quote-simulator',
+  '/roi-calculator',
+  '/smart-quote',
+  '/industry',
+  '/news',
+  '/premium-content',
+  '/archives',
+  '/inquiry',
+  '/compare',
+  '/service',
+  '/cart',
+  '/pricing',
+  '/legal',
+  '/csr',
+  '/privacy',
+  '/terms',
+  '/design-system',
   '/auth/signin',
   '/auth/register',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/auth/pending', // Public page shown after registration
+  '/auth/suspended', // Public page for suspended accounts
 ];
 
 // =====================================================
@@ -125,23 +148,23 @@ async function getUserProfile(supabase: any, userId: string) {
 
 function isValidOrigin(origin: string | null): boolean {
   if (!origin) {
-    return false; // Origin 헤더가 없으면 거부
+    return false; // Originヘッダーがない場合は拒否
   }
 
-  // 허용된 오리진 목록과 비교
+  // 許可されたオリジンリストと比較
   return ALLOWED_ORIGINS.some(allowed => {
-    // 정확히 일치하거나 같은 도메인의 하위 경로
+    // 完全一致または同じドメインのサブパス
     return origin === allowed || origin.startsWith(allowed);
   });
 }
 
 function isCSRFProtectedPath(pathname: string): boolean {
-  // 제외 경로 확인
+  // 除外パス確認
   if (CSRF_EXEMPT_API_PATHS.some(exempt => pathname.startsWith(exempt))) {
     return false;
   }
 
-  // 보호된 API 경로 확인
+  // 保護されたAPIパス確認
   return CSRF_PROTECTED_API_PATHS.some((path) =>
     pathname.startsWith(path)
   );
@@ -152,24 +175,24 @@ function validateCSRFRequest(request: NextRequest): { valid: boolean; reason?: s
   const referer = request.headers.get('referer');
   const { pathname } = request.nextUrl;
 
-  // API 경로가 아니면 CSRF 검증 스킵
+  // APIパスでない場合はCSRF検証をスキップ
   if (!pathname.startsWith('/api')) {
     return { valid: true };
   }
 
-  // CSRF 보호가 필요 없는 API 경로
+  // CSRF保護が不要なAPIパス
   if (!isCSRFProtectedPath(pathname)) {
     return { valid: true };
   }
 
-  // GET, HEAD, OPTIONS 요청은 CSRF 취약하지 않음
+  // GET, HEAD, OPTIONSリクエストはCSRF脆弱性なし
   const method = request.method;
   if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
     return { valid: true };
   }
 
-  // POST, PUT, DELETE, PATCH 요청에 대해 검증
-  // Origin 헤더 확인 (가장 신뢰할 수 있는 방법)
+  // POST, PUT, DELETE, PATCHリクエストについて検証
+  // Originヘッダー確認 (最も信頼できる方法)
   if (origin) {
     if (!isValidOrigin(origin)) {
       return {
@@ -180,8 +203,8 @@ function validateCSRFRequest(request: NextRequest): { valid: boolean; reason?: s
     return { valid: true };
   }
 
-  // Origin이 없는 경우 (같은 사이트 요청일 수 있음)
-  // Referer 헤더로 폴백
+  // Originがない場合 (同じサイトリクエストの可能性)
+  // Refererヘッダーでフォールバック
   if (referer) {
     try {
       const refererUrl = new URL(referer);
@@ -202,10 +225,10 @@ function validateCSRFRequest(request: NextRequest): { valid: boolean; reason?: s
     }
   }
 
-  // Origin과 Referer가 모두 없는 요청은 거부
-  // (단, 개발 환경에서는 허용할 수 있음)
+  // OriginとRefererの両方がないリクエストを拒否
+  // (ただし、開発環境では許可可能)
   if (process.env.NODE_ENV === 'development') {
-    // 개발 환경에서는 경고만 출력하고 허용
+    // 開発環境では警告のみ出力して許可
     console.warn('CSRF: Request without Origin or Referer header in development mode');
     return { valid: true };
   }
@@ -229,10 +252,126 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================================================
+  // B2B Routes - Return 404 (Deleted Routes)
+  // =====================================================
+  // These routes have been removed and should return 404
+  // Explicitly handle them in middleware to ensure proper 404 status
+  if (pathname.startsWith('/b2b') && !pathname.startsWith('/api/b2b')) {
+    // Skip /api/b2b routes as they may still be used
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] B2B route deleted, returning 404:', pathname);
+    }
+
+    // Return 404 Not Found with HTML content
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="ja">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - ページが見つかりません</title>
+      </head>
+      <body>
+        <h1>404</h1>
+        <p>Not Found</p>
+        <p>見つかりません</p>
+      </body>
+      </html>
+    `;
+
+    const notFoundResponse = new NextResponse(htmlContent, {
+      status: 404,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+      },
+    });
+    return addSecurityHeaders(notFoundResponse);
+  }
+
+  // =====================================================
+  // Portal → Admin/Customers 301 Permanent Redirect
+  // =====================================================
+  // Redirect old Portal routes to new Admin/Customers routes
+  if (pathname.startsWith('/portal')) {
+    const newPath = pathname.replace('/portal', '/admin/customers');
+    const url = new URL(newPath, request.url);
+    url.search = request.nextUrl.search; // Preserve query parameters
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] 301 Redirect: /portal → /admin/customers', pathname, '→', newPath);
+    }
+
+    // Return 301 Permanent Redirect for SEO
+    const response = NextResponse.redirect(url, 301);
+    return addSecurityHeaders(response);
+  }
+
+  // =====================================================
+  // CRITICAL: API Route Exemptions - MUST BE FIRST CHECK
+  // =====================================================
+  // These routes handle their own authentication and must bypass ALL middleware logic
+  // Check this BEFORE any other logic to prevent redirect loops
+  if (pathname.startsWith('/api/auth')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] EARLY EXEMPTION for /api/auth route:', pathname);
+    }
+    return addSecurityHeaders(NextResponse.next());
+  }
+
+  // =====================================================
   // DEV_MODE: Bypass authentication for testing (SECURE: server-side only)
   // =====================================================
-  const isDevMode = process.env.NODE_ENV === 'development' &&
-                    process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+  // Check for dev mode - enabled when ENABLE_DEV_MOCK_AUTH is true in non-production environments
+  // This allows E2E tests to run without real authentication
+  const isNonProduction = process.env.NODE_ENV !== 'production';
+  const isDevMode = isNonProduction && process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+
+  // /api/member routes - pass through with authentication headers for API to use
+  // Also handle DEV_MODE for /api/member routes
+  if (pathname.startsWith('/api/member')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] EARLY EXEMPTION for /api/member route:', pathname);
+    }
+
+    const response = NextResponse.next();
+
+    // DEV_MODE: Check for mock user cookie first
+    if (isDevMode) {
+      const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+
+      if (devMockUserId) {
+        console.log('[Middleware] DEV_MODE: Setting headers for /api/member:', devMockUserId);
+        response.headers.set('x-dev-mode', 'true');
+        response.headers.set('x-user-id', devMockUserId);
+        response.headers.set('x-user-role', 'MEMBER');
+        response.headers.set('x-user-status', 'ACTIVE');
+
+        return addSecurityHeaders(response);
+      }
+    }
+
+    // Normal auth: extract user info and add to headers for the API route to use
+    const supabase = createMiddlewareClient(request);
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (user && !error) {
+      // Get user profile for role and status
+      const profile = await getUserProfile(supabase, user.id);
+      response.headers.set('x-user-id', user.id);
+      response.headers.set('x-user-role', profile?.role || 'MEMBER');
+      response.headers.set('x-user-status', profile?.status || 'ACTIVE');
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] Added auth headers for /api/member:', user.id, profile?.role, profile?.status);
+      }
+    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] No auth for /api/member - API will handle 401');
+      }
+    }
+
+    return addSecurityHeaders(response);
+  }
 
   if (isDevMode) {
     // DEV_MODE: Check for mock user cookie
@@ -251,7 +390,7 @@ export async function middleware(request: NextRequest) {
       return addSecurityHeaders(response);
     }
 
-    // DEV_MODE but no mock cookie - still allow access to member pages
+    // DEV_MODE but no mock cookie - still allow access to member/admin pages
     // The signin flow should set the cookie, but we'll be lenient in dev mode
     if (pathname.startsWith('/member') || pathname.startsWith('/admin')) {
       console.log('[DEV_MODE] Allowing access without authentication (dev mode)');
@@ -270,13 +409,31 @@ export async function middleware(request: NextRequest) {
   // CSRF Protection for API Routes
   // =====================================================
   if (pathname.startsWith('/api')) {
-    // CSRF 검증 수행
+    // 認証が不要な公開APIは通過
+    if (CSRF_EXEMPT_API_PATHS.some(exempt => pathname.startsWith(exempt))) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] Exempting CSRF-exempt API route:', pathname);
+      }
+      return addSecurityHeaders(NextResponse.next());
+    }
+
+    // 認証が必要なAPIの場合セッション検証
+    // (ただし、/api/contact、/api/samples等は認証なしでも許可)
+    const publicAPIs = ['/api/contact', '/api/samples', '/api/quotation'];
+    if (publicAPIs.some(api => pathname.startsWith(api))) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] Exempting public API route:', pathname);
+      }
+      return addSecurityHeaders(NextResponse.next());
+    }
+
+    // CSRF検証実行 (only for remaining API routes that need protection)
     const csrfValidation = validateCSRFRequest(request);
 
     if (!csrfValidation.valid) {
       console.error('CSRF Validation Failed:', csrfValidation.reason);
 
-      // 403 Forbidden 응답 반환
+      // 403 Forbiddenレスポンス返却
       const errorResponse = NextResponse.json(
         {
           error: 'Forbidden',
@@ -289,25 +446,13 @@ export async function middleware(request: NextRequest) {
       return addSecurityHeaders(errorResponse);
     }
 
-    // CSRF 검증 통과 후 계속 진행
-    // 정적 파일과 Next.js 내부 경로는 통과
+    // CSRF検証通過後継続
+    // 静的ファイルとNext.js内部パスは通過
     if (
       pathname.startsWith('/_next') ||
       pathname.startsWith('/static') ||
       pathname.includes('.') // favicon, images, etc.
     ) {
-      return addSecurityHeaders(NextResponse.next());
-    }
-
-    // 인증이 필요 없는 공개 API는 통과
-    if (CSRF_EXEMPT_API_PATHS.some(exempt => pathname.startsWith(exempt))) {
-      return addSecurityHeaders(NextResponse.next());
-    }
-
-    // 인증이 필요한 API의 경우 세션 검증
-    // (단, /api/contact, /api/samples 등은 인증 없이도 허용)
-    const publicAPIs = ['/api/contact', '/api/samples', '/api/quotation'];
-    if (publicAPIs.some(api => pathname.startsWith(api))) {
       return addSecurityHeaders(NextResponse.next());
     }
   }
@@ -349,12 +494,16 @@ export async function middleware(request: NextRequest) {
     if (user) {
       console.log('[Middleware] User email:', user.email);
     }
+    // Log cookie presence for debugging
+    const allCookies = request.cookies.getAll();
+    const sbCookies = allCookies.filter(c => c.name.startsWith('sb-'));
+    console.log('[Middleware] Supabase cookies found:', sbCookies.map(c => c.name));
   }
 
   // No user - redirect to login
   if (!user || error) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Middleware] No user, redirecting to signin');
+      console.log('[Middleware] No user or error, redirecting to signin. Error:', error?.message);
     }
     const url = new URL('/auth/signin', request.url);
     url.searchParams.set('redirect', pathname);
@@ -391,14 +540,26 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.redirect(url));
   }
 
-  // Admin routes - require ADMIN role
+  // Admin routes - require ADMIN role, EXCEPT /admin/customers which allows ACTIVE MEMBER too
   const isAdminRoute = PROTECTED_ROUTES.admin.some((route) =>
     pathname.startsWith(route)
   );
-  if (isAdminRoute) {
+  const isCustomerPortalRoute = pathname.startsWith('/admin/customers');
+
+  // Internal admin routes require ADMIN role only
+  if (isAdminRoute && !isCustomerPortalRoute) {
     if (profile.role !== 'ADMIN') {
       return addSecurityHeaders(
         NextResponse.redirect(new URL('/auth/error?error=AccessDenied', request.url))
+      );
+    }
+  }
+
+  // /admin/customers allows both ADMIN and ACTIVE MEMBER
+  if (isCustomerPortalRoute) {
+    if (profile.role !== 'ADMIN' && profile.status !== 'ACTIVE') {
+      return addSecurityHeaders(
+        NextResponse.redirect(new URL('/auth/signin', request.url))
       );
     }
   }
@@ -429,7 +590,7 @@ export async function middleware(request: NextRequest) {
 // =====================================================
 
 function addSecurityHeaders(response: NextResponse) {
-  // Prevent clickjacking - DENY는 모든 프레임 차단
+  // Prevent clickjacking - DENYはすべてのフレームをブロック
   response.headers.set('X-Frame-Options', 'DENY');
 
   // Prevent MIME type sniffing
@@ -438,15 +599,15 @@ function addSecurityHeaders(response: NextResponse) {
   // Enable XSS protection
   response.headers.set('X-XSS-Protection', '1; mode=block');
 
-  // Referrer policy - 더 엄격한 정책
+  // Referrer policy - より厳格なポリシー
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  // Content Security Policy - 강화된 버전
+  // Content Security Policy - 強化されたバージョン
   const isDev = process.env.NODE_ENV === 'development';
 
   const cspDirectives = [
     "default-src 'self'",
-    // 개발 환경에서는 unsafe-inline/eval 허용
+    // 開発環境ではunsafe-inline/evalを許可
     isDev
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com"
       : "script-src 'self' https://js.sendgrid.com",
@@ -455,11 +616,11 @@ function addSecurityHeaders(response: NextResponse) {
     "font-src 'self' data:",
     "connect-src 'self' https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co",
     "frame-src 'none'",
-    // form-action을 'self'로 제한하여 CSRF 방어
+    // form-actionを'self'に制限してCSRF防御
     "form-action 'self'",
-    // base-uri도 제한
+    // base-uriも制限
     "base-uri 'self'",
-    // object-src 차단
+    // object-srcをブロック
     "object-src 'none'",
   ];
 
@@ -473,7 +634,7 @@ function addSecurityHeaders(response: NextResponse) {
     );
   }
 
-  // Permissions policy - 더 제한적인 정책
+  // Permissions policy - より制限的なポリシー
   response.headers.set(
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()'

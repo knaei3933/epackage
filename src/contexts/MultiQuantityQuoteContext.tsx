@@ -5,6 +5,59 @@ import { MultiQuantityQuoteState, SavedQuantityPattern, MultiQuantityResult } fr
 import { multiQuantityCalculator } from '@/lib/multi-quantity-calculator';
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage } from '@/lib/storage';
+import { calculateRollWeight, type FilmStructureLayer } from '@/lib/roll-film-utils';
+
+// Get film layers for roll film weight calculation
+// LLDPE thickness: 50, 70, 90, 100, 110μm
+function getFilmLayersForMaterial(
+  materialId: string,
+  thicknessSelection?: string
+): FilmStructureLayer[] {
+  const lldpeBaseThickness: Record<string, number> = {
+    'light': 50,
+    'medium': 70,
+    'standard': 90,
+    'heavy': 100,
+    'ultra': 110
+  };
+  const baseLldpeThickness = lldpeBaseThickness[thicknessSelection || 'standard'] || 90;
+
+  const defaultLayers: Record<string, FilmStructureLayer[]> = {
+    'pet_al': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'pet_vmpet': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'VMPET', thickness: 12 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'pet_ldpe': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LDPE', thickness: 7 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'pet_ny_al': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'NY', thickness: 15 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'pet_transparent': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'kraft_pe': [
+      { materialId: 'KRAFT', thickness: 80 },
+      { materialId: 'PE', thickness: 40 }
+    ]
+  };
+
+  return defaultLayers[materialId] || defaultLayers['pet_al'];
+}
 
 // Enhanced action types for multi-quantity functionality
 type MultiQuoteAction =
@@ -45,8 +98,8 @@ const initialState: MultiQuantityQuoteState = {
   thicknessSelection: 'medium',
 
   // Enhanced quantity fields
-  quantities: [1000, 2000, 5000, 10000], // Default selected quantities - 수정사항.md 예시와 일치
-  comparisonQuantities: [1000, 2000, 5000, 10000], // All quantities to compare - 수정사항.md 예시와 일치
+  quantities: [1000, 2000, 5000, 10000], // Default selected quantities - 수정사항.md の例と一致
+  comparisonQuantities: [1000, 2000, 5000, 10000], // All quantities to compare - 수정사항.md の例と一致
   selectedQuantity: 1000, // Currently selected for detailed view
   multiQuantityResults: new Map(),
   comparison: null,
@@ -381,6 +434,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   }, []);
 
   const addQuantity = useCallback((quantity: number) => {
+    // Roll film and regular pouches both have 500 minimum
     if (quantity >= 500 && quantity <= 1000000) {
       dispatch({ type: 'ADD_QUANTITY', payload: quantity });
     }
@@ -529,15 +583,32 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
 
   // Validation helpers - wrapped in useCallback
   const isStepComplete = useCallback((step: string): boolean => {
+    const isRollFilm = state.bagTypeId === 'roll_film';
+
     switch (step) {
       case 'specs':
-        const hasBasicSpecs = !!(state.bagTypeId && state.materialId && state.width > 0 && state.height > 0);
+        // Roll film: width only, Regular pouches: width + height
+        const hasBasicSpecs = !!(state.bagTypeId && state.materialId && state.width > 0 && (isRollFilm || state.height > 0));
         const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
         const requiresThickness = materialsWithThickness.includes(state.materialId);
         const hasThickness = !!state.thicknessSelection;
         return hasBasicSpecs && (!requiresThickness || hasThickness);
       case 'quantity':
-        return state.comparisonQuantities.length > 0 && state.comparisonQuantities.every(q => q >= 500);
+        // Both roll film and pouches have 500 minimum
+        const hasQuantities = state.comparisonQuantities.length > 0 && state.comparisonQuantities.every(q => q >= 500);
+        if (!hasQuantities) return false;
+
+        // For roll film, check 29kg weight limit
+        if (isRollFilm) {
+          const layers = getFilmLayersForMaterial(state.materialId, state.thicknessSelection);
+          const hasOverWeight = state.comparisonQuantities.some(length => {
+            const weight = calculateRollWeight(state.width, length, layers);
+            return weight.totalWeight > 29000;
+          });
+          if (hasOverWeight) return false;
+        }
+
+        return true;
       case 'post-processing':
         return true; // Post-processing is optional
       case 'delivery':
@@ -548,13 +619,19 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   }, [state]);
 
   const getStepSummary = useCallback((step: string): React.ReactNode => {
+    const isRollFilm = state.bagTypeId === 'roll_film';
+
     switch (step) {
       case 'specs':
         return (
           <div className="text-sm space-y-1">
             <div><span className="font-medium">袋タイプ:</span> {state.bagTypeId}</div>
             <div><span className="font-medium">素材:</span> {state.materialId}</div>
-            <div><span className="font-medium">サイズ:</span> {state.width} × {state.height} {state.depth > 0 && `× ${state.depth}`} mm</div>
+            {isRollFilm ? (
+              <div><span className="font-medium">サイズ:</span> {state.width}mm (幅のみ)</div>
+            ) : (
+              <div><span className="font-medium">サイズ:</span> {state.width} × {state.height} {state.depth > 0 && `× ${state.depth}`} mm</div>
+            )}
             {state.thicknessSelection && (
               <div><span className="font-medium">厚さ:</span> {state.thicknessSelection}</div>
             )}
@@ -589,12 +666,17 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   }, [state]);
 
   const canCalculateMultiQuantity = useCallback((): boolean => {
-    return !!(state.bagTypeId &&
-            state.materialId &&
-            state.width > 0 &&
-            state.height > 0 &&
-            state.comparisonQuantities.length > 0 &&
-            state.comparisonQuantities.every(q => q >= 500 && q <= 1000000));
+    const isRollFilm = state.bagTypeId === 'roll_film';
+    const minQuantity = 500; // Both roll film and pouches have 500 minimum
+
+    return !!(
+      state.bagTypeId &&
+      state.materialId &&
+      state.width > 0 &&
+      (isRollFilm || state.height > 0) &&
+      state.comparisonQuantities.length > 0 &&
+      state.comparisonQuantities.every(q => q >= minQuantity && q <= 1000000)
+    );
   }, [state]);
 
   // Save/Load functionality implementations

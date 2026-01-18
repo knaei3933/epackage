@@ -1,10 +1,10 @@
 /**
  * Member Profile Page
  *
- * 회원 프로필 조회 페이지 (읽기 전용)
- * - Supabase 기반 프로필 표시
- * - 일본어 UI
- * - 수정은 /member/edit 페이지에서 가능
+ * 会員プロフィール表示ページ（読み取り専用）
+ * - Supabaseベースのプロフィール表示
+ * - 日本語UI
+ * - 編集は /member/edit ページで可能
  */
 
 'use client';

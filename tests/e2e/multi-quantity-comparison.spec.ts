@@ -181,7 +181,9 @@ test.describe('Multi-Quantity Comparison System', () => {
       await page.waitForSelector('[data-testid="recommendations"]')
 
       // Should show at least one recommendation
-      await expect(page.locator('[data-testid^="recommendation-"]')).toHaveCount.toBeGreaterThan(0)
+      const recommendations = page.locator('[data-testid^="recommendation-"]')
+      const recommendationCount = await recommendations.count()
+      expect(recommendationCount).toBeGreaterThan(0)
 
       // Check recommendation content
       await expect(page.locator('text=推奨プラン')).toBeVisible()
@@ -435,40 +437,35 @@ async function fillQuoteForm(page: any, data: any) {
 }
 
 // Cross-browser compatibility tests
+// Note: These tests will run on all configured browsers in playwright.config.ts
 test.describe('Cross-browser compatibility', () => {
-  ['chromium', 'firefox', 'webkit'].forEach(browserName => {
-    test.describe(`Browser: ${browserName}`, () => {
-      test.use({ ...devices[browserName === 'chromium' ? 'Desktop Chrome' : browserName === 'firefox' ? 'Desktop Firefox' : 'Desktop Safari'] })
+  test('should work consistently across browsers', async ({ page }) => {
+    await page.goto('/quote/multi-quantity')
 
-      test('should work consistently across browsers', async ({ page }) => {
-        await page.goto('/quote/multi-quantity')
+    // Test basic functionality
+    await expect(page.locator('h1')).toContainText('多数量比較見積もり')
+    await expect(page.locator('[data-testid="multi-quantity-form"]')).toBeVisible()
 
-        // Test basic functionality
-        await expect(page.locator('h1')).toContainText('多数量比較見積もり')
-        await expect(page.locator('[data-testid="multi-quantity-form"]')).toBeVisible()
+    // Test form interactions
+    await page.selectOption('[data-testid="bag-type-select"]', 'stand_up_pouch')
+    await page.fill('[data-testid="width-input"]', '250')
 
-        // Test form interactions
-        await page.selectOption('[data-testid="bag-type-select"]', 'stand_up_pouch')
-        await page.fill('[data-testid="width-input"]', '250')
+    // Verify values are set
+    await expect(page.locator('[data-testid="bag-type-select"]')).toHaveValue('stand_up_pouch')
+    await expect(page.locator('[data-testid="width-input"]')).toHaveValue('250')
+  })
 
-        // Verify values are set
-        await expect(page.locator('[data-testid="bag-type-select"]')).toHaveValue('stand_up_pouch')
-        await expect(page.locator('[data-testid="width-input"]')).toHaveValue('250')
-      })
+  test('should handle responsive design consistently', async ({ page }) => {
+    // Test mobile view
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto('/quote/multi-quantity')
 
-      test('should handle responsive design consistently', async ({ page }) => {
-        // Test mobile view
-        await page.setViewportSize({ width: 375, height: 812 })
-        await page.goto('/quote/multi-quantity')
+    await expect(page.locator('[data-testid="mobile-layout"]')).toBeVisible()
 
-        await expect(page.locator('[data-testid="mobile-layout"]')).toBeVisible()
+    // Test desktop view
+    await page.setViewportSize({ width: 1920, height: 1080 })
+    await page.reload()
 
-        // Test desktop view
-        await page.setViewportSize({ width: 1920, height: 1080 })
-        await page.reload()
-
-        await expect(page.locator('[data-testid="desktop-layout"]')).toBeVisible()
-      })
-    })
+    await expect(page.locator('[data-testid="desktop-layout"]')).toBeVisible()
   })
 })

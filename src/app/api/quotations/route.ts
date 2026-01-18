@@ -1,9 +1,9 @@
 /**
  * Quotations API Route (Supabase)
  *
- * 견적 내역 API 엔드포인트입니다.
- * - GET: 현재 사용자의 견적 내역 조회
- * - POST: 새 견적 생성
+ * 見積履歴APIエンドポイント
+ * - GET: 現在のユーザーの見積履歴を取得
+ * - POST: 新しい見積を作成
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -21,7 +21,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabaseUrlTyped = supabaseUrl as string;
 const supabaseAnonKeyTyped = supabaseAnonKey as string;
 
-// GET: 사용자의 견적 내역 조회
+// GET: ユーザーの見積履歴を取得
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 현재 사용자 확인 (SECURE: using getUser() instead of getSession())
+    // 現在のユーザー確認 (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 견적 내역 조회 (quotations 테이블이 있다고 가정)
+    // 見積履歴の取得（quotationsテーブルが存在すると仮定）
     const { data: quotations, error } = await supabase
       .from('quotations')
       .select('*')
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       .limit(20);
 
     if (error) {
-      // 테이블이 없는 경우 빈 배열 반환
+      // テーブルがない場合は空の配列を返す
       if (error.code === '42P01') {
         return NextResponse.json({ quotations: [] });
       }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: 새 견적 생성
+// POST: 新しい見積を作成
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 현재 사용자 확인 (SECURE: using getUser() instead of getSession())
+    // 現在のユーザー確認 (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // 견적 생성 - DB 컬럼과 일치하도록 수정
+    // 見積作成 - DBカラムと一致するように修正
     const { data: quotation, error } = await supabase
       .from('quotations')
       .insert({
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         tax_amount: body.taxAmount,
         total_amount: body.totalAmount,
         notes: body.notes,
-        status: 'draft', // 소문자로 통일
+        status: 'draft', // 小文字に統一
         valid_until: body.validUntil,
         estimated_delivery_date: body.estimatedDeliveryDate,
       })
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// OPTIONS 메서드 - CORS preflight 요청 처리
+// OPTIONSメソッド - CORS preflightリクエスト処理
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,

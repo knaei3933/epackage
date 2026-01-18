@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, Badge, Button } from '@/components/ui';
+import { PageLoadingState } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Eye } from 'lucide-react';
@@ -219,20 +220,10 @@ export default function SamplesPage({
     loadSamples();
   }, [selectedStatus]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-text-muted">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (samples.length === 0) {
-    return (
-      <div className="space-y-6">
+  return (
+    <PageLoadingState isLoading={isLoading} error={null} message="読み込み中...">
+      {samples.length === 0 ? (
+        <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-text-primary">サンプル依頼</h1>
@@ -258,11 +249,8 @@ export default function SamplesPage({
           </Button>
         </Card>
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
+      ) : (
+        <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">サンプル依頼</h1>
@@ -332,6 +320,8 @@ export default function SamplesPage({
           onClose={() => setSelectedSample(null)}
         />
       )}
-    </div>
+      </div>
+      )}
+    </PageLoadingState>
   );
 }

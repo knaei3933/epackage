@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 주문 추적 타임라인 컴포넌트 (Order Tracking Timeline)
- * 10단계 B2B 주문 프로세스 시각화
+ * 注文追跡タイムラインコンポーネント (Order Tracking Timeline)
+ * 10段階B2B注文プロセス可視化
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -73,78 +73,78 @@ interface OrderTimelineProps {
   orderId: string;
 }
 
-// 10단계 프로세스 정의
+// 10段階プロセス定義
 const PROCESS_STAGES = [
   {
     id: 'quotation',
-    name: '견적',
+    name: '見積',
     nameJa: '見積',
     icon: FileText,
-    description: '견적 요청 및 승인',
+    description: '見積依頼および承認',
     status: 'QUOTATION'
   },
   {
     id: 'data_received',
-    name: '데이터 입고',
+    name: 'データ入稿',
     nameJa: 'データ入稿',
     icon: Package,
-    description: '고객 디자인 데이터 수령',
+    description: '顧客デザインデータを受領',
     status: 'DATA_RECEIVED'
   },
   {
     id: 'work_order',
-    name: '작업표준서',
+    name: '作業標準書',
     nameJa: '作業標準書',
     icon: Settings,
-    description: '제조 사양서 작성',
+    description: '製造仕様書作成',
     status: 'WORK_ORDER'
   },
   {
     id: 'contract_sent',
-    name: '계약서 송부',
+    name: '契約書送付',
     nameJa: '契約書送付',
     icon: FileText,
-    description: '계약서 송부',
+    description: '契約書送付',
     status: 'CONTRACT_SENT'
   },
   {
     id: 'contract_signed',
-    name: '계약서 서명',
+    name: '契約書署名',
     nameJa: '契約書署名',
     icon: Check,
-    description: '양측 전자서명 완료',
+    description: '双方電子署名完了',
     status: 'CONTRACT_SIGNED'
   },
   {
     id: 'production',
-    name: '생산',
+    name: '生産',
     nameJa: '生産',
     icon: Factory,
-    description: '제조 공정 진행',
+    description: '製造工程進行',
     status: 'PRODUCTION'
   },
   {
     id: 'stock_in',
-    name: '입고',
+    name: '入稿',
     nameJa: '入稿',
     icon: Package,
-    description: '제품 입고 및 품질검사',
+    description: '製品入稿および品質検査',
     status: 'STOCK_IN'
   },
   {
     id: 'shipped',
-    name: '출하',
+    name: '出荷',
     nameJa: '出荷',
     icon: Truck,
-    description: '배송 시작',
+    description: '配送開始',
     status: 'SHIPPED'
   },
   {
     id: 'delivered',
-    name: '배송 완료',
+    name: '配達完了',
     nameJa: '配達完了',
     icon: Check,
-    description: '고객 수령 완료',
+    description: '顧客受領完了',
     status: 'DELIVERED'
   }
 ];
@@ -161,7 +161,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
   const loadTrackingData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/b2b/orders/${orderId}/tracking`);
+      const response = await fetch(`/api/member/orders/${orderId}/tracking`);
       const result = await response.json();
 
       if (result.success) {
@@ -239,7 +239,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
     }
 
     if (!url) {
-      alert('문서가 아직 준비되지 않았습니다.');
+      alert('文書がまだ準備されていません。');
       return;
     }
 
@@ -254,7 +254,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
     return (
       <div className="flex items-center justify-center p-12">
         <Clock className="w-8 h-8 animate-spin text-blue-500" />
-        <span className="ml-3">로딩 중...</span>
+        <span className="ml-3">読み込み中...</span>
       </div>
     );
   }
@@ -263,7 +263,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
     return (
       <Card className="p-8 text-center">
         <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">주문 정보를 불러올 수 없습니다.</p>
+        <p className="text-gray-600">注文情報を読み込めません。</p>
       </Card>
     );
   }
@@ -277,17 +277,17 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
       <Card className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold">주문 #{trackingData.order.order_number}</h1>
-            <p className="text-gray-600 mt-1">{trackingData.order.customer_name} 고객님</p>
+            <h1 className="text-2xl font-bold">注文 #{trackingData.order.order_number}</h1>
+            <p className="text-gray-600 mt-1">{trackingData.order.customer_name} 様</p>
           </div>
 
           <div className="text-right">
-            <p className="text-sm text-gray-600">현재 상태</p>
+            <p className="text-sm text-gray-600">現在状態</p>
             <p className="text-lg font-semibold text-blue-600">
               {PROCESS_STAGES[currentStageIndex]?.nameJa || PROCESS_STAGES[currentStageIndex]?.name}
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              주문일: {formatDate(trackingData.order.created_at)}
+              注文日: {formatDate(trackingData.order.created_at)}
             </p>
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
         {/* Progress Bar */}
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">전체 진척률</span>
+            <span className="text-sm font-medium">全体進捗率</span>
             <span className="text-sm font-bold text-blue-600">{progressPercentage}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-4">
@@ -309,7 +309,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
 
       {/* Timeline */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-6">진행 상황</h2>
+        <h2 className="text-xl font-semibold mb-6">進行状況</h2>
 
         <div className="relative">
           {/* Progress Line */}
@@ -368,7 +368,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                         {/* Production Progress */}
                         {stage.id === 'production' && trackingData.productionLogs && trackingData.productionLogs.length > 0 && (
                           <div className="bg-blue-50 p-4 rounded-lg">
-                            <p className="text-sm font-medium mb-2">생산 진척률</p>
+                            <p className="text-sm font-medium mb-2">生産進捗率</p>
                             <div className="w-full bg-white rounded-full h-2 mb-2">
                               <div
                                 className="bg-blue-500 h-2 rounded-full"
@@ -383,7 +383,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                             {trackingData.productionLogs[0] && (
                               <div className="mt-3 text-sm">
                                 <p className="text-gray-600">
-                                  최신 공정: {trackingData.productionLogs[0].sub_status}
+                                  最新工程: {trackingData.productionLogs[0].sub_status}
                                 </p>
                                 {trackingData.productionLogs[0].notes && (
                                   <p className="text-gray-500 mt-1">
@@ -393,7 +393,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                                 {trackingData.productionLogs[0].photo_url && (
                                   <img
                                     src={trackingData.productionLogs[0].photo_url}
-                                    alt="작업 사진"
+                                    alt="作業写真"
                                     className="mt-2 w-32 h-32 object-cover rounded"
                                   />
                                 )}
@@ -412,7 +412,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                               onClick={() => downloadDocument('work_order')}
                             >
                               <Download className="w-4 h-4 mr-2" />
-                              작업표준서 다운로드
+                              作業標準書ダウンロード
                             </Button>
                           )}
 
@@ -424,7 +424,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                               onClick={() => downloadDocument('contract')}
                             >
                               <Download className="w-4 h-4 mr-2" />
-                              계약서 다운로드
+                              契約書ダウンロード
                             </Button>
                           )}
 
@@ -436,7 +436,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                               onClick={() => window.location.href = `/member/contracts/${trackingData.contract?.contract_number}/sign`}
                             >
                               <Check className="w-4 h-4 mr-2" />
-                              계약서 서명
+                              契約書署名
                             </Button>
                           )}
                         </div>
@@ -451,7 +451,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                       return historyEntry ? (
                         <div className="mt-2 text-sm text-gray-600 flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          완료: {formatDate(historyEntry.changed_at)}
+                          完了: {formatDate(historyEntry.changed_at)}
                         </div>
                       ) : null;
                     })()}
@@ -465,26 +465,26 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
 
       {/* Order Summary */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">주문 정보</h3>
+        <h3 className="text-lg font-semibold mb-4">注文情報</h3>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <span className="text-gray-600">주문 번호</span>
+            <span className="text-gray-600">注文番号</span>
             <p className="font-medium">{trackingData.order.order_number}</p>
           </div>
 
           <div>
-            <span className="text-gray-600">현재 상태</span>
+            <span className="text-gray-600">現在状態</span>
             <p className="font-medium">{PROCESS_STAGES[currentStageIndex]?.name}</p>
           </div>
 
           <div>
-            <span className="text-gray-600">진척률</span>
+            <span className="text-gray-600">進捗率</span>
             <p className="font-medium">{progressPercentage}%</p>
           </div>
 
           <div>
-            <span className="text-gray-600">주문일</span>
+            <span className="text-gray-600">注文日</span>
             <p className="font-medium">{formatDate(trackingData.order.created_at)}</p>
           </div>
         </div>
@@ -492,10 +492,10 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
         {/* Shipment Info */}
         {trackingData.order.status === 'SHIPPED' && trackingData.order.state_metadata && (
           <div className="mt-4 pt-4 border-t">
-            <h4 className="font-medium mb-2">배송 정보</h4>
+            <h4 className="font-medium mb-2">配送情報</h4>
             <div className="text-sm space-y-1">
-              <p>배송업체: {trackingData.order.state_metadata.carrier || '정보 없음'}</p>
-              <p>운송장 번호: {trackingData.order.state_metadata.tracking_number || '정보 없음'}</p>
+              <p>配送業者: {trackingData.order.state_metadata.carrier || '情報なし'}</p>
+              <p>送状番号: {trackingData.order.state_metadata.tracking_number || '情報なし'}</p>
               {trackingData.order.state_metadata.tracking_url && (
                 <a
                   href={trackingData.order.state_metadata.tracking_url}
@@ -503,7 +503,7 @@ export default function OrderTimeline({ orderId }: OrderTimelineProps) {
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                  배송 추적 →
+                  配送追跡 →
                 </a>
               )}
             </div>

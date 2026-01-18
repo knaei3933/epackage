@@ -69,6 +69,7 @@ export default function ContactForm() {
     reset,
     watch,
     setValue,
+    trigger,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   })
@@ -230,6 +231,7 @@ export default function ContactForm() {
               <JapaneseNameInputController
                 control={control}
                 setValue={setValue}
+                trigger={trigger}
                 kanjiLastNameName="kanjiLastName"
                 kanjiFirstNameName="kanjiFirstName"
                 kanaLastNameName="kanaLastName"

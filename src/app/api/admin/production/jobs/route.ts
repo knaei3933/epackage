@@ -6,7 +6,7 @@ import type { Database } from '@/types/database';
 /**
  * GET /api/admin/production/jobs
  * 生産ジョブ一覧を取得
- * Note: production_orders 테이블을 사용 (9단계 생산 프로세스)
+ * Note: production_orders テーブルを使用（9段階生産プロセス）
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   console.error('[GET /api/admin/production/jobs] ===== ROUTE CALLED =====');
@@ -19,13 +19,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const supabase = createSupabaseClient();
 
-    // URL 파라미터에서 필터링 조건 추출
+    // URLパラメータからフィルタ条件を抽出
     const searchParams = request.nextUrl.searchParams;
-    const stage = searchParams.get('stage'); // current_stage 필터링
+    const stage = searchParams.get('stage'); // current_stage フィルタ
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // production_orders 테이블 쿼리 (실제 테이블)
+    // production_orders テーブルクエリ（実際のテーブル）
     let query = supabase
       .from('production_orders')
       .select(`
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    // 상태 필터링 (current_stage)
+    // ステータスフィルタ（current_stage）
     if (stage && stage !== 'all') {
       query = query.eq('current_stage', stage);
     }
@@ -55,14 +55,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 데이터 변환: production_orders → ProductionJob 형식으로 변환
+    // データ変換: production_orders → ProductionJob 形式に変換
     const transformedJobs = orders?.map((po: any) => {
-      // 9단계 생산 스테이지 계산
+      // 9段階生産ステージ計算
       const stages = ['data_received', 'inspection', 'design', 'plate_making', 'printing', 'surface_finishing', 'die_cutting', 'lamination', 'final_inspection'];
       const currentStageIndex = stages.indexOf(po.current_stage);
       const progressPercentage = currentStageIndex >= 0 ? Math.round((currentStageIndex / (stages.length - 1)) * 100) : 0;
 
-      // priority 문자열 → 숫자 변환
+      // priority 文字列 → 数値変換
       let priorityNum = 3; // default normal
       if (typeof po.priority === 'string') {
         if (po.priority === 'low') priorityNum = 1;
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priorityNum = po.priority;
       }
 
-      // status 계산
+      // status 計算
       let status = 'pending';
       if (po.actual_completion_date) {
         status = 'completed';
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return {
         id: po.id,
         jobNumber: po.orders?.order_number || `PO-${po.id.slice(0, 8)}`,
-        jobName: `${po.orders?.order_number || '주문'} 생산`,
+        jobName: `${po.orders?.order_number || '注文'} 生産`,
         jobType: po.current_stage || 'data_received',
         status: status,
         progressPercentage: progressPercentage,
@@ -95,9 +95,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         scheduledEndAt: po.estimated_completion_date,
         actualStartAt: po.started_at,
         actualEndAt: po.actual_completion_date,
-        assignedTo: null, // 담당자 정보가 없으면 null
-        outputQuantity: 0, // production_orders에는 output_quantity가 없음
-        rejectedQuantity: 0, // production_orders에는 rejected_quantity가 없음
+        assignedTo: null, // 担当者情報がない場合はnull
+        outputQuantity: 0, // production_ordersにはoutput_quantityがない
+        rejectedQuantity: 0, // production_ordersにはrejected_quantityがない
         description: po.current_stage,
         specifications: po.stage_data,
         currentStep: currentStageIndex + 1,
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 /**
  * PATCH /api/admin/production/jobs
  * 生産ジョブの状態を更新
- * Note: production_orders テーブルを使用 (9단계 생산 프로세스)
+ * Note: production_orders テーブルを使用（9段階生産プロセス）
  */
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
   try {

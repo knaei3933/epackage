@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { ArchivePage } from "@/components/archives/ArchivePage";
-import { PageTransition } from "@/components/ui/PageTransition";
+
+// Disable static generation for this page due to client-side interactivity
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "パウチ導入実績 | Epackage Lab",
@@ -24,9 +26,5 @@ export const metadata: Metadata = {
 };
 
 export default function ArchivesPage() {
-  return (
-    <PageTransition>
-      <ArchivePage />
-    </PageTransition>
-  );
+  return <ArchivePage />;
 }

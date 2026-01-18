@@ -1,6 +1,6 @@
 /**
  * AI File Parser Type Definitions
- * Adobe Illustrator .ai 파일 파싱을 위한 통합 타입 정의
+ * Adobe Illustrator .aiファイルパース用統合タイプ定義
  *
  * This file consolidates both the legacy PDF-based parser types
  * and the new AI vision-based extraction types.
@@ -11,30 +11,30 @@ export * from '@/types/ai-extraction';
 
 // ============= Legacy PDF Parser Types (Kept for compatibility) =============
 
-/** 파싱 가능한 파일 타입 */
+/** パース可能ファイルタイプ */
 export type SupportedFileType = 'ai' | 'pdf' | 'psd';
 
-/** 봉투 타입 (Legacy - compatible with EnvelopeType) */
+/** 封筒タイプ (Legacy - compatible with EnvelopeType) */
 export type LegacyEnvelopeType =
-  | 'stand_pouch'      // 스탠드 파우치
-  | 'box_pouch'        // 박스 파우치
-  | 'flat_pouch'       // 평면 파우치
-  | 'gusset'           // 갓셋 봉투
-  | 'zipper_bag'       // 지퍼백
-  | 'three_side_seal'; // 3면 시일
+  | 'stand_pouch'      // スタンドパウチ
+  | 'box_pouch'        // ボックスパウチ
+  | 'flat_pouch'       // 平面パウチ
+  | 'gusset'           // ギャセット封筒
+  | 'zipper_bag'       // ジッパーバッグ
+  | 'three_side_seal'; // 3方シール
 
-/** 단위 */
+/** 単位 */
 export type Unit = 'mm' | 'μm' | 'inch';
 
-// ============= PDF 구조 관련 (Legacy) =============
+// ============= PDF構造関連 (Legacy) =============
 
-/** PDF 페이지 구조 */
+/** PDFページ構造 */
 export interface PDFStructure {
   pages: PDFPage[];
   metadata: PDFMetadata;
 }
 
-/** PDF 메타데이터 */
+/** PDFメタデータ */
 export interface PDFMetadata {
   title?: string;
   author?: string;
@@ -49,7 +49,7 @@ export interface PDFMetadata {
   };
 }
 
-/** PDF 페이지 */
+/** PDFページ */
 export interface PDFPage {
   width: number;
   height: number;
@@ -60,7 +60,7 @@ export interface PDFPage {
   layers: Layer[];
 }
 
-/** 텍스트 요소 */
+/** テキスト要素 */
 export interface TextElement {
   id: string;
   content: string;
@@ -74,7 +74,7 @@ export interface TextElement {
   boundingBox: BoundingBox;
 }
 
-/** 백터 경로 요소 */
+/** ベクターパス要素 */
 export interface PathElement {
   id: string;
   d: string; // SVG path data
@@ -87,7 +87,7 @@ export interface PathElement {
   layerId?: string;
 }
 
-/** 이미지 요소 */
+/** 画像要素 */
 export interface ImageElement {
   id: string;
   x: number;
@@ -99,7 +99,7 @@ export interface ImageElement {
   boundingBox: BoundingBox;
 }
 
-/** 레이어 */
+/** レイヤー */
 export interface Layer {
   id: string;
   name: string;
@@ -109,7 +109,7 @@ export interface Layer {
   blendMode: string;
 }
 
-/** 바운딩 박스 */
+/** バウンディングボックス */
 export interface BoundingBox {
   x: number;
   y: number;
@@ -119,7 +119,7 @@ export interface BoundingBox {
 
 // ============= Legacy Extraction Types (Mapped to new system) =============
 
-/** 추출된 사양 (Legacy) - @deprecated Use ExtractedProductData instead */
+/** 抽出された仕様 (Legacy) - @deprecated Use ExtractedProductData instead */
 export interface ExtractedSpecs {
   dimensions: Dimensions;
   material: MaterialStructure;
@@ -129,7 +129,7 @@ export interface ExtractedSpecs {
   metadata: ExtractionMetadata;
 }
 
-/** 치수 정보 (Legacy) */
+/** 寸法情報 (Legacy) */
 export interface Dimensions {
   envelopeType: LegacyEnvelopeType;
   width: number;
@@ -142,7 +142,7 @@ export interface Dimensions {
   hangingHole?: HangingHoleInfo;
 }
 
-/** 노치 정보 (Legacy) */
+/** ノッチ情報 (Legacy) */
 export interface NotchInfo {
   type: 'circle' | 'rectangle' | 'v_shape';
   position: { x: number; y: number };
@@ -150,7 +150,7 @@ export interface NotchInfo {
   confidence: number;
 }
 
-/** 지퍼 정보 (Legacy) */
+/** ジッパー情報 (Legacy) */
 export interface ZipperInfo {
   type: 'standard' | 'slider' | 'press_lock';
   position: 'top' | 'side' | 'bottom';
@@ -159,7 +159,7 @@ export interface ZipperInfo {
   confidence: number;
 }
 
-/** 걸이 구멍 정보 (Legacy) */
+/** つり穴情報 (Legacy) */
 export interface HangingHoleInfo {
   type: 'round' | 'euro_slot';
   diameter?: number;
@@ -167,7 +167,7 @@ export interface HangingHoleInfo {
   confidence: number;
 }
 
-/** 소재 구조 (Legacy) */
+/** 素材構造 (Legacy) */
 export interface MaterialStructure {
   layers: MaterialLayer[];
   totalThickness?: number;
@@ -176,14 +176,14 @@ export interface MaterialStructure {
   confidence: number;
 }
 
-/** 소재 레이어 (Legacy) */
+/** 素材レイヤー (Legacy) */
 export interface MaterialLayer {
   material: string; // PET, AL, PE, NY, PP, etc.
   thickness?: number; // μm
   function?: 'barrier' | 'sealing' | 'strength' | 'printable';
 }
 
-/** 인쇄 정보 (Legacy) */
+/** 印刷情報 (Legacy) */
 export interface PrintingInfo {
   colors: ColorInfo;
   logos: LogoInfo[];
@@ -191,7 +191,7 @@ export interface PrintingInfo {
   textContent: string[];
 }
 
-/** 색상 정보 (Legacy) */
+/** 色情報 (Legacy) */
 export interface ColorInfo {
   type: 'cmyk' | 'spot' | 'hybrid';
   colors: string[]; // hex codes or Pantone codes
@@ -201,7 +201,7 @@ export interface ColorInfo {
   confidence: number;
 }
 
-/** CMYK 값 (Legacy) */
+/** CMYK値 (Legacy) */
 export interface CMYKValue {
   c: number; // 0-100
   m: number; // 0-100
@@ -209,7 +209,7 @@ export interface CMYKValue {
   k: number; // 0-100
 }
 
-/** 로고 정보 (Legacy) */
+/** ロゴ情報 (Legacy) */
 export interface LogoInfo {
   type: 'text' | 'vector' | 'raster';
   position: { x: number; y: number };
@@ -218,7 +218,7 @@ export interface LogoInfo {
   confidence: number;
 }
 
-/** 인쇄 영역 (Legacy) */
+/** 印刷領域 (Legacy) */
 export interface PrintArea {
   x: number;
   y: number;
@@ -232,7 +232,7 @@ export interface PrintArea {
   };
 }
 
-/** 가공 기능 (Legacy) */
+/** 加工機能 (Legacy) */
 export interface ProcessingFeatures {
   zipper?: ZipperInfo;
   notch?: NotchInfo;
@@ -243,7 +243,7 @@ export interface ProcessingFeatures {
   valve?: ValveInfo;
 }
 
-/** 모서리 라운딩 (Legacy) */
+/** 角丸め (Legacy) */
 export interface CornerRoundingInfo {
   radius: number;
   corners: number; // 1, 2, or 4
@@ -251,7 +251,7 @@ export interface CornerRoundingInfo {
   confidence: number;
 }
 
-/** 유로 슬롯 (Legacy) */
+/** ユーロスロット (Legacy) */
 export interface EuroSlotInfo {
   type: 'euro_slot';
   position: { x: number; y: number };
@@ -259,23 +259,23 @@ export interface EuroSlotInfo {
   confidence: number;
 }
 
-/** 찢림 노치 (Legacy) */
+/** テアノッチ (Legacy) */
 export interface TearNotchInfo {
   type: 'v_notch' | 'circle';
   position: BoundingBox;
   confidence: number;
 }
 
-/** 밸브 (Legacy) */
+/** バルブ (Legacy) */
 export interface ValveInfo {
   type: 'degassing' | 'aroma';
   position: BoundingBox;
   confidence: number;
 }
 
-// ============= 신뢰도 (Legacy) =============
+// ============= 信頼度 (Legacy) =============
 
-/** 신뢰도 점수 (Legacy) */
+/** 信頼度スコア (Legacy) */
 export interface ConfidenceScore {
   overall: number; // 0-100
   dimensions: number; // 0-100
@@ -286,7 +286,7 @@ export interface ConfidenceScore {
   flags: ValidationFlag[];
 }
 
-/** 신뢰도 세부사항 (Legacy) */
+/** 信頼度詳細 (Legacy) */
 export interface ConfidenceBreakdown {
   envelopeType: number;
   size: number;
@@ -299,7 +299,7 @@ export interface ConfidenceBreakdown {
   logo: number;
 }
 
-/** 검증 플래그 (Legacy) */
+/** 検証フラグ (Legacy) */
 export interface ValidationFlag {
   type: 'error' | 'warning' | 'info';
   field: string;
@@ -308,9 +308,9 @@ export interface ValidationFlag {
   autoCorrect?: boolean;
 }
 
-// ============= 추출 메타데이터 (Legacy) =============
+// ============= 抽出メタデータ (Legacy) =============
 
-/** 추출 메타데이터 (Legacy) */
+/** 抽出メタデータ (Legacy) */
 export interface ExtractionMetadata {
   extractedAt: Date;
   extractionMethod: ExtractionMethod;
@@ -320,7 +320,7 @@ export interface ExtractionMetadata {
   parserVersion: string;
 }
 
-/** 추출 방법 (Legacy) */
+/** 抽出方法 (Legacy) */
 export type ExtractionMethod =
   | 'pdf_parse'
   | 'ocr_fallback'
@@ -329,9 +329,9 @@ export type ExtractionMethod =
   | 'hybrid'
   | 'ai_vision'; // Added for new system
 
-// ============= 파싱 결과 (Legacy) =============
+// ============= パース結果 (Legacy) =============
 
-/** 파싱 결과 (Legacy) - @deprecated Use ExtractionResult instead */
+/** パース結果 (Legacy) - @deprecated Use ExtractionResult instead */
 export interface ParseResult {
   success: boolean;
   specs?: ExtractedSpecs;
@@ -341,7 +341,7 @@ export interface ParseResult {
   recoveryMethod?: RecoveryMethod;
 }
 
-/** 파싱 에러 (Legacy) */
+/** パースエラー (Legacy) */
 export interface ParseError {
   type: ParseErrorType;
   message: string;
@@ -349,7 +349,7 @@ export interface ParseError {
   stage: ParseStage;
 }
 
-/** 파싱 에러 타입 (Legacy) */
+/** パースエラータイプ (Legacy) */
 export enum ParseErrorType {
   INVALID_FILE_FORMAT = 'INVALID_FILE_FORMAT',
   CORRUPTED_PDF = 'CORRUPTED_PDF',
@@ -359,7 +359,7 @@ export enum ParseErrorType {
   OCR_FAILED = 'OCR_FAILED',
 }
 
-/** 파싱 단계 (Legacy) */
+/** パース段階 (Legacy) */
 export enum ParseStage {
   FILE_UPLOAD = 'FILE_UPLOAD',
   PDF_CONVERSION = 'PDF_CONVERSION',
@@ -371,7 +371,7 @@ export enum ParseStage {
   CONFIDENCE_CALC = 'CONFIDENCE_CALC',
 }
 
-/** 복구 방법 (Legacy) */
+/** 復元方法 (Legacy) */
 export type RecoveryMethod =
   | 'pdf_recovery'
   | 'image_ocr_fallback'
@@ -381,16 +381,16 @@ export type RecoveryMethod =
   | 'path_only_analysis'
   | 'manual_input_required';
 
-// ============= API 관련 (Legacy) =============
+// ============= API関連 (Legacy) =============
 
-/** 파일 업로드 요청 (Legacy) */
+/** ファイルアップロードリクエスト (Legacy) */
 export interface UploadRequest {
   file: File;
   userId?: string;
   priority?: 'fast' | 'detailed';
 }
 
-/** 파일 업로드 응답 (Legacy) */
+/** ファイルアップロードレスポンス (Legacy) */
 export interface UploadResponse {
   success: boolean;
   uploadId: string;
@@ -399,7 +399,7 @@ export interface UploadResponse {
   estimatedTime: number; // seconds
 }
 
-/** 추출 상태 (Legacy) */
+/** 抽出状態 (Legacy) */
 export interface ExtractionStatus {
   uploadId: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -409,9 +409,9 @@ export interface ExtractionStatus {
   result?: ParseResult;
 }
 
-// ============= 성능 모니터링 =============
+// ============= 性能モニタリング =============
 
-/** 성능 메트릭 */
+/** 性能メトリクス */
 export interface PerformanceMetric {
   stage: string;
   duration: number; // ms
@@ -420,7 +420,7 @@ export interface PerformanceMetric {
   error?: string;
 }
 
-/** 성능 보고서 */
+/** 性能レポート */
 export interface PerformanceReport {
   totalDuration: number;
   memoryUsage: number;
@@ -429,7 +429,7 @@ export interface PerformanceReport {
   recommendations: string[];
 }
 
-/** 병목 지점 */
+/** ボトルネック */
 export interface Bottleneck {
   stage: string;
   duration: number;
@@ -437,9 +437,9 @@ export interface Bottleneck {
   suggestion: string;
 }
 
-// ============= 데이터베이스 (Legacy) =============
+// ============= データベース (Legacy) =============
 
-/** AI 업로드 DB 레코드 (Legacy) */
+/** AIアップロードDBレコード (Legacy) */
 export interface AIUploadRecord {
   id: string;
   user_id?: string;
@@ -450,7 +450,7 @@ export interface AIUploadRecord {
   uploaded_at: Date;
 }
 
-/** AI 사양 DB 레코드 (Legacy) */
+/** AI仕様DBレコード (Legacy) */
 export interface AISpecRecord {
   id: string;
   upload_id: string;

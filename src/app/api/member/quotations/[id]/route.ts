@@ -1,17 +1,20 @@
 /**
- * Quotation Detail API (Member Portal)
+ * Member Quotation Detail API (Unified B2B + Member)
  *
  * Task #104: Get quotation detail by ID
  * - GET: Fetch single quotation with items
- * - PATCH: Update quotation (DRAFT status only)
+ * - PATCH: Update quotation (DRAFT status only) + status changes (DRAFT→SENT)
  * - DELETE: Delete quotation (DRAFT status only)
  *
- * All DB operations via Supabase
+ * All DB operations via Supabase using service role to bypass RLS
+ * Supports both B2B (company_id) and Member (user_id) patterns
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
 
 // Environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,50 +26,67 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 /**
  * Helper function to get authenticated user ID from request
- * Supports both cookie-based auth and DEV_MODE header from middleware
+ * Uses SSR authentication + service role client for data access
+ * Supports DEV_MODE headers from middleware
  */
-async function getAuthenticatedUserId(request: NextRequest): Promise<{ userId: string; supabase: any } | null> {
-  const cookieStore = await cookies();
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storage: {
-        getItem: (key: string) => {
-          const cookie = cookieStore.get(key);
-          return cookie?.value ?? null;
-        },
-        setItem: (key: string, value: string) => {
-          cookieStore.set(key, value, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-          });
-        },
-        removeItem: (key: string) => {
-          cookieStore.delete(key);
-        },
+async function getAuthenticatedUserId(request: NextRequest): Promise<{ userId: string; serviceClient: any } | null> {
+  // Check for DEV_MODE header from middleware (DEV_MODE has priority)
+  const devModeUserId = request.headers.get('x-user-id');
+  const isDevMode = request.headers.get('x-dev-mode') === 'true';
+
+  // =====================================================
+  // DEV MODE: Mock session for testing (SECURE: server-side only)
+  // =====================================================
+  if (isDevMode && devModeUserId) {
+    const serviceClient = createServiceClient();
+    console.log('[Quotation Detail API] DEV_MODE: Using x-user-id header:', devModeUserId);
+    return { userId: devModeUserId, serviceClient };
+  }
+
+  // Legacy DEV_MODE support (cookie-based)
+  const isDevModeCookie = process.env.NODE_ENV === 'development' &&
+                    process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+
+  if (isDevModeCookie) {
+    const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+    if (devMockUserId) {
+      const serviceClient = createServiceClient();
+      console.log('[Quotation Detail API] DEV_MODE: Using mock user:', devMockUserId);
+      return { userId: devMockUserId, serviceClient };
+    }
+
+    // Use placeholder for dev mode testing
+    const serviceClient = createServiceClient();
+    return { userId: '00000000-0000-0000-0000-000000000000', serviceClient };
+  }
+
+  // =====================================================
+  // PRODUCTION: Get real session from Supabase
+  // =====================================================
+  const response = NextResponse.json({ success: false });
+  const supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+      set(name: string, value: string, options: any) {
+        response.cookies.set({ name, value, ...options });
+      },
+      remove(name: string, options: any) {
+        response.cookies.delete({ name, ...options });
       },
     },
   });
 
-  // Check for DEV_MODE header from middleware
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
-  if (isDevMode && devModeUserId) {
-    // DEV_MODE: Use header from middleware
-    console.log('[Quotation Detail API] DEV_MODE: Using x-user-id header:', devModeUserId);
-    return { userId: devModeUserId, supabase };
-  }
-
-  // Normal auth: Use cookie-based auth
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  if (userError || !user?.id) {
+  if (userError || !user) {
+    console.log('[Quotation Detail API] No valid user found');
     return null;
   }
 
-  return { userId: user.id, supabase };
+  const serviceClient = createServiceClient();
+  return { userId: user.id, serviceClient };
 }
 
 /**
@@ -110,7 +130,7 @@ async function createAuthenticatedClient() {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await getAuthenticatedUserId(request);
@@ -122,11 +142,11 @@ export async function GET(
       );
     }
 
-    const { userId, supabase } = authResult;
-    const quotationId = params.id;
+    const { userId, serviceClient } = authResult;
+    const { id: quotationId } = await params;
 
-    // Fetch quotation with items
-    const { data: quotation, error } = await supabase
+    // Fetch quotation with items using SERVICE ROLE client
+    const { data: quotation, error } = await serviceClient
       .from('quotations')
       .select(`
         *,
@@ -176,7 +196,7 @@ export async function GET(
 
 /**
  * PATCH /api/member/quotations/[id]
- * Update quotation (DRAFT status only)
+ * Update quotation (DRAFT status only) + status changes (DRAFT→SENT)
  *
  * Request Body:
  * {
@@ -185,12 +205,13 @@ export async function GET(
  *   "customer_phone": "string | null" (optional),
  *   "notes": "string | null" (optional),
  *   "valid_until": "ISO date string | null" (optional),
+ *   "status": "SENT" (optional - allows DRAFT→SENT transition),
  *   "items": [...]
  * }
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await getAuthenticatedUserId(request);
@@ -202,12 +223,12 @@ export async function PATCH(
       );
     }
 
-    const { userId, supabase } = authResult;
-    const quotationId = params.id;
+    const { userId, serviceClient } = authResult;
+    const { id: quotationId } = await params;
     const body = await request.json();
 
     // First, check if quotation exists and belongs to user
-    const { data: existingQuotation, error: fetchError } = await supabase
+    const { data: existingQuotation, error: fetchError } = await serviceClient
       .from('quotations')
       .select('*')
       .eq('id', quotationId)
@@ -243,10 +264,26 @@ export async function PATCH(
     if (body.notes !== undefined) updates.notes = body.notes;
     if (body.valid_until !== undefined) updates.valid_until = body.valid_until;
 
+    // Handle status changes (only DRAFT→SENT allowed)
+    if (body.status !== undefined) {
+      if (existingQuotation.status === 'DRAFT' && body.status === 'SENT') {
+        updates.status = 'SENT';
+        updates.sent_at = new Date().toISOString();
+      } else if (body.status !== existingQuotation.status) {
+        return NextResponse.json(
+          {
+            error: '無効なステータス変更です。',
+            errorEn: 'Invalid status change. Only DRAFT→SENT is allowed.'
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update items if provided
     if (body.items && Array.isArray(body.items)) {
       // Delete existing items
-      await supabase
+      await serviceClient
         .from('quotation_items')
         .delete()
         .eq('quotation_id', quotationId);
@@ -261,7 +298,7 @@ export async function PATCH(
         specifications: item.specifications || null,
       }));
 
-      const { error: itemsError } = await supabase
+      const { error: itemsError } = await serviceClient
         .from('quotation_items')
         .insert(itemsToInsert);
 
@@ -281,7 +318,7 @@ export async function PATCH(
     }
 
     // Update quotation
-    const { data: updatedQuotation, error: updateError } = await supabase
+    const { data: updatedQuotation, error: updateError } = await serviceClient
       .from('quotations')
       .update(updates)
       .eq('id', quotationId)
@@ -337,7 +374,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await getAuthenticatedUserId(request);
@@ -349,11 +386,11 @@ export async function DELETE(
       );
     }
 
-    const { userId, supabase } = authResult;
-    const quotationId = params.id;
+    const { userId, serviceClient } = authResult;
+    const { id: quotationId } = await params;
 
     // First, check if quotation exists and belongs to user
-    const { data: existingQuotation, error: fetchError } = await supabase
+    const { data: existingQuotation, error: fetchError } = await serviceClient
       .from('quotations')
       .select('status')
       .eq('id', quotationId)
@@ -382,13 +419,13 @@ export async function DELETE(
     }
 
     // Delete quotation items first (foreign key constraint)
-    await supabase
+    await serviceClient
       .from('quotation_items')
       .delete()
       .eq('quotation_id', quotationId);
 
     // Delete quotation
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await serviceClient
       .from('quotations')
       .delete()
       .eq('id', quotationId);

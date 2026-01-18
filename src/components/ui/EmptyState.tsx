@@ -14,7 +14,7 @@ export function EmptyState({ title, description, icon, action }: EmptyStateProps
   return (
     <div className="text-center py-12">
       {icon && (
-        <div className="mx-auto mb-4 text-gray-400">
+        <div className="mx-auto mb-4">
           {icon}
         </div>
       )}

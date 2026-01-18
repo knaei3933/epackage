@@ -5,7 +5,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 /**
  * POST /api/admin/production/update-status
  * 生産ジョブのステータスを更新
- * Note: production_orders テーブルを使用 (9단계 생산 프로세스)
+ * Note: production_orders テーブルを使用（9段階生産プロセス）
  */
 export async function POST(request: NextRequest) {
   try {

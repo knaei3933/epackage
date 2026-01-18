@@ -1,10 +1,10 @@
 /**
  * Contact Form API Route
  *
- * Contact Form 제출 처리:
- * - Zod validation
- * - DB 저장 (inquiries 테이블)
- * - SendGrid 이메일 발송 (고객 + 관리자)
+ * Contact Form送信処理:
+ * - Zod検証
+ * - DB保存（inquiriesテーブル）
+ * - SendGridメール送信（顧客＋管理者）
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -159,8 +159,8 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
 
     if (!emailResult.success) {
       console.error('[Contact API] Email errors:', emailResult.errors);
-      // Email 실패는 에러로 처리하지 않고 로그만 남김
-      // DB는 이미 저장되었으므로 성공 응답
+      // Email失敗はエラーとして処理せずログのみ記録
+      // DBは既に保存済みのため成功レスポンス
     } else {
       console.log('[Contact API] Emails sent successfully:', {
         customer: emailResult.customerEmail?.messageId,
@@ -220,7 +220,7 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
 export const POST = withRateLimit(handleContactPost, contactRateLimiter);
 
 /**
- * GET 메서드 - API 상태 확인
+ * GETメソッド - API状態確認
  */
 export async function GET() {
   return NextResponse.json({

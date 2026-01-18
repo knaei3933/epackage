@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createExtractionEngine } from '@/lib/ai-parser/core';
+import { notifyAIExtractionComplete } from '@/lib/admin-notifications';
 import type { Database } from '@/types/database';
 import {
   ExtractionStatus,
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'MISSING_FILE',
-          message: '파일이 업로드되지 않았습니다.',
+          message: 'ファイルがアップロードされていません。',
         },
       }, { status: 400 });
     }
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'MISSING_ORDER_ID',
-          message: '주문 ID가 필요합니다.',
+          message: '注文IDが必要です。',
         },
       }, { status: 400 });
     }
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'INVALID_FILE_FORMAT',
-          message: `지원하지 않는 파일 형식입니다. ${validExtensions.join(', ')} 파일만 업로드 가능합니다.`,
+          message: `サポートされていないファイル形式です。${validExtensions.join(', ')}ファイルのみアップロード可能です。`,
         },
       }, { status: 400 });
     }
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'FILE_TOO_LARGE',
-          message: '파일 크기가 50MB를 초과합니다.',
+          message: 'ファイルサイズが50MBを超えています。',
         },
       }, { status: 400 });
     }
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'ORDER_NOT_FOUND',
-          message: '주문을 찾을 수 없습니다.',
+          message: '注文が見つかりません。',
         },
       }, { status: 404 });
     }
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'UPLOAD_FAILED',
-          message: '파일 업로드에 실패했습니다.',
+          message: 'ファイルのアップロードに失敗しました。',
         },
       }, { status: 500 });
     }
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'DATABASE_ERROR',
-          message: '파일 정보 저장에 실패했습니다.',
+          message: 'ファイル情報の保存に失敗しました。',
         },
       }, { status: 500 });
     }
@@ -217,7 +218,7 @@ export async function POST(request: NextRequest) {
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: '서버 오류가 발생했습니다.',
+        message: 'サーバーエラーが発生しました。',
       },
     }, { status: 500 });
   }
@@ -277,6 +278,27 @@ async function startExtraction(fileId: string, orderId: string, file: File) {
           extracted_at: result.metadata.extracted_at,
         } as Database['public']['Tables']['production_data']['Insert']['extraction_metadata'],
       });
+    }
+
+    // If extraction successful, create notification
+    try {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('order_number')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await notifyAIExtractionComplete(
+          orderId,
+          order.order_number,
+          fileId,
+          file.name,
+          result.validation.confidence.overall
+        );
+      }
+    } catch (notifyError) {
+      console.error('[AI Extraction] Notification error:', notifyError);
     }
 
   } catch (error) {

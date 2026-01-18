@@ -1,8 +1,8 @@
 /**
  * Admin Notification List Component
  *
- * 관리자 알림 목록 컴포넌트
- * 알림 목록 표시 및 읽음 표시 기능
+ * 管理者通知リストコンポーネント
+ * 通知リスト表示及び既読表示機能
  *
  * @module components/admin/notifications
  */
@@ -41,7 +41,7 @@ export function NotificationList({
   const [loading, setLoading] = useState(false)
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
 
-  // 알림 목록 가져오기
+  // 通知リストを取得
   const fetchNotifications = useCallback(async () => {
     setLoading(true)
     try {
@@ -58,14 +58,14 @@ export function NotificationList({
     }
   }, [])
 
-  // 컴포넌트 마운트 시 알림 가져오기
+  // コンポーネントマウント時に通知を取得
   useEffect(() => {
     if (isOpen) {
       fetchNotifications()
     }
   }, [isOpen, fetchNotifications])
 
-  // 알림 읽음 표시
+  // 通知を既読にする
   const handleMarkAsRead = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     setActionInProgress(notificationId)
@@ -87,7 +87,7 @@ export function NotificationList({
     }
   }
 
-  // 모두 읽음 표시
+  // すべて既読にする
   const handleMarkAllAsRead = async () => {
     try {
       const response = await fetch('/api/admin/notifications', {
@@ -104,7 +104,7 @@ export function NotificationList({
     }
   }
 
-  // 알림 삭제
+  // 通知を削除
   const handleDelete = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     setActionInProgress(notificationId)
@@ -124,7 +124,7 @@ export function NotificationList({
     }
   }
 
-  // 알림 타입별 아이콘 반환
+  // 通知タイプ別アイコンを返す
   const getIconForType = (type: string) => {
     switch (type) {
       case 'order':
@@ -148,7 +148,7 @@ export function NotificationList({
     }
   }
 
-  // 알림 타입별 색상 반환
+  // 通知タイプ別色を返す
   const getIconColorForType = (type: string) => {
     switch (type) {
       case 'order':
@@ -172,7 +172,7 @@ export function NotificationList({
     }
   }
 
-  // 우선순위별 표시样式
+  // 優先度別スタイル
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
       case 'urgent':
@@ -190,15 +190,15 @@ export function NotificationList({
 
   return (
     <>
-      {/* 오버레이 */}
+      {/* オーバーレイ */}
       <div
         className="fixed inset-0 bg-black/20 z-40"
         onClick={onClose}
       />
 
-      {/* 알림 패널 */}
+      {/* 通知パネル */}
       <div className="fixed right-4 top-16 w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-2xl z-50 max-h-[80vh] flex flex-col">
-        {/* 헤더 */}
+        {/* ヘッダー */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             通知
@@ -212,7 +212,7 @@ export function NotificationList({
           </button>
         </div>
 
-        {/* 알림 목록 */}
+        {/* 通知リスト */}
         {loading ? (
           <div className="flex-1 flex items-center justify-center p-8">
             <div className="text-center">
@@ -241,14 +241,14 @@ export function NotificationList({
                 )} ${!notification.is_read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
               >
                 <div className="flex items-start gap-3">
-                  {/* 아이콘 */}
+                  {/* アイコン */}
                   <div className={`flex-shrink-0 p-2 rounded-full ${getIconColorForType(
                     notification.type
                   )}`}>
                     {getIconForType(notification.type)}
                   </div>
 
-                  {/* 내용 */}
+                  {/* 内容 */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="text-sm font-medium text-gray-900 dark:text-white">
@@ -269,7 +269,7 @@ export function NotificationList({
                         })}
                       </p>
 
-                      {/* 액션 버튼 */}
+                      {/* アクションボタン */}
                       <div className="flex items-center gap-1">
                         {!notification.is_read && (
                           <button
@@ -292,7 +292,7 @@ export function NotificationList({
                       </div>
                     </div>
 
-                    {/* 액션 버튼 (있는 경우) */}
+                    {/* アクションボタン（存在する場合） */}
                     {notification.action_url && (
                       <a
                         href={notification.action_url}
@@ -309,7 +309,7 @@ export function NotificationList({
           </div>
         )}
 
-        {/* 푸터 */}
+        {/* フッター */}
         {notifications.length > 0 && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <button

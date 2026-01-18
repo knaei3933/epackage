@@ -9,11 +9,14 @@
 
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-
 // =====================================================
 // Helper: Security Headers Validation
 // =====================================================
+
+// Helper to get base URL from test context
+function getBaseUrl({ baseURL }: { baseURL?: string }): string {
+  return baseURL || 'http://localhost:3006';
+}
 
 async function validateSecurityHeaders(response: any) {
   const headers = response.headers();
@@ -91,9 +94,10 @@ test.describe('CSP 헤더 검증', () => {
     { path: '/quote-simulator', name: '견적 시뮬레이터' },
   ];
 
-  for (const page of pages) {
-    test(`[${page.name}] 모든 페이지에서 CSP 헤더가 올바르게 설정되어 있어야 함`, async ({ page }) => {
-      const response = await page.goto(`${BASE_URL}${page.path}`);
+  for (const routeConfig of pages) {
+    test(`[${routeConfig.name}] 모든 페이지에서 CSP 헤더가 올바르게 설정되어 있어야 함`, async ({ page, baseURL }) => {
+      const baseUrl = getBaseUrl({ baseURL });
+      const response = await page.goto(`${baseUrl}${routeConfig.path}`);
 
       expect(response?.ok()).toBeTruthy();
 
@@ -108,8 +112,9 @@ test.describe('CSP 헤더 검증', () => {
       expect(securityChecks.permissionsPolicy).toBe(true);
     });
 
-    test(`[${page.name}] CSP의 script-src가 적절하게 제한되어 있어야 함`, async ({ page }) => {
-      const response = await page.goto(`${BASE_URL}${page.path}`);
+    test(`[${routeConfig.name}] CSP의 script-src가 적절하게 제한되어 있어야 함`, async ({ page, baseURL }) => {
+      const baseUrl = getBaseUrl({ baseURL });
+      const response = await page.goto(`${baseUrl}${routeConfig.path}`);
       const csp = response?.headers()['content-security-policy'];
 
       expect(csp).toBeDefined();
@@ -123,8 +128,9 @@ test.describe('CSP 헤더 검증', () => {
       }
     });
 
-    test(`[${page.name}] CSP의 img-src가 적절하게 제한되어 있어야 함`, async ({ page }) => {
-      const response = await page.goto(`${BASE_URL}${page.path}`);
+    test(`[${routeConfig.name}] CSP의 img-src가 적절하게 제한되어 있어야 함`, async ({ page, baseURL }) => {
+      const baseUrl = getBaseUrl({ baseURL });
+      const response = await page.goto(`${baseUrl}${routeConfig.path}`);
       const csp = response?.headers()['content-security-policy'];
 
       expect(csp).toBeDefined();
@@ -142,11 +148,12 @@ test.describe('CSP 헤더 검증', () => {
 // =====================================================
 
 test.describe('크로스 오리진 요청 차단', () => {
-  test('동일 오리진からのPOST 요청은 성공해야 함', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/contact`, {
+  test('동일 오리진からのPOST 요청은 성공해야 함', async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await request.post(`${baseUrl}/api/contact`, {
       headers: {
-        'Origin': BASE_URL,
-        'Referer': `${BASE_URL}/contact`,
+        'Origin': baseUrl,
+        'Referer': `${baseUrl}/contact`,
         'Content-Type': 'application/json',
       },
       data: {
@@ -166,8 +173,9 @@ test.describe('크로스 오리진 요청 차단', () => {
     expect(response.status()).not.toBe(403);
   });
 
-  test('다른 오리진からのPOST 요청은 차단되어야 함', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/contact`, {
+  test('다른 오리진からのPOST 요청은 차단되어야 함', async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await request.post(`${baseUrl}/api/contact`, {
       headers: {
         'Origin': 'https://malicious-site.com',
         'Referer': 'https://malicious-site.com/evil-page',
@@ -191,8 +199,9 @@ test.describe('크로스 오리진 요청 차단', () => {
     }
   });
 
-  test('Origin 헤더가 없는 POST 요청은 차단되어야 함', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/contact`, {
+  test('Origin 헤더가 없는 POST 요청은 차단되어야 함', async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await request.post(`${baseUrl}/api/contact`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -217,8 +226,9 @@ test.describe('크로스 오리진 요청 차단', () => {
 // =====================================================
 
 test.describe('폼 제출 보안', () => {
-  test('연락처 폼이 CSRF 보호되어 있어야 함', async ({ page }) => {
-    await page.goto(`${BASE_URL}/contact`);
+  test('연락처 폼이 CSRF 보호되어 있어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    await page.goto(`${baseUrl}/contact`);
 
     // 폼이 존재하는지 확인
     const form = page.locator('form').first();
@@ -234,8 +244,9 @@ test.describe('폼 제출 보안', () => {
     }
   });
 
-  test('샘플 요청 폼이 CSRF 보호되어 있어야 함', async ({ page }) => {
-    await page.goto(`${BASE_URL}/samples`);
+  test('샘플 요청 폼이 CSRF 보호되어 있어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    await page.goto(`${baseUrl}/samples`);
 
     // 폼이 존재하는지 확인
     const form = page.locator('form').first();
@@ -244,11 +255,12 @@ test.describe('폼 제출 보안', () => {
     // 폼 액션이 동일 도메인인지 확인
     const formAction = await form.getAttribute('action');
     if (formAction) {
-      expect(formAction).toMatch(new RegExp(`^${BASE_URL}|^/`));
+      expect(formAction).toMatch(new RegExp(`^${baseUrl}|^/`));
     }
   });
 
-  test('외부 사이트에서 폼 제출이 차단되어야 함', async ({ page }) => {
+  test('외부 사이트에서 폼 제출이 차단되어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
     // 악의적인 사이트 시뮬레이션
     const maliciousSite = `
       <!DOCTYPE html>
@@ -256,7 +268,7 @@ test.describe('폼 제출 보안', () => {
       <head><title>Malicious Site</title></head>
       <body>
         <h1>Evil Site</h1>
-        <form id="csrf-form" method="POST" action="${BASE_URL}/api/contact">
+        <form id="csrf-form" method="POST" action="${baseUrl}/api/contact">
           <input type="hidden" name="name" value="CSRF Attack">
           <input type="hidden" name="email" value="evil@hacker.com">
           <input type="hidden" name="company" value="Evil Corp">
@@ -293,11 +305,12 @@ test.describe('폼 제출 보안', () => {
 // =====================================================
 
 test.describe('Referer 헤더 검증', () => {
-  test('유효한 Referer 헤더로 요청이 성공해야 함', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/contact`, {
+  test('유효한 Referer 헤더로 요청이 성공해야 함', async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await request.post(`${baseUrl}/api/contact`, {
       headers: {
-        'Origin': BASE_URL,
-        'Referer': `${BASE_URL}/contact`,
+        'Origin': baseUrl,
+        'Referer': `${baseUrl}/contact`,
         'Content-Type': 'application/json',
       },
       data: {
@@ -313,8 +326,9 @@ test.describe('Referer 헤더 검증', () => {
     expect([200, 400, 422]).toContain(response.status());
   });
 
-  test('악의적인 Referer 헤더가 차단되어야 함', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/contact`, {
+  test('악의적인 Referer 헤더가 차단되어야 함', async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await request.post(`${baseUrl}/api/contact`, {
       headers: {
         'Origin': 'https://evil.com',
         'Referer': 'https://evil.com/phishing-page',
@@ -343,16 +357,17 @@ test.describe('Referer 헤더 검증', () => {
 
 test.describe('JSON API 엔드포인트 보호', () => {
   const apiEndpoints = [
-    { path: '/api/b2b/orders', method: 'POST', name: 'B2B 주문 생성' },
-    { path: '/api/b2b/contracts', method: 'POST', name: 'B2B 계약서 생성' },
+    { path: '/api/member/orders', method: 'POST', name: '회원 주문 생성' },
+    { path: '/api/contracts', method: 'POST', name: '계약서 생성' },
   ];
 
   for (const endpoint of apiEndpoints) {
-    test(`[${endpoint.name}] 동일 오리진からの요청이 허용되어야 함`, async ({ request }) => {
-      const response = await request[endpoint.method.toLowerCase() as 'post'](`${BASE_URL}${endpoint.path}`, {
+    test(`[${endpoint.name}] 동일 오리진からの요청이 허용되어야 함`, async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+      const response = await request[endpoint.method.toLowerCase() as 'post'](`${baseUrl}${endpoint.path}`, {
         headers: {
-          'Origin': BASE_URL,
-          'Referer': `${BASE_URL}/b2b/orders`,
+          'Origin': baseUrl,
+          'Referer': `${baseUrl}/member/orders`,
           'Content-Type': 'application/json',
           // 인증 헤더는 실제 테스트에서 추가 필요
         },
@@ -372,8 +387,9 @@ test.describe('JSON API 엔드포인트 보호', () => {
       }
     });
 
-    test(`[${endpoint.name}] 외部오리cinからの요청이 차단되어야 함`, async ({ request }) => {
-      const response = await request[endpoint.method.toLowerCase() as 'post'](`${BASE_URL}${endpoint.path}`, {
+    test(`[${endpoint.name}] 외部오리cinからの요청이 차단되어야 함`, async ({ request, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+      const response = await request[endpoint.method.toLowerCase() as 'post'](`${baseUrl}${endpoint.path}`, {
         headers: {
           'Origin': 'https://external-attacker.com',
           'Referer': 'https://external-attacker.com/attack',
@@ -395,16 +411,18 @@ test.describe('JSON API 엔드포인트 보호', () => {
 // =====================================================
 
 test.describe('보안 헤더 강화 확인', () => {
-  test('모든 페이지에서 X-Frame-Options가 SAMEORIGIN 또는 DENY여야 함', async ({ page }) => {
-    const response = await page.goto(`${BASE_URL}/`);
+  test('모든 페이지에서 X-Frame-Options가 SAMEORIGIN 또는 DENY여야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await page.goto(`${baseUrl}/`);
     const xFrameOptions = response?.headers()['x-frame-options'];
 
     expect(xFrameOptions).toBeDefined();
     expect(['DENY', 'SAMEORIGIN']).toContain(xFrameOptions);
   });
 
-  test('프로덕션 환경에서 HSTS가 활성화되어야 함', async ({ page }) => {
-    const response = await page.goto(`${BASE_URL}/`);
+  test('프로덕션 환경에서 HSTS가 활성화되어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await page.goto(`${baseUrl}/`);
     const hsts = response?.headers()['strict-transport-security'];
 
     if (process.env.NODE_ENV === 'production') {
@@ -417,8 +435,9 @@ test.describe('보안 헤더 강화 확인', () => {
     }
   });
 
-  test('CSP가 frame-src none 또는 self로 설정되어 있어야 함', async ({ page }) => {
-    const response = await page.goto(`${BASE_URL}/`);
+  test('CSP가 frame-src none 또는 self로 설정되어 있어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    const response = await page.goto(`${baseUrl}/`);
     const csp = response?.headers()['content-security-policy'];
 
     expect(csp).toBeDefined();
@@ -432,7 +451,8 @@ test.describe('보안 헤더 강화 확인', () => {
 // =====================================================
 
 test.describe('CSRF 공격 시뮬레이션', () => {
-  test('이미지 태그를 이용한 CSRF 공격이 차단되어야 함', async ({ page }) => {
+  test('이미지 태그를 이용한 CSRF 공격이 차단되어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
     // 악의적인 사이트에서 이미지 태그로 GET 요청을 보내는 시도
     const maliciousSite = `
       <!DOCTYPE html>
@@ -440,7 +460,7 @@ test.describe('CSRF 공격 시뮬레이션', () => {
       <head><title>Malicious Site</title></head>
       <body>
         <h1>Win a Prize!</h1>
-        <img src="${BASE_URL}/api/contact?name=CSRF&email=evil@hacker.com" style="display:none">
+        <img src="${baseUrl}/api/contact?name=CSRF&email=evil@hacker.com" style="display:none">
       </body>
       </html>
     `;
@@ -457,7 +477,8 @@ test.describe('CSRF 공격 시뮬레이션', () => {
     // 이 테스트는 브라우저의 기본 보안 정책에 의존
   });
 
-  test('폼 자동 제출을 이용한 CSRF 공격이 차단되어야 함', async ({ context }) => {
+  test('폼 자동 제출을 이용한 CSRF 공격이 차단되어야 함', async ({ context, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
     // 새 컨텍스트로 악의적인 사이트 방문 시뮬레이션
     const maliciousPage = await context.newPage();
 
@@ -467,7 +488,7 @@ test.describe('CSRF 공격 시뮬레이션', () => {
       <head><title>Malicious Site</title></head>
       <body>
         <h1>Click to Win!</h1>
-        <form id="evil-form" method="POST" action="${BASE_URL}/api/contact">
+        <form id="evil-form" method="POST" action="${baseUrl}/api/contact">
           <input type="hidden" name="name" value="CSRF Attack">
           <input type="hidden" name="email" value="attacker@evil.com">
           <input type="hidden" name="company" value="Evil Corp">
@@ -501,8 +522,9 @@ test.describe('CSRF 공격 시뮬레이션', () => {
 // =====================================================
 
 test.describe('쿠키 보안', () => {
-  test('모든 쿠키가 Secure 플래그로 설정되어야 함 (프로덕션)', async ({ page }) => {
-    await page.goto(`${BASE_URL}/`);
+  test('모든 쿠키가 Secure 플래그로 설정되어야 함 (프로덕션)', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    await page.goto(`${baseUrl}/`);
 
     const cookies = await page.context().cookies();
 
@@ -520,8 +542,9 @@ test.describe('쿠키 보안', () => {
     }
   });
 
-  test('세션 쿠키가 SameSite=Strict 또는 Lax로 설정되어야 함', async ({ page }) => {
-    await page.goto(`${BASE_URL}/`);
+  test('세션 쿠키가 SameSite=Strict 또는 Lax로 설정되어야 함', async ({ page, baseURL: configBaseUrl }) => {
+    const baseUrl = getBaseUrl({ baseURL: configBaseUrl });
+    await page.goto(`${baseUrl}/`);
 
     const cookies = await page.context().cookies();
     const sessionCookies = cookies.filter(c =>
@@ -530,10 +553,11 @@ test.describe('쿠키 보안', () => {
 
     for (const cookie of sessionCookies) {
       // SameSite 속성 확인
-      expect(['strict', 'lax', 'none']).toContain(cookie.sameSite || 'lax');
+      const sameSite = cookie.sameSite as string;
+      expect(['Strict', 'Lax', 'None', 'strict', 'lax', 'none']).toContain(sameSite || 'Lax');
 
-      // 'none'인 경우 Secure 플래그가 필수
-      if (cookie.sameSite === 'none') {
+      // 'None'인 경우 Secure 플래그가 필수
+      if (sameSite === 'None' || sameSite === 'none') {
         expect(cookie.secure).toBe(true);
       }
     }

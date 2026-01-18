@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 전자서명 컴포넌트 (Electronic Signature Component)
- * 일본 전자서명법 준수의 전자서명 UI
+ * 電子署名コンポーネント (Electronic Signature Component)
+ * 日本電子署名法準拠の電子署名UI
  * Japan e-Signature Law Compliant Electronic Signature
  */
 
@@ -184,7 +184,7 @@ export default function ElectronicSignature({
     if (!hasSignature || !agreedToTerms) {
       setStatus({
         type: 'error',
-        message: '서명과 이용약관 동의가 모두 필요합니다.'
+        message: '署名と利用規約の同意が両方必要です。'
       });
       return;
     }
@@ -200,7 +200,7 @@ export default function ElectronicSignature({
       const signatureImage = canvas.toDataURL('image/png');
 
       // Get client info for compliance
-      const response = await fetch('/api/b2b/contracts/sign', {
+      const response = await fetch('/api/member/contracts/sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,7 +214,7 @@ export default function ElectronicSignature({
       if (result.success) {
         setStatus({
           type: 'success',
-          message: '전자서명이 완료되었습니다.'
+          message: '電子署名が完了しました。'
         });
 
         if (onSignComplete) {
@@ -223,14 +223,14 @@ export default function ElectronicSignature({
       } else {
         setStatus({
           type: 'error',
-          message: result.error || '서명 처리 중 오류가 발생했습니다.'
+          message: result.error || '署名処理中にエラーが発生しました。'
         });
       }
     } catch (error) {
       console.error('Signature submission error:', error);
       setStatus({
         type: 'error',
-        message: '서명 처리 중 오류가 발생했습니다.'
+        message: '署名処理中にエラーが発生しました。'
       });
     } finally {
       setIsSigning(false);
@@ -243,10 +243,10 @@ export default function ElectronicSignature({
       <Card className="p-6">
         <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
           <Pen className="w-6 h-6" />
-          전자서명 (電子署名)
+          電子署名 (電子署名)
         </h1>
         <p className="text-gray-600">
-          계약서 번호: {contractNumber}
+          契約番号: {contractNumber}
         </p>
       </Card>
 
@@ -254,7 +254,7 @@ export default function ElectronicSignature({
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <FileText className="w-5 h-5" />
-          계약서 내용 확인
+          契約内容確認
         </h2>
         <div className="bg-gray-50 p-4 rounded-lg mb-4">
           <iframe
@@ -264,7 +264,7 @@ export default function ElectronicSignature({
           />
         </div>
         <p className="text-sm text-gray-600">
-          위 계약서 내용을 확인하신 후, 서명란에 서명해 주십시오.
+          上記契約内容をご確認の上、署名欄に署名してください。
         </p>
       </Card>
 
@@ -272,7 +272,7 @@ export default function ElectronicSignature({
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Fingerprint className="w-5 h-5" />
-          서명란 (署名欄)
+          署名欄 (署名欄)
         </h2>
 
         {/* Canvas */}
@@ -293,7 +293,7 @@ export default function ElectronicSignature({
         {/* Canvas Controls */}
         <div className="flex justify-between items-center mb-4">
           <div className="text-sm text-gray-600">
-            위 영역에 마우스 또는 손가락으로 서명해 주십시오.
+            上記エリアにマウスまたは指で署名してください。
           </div>
           <Button
             variant="outline"
@@ -301,17 +301,17 @@ export default function ElectronicSignature({
             disabled={!hasSignature}
           >
             <Eraser className="w-4 h-4 mr-2" />
-            지우기
+            消去
           </Button>
         </div>
 
         {/* Legal Agreement */}
         <div className="bg-blue-50 p-4 rounded-lg mb-4">
-          <h3 className="font-semibold mb-2">전자서명 동의 (電子署名同意)</h3>
+          <h3 className="font-semibold mb-2">電子署名同意 (電子署名同意)</h3>
           <p className="text-sm text-gray-700 mb-4">
-            본인은 위 계약서 내용을 충분히 이해하였으며, 전자서명법에 의거하여
-            전자서명을 동의합니다. 서명 시점의 IP 주소, 타임스탬프 등의 정보가
-            기록됩니다.
+            本人は上記契約内容を十分に理解し、電子署名法に基づき
+            電子署名に同意します。署名時のIPアドレス、タイムスタンプ等の情報が
+            記録されます。
           </p>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -321,7 +321,7 @@ export default function ElectronicSignature({
               className="rounded"
             />
             <span className="text-sm">
-              계약 내용을 확인하였으며 전자서명에 동의합니다 (同意する)
+              契約内容を確認し電子署名に同意します (同意する)
             </span>
           </label>
         </div>
@@ -331,10 +331,10 @@ export default function ElectronicSignature({
           <div className="bg-gray-50 p-4 rounded-lg mb-4 space-y-2">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Calendar className="w-4 h-4" />
-              <span>서명 일시: {new Date().toLocaleString('ja-JP')}</span>
+              <span>署名日時: {new Date().toLocaleString('ja-JP')}</span>
             </div>
             <p className="text-xs text-gray-500">
-              * 서명 완료 후 타임스탬프와 IP 주소가 자동으로 기록됩니다.
+              * 署名完了後、タイムスタンプとIPアドレスが自動的に記録されます。
             </p>
           </div>
         )}
@@ -367,7 +367,7 @@ export default function ElectronicSignature({
               onClick={onCancel}
               disabled={isSigning}
             >
-              취소
+              キャンセル
             </Button>
           )}
           <Button
@@ -376,18 +376,18 @@ export default function ElectronicSignature({
             size="lg"
           >
             <Check className="w-4 h-4 mr-2" />
-            서명 완료
+            署名完了
           </Button>
         </div>
       </Card>
 
       {/* Legal Notice */}
       <Card className="p-6 bg-gray-50">
-        <h3 className="font-semibold mb-2">전자서명법에 관한 안내</h3>
+        <h3 className="font-semibold mb-2">電子署名法に関する案内</h3>
         <p className="text-sm text-gray-600">
-          본 전자서명은 일본 전자서명법(電子署名法)에 준거하여 작성됩니다.
-          서명 시 기록되는 타임스탬프, IP 주소, 단말정보 등은 법적 효력을 갖는
-          증거로 보존됩니다. 서명 후에는 계약 내용의 변경이 불가능합니다.
+          本電子署名は日本電子署名法(電子署名法)に準拠して作成されます。
+          署名時に記録されるタイムスタンプ、IPアドレス、端末情報等は法的効力を有する
+          証拠として保存されます。署名後は契約内容の変更が不可能です。
         </p>
       </Card>
     </div>

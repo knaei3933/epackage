@@ -1,9 +1,9 @@
 /**
  * Sign In Page
  *
- * 로그인 페이지입니다.
+ * ログインページです。
  * - NextAuth.js Credentials Provider
- * - 일본어/한국어 이중 지원
+ * - 日本語UI
  */
 
 import { Metadata } from 'next';
@@ -29,7 +29,7 @@ export default function SignInPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="w-full max-w-md">
-        {/* 헤더 */}
+        {/* ヘッダー */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
             <h1 className="text-3xl font-bold text-brixa-600 dark:text-brixa-400">
@@ -44,7 +44,7 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* 로그인 폼 - Suspense boundary for useSearchParams */}
+        {/* ログインフォーム - Suspense boundary for useSearchParams */}
         <Suspense fallback={<div className="animate-pulse bg-gray-200 rounded-lg h-96" />}>
           <LoginForm />
         </Suspense>

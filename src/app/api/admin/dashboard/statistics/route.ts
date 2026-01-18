@@ -5,13 +5,13 @@ import type { Database } from '@/types/database';
 
 /**
  * GET /api/admin/dashboard/statistics
- * 관리자 대시보드 통계 API
+ * 管理者ダッシュボード統計API
  *
  * Query Parameters:
- * - period: 기간 (일수), 기본값 30일
+ * - period: 期間（日数）、デフォルト30日
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // 인증 검증
+  // 認証検証
   const auth = await verifyAdminAuth(request);
   if (!auth) {
     return unauthorizedResponse();
@@ -19,23 +19,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     const { searchParams } = new URL(request.url);
-    const period = parseInt(searchParams.get('period') || '30'); // 기본 30일
+    const period = parseInt(searchParams.get('period') || '30'); // デフォルト30日
 
     const supabase = createServiceClient();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - period);
 
-    // 1. 주문 통계 (Orders Statistics)
+    // 1. 注文統計（Orders Statistics）
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('status, total_amount, created_at')
       .gte('created_at', startDate.toISOString());
 
     if (ordersError) {
-      console.error('주문 통계 조회 오류:', ordersError);
+      console.error('注文統計取得エラー:', ordersError);
     }
 
-    // 주문 상태별 집계
+    // 注文ステータス別集計
     const ordersByStatus = orders?.reduce((acc: Record<string, number>, order: OrderRow) => {
       const status = order.status || 'UNKNOWN';
       acc[status] = (acc[status] || 0) + 1;
@@ -50,14 +50,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const totalOrders = orders?.length || 0;
     const totalRevenue = orders?.reduce((sum: number, order: OrderRow) => sum + (order.total_amount || 0), 0) || 0;
 
-    // 주문 상태별 세부 통계
+    // 注文ステータス別詳細統計
     const pendingOrders = orders?.filter(o => o.status === 'PENDING').length || 0;
     const inProgressOrders = orders?.filter(o =>
       ['QUOTATION', 'DATA_RECEIVED', 'WORK_ORDER', 'CONTRACT_SENT', 'CONTRACT_SIGNED', 'PRODUCTION'].includes(o.status)
     ).length || 0;
     const completedOrders = orders?.filter(o => o.status === 'DELIVERED').length || 0;
 
-    // 월별 매출 집계 (최근 6개월)
+    // 月別売上集計（最近6ヶ月）
     const monthlyRevenueMap = new Map<string, number>();
     orders?.forEach(order => {
       if (order.total_amount) {
@@ -70,9 +70,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const monthlyRevenue = Array.from(monthlyRevenueMap.entries())
       .map(([month, amount]) => ({ month, amount }))
       .sort((a, b) => a.month.localeCompare(b.month))
-      .slice(-6); // 최근 6개월
+      .slice(-6); // 最近6ヶ月
 
-    // 2. 견적 통계 (Quotations Statistics)
+    // 2. 見積統計（Quotations Statistics）
     const { data: quotations, error: quotationsError } = await supabase
       .from('quotations')
       .select('status, total_amount, created_at, customer_name, customer_email, quotation_number')
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .order('created_at', { ascending: false });
 
     if (quotationsError) {
-      console.error('견적 통계 조회 오류:', quotationsError);
+      console.error('見積統計取得エラー:', quotationsError);
     }
 
     const totalQuotations = quotations?.length || 0;
@@ -89,19 +89,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const approvedQuotations = quotations?.filter((q: QuotationRow) => q.status === 'APPROVED').length || 0;
     const pendingQuotations = draftQuotations + sentQuotations;
 
-    // 전환율 계산 (승인된 견적 / 전체 견적)
+    // 転換率計算（承認された見積 / 全体の見積）
     const conversionRate = totalQuotations > 0
       ? ((approvedQuotations / totalQuotations) * 100).toFixed(1)
       : '0.0';
 
-    // 3. 샘플 요청 통계 (Sample Requests Statistics)
+    // 3. サンプル依頼統計（Sample Requests Statistics）
     const { data: sampleRequests, error: sampleError } = await supabase
       .from('sample_requests')
       .select('status, created_at')
       .gte('created_at', startDate.toISOString());
 
     if (sampleError) {
-      console.error('샘플 요청 통계 조회 오류:', sampleError);
+      console.error('サンプル依頼統計取得エラー:', sampleError);
     }
 
     const totalSampleRequests = sampleRequests?.length || 0;
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     ).length || 0;
     const completedSamples = sampleRequests?.filter((s: SampleRequestRow) => s.status === 'delivered').length || 0;
 
-    // 4. 생산 통계 (Production Statistics)
+    // 4. 生産統計（Production Statistics）
     // Note: production_orders table is used (not production_jobs)
     const { data: productionOrders, error: productionError } = await supabase
       .from('production_orders')
@@ -118,10 +118,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .gte('created_at', startDate.toISOString());
 
     if (productionError) {
-      console.error('생산 통계 조회 오류:', productionError);
+      console.error('生産統計取得エラー:', productionError);
     }
 
-    // 진행 중인 생산 주문 (data_received ~ lamination 단계)
+    // 進行中の生産注文（data_received ~ lamination 段階）
     const inProgressProduction = productionOrders?.filter((p: any) =>
       p.current_stage && p.current_stage !== 'final_inspection'
     ).length || 0;
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       p.current_stage === 'final_inspection' && p.actual_completion_date
     ).length || 0;
 
-    // 평균 생산 기간 (일)
+    // 平均生産期間（日）
     const completedOrdersWithDates = productionOrders?.filter((p: any) =>
       p.current_stage === 'final_inspection' && p.started_at && p.actual_completion_date
     ) || [];
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         }, 0) / completedOrdersWithDates.length).toFixed(1)
       : '0.0';
 
-    // 5. 배송 통계 (Shipment Statistics)
+    // 5. 配送統計（Shipment Statistics）
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const { data: shipments, error: shipmentsError } = await supabase
@@ -152,23 +152,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .gte('shipped_at', today.toISOString());
 
     if (shipmentsError) {
-      console.error('배송 통계 조회 오류:', shipmentsError);
+      console.error('配送統計取得エラー:', shipmentsError);
     }
 
     const todayShipments = shipments?.length || 0;
     const inTransitShipments = shipments?.filter((s: SampleRequestRow) => s.status === 'in_transit').length || 0;
 
-    // 6. 매출 통계 (Revenue Statistics)
+    // 6. 売上統計（Revenue Statistics）
     const avgOrderAmount = totalOrders > 0
       ? (totalRevenue / totalOrders).toFixed(0)
       : '0';
 
     const statistics = {
-      // 기본 정보
+      // 基本情報
       period,
       generatedAt: new Date().toISOString(),
 
-      // 주문 통계
+      // 注文統計
       orders: {
         total: totalOrders,
         pending: pendingOrders,
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         byStatus: ordersByStatusArray
       },
 
-      // 견적 통계
+      // 見積統計
       quotations: {
         total: totalQuotations,
         draft: draftQuotations,
@@ -187,33 +187,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         pending: pendingQuotations,
         approved: approvedQuotations,
         conversionRate: parseFloat(conversionRate),
-        recent: quotations?.slice(0, 10) || [] // 최근 10개 견적
+        recent: quotations?.slice(0, 10) || [] // 最近10個の見積
       },
 
-      // 샘플 요청 통계
+      // サンプル依頼統計
       samples: {
         total: totalSampleRequests,
         processing: processingSamples,
         completed: completedSamples
       },
 
-      // 생산 통계
+      // 生産統計
       production: {
         inProgress: inProgressProduction,
         completed: completedProduction,
         avgDays: parseFloat(avgProductionDays)
       },
 
-      // 배송 통계
+      // 配送統計
       shipments: {
         today: todayShipments,
         inTransit: inTransitShipments
       },
 
-      // 월별 매출
+      // 月別売上
       monthlyRevenue,
 
-      // 레거시 호환성 (Legacy compatibility)
+      // レガシー互換性（Legacy compatibility）
       ordersByStatus: ordersByStatusArray,
       monthlyRevenue,
       pendingQuotations,
@@ -229,7 +229,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(statistics);
   } catch (error) {
-    console.error('통계 API 오류:', error);
+    console.error('統計APIエラー:', error);
     return NextResponse.json(
       {
         error: '統計データの取得に失敗しました',

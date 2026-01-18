@@ -231,7 +231,7 @@ export default function DetailedInquiryPage() {
                 詳細な入力が難しい場合は、通常のお問い合わせフォームもご利用いただけます
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact/">
+                <Link href="/contact">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -240,7 +240,7 @@ export default function DetailedInquiryPage() {
                     通常お問い合わせ
                   </Button>
                 </Link>
-                <Link href="/premium-content/">
+                <Link href="/premium-content">
                   <Button
                     variant="outline"
                     size="lg"

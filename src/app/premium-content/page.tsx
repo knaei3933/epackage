@@ -288,7 +288,7 @@ export default function PremiumContentPage() {
                 コンテンツをご覧いただき、具体的な導入プランについてご相談ください
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact/">
+                <Link href="/contact">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -297,7 +297,7 @@ export default function PremiumContentPage() {
                     無料相談する
                   </Button>
                 </Link>
-                <Link href="/roi-calculator/">
+                <Link href="/roi-calculator">
                   <Button
                     variant="outline"
                     size="lg"

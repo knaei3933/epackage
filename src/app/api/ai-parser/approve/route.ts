@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'MISSING_REQUIRED_FIELDS',
-          message: '파일 ID와 승인 데이터가 필요합니다.',
+          message: 'ファイルIDと承認データが必要です。',
         },
       }, { status: 400 });
     }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'UNAUTHORIZED',
-          message: '인증이 필요합니다.',
+          message: '認証が必要です。',
         },
       }, { status: 401 });
     }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'FILE_NOT_FOUND',
-          message: '파일을 찾을 수 없습니다.',
+          message: 'ファイルが見つかりません。',
         },
       }, { status: 404 });
     }
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         order_id: orderId,
         data_type: 'design_file',
         title: `Design File: ${fileWithOrder.file_name}`,
-        description: notes || 'AI 추출 데이터',
+        description: notes || 'AI抽出データ',
         version: '1.0',
         file_id: file_id,
         file_url: fileWithOrder.file_url,
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'DATABASE_ERROR',
-          message: '생산 데이터 생성에 실패했습니다.',
+          message: '生産データの作成に失敗しました。',
         },
       }, { status: 500 });
     }
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         .insert({
           order_id: orderId,
           work_order_number: workOrderNumber,
-          title: `작업표준서: ${fileWithOrder.file_name}`,
+          title: `作業標準書: ${fileWithOrder.file_name}`,
           version: '1.0',
           status: 'GENERATED',
           specifications: approved_data,
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: '서버 오류가 발생했습니다.',
+        message: 'サーバーエラーが発生しました。',
       },
     }, { status: 500 });
   }

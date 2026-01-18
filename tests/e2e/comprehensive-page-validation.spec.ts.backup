@@ -7,7 +7,7 @@
  * - Auth Pages (6)
  * - Member Portal (17)
  * - Admin Pages (12)
- * - Portal Pages (6)
+ * - Customer Portal Pages (6) - migrated from /portal to /admin/customers
  *
  * Status Validation:
  * - ✅ Working: All functionality works
@@ -653,7 +653,7 @@ test.describe('Comprehensive Page Validation - Admin Pages (12)', () => {
   });
 });
 
-test.describe('Comprehensive Page Validation - Portal Pages (6)', () => {
+test.describe('Comprehensive Page Validation - Customer Portal (6)', () => {
   // Helper: Sign in
   async function signInAsUser(page: any) {
     if (DEV_MODE) {
@@ -665,38 +665,48 @@ test.describe('Comprehensive Page Validation - Portal Pages (6)', () => {
     }
   }
 
-  test('[PORTAL-001] /portal - Portal dashboard', async ({ page }) => {
+  test('[PORTAL-001] /portal → /admin/customers - Redirect to customer portal', async ({ page }) => {
     await signInAsUser(page);
     await page.goto('/portal');
 
+    // Verify redirect to /admin/customers
+    await expect(page).toHaveURL(/\/admin\/customers/);
     await expect(page.locator('h1, main').first()).toBeVisible();
   });
 
-  test('[PORTAL-002] /portal/profile - Portal profile', async ({ page }) => {
+  test('[PORTAL-002] /portal/profile → /admin/customers/profile - Customer profile', async ({ page }) => {
     await signInAsUser(page);
     await page.goto('/portal/profile');
 
+    // Verify redirect to /admin/customers/profile
+    await expect(page).toHaveURL(/\/admin\/customers\/profile/);
     await expect(page.locator('h1, main').first()).toBeVisible();
   });
 
-  test('[PORTAL-003] /portal/orders - Portal orders', async ({ page }) => {
+  test('[PORTAL-003] /portal/orders → /admin/customers/orders - Customer orders', async ({ page }) => {
     await signInAsUser(page);
     await page.goto('/portal/orders');
 
+    // Verify redirect to /admin/customers/orders
+    await expect(page).toHaveURL(/\/admin\/customers\/orders/);
     await expect(page.locator('h1, main').first()).toBeVisible();
   });
 
-  test('[PORTAL-004] /portal/documents - Documents', async ({ page }) => {
+  test('[PORTAL-004] /portal/documents → /admin/customers/documents - Documents', async ({ page }) => {
     await signInAsUser(page);
     await page.goto('/portal/documents');
 
+    // Verify redirect to /admin/customers/documents
+    await expect(page).toHaveURL(/\/admin\/customers\/documents/);
     await expect(page.locator('h1, main').first()).toBeVisible();
   });
 
-  test('[PORTAL-005] /portal/support - Support center', async ({ page }) => {
+  test('[PORTAL-005] /portal/support → /admin/customers/support - Support center', async ({ page }) => {
     await signInAsUser(page);
     await page.goto('/portal/support');
 
+    // Verify redirect to /admin/customers/support
+    await expect(page).toHaveURL(/\/admin\/customers\/support/);
     await expect(page.locator('h1, main').first()).toBeVisible();
   });
 });

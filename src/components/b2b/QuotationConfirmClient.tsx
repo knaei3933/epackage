@@ -131,7 +131,7 @@ export function QuotationConfirmClient({
 
     try {
       // Create order confirmation request
-      const response = await fetch('/api/b2b/orders/confirm', {
+      const response = await fetch('/api/member/orders/confirm', {
         method: 'POST',
         credentials: 'include',
         headers: {

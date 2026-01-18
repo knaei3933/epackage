@@ -1,9 +1,9 @@
 /**
  * Admin Layout
  *
- * 관리자 페이지 공통 레이아웃
- * 알림 센터 포함
- * Error Boundary로 에러 복원력 강화
+ * 管理者ページ共通レイアウト
+ * 通知センター付き
+ * Error Boundaryでエラー復元力強化
  *
  * @module app/admin
  */

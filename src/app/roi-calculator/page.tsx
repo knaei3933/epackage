@@ -7,7 +7,7 @@ export default function ROICalculatorRedirect() {
   const router = useRouter()
 
   useEffect(() => {
-    // 301 리디렉션: quote-simulator로 영구 이동
+    // 301 リダイレクト: quote-simulatorへ永続移動
     router.replace('/quote-simulator')
   }, [router])
 

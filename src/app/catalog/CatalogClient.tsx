@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/Card'
 import { Grid } from '@/components/ui/Grid'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
+import { LoadingState } from '@/components/ui/LoadingState'
 import { EnhancedProductCard } from '@/components/catalog/EnhancedProductCard'
 import { ProductListItem } from '@/components/catalog/ProductListItem'
 import { AdvancedFilters } from '@/components/catalog/AdvancedFilters'
@@ -298,7 +299,7 @@ export function CatalogClient() {
                     <span className="text-xs sm:text-sm">サンプルご依頼</span>
                   </Button>
                 </Link>
-                <Link href="/roi-calculator/">
+                <Link href="/roi-calculator">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -369,42 +370,48 @@ export function CatalogClient() {
             </div>
 
             {/* Products */}
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, index) => (
-                  <Card key={index} className="animate-pulse">
-                    <div className="aspect-square bg-gray-200"></div>
-                    <div className="p-6 space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-full"></div>
-                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : filterState.viewMode === 'grid' ? (
-              <Grid xs={1} sm={2} lg={3} gap={6}>
-                {filteredProducts && Array.isArray(filteredProducts) ? filteredProducts.map((product, index) => (
-                  <EnhancedProductCard
-                    key={product?.id || index}
-                    product={product}
-                    index={index}
-                    onSelect={() => product && setSelectedProduct(product)}
-                  />
-                )) : []}
-              </Grid>
-            ) : (
-              <div className="space-y-4">
-                {filteredProducts && Array.isArray(filteredProducts) && filteredProducts.map((product, index) => (
-                  <ProductListItem
-                    key={product?.id || index}
-                    product={product}
-                    index={index}
-                    onSelect={() => setSelectedProduct(product)}
-                  />
-                ))}
-              </div>
-            )}
+            <LoadingState
+              isLoading={isLoading}
+              message="製品を読み込み中..."
+              loadingComponent={
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, index) => (
+                    <Card key={index} className="animate-pulse">
+                      <div className="aspect-square bg-gray-200"></div>
+                      <div className="p-6 space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              }
+            >
+              {filterState.viewMode === 'grid' ? (
+                <Grid xs={1} sm={2} lg={3} gap={6}>
+                  {filteredProducts && Array.isArray(filteredProducts) ? filteredProducts.map((product, index) => (
+                    <EnhancedProductCard
+                      key={product?.id || index}
+                      product={product}
+                      index={index}
+                      onSelect={() => product && setSelectedProduct(product)}
+                    />
+                  )) : []}
+                </Grid>
+              ) : (
+                <div className="space-y-4">
+                  {filteredProducts && Array.isArray(filteredProducts) && filteredProducts.map((product, index) => (
+                    <ProductListItem
+                      key={product?.id || index}
+                      product={product}
+                      index={index}
+                      onSelect={() => setSelectedProduct(product)}
+                    />
+                  ))}
+                </div>
+              )}
+            </LoadingState>
 
             {/* No Results */}
             {!isLoading && (!filteredProducts || filteredProducts.length === 0) && (
@@ -501,7 +508,7 @@ function ProductCard({ product, index, onSelect }: {
 
           {/* Features - showing material info instead */}
           <div className="flex flex-wrap gap-1 mb-4">
-            {product.materials.slice(0, 3).map((material, idx) => (
+            {(product.materials || []).slice(0, 3).map((material, idx) => (
               <Badge key={idx} variant="outline" className="text-xs">
                 {material}
               </Badge>
@@ -525,7 +532,7 @@ function ProductCard({ product, index, onSelect }: {
             <div>
               <p className="text-sm text-gray-600">初期費用</p>
               <p className="text-xl font-bold text-gray-900">
-                ¥{(product.pricing_formula as any).base_cost.toLocaleString()}
+                ¥{((product.pricing_formula as any)?.base_cost || 0).toLocaleString()}
               </p>
             </div>
             <div className="text-right">
@@ -544,7 +551,7 @@ function ProductCard({ product, index, onSelect }: {
                 <span className="text-[10px] sm:text-xs">サンプル</span>
               </Button>
             </Link>
-            <Link href="/roi-calculator/" className="col-span-1">
+            <Link href="/roi-calculator" className="col-span-1">
               <Button variant="primary" className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2">
                 <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
                 <span className="text-[10px] sm:text-xs">見積もり</span>
@@ -633,7 +640,7 @@ function ProductDetailModal({ product, onClose }: {
             <Card className="p-4">
               <h3 className="font-semibold text-gray-900 mb-3">素材</h3>
               <div className="space-y-2">
-                {product.materials.map((material, idx) => (
+                {(product.materials || []).map((material, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-green-500" />
                     <span className="text-sm">{material}</span>
@@ -652,13 +659,13 @@ function ProductDetailModal({ product, onClose }: {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">初期費用:</span>
                   <span className="text-xl font-bold text-brixa-600">
-                    ¥{(product.pricing_formula as any).base_cost.toLocaleString()}
+                    ¥{((product.pricing_formula as any)?.base_cost || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">単価:</span>
                   <span className="text-lg font-medium">
-                    ¥{(product.pricing_formula as any).per_unit_cost}/個
+                    ¥{((product.pricing_formula as any)?.per_unit_cost || 0)}/個
                   </span>
                 </div>
               </div>

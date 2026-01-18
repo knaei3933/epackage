@@ -72,25 +72,29 @@ export function DeliveryDestinationSection({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* 一般配送 */}
-          <label className="relative cursor-pointer">
+          <div className="relative">
             <input
               {...control.register('deliveryType')}
+              id="delivery-type-normal"
               type="radio"
               value="normal"
               className="peer sr-only"
               onChange={() => {
-                setValue('deliveryType', 'normal')
+                setValue('deliveryType', 'normal', { shouldValidate: true })
                 // 一般配送時、最初の配送先にお客様情報を自動コピー
                 if (destinationFields.length > 0) {
                   copyCustomerInfo(0)
                 }
               }}
             />
-            <div className={`p-4 border-2 rounded-lg transition-all ${
-              deliveryType === 'normal'
-                ? 'border-brixa-600 bg-brixa-600'
-                : 'border-gray-200 bg-white hover:border-brixa-400'
-            }`}>
+            <label
+              htmlFor="delivery-type-normal"
+              className={`block p-4 border-2 rounded-lg transition-all cursor-pointer ${
+                deliveryType === 'normal'
+                  ? 'border-brixa-600 bg-brixa-600'
+                  : 'border-gray-200 bg-white hover:border-brixa-400'
+              }`}
+            >
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-full mb-2 ${
                   deliveryType === 'normal' ? 'bg-white' : 'bg-gray-100'
@@ -110,25 +114,29 @@ export function DeliveryDestinationSection({
                   お客様情報に配送
                 </p>
               </div>
-            </div>
-          </label>
+            </label>
+          </div>
 
           {/* 別の場所に配送 */}
-          <label className="relative cursor-pointer">
+          <div className="relative">
             <input
               {...control.register('deliveryType')}
+              id="delivery-type-other"
               type="radio"
               value="other"
               className="peer sr-only"
               onChange={() => {
-                setValue('deliveryType', 'other')
+                setValue('deliveryType', 'other', { shouldValidate: true })
               }}
             />
-            <div className={`p-4 border-2 rounded-lg transition-all ${
-              deliveryType === 'other'
-                ? 'border-orange-600 bg-orange-600'
-                : 'border-gray-200 bg-white hover:border-orange-400'
-            }`}>
+            <label
+              htmlFor="delivery-type-other"
+              className={`block p-4 border-2 rounded-lg transition-all cursor-pointer ${
+                deliveryType === 'other'
+                  ? 'border-orange-600 bg-orange-600'
+                  : 'border-gray-200 bg-white hover:border-orange-400'
+              }`}
+            >
               <div className="flex flex-col items-center text-center">
                 <div className={`p-2 rounded-full mb-2 ${
                   deliveryType === 'other' ? 'bg-white' : 'bg-gray-100'
@@ -148,8 +156,8 @@ export function DeliveryDestinationSection({
                   別の場所を指定
                 </p>
               </div>
-            </div>
-          </label>
+            </label>
+          </div>
         </div>
         {errors.deliveryType && (
           <p className="text-red-600 text-sm mt-2">{errors.deliveryType.message}</p>

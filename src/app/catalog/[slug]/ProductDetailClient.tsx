@@ -169,19 +169,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
                 {/* Call to Action */}
                 <div className="space-y-4">
-                  <Link href="/roi-calculator/">
+                  <Link href="/roi-calculator">
                     <Button variant="primary" size="lg" className="w-full text-lg py-4">
                       <Calculator className="w-5 h-5 mr-2" />
                       見積計算を開始
                     </Button>
                   </Link>
-                  <Link href="/samples/">
+                  <Link href="/samples">
                     <Button variant="outline" size="lg" className="w-full text-lg py-4">
                       <Package className="w-5 h-5 mr-2" />
                       サンプル請求
                     </Button>
                   </Link>
-                  <Link href="/contact/">
+                  <Link href="/contact">
                     <Button variant="secondary" size="lg" className="w-full text-lg py-4">
                       専門家に相談
                     </Button>
@@ -449,7 +449,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 専門スタッフが最適な包装ソリューションをご提案いたします
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/roi-calculator/">
+                <Link href="/roi-calculator">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -459,7 +459,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                     見積計算
                   </Button>
                 </Link>
-                <Link href="/contact/">
+                <Link href="/contact">
                   <Button
                     variant="outline"
                     size="lg"

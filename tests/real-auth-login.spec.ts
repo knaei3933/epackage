@@ -21,7 +21,7 @@ test.describe('실제 Supabase 인증 테스트', () => {
 
     // 4. 리다이렉트 대기 (대시보드로 이동해야 함)
     try {
-      await page.waitForURL('**/member/dashboard/**', { timeout: 10000 });
+      await page.waitForURL(/\/member\/dashboard/, { timeout: 10000 });
       console.log('4. 리다이렉트 완료, URL:', page.url());
 
       // 5. 대시보드가 로드되었는지 확인
@@ -59,7 +59,7 @@ test.describe('실제 Supabase 인증 테스트', () => {
     }
   });
 
-  test('ADMIN 계정 로그인 - admin@epackage-lab.com', async ({ page }) => {
+  test('ADMIN 계정 로그인 - admin@example.com', async ({ page }) => {
     console.log('=== ADMIN 계정 로그인 테스트 시작 ===');
 
     // 1. 로그인 페이지 접속
@@ -67,7 +67,7 @@ test.describe('실제 Supabase 인증 테스트', () => {
     console.log('1. 로그인 페이지 로드됨:', page.url());
 
     // 2. 로그인 폼 작성
-    await page.fill('input[type="email"]', 'admin@epackage-lab.com');
+    await page.fill('input[type="email"]', 'admin@example.com');
     await page.fill('input[type="password"]', 'Admin1234!');
     console.log('2. 로그인 폼 작성 완료');
 
@@ -77,7 +77,7 @@ test.describe('실제 Supabase 인증 테스트', () => {
 
     // 4. 리다이렉트 대기 (관리자 대시보드로 이동해야 함)
     try {
-      await page.waitForURL('**/admin/dashboard/**', { timeout: 10000 });
+      await page.waitForURL(/\/admin\/dashboard/, { timeout: 10000 });
       console.log('4. 리다이렉트 완료, URL:', page.url());
 
       // 5. 대시보드가 로드되었는지 확인

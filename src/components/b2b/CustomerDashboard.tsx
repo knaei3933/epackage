@@ -1,13 +1,14 @@
 'use client';
 
 /**
- * B2B 고객 포털 대시보드 (Customer Portal Dashboard)
- * 주문, 견적, 샘플 요청 통합 관리
+ * B2B 顧客ポータルダッシュボード (Customer Portal Dashboard)
+ * 注文、見積、サンプル依頼統合管理
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LoadingState } from '@/components/ui';
 import {
   FileText,
   Package,
@@ -85,28 +86,28 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
     setLoading(true);
     try {
       // Load stats
-      const statsResponse = await fetch('/api/b2b/dashboard/stats');
+      const statsResponse = await fetch('/api/member/dashboard/stats');
       const statsResult = await statsResponse.json();
       if (statsResult.success) {
         setStats(statsResult.data);
       }
 
       // Load orders
-      const ordersResponse = await fetch('/api/b2b/orders?limit=10');
+      const ordersResponse = await fetch('/api/member/orders?limit=10');
       const ordersResult = await ordersResponse.json();
       if (ordersResult.success) {
         setOrders(ordersResult.data.orders || []);
       }
 
       // Load quotations
-      const quotesResponse = await fetch('/api/b2b/quotations?limit=10');
+      const quotesResponse = await fetch('/api/member/quotations?limit=10');
       const quotesResult = await quotesResponse.json();
       if (quotesResult.success) {
         setQuotations(quotesResult.data.quotations || []);
       }
 
       // Load samples
-      const samplesResponse = await fetch('/api/b2b/samples?limit=10');
+      const samplesResponse = await fetch('/api/member/samples?limit=10');
       const samplesResult = await samplesResponse.json();
       if (samplesResult.success) {
         setSamples(samplesResult.data.samples || []);
@@ -171,21 +172,18 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
     }
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <Clock className="w-8 h-8 animate-spin text-blue-500" />
-        <span className="ml-3">로딩 중...</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
+    <LoadingState
+      isLoading={loading}
+      error={null}
+      message="読み込み中..."
+      fullScreen
+    >
+      <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">고객 포털 (顧客ポータル)</h1>
-        <p className="text-gray-600">주문, 견적, 샘플 요청을 한곳에서 관리하세요</p>
+        <h1 className="text-3xl font-bold mb-2">顧客ポータル</h1>
+        <p className="text-gray-600">注文、見積、サンプル依頼を一箇所で管理</p>
       </div>
 
       {/* Tabs */}
@@ -198,7 +196,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
-          개요 (概要)
+          概要
         </button>
         <button
           onClick={() => setActiveTab('orders')}
@@ -208,7 +206,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
-          주문 (注文)
+          注文
         </button>
         <button
           onClick={() => setActiveTab('quotations')}
@@ -218,7 +216,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
-          견적 (見積)
+          見積
         </button>
         <button
           onClick={() => setActiveTab('samples')}
@@ -228,7 +226,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
-          샘플 (サンプル)
+          サンプル
         </button>
       </div>
 
@@ -240,56 +238,56 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">전체 주문</p>
+                  <p className="text-sm text-gray-600">全注文</p>
                   <p className="text-2xl font-bold mt-1">{stats.totalOrders}</p>
                 </div>
                 <Package className="w-10 h-10 text-blue-500" />
               </div>
               <div className="mt-4 flex items-center text-sm text-gray-600">
                 <Clock className="w-4 h-4 mr-1" />
-                진행 중: {stats.pendingOrders}
+                進行中: {stats.pendingOrders}
               </div>
             </Card>
 
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">완료 주문</p>
+                  <p className="text-sm text-gray-600">完了注文</p>
                   <p className="text-2xl font-bold mt-1">{stats.completedOrders}</p>
                 </div>
                 <CheckCircle className="w-10 h-10 text-green-500" />
               </div>
               <div className="mt-4 flex items-center text-sm text-green-600">
                 <TrendingUp className="w-4 h-4 mr-1" />
-                완료율: {stats.totalOrders > 0 ? Math.round((stats.completedOrders / stats.totalOrders) * 100) : 0}%
+                完了率: {stats.totalOrders > 0 ? Math.round((stats.completedOrders / stats.totalOrders) * 100) : 0}%
               </div>
             </Card>
 
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">견적 요청</p>
+                  <p className="text-sm text-gray-600">見積依頼</p>
                   <p className="text-2xl font-bold mt-1">{stats.totalQuotations}</p>
                 </div>
                 <FileText className="w-10 h-10 text-orange-500" />
               </div>
               <div className="mt-4 flex items-center text-sm text-gray-600">
                 <Clock className="w-4 h-4 mr-1" />
-                대기 중: {stats.pendingQuotations}
+                待機中: {stats.pendingQuotations}
               </div>
             </Card>
 
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">샘플 요청</p>
+                  <p className="text-sm text-gray-600">サンプル依頼</p>
                   <p className="text-2xl font-bold mt-1">{stats.totalSamples}</p>
                 </div>
                 <ClipboardCheck className="w-10 h-10 text-purple-500" />
               </div>
               <div className="mt-4 flex items-center text-sm text-gray-600">
                 <Clock className="w-4 h-4 mr-1" />
-                처리 중: {stats.processingSamples}
+                処理中: {stats.processingSamples}
               </div>
             </Card>
           </div>
@@ -297,13 +295,13 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
           {/* Recent Orders */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">최근 주문</h2>
+              <h2 className="text-lg font-semibold">最近の注文</h2>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setActiveTab('orders')}
               >
-                전체 보기
+                すべて表示
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -335,7 +333,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                 </div>
               ))}
               {orders.length === 0 && (
-                <p className="text-center text-gray-500 py-8">주문 내역이 없습니다.</p>
+                <p className="text-center text-gray-500 py-8">注文履歴がありません。</p>
               )}
             </div>
           </Card>
@@ -343,13 +341,13 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
           {/* Recent Quotations */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">최근 견적</h2>
+              <h2 className="text-lg font-semibold">最近の見積</h2>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setActiveTab('quotations')}
               >
-                전체 보기
+                すべて表示
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -369,13 +367,13 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                   <div className="text-right">
                     <p className="font-medium">{formatCurrency(quotation.total_amount)}</p>
                     <p className="text-xs text-gray-600">
-                      유효기간: {formatDate(quotation.valid_until)}
+                      有効期限: {formatDate(quotation.valid_until)}
                     </p>
                   </div>
                 </div>
               ))}
               {quotations.length === 0 && (
-                <p className="text-center text-gray-500 py-8">견적 내역이 없습니다.</p>
+                <p className="text-center text-gray-500 py-8">見積履歴がありません。</p>
               )}
             </div>
           </Card>
@@ -386,10 +384,10 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
       {activeTab === 'orders' && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">주문 내역</h2>
+            <h2 className="text-xl font-semibold">注文履歴</h2>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              새 주문
+              新規注文
             </Button>
           </div>
 
@@ -399,13 +397,13 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
               <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="주문 번호로 검색..."
+                placeholder="注文番号で検索..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
             <Button variant="outline">
               <Filter className="w-4 h-4 mr-2" />
-              필터
+              フィルター
             </Button>
           </div>
 
@@ -441,12 +439,12 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                   onClick={() => window.location.href = `/member/orders/${order.id}`}
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  상세 보기
+                  詳細表示
                 </Button>
               </div>
             ))}
             {orders.length === 0 && (
-              <p className="text-center text-gray-500 py-8">주문 내역이 없습니다.</p>
+              <p className="text-center text-gray-500 py-8">注文履歴がありません。</p>
             )}
           </div>
         </Card>
@@ -456,10 +454,10 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
       {activeTab === 'quotations' && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">견적 내역</h2>
+            <h2 className="text-xl font-semibold">見積履歴</h2>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              새 견적 요청
+              新規見積依頼
             </Button>
           </div>
 
@@ -475,7 +473,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                     <p className="font-medium">{quotation.quotation_number}</p>
                     <p className="text-sm text-gray-600">{formatDate(quotation.created_at)}</p>
                     <p className="text-xs text-gray-500">
-                      유효기간: {formatDate(quotation.valid_until)}
+                      有効期限: {formatDate(quotation.valid_until)}
                     </p>
                   </div>
                 </div>
@@ -487,13 +485,13 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                     onClick={() => window.location.href = `/member/quotations/${quotation.id}`}
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    상세 보기
+                    詳細表示
                   </Button>
                 </div>
               </div>
             ))}
             {quotations.length === 0 && (
-              <p className="text-center text-gray-500 py-8">견적 내역이 없습니다.</p>
+              <p className="text-center text-gray-500 py-8">見積履歴がありません。</p>
             )}
           </div>
         </Card>
@@ -503,10 +501,10 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
       {activeTab === 'samples' && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">샘플 요청 내역</h2>
+            <h2 className="text-xl font-semibold">サンプル依頼履歴</h2>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              새 샘플 요청
+              新規サンプル依頼
             </Button>
           </div>
 
@@ -522,7 +520,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                     <p className="font-medium">{sample.sample_number}</p>
                     <p className="text-sm text-gray-600">{formatDate(sample.created_at)}</p>
                     <p className="text-xs text-gray-500">
-                      제품 수: {sample.product_count}
+                      製品数: {sample.product_count}
                     </p>
                   </div>
                 </div>
@@ -532,16 +530,17 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
                   onClick={() => window.location.href = `/member/samples/${sample.id}`}
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  상세 보기
+                  詳細表示
                 </Button>
               </div>
             ))}
             {samples.length === 0 && (
-              <p className="text-center text-gray-500 py-8">샘플 요청 내역이 없습니다.</p>
+              <p className="text-center text-gray-500 py-8">サンプル依頼履歴がありません。</p>
             )}
           </div>
         </Card>
       )}
-    </div>
+      </div>
+    </LoadingState>
   );
 }

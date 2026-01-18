@@ -1,14 +1,14 @@
 /**
  * User Settings API Route
  *
- * 사용자 설정 관리:
- * - GET: 사용자 설정 로드
- * - PATCH: 설정 업데이트
- * - user_settings 테이블 연동
+ * ユーザー設定管理：
+ * - GET: ユーザー設定の読み込み
+ * - PATCH: 設定の更新
+ * - user_settingsテーブル連携
  *
  * Security:
- * - 인증된 사용자만 접근 가능
- * - 자신의 설정만 조회/수정 가능
+ * - 認証されたユーザーのみアクセス可能
+ * - 自分の設定のみ取得・修正可能
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -47,7 +47,7 @@ const userSettingsSchema = z.object({
 type UserSettings = z.infer<typeof userSettingsSchema>;
 
 // =====================================================
-// GET: Load User Settings
+// GET: ユーザー設定の読み込み
 // =====================================================
 
 export async function GET(request: NextRequest) {
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
 }
 
 // =====================================================
-// PATCH: Update User Settings
+// PATCH: ユー設定の更新
 // =====================================================
 
 export async function PATCH(request: NextRequest) {

@@ -107,7 +107,7 @@ async function testDashboardStatistics() {
       // 4. Production Statistics
       console.log('\n4️⃣  Production Statistics');
       const { data: production, error: productionError } = await supabase
-        .from('production_jobs')
+        .from('production_orders')
         .select('status, started_at, completed_at')
         .gte('created_at', startDate.toISOString());
 

@@ -8,6 +8,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { ContractWorkflowStatus, WorkflowAction } from '@/components/b2b/ContractApproval';
+import { sendApprovalEmail, createRecipient } from '@/lib/email';
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
 
 // ============================================================
 // Types
@@ -161,13 +164,55 @@ async function sendNotificationEmail(
   newStatus: ContractWorkflowStatus,
   message?: string
 ): Promise<void> {
-  // In production, integrate with email service (SendGrid, etc.)
-  // await emailService.send({
-  //   to: getRecipientsForAction(action, contractId),
-  //   subject: getSubjectForAction(action),
-  //   template: 'contract-workflow-notification',
-  //   data: { contractId, action, newStatus, message },
-  // });
+  try {
+    // Determine email recipients and content based on action
+    if (action === 'sign' && newStatus === 'completed') {
+      // Contract signed - notify all parties
+      const recipient = createRecipient('Admin', ADMIN_EMAIL);
+
+      await sendApprovalEmail(
+        recipient,
+        '契約署名完了',
+        `契約書ID: ${contractId}\n${message || 'すべての署名が完了しました'}`,
+        '署名システム',
+        {
+          approvalDate: new Date().toISOString(),
+          nextSteps: '契約が有効になりました。製造プロセスを開始できます。',
+        }
+      );
+    } else if (action === 'approve') {
+      // Contract approved - notify admin
+      const recipient = createRecipient('Admin', ADMIN_EMAIL);
+
+      await sendApprovalEmail(
+        recipient,
+        '契約承認',
+        `契約書ID: ${contractId}\n${message || '契約が承認されました'}`,
+        'システム',
+        {
+          approvalDate: new Date().toISOString(),
+          nextSteps: '次のステップに進んでください。',
+        }
+      );
+    } else if (action === 'reject') {
+      // Contract rejected - notify admin
+      const recipient = createRecipient('Admin', ADMIN_EMAIL);
+
+      await sendApprovalEmail(
+        recipient,
+        '契約却下',
+        `契約書ID: ${contractId}\n理由: ${message || '却下されました'}`,
+        'システム',
+        {
+          approvalDate: new Date().toISOString(),
+          nextSteps: '修正が必要です。',
+        }
+      );
+    }
+  } catch (error) {
+    console.error('Email notification error:', error);
+    // Don't throw - email failure shouldn't block the workflow
+  }
 
   console.log('Notification email sent:', { contractId, action, newStatus, message });
 }

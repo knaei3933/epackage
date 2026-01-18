@@ -1,10 +1,10 @@
 /**
  * Authentication & User Types
  *
- * 회원 인증 시스템을 위한 타입 정의입니다.
- * - Zod 스키마
- * - Prisma 기반 타입
- * - API 요청/응답 타입
+ * 会員認証システムの型定義
+ * - Zod スキーマ
+ * - Prisma ベースの型
+ * - API リクエスト/レスポンスの型
  */
 
 import { z } from 'zod';
@@ -14,17 +14,17 @@ import { z } from 'zod';
 // =====================================================
 
 export enum BusinessType {
-  INDIVIDUAL = 'INDIVIDUAL', // 개인
-  CORPORATION = 'CORPORATION', // 법인
+  INDIVIDUAL = 'INDIVIDUAL', // 個人
+  CORPORATION = 'CORPORATION', // 法人
 }
 
 export enum ProductCategory {
-  COSMETICS = 'COSMETICS', // 화장품
-  CLOTHING = 'CLOTHING', // 의류
-  ELECTRONICS = 'ELECTRONICS', // 가전제품
-  KITCHEN = 'KITCHEN', // 주방용품
-  FURNITURE = 'FURNITURE', // 가구
-  OTHER = 'OTHER', // 기타
+  COSMETICS = 'COSMETICS', // 化粧品
+  CLOTHING = 'CLOTHING', // 衣類
+  ELECTRONICS = 'ELECTRONICS', // 家電製品
+  KITCHEN = 'KITCHEN', // 台所用品
+  FURNITURE = 'FURNITURE', // 家具
+  OTHER = 'OTHER', // その他
 }
 
 export enum UserRole {
@@ -33,10 +33,10 @@ export enum UserRole {
 }
 
 export enum UserStatus {
-  PENDING = 'PENDING', // 승인 대기
-  ACTIVE = 'ACTIVE', // 활성
-  SUSPENDED = 'SUSPENDED', // 정지
-  DELETED = 'DELETED', // 삭제
+  PENDING = 'PENDING', // 承認待ち
+  ACTIVE = 'ACTIVE', // アクティブ
+  SUSPENDED = 'SUSPENDED', // 停止
+  DELETED = 'DELETED', // 削除
 }
 
 // =====================================================
@@ -44,8 +44,8 @@ export enum UserStatus {
 // =====================================================
 
 export interface JapaneseName {
-  kanji: string; // 한자
-  kana: string; // 히라가나
+  kanji: string; // 漢字
+  kana: string; // ひらがな
 }
 
 // =====================================================
@@ -54,7 +54,7 @@ export interface JapaneseName {
 
 export const registrationSchema = z
   .object({
-    // 인증 정보
+    // 認証情報
     email: z
       .string()
       .min(1, 'メールアドレスを入力してください。')
@@ -66,6 +66,11 @@ export const registrationSchema = z
       .regex(/[a-z]/, 'パスワードには少なくとも1つの小文字を含める必要があります。')
       .regex(/[0-9]/, 'パスワードには少なくとも1つの数字を含める必要があります。'),
     passwordConfirm: z.string().min(1, 'パスワード確認を入力してください。'),
+
+    // B2B 追加フィールド（法人のみ）
+    foundedYear: z.string().optional(),
+    capital: z.string().optional(),
+    representativeName: z.string().optional(),
 
     // 日本の氏名（漢字・ひらがな、姓・名別）
     kanjiLastName: z
@@ -89,7 +94,7 @@ export const registrationSchema = z
       .max(50, '名は50文字以内で入力してください。')
       .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力可能です。'),
 
-    // 전화번호 (선택적 필드)
+    // 電話番号（オプションフィールド）
     corporatePhone: z.union([
       z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
@@ -99,12 +104,12 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
 
-    // 사업자 유형
+    // 事業者種別
     businessType: z.nativeEnum(BusinessType, {
       errorMap: () => ({ message: '業種を選択してください。' }),
     }),
 
-    // 회사 정보 (선택적 필드)
+    // 会社情報（オプションフィールド）
     companyName: z.union([
       z.string().max(200, '会社名は200文字以内で入力してください。'),
       z.literal('')
@@ -126,18 +131,18 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
 
-    // 제품 카테고리
+    // 製品カテゴリー
     productCategory: z.nativeEnum(ProductCategory, {
       errorMap: () => ({ message: '製品カテゴリーを選択してください。' }),
     }),
 
-    // 유입 경로 (선택적 필드)
+    // 流入経路（オプションフィールド）
     acquisitionChannel: z.union([
       z.string().max(100, '流入経路は100文字以内で入力してください。'),
       z.literal('')
     ]).optional(),
 
-    // 주소 정보 (선택적 필드)
+    // 住所情報（オプションフィールド）
     postalCode: z.union([
       z.string().regex(/^\d{3}-?\d{4}$/, '有効な郵便番号の形式ではありません。（例：123-4567）'),
       z.literal('')
@@ -146,7 +151,7 @@ export const registrationSchema = z
     city: z.union([z.string(), z.literal('')]).optional(),
     street: z.union([z.string(), z.literal('')]).optional(),
 
-    // 개인정보 수신 동의
+    // 個人情報の収集および利用への同意
     privacyConsent: z.literal(true, {
       errorMap: () => ({ message: '個人情報の収集および利用に同意してください。' }),
     }),
@@ -157,7 +162,7 @@ export const registrationSchema = z
   })
   .refine(
     (data) => {
-      // 법인 사업자인 경우 법인번호 필수
+      // 法人事業者の場合は法人番号必須
       if (data.businessType === BusinessType.CORPORATION) {
         return !!data.legalEntityNumber && data.legalEntityNumber.length === 13;
       }
@@ -166,6 +171,19 @@ export const registrationSchema = z
     {
       message: '法人事業者は法人番号を入力する必要があります。',
       path: ['legalEntityNumber'],
+    }
+  )
+  .refine(
+    (data) => {
+      // 法人事業者の場合はB2B追加フィールド必須
+      if (data.businessType === BusinessType.CORPORATION) {
+        return !!data.foundedYear && !!data.capital && !!data.representativeName;
+      }
+      return true;
+    },
+    {
+      message: '法人事業者は設立年、資本金、代表者名を入力する必要があります。',
+      path: ['foundedYear'],
     }
   );
 
@@ -247,11 +265,11 @@ export interface LoginResponse {
 // =====================================================
 
 export interface LegalEntityInfo {
-  corporateId: string; // 법인번호
-  name: string; // 회사명
-  prefecture: string; // 도도부현
-  city: string; // 시구정촌
-  address: string; // 상세주소
+  corporateId: string; // 法人番号
+  name: string; // 会社名
+  prefecture: string; // 都道府県
+  city: string; // 市区町村
+  address: string; // 詳細住所
 }
 
 export interface LegalEntitySearchResponse {
@@ -262,7 +280,7 @@ export interface LegalEntitySearchResponse {
 
 // =====================================================
 // Header Authentication Navigation Types
-// Based on docs/수정사항.md
+// Based on docs/修正項目.md
 // =====================================================
 
 // Session type for authentication context

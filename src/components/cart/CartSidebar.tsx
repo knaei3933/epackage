@@ -77,7 +77,7 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     製品カタログを見る
                   </Button>
                 </Link>
-                <Link href="/quote-simulator/" onClick={onClose}>
+                <Link href="/quote-simulator" onClick={onClose}>
                   <Button variant="outline" className="w-full">
                     <Calculator className="w-4 h-4 mr-2" />
                     見積計算
@@ -170,7 +170,7 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             </Link>
 
             <div className="grid grid-cols-2 gap-3">
-              <Link href="/quote-simulator/" onClick={onClose}>
+              <Link href="/quote-simulator" onClick={onClose}>
                 <Button variant="outline" className="w-full justify-center">
                   <Calculator className="w-4 h-4 mr-1" />
                   見積計算

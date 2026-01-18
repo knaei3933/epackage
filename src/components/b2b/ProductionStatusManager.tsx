@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 생산 상태 관리 컴포넌트 (Production Status Manager)
- * 9단계 생산 상태 추적: design_received → work_order_created → material_prepared →
+ * 生産状態管理コンポーネント (Production Status Manager)
+ * 9段階生産状態追跡: design_received → work_order_created → material_prepared →
  * printing → lamination → slitting → pouch_making → qc_passed → packaged
  */
 
@@ -59,58 +59,58 @@ interface ProductionStatusManagerProps {
 // Production stages configuration
 const PRODUCTION_STAGES: Record<ProductionSubStatus, { name: string; nameJa: string; icon: any; description: string }> = {
   design_received: {
-    name: '디자인 데이터 수령',
+    name: 'デザインデータ受領',
     nameJa: 'デザインデータ受領',
     icon: FileText,
-    description: '고객으로부터 디자인 파일 수령'
+    description: '顧客からデザインファイルを受領'
   },
   work_order_created: {
-    name: '작업표준서 작성',
+    name: '作業標準書作成',
     nameJa: '作業標準書作成',
     icon: Settings,
-    description: '작업표준서 작성 및 승인'
+    description: '作業標準書の作成および承認'
   },
   material_prepared: {
-    name: '자재 준비',
+    name: '資材準備',
     nameJa: '資材準備',
     icon: Package,
-    description: '필름 시트, 잉크 등 자재 준비'
+    description: 'フィルムシート、インク等資材の準備'
   },
   printing: {
-    name: '인쇄',
+    name: '印刷',
     nameJa: '印刷',
     icon: Factory,
-    description: '그라비아 인쇄 공정'
+    description: 'グラビア印刷工程'
   },
   lamination: {
-    name: '라미네이션',
+    name: 'ラミネート',
     nameJa: 'ラミネート',
     icon: Layers,
-    description: '필름 라미네이션 가공'
+    description: 'フィルムラミネート加工'
   },
   slitting: {
-    name: '슬릿 가공',
+    name: 'スリット加工',
     nameJa: 'スリット加工',
     icon: Scissors,
-    description: '지정 폭으로 컷팅'
+    description: '指定幅にカッティング'
   },
   pouch_making: {
-    name: '파우치 성형',
+    name: 'パウチ成形',
     nameJa: 'パウチ成形',
     icon: Box,
-    description: '백 형태로 성형 및 시일'
+    description: '袋形状に成形およびシール'
   },
   qc_passed: {
-    name: '품질 검사 합격',
+    name: '品質検査合格',
     nameJa: '品質検査合格',
     icon: Target,
-    description: '품질 기준 검사 통과'
+    description: '品質基準検査に合格'
   },
   packaged: {
-    name: '포장 완료',
+    name: '包装完了',
     nameJa: '包装完了',
     icon: Package,
-    description: '박스 포장 및 출하 준비'
+    description: '箱包装および出荷準備'
   }
 };
 
@@ -142,7 +142,7 @@ export default function ProductionStatusManager({
   const loadProductionLogs = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/b2b/orders/${orderId}/production-logs`);
+      const response = await fetch(`/api/member/orders/${orderId}/production-logs`);
       const result = await response.json();
 
       if (result.success) {
@@ -199,7 +199,7 @@ export default function ProductionStatusManager({
   // Save production log
   const handleSaveLog = useCallback(async () => {
     if (!selectedStage) {
-      setSaveStatus({ type: 'error', message: '생산 단계를 선택해주세요.' });
+      setSaveStatus({ type: 'error', message: '生産段階を選択してください。' });
       return;
     }
 
@@ -217,7 +217,7 @@ export default function ProductionStatusManager({
         formData.append('photo', photoFile);
       }
 
-      const response = await fetch('/api/b2b/production-logs', {
+      const response = await fetch('/api/member/production-logs', {
         method: 'POST',
         body: formData
       });
@@ -225,7 +225,7 @@ export default function ProductionStatusManager({
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus({ type: 'success', message: '생산 로그가 저장되었습니다.' });
+        setSaveStatus({ type: 'success', message: '生産ログが保存されました。' });
 
         // Reload logs
         await loadProductionLogs();
@@ -238,11 +238,11 @@ export default function ProductionStatusManager({
           onStatusUpdate(selectedStage);
         }
       } else {
-        setSaveStatus({ type: 'error', message: result.error || '저장 중 오류가 발생했습니다.' });
+        setSaveStatus({ type: 'error', message: result.error || '保存中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Error saving production log:', error);
-      setSaveStatus({ type: 'error', message: '저장 중 오류가 발생했습니다.' });
+      setSaveStatus({ type: 'error', message: '保存中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -263,9 +263,9 @@ export default function ProductionStatusManager({
       {/* Progress Overview */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">생산 진척 현황</h2>
+          <h2 className="text-xl font-semibold">生産進捗状況</h2>
           <div className="text-right">
-            <p className="text-sm text-gray-600">전체 진척률</p>
+            <p className="text-sm text-gray-600">全体進捗率</p>
             <p className="text-2xl font-bold text-blue-600">{overallProgress}%</p>
           </div>
         </div>
@@ -334,7 +334,7 @@ export default function ProductionStatusManager({
           {/* Progress Input */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium mb-2">진척률 (%)</label>
+              <label className="block text-sm font-medium mb-2">進捗率 (%)</label>
               <Input
                 type="number"
                 min="0"
@@ -345,7 +345,7 @@ export default function ProductionStatusManager({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">작업 사진</label>
+              <label className="block text-sm font-medium mb-2">作業写真</label>
               <Input
                 type="file"
                 accept="image/*"
@@ -356,10 +356,10 @@ export default function ProductionStatusManager({
 
           {/* Notes */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">작업 메모</label>
+            <label className="block text-sm font-medium mb-2">作業メモ</label>
             <textarea
               className="w-full px-4 py-2 border border-gray-300 rounded-lg min-h-[100px]"
-              placeholder="이 공정에 대한 메모를 입력하세요..."
+              placeholder="この工程に関するメモを入力してください..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -392,7 +392,7 @@ export default function ProductionStatusManager({
               disabled={isSaving}
             >
               <Save className="w-4 h-4 mr-2" />
-              저장
+              保存
             </Button>
           </div>
         </Card>
@@ -400,10 +400,10 @@ export default function ProductionStatusManager({
 
       {/* Production Log History */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">생산 로그 기록</h3>
+        <h3 className="text-lg font-semibold mb-4">生産ログ記録</h3>
 
         {logs.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">아직 기록된 생산 로그가 없습니다.</p>
+          <p className="text-gray-500 text-center py-8">まだ記録された生産ログがありません。</p>
         ) : (
           <div className="space-y-3">
             {logs.map((log) => {
@@ -424,11 +424,11 @@ export default function ProductionStatusManager({
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span>진척률: {log.progress_percentage}%</span>
+                      <span>進捗率: {log.progress_percentage}%</span>
                       {log.assigned_to && (
                         <span className="flex items-center gap-1">
                           <User className="w-3 h-3" />
-                          담당자 ID: {log.assigned_to.slice(0, 8)}
+                          担当者ID: {log.assigned_to.slice(0, 8)}
                         </span>
                       )}
                     </div>
@@ -439,7 +439,7 @@ export default function ProductionStatusManager({
                       <div className="mt-2">
                         <img
                           src={log.photo_url}
-                          alt="작업 사진"
+                          alt="作業写真"
                           className="w-32 h-32 object-cover rounded-lg"
                         />
                       </div>

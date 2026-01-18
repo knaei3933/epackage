@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // Build advanced SQL query with relevance ranking using Supabase MCP
     // Uses PostgreSQL full-text search with tsvector and sophisticated ranking algorithm
-    let sqlQuery = `
+    const sqlQuery = `
       WITH ranked_products AS (
         SELECT
           p.*,

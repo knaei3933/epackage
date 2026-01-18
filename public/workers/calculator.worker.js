@@ -200,7 +200,7 @@ class WorkerCalculator {
   }
 
   // Simulate quote calculation (replace with actual implementation)
-  async simulateQuoteCalculation(baseParams, quantity, sharedCosts) {
+  async simulateQuoteCalculation(baseParams, quantity) {
     // This is a simulation - replace with actual calculation logic
     const basePrice = 100; // Base price per unit
     const quantityDiscount = Math.min(0.5, Math.log10(quantity) / 10);

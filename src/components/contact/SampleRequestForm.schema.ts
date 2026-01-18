@@ -29,20 +29,20 @@ export const sampleItemSchema = z.object({
 export const pouchSampleRequestSchema = z.object({
   kanjiLastName: z.string()
     .min(1, '姓（漢字）を入力してください')
-    .min(1, '姓（漢字）は1文字以上で入力してください')
     .max(50, '姓（漢字）は50文字以内で入力してください'),
   kanjiFirstName: z.string()
     .min(1, '名（漢字）を入力してください')
-    .min(1, '名（漢字）は1文字以上で入力してください')
     .max(50, '名（漢字）は50文字以内で入力してください'),
   kanaLastName: z.string()
     .min(1, '姓（ひらがな）を入力してください')
     .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
-    .max(50, '姓（ひらがな）は50文字以内で入力してください'),
+    .max(50, '姓（ひらがな）は50文字以内で入力してください')
+    .refine(val => val.trim().length > 0, '姓（ひらがな）を入力してください'),
   kanaFirstName: z.string()
     .min(1, '名（ひらがな）を入力してください')
     .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
-    .max(50, '名（ひらがな）は50文字以内で入力してください'),
+    .max(50, '名（ひらがな）は50文字以内で入力してください')
+    .refine(val => val.trim().length > 0, '名（ひらがな）を入力してください'),
   company: z.string()
     .max(100, '会社名は100文字以内で入力してください')
     .optional(),

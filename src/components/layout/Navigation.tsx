@@ -215,7 +215,7 @@ export function MobileNavigation({ items, isOpen, onClose, className }: MobileNa
 
         {/* Drawer Footer */}
         <div className="p-4 border-t border-border-medium space-y-3">
-          <Link href="/contact/" onClick={onClose} className="inline-flex w-full">
+          <Link href="/contact" onClick={onClose} className="inline-flex w-full">
             <Button
               variant="primary"
               fullWidth
@@ -404,12 +404,12 @@ export const defaultNavigationItems: NavigationItem[] = [
   },
   {
     label: '製品カタログ',
-    href: '/catalog/',
+    href: '/catalog',
     icon: Grid3X3,
   },
   {
     label: '会社概要',
-    href: '/about/',
+    href: '/about',
     icon: Building2,
   },
   {
@@ -419,7 +419,7 @@ export const defaultNavigationItems: NavigationItem[] = [
   },
   {
     label: 'お問い合わせ',
-    href: '/contact/',
+    href: '/contact',
     icon: Phone,
   },
 ]

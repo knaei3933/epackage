@@ -8,8 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { sendDeliveryCompletionEmail } from '@/lib/email';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
@@ -30,15 +29,15 @@ interface DeliveryCompletionRequest {
 
 interface CarrierLabel {
   ja: string;
-  ko: string;
+  ko?: string;
   en: string;
 }
 
 const CARRIER_LABELS: Record<string, CarrierLabel> = {
-  yamato: { ja: 'ヤマト運輸', ko: '야마토 운송', en: 'Yamato Transport' },
-  sagawa: { ja: '佐川急便', ko: '사가와 급행', en: 'Sagawa Express' },
-  jp_post: { ja: '日本郵便', ko: '일본 우편', en: 'Japan Post' },
-  seino: { ja: 'セイノー運輸', ko: '세이노 운송', en: 'Seino Transport' },
+  yamato: { ja: 'ヤマト運輸', en: 'Yamato Transport' },
+  sagawa: { ja: '佐川急便', en: 'Sagawa Express' },
+  jp_post: { ja: '日本郵便', en: 'Japan Post' },
+  seino: { ja: 'セイノー運輸', en: 'Seino Transport' },
 };
 
 // ============================================================

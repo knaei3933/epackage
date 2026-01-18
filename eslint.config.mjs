@@ -12,6 +12,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ignore scripts and config files that use require()
+    "scripts/**",
+    "*.js",
+    "!**/__tests__/**/*.js",
+    "!jest.setup.js",
+    "jest.polyfill.js",
+    // Ignore server files (separate Express server)
+    "server/**",
   ]),
 ]);
 

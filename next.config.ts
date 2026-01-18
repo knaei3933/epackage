@@ -19,6 +19,24 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Server-only packages (ESM modules that cannot be bundled for client-side)
+  serverExternalPackages: [
+    '@react-pdf/renderer',
+    '@fontsource/noto-sans-jp',
+  ],
+
+  // Turbopack configuration (Next.js 16 default)
+  turbopack: {
+    // Enable turbopack with custom config
+    rules: {
+      // SVG handling for Turbopack
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
+
   // Image optimization - ENABLED for performance
   images: {
     // Enable Next.js Image Optimization for automatic WebP/AVIF conversion
@@ -47,8 +65,8 @@ const nextConfig: NextConfig = {
   },
 
   // Webpack optimization
-  webpack: (config, { isServer, dev }) => {
-    // SVG 최적화
+  webpack: (config, { dev }) => {
+    // SVG最適化
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
@@ -132,22 +150,6 @@ const nextConfig: NextConfig = {
   // Compression
   compress: true,
 
-  // Static optimization
-  trailingSlash: true,
-
-  // Turbopack configuration
-  turbopack: {
-    // Set workspace root to avoid lockfile warnings
-    root: __dirname,
-    // Custom Turbopack rules can go here
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    },
-  },
-
   // Security and cache optimization
   async headers() {
     const isDev = process.env.NODE_ENV === 'development';
@@ -225,6 +227,8 @@ const nextConfig: NextConfig = {
   // SEO improvements
   async redirects() {
     return [
+      // B2B routes removed - now returning 404 in middleware
+      // See src/middleware.ts lines 259-289 for B2B 404 handling
       // ROI Calculator to Quote Simulator - 301 Permanent Redirect
       {
         source: '/roi-calculator',

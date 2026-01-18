@@ -1,8 +1,8 @@
 /**
  * Admin Notifications Library
  *
- * 관리자 알림 시스템
- * Supabase MCP를 통한 DB 작업
+ * 管理者通知システム
+ * Supabase MCP経由のDB操作
  *
  * @module lib/admin-notifications
  */
@@ -14,14 +14,17 @@ import { executeSql } from './supabase-mcp'
 // ============================================================
 
 export type AdminNotificationType =
-  | 'order'          // 새 주문
-  | 'quotation'      // 견적 요청
-  | 'sample'         // 샘플 요청
-  | 'registration'   // 회원가입 요청 (B2B)
-  | 'production'     // 생산 완료
-  | 'shipment'       // 출하 완료
-  | 'contract'       // 계약 서명 요청
-  | 'system'         // 시스템 에러
+  | 'order'          // 新規注文
+  | 'quotation'      // 見積依頼
+  | 'sample'         // サンプル依頼
+  | 'registration'   // 会員登録依頼 (B2B)
+  | 'production'     // 生産完了
+  | 'shipment'       // 出荷完了
+  | 'contract'       // 契約署名依頼
+  | 'system'         // システムエラー
+  | 'data_receipt'   // データ受領
+  | 'ai_extraction'  // AI抽出完了
+  | 'korea_transfer' // 韓国チーム送信
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
 
@@ -71,7 +74,7 @@ export interface GetNotificationsOptions {
 // ============================================================
 
 /**
- * 관리자 알림 생성
+ * 管理者通知作成
  */
 export async function createAdminNotification(
   params: CreateAdminNotificationParams
@@ -124,7 +127,7 @@ export async function createAdminNotification(
 }
 
 /**
- * 관리자 알림 목록 조회
+ * 管理者通知一覧取得
  */
 export async function getAdminNotifications(
   options: GetNotificationsOptions = {}
@@ -203,7 +206,7 @@ export async function getAdminNotifications(
 }
 
 /**
- * 안읽은 알림 수 조회
+ * 未読通知数取得
  */
 export async function getUnreadAdminNotificationCount(
   userId?: string
@@ -241,7 +244,7 @@ export async function getUnreadAdminNotificationCount(
 }
 
 /**
- * 알림 읽음 표시
+ * 通知を既読にする
  */
 export async function markAdminNotificationAsRead(
   notificationId: string
@@ -271,7 +274,7 @@ export async function markAdminNotificationAsRead(
 }
 
 /**
- * 모든 알림 읽음 표시
+ * すべての通知を既読にする
  */
 export async function markAllAdminNotificationsAsRead(
   userId?: string
@@ -315,7 +318,7 @@ export async function markAllAdminNotificationsAsRead(
 }
 
 /**
- * 알림 삭제 (soft delete by marking as read)
+ * 通知削除 (既読マークによるソフト削除)
  */
 export async function deleteAdminNotification(
   notificationId: string
@@ -342,7 +345,7 @@ export async function deleteAdminNotification(
 }
 
 /**
- * 오래된 알림 정리 (30일 이상 된 읽은 알림 삭제)
+ * 古い通知の整理 (30日以上前の既読通知を削除)
  */
 export async function cleanupOldAdminNotifications(): Promise<number> {
   try {
@@ -372,7 +375,7 @@ export async function cleanupOldAdminNotifications(): Promise<number> {
 // ============================================================
 
 /**
- * 새 주문 알림 생성
+ * 新規注文通知作成
  */
 export async function notifyNewOrder(
   orderId: string,
@@ -398,7 +401,7 @@ export async function notifyNewOrder(
 }
 
 /**
- * 견적 요청 알림 생성
+ * 見積依頼通知作成
  */
 export async function notifyQuotationRequest(
   quotationId: string,
@@ -422,7 +425,7 @@ export async function notifyQuotationRequest(
 }
 
 /**
- * 샘플 요청 알림 생성
+ * サンプル依頼通知作成
  */
 export async function notifySampleRequest(
   sampleRequestId: string,
@@ -446,7 +449,7 @@ export async function notifySampleRequest(
 }
 
 /**
- * 회원가입 요청 알림 생성
+ * 会員登録依頼通知作成
  */
 export async function notifyRegistrationRequest(
   userId: string,
@@ -470,7 +473,7 @@ export async function notifyRegistrationRequest(
 }
 
 /**
- * 생산 완료 알림 생성
+ * 生産完了通知作成
  */
 export async function notifyProductionComplete(
   orderId: string,
@@ -492,7 +495,7 @@ export async function notifyProductionComplete(
 }
 
 /**
- * 출하 완료 알림 생성
+ * 出荷完了通知作成
  */
 export async function notifyShipmentComplete(
   shipmentId: string,
@@ -514,7 +517,7 @@ export async function notifyShipmentComplete(
 }
 
 /**
- * 계약 서명 요청 알림 생성
+ * 契約署名依頼通知作成
  */
 export async function notifyContractSignature(
   contractId: string,
@@ -536,7 +539,7 @@ export async function notifyContractSignature(
 }
 
 /**
- * 시스템 에러 알림 생성
+ * システムエラー通知作成
  */
 export async function notifySystemError(
   errorType: string,
@@ -553,7 +556,93 @@ export async function notifySystemError(
       error_message: errorMessage,
       ...metadata
     },
-    // 24시간 후 만료
+    // 24時間後に期限切れ
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+  })
+}
+
+/**
+ * データ受領通知作成
+ * ファイルアップロード時に管理者に通知
+ */
+export async function notifyDataReceipt(
+  orderId: string,
+  orderNumber: string,
+  customerName: string,
+  fileName: string,
+  fileType: string
+): Promise<AdminNotification | null> {
+  return createAdminNotification({
+    type: 'data_receipt',
+    title: 'データ受領',
+    message: `${customerName} 様から${fileType}ファイル「${fileName}」がアップロードされました`,
+    relatedId: orderId,
+    relatedType: 'orders',
+    priority: 'normal',
+    actionUrl: `/admin/orders/${orderId}`,
+    actionLabel: 'ファイルを確認',
+    metadata: {
+      order_number: orderNumber,
+      customer_name: customerName,
+      file_name: fileName,
+      file_type: fileType
+    }
+  })
+}
+
+/**
+ * AI抽出完了通知作成
+ * AI抽出完了時に管理者に通知
+ */
+export async function notifyAIExtractionComplete(
+  orderId: string,
+  orderNumber: string,
+  fileId: string,
+  fileName: string,
+  confidenceScore: number
+): Promise<AdminNotification | null> {
+  const priority = confidenceScore > 0.8 ? 'low' : confidenceScore > 0.5 ? 'normal' : 'high';
+
+  return createAdminNotification({
+    type: 'ai_extraction',
+    title: 'AI抽出完了',
+    message: `注文 ${orderNumber} のAI抽出が完了しました (信頼度: ${Math.round(confidenceScore * 100)}%)`,
+    relatedId: orderId,
+    relatedType: 'orders',
+    priority,
+    actionUrl: `/admin/orders/${orderId}`,
+    actionLabel: '抽出結果を確認',
+    metadata: {
+      order_number: orderNumber,
+      file_id: fileId,
+      file_name: fileName,
+      confidence_score: confidenceScore
+    },
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  })
+}
+
+/**
+ * 韓国チームデータ送信通知作成
+ * 韓国チーム送信完了時に管理者に通知
+ */
+export async function notifyKoreaDataTransfer(
+  orderId: string,
+  orderNumber: string,
+  quotationNumber: string,
+  koreaEmail: string
+): Promise<AdminNotification | null> {
+  return createAdminNotification({
+    type: 'korea_transfer',
+    title: '韓国チームデータ送信',
+    message: `注文 ${orderNumber} (${quotationNumber}) のデータを韓国チームに送信しました`,
+    relatedId: orderId,
+    relatedType: 'orders',
+    priority: 'normal',
+    metadata: {
+      order_number: orderNumber,
+      quotation_number: quotationNumber,
+      korea_email: koreaEmail
+    }
   })
 }

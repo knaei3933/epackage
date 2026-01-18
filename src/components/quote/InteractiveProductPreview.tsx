@@ -53,12 +53,14 @@ export function InteractiveProductPreview({
   const getProductBaseImage = useCallback(() => {
     // Base product images by type
     const baseImages: Record<string, string> = {
-      stand_up: '/images/products/stand-up-base.png',
-      flat_3_side: '/images/products/flat-3-side-base.png',
-      gusset: '/images/products/gusset-base.png',
-      flat_with_zip: '/images/products/flat-zip-base.png'
+      flat_3_side: '/images/processing-icons/三方.png',
+      stand_up: '/images/processing-icons/三方スタンド.png',
+      lap_seal: '/images/processing-icons/合掌.png',
+      box: '/images/processing-icons/ボックス型パウチ.png',
+      spout_pouch: '/images/processing-icons/スパウト.png',
+      roll_film: '/images/processing-icons/ロールフィルム.png'
     }
-    return baseImages[selectedProductType] || '/images/products/default-base.png'
+    return baseImages[selectedProductType] || '/images/processing-icons/三方.png'
   }, [selectedProductType])
 
   // Get selected options details

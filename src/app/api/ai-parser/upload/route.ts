@@ -1,12 +1,11 @@
 /**
  * AI File Upload API
- * Adobe Illustrator .ai 파일 업로드를 처리하는 API 엔드포인트
+ * Adobe Illustrator .aiファイルのアップロードを処理するAPIエンドポイント
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { randomUUID } from 'crypto';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
@@ -56,15 +55,14 @@ function validateFileByMagicNumber(buffer: Buffer, expectedType: string): boolea
 
 /**
  * POST /api/ai-parser/upload
- * .ai 파일 업로드 및 파싱 시작
+ * .aiファイルのアップロードおよび解析開始
  */
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   try {
     // ✅ STEP 1: Check authentication (SECURE: getUser() validates JWT on every request)
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabaseAuth = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Initialize Supabase client using modern @supabase/ssr pattern
+    const { client: supabaseAuth } = createSupabaseSSRClient(req);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -95,7 +93,7 @@ export async function POST(req: NextRequest) {
       route: '/api/ai-parser/upload',
     });
 
-    // 1. 파일 추출
+    // 1. ファイル抽出
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const userId = user.id;
@@ -103,16 +101,16 @@ export async function POST(req: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: '파일이 없습니다' },
+        { error: 'ファイルがありません' },
         { status: 400 }
       );
     }
 
-    // 2. 파일 크기 검증 (최대 10MB)
+    // 2. ファイルサイズ検証（最大10MB）
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
-          error: `파일 크기가 ${MAX_FILE_SIZE / 1024 / 1024}MB를 초과합니다`,
+          error: `ファイルサイズが${MAX_FILE_SIZE / 1024 / 1024}MBを超えています`,
           code: 'FILE_TOO_LARGE',
           maxSize: MAX_FILE_SIZE,
         },
@@ -120,7 +118,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. 파일 타입 검증 (확장자)
+    // 3. ファイルタイプ検証（拡張子）
     const allowedTypes = [
       'application/pdf',
       'application/postscript',
@@ -133,7 +131,7 @@ export async function POST(req: NextRequest) {
       !file.name.endsWith('.pdf')
     ) {
       return NextResponse.json(
-        { error: '지원하지 않는 파일 형식입니다', code: 'INVALID_FILE_TYPE' },
+        { error: 'サポートされていないファイル形式です', code: 'INVALID_FILE_TYPE' },
         { status: 400 }
       );
     }
@@ -142,25 +140,25 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 5. Magic Number 검증 (파일 서명 확인)
+    // 5. マジックナンバー検証（ファイル署名確認）
     const fileType = file.name.endsWith('.pdf') ? 'pdf' : 'ai';
     if (!validateFileByMagicNumber(buffer, fileType)) {
       return NextResponse.json(
         {
-          error: `파일 내용이 예상된 형식(${fileType})과 일치하지 않습니다. 파일이 손상되었거나 확장자가 잘못되었습니다.`,
+          error: `ファイルの内容が期待された形式（${fileType}）と一致しません。ファイルが破損しているか、拡張子が間違っています。`,
           code: 'INVALID_FILE_CONTENT',
         },
         { status: 400 }
       );
     }
 
-    // 4. 고유 ID 생성
+    // 4. 一意のID生成
     const uploadId = randomUUID();
     const timestamp = Date.now();
     const extension = file.name.split('.').pop();
     const fileName = `${uploadId}_${timestamp}.${extension}`;
 
-    // 5. Supabase Storage에 업로드 (use buffer instead of file)
+    // 5. Supabase Storageにアップロード（bufferの代わりにファイルを使用）
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('ai-uploads')
       .upload(fileName, buffer, {
@@ -171,12 +169,12 @@ export async function POST(req: NextRequest) {
     if (uploadError) {
       console.error('Upload error:', uploadError);
       return NextResponse.json(
-        { error: '파일 업로드에 실패했습니다' },
+        { error: 'ファイルのアップロードに失敗しました' },
         { status: 500 }
       );
     }
 
-    // 6. DB 기록 저장
+    // 6. DB記録保存
     const { data: record, error: dbError } = await supabase
       .from('ai_uploads')
       .insert({
@@ -194,20 +192,20 @@ export async function POST(req: NextRequest) {
     if (dbError) {
       console.error('DB error:', dbError);
       return NextResponse.json(
-        { error: '데이터베이스 저장에 실패했습니다' },
+        { error: 'データベースの保存に失敗しました' },
         { status: 500 }
       );
     }
 
-    // 7. 비동기 파싱 시작
-    // 실제 구현에서는 백그라운드 작업 큐 사용
-    // 예: Bull, AWS SQS, Supabase Edge Functions
+    // 7. 非同期解析開始
+    // 実際の実装ではバックグラウンド作業キューを使用
+    // 例: Bull, AWS SQS, Supabase Edge Functions
     await startParsingTask(uploadId, fileName, priority);
 
-    // 8. 예상 처리 시간 계산
+    // 8. 予想処理時間の計算
     const estimatedTime = estimateProcessingTime(file.size, priority);
 
-    // 9. 응답 반환
+    // 9. レスポンス返却
     return NextResponse.json({
       success: true,
       uploadId,
@@ -219,7 +217,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Upload API error:', error);
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다' },
+      { error: 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   } finally {
@@ -230,29 +228,29 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * 파싱 작업 시작 (비동기)
+ * 解析作業開始（非同期）
  */
 async function startParsingTask(
   uploadId: string,
   fileName: string,
   priority: string
 ): Promise<void> {
-  // 실제 구현에서는 별도의 작업자 프로세스나 서버리스 함수로 처리
-  // 여기서는 간단히 로그만 출력
+  // 実際の実装では別のワーカープロセスまたはサーバーレス関数で処理
+  // ここでは単純にログのみ出力
   console.log(`Starting parsing task for ${uploadId} with priority ${priority}`);
 
-  // TODO: 작업 큐에 등록
-  // 예: await parsingQueue.add({ uploadId, fileName, priority });
+  // TODO: 作業キューに登録
+  // 例: await parsingQueue.add({ uploadId, fileName, priority });
 }
 
 /**
- * 처리 시간 추정
+ * 処理時間の推定
  */
 function estimateProcessingTime(
   fileSize: number,
   priority: string
 ): number {
-  const baseTime = 10; // 초 단위
+  const baseTime = 10; // 秒単位
   const sizeFactor = fileSize / (1024 * 1024); // MB
   const priorityMultiplier = priority === 'fast' ? 0.5 : 1.5;
 
@@ -260,7 +258,7 @@ function estimateProcessingTime(
 }
 
 /**
- * OPTIONS 메서드 (CORS preflight)
+ * OPTIONSメソッド（CORS preflight）
  */
 export async function OPTIONS() {
   return new NextResponse(null, {

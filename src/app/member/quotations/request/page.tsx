@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * B2B 견적 요청 페이지 (B2B Quotation Request Page)
+ * B2B 見積リクエストページ (B2B Quotation Request Page)
  * /member/quotations/request
  */
 
@@ -55,7 +55,7 @@ export default function B2BQuotationRequestPage() {
 
       } catch (err) {
         console.error('Error loading user data:', err);
-        setError('사용자 정보를 불러오는 중 오류가 발생했습니다.');
+        setError('ユーザー情報の読み込み中にエラーが発生しました。');
       } finally {
         setLoading(false);
       }
@@ -82,7 +82,7 @@ export default function B2BQuotationRequestPage() {
         <Card className="p-6 max-w-md">
           <p className="text-red-600">{error}</p>
           <Button onClick={() => router.back()} className="mt-4">
-            뒤로 가기
+            戻る
           </Button>
         </Card>
       </div>

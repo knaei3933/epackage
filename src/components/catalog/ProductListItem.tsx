@@ -79,7 +79,7 @@ export function ProductListItem({
               <Button variant="outline" size="sm" className="w-full">
                 詳細を見る
               </Button>
-              <Link href="/quote-simulator/">
+              <Link href="/quote-simulator">
                 <Button variant="primary" size="sm" className="w-full">
                   見積もり
                 </Button>

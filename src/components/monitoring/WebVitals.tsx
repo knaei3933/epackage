@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Web Vitals 모니터링 컴포넌트
- * Core Web Vitals 추적 및 보고
+ * Web Vitalsモニタリングコンポーネント
+ * Core Web Vitals追跡及び報告
  */
 
 import { useEffect } from 'react';
@@ -11,7 +11,7 @@ export default function WebVitals() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Web Vitals 라이브러리 동적 임포트
+    // Web Vitalsライブラリ動的インポート
     import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
       // CL (Cumulative Layout Shift)
       onCLS((metric) => reportMetric('CLS', metric));
@@ -33,14 +33,14 @@ export default function WebVitals() {
       const value = metric.value;
       const rating = metric.rating;
 
-      // 콘솔에 출력
+      // コンソールに出力
       console.log(`[Web Vitals] ${name}:`, {
         value: `${value.toFixed(2)}${name === 'CLS' ? '' : 'ms'}`,
         rating,
         id: metric.id
       });
 
-      // 평가 기준
+      // 評価基準
       const thresholds: Record<string, { good: number; needsImprovement: number }> = {
         CLS: { good: 0.1, needsImprovement: 0.25 },
         FID: { good: 100, needsImprovement: 300 },
@@ -62,12 +62,12 @@ export default function WebVitals() {
         }
       }
 
-      // Analytics로 전송 (선택 사항)
+      // Analyticsへ送信 (オプション)
       sendToAnalytics(name, value, rating, status);
     }
 
     function sendToAnalytics(name: string, value: number, rating: string, status: string) {
-      // 여기에 Google Analytics, Vercel Analytics 등으로 전송하는 코드 추가
+      // ここにGoogle Analytics、Vercel Analytics等へ送信するコード追加
       if (typeof window !== 'undefined' && 'gtag' in window && window.gtag) {
         window.gtag('event', name, {
           event_category: 'Web Vitals',
@@ -77,7 +77,7 @@ export default function WebVitals() {
         });
       }
 
-      // Supabase에 로그 저장 (선택 사항)
+      // Supabaseにログ保存 (オプション)
       if (process.env.NEXT_PUBLIC_ENABLE_VITALS_LOGGING === 'true') {
         fetch('/api/analytics/vitals', {
           method: 'POST',
@@ -100,7 +100,7 @@ export default function WebVitals() {
 }
 
 /**
- * 개발용 Web Vitals 디스플레이 컴포넌트
+ * 開発用Web Vitals表示コンポーネント
  */
 export function WebVitalsDisplay() {
   const [vitals, setVitals] = React.useState<Record<string, { value: number; rating: string }>>({});
@@ -128,7 +128,7 @@ export function WebVitalsDisplay() {
     });
   }, []);
 
-  // 개발 모드에서만 표시
+  // 開発モードのみ表示
   if (process.env.NODE_ENV !== 'development') return null;
 
   return (
@@ -137,7 +137,7 @@ export function WebVitalsDisplay() {
         onClick={() => setIsVisible(!isVisible)}
         className="fixed bottom-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-lg shadow-lg text-sm hover:bg-gray-700 transition-colors"
       >
-        {isVisible ? '📊 숨기기' : '📊 Web Vitals'}
+        {isVisible ? '📊 非表示' : '📊 Web Vitals'}
       </button>
 
       {isVisible && (

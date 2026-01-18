@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 import { Product } from '@/types/database'
 import { DownloadButton } from "./DownloadButton"
+import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import Link from 'next/link'
 
 interface EnhancedProductCardProps {
@@ -319,7 +320,7 @@ export function EnhancedProductCard({
               <span className="text-[10px] sm:text-xs">サンプル</span>
             </Button>
           </Link>
-          <Link href="/quote-simulator/" className="col-span-1">
+          <Link href="/quote-simulator" className="col-span-1">
             <Button
               variant="primary"
               size="sm"
@@ -389,16 +390,3 @@ export function EnhancedProductCard({
     </motion.div>
   )
 }
-
-// Import constant from the main catalog file
-const PRODUCT_CATEGORIES = {
-  flat_3_side: { name_ja: '三方シール袋', name_en: 'Three-Side Seal Pouch' },
-  stand_up: { name_ja: 'スタンドパウチ', name_en: 'Stand Pouch' },
-  box: { name_ja: 'ボックス型パウチ', name_en: 'Box Pouch' },
-  spout_pouch: { name_ja: 'スパウトパウチ', name_en: 'Spout Pouch' },
-  roll_film: { name_ja: 'ロールフィルム', name_en: 'Roll Film' },
-  gusset: { name_ja: 'ガセット袋', name_en: 'Gusset Bag' },
-  soft_pouch: { name_ja: 'ソフトパウチ', name_en: 'Soft Pouch' },
-  flat_with_zip: { name_ja: 'チャック付き平袋', name_en: 'Flat Bag with Zip' },
-  special: { name_ja: '特殊仕様パウチ', name_en: 'Special Specification Pouch' }
-} as const

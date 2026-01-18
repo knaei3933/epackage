@@ -138,9 +138,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Create Supabase clients
+    // Create Supabase client
     const supabase = createSupabaseClient()
-    const serviceClient = createServiceClient(verifyData.user.id)
 
     // =====================================================
     // Step 1: Verify the auth token using Supabase Auth
@@ -173,7 +172,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (!verifyData.user) {
+    if (!verifyData?.user) {
       logVerification(null, 'error', 'No user in verification data')
       return NextResponse.redirect(
         new URL(
@@ -187,7 +186,12 @@ export async function GET(request: NextRequest) {
     const userEmail = verifyData.user.email
 
     // =====================================================
-    // Step 2: Verify email in Supabase Auth (already verified by verifyOtp above)
+    // Step 2: Create service client AFTER verification
+    // =====================================================
+    const serviceClient = createServiceClient(userId)
+
+    // =====================================================
+    // Step 3: Verify email in Supabase Auth (already verified by verifyOtp above)
     // User status remains PENDING until admin approval
     // The profiles table should have email_confirmed_at field to track verification
     // =====================================================
@@ -214,7 +218,7 @@ export async function GET(request: NextRequest) {
     }
 
     // =====================================================
-    // Step 3: Log successful verification
+    // Step 4: Log successful verification
     // =====================================================
 
     logVerification(userId, 'success', 'Email verified successfully', {
@@ -224,7 +228,7 @@ export async function GET(request: NextRequest) {
     })
 
     // =====================================================
-    // Step 4: Redirect to pending approval page
+    // Step 5: Redirect to pending approval page
     // =====================================================
 
     // Create success message with user name

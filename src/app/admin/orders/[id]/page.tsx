@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { OrderStatus, ORDER_STATUS_LABELS } from '@/types/order-status';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { PageLoadingState } from '@/components/ui';
 
 interface OrderItem {
   id: string;
@@ -212,32 +213,19 @@ export default function AdminOrderDetailPage() {
     return validTransitions[from]?.includes(to as OrderStatus) || false;
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
-          <p className="text-center text-gray-600 mt-4">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-center text-gray-600">注文が見つかりません</p>
-        </div>
-      </div>
-    );
-  }
-
   const statusLabel = ORDER_STATUS_LABELS[order.status]?.ja || order.status;
   const statusCategory = ORDER_STATUS_LABELS[order.status]?.category || 'default';
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <PageLoadingState isLoading={loading} error={null} message="読み込み中...">
+      {!order ? (
+        <div className="min-h-screen bg-gray-50 p-6">
+          <div className="max-w-7xl mx-auto">
+            <p className="text-center text-gray-600">注文が見つかりません</p>
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* ヘッダー */}
         <div className="flex justify-between items-center">
@@ -530,5 +518,7 @@ export default function AdminOrderDetailPage() {
         )}
       </div>
     </div>
+      )}
+    </PageLoadingState>
   );
 }

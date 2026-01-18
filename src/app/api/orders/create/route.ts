@@ -8,9 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email-order';
 
@@ -31,34 +29,39 @@ interface CreateOrderFromQuotationItemRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    // Create auth client for user authentication
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Get authenticated user ID using SSR
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
 
-    // Dev mode handling: Check if we're in dev mode first (SECURE: server-side only)
-    const isDevMode = process.env.NODE_ENV === 'development' &&
-                      process.env.ENABLE_DEV_MOCK_AUTH === 'true';
-    // DEV_MODE: Use real admin user ID from auth.users table for foreign key constraint
-    const DEV_MODE_ADMIN_USER_ID = '54fd7b31-b805-43cf-b92e-898ddd066875';
+    // Create SSR client to read cookies
+    const response = NextResponse.json({ success: false });
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          response.cookies.delete({ name, ...options });
+        },
+      },
+    });
 
-    // Check authentication (only in production)
-    let user: any = null;
-    if (!isDevMode) {
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError || !authUser) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 }
-        );
-      }
-      user = authUser;
-    } else {
-      // Dev mode: Use real admin user for foreign key constraint compliance
-      user = {
-        id: DEV_MODE_ADMIN_USER_ID,
-        email: 'admin@epackage-lab.com',
-      };
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: '認証されていません。', errorEn: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     // Parse request body
@@ -75,8 +78,7 @@ export async function POST(request: NextRequest) {
 
     // Create service client to bypass RLS
     const supabaseAdmin = createServiceClient();
-
-    const userIdForDb = isDevMode ? DEV_MODE_ADMIN_USER_ID : user.id;
+    const userIdForDb = user.id;
 
     // Fetch quotation with user info
     const { data: quotation, error: quotationError } = await supabaseAdmin
@@ -93,8 +95,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify ownership (or dev mode)
-    if (!isDevMode && quotation.user_id !== userIdForDb) {
+    // Verify ownership
+    if (quotation.user_id !== userIdForDb) {
       return NextResponse.json(
         { success: false, error: 'Access denied: This quotation does not belong to you' },
         { status: 403 }
@@ -193,6 +195,13 @@ export async function POST(request: NextRequest) {
 
     // Create order item from quotation item
     // Note: total_price is a generated column (quantity * unit_price), cannot be inserted
+    console.log('[Order Creation] Creating order item:', {
+      order_id: order.id,
+      product_name: quotationItem.product_name,
+      quantity: quotationItem.quantity,
+      unit_price: quotationItem.unit_price,
+    });
+
     const { error: orderItemError } = await supabaseAdmin
       .from('order_items')
       .insert({
@@ -207,10 +216,11 @@ export async function POST(request: NextRequest) {
 
     if (orderItemError) {
       console.error('[Order Creation] Failed to create order item:', orderItemError);
+      console.error('[Order Creation] Error details:', JSON.stringify(orderItemError, null, 2));
       // Rollback: delete the order if item creation failed
       await supabaseAdmin.from('orders').delete().eq('id', order.id);
       return NextResponse.json(
-        { success: false, error: 'Failed to create order item', details: orderItemError.message },
+        { success: false, error: 'Failed to create order item', details: orderItemError.message, fullError: orderItemError },
         { status: 500 }
       );
     }

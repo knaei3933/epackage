@@ -1,6 +1,6 @@
 /**
  * Dimensions Extractor
- * Adobe Illustrator 파일에서 제품 치수를 추출하는 모듈
+ * Adobe Illustratorファイルから製品寸法を抽出するモジュール
  */
 
 import type {
@@ -21,20 +21,20 @@ type EnvelopeType = LegacyEnvelopeType;
 export class DimensionsExtractor {
   private readonly POINTS_TO_MM = 0.352778;
   private readonly STANDARD_COLORS = {
-    dieLine: '#FF0000', // 빨간색 (다이 라인)
-    foldLine: '#0000FF', // 파란색 (접힘선)
-    cutLine: '#00FF00', // 초록색 (컷팅 라인)
+    dieLine: '#FF0000', // 赤色 (ダイライン)
+    foldLine: '#0000FF', // 青色 (折り目線)
+    cutLine: '#00FF00', // 緑色 (カットライン)
   };
 
   /**
-   * 봉투 타입 식별
+   * 封筒タイプ識別
    */
   identifyEnvelopeType(paths: PathElement[], texts: TextElement[]): EnvelopeType {
-    // 1. 텍스트 라벨 기반 (우선순위 1)
+    // 1. テキストラベルベース (優先順位1)
     const labelType = this.identifyFromLabels(texts);
     if (labelType) return labelType;
 
-    // 2. 형상 패턴 기반 (우선순위 2)
+    // 2. 形状パターンベース (優先順位2)
     const outline = this.findOutlinePath(paths);
     if (!outline) return 'flat_pouch';
 
@@ -46,7 +46,7 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 치수 계산 (mm 단위)
+   * 寸法計算 (mm単位)
    */
   calculateDimensions(paths: PathElement[]): {
     width: number;
@@ -56,7 +56,7 @@ export class DimensionsExtractor {
   } {
     const outline = this.findOutlinePath(paths);
     if (!outline) {
-      throw new Error('외곽선을 찾을 수 없습니다');
+      throw new Error('外郭線を見つけることができません');
     }
 
     const bbox = outline.boundingBox;
@@ -73,7 +73,7 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 다이 라인 존재 확인
+   * ダイライン存在確認
    */
   hasDieLine(paths: PathElement[]): boolean {
     return paths.some(path => {
@@ -88,13 +88,13 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 노치 정보 추출
+   * ノッチ情報抽出
    */
   detectNotch(paths: PathElement[]): NotchInfo | null {
     const notchPattern = paths.filter(p => {
       const bbox = p.boundingBox;
       const isSmall = bbox.width < 20 && bbox.height < 20; // < 20mm
-      const isNearTop = bbox.y < 50; // 상단 50mm 내
+      const isNearTop = bbox.y < 50; // 上端50mm以内
 
       return isSmall && isNearTop;
     });
@@ -119,15 +119,15 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 지퍼 정보 추출
+   * ジッパー情報抽出
    */
   detectZipper(paths: PathElement[], texts: TextElement[]): ZipperInfo | null {
-    // 1. 텍스트 기반
+    // 1. テキストベース
     const zipperTexts = texts.filter(t =>
       /zipper|zip|ジッパー|チャック|ファスナー/i.test(t.content)
     );
 
-    // 2. 경로 기반 (평행 이중선)
+    // 2. パスベース (平行二重線)
     const parallelLines = this.findParallelLinePairs(paths);
 
     if (zipperTexts.length === 0 && parallelLines.length === 0) {
@@ -148,10 +148,10 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 걸이 구멍 정보 추출
+   * つり穴情報抽出
    */
   detectHangingHole(paths: PathElement[]): HangingHoleInfo | null {
-    // 1. 원형 구멍
+    // 1. 円形穴
     const roundHoles = paths.filter(p => {
       const bbox = p.boundingBox;
       const isCircular = this.isCircularPath(p.d);
@@ -161,7 +161,7 @@ export class DimensionsExtractor {
       return isCircular && isSmall && isNearTop;
     });
 
-    // 2. 유로 슬롯 (T자 형태)
+    // 2. ユーロスロット (T字形状)
     const euroSlots = paths.filter(p => {
       const bbox = p.boundingBox;
       const aspectRatio = bbox.width / bbox.height;
@@ -196,10 +196,10 @@ export class DimensionsExtractor {
     return null;
   }
 
-  // ============= 헬퍼 메서드 =============
+  // ============= ヘルパーメソッド =============
 
   /**
-   * 텍스트 라벨에서 타입 식별
+   * テキストラベルからタイプ識別
    */
   private identifyFromLabels(texts: TextElement[]): EnvelopeType | null {
     const content = texts.map(t => t.content.toLowerCase()).join(' ');
@@ -222,7 +222,7 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 종횡비 계산
+   * 縦横比計算
    */
   private calculateAspectRatio(path: PathElement): number {
     const { width, height } = path.boundingBox;
@@ -230,7 +230,7 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 형상 기반 분류
+   * 形状ベース分類
    */
   private classifyByShape(
     aspectRatio: number,
@@ -248,10 +248,10 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 외곽선 경로 찾기
+   * 外郭線パス検索
    */
   private findOutlinePath(paths: PathElement[]): PathElement | null {
-    // 가장 큰 bounding box를 가진 경로가 외곽선
+    // 最も大きいbounding boxを持つパスが外郭線
     const sorted = [...paths].sort((a, b) => {
       const areaA = a.boundingBox.width * a.boundingBox.height;
       const areaB = b.boundingBox.width * b.boundingBox.height;
@@ -262,18 +262,18 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 원형 경로인지 확인
+   * 円形パスか確認
    */
   private isCircularPath(pathData: string): boolean {
-    // SVG 경로 명령어에서 A(arc) 확인
+    // SVGパスコマンドでA(arc)確認
     return pathData.includes('A') && !pathData.includes('L');
   }
 
   /**
-   * 갓셋 감지
+   * ギャセット検知
    */
   private detectGussetFromPaths(paths: PathElement[]): boolean {
-    // 접힘선 (파란색)이 측면에 있는지 확인
+    // 折り目線 (青色) が側面にあるか確認
     const foldLines = paths.filter(p => {
       const stroke = p.stroke?.toLowerCase();
       return (
@@ -284,21 +284,21 @@ export class DimensionsExtractor {
       );
     });
 
-    // 측면에 위치하는지 확인 (간소화)
+    // 側面に位置するか確認 (簡素化)
     return foldLines.length > 0;
   }
 
   /**
-   * 지퍼 감지 (경로 기반)
+   * ジッパー検知 (パスベース)
    */
   private detectZipperFromPaths(paths: PathElement[]): boolean {
-    // 평행한 이중선 패턴 확인
+    // 平行な二重線パターン確認
     const pairs = this.findParallelLinePairs(paths);
     return pairs.length > 0;
   }
 
   /**
-   * 평행선 쌍 찾기
+   * 平行線ペア検索
    */
   private findParallelLinePairs(paths: PathElement[]): PathElement[][] {
     const pairs: PathElement[][] = [];
@@ -308,7 +308,7 @@ export class DimensionsExtractor {
       const line1 = horizontal[i];
       const line2 = horizontal[i + 1];
 
-      // Y좌표 차이가 작으면 평행
+      // Y座標差が小さければ平行
       const yDiff = Math.abs(line1.boundingBox.y - line2.boundingBox.y);
       if (yDiff < 5) {
         pairs.push([line1, line2]);
@@ -319,7 +319,7 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 수평선인지 확인
+   * 水平線か確認
    */
   private isHorizontalLine(path: PathElement): boolean {
     const { width, height } = path.boundingBox;
@@ -327,10 +327,10 @@ export class DimensionsExtractor {
   }
 
   /**
-   * 갓셋 깊이 계산
+   * ギャセット深さ計算
    */
   private calculateGusset(paths: PathElement[]): number {
-    // 접힘선을 기반으로 계산
+    // 折り目線をベースに計算
     const foldLines = paths.filter(p => {
       const stroke = p.stroke?.toLowerCase();
       return stroke === '#0000ff' || stroke === 'blue';
@@ -338,13 +338,13 @@ export class DimensionsExtractor {
 
     if (foldLines.length === 0) return 0;
 
-    // 간소화: 접힘선 위치로 추정
-    // 실제로는 더 복잡한 기하학적 계산 필요
+    // 簡素化: 折り目線位置で推定
+    // 実際はより複雑な幾何学的計算が必要
     return 0;
   }
 
   /**
-   * 지퍼 위치 결정
+   * ジッパー位置決定
    */
   private determineZipperPosition(
     texts: TextElement[],
@@ -352,20 +352,20 @@ export class DimensionsExtractor {
   ): 'top' | 'side' | 'bottom' {
     if (texts.length > 0) {
       const y = texts[0].y;
-      const centerY = 300; // A4 기준 (간소화)
+      const centerY = 300; // A4基準 (簡素化)
       if (y < centerY / 2) return 'top';
       if (y > centerY * 1.5) return 'bottom';
       return 'side';
     }
 
-    return 'top'; // 기본값
+    return 'top'; // デフォルト値
   }
 
   /**
-   * 지퍼 길이 계산
+   * ジッパー長さ計算
    */
   private calculateZipperLength(paths: PathElement[], y: number): number {
-    // Y좌표 근처의 수평선 길이
+    // Y座標付近の水平線長さ
     const nearbyLines = paths.filter(p => {
       const yDiff = Math.abs(p.boundingBox.y - y);
       return yDiff < 10 && this.isHorizontalLine(p);
@@ -378,7 +378,7 @@ export class DimensionsExtractor {
 }
 
 /**
- * 전체 치수 추출 함수
+ * 全寸法抽出関数
  */
 export async function extractDimensions(
   page: PDFPage

@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * サイドバーメニュー項目の型定義
@@ -15,6 +16,7 @@ export interface MenuItem {
   href: string;
   badge?: number;
   subMenu?: MenuItem[];
+  requiresB2B?: boolean;
 }
 
 /**
@@ -190,10 +192,17 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   notifications = {}
 }) => {
   const pathname = usePathname();
+  const { profile } = useAuth();
+  const isB2B = profile?.user_type === 'B2B';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Filter menu items based on user_type
+  const visibleMenuItems = useMemo(() => {
+    return menuItems.filter(item => !item.requiresB2B || isB2B);
+  }, [menuItems, isB2B]);
 
   // Prevent hydration issues
   useEffect(() => {
@@ -347,7 +356,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
             {/* メニューアイテムリスト */}
             <div className="py-4 space-y-1 overflow-y-auto flex-1 px-2">
-              {menuItems.map((item) => {
+              {visibleMenuItems.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                 const isSubActive = item.subMenu?.some(
                   sub => pathname === sub.href || pathname.startsWith(sub.href + '/')
@@ -422,7 +431,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
         {/* メニューアイテムリスト */}
         <div className="py-4 space-y-1 overflow-y-auto flex-1">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             const isSubActive = item.subMenu?.some(
               sub => pathname === sub.href || pathname.startsWith(sub.href + '/')

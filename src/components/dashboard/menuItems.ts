@@ -15,6 +15,7 @@ import {
   History,
   Truck,
   Receipt,
+  FileCheck,
   ChevronRight,
 } from 'lucide-react';
 import { MenuItem } from './SidebarNavigation';
@@ -77,6 +78,12 @@ export const menuItems: MenuItem[] = [
     label: '見積管理',
     icon: FileText,
     href: '/member/quotations',
+  },
+  {
+    id: 'contracts',
+    label: '契約管理',
+    icon: FileCheck,
+    href: '/member/contracts',
   },
   {
     id: 'samples',

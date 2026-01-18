@@ -155,9 +155,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Execute SQL query using Supabase client
- * This function provides a clean interface for SQL execution
- * compatible with the Supabase MCP execute_sql pattern
+ * Execute product filtering using Supabase query builder
+ * This replaces the raw SQL approach with proper Supabase client methods
  */
 async function executeSQL(query: string, params: (string | number)[]): Promise<any[]> {
   // Dynamic import to avoid edge execution issues
@@ -172,50 +171,165 @@ async function executeSQL(query: string, params: (string | number)[]): Promise<a
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-  // Use the PostgreSQL RPC function to execute raw SQL
-  // This mimics the Supabase MCP execute_sql functionality
-  const { data, error } = await supabase.rpc('execute_sql', {
-    query_text: query,
-    query_params: params
-  })
+  // Parse filters from the query to rebuild the query chain
+  // Extract filters from the WHERE clause
+  const filters = parseFiltersFromQuery(query, params)
+
+  // Build query using Supabase query builder
+  let queryBuilder = supabase
+    .from('products')
+    .select('*')
+    .eq('is_active', true)
+
+  // Apply category filter
+  if (filters.category && filters.category !== 'all') {
+    queryBuilder = queryBuilder.eq('category', filters.category)
+  }
+
+  // Apply materials filter (array overlap)
+  if (filters.materials && filters.materials.length > 0) {
+    queryBuilder = queryBuilder.contains('materials', filters.materials)
+  }
+
+  // Apply price range filter
+  if (filters.priceRange) {
+    const [minPrice, maxPrice] = filters.priceRange
+    // For JSONB pricing_formula, we need to filter client-side
+    // or use a different approach. For now, skip this filter
+    // TODO: Implement proper JSONB pricing filter
+    console.log('Price range filter not yet implemented:', minPrice, maxPrice)
+  }
+
+  // Apply features filter (array overlap)
+  if (filters.features && filters.features.length > 0) {
+    queryBuilder = queryBuilder.contains('features', filters.features)
+  }
+
+  // Apply applications filter (array overlap)
+  if (filters.applications && filters.applications.length > 0) {
+    queryBuilder = queryBuilder.contains('applications', filters.applications)
+  }
+
+  // Apply tags filter (array overlap)
+  if (filters.tags && filters.tags.length > 0) {
+    queryBuilder = queryBuilder.contains('tags', filters.tags)
+  }
+
+  // Apply min order quantity filter
+  if (filters.minOrderQuantity) {
+    queryBuilder = queryBuilder.lte('min_order_quantity', filters.minOrderQuantity)
+  }
+
+  // Apply max lead time filter
+  if (filters.maxLeadTime) {
+    queryBuilder = queryBuilder.lte('lead_time_days', filters.maxLeadTime)
+  }
+
+  // Apply search query (text search)
+  if (filters.searchQuery && filters.searchQuery.trim()) {
+    const searchTerm = filters.searchQuery.trim()
+    queryBuilder = queryBuilder.or(
+      `name_ja.ilike.%${searchTerm}%,name_en.ilike.%${searchTerm}%,description_ja.ilike.%${searchTerm}%,description_en.ilike.%${searchTerm}%`
+    )
+  }
+
+  // Order by sort_order
+  queryBuilder = queryBuilder.order('sort_order', { ascending: true })
+
+  // Execute query
+  const { data, error } = await queryBuilder
 
   if (error) {
-    console.error('SQL execution error:', error)
-    // Fallback to direct query if RPC not available
-    return await fallbackQuery(supabase, query, params)
+    console.error('Supabase query error:', error)
+    throw error
   }
 
   return data || []
 }
 
 /**
- * Fallback query function when RPC is not available
- * This provides a safe fallback mechanism
+ * Parse filter values from the SQL query and params
+ * This extracts the filter values to rebuild with query builder
  */
-async function fallbackQuery(
-  supabase: any,
-  originalQuery: string,
-  params: (string | number)[]
-): Promise<any[]> {
-  try {
-    // Extract the base query without parameters for fallback
-    // This is a simplified fallback that should be enhanced for production
-    let query = supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
+function parseFiltersFromQuery(query: string, params: (string | number)[]) {
+  const filters: any = {}
 
-    const { data, error } = await query
-
-    if (error) {
-      throw error
-    }
-
-    return data || []
-  } catch (error) {
-    console.error('Fallback query error:', error)
-    throw new Error('Failed to execute query with both primary and fallback methods')
+  // Extract category filter
+  if (query.includes('category = $')) {
+    filters.category = params[0]
   }
+
+  // Extract materials filter (array type)
+  if (query.includes('materials && $')) {
+    const materialsParam = params.find((p, i) =>
+      query.includes(`materials && $${i + 1}`)
+    )
+    if (materialsParam && typeof materialsParam === 'string') {
+      filters.materials = materialsParam.replace(/[{}]/g, '').split(',')
+    }
+  }
+
+  // Extract price range
+  if (query.includes("pricing_formula->>'base_cost'")) {
+    const priceIndex = query.indexOf(">= $")
+    if (priceIndex !== -1) {
+      const minIdx = parseInt(query.match(/>= \$(\d+)/)?.[1] || '0') - 1
+      const maxIdx = minIdx + 1
+      filters.priceRange = [params[minIdx] as number, params[maxIdx] as number]
+    }
+  }
+
+  // Extract features filter
+  if (query.includes('features && $')) {
+    const featuresParam = params.find((p, i) =>
+      query.includes(`features && $${i + 1}`)
+    )
+    if (featuresParam && typeof featuresParam === 'string') {
+      filters.features = featuresParam.replace(/[{}]/g, '').split(',')
+    }
+  }
+
+  // Extract applications filter
+  if (query.includes('applications && $')) {
+    const appsParam = params.find((p, i) =>
+      query.includes(`applications && $${i + 1}`)
+    )
+    if (appsParam && typeof appsParam === 'string') {
+      filters.applications = appsParam.replace(/[{}]/g, '').split(',')
+    }
+  }
+
+  // Extract tags filter
+  if (query.includes('tags && $')) {
+    const tagsParam = params.find((p, i) =>
+      query.includes(`tags && $${i + 1}`)
+    )
+    if (tagsParam && typeof tagsParam === 'string') {
+      filters.tags = tagsParam.replace(/[{}]/g, '').split(',')
+    }
+  }
+
+  // Extract min order quantity
+  if (query.includes('min_order_quantity <= $')) {
+    const idx = parseInt(query.match(/min_order_quantity <= \$(\d+)/)?.[1] || '0') - 1
+    filters.minOrderQuantity = params[idx] as number
+  }
+
+  // Extract max lead time
+  if (query.includes('lead_time_days <= $')) {
+    const idx = parseInt(query.match(/lead_time_days <= \$(\d+)/)?.[1] || '0') - 1
+    filters.maxLeadTime = params[idx] as number
+  }
+
+  // Extract search query
+  if (query.includes('ILIKE')) {
+    const searchParam = params.find((p) => typeof p === 'string' && p.startsWith('%'))
+    if (searchParam) {
+      filters.searchQuery = searchParam.replace(/^%|%$/g, '')
+    }
+  }
+
+  return filters
 }
 
 // Handle OPTIONS request for CORS

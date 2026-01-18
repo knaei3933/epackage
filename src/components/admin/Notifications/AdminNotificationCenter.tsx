@@ -1,8 +1,8 @@
 /**
  * Admin Notification Center Component
  *
- * 관리자 알림 센터 통합 컴포넌트
- * 알림 아이콘, 목록, 실시간 업데이트 기능 포함
+ * 管理者通知センター統合コンポーネント
+ * 通知アイコン、リスト、リアルタイム更新機能を含む
  *
  * @module components/admin/notifications
  */
@@ -17,7 +17,7 @@ export function AdminNotificationCenter() {
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
-  // 안읽은 알림 수 가져오기
+  // 未読通知数を取得
   const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/notifications/unread-count')
@@ -31,19 +31,19 @@ export function AdminNotificationCenter() {
     }
   }, [])
 
-  // 컴포넌트 마운트 시 안읽은 알림 수 가져오기
+  // コンポーネントマウント時に未読通知数を取得
   useEffect(() => {
     fetchUnreadCount()
   }, [fetchUnreadCount])
 
-  // 30초마다 안읽은 알림 수 갱신
+  // 30秒ごとに未読通知数を更新
   useEffect(() => {
     const interval = setInterval(fetchUnreadCount, 30000)
 
     return () => clearInterval(interval)
   }, [fetchUnreadCount])
 
-  // 알림 목록이 닫힐 때 안읽은 알림 수 갱신
+  // 通知リストが閉じる時に未読通知数を更新
   const handleClose = () => {
     setIsOpen(false)
     fetchUnreadCount()

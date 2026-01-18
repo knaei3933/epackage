@@ -1,7 +1,7 @@
 /**
  * State Change History Service
  *
- * 상태 변경 이력 관리 서비스
+ * ステータス変更履歴管理サービス
  * Track and manage order state transition history
  */
 
@@ -18,7 +18,7 @@ import {
 
 /**
  * Record state change in history
- * 상태 변경 기록 저장
+ * ステータス変更記録保存
  */
 export async function recordStateChange(change: {
   orderId: string;
@@ -53,7 +53,7 @@ export async function recordStateChange(change: {
 
 /**
  * Get state change history for an order
- * 주문 상태 변경 이력 조회
+ * 注文ステータス変更履歴照会
  */
 export async function getStateHistory(orderId: string): Promise<StateChangeHistory[]> {
   // In production, fetch from database
@@ -63,7 +63,7 @@ export async function getStateHistory(orderId: string): Promise<StateChangeHisto
 
 /**
  * Get state change statistics
- * 상태 변경 통계 조회
+ * ステータス変更統計照会
  */
 export async function getStateStatistics(orderId: string): Promise<{
   totalChanges: number;
@@ -121,7 +121,7 @@ export async function getStateStatistics(orderId: string): Promise<{
 
 /**
  * Get state timeline for visualization
- * 상태 타임라인 생성 (시각화용)
+ * ステータスタイムライン生成 (可視化用)
  */
 export async function getStateTimeline(orderId: string): Promise<Array<{
   state: OrderState;
@@ -167,7 +167,7 @@ export async function getStateTimeline(orderId: string): Promise<Array<{
 
 /**
  * Find problematic transitions (rollbacks, long durations)
- * 문제 전환 찾기
+ * 問題のある遷移検索
  */
 export async function findProblematicTransitions(orderId: string): Promise<Array<{
   from: OrderState;
@@ -217,7 +217,7 @@ export async function findProblematicTransitions(orderId: string): Promise<Array
 
 /**
  * Export history as CSV
- * 이력을 CSV로 내보내기
+ * 履歴をCSVでエクスポート
  */
 export async function exportHistoryAsCSV(orderId: string): Promise<string> {
   const history = await getStateHistory(orderId);
@@ -262,7 +262,7 @@ export async function exportHistoryAsCSV(orderId: string): Promise<string> {
 
 /**
  * Export history as JSON
- * 이력을 JSON으로 내보내기
+ * 履歴をJSONでエクスポート
  */
 export async function exportHistoryAsJSON(orderId: string): Promise<string> {
   const history = await getStateHistory(orderId);
@@ -271,7 +271,7 @@ export async function exportHistoryAsJSON(orderId: string): Promise<string> {
 
 /**
  * Generate state change report
- * 상태 변경 보고서 생성
+ * ステータス変更レポート生成
  */
 export async function generateStateChangeReport(orderId: string): Promise<{
   orderId: string;

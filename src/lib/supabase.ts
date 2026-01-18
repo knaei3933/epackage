@@ -153,6 +153,11 @@ export interface Profile {
     street?: string | null;
     role: 'ADMIN' | 'MEMBER';
     status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+    user_type?: 'B2B' | 'B2C' | null;
+    founded_year?: string | null;
+    capital?: string | null;
+    representative_name?: string | null;
+    business_document_path?: string | null;
     created_at: string;
     updated_at: string;
     last_login_at?: string | null;

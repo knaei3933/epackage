@@ -13,11 +13,14 @@ import {
   Settings,
   Users,
   ChevronRight,
+  DollarSign,
+  Tag,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'ダッシュボード', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: '注文管理', href: '/admin/orders', icon: ShoppingCart },
+  { name: '見積管理', href: '/admin/quotations', icon: FileText },
   { name: '生産管理', href: '/admin/production', icon: Package },
   { name: '配送管理', href: '/admin/shipments', icon: Truck },
   { name: '契約管理', href: '/admin/contracts', icon: FileText },
@@ -25,6 +28,8 @@ const navigation = [
   { name: '在庫管理', href: '/admin/inventory', icon: Boxes },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },
   { name: 'リード管理', href: '/admin/leads', icon: Users },
+  { name: 'システム設定', href: '/admin/settings', icon: DollarSign },
+  { name: 'クーポン管理', href: '/admin/coupons', icon: Tag },
 ];
 
 export function AdminNavigation() {

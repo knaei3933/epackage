@@ -1,6 +1,6 @@
 /**
  * Confidence Scorer
- * 추출된 데이터의 신뢰도를 계산하는 모듈
+ * 抽出されたデータの信頼度を計算するモジュール
  */
 
 import type {
@@ -13,7 +13,7 @@ import type {
 
 export class ConfidenceScorer {
   /**
-   * 종합 신뢰도 계산
+   * 総合信頼度計算
    */
   calculate(
     extracted: ExtractedSpecs,
@@ -48,7 +48,7 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 개별 항목 신뢰도 계산
+   * 個別項目信頼度計算
    */
   private calculateBreakdown(
     extracted: ExtractedSpecs,
@@ -68,7 +68,7 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 봉투 타입 신뢰도
+   * 封筒タイプ信頼度
    */
   private scoreEnvelopeType(
     dimensions: ExtractedSpecs['dimensions'],
@@ -76,20 +76,20 @@ export class ConfidenceScorer {
   ): number {
     let score = 0;
 
-    // 1. 텍스트 라벨 확인 (40점)
+    // 1. テキストラベル確認 (40点)
     const hasLabel = source.pages[0].texts.some(t =>
       /pouch|bag|stand|box|gusset|パウチ|袋|パック/i.test(t.content)
     );
     if (hasLabel) score += 40;
 
-    // 2. 형상 패턴 매칭 (30점)
+    // 2. 形状パターンマッチング (30点)
     const patternMatch = this.matchPattern(
       dimensions.envelopeType,
       dimensions
     );
     score += patternMatch * 30;
 
-    // 3. 구성요소 일치 (30점)
+    // 3. 構成要素一致 (30点)
     const componentConsistency = this.checkComponentConsistency(dimensions);
     score += componentConsistency * 30;
 
@@ -97,7 +97,7 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 치수 신뢰도
+   * 寸法信頼度
    */
   private scoreSize(
     dimensions: ExtractedSpecs['dimensions'],
@@ -105,23 +105,23 @@ export class ConfidenceScorer {
   ): number {
     let score = 0;
 
-    // 1. 경로 존재 (30점)
+    // 1. パス存在 (30点)
     if (dimensions.width > 0 && dimensions.height > 0) {
       score += 30;
     }
 
-    // 2. 다이 라인 색상 (25점)
+    // 2. ダイライン色 (25点)
     if (dimensions.hasDieLine) {
       score += 25;
     }
 
-    // 3. 텍스트 라벨 (25점)
+    // 3. テキストラベル (25点)
     const hasSizeLabel = source.pages[0].texts.some(t =>
       /W?\d+\s*[×x]\s*H?\d+/i.test(t.content)
     );
     if (hasSizeLabel) score += 25;
 
-    // 4. 표준 규격 일치 (20점)
+    // 4. 標準規格一致 (20点)
     const isStandard = this.isStandardSize(dimensions);
     if (isStandard) score += 20;
 
@@ -129,27 +129,27 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 갓셋 신뢰도
+   * ギャセット信頼度
    */
   private scoreGusset(gusset?: number): number {
     if (!gusset) return 0;
 
-    // 명시적으로 존재하면 높은 신뢰도
+    // 明示的に存在すれば高い信頼度
     return gusset > 0 ? 90 : 0;
   }
 
   /**
-   * 지퍼 신뢰도
+   * ジッパー信頼度
    */
   private scoreZipper(zipper?: ExtractedSpecs['processing']['zipper']): number {
-    if (!zipper) return 100; // 없는 것이 명확하면 높은 신뢰도
+    if (!zipper) return 100; // ないことが明確なら高い信頼度
 
-    // 지퍼 객체의 confidence 사용
+    // ジッパーオブジェクトのconfidence使用
     return zipper.confidence || 70;
   }
 
   /**
-   * 노치 신뢰도
+   * ノッチ信頼度
    */
   private scoreNotch(notch?: ExtractedSpecs['processing']['notch']): number {
     if (!notch) return 100;
@@ -158,14 +158,14 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 소재 구조 신뢰도
+   * 素材構造信頼度
    */
   private scoreMaterialStructure(
     material: ExtractedSpecs['material']
   ): number {
     let score = 0;
 
-    // 1. 소스 기반
+    // 1. ソースベース
     switch (material.source) {
       case 'text_label':
         score += 60;
@@ -181,12 +181,12 @@ export class ConfidenceScorer {
         break;
     }
 
-    // 2. 레이어 개수 (최소 2층 구조)
+    // 2. レイヤー数 (最低2層構造)
     if (material.layers.length >= 2) {
       score += 20;
     }
 
-    // 3. 형식 검증
+    // 3. 形式検証
     const formatValid = material.layers.every(
       layer => layer.material && layer.material.length >= 2
     );
@@ -196,12 +196,12 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 두께 신뢰도
+   * 厚さ信頼度
    */
   private scoreThickness(thickness?: number): number {
     if (!thickness) return 0;
 
-    // 표준 범위 (50-200μm)
+    // 標準範囲 (50-200μm)
     if (thickness >= 50 && thickness <= 200) {
       return 85;
     }
@@ -210,25 +210,25 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 색상 신뢰도
+   * 色信頼度
    */
   private scoreColors(colors: ExtractedSpecs['printing']['colors']): number {
     let score = 0;
 
-    // 1. 타입별 기본 점수
+    // 1. タイプ別基本スコア
     switch (colors.type) {
       case 'spot':
-        score += 50; // Pantone 코드는 명확함
+        score += 50; // Pantoneコードは明確
         break;
       case 'cmyk':
-        score += 70; // CMYK는 표준
+        score += 70; // CMYKは標準
         break;
       case 'hybrid':
         score += 60;
         break;
     }
 
-    // 2. 개수 검증
+    // 2. 個数検証
     if (colors.type === 'cmyk' && colors.count <= 4) {
       score += 30;
     } else if (colors.type === 'spot' && colors.pantoneCodes) {
@@ -239,7 +239,7 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 로고 신뢰도
+   * ロゴ信頼度
    */
   private scoreLogo(logos: ExtractedSpecs['printing']['logos']): number {
     if (logos.length === 0) return 100;
@@ -251,7 +251,7 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 종합 신뢰도 (가중평균)
+   * 総合信頼度 (加重平均)
    */
   private calculateOverall(breakdown: ConfidenceBreakdown): number {
     const weights: Record<keyof ConfidenceBreakdown, number> = {
@@ -272,7 +272,7 @@ export class ConfidenceScorer {
   }
 
   /**
-   * 검증 플래그 생성
+   * 検証フラグ生成
    */
   private generateFlags(
     breakdown: ConfidenceBreakdown,
@@ -280,45 +280,45 @@ export class ConfidenceScorer {
   ): ValidationFlag[] {
     const flags: ValidationFlag[] = [];
 
-    // 낮은 신뢰도 항목
+    // 低い信頼度項目
     Object.entries(breakdown).forEach(([key, score]) => {
       if (score < 50) {
         flags.push({
           type: 'error',
           field: key,
-          message: `${key} 추출 신뢰도가 매우 낮습니다 (${score}%)`,
-          suggestion: '수동 입력을 권장합니다',
+          message: `${key} 抽出信頼度が非常に低いです (${score}%)`,
+          suggestion: '手動入力を推奨します',
         });
       } else if (score < 70) {
         flags.push({
           type: 'warning',
           field: key,
-          message: `${key} 추출 결과를 확인해주세요 (${score}%)`,
-          suggestion: '검증 후 수정 필요',
+          message: `${key} 抽出結果を確認してください (${score}%)`,
+          suggestion: '検証後修正必要',
         });
       }
     });
 
-    // 상충 정보 검사
+    // 矛盾情報検査
     if (breakdown.zipper > 70 && breakdown.notch > 70) {
       const hasConflict = this.checkZipperNotchConflict(extracted);
       if (hasConflict) {
         flags.push({
           type: 'warning',
           field: 'processing',
-          message: '지퍼와 노치 위치가 겹칠 수 있습니다',
-          suggestion: '위치를 재확인해주세요',
+          message: 'ジッパーとノッチ位置が重なる可能性があります',
+          suggestion: '位置を再確認してください',
         });
       }
     }
 
-    // 비용 최적화 제안
+    // 費用最適化提案
     if (breakdown.colors > 70 && extracted.printing.colors.type === 'spot') {
       flags.push({
         type: 'info',
         field: 'printing',
-        message: `Pantone 색상이 ${extracted.printing.colors.count}개 발견되었습니다`,
-        suggestion: 'CMYK 4도 인쇄로 변경하면 비용 절감 가능합니다',
+        message: `Pantone色が${extracted.printing.colors.count}個見つかりました`,
+        suggestion: 'CMYK 4色印刷に変更すると費用削減可能です',
         autoCorrect: true,
       });
     }
@@ -326,7 +326,7 @@ export class ConfidenceScorer {
     return flags;
   }
 
-  // ============= 헬퍼 메서드 =============
+  // ============= ヘルパーメソッド =============
 
   private average(values: number[]): number {
     const valid = values.filter(v => v >= 0);
@@ -338,7 +338,7 @@ export class ConfidenceScorer {
     type: string,
     dimensions: ExtractedSpecs['dimensions']
   ): number {
-    // 봉투 타입별 특징 매칭
+    // 封筒タイプ別特徴マッチング
     const patterns: Record<string, { features: string[]; score: number }> = {
       stand_pouch: {
         features: ['zipper', 'aspectRatio>1.2'],
@@ -367,7 +367,7 @@ export class ConfidenceScorer {
   private checkComponentConsistency(
     dimensions: ExtractedSpecs['dimensions']
   ): number {
-    // 스탠드 파우치엔 지퍼가 있어야 함
+    // スタンドパウチにはジッパーが必要
     if (dimensions.envelopeType === 'stand_pouch') {
       return dimensions.zipper ? 1 : 0.5;
     }
@@ -378,7 +378,7 @@ export class ConfidenceScorer {
   private isStandardSize(
     dimensions: ExtractedSpecs['dimensions']
   ): boolean {
-    // 일반적인 표준 규격 (간소화)
+    // 一般的な標準規格 (簡素化)
     const standardSizes = [
       { width: 100, height: 150 },
       { width: 120, height: 180 },
@@ -399,17 +399,17 @@ export class ConfidenceScorer {
       return false;
     }
 
-    // Y좌표 차이 확인 (간소화)
+    // Y座標差確認 (簡素化)
     const yDiff = Math.abs(
       extracted.processing.zipper.y - extracted.processing.notch.position.y
     );
 
-    return yDiff < 20; // 20mm 이내면 겹침 가능성
+    return yDiff < 20; // 20mm以内なら重複可能性
   }
 }
 
 /**
- * 신뢰도 계산 함수 (유틸리티)
+ * 信頼度計算関数 (ユーティリティ)
  */
 export function calculateConfidence(
   extracted: ExtractedSpecs,

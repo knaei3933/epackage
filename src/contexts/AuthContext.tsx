@@ -94,7 +94,7 @@ function convertSupabaseSession(supabaseSession: SupabaseSession | null): Sessio
 // AuthProvider Component
 // =====================================================
 
-// 쿠키에서 mock 사용자 ID를 읽어옵니다
+// クッキーからmockユーザーIDを読み込みます
 function getDevMockUserIdFromCookie(): string | null {
   if (typeof document === 'undefined') return null
 
@@ -108,21 +108,27 @@ function getDevMockUserIdFromCookie(): string | null {
   return null
 }
 
-// localStorage에서 즉시 사용자 데이터를 로드하는 헬퍼 함수
+// localStorageから即座にユーザーデータをロードするヘルパー関数
 function loadUserFromLocalStorage(): { user: User | null; profile: Profile | null } {
   // DEV_MODE: localStorage에서 mock user 데이터 로드 (signin API에서 저장된 데이터)
-  // IMPORTANT: Only load from localStorage if DEV_MODE is enabled
-  if (typeof document !== 'undefined' && isDevMode()) {
+  // IMPORTANT: Check for DEV_MODE indicators (cookie or localStorage) instead of relying on isDevMode()
+  // This is necessary because client-side isDevMode() always returns false for security
+  if (typeof document !== 'undefined') {
     try {
-      // 쿠키에서 사용자 ID 확인 (우선 사용)
+      // Check if DEV_MODE is active by looking for the cookie or localStorage item
       const cookieUserId = getDevMockUserIdFromCookie()
-
       const mockUserStr = localStorage.getItem('dev-mock-user')
+      const isDevModeActive = !!cookieUserId || !!mockUserStr
+
+      if (!isDevModeActive) {
+        return { user: null, profile: null }
+      }
+
       if (mockUserStr) {
         const mockUserData = JSON.parse(mockUserStr)
         console.log('[AuthContext] Loading user from localStorage during init:', mockUserData)
 
-        // 쿠키에 있는 사용자 ID로 업데이트 (일관성 유지)
+        // クッキーにあるユーザーIDで更新（一貫性維持）
         const userId = cookieUserId || mockUserData.id
 
         const mockProfile: Profile = {
@@ -192,12 +198,12 @@ function loadUserFromLocalStorage(): { user: User | null; profile: Profile | nul
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  // useState 초기화 함수 사용 - 컴포넌트 마운트 시 즉시 실행됨
+  // useState初期化関数使用 - コンポーネントマウント時に即座に実行
   const initialData = loadUserFromLocalStorage()
   const [user, setUser] = useState<User | null>(initialData.user)
   const [profile, setProfile] = useState<Profile | null>(initialData.profile)
   const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(!initialData.user) // user가 있으면 이미 로딩 완료
+  const [isLoading, setIsLoading] = useState(!initialData.user) // userがあれば既にローディング完了
   const router = useRouter()
 
   // =====================================================
@@ -220,7 +226,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return
     }
 
-    // Get initial session (PROD or 초기 사용자 없는 경우)
+    // Get initial session (PROD or 初期ユーザーがない場合)
     const getInitialSession = async () => {
       try {
         console.log('[AuthContext] Initializing auth context...')

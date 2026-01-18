@@ -11,14 +11,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Badge, Button } from '@/components/ui';
+import { Card, Badge, Button, PageLoadingState } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Download } from 'lucide-react';
 import type { Quotation, QuotationStatus } from '@/types/dashboard';
 import { supabase } from '@/lib/supabase';
-import { generateQuotePDF, type QuoteData } from '@/lib/pdf-generator';
 import { translateBagType, translateMaterialType } from '@/constants/enToJa';
 import OrderConfirmationModal, {
   type OrderConfirmationData,
@@ -27,6 +26,10 @@ import OrderConfirmationModal, {
 import Link from 'next/link';
 import { Eye, Trash2, FileText, AlertCircle } from 'lucide-react';
 import { safeMap } from '@/lib/array-helpers';
+
+// Client-side PDF generation imports
+import { generatePdfBlob, QuotationPDFDocument } from '@/lib/excel/clientPdfGenerator';
+import { mapDatabaseQuotationToExcel } from '@/lib/excel/excelDataMapper';
 
 // =====================================================
 // Constants
@@ -72,54 +75,6 @@ const statusFilterOptions = [
 ];
 
 // =====================================================
-// Helper Functions
-// =====================================================
-
-/**
- * Map database specifications to PDF template format
- * Converts English IDs to Japanese display names
- */
-function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Record<string, string | boolean | number> {
-  if (!specs) return {};
-
-  const bagTypeId = specs.bagTypeId as string | undefined;
-  const materialId = specs.materialId as string | undefined;
-  const postProcessingOptions = specs.postProcessingOptions as string[] | undefined;
-
-  return {
-    // Bag type (e.g., flat_3_side -> 三方シール)
-    bagType: bagTypeId ? translateBagType(bagTypeId) : 'スタンドパウチ',
-
-    // Contents (default value)
-    contents: '粉体',
-
-    // Size (dimensions)
-    size: specs.dimensions as string || `${specs.width || 0}×${specs.height || 0}${(specs.depth as number || 0) > 0 ? `×${specs.depth}` : ''}`,
-
-    // Material (e.g., pet_al -> PET+AL)
-    material: materialId ? translateMaterialType(materialId) : 'PET+AL',
-
-    // Seal specifications (defaults based on bag type)
-    sealWidth: '5mm',
-    sealDirection: '上',
-
-    // Notch specifications
-    notchShape: 'V',
-    notchPosition: '指定位置',
-
-    // Hanging hole
-    hanging: 'なし',
-    hangingPosition: '指定位置',
-
-    // Zipper position (check if zipper is in post processing options)
-    zipperPosition: postProcessingOptions?.some(opt => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
-
-    // Corner R
-    cornerR: 'R5',
-  };
-}
-
-// =====================================================
 // Page Component
 // =====================================================
 
@@ -132,6 +87,7 @@ export default function QuotationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [downloadingQuoteId, setDownloadingQuoteId] = useState<string | null>(null);
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null);
+  const [downloadStats, setDownloadStats] = useState<Record<string, { count: number; lastDownloadedAt: string | null }>>({});
 
   // Order modal state
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
@@ -173,7 +129,7 @@ export default function QuotationsPage() {
       const DEV_MODE_PLACEHOLDER_USER_ID = '00000000-0000-0000-0000-000000000000';
 
       let data: any[] | null = null;
-      let fetchError: any = null;
+      const fetchError: any = null;
 
       // SECURITY: Always use API route for security (server-side handles dev mode check securely)
       console.log('[QuotationsPage] Using member quotations API');
@@ -234,6 +190,37 @@ export default function QuotationsPage() {
     }
   };
 
+  // Fetch download statistics for all quotations
+  const fetchDownloadStats = async () => {
+    if (!quotations || quotations.length === 0) return;
+
+    const stats: Record<string, { count: number; lastDownloadedAt: string | null }> = {};
+
+    // Fetch stats for each quotation in parallel
+    await Promise.all(
+      quotations.map(async (quotation) => {
+        try {
+          const response = await fetch(
+            `/api/member/documents/history?quotation_id=${quotation.id}`,
+            { credentials: 'include' }
+          );
+
+          if (response.ok) {
+            const { data } = await response.json();
+            stats[quotation.id] = {
+              count: data.statistics.downloadCount || 0,
+              lastDownloadedAt: data.statistics.lastDownloadedAt,
+            };
+          }
+        } catch (err) {
+          console.error(`Failed to fetch download stats for quotation ${quotation.id}:`, err);
+        }
+      })
+    );
+
+    setDownloadStats(stats);
+  };
+
   const handleDownloadPDF = async (quotation: Quotation) => {
     setDownloadingQuoteId(quotation.id);
 
@@ -243,121 +230,41 @@ export default function QuotationsPage() {
         throw new Error('見積明細がありません');
       }
 
-      // Format dates as YYYY-MM-DD
-      const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
+      console.log('[handleDownloadPDF] Starting client-side PDF generation for quotation:', quotation.quotationNumber);
 
-      // Build quote items from quotation items with validation
-      const quoteItems = quotation.items
-        .filter((item) => item.productName && item.quantity > 0 && item.unitPrice >= 0)
-        .map((item) => {
-          const specs = item.specifications as Record<string, unknown> | undefined;
-          const bagTypeId = specs?.bagTypeId as string | undefined;
-          const materialId = specs?.materialId as string | undefined;
-          const dimensions = specs?.dimensions as string | undefined;
-
-          return {
-            id: item.id,
-            name: item.productName || '製品名なし',
-            description: dimensions
-              ? `サイズ: ${dimensions} | ${materialId ? translateMaterialType(materialId) : '-'}`
-              : '-',
-            quantity: item.quantity || 0,
-            unit: '個',
-            unitPrice: Math.round(item.unitPrice || 0),
-            amount: Math.round(item.totalPrice || item.unitPrice * item.quantity || 0),
-          };
-        });
-
-      // Check if we have valid items after filtering
-      if (quoteItems.length === 0) {
-        throw new Error('有効な見積明細がありません');
-      }
-
-      // Prepare PDF data with Excel template format
-      const pdfData = {
-        quoteNumber: quotation.quotationNumber,
-        issueDate: formatDate(quotation.createdAt),
-        expiryDate: formatDate(quotation.validUntil),
-        quoteCreator: 'EPACKAGE Lab 見積システム',
-
-        // Customer information (from profile)
-        customerName: profile?.kanji_last_name && profile?.kanji_first_name
-          ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
-          : (profile?.company_name || user?.email?.split('@')[0] || 'お客様'),
-        customerNameKana: profile?.kana_last_name && profile?.kana_first_name
-          ? `${profile.kana_last_name} ${profile.kana_first_name}`
-          : '',
-        companyName: profile?.company_name || '',
-        postalCode: profile?.postal_code || '',
-        address: (profile?.prefecture || profile?.city || profile?.street)
-          ? `${profile?.prefecture || ''}${profile?.city || ''}${profile?.street || ''}`
-          : '',
-        contactPerson: profile?.kanji_last_name && profile?.kanji_first_name
-          ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
-          : '',
-        phone: profile?.corporate_phone || profile?.personal_phone || '',
-        email: user?.email || '',
-
-        // Quote items
-        items: quoteItems,
-
-        // Product specifications (from first item's specifications)
-        // Map database format (English IDs) to PDF template format (Japanese names)
-        specifications: mapSpecificationsToPDF(quotation.items[0]?.specifications),
-
-        // Optional processing - check postProcessingOptions array
-        optionalProcessing: (() => {
-          const allPostProcessingOptions = (quotation.items || []).flatMap(item =>
-            (item.specifications?.postProcessingOptions as string[]) || []
-          );
-          return {
-            zipper: allPostProcessingOptions.some(opt => opt.includes('zipper') || opt.includes('zip')),
-            notch: allPostProcessingOptions.some(opt => opt.includes('notch') || opt.includes('tear')),
-            hangingHole: allPostProcessingOptions.some(opt => opt.includes('hang') || opt.includes('hole')),
-            cornerProcessing: allPostProcessingOptions.some(opt => opt.includes('corner') || opt.includes('r')),
-          };
-        })(),
-
-        // Terms
-        paymentTerms: '先払い',
-        deliveryDate: '校了から約1か月',
-        deliveryLocation: '指定なし',
-        validityPeriod: '見積発行から3ヶ月間',
-        remarks: `※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10％程度の過不足が生じる場合がございます。
-数量の完全保証はいたしかねますので、あらかじめご了承ください。
-※不足分につきましては、実際に納品した数量に基づきご請求いたします。
-前払いにてお支払いいただいた場合は、差額分を返金いたします。
-※原材料価格の変動等により、見積有効期限経過後は価格が変更となる場合がございます。
-再見積の際は、あらかじめご了承くださいますようお願いいたします。
-※本見積金額には郵送費を含んでおります。
-※お客様によるご確認の遅れ、その他やむを得ない事情により、納期が前後する場合がございます。
-※年末年始等の長期休暇期間を挟む場合、通常より納期が延びる可能性がございます。
-※天候不良、事故、交通事情等の影響により、やむを得ず納期が遅延する場合がございますので、あらかじめご了承ください。`,
-      };
-
-      // Generate PDF directly on client side (requires browser environment for html2canvas)
-      const result = await generateQuotePDF(pdfData as QuoteData, {
-        filename: `${quotation.quotationNumber}.pdf`,
+      // Fetch full quotation data from API
+      const response = await fetch(`/api/member/quotations/${quotation.id}/export`, {
+        method: 'GET',
+        credentials: 'include',
       });
 
-      if (!result.success || !result.pdfBuffer) {
-        throw new Error(result.error || 'PDF generation failed');
+      if (!response.ok) {
+        throw new Error('Failed to fetch quotation data');
       }
 
-      // Convert buffer to Uint8Array for browser compatibility, then to blob and download
-      const uint8Array = new Uint8Array(result.pdfBuffer);
-      const blob = new Blob([uint8Array], { type: 'application/pdf' });
+      const { data: quotationData } = await response.json();
+      console.log('[handleDownloadPDF] Quotation data fetched:', quotationData);
+
+      // Map database quotation to Excel/PDF format
+      const excelData = await mapDatabaseQuotationToExcel(
+        quotationData.quotation,
+        quotationData.items || [],
+        quotationData.userProfile
+      );
+
+      console.log('[handleDownloadPDF] Excel data mapped successfully');
+
+      // Generate PDF on client side using @react-pdf/renderer
+      const doc = pdf(<QuotationPDFDocument data={excelData} />);
+      const blob = await doc.toBlob();
+
+      console.log('[handleDownloadPDF] PDF generated successfully, size:', blob.size);
+
+      // Download the PDF
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = result.filename || `${quotation.quotationNumber}.pdf`;
+      a.download = `${quotation.quotationNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
 
@@ -365,10 +272,31 @@ export default function QuotationsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      console.log('PDF downloaded successfully:', quotation.quotationNumber);
+      console.log('[handleDownloadPDF] PDF downloaded successfully:', quotation.quotationNumber);
+
+      // Log PDF download to database
+      try {
+        await fetch('/api/member/documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            document_type: 'quote',
+            document_id: quotation.id,
+            quotation_id: quotation.id,
+            action: 'downloaded',
+          }),
+        });
+        console.log('[handleDownloadPDF] PDF download logged successfully');
+        // Refresh download stats after logging
+        fetchDownloadStats();
+      } catch (logError) {
+        console.error('[handleDownloadPDF] Failed to log PDF download:', logError);
+        // Don't alert user about logging failure
+      }
     } catch (error) {
-      console.error('Failed to download PDF:', error);
-      alert('PDFのダウンロードに失敗しました');
+      console.error('[handleDownloadPDF] Failed to download PDF:', error);
+      alert(`PDFのダウンロードに失敗しました:\n${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloadingQuoteId(null);
     }
@@ -415,8 +343,10 @@ export default function QuotationsPage() {
   };
 
   const handleOrderConfirm = async (data: OrderConfirmationData): Promise<OrderConfirmationResponse> => {
+    let response: Response | undefined;
+
     try {
-      const response = await fetch('/api/orders/create', {
+      response = await fetch('/api/orders/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -431,7 +361,18 @@ export default function QuotationsPage() {
 
       return result;
     } catch (error) {
-      console.error('Failed to create order:', error);
+      // 사용자에게 표시되는 예상 에러(이미 주문됨 등)는 콘솔에 출력하지 않음
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isUserFacingError =
+        errorMessage.includes('already been ordered') ||
+        errorMessage.includes('already ordered') ||
+        errorMessage.includes('既に注文されています') ||
+        errorMessage.includes('already') ||
+        response?.status === 400; // Bad Request = 유효성 검사 실패
+
+      if (!isUserFacingError) {
+        console.error('Failed to create order:', error);
+      }
       throw error;
     }
   };
@@ -443,16 +384,16 @@ export default function QuotationsPage() {
     }
   }, [selectedStatus, user?.id, authLoading]);
 
+  // Fetch download stats after quotations are loaded
+  useEffect(() => {
+    if (quotations.length > 0) {
+      fetchDownloadStats();
+    }
+  }, [quotations]);
+
   // Show loading state while auth context is initializing
   if (authLoading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-text-muted">読み込み中...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingState isLoading={true} message="見積依頼を読み込み中..." />;
   }
 
   return (
@@ -462,9 +403,17 @@ export default function QuotationsPage() {
           <h1 className="text-2xl font-bold text-text-primary">見積依頼</h1>
           <p className="text-text-muted mt-1">見積依頼の一覧とステータス確認</p>
         </div>
-        <Button variant="primary" onClick={() => (window.location.href = '/quote-simulator')}>
-          <span className="mr-2">+</span>新規見積
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => {
+            fetchQuotations();
+            fetchDownloadStats();
+          }}>
+            ↻ 更新
+          </Button>
+          <Button variant="primary" onClick={() => (window.location.href = '/quote-simulator')}>
+            <span className="mr-2">+</span>新規見積
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -493,18 +442,28 @@ export default function QuotationsPage() {
 
       {quotations.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-text-muted">
+          <p className="text-text-muted mb-4">
             {selectedStatus === 'all'
               ? '見積依頼がありません'
               : statusFilterOptions.find((o) => o.value === selectedStatus)?.label + "の見積はありません"}
           </p>
-          <Button
-            variant="primary"
-            className="mt-4"
-            onClick={() => (window.location.href = '/quote-simulator')}
-          >
-            見積を作成する
-          </Button>
+          <div className="flex gap-2 justify-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchQuotations();
+                fetchDownloadStats();
+              }}
+            >
+              ↻ 更新
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => (window.location.href = '/quote-simulator')}
+            >
+              見積を作成する
+            </Button>
+          </div>
         </Card>
       ) : (
         <div className="space-y-4">
@@ -579,6 +538,21 @@ export default function QuotationsPage() {
                   <div className="text-lg font-semibold text-text-primary">
                     合計: {quotation.totalAmount.toLocaleString()}円
                   </div>
+
+                  {/* Download History Indicator */}
+                  {downloadStats[quotation.id]?.count > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-text-muted mt-2">
+                      <Download className="w-3 h-3" />
+                      <span>
+                        PDFダウンロード {downloadStats[quotation.id].count}回
+                        {downloadStats[quotation.id].lastDownloadedAt && (
+                          <>
+                            {' '}(最後: {new Date(downloadStats[quotation.id].lastDownloadedAt!).toLocaleDateString('ja-JP')})
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-right shrink-0">

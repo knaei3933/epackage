@@ -1,13 +1,13 @@
 /**
  * Email Utility Library
  *
- * 이메일 발송 유틸리티
- * - 개발 환경: Ethereal Email (실제 이메일 수신 테스트)
- * - 프로덕션 환경: SendGrid 또는 AWS SES
- * - Contact Form 이메일 발송
- * - Sample Request 이메일 발송
- * - 관리자 알림 이메일 발송
- * - XSS 방지 (sanitize-html)
+ * メール送信ユーティリティ
+ * - 開発環境: Ethereal Email（実際のメール受信テスト）
+ * - 本番環境: SendGrid または AWS SES
+ * - Contact Form メール送信
+ * - Sample Request メール送信
+ * - 管理者通知メール送信
+ * - XSS対策（sanitize-html）
  * - Japanese Business Email Templates
  */
 
@@ -45,17 +45,17 @@ export { createRecipient } from './email-templates';
 // =====================================================
 
 /**
- * 사용자 입력을 안전하게 이스케이프하여 XSS 방지
- * 줄바꿈은 <br> 태그로 변환하지만, 기타 HTML 태그는 모두 제거
+ * ユーザー入力を安全にエスケープしてXSS対策
+ * 改行は<br>タグに変換するが、その他のHTMLタグはすべて削除
  */
 function sanitizeUserMessage(message: string): string {
-  // 1단계: 모든 HTML 태그 제거
+  // 1段階: すべてのHTMLタグを削除
   const clean = sanitizeHtml(message, {
     allowedTags: [],
     allowedAttributes: {},
   });
 
-  // 2단계: 줄바꿈을 <br> 태그로 변환 (이스케이프 후 안전함)
+  // 2段階: 改行を<br>タグに変換（エスケープ後は安全）
   return clean.replace(/\n/g, '<br>');
 }
 
@@ -67,7 +67,7 @@ function sanitizeUserMessage(message: string): string {
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@epackage-lab.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
 
-// 환경별 전략 자동 선택
+// 環境別戦略自動選択
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -79,8 +79,8 @@ let transporter: nodemailer.Transporter | null = null;
 let transportType: 'ethereal' | 'sendgrid' | 'aws-ses' | 'xserver' | 'console' = 'console';
 
 /**
- * 개발용: Ethereal Email Transporter
- * 실제 이메일로 테스트 발송 가능 (https://ethereal.email)
+ * 開発用: Ethereal Email Transporter
+ * 実際のメールでテスト送信可能（https://ethereal.email）
  */
 async function createEtherealTransporter() {
   try {
@@ -108,7 +108,7 @@ async function createEtherealTransporter() {
 }
 
 /**
- * 프로덕션용: SendGrid Transporter
+ * 本番用: SendGrid Transporter
  */
 function createSendGridTransporter() {
   const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
@@ -132,7 +132,7 @@ function createSendGridTransporter() {
 }
 
 /**
- * 프로덕션용: AWS SES Transporter (백업)
+ * 本番用: AWS SES Transporter（バックアップ）
  */
 function createAwsSesTransporter() {
   const AWS_SES_SMTP_USERNAME = process.env.AWS_SES_SMTP_USERNAME;
@@ -158,7 +158,7 @@ function createAwsSesTransporter() {
 }
 
 /**
- * 프로덕션용: XServer SMTP Transporter (일본 호스팅)
+ * 本番用: XServer SMTP Transporter（日本ホスティング）
  */
 function createXServerTransporter() {
   const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST;
@@ -166,7 +166,7 @@ function createXServerTransporter() {
   const XSERVER_SMTP_USER = process.env.XSERVER_SMTP_USER;
   const XSERVER_SMTP_PASSWORD = process.env.XSERVER_SMTP_PASSWORD;
 
-  // XServer 설정이 없으면 null 반환
+  // XServer設定がない場合はnullを返す
   if (!XSERVER_SMTP_HOST || !XSERVER_SMTP_USER || !XSERVER_SMTP_PASSWORD) {
     return null;
   }
@@ -174,30 +174,30 @@ function createXServerTransporter() {
   return nodemailer.createTransport({
     host: XSERVER_SMTP_HOST,
     port: XSERVER_SMTP_PORT,
-    secure: XSERVER_SMTP_PORT === 465, // 465면 SSL, 587이면 TLS
+    secure: XSERVER_SMTP_PORT === 465, // 465ならSSL、587ならTLS
     auth: {
       user: XSERVER_SMTP_USER,
       pass: XSERVER_SMTP_PASSWORD,
     },
-    // XServer는 TLS를 권장
+    // XServerはTLSを推奨
     tls: {
-      rejectUnauthorized: false // 개발 환경에서는 인증서 검증을 완화
+      rejectUnauthorized: false // 開発環境では証明書検証を緩和
     }
   });
 }
 
 // =====================================================
-// 초기화 (환경별 자동 선택)
+// 初期化（環境別自動選択）
 // =====================================================
 
 let etherealTestAccount: NonNullable<Awaited<ReturnType<typeof createEtherealTransporter>>>['testAccount'] | null = null;
 
 async function initializeTransporter() {
   if (isDevelopment) {
-    // 개발 환경: XServer 우선 (실제 메일 테스트용)
+    // 開発環境: XServer優先（実際のメールテスト用）
     console.log('[Email] Development mode - configuring email service');
 
-    // 1. XServer SMTP (일본 호스팅)
+    // 1. XServer SMTP（日本ホスティング）
     transporter = createXServerTransporter();
     if (transporter) {
       transportType = 'xserver';
@@ -205,7 +205,7 @@ async function initializeTransporter() {
       return;
     }
 
-    // 2. Ethereal Email (백업)
+    // 2. Ethereal Email（バックアップ）
     console.log('[Email] XServer not configured - using Ethereal Email');
     const result = await createEtherealTransporter();
     if (result) {
@@ -215,17 +215,17 @@ async function initializeTransporter() {
       return;
     }
 
-    // Fallback: Console 출력
+    // Fallback: Console出力
     console.warn('[Email] No email service configured - using console fallback');
     transportType = 'console';
     return;
   }
 
   if (isProduction) {
-    // 프로덕션: XServer 우선 → SendGrid → AWS SES 백업
+    // 本番: XServer優先 → SendGrid → AWS SESバックアップ
     console.log('[Email] Production mode - configuring email service');
 
-    // 1. XServer SMTP (일본 호스팅)
+    // 1. XServer SMTP（日本ホスティング）
     transporter = createXServerTransporter();
     if (transporter) {
       transportType = 'xserver';
@@ -233,7 +233,7 @@ async function initializeTransporter() {
       return;
     }
 
-    // 2. SendGrid (국제 클라우드)
+    // 2. SendGrid（国際クラウド）
     transporter = createSendGridTransporter();
     if (transporter) {
       transportType = 'sendgrid';
@@ -241,7 +241,7 @@ async function initializeTransporter() {
       return;
     }
 
-    // 3. AWS SES (국제 클라우드 백업)
+    // 3. AWS SES（国際クラウドバックアップ）
     transporter = createAwsSesTransporter();
     if (transporter) {
       transportType = 'aws-ses';
@@ -254,7 +254,7 @@ async function initializeTransporter() {
   }
 }
 
-// 초기화 실행
+// 初期化実行
 initializeTransporter();
 
 // =====================================================
@@ -304,7 +304,7 @@ export interface AdminNotificationData {
 // =====================================================
 
 /**
- * Contact Form 이메일 템플릿 (고객용)
+ * Contact Form メールテンプレート（顧客用）
  */
 const getContactConfirmationEmail = (data: ContactEmailData) => ({
   to: data.email,
@@ -406,7 +406,7 @@ https://epackage-lab.com
 });
 
 /**
- * Contact Form 관리자 알림 이메일
+ * Contact Form 管理者通知メール
  */
 const getContactAdminNotificationEmail = (data: ContactEmailData & { requestId: string }) => ({
   to: ADMIN_EMAIL,
@@ -504,7 +504,7 @@ Epackage Lab 管理画面
 });
 
 /**
- * Sample Request 이메일 템플릿 (고객용)
+ * Sample Request メールテンプレート（顧客用）
  */
 const getSampleRequestConfirmationEmail = (data: SampleRequestEmailData) => {
   const samplesList = data.samples.map((s, i) =>
@@ -615,7 +615,7 @@ https://epackage-lab.com
 };
 
 /**
- * Sample Request 관리자 알림 이메일
+ * Sample Request 管理者通知メール
  */
 const getSampleRequestAdminNotificationEmail = (data: SampleRequestEmailData) => {
   const samplesList = data.samples.map((s, i) =>
@@ -736,7 +736,7 @@ ${data.message || 'なし'}
 // =====================================================
 
 /**
- * 이메일 발송 (환경별 자동 분기)
+ * メール送信（環境別自動分岐）
  */
 async function sendEmail(
   to: string,
@@ -744,7 +744,7 @@ async function sendEmail(
   text: string,
   html: string
 ): Promise<{ success: boolean; error?: string; messageId?: string; previewUrl?: string }> {
-  // Console 모드 (Fallback)
+  // Consoleモード（Fallback）
   if (transportType === 'console' || !transporter) {
     console.log('[Email] Console mode - Email content:');
     console.log('='.repeat(60));
@@ -774,7 +774,7 @@ async function sendEmail(
       messageId: info.messageId
     };
 
-    // Ethereal인 경우 preview URL 제공
+    // Etherealの場合はpreview URLを提供
     if (transportType === 'ethereal' && nodemailer.getTestMessageUrl) {
       const previewUrl = nodemailer.getTestMessageUrl(info);
       if (previewUrl) {
@@ -806,7 +806,7 @@ async function sendEmail(
 }
 
 /**
- * Contact Form 이메일 발송 (고객 + 관리자)
+ * Contact Form メール送信（顧客 + 管理者）
  */
 export async function sendContactEmail(data: ContactEmailData & { requestId: string }): Promise<{
   success: boolean;
@@ -821,7 +821,7 @@ export async function sendContactEmail(data: ContactEmailData & { requestId: str
     adminEmail?: { success: boolean; messageId?: string; previewUrl?: string };
   } = {};
 
-  // 고객 확인 이메일
+  // 顧客確認メール
   const customerEmailParams = getContactConfirmationEmail(data);
   const customerResult = await sendEmail(
     customerEmailParams.to,
@@ -836,10 +836,10 @@ export async function sendContactEmail(data: ContactEmailData & { requestId: str
   };
 
   if (!customerResult.success) {
-    errors.push(`고객 이메일 발송 실패: ${customerResult.error}`);
+    errors.push(`顧客メール送信失敗: ${customerResult.error}`);
   }
 
-  // 관리자 알림 이메일
+  // 管理者通知メール
   const adminEmailParams = getContactAdminNotificationEmail(data);
   const adminResult = await sendEmail(
     adminEmailParams.to,
@@ -854,7 +854,7 @@ export async function sendContactEmail(data: ContactEmailData & { requestId: str
   };
 
   if (!adminResult.success) {
-    errors.push(`관리자 이메일 발송 실패: ${adminResult.error}`);
+    errors.push(`管理者メール送信失敗: ${adminResult.error}`);
   }
 
   return {
@@ -866,7 +866,7 @@ export async function sendContactEmail(data: ContactEmailData & { requestId: str
 }
 
 /**
- * Sample Request 이메일 발송 (고객 + 관리자)
+ * Sample Request メール送信（顧客 + 管理者）
  */
 export async function sendSampleRequestEmail(data: SampleRequestEmailData): Promise<{
   success: boolean;
@@ -881,7 +881,7 @@ export async function sendSampleRequestEmail(data: SampleRequestEmailData): Prom
     adminEmail?: { success: boolean; messageId?: string; previewUrl?: string };
   } = {};
 
-  // 고객 확인 이메일
+  // 顧客確認メール
   const customerEmailParams = getSampleRequestConfirmationEmail(data);
   const customerResult = await sendEmail(
     customerEmailParams.to,
@@ -896,10 +896,10 @@ export async function sendSampleRequestEmail(data: SampleRequestEmailData): Prom
   };
 
   if (!customerResult.success) {
-    errors.push(`고객 이메일 발송 실패: ${customerResult.error}`);
+    errors.push(`顧客メール送信失敗: ${customerResult.error}`);
   }
 
-  // 관리자 알림 이메일
+  // 管理者通知メール
   const adminEmailParams = getSampleRequestAdminNotificationEmail(data);
   const adminResult = await sendEmail(
     adminEmailParams.to,
@@ -914,7 +914,7 @@ export async function sendSampleRequestEmail(data: SampleRequestEmailData): Prom
   };
 
   if (!adminResult.success) {
-    errors.push(`관리자 이메일 발송 실패: ${adminResult.error}`);
+    errors.push(`管理者メール送信失敗: ${adminResult.error}`);
   }
 
   return {
@@ -1277,7 +1277,7 @@ export async function sendWorkOrderEmails(data: WorkOrderData): Promise<{
 }
 
 /**
- * 이메일 설정 상태 확인
+ * メール設定状態確認
  */
 export function getEmailConfigStatus(): {
   mode: string;
@@ -1577,9 +1577,9 @@ export async function sendAdminQuoteRequestEmail(
 /**
  * Send design data to Korean partners via email
  *
- * 한국 파트너에게 디자인 데이터 이메일 전송
- * - AI 추출 데이터를 이메일 본문에 포함
- * - 원본 파일 첨부 (AI 파일, 참조 이미지 등)
+ * 韓国パートナーにデザインデータメール送信
+ * - AI抽出データをメール本文に含む
+ * - 元ファイル添付（AIファイル、参照画像など）
  */
 export async function sendKoreaDataTransferEmail(
   data: Omit<KoreaDataTransferEmailData, 'recipient'> & {
@@ -1632,9 +1632,9 @@ export async function sendKoreaDataTransferEmail(
 /**
  * Send design data to Korea with file attachments
  *
- * 파일 첨부 포함 한국 데이터 전송
- * - nodemailer attachments 사용
- * - Supabase Storage에서 파일 URL 가져와서 첨부
+ * ファイル添付付き韓国データ送信
+ * - nodemailer attachments使用
+ * - Supabase StorageからファイルURL取得して添付
  */
 export async function sendKoreaDataTransferWithAttachments(
   data: Omit<KoreaDataTransferEmailData, 'recipient'> & {
@@ -1653,7 +1653,7 @@ export async function sendKoreaDataTransferWithAttachments(
   messageId?: string;
   previewUrl?: string;
 }> {
-  // Console 모드 (Fallback)
+  // Consoleモード（Fallback）
   if (transportType === 'console' || !transporter) {
     console.log('[Email] Console mode - Korea data transfer:');
     console.log('='.repeat(60));
@@ -1729,7 +1729,7 @@ export async function sendKoreaDataTransferWithAttachments(
       messageId: info.messageId
     };
 
-    // Ethereal인 경우 preview URL 제공
+    // Etherealの場合はpreview URLを提供
     if (transportType === 'ethereal' && nodemailer.getTestMessageUrl) {
       const previewUrl = nodemailer.getTestMessageUrl(info);
       if (previewUrl) {
@@ -1768,7 +1768,7 @@ export async function sendKoreaDataTransferWithAttachments(
 
 /**
  * Send Korea correction notification to customer
- * 한국 파트너 수정사항 완료 고객 알림
+ * 韓国パートナー修正事項完了顧客通知
  */
 export async function sendKoreaCorrectionNotificationEmail(
   data: Omit<KoreaCorrectionNotificationEmailData, 'recipient'> & { recipient?: EmailRecipient },
@@ -1807,7 +1807,7 @@ export async function sendKoreaCorrectionNotificationEmail(
 
 /**
  * Send spec sheet approval notification
- * 사양서 승인 알림 발송
+ * 仕様書承認通知送信
  */
 export async function sendSpecSheetApprovalEmail(
   data: Omit<SpecSheetApprovalEmailData, 'recipient'> & { recipient?: EmailRecipient },
@@ -1845,7 +1845,7 @@ export async function sendSpecSheetApprovalEmail(
 
 /**
  * Send spec sheet rejection notification to admin
- * 사양서 반려 알림 관리자에게 발송
+ * 仕様書却下通知管理者に送信
  */
 export async function sendSpecSheetRejectionEmail(
   data: Omit<SpecSheetRejectionEmailData, 'recipient'> & { recipient?: EmailRecipient },

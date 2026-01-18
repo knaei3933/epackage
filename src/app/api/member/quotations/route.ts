@@ -1,8 +1,10 @@
 /**
- * Quotation Submission API (Member Portal)
+ * Member Quotations API (Unified B2B + Member)
  *
  * Task #102: Implement quotation submission API using Supabase MCP
  * - POST: Create new quotation with items using Supabase MCP executeSql
+ * - GET: List quotations with filtering and pagination
+ * - Supports both B2B (company_id) and Member (user_id) patterns
  *
  * Database Operations:
  * - All queries use mcp__supabase-epackage__execute_sql
@@ -13,6 +15,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { getPerformanceMonitor } from '@/lib/performance-monitor';
+
+// Initialize performance monitor
+const perfMonitor = getPerformanceMonitor({
+  slowQueryThreshold: 1000, // Log queries slower than 1 second
+  enableLogging: true,
+});
 
 // Types
 interface QuotationItem {
@@ -20,15 +30,19 @@ interface QuotationItem {
   product_name: string;
   quantity: number;
   unit_price: number;
+  category?: string | null;
   specifications?: Record<string, unknown> | null;
+  notes?: string | null;
 }
 
 interface CreateQuotationRequest {
+  company_id?: string; // Optional: B2B mode
   customer_name: string;
   customer_email: string;
   customer_phone?: string | null;
   notes?: string | null;
   valid_until?: string | null;
+  status?: string; // DRAFT, SENT, etc.
   items: QuotationItem[];
 }
 
@@ -55,16 +69,41 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /**
+ * Helper: Get authenticated user from middleware headers
+ *
+ * IMPORTANT: The middleware already authenticates the user and sets headers.
+ * This function simply extracts the user ID from the headers.
+ *
+ * Do NOT call supabase.auth.getUser() in API routes - it causes redirect loops.
+ */
+async function getAuthenticatedUser(request: NextRequest) {
+  // Use x-user-id header from middleware (already authenticated)
+  const userId = request.headers.get('x-user-id');
+
+  if (!userId) {
+    console.error('[Quotations API] No x-user-id header found');
+    return null;
+  }
+
+  const isDevMode = request.headers.get('x-dev-mode') === 'true';
+  console.log('[Quotations API] Using x-user-id from middleware:', userId, '(DEV_MODE:', isDevMode + ')');
+
+  return { userId, user: { id: userId } };
+}
+
+/**
  * POST /api/member/quotations
  * Create a new quotation with items
  *
  * Request Body:
  * {
+ *   "company_id": "string | undefined",  // Optional: B2B mode
  *   "customer_name": "string",
  *   "customer_email": "string",
  *   "customer_phone": "string | null",
  *   "notes": "string | null",
  *   "valid_until": "ISO date string | null",
+ *   "status": "string | undefined",  // DRAFT, SENT, etc.
  *   "items": [
  *     {
  *       "product_id": "string | null",
@@ -83,24 +122,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * }
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
   try {
-    // 1. Use x-user-id header from middleware (already authenticated)
-    const userId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
-    if (!userId) {
+    // Get authenticated user
+    const authResult = await getAuthenticatedUser(request);
+    if (!authResult) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    console.log('[Quotation API POST] Using x-user-id from middleware:', userId, '(DEV_MODE:', isDevMode + ')');
+    const { userId, user } = authResult;
 
-    // Create Supabase client for database operations
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Create service client for database operations
+    const serviceClient = createServiceClient();
 
-    // 2. Parse and validate request body
+    // Parse and validate request body
     const body: CreateQuotationRequest = await request.json();
 
     // Validation
@@ -140,9 +178,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Prepare data for insertion
-    const customerId = userId;
-
     // Calculate totals
     const subtotalAmount = body.items.reduce(
       (sum, item) => sum + (item.quantity * item.unit_price),
@@ -151,13 +186,15 @@ export async function POST(request: NextRequest) {
     const taxAmount = subtotalAmount * 0.1; // 10% Japanese consumption tax
     const totalAmount = subtotalAmount + taxAmount;
 
-    // 4. Use Supabase MCP to insert quotation
-    // Note: We use the Supabase client directly since the MCP tool is for server-side tools
-    // The executeSql function in supabase-mcp.ts will route through the API
-    const { data: quotation, error: quotationError } = await supabase
+    // Determine status
+    const status = body.status ? body.status.toUpperCase() : 'DRAFT';
+
+    // Insert quotation
+    const { data: quotation, error: quotationError } = await serviceClient
       .from('quotations')
       .insert({
         user_id: userId,
+        company_id: body.company_id || null, // Optional: B2B mode
         customer_name: body.customer_name,
         customer_email: body.customer_email,
         customer_phone: body.customer_phone || null,
@@ -166,7 +203,7 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
         notes: body.notes || null,
         valid_until: body.valid_until || null,
-        status: 'DRAFT',
+        status,
       })
       .select()
       .single();
@@ -183,17 +220,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Insert quotation items
-    const itemsToInsert = body.items.map((item) => ({
+    // Insert quotation items
+    const itemsToInsert = body.items.map((item, index) => ({
       quotation_id: quotation.id,
       product_id: item.product_id || null,
       product_name: item.product_name,
+      category: item.category || null,
       quantity: item.quantity,
       unit_price: item.unit_price,
       specifications: item.specifications || null,
+      notes: item.notes || null,
+      display_order: index,
     }));
 
-    const { data: items, error: itemsError } = await supabase
+    const { data: items, error: itemsError } = await serviceClient
       .from('quotation_items')
       .insert(itemsToInsert)
       .select();
@@ -201,7 +241,7 @@ export async function POST(request: NextRequest) {
     if (itemsError) {
       console.error('[Quotation API] Insert items error:', itemsError);
       // Rollback: delete quotation if items insertion fails
-      await supabase.from('quotations').delete().eq('id', quotation.id);
+      await serviceClient.from('quotations').delete().eq('id', quotation.id);
 
       return NextResponse.json(
         {
@@ -213,7 +253,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Prepare response
+    // Prepare response
     const response: QuotationResponse = {
       id: quotation.id,
       quotation_number: quotation.quotation_number,
@@ -238,8 +278,12 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         quotation: response,
-        message: '見積を作成しました。',
-        messageEn: 'Quotation created successfully.',
+        message: status === 'SENT'
+          ? '見積依頼を受け付けました。'
+          : '見積を作成しました。',
+        messageEn: status === 'SENT'
+          ? 'Quotation request submitted.'
+          : 'Quotation created successfully.',
       },
       { status: 201 }
     );
@@ -254,6 +298,10 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    // Track total API execution time
+    const duration = Date.now() - startTime;
+    perfMonitor.trackQuery(`POST /api/member/quotations`, duration);
   }
 }
 
@@ -267,22 +315,21 @@ export async function POST(request: NextRequest) {
  * - offset: Pagination offset (default: 0)
  */
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   try {
-    // 1. Use x-user-id header from middleware (already authenticated)
-    const userId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
-    if (!userId) {
+    // Get authenticated user
+    const authResult = await getAuthenticatedUser(request);
+    if (!authResult) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    console.log('[Quotation API GET] Using x-user-id from middleware:', userId, '(DEV_MODE:', isDevMode + ')');
+    const { userId } = authResult;
 
-    // Create Supabase client for database operations
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Create service client for database operations
+    const serviceClient = createServiceClient();
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -290,47 +337,33 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    // Build query
-    let query = supabase
-      .from('quotations')
-      .select(`
-        id,
-        quotation_number,
-        status,
-        customer_name,
-        customer_email,
-        subtotal_amount,
-        tax_amount,
-        total_amount,
-        valid_until,
-        notes,
-        created_at,
-        updated_at,
-        sent_at,
-        approved_at,
-        quotation_items (
-          id,
-          product_id,
-          product_name,
-          quantity,
-          unit_price,
-          total_price,
-          specifications
-        )
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    // ✅ N+1 Query Fix: Use RPC function to fetch all data in single query
+    // This reduces queries significantly for better performance
+    const { data: quotations, error } = await serviceClient.rpc('get_quotations_with_relations', {
+      p_user_id: userId,
+      p_limit: limit,
+      p_offset: offset,
+      p_status: status?.toUpperCase() || null
+    });
 
-    // Apply status filter if provided
+    // Get total count separately (still efficient with composite index)
+    let countQuery = serviceClient
+      .from('quotations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
     if (status) {
-      query = query.eq('status', status.toUpperCase());
+      countQuery = countQuery.eq('status', status.toUpperCase());
     }
 
-    const { data: quotations, error, count } = await query;
+    const { count } = await countQuery;
 
     if (error) {
-      throw error;
+      console.error('Error fetching quotations:', error);
+      return NextResponse.json(
+        { error: '見積リストの読み込み中にエラーが発生しました。' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -353,6 +386,10 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    // Track GET API execution time
+    const duration = Date.now() - startTime;
+    perfMonitor.trackQuery(`GET /api/member/quotations`, duration);
   }
 }
 

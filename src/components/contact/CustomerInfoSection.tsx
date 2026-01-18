@@ -4,7 +4,7 @@
 
 import { memo } from 'react'
 import { User, Mail, Phone, Building2 } from 'lucide-react'
-import { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form'
+import { Control, FieldErrors, UseFormRegister, UseFormSetValue, UseFormTrigger } from 'react-hook-form'
 import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
 import type { PouchSampleRequestFormData } from './SampleRequestForm.schema'
 
@@ -12,10 +12,11 @@ export interface CustomerInfoSectionProps {
   control: Control<PouchSampleRequestFormData>
   register: UseFormRegister<PouchSampleRequestFormData>
   setValue: UseFormSetValue<PouchSampleRequestFormData>
+  trigger: UseFormTrigger<PouchSampleRequestFormData>
   errors: FieldErrors<PouchSampleRequestFormData>
 }
 
-function CustomerInfoSection({ control, register, setValue, errors }: CustomerInfoSectionProps) {
+function CustomerInfoSection({ control, register, setValue, trigger, errors }: CustomerInfoSectionProps) {
   return (
     <div className="bg-gray-50 rounded-lg p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -28,6 +29,7 @@ function CustomerInfoSection({ control, register, setValue, errors }: CustomerIn
         <JapaneseNameInputController
           control={control}
           setValue={setValue}
+          trigger={trigger}
           kanjiLastNameName="kanjiLastName"
           kanjiFirstNameName="kanjiFirstName"
           kanaLastNameName="kanaLastName"

@@ -33,6 +33,7 @@ export default function PouchSampleRequestForm() {
     reset,
     watch,
     setValue,
+    trigger,
   } = useForm<PouchSampleRequestFormData>({
     resolver: zodResolver(pouchSampleRequestSchema),
     defaultValues: {
@@ -214,6 +215,7 @@ export default function PouchSampleRequestForm() {
             control={control}
             register={register}
             setValue={setValue}
+            trigger={trigger}
             errors={errors}
           />
 

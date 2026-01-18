@@ -10,8 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import type { SpecSheetData } from '@/types/specsheet';
 
 // ============================================================
@@ -89,9 +88,8 @@ function getSupabaseClient(userId: string) {
 export async function POST(request: NextRequest) {
   try {
     // ✅ STEP 1: Check authentication (SECURE: using getUser() instead of getSession())
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabaseAuth = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Initialize Supabase client using modern @supabase/ssr pattern
+    const { client: supabaseAuth } = createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -264,6 +262,20 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Initialize Supabase client for auth check
+    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '認証されていません。ログインしてください。',
+        },
+        { status: 401 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const specNumber = searchParams.get('specNumber');
     const revision = searchParams.get('revision');
@@ -327,6 +339,20 @@ interface PutBody {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Initialize Supabase client for auth check
+    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '認証されていません。ログインしてください。',
+        },
+        { status: 401 }
+      );
+    }
+
     const body = (await request.json()) as PutBody;
 
     if (!body.approvalId || !body.userId || !body.action) {
@@ -474,6 +500,20 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Initialize Supabase client for auth check
+    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '認証されていません。ログインしてください。',
+        },
+        { status: 401 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const approvalId = searchParams.get('approvalId');
     const userId = searchParams.get('userId');

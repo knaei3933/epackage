@@ -8,8 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import type { SpecSheetData } from '@/types/specsheet';
 
 // ============================================================
@@ -56,9 +55,8 @@ function getSupabaseClient(userId: string) {
 export async function GET(request: NextRequest) {
   try {
     // ✅ STEP 1: Check authentication (SECURE: using getUser() instead of getSession())
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabaseAuth = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Initialize Supabase client using modern @supabase/ssr pattern
+    const { client: supabaseAuth } = createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -102,7 +100,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseClient(session.user.id);
+    const supabase = getSupabaseClient(user.id);
 
     let query = supabase
       .from('spec_sheets')
@@ -181,9 +179,8 @@ interface CreateVersionBody {
 export async function POST(request: NextRequest) {
   try {
     // ✅ STEP 1: Check authentication (SECURE: using getUser() instead of getSession())
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabaseAuth = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Initialize Supabase client using modern @supabase/ssr pattern
+    const { client: supabaseAuth } = createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -225,7 +222,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseClient(session.user.id);
+    const supabase = getSupabaseClient(user.id);
 
     // Check if spec sheet with this number and revision exists
     const { data: existing } = await supabase

@@ -1,7 +1,7 @@
 /**
  * Transaction Utilities for Supabase
  *
- * 트랜잭션 처리, 낙관적 잠금, 동시성 제어를 위한 유틸리티 함수들
+ * トランザクション処理、楽観的ロック、並行性制御のためのユーティリティ関数群
  */
 
 import { createServiceClient } from './supabase';
@@ -56,17 +56,17 @@ export function withTransactionLogging<T>(
 }
 
 // =====================================================
-// Optimistic Locking (낙관적 잠금)
+// Optimistic Locking (楽観的ロック)
 // =====================================================
 
 /**
- * 낙관적 잠금을 사용한 레코드 업데이트
+ * 楽観的ロックを使用したレコード更新
  *
- * @param tableName - 테이블 이름
- * @param id - 레코드 ID
- * @param updateData - 업데이트할 데이터
- * @param currentVersion - 현재 버전 번호
- * @returns 업데이트 결과
+ * @param tableName - テーブル名
+ * @param id - レコードID
+ * @param updateData - 更新するデータ
+ * @param currentVersion - 現在のバージョン番号
+ * @returns 更新結果
  */
 export async function updateWithOptimisticLock<T = Record<string, unknown>>(
   tableName: string,
@@ -88,7 +88,7 @@ export async function updateWithOptimisticLock<T = Record<string, unknown>>(
   const { data, error } = await query as unknown as { data: T | null; error: { code?: string; message?: string } | null };
 
   if (error) {
-    // 버전 불일치는 다른 사용자가 수정했음을 의미
+    // バージョン不一致は他のユーザーが変更したことを意味
     if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
       return {
         success: false,
@@ -111,7 +111,7 @@ export async function updateWithOptimisticLock<T = Record<string, unknown>>(
 }
 
 /**
- * 버전 필드가 있는 테이블의 레코드를 가져옵니다.
+ * バージョンフィールドを持つテーブルのレコードを取得します。
  */
 export async function getRecordWithVersion<T = Record<string, unknown>>(
   tableName: string,
@@ -139,8 +139,8 @@ export async function getRecordWithVersion<T = Record<string, unknown>>(
 }
 
 /**
- * 낙관적 잠금으로 안전한 업데이트를 수행합니다.
- * 실패 시 자동으로 재시도합니다.
+ * 楽観的ロックで安全な更新を実行します。
+ * 失敗時に自動的に再試行します。
  */
 export async function updateWithOptimisticLockRetry<T = Record<string, unknown>>(
   tableName: string,
@@ -149,7 +149,7 @@ export async function updateWithOptimisticLockRetry<T = Record<string, unknown>>
   maxRetries: number = 3
 ): Promise<OptimisticLockResult> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    // 현재 레코드 가져오기
+    // 現在のレコード取得
     const recordResult = await getRecordWithVersion<T>(tableName, id);
 
     if (!recordResult.success || !recordResult.data) {
@@ -162,7 +162,7 @@ export async function updateWithOptimisticLockRetry<T = Record<string, unknown>>
 
     const currentVersion = recordResult.data.version;
 
-    // 낙관적 잠금으로 업데이트 시도
+    // 楽観的ロックで更新試行
     const updateResult = await updateWithOptimisticLock<T>(
       tableName,
       id,
@@ -174,12 +174,12 @@ export async function updateWithOptimisticLockRetry<T = Record<string, unknown>>
       return updateResult;
     }
 
-    // 재시도 가능한 오류인 경우 다시 시도
+    // 再試行可能なエラーの場合は再試行
     if (updateResult.retriable && attempt < maxRetries) {
       console.warn(
         `[OptimisticLock] Retry ${attempt}/${maxRetries} for ${tableName}:${id}`
       );
-      // 지수 백오프로 대기
+      // 指数バックオフで待機
       await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 100));
       continue;
     }
@@ -195,15 +195,15 @@ export async function updateWithOptimisticLockRetry<T = Record<string, unknown>>
 }
 
 // =====================================================
-// Concurrent Request Simulator (테스트용)
+// Concurrent Request Simulator (テスト用)
 // =====================================================
 
 /**
- * 병렬 요청 시뮬레이터
+ * 並列リクエストシミュレーター
  *
- * @param requests - 실행할 함수 배열
- * @param concurrency - 동시 실행 수
- * @returns 모든 요청의 결과
+ * @param requests - 実行する関数配列
+ * @param concurrency - 同時実行数
+ * @returns すべてのリクエストの結果
  */
 export async function simulateConcurrentRequests<T>(
   requests: Array<() => Promise<T>>,
@@ -211,14 +211,14 @@ export async function simulateConcurrentRequests<T>(
 ): Promise<PromiseSettledResult<T>[]> {
   const chunks: Array<Array<() => Promise<T>>> = [];
 
-  // 요청을 청크로 나눔
+  // リクエストをチャンクに分割
   for (let i = 0; i < requests.length; i += concurrency) {
     chunks.push(requests.slice(i, i + concurrency));
   }
 
   const results: PromiseSettledResult<T>[] = [];
 
-  // 각 청크를 병렬로 실행
+  // 各チャンクを並列で実行
   for (const chunk of chunks) {
     const chunkResults = await Promise.allSettled(
       chunk.map((fn) => fn())
@@ -230,15 +230,15 @@ export async function simulateConcurrentRequests<T>(
 }
 
 // =====================================================
-// Atomic Operations (원자적 연산)
+// Atomic Operations (原子演算)
 // =====================================================
 
 /**
- * Supabase RPC 함수를 호출하여 원자적 연산을 수행합니다.
+ * Supabase RPC関数を呼び出して原子演算を実行します。
  *
- * @param functionName - RPC 함수 이름
- * @param params - 함수 매개변수
- * @returns 실행 결과
+ * @param functionName - RPC関数名
+ * @param params - 関数パラメータ
+ * @returns 実行結果
  */
 export async function callRpcFunction<T = unknown>(
   functionName: string,
@@ -277,7 +277,7 @@ export async function callRpcFunction<T = unknown>(
 // =====================================================
 
 /**
- * 트랜잭션 무결성 검증을 위한 데이터 일관성 체크
+ * トランザクション完全性検証のためのデータ整合性チェック
  */
 export async function validateDataConsistency(): Promise<{
   success: boolean;
@@ -292,7 +292,7 @@ export async function validateDataConsistency(): Promise<{
 
   const supabase = createServiceClient();
 
-  // 1. 주문과 주문 항목의 일관성 체크
+  // 1. 注文と注文項目の整合性チェック
   // Use type assertion for RPC call result
   const orderItemResult = await supabase.rpc('check_order_items_consistency') as unknown as { data: ConsistencyIssue[] | null; error: { message?: string } | null };
   const { data: orderItemMismatch, error: rpcError1 } = orderItemResult;
@@ -305,7 +305,7 @@ export async function validateDataConsistency(): Promise<{
     });
   }
 
-  // 2. 재료 무결성 체크 (재고가 음수인 제품)
+  // 2. 在庫完全性チェック（在庫が負の製品）
   const { data: negativeStock } = await supabase
     .from('products')
     .select('id, name, stock_quantity')
@@ -319,7 +319,7 @@ export async function validateDataConsistency(): Promise<{
     });
   }
 
-  // 3. 고아 레코드 체크 (참조하는 부모가 없는 자식 레코드)
+  // 3. 孤児レコードチェック（参照する親がない子レコード）
   // Use type assertion for RPC call result
   const orphanedResult = await supabase.rpc('check_orphaned_records') as unknown as { data: ConsistencyIssue[] | null; error: { message?: string } | null };
   const { data: orphanedItems, error: rpcError2 } = orphanedResult;
@@ -343,8 +343,8 @@ export async function validateDataConsistency(): Promise<{
 // =====================================================
 
 /**
- * 여러 작업을 안전하게 실행하는 트랜잭션 래퍼
- * Supabase는 자동 커밋 모델을 사용하지만, 에러 처리를 표준화합니다.
+ * 複数の操作を安全に実行するトランザクションラッパー
+ * Supabaseは自動コミットモデルを使用しますが、エラー処理を標準化します。
  */
 export async function executeInTransaction<T>(
   operations: Array<() => Promise<unknown>>,
@@ -365,8 +365,8 @@ export async function executeInTransaction<T>(
       errors.push(error);
 
       if (!continueOnError) {
-        // 롤백이 필요하지만 Supabase는 자동 롤백을 지원하지 않음
-        // 수동 롤백 로직을 구현해야 할 수 있음
+        // ロールバックが必要ですがSupabaseは自動ロールバックをサポートしない
+        // 手動ロールバックロジックを実装する必要がある場合があります
         if (rollbackOnError) {
           console.error('[Transaction] Error occurred, manual rollback may be needed:', error);
         }

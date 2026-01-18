@@ -1,7 +1,7 @@
 /**
  * File Conversion Service
  *
- * 파일 변환 서비스 - .ai, PDF, PSD 파일을 PNG로 변환
+ * ファイル変換サービス - .ai、PDF、PSDファイルをPNGに変換
  * - Adobe Illustrator (.ai) → PDF → PNG
  * - PDF → PNG
  * - PSD → PNG

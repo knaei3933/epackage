@@ -1,9 +1,11 @@
 /**
  * Rate Limiter
  *
- * API 엔드포인트에 대한 레이트 리밋을 구현합니다.
- * 메모리 기반의 간단한 구현 (프로덕션에서는 Redis 사용 권장)
+ * APIエンドポイントのレート制限を実装します。
+ * メモリベースの簡易実装（本番環境ではRedis使用を推奨）
  */
+
+import { NextRequest, NextResponse } from 'next/server';
 
 interface RateLimitEntry {
   count: number;
@@ -215,12 +217,21 @@ export const createPublicRateLimiter = () =>
 
 /**
  * Rate limit middleware for Next.js API routes
+ * Supports both Request (Pages Router) and NextRequest (App Router)
  */
 export function withRateLimit(
-  handler: (req: Request) => Promise<Response>,
+  handler: (req: Request | NextRequest) => Promise<Response | NextResponse>,
   rateLimiter: RateLimiter
 ) {
-  return async (req: Request) => {
+  return async (req: Request | NextRequest) => {
+    // DEV MODE: Bypass rate limiting for testing
+    const disableRateLimit = process.env.NODE_ENV === 'development' &&
+                              process.env.DISABLE_RATE_LIMIT === 'true';
+
+    if (disableRateLimit) {
+      return handler(req);
+    }
+
     const identifier = getClientIdentifier(req);
     const result = rateLimiter.check(identifier);
 
@@ -233,6 +244,7 @@ export function withRateLimit(
     if (!result.allowed) {
       headers.set('Retry-After', result.retryAfter?.toString() || '60');
 
+      // Return Response for both Pages Router and App Router
       return new Response(
         JSON.stringify({
           error: 'リクエスト回数が上限を超えました。しばらく待ってから再度お試しください。',
@@ -248,6 +260,82 @@ export function withRateLimit(
     // Call the original handler
     return handler(req);
   };
+}
+
+// =====================================================
+// Next.js App Router Helper
+// =====================================================
+
+/**
+ * Rate limit result for Next.js App Router
+ */
+export interface RateLimitCheckResult {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+  retryAfter?: number;
+}
+
+/**
+ * Check rate limit for Next.js App Router routes
+ * Returns the rate limit result and adds rate limit headers to the response
+ */
+export function checkRateLimit(
+  request: NextRequest,
+  rateLimiter: RateLimiter
+): RateLimitCheckResult {
+  // DEV MODE: Bypass rate limiting for testing
+  const disableRateLimit = process.env.NODE_ENV === 'development' &&
+                            process.env.DISABLE_RATE_LIMIT === 'true';
+
+  if (disableRateLimit) {
+    return {
+      allowed: true,
+      remaining: rateLimiter['maxRequests'],
+      resetTime: Date.now() + rateLimiter['windowMs'],
+    };
+  }
+
+  const identifier = getClientIdentifier(request);
+  return rateLimiter.check(identifier);
+}
+
+/**
+ * Create a 429 Too Many Requests response with rate limit headers
+ */
+export function createRateLimitResponse(result: RateLimitCheckResult): NextResponse {
+  const response = NextResponse.json(
+    {
+      success: false,
+      error: 'リクエスト回数が上限を超えました。しばらく待ってから再度お試しください。',
+      errorEn: 'Too many requests. Please try again later.',
+      retryAfter: result.retryAfter,
+    },
+    { status: 429 }
+  );
+
+  // Add rate limit headers
+  response.headers.set('X-RateLimit-Limit', '100'); // Default API limit
+  response.headers.set('X-RateLimit-Remaining', '0');
+  response.headers.set('X-RateLimit-Reset', new Date(result.resetTime).toISOString());
+  if (result.retryAfter) {
+    response.headers.set('Retry-After', result.retryAfter.toString());
+  }
+
+  return response;
+}
+
+/**
+ * Add rate limit headers to a successful response
+ */
+export function addRateLimitHeaders(
+  response: NextResponse,
+  result: RateLimitCheckResult
+): NextResponse {
+  response.headers.set('X-RateLimit-Limit', '100'); // Default API limit
+  response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
+  response.headers.set('X-RateLimit-Reset', new Date(result.resetTime).toISOString());
+  return response;
 }
 
 // =====================================================

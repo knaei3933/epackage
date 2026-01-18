@@ -1,7 +1,7 @@
 /**
  * Excel Quotation Generator
  *
- * Excel 견적서 생성 라이브러리
+ * Excel 見積書作成ライブラリ
  * Uses ExcelJS with template-based approach
  */
 

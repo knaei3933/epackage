@@ -1,11 +1,11 @@
 /**
  * B2B Registration Form Component
  *
- * B2B 회원가입 폼 컴포넌트입니다.
- * - 사업자등록증 업로드
- * - 법인/개인 사업자 선택
- * - 담당자 정보 입력
- * - 이메일 인증
+ * B2B会員登録フォームコンポーネントです。
+ * - 事業登記証アップロード
+ * - 法人/個人事業者選択
+ * - 担当者情報入力
+ * - メール認証
  */
 
 'use client';
@@ -24,23 +24,23 @@ import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput';
 // ============================================================
 
 export interface B2BRegistrationFormData {
-  // 사업자 유형
+  // 事業者タイプ
   businessType: 'CORPORATION' | 'SOLE_PROPRIETOR';
 
-  // 회사 정보
+  // 会社情報
   companyName: string;
   corporateNumber?: string;
   foundedYear?: string;
   capital?: string;
   representativeName?: string;
 
-  // 담당자 정보 (일본어 이름)
+  // 担当者情報 (日本語名前)
   kanjiLastName: string;
   kanjiFirstName: string;
   kanaLastName: string;
   kanaFirstName: string;
 
-  // 연락처
+  // 連絡先
   email: string;
   corporatePhone: string;
   postalCode: string;
@@ -49,11 +49,11 @@ export interface B2BRegistrationFormData {
   street: string;
   building?: string;
 
-  // 인증
+  // 認証
   password: string;
   passwordConfirm: string;
 
-  // 서류
+  // 書類
   businessRegistrationFile?: File;
   termsAgreed: true;
   privacyAgreed: true;
@@ -65,83 +65,83 @@ export interface B2BRegistrationFormData {
 
 const b2bRegistrationSchema = z
   .object({
-    // 사업자 유형
+    // 事業者種別
     businessType: z.enum(['CORPORATION', 'SOLE_PROPRIETOR'], {
-      required_error: '사업자 유형을 선택해주세요.',
+      required_error: '事業者種別を選択してください。',
     }),
 
-    // 회사 정보
+    // 会社情報
     companyName: z
       .string()
-      .min(1, '회사명을 입력해주세요.')
-      .max(200, '회사명은 200자 이내로 입력해주세요.'),
+      .min(1, '会社名を入力してください。')
+      .max(200, '会社名は200文字以内で入力してください。'),
     corporateNumber: z
       .string()
-      .regex(/^\d{13}$/, '올바른 사업자등록번호(13자리)를 입력해주세요.')
+      .regex(/^\d{13}$/, '正しい法人番号(13桁)を入力してください。')
       .optional(),
     foundedYear: z
       .string()
-      .regex(/^\d{4}$/, '올바른 연도를 입력해주세요.')
+      .regex(/^\d{4}$/, '正しい年度を入力してください。')
       .optional(),
     capital: z.string().optional(),
     representativeName: z.string().optional(),
 
-    // 담당자 정보 (일본어)
+    // 担当者情報 (日本語)
     kanjiLastName: z
       .string()
-      .min(1, '姓（漢字）를 입력해주세요.')
+      .min(1, '姓（漢字）を入力してください。')
       .regex(/^[\u4E00-\u9FFF\s]+$/, '漢字のみ入力可能です。'),
     kanjiFirstName: z
       .string()
-      .min(1, '名（漢字）를 입력해주세요.')
+      .min(1, '名（漢字）を入力してください。')
       .regex(/^[\u4E00-\u9FFF\s]+$/, '漢字のみ入力可能です。'),
     kanaLastName: z
       .string()
-      .min(1, '姓（ひらがな）를 입력해주세요.')
+      .min(1, '姓（ひらがな）を入力してください。')
       .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力可能です。'),
     kanaFirstName: z
       .string()
-      .min(1, '名（ひらがな）를 입력해주세요.')
+      .min(1, '名（ひらがな）を入力してください。')
       .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力可能です。'),
 
-    // 연락처
+    // 連絡先
     email: z
       .string()
-      .min(1, 'メールアドレス를 입력해주세요.')
-      .email('유효한 メールアドレス를 입력해주세요.'),
+      .min(1, 'メールアドレスを入力してください。')
+      .email('有効なメールアドレスを入力してください。'),
     corporatePhone: z
       .string()
-      .regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '유효한 전화번호 형식이 아닙니다.'),
+      .regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号形式ではありません。'),
     postalCode: z
       .string()
-      .regex(/^\d{3}-?\d{4}$/, '우편번호 형식이 올바르지 않습니다 (예: 123-4567).'),
-    prefecture: z.string().min(1, '都道府県를 선택해주세요.'),
-    city: z.string().min(1, '시정촌을 입력해주세요.'),
-    street: z.string().min(1, '번지를 입력해주세요.'),
+      .regex(/^\d{3}-?\d{4}$/, '郵便番号の形式が正しくありません (例: 123-4567).'),
+    prefecture: z.string().min(1, '都道府県を選択してください。'),
+    city: z.string().min(1, '市区町村を入力してください。'),
+    street: z.string().min(1, '番地を入力してください。'),
     building: z.string().optional(),
 
-    // 비밀번호
+    // パスワード
     password: z
       .string()
-      .min(8, 'パスワード는 최소 8자 이상이어야 합니다.')
-      .regex(/[A-Z]/, 'パスワード에는 최소 1개의 대문자가 포함되어야 합니다.')
-      .regex(/[a-z]/, 'パスワード에는 최소 1개의 소문자가 포함되어야 합니다.')
-      .regex(/[0-9]/, 'パスワード에는 최소 1개의 숫자가 포함되어야 합니다.'),
-    passwordConfirm: z.string().min(1, 'パスワード確認을 입력해주세요.'),
+      .min(8, 'パスワードは最低8文字以上である必要があります。')
+      .regex(/[A-Z]/, 'パスワードには最低1つの大文字が含まれている必要があります。')
+      .regex(/[a-z]/, 'パスワードには最低1つの小文字が含まれている必要があります。')
+      .regex(/[0-9]/, 'パスワードには最低1つの数字が含まれている必要があります。'),
+    passwordConfirm: z.string().min(1, 'パスワード確認を入力してください。'),
 
-    // 서류
+    // 書類
     businessRegistrationFile: z.any().optional(),
 
-    // 약관 동의
+    // 利用規約同意
     termsAgreed: z.literal(true, {
-      errorMap: () => ({ message: '이용약관에 동의해주세요.' }),
+      errorMap: () => ({ message: '利用規約に同意してください。' }),
     }),
     privacyAgreed: z.literal(true, {
-      errorMap: () => ({ message: '개인정보 처리방침에 동의해주세요.' }),
+      errorMap: () => ({ message: 'プライバシーポリシーに同意してください。' }),
     }),
   })
   .refine((data) => data.password === data.passwordConfirm, {
-    message: 'パスワード가 일치하지 않습니다.',
+    message: 'パスワードが一致しません。',
     path: ['passwordConfirm'],
   });
 
@@ -162,6 +162,7 @@ export default function B2BRegistrationForm() {
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<B2BRegistrationFormData>({
     resolver: zodResolver(b2bRegistrationSchema),
@@ -182,13 +183,13 @@ export default function B2BRegistrationForm() {
     // Validate file type
     const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
     if (!validTypes.includes(file.type)) {
-      setServerError('PDF, JPEG, PNG 형식의 파일만 업로드 가능합니다.');
+      setServerError('PDF、JPEG、PNG形式のファイルのみアップロード可能です。');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setServerError('파일 크기는 5MB 이하여야 합니다.');
+      setServerError('ファイルサイズは5MB以下である必要があります。');
       return;
     }
 
@@ -227,7 +228,7 @@ export default function B2BRegistrationForm() {
         formData.append('businessRegistrationFile', data.businessRegistrationFile);
       }
 
-      const response = await fetch('/api/b2b/register', {
+      const response = await fetch('/api/member/auth/register', {
         method: 'POST',
         body: formData,
       });
@@ -257,10 +258,10 @@ export default function B2BRegistrationForm() {
           </div>
         )}
 
-        {/* 사업자 유형 선택 */}
+        {/* 事業者タイプ選択 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            사업자 유형 <span className="text-red-500">*</span>
+            事業者タイプ <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-4">
             <label
@@ -278,8 +279,8 @@ export default function B2BRegistrationForm() {
               />
               <div className="text-center">
                 <div className="text-2xl mb-1">🏢</div>
-                <div className="font-medium">법인사업자</div>
-                <div className="text-xs text-gray-500">주식회사, 유한회사 등</div>
+                <div className="font-medium">法人事業者</div>
+                <div className="text-xs text-gray-500">株式会社、有限会社など</div>
               </div>
             </label>
             <label
@@ -297,8 +298,8 @@ export default function B2BRegistrationForm() {
               />
               <div className="text-center">
                 <div className="text-2xl mb-1">👤</div>
-                <div className="font-medium">개인사업자</div>
-                <div className="text-xs text-gray-500">개인사업자, 프리랜서</div>
+                <div className="font-medium">個人事業者</div>
+                <div className="text-xs text-gray-500">個人事業者、フリーランサー</div>
               </div>
             </label>
           </div>
@@ -307,7 +308,7 @@ export default function B2BRegistrationForm() {
           )}
         </div>
 
-        {/* 회사 정보 */}
+        {/* 会社情報 */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
             会社情報
@@ -322,7 +323,7 @@ export default function B2BRegistrationForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="法人番号 / 사업자등록번호"
+              label="法人番号 / 事業登記番号"
               {...register('corporateNumber')}
               placeholder="1234567890123"
               error={errors.corporateNumber?.message}
@@ -352,7 +353,7 @@ export default function B2BRegistrationForm() {
           </div>
         </div>
 
-        {/* 담당자 정보 */}
+        {/* 担当者情報 */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
             担当者情報
@@ -361,6 +362,7 @@ export default function B2BRegistrationForm() {
           <JapaneseNameInputController
             control={control}
             setValue={setValue}
+            trigger={trigger}
             kanjiLastNameName="kanjiLastName"
             kanjiFirstNameName="kanjiFirstName"
             kanaLastNameName="kanaLastName"
@@ -373,7 +375,7 @@ export default function B2BRegistrationForm() {
           />
         </div>
 
-        {/* 연락처 정보 */}
+        {/* 連絡先情報 */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
             連絡先情報
@@ -431,7 +433,7 @@ export default function B2BRegistrationForm() {
           </div>
         </div>
 
-        {/* 비밀번호 */}
+        {/* パスワード */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
             パスワード設定
@@ -463,7 +465,7 @@ export default function B2BRegistrationForm() {
           />
         </div>
 
-        {/* 서류 업로드 */}
+        {/* 書類アップロード */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
             書類アップロード
@@ -493,10 +495,10 @@ export default function B2BRegistrationForm() {
                 </svg>
                 <div className="mt-4">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {uploadedFileName || '사업자등록증을 드래그하거나 클릭하여 업로드'}
+                    {uploadedFileName || '法人登記証をドラッグまたはクリックしてアップロード'}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    PDF, JPEG, PNG (최대 5MB)
+                    PDF、JPEG、PNG (最大5MB)
                   </p>
                 </div>
               </div>
@@ -504,7 +506,7 @@ export default function B2BRegistrationForm() {
           </div>
         </div>
 
-        {/* 약관 동의 */}
+        {/* 利用規約同意 */}
         <div className="space-y-3">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
@@ -514,9 +516,9 @@ export default function B2BRegistrationForm() {
             />
             <span className="text-sm text-gray-700 dark:text-gray-300">
               <Link href="/terms" target="_blank" className="text-brixa-600 hover:underline">
-                이용약관
+                利用規約
               </Link>
-              에 동의합니다
+              に同意します
             </span>
           </label>
           {errors.termsAgreed && (
@@ -531,9 +533,9 @@ export default function B2BRegistrationForm() {
             />
             <span className="text-sm text-gray-700 dark:text-gray-300">
               <Link href="/privacy" target="_blank" className="text-brixa-600 hover:underline">
-                개인정보 처리방침
+                個人情報処理方針
               </Link>
-              에 동의합니다
+              に同意します
             </span>
           </label>
           {errors.privacyAgreed && (
@@ -547,7 +549,7 @@ export default function B2BRegistrationForm() {
           disabled={isSubmitting}
           className="w-full py-3 text-base font-semibold"
         >
-          {isSubmitting ? '제출 중...' : '会員登録申請'}
+          {isSubmitting ? '送信中...' : '会員登録申請'}
         </Button>
       </form>
     </Card>

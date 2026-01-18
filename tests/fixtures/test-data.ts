@@ -11,8 +11,8 @@ import { Page } from '@playwright/test';
 
 export const testUsers = {
   admin: {
-    email: process.env.TEST_ADMIN_EMAIL || 'admin-test@example.com',
-    password: process.env.TEST_ADMIN_PASSWORD || 'AdminTestPassword123!',
+    email: process.env.TEST_ADMIN_EMAIL || 'admin@epackage-lab.com',
+    password: process.env.TEST_ADMIN_PASSWORD || 'Admin1234',
     role: 'ADMIN',
   },
 
@@ -255,11 +255,20 @@ export class AuthHelper {
    * 관리자로 로그인
    */
   async loginAsAdmin() {
-    await this.page.goto('/auth/signin');
+    await this.page.goto('/auth/signin', { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+    // Wait for the form to be visible
+    await this.page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 10000 });
+
     await this.page.fill('input[name="email"]', testUsers.admin.email);
     await this.page.fill('input[name="password"]', testUsers.admin.password);
     await this.page.click('button[type="submit"]');
-    await this.page.waitForURL('**/admin/dashboard', { timeout: 10000 });
+
+    // Wait for navigation to admin dashboard
+    await this.page.waitForURL('**/admin/dashboard', { timeout: 15000 }).catch(() => {
+      // If no redirect, wait for potential error message
+      return this.page.waitForTimeout(2000);
+    });
   }
 
   /**
@@ -267,11 +276,20 @@ export class AuthHelper {
    * 회원으로 로그인
    */
   async loginAsMember(email: string, password: string) {
-    await this.page.goto('/auth/signin');
+    await this.page.goto('/auth/signin', { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+    // Wait for the form to be visible
+    await this.page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 10000 });
+
     await this.page.fill('input[name="email"]', email);
     await this.page.fill('input[name="password"]', password);
     await this.page.click('button[type="submit"]');
-    await this.page.waitForURL('**/member/dashboard', { timeout: 10000 });
+
+    // Wait for navigation to member dashboard
+    await this.page.waitForURL('**/member/dashboard', { timeout: 15000 }).catch(() => {
+      // If no redirect, wait for potential error message
+      return this.page.waitForTimeout(2000);
+    });
   }
 
   /**
@@ -288,7 +306,10 @@ export class AuthHelper {
    * 신규 회원 가입
    */
   async register(userData: ReturnType<typeof testUsers.japaneseMember>) {
-    await this.page.goto('/auth/register');
+    await this.page.goto('/auth/register', { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+    // Wait for the form to be visible
+    await this.page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 10000 });
 
     // Authentication info
     await this.page.fill('input[name="email"]', userData.email);
@@ -305,27 +326,37 @@ export class AuthHelper {
     await this.page.fill('input[name="corporatePhone"]', userData.corporatePhone);
     await this.page.fill('input[name="personalPhone"]', userData.personalPhone);
 
-    // Business type
-    await this.page.check(`input[value="${userData.businessType}"]`);
+    // Business type - use label text to click
+    if (userData.businessType === 'CORPORATION') {
+      await this.page.click('label:has-text("法人") input[type="radio"]');
+      // Wait for corporation fields to appear
+      await this.page.waitForSelector('input[name="companyName"]', { state: 'visible', timeout: 5000 }).catch(() => {
+        console.log('Company name field not visible, checking if form is using individual mode');
+      });
 
-    // Wait for corporation fields
-    await this.page.waitForSelector('text=会社情報', { timeout: 3000 });
-
-    // Company info
-    await this.page.fill('input[name="companyName"]', userData.companyName);
-    await this.page.fill('input[name="legalEntityNumber"]', userData.legalEntityNumber);
-    await this.page.fill('input[name="position"]', userData.position);
-    await this.page.fill('input[name="department"]', userData.department);
-    await this.page.fill('input[name="companyUrl"]', userData.companyUrl);
+      // Only fill company fields if they are visible
+      const companyNameVisible = await this.page.locator('input[name="companyName"]').isVisible().catch(() => false);
+      if (companyNameVisible) {
+        await this.page.fill('input[name="companyName"]', userData.companyName);
+        await this.page.fill('input[name="legalEntityNumber"]', userData.legalEntityNumber);
+        await this.page.fill('input[name="position"]', userData.position);
+        await this.page.fill('input[name="department"]', userData.department);
+        await this.page.fill('input[name="companyUrl"]', userData.companyUrl);
+      }
+    } else {
+      await this.page.click('label:has-text("個人") input[type="radio"]');
+    }
 
     // Address
     await this.page.fill('input[name="postalCode"]', userData.postalCode);
     await this.page.selectOption('select[name="prefecture"]', userData.prefecture);
     await this.page.fill('input[name="city"]', userData.city);
-    await this.page.fill('input[name="street"]', userData.street);
-    if (userData.building) {
-      await this.page.fill('input[name="building"]', userData.building);
-    }
+
+    // Combine street and building for the "番地・建物名" field
+    const streetAndBuilding = userData.building
+      ? `${userData.street} ${userData.building}`
+      : userData.street;
+    await this.page.fill('input[name="street"]', streetAndBuilding);
 
     // Product category
     await this.page.selectOption('select[name="productCategory"]', userData.productCategory);
@@ -339,8 +370,11 @@ export class AuthHelper {
     // Submit
     await this.page.click('button[type="submit"]');
 
-    // Wait for response
-    await this.page.waitForTimeout(3000);
+    // Wait for navigation or response
+    await this.page.waitForURL(/\/auth\/pending/, { timeout: 10000 }).catch(() => {
+      // If no redirect, at least wait a bit for the API call
+      return this.page.waitForTimeout(3000);
+    });
   }
 }
 

@@ -14,8 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 
 import {
   ingestDesignFile,
@@ -92,9 +91,7 @@ interface ListFilesResponse {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+const { client: supabase } = createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -209,9 +206,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+const { client: supabase } = createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

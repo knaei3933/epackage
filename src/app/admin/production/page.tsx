@@ -26,7 +26,7 @@ interface ProductionJob {
   rejectedQuantity: number;
 }
 
-// 9단계 생산 프로세스 (production_orders 테이블의 current_stage와 일치)
+// 9段階生産プロセス (production_orders テーブルのcurrent_stageと一致)
 const PRODUCTION_STAGES = [
   { key: 'data_received', label: 'データ受領', icon: '📥' },
   { key: 'inspection', label: '検査', icon: '🔍' },

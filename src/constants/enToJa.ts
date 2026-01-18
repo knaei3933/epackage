@@ -1,9 +1,9 @@
 /**
- * 영어-일본어 매핑 상수 파일
- * 수정사항.md 7번 요구사항: 영어 표시를 일본어로 통일
+ * 英語-日本語マッピング定数ファイル
+ * 修正事項.md 7番要件: 英語表示を日本語で統一
  */
 
-// 봉투 타입 매핑
+// 袋タイプマッピング
 export const BAG_TYPE_JA = {
   'flat_3_side': '三方シール平袋',
   'stand_up': 'スタンドパウチ',
@@ -18,7 +18,7 @@ export const BAG_TYPE_JA = {
   'bottom_gusset': '底ガセット'
 } as const;
 
-// 소재 타입 매핑
+// 素材タイプマッピング
 export const MATERIAL_TYPE_JA = {
   'pet_al': 'PET+AL',
   'pet_vmpet': 'PET+VMPET',
@@ -32,7 +32,7 @@ export const MATERIAL_TYPE_JA = {
   'paper': '紙'
 } as const;
 
-// 두께 타입 매핑
+// 厚さタイプマッピング
 export const THICKNESS_TYPE_JA = {
   'light': '軽量タイプ',
   'medium': '標準タイプ',
@@ -40,13 +40,13 @@ export const THICKNESS_TYPE_JA = {
   'ultra': '超耐久タイプ'
 } as const;
 
-// 인쇄 타입 매핑
+// 印刷タイプマッピング
 export const PRINTING_TYPE_JA = {
   'digital': 'デジタル',
   'gravure': 'グラビア'
 } as const;
 
-// 단위 매핑
+// 単位マッピング
 export const UNIT_JA = {
   'units': '個',
   'pieces': '個',
@@ -56,7 +56,7 @@ export const UNIT_JA = {
   'kg': 'kg'
 } as const;
 
-// 라벨 매핑
+// ラベルマッピング
 export const LABEL_JA = {
   'Type:': 'タイプ:',
   'Material:': '素材:',
@@ -72,7 +72,7 @@ export const LABEL_JA = {
   'Total:': '合計:'
 } as const;
 
-// 후가공 옵션 매핑
+// 後加工オプションマッピング
 export const POST_PROCESSING_JA = {
   'zipper-yes': 'ジッパー付き',
   'zipper-no': 'ジッパーなし',
@@ -93,7 +93,7 @@ export const POST_PROCESSING_JA = {
   'bottom-open': '下端開封'
 } as const;
 
-// 유틸리티 함수
+// ユーティリティ関数
 export const translateToJapanese = (text: string): string => {
   return Object.entries(LABEL_JA).reduce((translated, [enKey, jaValue]) => {
     return translated.replace(enKey, jaValue);

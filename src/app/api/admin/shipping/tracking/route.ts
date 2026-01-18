@@ -8,8 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import {
   generateEMSTrackingNumber,
   validateEMSTrackingNumber,
@@ -121,14 +120,14 @@ export async function POST(request: NextRequest) {
       const customer = Array.isArray(order.customers) ? order.customers[0] : order.customers;
       await sendShippingStatusEmail({
         recipient: {
-          name: customer?.full_name || customer?.name || '고객',
+          name: customer?.full_name || customer?.name || 'お客様',
           email: customer?.email || '',
         },
         orderNumber: order.order_number,
         trackingNumber,
         carrier,
         status: 'processing',
-        message: '상품이 발송되었습니다. 배송 추적 번호가 발급되었습니다.',
+        message: '商品が発送されました。配送追跡番号が発行されました。',
       });
     }
 
@@ -140,7 +139,7 @@ export async function POST(request: NextRequest) {
         japanPostURL: getJapanPostTrackingURL(trackingNumber),
         carrier,
       },
-      message: 'EMS 송장번호가 생성되었습니다',
+      message: 'EMS送り状番号が生成されました',
     });
   } catch (error: unknown) {
     console.error('[Shipping Tracking] POST error:', error);
@@ -252,17 +251,17 @@ export async function PATCH(request: NextRequest) {
     // Send status update notification
     if (status && order?.customers) {
       const statusMessages: Record<string, string> = {
-        shipped: '상품이 발송되었습니다.',
-        in_transit: '상품이 이송 중입니다.',
-        out_for_delivery: '상품이 배송지 도착하여 배송 예정입니다.',
-        delivered: '상품이 배송 완료되었습니다.',
-        failed: '배송 실패. 관리자에게 문의해주세요.',
-        returned: '상품이 반송되었습니다.',
+        shipped: '商品が発送されました。',
+        in_transit: '商品が輸送中です。',
+        out_for_delivery: '商品が配送先に到着し、配送予定です。',
+        delivered: '商品の配送が完了しました。',
+        failed: '配送に失敗しました。管理者にお問い合わせください。',
+        returned: '商品が返送されました。',
       };
 
       // Extract customer data (handle both array and single object)
       const customerData = Array.isArray(order.customers) ? order.customers[0] : order.customers;
-      const customerName = customerData?.full_name || customerData?.name || '고객';
+      const customerName = customerData?.full_name || customerData?.name || 'お客様';
       const customerEmail = customerData?.email || '';
 
       // Validate carrier type
@@ -281,7 +280,7 @@ export async function PATCH(request: NextRequest) {
         trackingNumber: tracking.tracking_number || '',
         carrier: emailCarrier,
         status: status as Database["public"]["Tables"]["shipments"]["Row"]["status"],
-        message: statusMessages[status] || '배송 상태가 업데이트되었습니다.',
+        message: statusMessages[status] || '配送状態が更新されました。',
         location,
       });
     }
@@ -298,7 +297,7 @@ export async function PATCH(request: NextRequest) {
           ? getJapanPostTrackingURL(tracking.tracking_number)
           : null,
       },
-      message: '배송 상태가 업데이트되었습니다',
+      message: '配送状態が更新されました',
     });
   } catch (error: unknown) {
     console.error('[Shipping Tracking] PATCH error:', error);

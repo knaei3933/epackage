@@ -10,8 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase'
 import {
   getOrderStatus,
@@ -47,8 +46,7 @@ export async function POST(request: NextRequest) {
   try {
     // Next.js 16: cookies() now returns a Promise and must be awaited
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
+    const { client: supabase } = createSupabaseSSRClient(request);
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {

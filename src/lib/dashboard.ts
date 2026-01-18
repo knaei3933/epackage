@@ -32,6 +32,7 @@ import type {
   NotificationBadge,
   ContractStats,
   NotificationStats,
+  OrderStatusHistory,
 } from '@/types/dashboard';
 
 // =====================================================
@@ -59,8 +60,8 @@ export class AuthRequiredError extends Error {
 
 /**
  * 現在のログインユーザー情報を取得
- * DEV_MODEでは mock 사용자 정보를 반환합니다
- * Production: server-side에서는 headers를 통해, client-side에서는 Supabase 사용
+ * DEV_MODEではモックユーザー情報を返します
+ * Production: server-sideではheaders経由、client-sideではSupabase使用
  */
 export async function getCurrentUser(): Promise<{
   id: string;
@@ -78,9 +79,9 @@ export async function getCurrentUser(): Promise<{
     const userId = await getCurrentUserId();
     if (!userId) return null;
 
-    // DEV_MODE: mock 사용자 정보 반환
-    // server 환경에서는 기본값만 반환 (localStorage 접근 불가)
-    // 필요한 경우 쿠키에 추가 정보를 저장할 수 있음
+    // DEV_MODE: モックユーザー情報返却
+    // server環境ではデフォルト値のみ返却 (localStorageアクセス不可)
+    // 必要に応じてクッキーに追加情報を保存可能
     return {
       id: userId,
       email: 'dev@example.com',
@@ -97,7 +98,7 @@ export async function getCurrentUser(): Promise<{
   // PRODUCTION: Read user from headers (server-side) or Supabase (client-side)
   // =====================================================
 
-  // Server-side: middleware가 설정한 headers에서 읽기
+  // Server-side: middlewareが設定したheadersから読み取り
   if (typeof window === 'undefined') {
     try {
       const { headers } = await import('next/headers');
@@ -105,8 +106,8 @@ export async function getCurrentUser(): Promise<{
 
       const userId = headersList.get('x-user-id');
       if (userId) {
-        // Server-side에서는 service client를 사용해서 profile을 가져옴
-        // (쿠키 수정 없이 읽기만 하므로 안전)
+        // Server-sideではservice clientを使用してprofileを取得
+        // (クッキー変更なしで読み取りのみなので安全)
         const serviceClient = createServiceClient();
 
         const { data: profile } = await serviceClient
@@ -115,14 +116,16 @@ export async function getCurrentUser(): Promise<{
           .eq('id', userId)
           .maybeSingle();
 
+        const profileAny = profile as any;
+
         return {
           id: userId,
-          email: profile?.email,
+          email: profileAny?.email,
           user_metadata: {
-            kanji_last_name: profile?.kanji_last_name,
-            kanji_first_name: profile?.kanji_first_name,
-            name_kanji: profile?.kanji_last_name,
-            name_kana: profile?.kana_last_name,
+            kanji_last_name: profileAny && profileAny.kanji_last_name ? profileAny.kanji_last_name : '',
+            kanji_first_name: profileAny && profileAny.kanji_first_name ? profileAny.kanji_first_name : '',
+            name_kanji: profileAny && profileAny.kanji_last_name ? profileAny.kanji_last_name : '',
+            name_kana: profileAny && profileAny.kana_last_name ? profileAny.kana_last_name : '',
           },
         };
       }
@@ -131,15 +134,15 @@ export async function getCurrentUser(): Promise<{
     }
   }
 
-  // Client-side: Supabase auth 사용 (fallback)
+  // Client-side: Supabase auth使用 (fallback)
   if (!supabase) return null;
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
 /**
- * 인증을 요구하고 사용자 정보를 반환
- * 인증되지 않은 경우 AuthRequiredError를 throw합니다
+ * 認証を要求しユーザー情報を返す
+ * 認証されていない場合AuthRequiredErrorをthrowします
  */
 export async function requireAuth(): Promise<{
   id: string;
@@ -160,13 +163,36 @@ export async function requireAuth(): Promise<{
 
 /**
  * 現在のログインユーザーIDを取得
- * DEV_MODEでは쿠키에서 mock 사용자 ID를 읽어옵니다
+ * DEV_MODEではクッキーからモックユーザーIDを読み取ります
  */
 export async function getCurrentUserId(): Promise<string | null> {
   const isDevModeEnabled = isDevMode();
 
   if (isDevModeEnabled) {
-    // Client-side: document.cookie에서 읽기
+    // =====================================================
+    // DEV_MODE: Check headers first (set by middleware)
+    // =====================================================
+    // Server-side: middlewareが設定したheadersから読み取り (最優先)
+    if (typeof window === 'undefined') {
+      try {
+        const { headers } = await import('next/headers');
+        const headersList = await headers();
+
+        // Check for x-dev-mode header first (middleware sets this in DEV_MODE)
+        const devModeHeader = headersList.get('x-dev-mode');
+        if (devModeHeader === 'true') {
+          const userId = headersList.get('x-user-id');
+          if (userId && userId !== '00000000-0000-0000-0000-000000000000') {
+            console.log('[getCurrentUserId] DEV_MODE: Found user ID from middleware headers:', userId);
+            return userId;
+          }
+        }
+      } catch (e) {
+        console.warn('[getCurrentUserId] DEV_MODE: Could not read headers:', e);
+      }
+    }
+
+    // Client-side: document.cookieから読み取り
     if (typeof document !== 'undefined') {
       const cookies = document.cookie.split(';');
       const mockUserIdCookie = cookies.find(cookie =>
@@ -180,21 +206,23 @@ export async function getCurrentUserId(): Promise<string | null> {
       console.warn('[getCurrentUserId] DEV_MODE: dev-mock-user-id cookie not found in document.cookie');
     }
 
-    // Server-side: cookies() API 사용 (이 함수는 async이므로 가능)
-    try {
-      const { cookies } = await import('next/headers');
-      const cookieStore = await cookies();
-      const mockUserIdCookie = cookieStore.get('dev-mock-user-id');
-      if (mockUserIdCookie) {
-        console.log('[getCurrentUserId] DEV_MODE: Found mock user ID from server cookie:', mockUserIdCookie.value);
-        return mockUserIdCookie.value;
+    // Server-side: cookies() API使用 (この関数はasyncなので可能)
+    if (typeof window === 'undefined') {
+      try {
+        const { cookies } = await import('next/headers');
+        const cookieStore = await cookies();
+        const mockUserIdCookie = cookieStore.get('dev-mock-user-id');
+        if (mockUserIdCookie) {
+          console.log('[getCurrentUserId] DEV_MODE: Found mock user ID from server cookie:', mockUserIdCookie.value);
+          return mockUserIdCookie.value;
+        }
+        console.warn('[getCurrentUserId] DEV_MODE: dev-mock-user-id cookie not found in server cookies');
+      } catch (e) {
+        console.warn('[getCurrentUserId] DEV_MODE: Could not read server cookies:', e);
       }
-      console.warn('[getCurrentUserId] DEV_MODE: dev-mock-user-id cookie not found in server cookies');
-    } catch (e) {
-      console.warn('[getCurrentUserId] DEV_MODE: Could not read server cookies:', e);
     }
 
-    // Last resort: localStorage에서 읽기 (클라이언트 사이드 전용)
+    // Last resort: localStorageから読み取り (クライアントサイド専用)
     if (typeof document !== 'undefined') {
       try {
         const mockUserStr = localStorage.getItem('dev-mock-user');
@@ -208,11 +236,11 @@ export async function getCurrentUserId(): Promise<string | null> {
       }
     }
 
-    // DEV_MODE에서 사용자 ID를 찾지 못한 경우 - 자동으로 mock ID 생성
+    // DEV_MODEでユーザーIDが見つからない場合 - 自動的にモックID生成
     const mockUserId = 'dev-mock-user-12345';
     console.log('[getCurrentUserId] DEV_MODE: No user ID found, using mock ID:', mockUserId);
 
-    // 클라이언트 사이드에서 localStorage에 저장
+    // クライアントサイドでlocalStorageに保存
     if (typeof document !== 'undefined') {
       try {
         const mockUserData = {
@@ -234,10 +262,10 @@ export async function getCurrentUserId(): Promise<string | null> {
   }
 
   // =====================================================
-  // PRODUCTION: Supabase 인증 사용
+  // PRODUCTION: Supabase認証使用
   // =====================================================
 
-  // Server-side: middleware가 설정한 headers에서 읽기
+  // Server-side: middlewareが設定したheadersから読み取り
   if (typeof window === 'undefined') {
     try {
       const { headers } = await import('next/headers');
@@ -253,7 +281,7 @@ export async function getCurrentUserId(): Promise<string | null> {
     }
   }
 
-  // Client-side: Supabase auth 사용 (fallback)
+  // Client-side: Supabase auth使用 (fallback)
   if (!supabase) return null;
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id || null;
@@ -281,7 +309,7 @@ export async function getOrders(
         id: 'mock-order-1',
         userId: userId,
         orderNumber: 'ORD-2024-001',
-        status: 'PROCESSING',
+        status: 'PRODUCTION',
         totalAmount: 150000,
         items: [
           {
@@ -592,13 +620,12 @@ export async function getOrders(
 
   const serviceClient = createServiceClient();
 
+  // Build the query - only fetch orders with order_items (addresses not needed for list view)
   let query = serviceClient
     .from('orders')
     .select(`
       *,
-      order_items (*),
-      delivery_addresses (*),
-      billing_addresses (*)
+      order_items (*)
     `)
     .eq('user_id', userId);
 
@@ -616,8 +643,15 @@ export async function getOrders(
     query = query.ilike('order_number', `%${filters.search}%`);
   }
 
-  // Sorting
-  const sortBy = pagination?.sortBy || 'created_at';
+  // Sorting - convert camelCase to snake_case for database columns
+  const sortByMap: Record<string, string> = {
+    'createdAt': 'created_at',
+    'updatedAt': 'updated_at',
+    'orderNumber': 'order_number',
+    'totalAmount': 'total_amount',
+    'status': 'status',
+  };
+  const sortBy = sortByMap[pagination?.sortBy || 'createdAt'] || 'created_at';
   const sortOrder = pagination?.sortOrder || 'desc';
   query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
@@ -633,8 +667,32 @@ export async function getOrders(
 
   if (error) throw error;
 
+  // Transform the data to match TypeScript types
+  const orders: Order[] = (data || []).map((orderData: any) => ({
+    ...orderData,
+    orderNumber: orderData.order_number,
+    userId: orderData.user_id,
+    totalAmount: orderData.total_amount,
+    items: (orderData.order_items || []).map((item: any) => ({
+      ...item,
+      productId: item.product_id,
+      productName: item.product_name,
+      unitPrice: item.unit_price,
+      totalPrice: item.total_price,
+    })),
+    createdAt: orderData.created_at,
+    updatedAt: orderData.updated_at,
+    shippedAt: orderData.shipped_at,
+    deliveredAt: orderData.delivered_at,
+    customer_name: orderData.customer_name,
+    customer_email: orderData.customer_email,
+    customer_phone: orderData.customer_phone,
+    subtotal: orderData.subtotal,
+    taxAmount: orderData.tax_amount,
+  }));
+
   return {
-    data: data as Order[],
+    data: orders,
     total: count || 0,
     page,
     limit,
@@ -649,26 +707,214 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   const userId = await getCurrentUserId();
   if (!userId) throw new Error('Not authenticated');
 
+  // DEV_MODE: Return null for non-existent orders (simulates RLS)
+  // In DEV_MODE, we only return mock data for known mock order IDs
+  if (isDevMode()) {
+    console.log('[getOrderById] DEV_MODE: Checking for mock order ID:', orderId);
+
+    // Define mock order data inline to avoid circular dependency with getOrders()
+    const mockOrdersMap: Record<string, Order> = {
+      'mock-order-1': {
+        id: 'mock-order-1',
+        userId: userId,
+        orderNumber: 'ORD-2024-001',
+        status: 'PRODUCTION',
+        totalAmount: 150000,
+        items: [{
+          id: 'mock-item-1',
+          productId: 'prod-001',
+          productName: '化粧箱 A4サイズ',
+          quantity: 100,
+          unitPrice: 1500,
+          totalPrice: 150000,
+          specifications: {
+            size: 'A4',
+            material: '紙製',
+            printing: 'フルカラー',
+            postProcessing: ['光沢加工']
+          }
+        }],
+        deliveryAddress: {
+          id: 'mock-delivery-1',
+          userId: userId,
+          name: 'テスト株式会社A',
+          postalCode: '100-0001',
+          prefecture: '東京都',
+          city: '千代田区',
+          address: '丸の内1-1-1',
+          phone: '03-1234-5678',
+          isDefault: true,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        customer_name: 'テスト株式会社A',
+        customer_email: 'test@example.com',
+        customer_phone: '03-1234-5678',
+        subtotal: 150000,
+        taxAmount: 15000,
+        createdAt: '2024-01-15T10:00:00Z',
+        updatedAt: '2024-01-15T10:00:00Z'
+      },
+      'mock-order-2': {
+        id: 'mock-order-2',
+        userId: userId,
+        orderNumber: 'ORD-2024-002',
+        status: 'PRODUCTION',
+        totalAmount: 280000,
+        items: [{
+          id: 'mock-item-2',
+          productId: 'prod-002',
+          productName: '段ボール箱',
+          quantity: 200,
+          unitPrice: 1400,
+          totalPrice: 280000,
+          specifications: {
+            size: '500x400x300',
+            material: '段ボール',
+            printing: '2色刷り'
+          }
+        }],
+        deliveryAddress: {
+          id: 'mock-delivery-1',
+          userId: userId,
+          name: 'テスト株式会社A',
+          postalCode: '100-0001',
+          prefecture: '東京都',
+          city: '千代田区',
+          address: '丸の内1-1-1',
+          phone: '03-1234-5678',
+          isDefault: true,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        customer_name: 'テスト株式会社A',
+        customer_email: 'test@example.com',
+        customer_phone: '03-1234-5678',
+        subtotal: 280000,
+        taxAmount: 28000,
+        createdAt: '2024-01-20T14:30:00Z',
+        updatedAt: '2024-01-21T09:00:00Z'
+      }
+    };
+
+    const order = mockOrdersMap[orderId];
+    if (order) {
+      console.log('[getOrderById] DEV_MODE: Returning mock order data for:', orderId);
+      return order;
+    } else {
+      console.log('[getOrderById] DEV_MODE: Order ID not found in mock data, returning null (404):', orderId);
+      // Return null to trigger notFound() - simulates RLS policy or non-existent order
+      return null;
+    }
+  }
+
   const serviceClient = createServiceClient();
 
-  const { data, error } = await serviceClient
+  // 注文情報を取得（order_itemsのみ含める）
+  const { data: orderData, error: orderError } = await serviceClient
     .from('orders')
     .select(`
       *,
-      order_items (*),
-      delivery_addresses (*),
-      billing_addresses (*)
+      order_items (*)
     `)
     .eq('id', orderId)
     .eq('user_id', userId)
     .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') return null; // Not found
-    throw error;
+  if (orderError) {
+    if (orderError.code === 'PGRST116') return null; // Not found
+    console.error('[getOrderById] Error fetching order:', orderError);
+    throw orderError;
   }
 
-  return data as Order;
+  if (!orderData) return null;
+
+  // Transform the order data to match TypeScript types
+  const orderDataAny = orderData as any;
+  const order: any = {
+    ...orderDataAny,
+    orderNumber: orderDataAny.order_number,
+    userId: orderDataAny.user_id,
+    totalAmount: orderDataAny.total_amount,
+    items: orderDataAny.order_items || [],
+    createdAt: orderDataAny.created_at,
+    updatedAt: orderDataAny.updated_at,
+    shippedAt: orderDataAny.shipped_at,
+    deliveredAt: orderDataAny.delivered_at,
+    customer_name: orderDataAny.customer_name,
+    customer_email: orderDataAny.customer_email,
+    customer_phone: orderDataAny.customer_phone,
+    subtotal: orderDataAny.subtotal,
+    taxAmount: orderDataAny.tax_amount,
+  };
+
+  // 納品先住所を取得（存在する場合）
+  if (orderDataAny.delivery_address_id) {
+    const { data: deliveryAddress, error: deliveryError } = await serviceClient
+      .from('delivery_addresses')
+      .select('*')
+      .eq('id', orderDataAny.delivery_address_id)
+      .single();
+
+    if (!deliveryError && deliveryAddress) {
+      const deliveryAddressAny = deliveryAddress as any;
+      order.deliveryAddress = {
+        ...deliveryAddressAny,
+        userId: deliveryAddressAny.user_id,
+        postalCode: deliveryAddressAny.postal_code,
+        contactPerson: deliveryAddressAny.contact_person,
+        isDefault: deliveryAddressAny.is_default,
+        createdAt: deliveryAddressAny.created_at,
+        updatedAt: deliveryAddressAny.updated_at,
+      };
+    }
+  }
+
+  // 請求先住所を取得（存在する場合）
+  if (orderDataAny.billing_address_id) {
+    const { data: billingAddress, error: billingError } = await serviceClient
+      .from('billing_addresses')
+      .select('*')
+      .eq('id', orderDataAny.billing_address_id)
+      .single();
+
+    if (!billingError && billingAddress) {
+      const billingAddressAny = billingAddress as any;
+      order.billingAddress = {
+        ...billingAddressAny,
+        userId: billingAddressAny.user_id,
+        companyName: billingAddressAny.company_name,
+        postalCode: billingAddressAny.postal_code,
+        taxNumber: billingAddressAny.tax_number,
+        isDefault: billingAddressAny.is_default,
+        createdAt: billingAddressAny.created_at,
+        updatedAt: billingAddressAny.updated_at,
+      };
+    }
+  }
+
+  // Transform order items
+  order.items = (orderDataAny.order_items || []).map((item: any) => ({
+    ...item,
+    productId: item.product_id,
+    productName: item.product_name,
+    unitPrice: item.unit_price,
+    totalPrice: item.total_price,
+  }));
+
+  // Remove raw Supabase data
+  delete order.order_items;
+  delete order.order_number;
+  delete order.user_id;
+  delete order.total_amount;
+  delete order.created_at;
+  delete order.updated_at;
+  delete order.shipped_at;
+  delete order.delivered_at;
+  delete order.delivery_address_id;
+  delete order.billing_address_id;
+
+  return order as Order;
 }
 
 /**
@@ -677,6 +923,53 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 export async function getOrderStatusHistory(orderId: string): Promise<OrderStatusHistory[]> {
   const userId = await getCurrentUserId();
   if (!userId) throw new Error('Not authenticated');
+
+  // DEV_MODE: Return mock status history for known mock orders
+  if (isDevMode()) {
+    console.log('[getOrderStatusHistory] DEV_MODE: Returning mock status history for:', orderId);
+
+    // Mock status history for known orders
+    const mockStatusHistory: Record<string, OrderStatusHistory[]> = {
+      'mock-order-1': [
+        {
+          id: 'history-1-1',
+          order_id: 'mock-order-1',
+          status: 'PENDING',
+          changed_at: '2024-01-15T10:00:00Z',
+          changed_by: userId,
+          notes: '注文を受付しました'
+        },
+        {
+          id: 'history-1-2',
+          order_id: 'mock-order-1',
+          status: 'PRODUCTION',
+          changed_at: '2024-01-16T09:00:00Z',
+          changed_by: userId,
+          notes: '製造を開始しました'
+        }
+      ],
+      'mock-order-2': [
+        {
+          id: 'history-2-1',
+          order_id: 'mock-order-2',
+          status: 'PENDING',
+          changed_at: '2024-01-20T14:30:00Z',
+          changed_by: userId,
+          notes: '注文を受付しました'
+        },
+        {
+          id: 'history-2-2',
+          order_id: 'mock-order-2',
+          status: 'PRODUCTION',
+          changed_at: '2024-01-21T09:00:00Z',
+          changed_by: userId,
+          notes: '製造を開始しました'
+        }
+      ]
+    };
+
+    return mockStatusHistory[orderId] || [];
+  }
 
   const serviceClient = createServiceClient();
 
@@ -1624,8 +1917,7 @@ export async function getSampleRequests(
         },
         createdAt: '2024-01-10T09:00:00Z',
         updatedAt: '2024-01-14T14:30:00Z',
-        shippedAt: '2024-01-12T10:00:00Z',
-        deliveredAt: '2024-01-14T14:30:00Z'
+        shippedAt: '2024-01-12T10:00:00Z'
       },
       {
         id: 'mock-sample-5',
@@ -1736,7 +2028,7 @@ export async function getInquiries(
         userId: userId,
         inquiryNumber: 'I-2024-003',
         type: 'sample',
-        status: 'pending',
+        status: 'open',
         subject: 'サンプル請求について',
         message: '新製品のサンプルを請求したいのですが、どのようにすればよいでしょうか。',
         createdAt: '2024-01-22T15:00:00Z',
@@ -1746,7 +2038,7 @@ export async function getInquiries(
         id: 'mock-inquiry-4',
         userId: userId,
         inquiryNumber: 'I-2024-004',
-        type: 'delivery',
+        type: 'order',
         status: 'closed',
         subject: '納期に関する問い合わせ',
         message: '注文の納期が遅れているようですが、状況を教えてください。',
@@ -1773,7 +2065,7 @@ export async function getInquiries(
         userId: userId,
         inquiryNumber: 'I-2024-006',
         type: 'quotation',
-        status: 'pending',
+        status: 'open',
         subject: '再見積もりのお願い',
         message: '以前いただいた見積もりについて、仕様変更があります。',
         createdAt: '2024-01-25T09:00:00Z',
@@ -1905,7 +2197,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         id: 'mock-order-1',
         userId: userId || 'mock-user',
         orderNumber: 'ORD-2024-001',
-        status: 'PROCESSING',
+        status: 'PRODUCTION',
         totalAmount: 150000,
         items: [{
           id: 'mock-item-1',
@@ -2248,7 +2540,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .from('orders')
       .select('*')
       .eq('user_id', userId)
-      .in('status', ['pending', 'processing'])
+      .in('status', ['PENDING', 'QUOTATION'])
       .order('created_at', { ascending: false })
       .limit(5);
 
@@ -2257,7 +2549,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .from('orders')
       .select('*')
       .eq('user_id', userId)
-      .eq('status', 'manufacturing');
+      .eq('status', 'PRODUCTION');
 
     // Get pending quotations
     const { data: pendingQuotations } = await serviceClient
@@ -2268,6 +2560,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .order('created_at', { ascending: false })
       .limit(5);
 
+    // Transform quotation_items to items for type compatibility
+    // Defensive: Ensure items is always an array, even if nested query fails
+    const transformedQuotations = (pendingQuotations as any[])?.map(quotation => ({
+      ...quotation,
+      // More defensive: explicitly check if quotation_items is an array
+      items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
+    })) || [];
+
     // Get pending sample requests
     const { data: pendingSamples } = await serviceClient
       .from('sample_requests')
@@ -2276,6 +2576,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .in('status', ['received', 'processing'])
       .order('created_at', { ascending: false })
       .limit(5);
+
+    // Transform sample_items to samples for type compatibility
+    // Defensive: Ensure samples is always an array, even if nested query fails
+    const transformedSamples = (pendingSamples as any[])?.map(request => ({
+      ...request,
+      // More defensive: explicitly check if sample_items is an array
+      samples: Array.isArray(request.sample_items) ? request.sample_items : [],
+    })) || [];
 
     // Get unread inquiries
     const { data: unreadInquiries } = await serviceClient
@@ -2362,7 +2670,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       notifications = notifResult.data;
     } catch (notifError) {
       console.warn('[getDashboardStats] admin_notifications table not available or error:', notifError);
-      // notifications 테이블이 없으면 기본값 사용
+      // notificationsテーブルがない場合はデフォルト値を使用
     }
 
     return {
@@ -2372,11 +2680,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         total: totalOrders || 0,
       },
       quotations: {
-        pending: (pendingQuotations as Quotation[]) || [],
+        pending: (transformedQuotations as Quotation[]) || [],
         total: totalQuotations || 0,
       },
       samples: {
-        pending: (pendingSamples as DashboardSampleRequest[]) || [],
+        pending: (transformedSamples as DashboardSampleRequest[]) || [],
         total: totalSamples || 0,
       },
       inquiries: {

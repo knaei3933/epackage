@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'INVALID_FILE_IDS',
-          message: '유효한 파일 ID 목록이 필요합니다.',
+          message: '有効なファイルIDリストが必要です。',
         },
       }, { status: 400 });
     }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'TOO_MANY_FILES',
-          message: '최대 50개까지 일괄 처리할 수 있습니다.',
+          message: '最大50件まで一括処理できます。',
         },
       }, { status: 400 });
     }
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'FILES_NOT_FOUND',
-          message: '파일을 찾을 수 없습니다.',
+          message: 'ファイルが見つかりません。',
         },
       }, { status: 404 });
     }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: '서버 오류가 발생했습니다.',
+        message: 'サーバーエラーが発生しました。',
       },
     }, { status: 500 });
   }

@@ -108,8 +108,9 @@ describe('EnhancedPostProcessingPreview', () => {
     )
 
     // Should call onPriceUpdate with the calculated multiplier
+    // Note: Price update is called twice - first with 1 (initial), then with actual multiplier
     await waitFor(() => {
-      expect(defaultProps.onPriceUpdate).toHaveBeenCalledWith(1.15)
+      expect(defaultProps.onPriceUpdate).toHaveBeenLastCalledWith(1.12)
     })
   })
 

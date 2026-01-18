@@ -1,10 +1,10 @@
 /**
  * API Response Type Definitions
  *
- * 표준화된 API 응답 타입
- * - 일관된 응답 구조
- * - 타입 안전성 보장
- * - any 타입 사용 감소
+ * 標準化されたAPIレスポンスタイプ
+ * - 一貫したレスポンス構造
+ * - 型安全性の保証
+ * - any型の使用削減
  */
 
 // =====================================================
@@ -12,7 +12,7 @@
 // =====================================================
 
 /**
- * 기본 API 응답 구조
+ * 基本APIレスポンス構造
  */
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -23,7 +23,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 /**
- * 에러 상세 정보
+ * エラー詳細情報
  */
 export interface ApiError {
   code: string;
@@ -33,7 +33,7 @@ export interface ApiError {
 }
 
 /**
- * 에러 응답
+ * エラーレスポンス
  */
 export interface ApiErrorResponse {
   success: false;
@@ -47,7 +47,7 @@ export interface ApiErrorResponse {
 // =====================================================
 
 /**
- * 페이지네이션 파라미터
+ * ページネーションパラメータ
  */
 export interface PaginationParams {
   page?: number;
@@ -58,7 +58,7 @@ export interface PaginationParams {
 }
 
 /**
- * 페이지네이션된 응답
+ * ページネーションされたレスポンス
  */
 export interface PaginatedResponse<T> {
   data: T[];
@@ -75,7 +75,7 @@ export interface PaginatedResponse<T> {
 }
 
 /**
- * 범위 기반 페이지네이션 응답 (cursor-based)
+ * 範囲ベースページネーションレスポンス（カーソルベース）
  */
 export interface RangeResponse<T> {
   data: T[];
@@ -92,7 +92,7 @@ export interface RangeResponse<T> {
 // =====================================================
 
 /**
- * 관리자 대시보드 메트릭
+ * 管理者ダッシュボードメトリクス
  */
 export interface AdminDashboardMetrics {
   orders: {
@@ -125,7 +125,7 @@ export interface AdminDashboardMetrics {
 }
 
 /**
- * 관리자 작업 결과
+ * 管理者作業結果
  */
 export interface AdminActionResponse {
   success: boolean;
@@ -136,7 +136,7 @@ export interface AdminActionResponse {
 }
 
 /**
- * 벌크 작업 결과
+ * 一括作業結果
  */
 export interface BulkOperationResponse {
   success: boolean;
@@ -154,7 +154,7 @@ export interface BulkOperationResponse {
 // =====================================================
 
 /**
- * 주문 생성 응답
+ * 注文作成レスポンス
  */
 export interface OrderCreateResponse {
   orderId: string;
@@ -169,7 +169,7 @@ export interface OrderCreateResponse {
 }
 
 /**
- * 견적 생성 응답
+ * 見積作成レスポンス
  */
 export interface QuotationCreateResponse {
   quotationId: string;
@@ -181,7 +181,7 @@ export interface QuotationCreateResponse {
 }
 
 /**
- * 견적 승인 응답
+ * 見積承認レスポンス
  */
 export interface QuotationApprovalResponse {
   quotationId: string;
@@ -197,7 +197,7 @@ export interface QuotationApprovalResponse {
 // =====================================================
 
 /**
- * 생산 작업 생성 응답
+ * 生産作業作成レスポンス
  */
 export interface ProductionJobCreateResponse {
   jobId: string;
@@ -209,7 +209,7 @@ export interface ProductionJobCreateResponse {
 }
 
 /**
- * 생산 상태 업데이트 응답
+ * 生産ステータス更新レスポンス
  */
 export interface ProductionStatusUpdateResponse {
   jobId: string;
@@ -225,7 +225,7 @@ export interface ProductionStatusUpdateResponse {
 // =====================================================
 
 /**
- * 배송 추적 정보
+ * 配送追跡情報
  */
 export interface ShipmentTrackingInfo {
   shipmentId: string;
@@ -241,7 +241,7 @@ export interface ShipmentTrackingInfo {
 }
 
 /**
- * 배송 생성 응답
+ * 配送作成レスポンス
  */
 export interface ShipmentCreateResponse {
   shipmentId: string;
@@ -256,7 +256,7 @@ export interface ShipmentCreateResponse {
 // =====================================================
 
 /**
- * 재고 조정 응답
+ * 在庫調整レスポンス
  */
 export interface InventoryAdjustResponse {
   itemId: string;
@@ -269,7 +269,7 @@ export interface InventoryAdjustResponse {
 }
 
 /**
- * 재고 품목
+ * 在庫アイテム
  */
 export interface InventoryItem {
   id: string;
@@ -289,7 +289,7 @@ export interface InventoryItem {
 // =====================================================
 
 /**
- * 계약 다운로드 응답
+ * 契約書ダウンロードレスポンス
  */
 export interface ContractDownloadResponse {
   contractId: string;
@@ -299,7 +299,7 @@ export interface ContractDownloadResponse {
 }
 
 /**
- * 서명 요청 응답
+ * 署名リクエストレスポンス
  */
 export interface SignatureRequestResponse {
   signatureRequestId: string;
@@ -310,7 +310,7 @@ export interface SignatureRequestResponse {
 }
 
 /**
- * 서명 상태
+ * 署名ステータス
  */
 export interface SignatureStatus {
   contractId: string;
@@ -325,7 +325,7 @@ export interface SignatureStatus {
 // =====================================================
 
 /**
- * 프로필 업데이트 응답
+ * プロフィール更新レスポンス
  */
 export interface ProfileUpdateResponse {
   userId: string;
@@ -336,7 +336,7 @@ export interface ProfileUpdateResponse {
 }
 
 /**
- * 회원 등록 응답
+ * 会員登録レスポンス
  */
 export interface MemberRegistrationResponse {
   userId: string;
@@ -347,7 +347,7 @@ export interface MemberRegistrationResponse {
 }
 
 /**
- * 회원 상태 변경 응답
+ * 会員ステータス変更レスポンス
  */
 export interface MemberStatusChangeResponse {
   userId: string;
@@ -363,7 +363,7 @@ export interface MemberStatusChangeResponse {
 // =====================================================
 
 /**
- * 알림 생성 응답
+ * 通知作成レスポンス
  */
 export interface NotificationCreateResponse {
   notificationId: string;
@@ -376,7 +376,7 @@ export interface NotificationCreateResponse {
 }
 
 /**
- * 알림 배치 발송 결과
+ * 通知一括送信結果
  */
 export interface NotificationBatchResponse {
   totalRecipients: number;
@@ -393,7 +393,7 @@ export interface NotificationBatchResponse {
 // =====================================================
 
 /**
- * 파일 업로드 응답
+ * ファイルアップロードレスポンス
  */
 export interface FileUploadResponse {
   fileId: string;
@@ -405,7 +405,7 @@ export interface FileUploadResponse {
 }
 
 /**
- * 파일 검증 결과
+ * ファイル検証結果
  */
 export interface FileValidationResult {
   valid: boolean;
@@ -421,7 +421,7 @@ export interface FileValidationResult {
 // =====================================================
 
 /**
- * 성능 메트릭
+ * パフォーマンスメトリクス
  */
 export interface PerformanceMetrics {
   period: {
@@ -451,7 +451,7 @@ export interface PerformanceMetrics {
 // =====================================================
 
 /**
- * 검색 파라미터
+ * 検索パラメータ
  */
 export interface SearchParams {
   query?: string;
@@ -464,7 +464,7 @@ export interface SearchParams {
 }
 
 /**
- * 검색 결과
+ * 検索結果
  */
 export interface SearchResult<T> {
   items: T[];
@@ -481,7 +481,7 @@ export interface SearchResult<T> {
 // =====================================================
 
 /**
- * 시스템 헬스 체크 응답
+ * システムヘルスチェックレスポンス
  */
 export interface HealthCheckResponse {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -512,31 +512,31 @@ export interface HealthCheckResponse {
 // =====================================================
 
 /**
- * 성공/실패 결과 타입
+ * 成功/失敗結果タイプ
  */
 export type Result<T, E = Error> =
   | { success: true; data: T; error?: never }
   | { success: false; data?: never; error: E };
 
 /**
- * ID 타입 (문자열 ID)
+ * IDタイプ（文字列ID）
  */
 export type Id = string;
 
 /**
- * 타임스탬프 타입 (ISO 8601)
+ * タイムスタンプタイプ（ISO 8601）
  */
 export type Timestamp = string;
 
 /**
- * 선택적 필드 (모든 필드가 선택적)
+ * オプションフィールド（すべてのフィールドがオプション）
  */
 export type Partial<T> = {
   [P in keyof T]?: T[P];
 };
 
 /**
- * 필수 ID와 선택적 나머지
+ * 必須IDとオプションの残り
  */
 export type WithRequired<T, K extends keyof T> = T & {
   [P in K]-?: T[P];

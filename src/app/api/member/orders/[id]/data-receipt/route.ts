@@ -2,18 +2,19 @@
  * Order Data Receipt File Upload API (Member Portal)
  *
  * Task P2-12: Order data receipt file upload
- * - POST: Upload production data files (PDF, Excel, images)
+ * - POST: Upload production data files (AI, EPS, PDF)
+ * - GET: List uploaded files for an order
  * - Uses security-validator for comprehensive file validation
- * - Saves file metadata to database
+ * - Saves file metadata to database (files table)
  * - Supports files up to 10MB
  *
  * @route /api/member/orders/[id]/data-receipt
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
+import { notifyDataReceipt } from '@/lib/admin-notifications';
 
 // =====================================================
 // Environment Variables
@@ -30,23 +31,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Types
 // =====================================================
 
-interface DataReceiptUploadRequest {
-  data_type: 'production_data' | 'design_file' | 'specification' | 'other';
-  description?: string;
-  version?: number;
-}
-
 interface DataReceiptUploadResponse {
   success: boolean;
   data?: {
-    fileId: string;
-    fileName: string;
-    fileSize: number;
-    fileType: string;
-    storagePath: string;
-    downloadUrl: string;
-    dataType: string;
-    uploadedAt: string;
+    id: string;
+    file_name: string;
+    file_type: string;
+    file_url: string;
+    uploaded_at: string;
+    validation_status: string;
+    extraction_job_id?: string; // AI extraction job ID if applicable
   };
   error?: string;
   errorEn?: string;
@@ -59,25 +53,19 @@ interface DataReceiptUploadResponse {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (using security-validator default)
 
-const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'application/postscript',
-  'image/x-eps',
-  'application/illustrator',
-  'application/photoshop',
-  'image/vnd.adobe.photoshop',
-];
-
-const DATA_TYPE_LABELS: Record<string, string> = {
-  production_data: '生産データ',
-  design_file: 'デザインファイル',
-  specification: '仕様書',
-  other: 'その他',
+// File type mapping for database enum
+const FILE_TYPE_MAP: Record<string, 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER'> = {
+  'application/pdf': 'PDF',
+  'application/postscript': 'OTHER',
+  'image/x-eps': 'OTHER',
+  'application/illustrator': 'AI',
+  'application/photoshop': 'PSD',
+  'image/vnd.adobe.photoshop': 'PSD',
+  'image/jpeg': 'JPG',
+  'image/png': 'PNG',
+  'image/webp': 'PNG', // Map webp to PNG
+  'application/vnd.ms-excel': 'EXCEL',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'EXCEL',
 };
 
 // =====================================================
@@ -90,21 +78,19 @@ const DATA_TYPE_LABELS: Record<string, string> = {
 function generateStoragePath(
   userId: string,
   orderId: string,
-  dataType: string,
   fileName: string
 ): string {
   const timestamp = Date.now();
-  const ext = fileName.toLowerCase().split('.').pop();
   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
-  return `order_data_receipt/${userId}/${orderId}/${timestamp}_${sanitizedFileName}.${ext}`;
+  return `order_data_receipt/${userId}/${orderId}/${timestamp}_${sanitizedFileName}`;
 }
 
 /**
- * Validate data type
+ * Get file type enum from MIME type
  */
-function isValidDataType(dataType: string): boolean {
-  return ['production_data', 'design_file', 'specification', 'other'].includes(dataType);
+function getFileType(mimeType: string): 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER' {
+  return FILE_TYPE_MAP[mimeType] || 'OTHER';
 }
 
 // =====================================================
@@ -113,13 +99,11 @@ function isValidDataType(dataType: string): boolean {
 
 /**
  * POST /api/member/orders/[id]/data-receipt
- * Upload production data or design files for an order
+ * Upload production data files for an order
  *
  * Request FormData:
  * - file: File to upload
- * - data_type: Type of data being uploaded
  * - description: Optional description
- * - version: Optional version number
  *
  * Success Response (200):
  * {
@@ -132,26 +116,19 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Authenticate user (support both cookie auth and DEV_MODE header)
-    const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        storage: {
-          getItem: (key: string) => {
-            const cookie = cookieStore.get(key);
-            return cookie?.value ?? null;
-          },
-          setItem: (key: string, value: string) => {
-            cookieStore.set(key, value, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
-            });
-          },
-          removeItem: (key: string) => {
-            cookieStore.delete(key);
-          },
+    // 1. Authenticate user using SSR client (proper cookie handling)
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        set(_name: string, _value: string, _options: unknown) {
+          // We'll use the response object later if needed
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        remove(_name: string, _options: unknown) {
+          // Cookie removal if needed
         },
       },
     });
@@ -167,10 +144,11 @@ export async function POST(
       console.log('[Data Receipt Upload] DEV_MODE: Using x-user-id header:', devModeUserId);
       userId = devModeUserId;
     } else {
-      // Normal auth: Use cookie-based auth
+      // Normal auth: Use cookie-based auth with getUser()
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError || !user?.id) {
+        console.error('[Data Receipt Upload] Auth error:', userError?.message);
         return NextResponse.json(
           {
             error: '認証されていません。',
@@ -217,9 +195,8 @@ export async function POST(
     // 3. Parse form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const dataType = formData.get('data_type') as string;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const description = formData.get('description') as string | null;
-    const versionStr = formData.get('version') as string | null;
 
     if (!file) {
       return NextResponse.json(
@@ -227,17 +204,6 @@ export async function POST(
           error: 'ファイルが選択されていません。',
           errorEn: 'No file provided',
           code: 'NO_FILE',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!dataType || !isValidDataType(dataType)) {
-      return NextResponse.json(
-        {
-          error: '無効なデータタイプです。',
-          errorEn: 'Invalid data type',
-          code: 'INVALID_DATA_TYPE',
         },
         { status: 400 }
       );
@@ -266,7 +232,7 @@ export async function POST(
     }
 
     // 5. Generate storage path
-    const storagePath = generateStoragePath(userId, orderId, dataType, file.name);
+    const storagePath = generateStoragePath(userId, orderId, file.name);
 
     // 6. Upload file to Supabase Storage
     const fileBuffer = Buffer.from(await file.arrayBuffer());
@@ -295,20 +261,20 @@ export async function POST(
       .from('production-files')
       .getPublicUrl(storagePath);
 
-    // 8. Create file record in database
-    const version = versionStr ? parseInt(versionStr, 10) : 1;
+    // 8. Create file record in database (files table)
+    const fileType = getFileType(file.type);
 
     const { data: fileRecord, error: dbError } = await supabase
       .from('files')
       .insert({
         order_id: orderId,
-        file_type: dataType.toUpperCase(),
-        file_name: file.name,
+        file_type: fileType,
+        original_filename: file.name,
         file_url: urlData.publicUrl,
-        version: version,
-        is_latest: true,
+        file_path: storagePath,
+        file_size_bytes: file.size,
+        uploaded_by: userId,
         validation_status: 'PENDING',
-        created_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -328,40 +294,88 @@ export async function POST(
       );
     }
 
-    // 9. Create production_data record if applicable
-    if (dataType === 'production_data' || dataType === 'design_file') {
-      const { error: prodDataError } = await supabase
-        .from('production_data')
-        .insert({
-          order_id: orderId,
-          title: DATA_TYPE_LABELS[dataType] || dataType,
-          description: description || `${DATA_TYPE_LABELS[dataType]}: ${file.name}`,
-          data_type: dataType,
-          file_url: urlData.publicUrl,
-          validation_status: 'PENDING',
-          received_at: new Date().toISOString(),
+    // 9. Trigger AI extraction for eligible file types
+    let extractionJobId: string | null = null;
+    const eligibleFileTypes = ['AI', 'PDF', 'PSD'];
+
+    if (eligibleFileTypes.includes(fileType)) {
+      try {
+        console.log('[Data Receipt Upload] Triggering AI extraction for file:', fileRecord.id);
+
+        // Determine data_type based on file type
+        const dataType = fileType === 'AI' ? 'design_file' : 'production_data';
+
+        // Call AI extraction API internally
+        const extractionApiUrl = new URL('/api/ai-parser/extract', request.url);
+        const extractionFormData = new FormData();
+        extractionFormData.append('file', file);
+        extractionFormData.append('order_id', orderId);
+        extractionFormData.append('data_type', dataType);
+
+        const extractionResponse = await fetch(extractionApiUrl.toString(), {
+          method: 'POST',
+          body: extractionFormData,
+          // Forward headers for authentication
+          headers: {
+            'x-user-id': request.headers.get('x-user-id') || '',
+            'x-dev-mode': request.headers.get('x-dev-mode') || 'false',
+          },
         });
 
-      if (prodDataError) {
-        console.warn('[Data Receipt Upload] Production data record creation warning:', prodDataError);
-        // Don't fail the request, just log the warning
+        if (extractionResponse.ok) {
+          const extractionResult = await extractionResponse.json();
+          extractionJobId = extractionResult.data?.file_id || fileRecord.id;
+          console.log('[Data Receipt Upload] AI extraction started successfully:', extractionJobId);
+        } else {
+          console.error('[Data Receipt Upload] AI extraction API returned error:', extractionResponse.status);
+          // Don't fail the upload - extraction failure is non-critical
+        }
+      } catch (extractionError) {
+        console.error('[Data Receipt Upload] Failed to trigger AI extraction:', extractionError);
+        // Don't fail the upload - extraction failure is non-critical
       }
     }
 
-    // 10. Prepare response
+    // 9.5. Create admin notification for data receipt
+    try {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('order_number, customer_name')
+        .eq('id', orderId)
+        .single();
+
+      if (order) {
+        await notifyDataReceipt(
+          orderId,
+          order.order_number,
+          order.customer_name || 'お客様',
+          file.name,
+          fileType
+        );
+      }
+    } catch (notifyError) {
+      console.error('[Data Receipt Upload] Notification error:', notifyError);
+      // Don't fail the upload if notification fails
+    }
+
+    // 10. Prepare response (match expected format from OrderFileUploadSection)
     const response: DataReceiptUploadResponse = {
       success: true,
       data: {
-        fileId: fileRecord.id,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        storagePath,
-        downloadUrl: urlData.publicUrl,
-        dataType,
-        uploadedAt: fileRecord.created_at,
+        id: fileRecord.id,
+        file_name: fileRecord.original_filename,
+        file_type: fileRecord.file_type.toLowerCase(),
+        file_url: fileRecord.file_url,
+        uploaded_at: fileRecord.uploaded_at,
+        validation_status: fileRecord.validation_status,
       },
     };
+
+    // Include extraction job ID if available
+    if (extractionJobId) {
+      response.data.extraction_job_id = extractionJobId;
+      console.log('[Data Receipt Upload] Returning extraction job ID:', extractionJobId);
+    }
 
     return NextResponse.json(response, { status: 200 });
 
@@ -399,26 +413,19 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Authenticate user
-    const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        storage: {
-          getItem: (key: string) => {
-            const cookie = cookieStore.get(key);
-            return cookie?.value ?? null;
-          },
-          setItem: (key: string, value: string) => {
-            cookieStore.set(key, value, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
-            });
-          },
-          removeItem: (key: string) => {
-            cookieStore.delete(key);
-          },
+    // 1. Authenticate user using SSR client (proper cookie handling)
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        set(_name: string, _value: string, _options: unknown) {
+          // Response handling if needed
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        remove(_name: string, _options: unknown) {
+          // Cookie removal if needed
         },
       },
     });
@@ -435,6 +442,7 @@ export async function GET(
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError || !user?.id) {
+        console.error('[Data Receipt GET] Auth error:', userError?.message);
         return NextResponse.json(
           {
             error: '認証されていません。',
@@ -465,34 +473,32 @@ export async function GET(
       );
     }
 
-    // 3. Get files for this order
+    // 3. Get files for this order from files table
     const { data: files, error: filesError } = await supabase
       .from('files')
       .select('*')
       .eq('order_id', orderId)
-      .order('created_at', { ascending: false });
+      .order('uploaded_at', { ascending: false });
 
     if (filesError) {
       console.error('[Data Receipt Upload] Get files error:', filesError);
     }
 
-    // 4. Get production data records
-    const { data: productionData, error: prodError } = await supabase
-      .from('production_data')
-      .select('*')
-      .eq('order_id', orderId)
-      .order('received_at', { ascending: false });
-
-    if (prodError) {
-      console.error('[Data Receipt Upload] Get production data error:', prodError);
-    }
+    // 4. Transform to expected format
+    const transformedFiles = (files || []).map(file => ({
+      id: file.id,
+      file_name: file.original_filename,
+      file_type: file.file_type.toLowerCase(),
+      file_url: file.file_url,
+      uploaded_at: file.uploaded_at,
+      validation_status: file.validation_status,
+    }));
 
     return NextResponse.json(
       {
         success: true,
         data: {
-          files: files || [],
-          productionData: productionData || [],
+          files: transformedFiles,
         },
       },
       { status: 200 }

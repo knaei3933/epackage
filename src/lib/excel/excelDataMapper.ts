@@ -133,20 +133,20 @@ export async function mapDatabaseQuotationToExcel(
 ): Promise<QuotationData> {
   // Extract customer information
   const customer: CustomerInfo = {
-    companyName: userProfile?.company_name || dbQuotation.customer_name,
-    companyNameEn: userProfile?.company_name || '', // Would need translation
-    postalCode: userProfile?.postal_code || '',
+    companyName: userProfile?.company_name || dbQuotation.customer_name || 'お客様',
+    companyNameEn: userProfile?.company_name_en || userProfile?.company_name || '', // Would need translation
+    postalCode: userProfile?.postal_code || dbQuotation.customer_postal_code || '〒000-0000',
     address: formatJapaneseAddress(
       userProfile?.prefecture,
       userProfile?.city,
       userProfile?.street
-    ),
+    ) || dbQuotation.customer_address || '',
     contactPerson: formatFullName(
-      userProfile?.kanji_last_name,
-      userProfile?.kanji_first_name
-    ),
-    email: dbQuotation.customer_email,
-    phone: dbQuotation.customer_phone || undefined
+      userProfile?.kanji_last_name || dbQuotation.customer_name,
+      userProfile?.kanji_first_name || ''
+    ) || dbQuotation.customer_name || 'お客様',
+    email: dbQuotation.customer_email || userProfile?.email || '',
+    phone: dbQuotation.customer_phone || userProfile?.phone || undefined
   }
 
   // Use default supplier

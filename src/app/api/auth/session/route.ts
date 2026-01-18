@@ -1,54 +1,14 @@
 /**
  * Session API Route
  *
- * 현재 세션 정보를 반환하는 API 엔드포인트
- * - Server-side에서 쿠키를 읽어 세션 확인
- * - Client-side AuthContext에서 호출하여 사용자 정보 가져오기
+ * 現在のセッション情報を返すAPIエンドポイント
+ * - Server-sideでクッキーを読みセッション確認
+ * - Client-side AuthContextから呼び出しユーザー情報取得
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { auth } from '@/lib/supabase';
-
-// =====================================================
-// Helper: Create Supabase SSR Client for API Routes
-// =====================================================
-
-function createSupabaseSSRClient(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  // Create a response object that we'll use to set cookies
-  const response = NextResponse.json({ success: false });
-
-  return {
-    client: createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({
-            name,
-            ...options,
-          });
-        },
-      },
-    }),
-    response,
-  };
-}
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
+import { auth, createServiceClient } from '@/lib/supabase';
 
 // =====================================================
 // GET /api/auth/session
@@ -108,19 +68,27 @@ export async function GET(request: NextRequest) {
     // Create SSR client that can read cookies
     const { client: supabase } = createSupabaseSSRClient(request);
 
+    // Debug: Log available cookies
+    if (process.env.NODE_ENV === 'development') {
+      const allCookies = request.cookies.getAll();
+      console.log('[Session API] All cookies:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
+    }
+
     // Get current user (SECURE: getUser() validates JWT on every request)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      console.log('[Session API] No valid user found');
+      console.log('[Session API] No valid user found', userError?.message);
       return NextResponse.json({
         session: null,
         profile: null,
       });
     }
 
-    // Get user profile using the SAME supabase client (important!)
-    const { data: profile, error: profileError } = await supabase
+    // Get user profile using SERVICE ROLE client
+    // CRITICAL: Use service role to bypass RLS policies that may block anon key access
+    const serviceClient = createServiceClient();
+    const { data: profile, error: profileError } = await serviceClient
       .from('profiles')
       .select('*')
       .eq('id', user.id)
@@ -145,7 +113,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[Session API] Error:', error);
     return NextResponse.json(
-      { error: '세션 확인 중 에러가 발생했습니다' },
+      { error: 'セッション確認中にエラーが発生しました' },
       { status: 500 }
     );
   }

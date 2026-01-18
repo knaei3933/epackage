@@ -5,7 +5,7 @@
  * Extracted from ImprovedQuotingWizard for better maintainability
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useQuote, useQuoteState } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,9 +14,14 @@ import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
 import { generateQuotePDF, QuoteData } from '@/lib/pdf-generator';
 import { safeMap } from '@/lib/array-helpers';
 import MultiQuantityComparisonTable from '../MultiQuantityComparisonTable';
+import { ParallelProductionOptions, EconomicQuantityProposal } from '..';
+import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { RefreshCw, BarChart3, Download } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
+import CostBreakdownPanel from '../CostBreakdownPanel';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
+import type { ParallelProductionOption, EconomicQuantitySuggestionData } from '..';
 
 interface ResultStepProps {
   result: UnifiedQuoteResult;
@@ -35,12 +40,58 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfStatus, setPdfStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  // 経済的数量提案・並列生産オプション用のステート
+  const [showOptimizationSuggestions, setShowOptimizationSuggestions] = useState(false);
+  const [parallelProductionOptions, setParallelProductionOptions] = useState<ParallelProductionOption[]>([]);
+  const [economicQuantitySuggestion, setEconomicQuantitySuggestion] = useState<EconomicQuantitySuggestionData | null>(null);
+
+  // TEST: Simple console.log to verify code changes are reflected
+  console.log('[ResultStep] TEST - Component rendering!');
+
+  // Debug: Log state.bagTypeId value on mount and when it changes
+  useEffect(() => {
+    console.log('[ResultStep] useEffect - state.bagTypeId:', state.bagTypeId);
+    console.log('[ResultStep] useEffect - is roll_film?:', state.bagTypeId === 'roll_film');
+    console.log('[ResultStep] useEffect - state keys:', Object.keys(state));
+  }, [state.bagTypeId]);
+
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin' || user?.user_metadata?.role === 'admin';
+
   // Get multi-quantity state at component level (before any handlers)
   const { state: multiQuantityState } = useMultiQuantityQuote();
 
   // Get multi-quantity calculations from prop first, then fallback to context
   const multiQuantityCalculations = multiQuantityResult?.calculations || multiQuantityState.multiQuantityResults;
   const hasMultiQuantityResults = multiQuantityCalculations && multiQuantityCalculations.size > 0;
+
+  // Robust SKU mode detection - prioritize result data, fallback to state calculation
+  const hasValidSKUData = result?.hasValidSKUData ?? (
+    state.skuCount > 1 &&
+    state.skuQuantities &&
+    state.skuQuantities.length === state.skuCount &&
+    state.skuQuantities.every(qty => qty && qty >= 100)
+  );
+
+  // Debug logging for SKU mode detection
+  console.log('[ResultStep] SKU Mode Detection Debug:');
+  console.log('[ResultStep] - result?.hasValidSKUData:', result?.hasValidSKUData);
+  console.log('[ResultStep] - result?.skuCount:', result?.skuCount);
+  console.log('[ResultStep] - result?.skuQuantities:', result?.skuQuantities);
+  console.log('[ResultStep] - state.skuCount:', state.skuCount);
+  console.log('[ResultStep] - state.skuQuantities:', state.skuQuantities);
+  console.log('[ResultStep] - state.skuQuantities.length:', state.skuQuantities?.length);
+  console.log('[ResultStep] - Length check (=== skuCount):', state.skuQuantities?.length === state.skuCount);
+  console.log('[ResultStep] - Every check (all >= 100):', state.skuQuantities?.every(qty => qty && qty >= 100));
+  console.log('[ResultStep] - calculated hasValidSKUData:', hasValidSKUData);
+  console.log('[ResultStep] - willShowSKU:', hasValidSKUData);
+  console.log('[ResultStep] - result.skuCostDetails:', result.skuCostDetails);
+  console.log('[ResultStep] ===== STATE DEBUG =====');
+  console.log('[ResultStep] - state.bagTypeId:', state.bagTypeId);
+  console.log('[ResultStep] - state.bagTypeId type:', typeof state.bagTypeId);
+  console.log('[ResultStep] - isRollFilm (===):', state.bagTypeId === 'roll_film');
+  console.log('[ResultStep] - Full state keys:', Object.keys(state));
+  console.log('[ResultStep] ===== END STATE DEBUG =====');
 
   // Build quotes array from multi-quantity results
   const multiQuantityQuotes = hasMultiQuantityResults
@@ -54,6 +105,82 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         isValid: true
       })).sort((a, b) => a.quantity - b.quantity)
     : [];
+
+  // 経済的数量提案・並列生産オプションを計算
+  useEffect(() => {
+    // roll_film, t_shape, m_shapeの場合に並列生産オプションを計算
+    if (state.bagTypeId === 'roll_film' || state.bagTypeId === 't_shape' || state.bagTypeId === 'm_shape') {
+      // ロールフィルムの場合、ユーザーが入力した長さを使用
+      const currentFilmUsageForCalc = state.bagTypeId === 'roll_film' ? state.quantity : (result.filmUsage || 900);
+
+      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
+        state.quantity,
+        { width: state.width, height: state.height, depth: state.depth },
+        state.bagTypeId,
+        currentFilmUsageForCalc,
+        result.unitPrice,
+        {
+          filmLayers: state.filmLayers,
+          materialId: state.materialId,
+          thicknessSelection: state.thicknessSelection,
+          postProcessingOptions: state.postProcessingOptions
+        }
+      );
+
+      if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
+        setParallelProductionOptions(suggestion.parallelProductionOptions);
+        setShowOptimizationSuggestions(true);
+      }
+
+      // 経済的数量提案もセット
+      setEconomicQuantitySuggestion({
+        orderQuantity: suggestion.orderQuantity,
+        minimumOrderQuantity: suggestion.minimumOrderQuantity,
+        minimumFilmUsage: suggestion.minimumFilmUsage,
+        pouchesPerMeter: suggestion.pouchesPerMeter,
+        economicQuantity: suggestion.economicQuantity,
+        economicFilmUsage: suggestion.economicFilmUsage,
+        efficiencyImprovement: suggestion.efficiencyImprovement,
+        unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
+        unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
+        costSavings: suggestion.costSavings,
+        costSavingsRate: suggestion.costSavingsRate,
+        recommendedQuantity: suggestion.recommendedQuantity,
+        recommendationReason: suggestion.recommendationReason
+      });
+    } else {
+      // パウチ製品（平袋・スタンド）の場合も経済的数量提案を計算
+      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
+        state.quantity,
+        { width: state.width, height: state.height, depth: state.depth },
+        state.bagTypeId,
+        900, // 最小フィルム使用量（仮定）
+        result.unitPrice,
+        {
+          filmLayers: state.filmLayers,
+          materialId: state.materialId,
+          thicknessSelection: state.thicknessSelection,
+          postProcessingOptions: state.postProcessingOptions
+        }
+      );
+
+      setEconomicQuantitySuggestion({
+        orderQuantity: suggestion.orderQuantity,
+        minimumOrderQuantity: suggestion.minimumOrderQuantity,
+        minimumFilmUsage: suggestion.minimumFilmUsage,
+        pouchesPerMeter: suggestion.pouchesPerMeter,
+        economicQuantity: suggestion.economicQuantity,
+        economicFilmUsage: suggestion.economicFilmUsage,
+        efficiencyImprovement: suggestion.efficiencyImprovement,
+        unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
+        unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
+        costSavings: suggestion.costSavings,
+        costSavingsRate: suggestion.costSavingsRate,
+        recommendedQuantity: suggestion.recommendedQuantity,
+        recommendationReason: suggestion.recommendationReason
+      });
+    }
+  }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result.unitPrice, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);
 
   // Helper function to get material description in Japanese
   const getMaterialDescriptionJa = (materialId: string): string => {
@@ -77,18 +204,18 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       {
         id: 'pet_al',
         thicknessOptions: [
-          { id: 'light', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + PE 60μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + PE 80μ' },
-          { id: 'heavy', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + PE 100μ' },
-          { id: 'ultra', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + PE 110μ' }
+          { id: 'light', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' },
+          { id: 'heavy', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ' },
+          { id: 'ultra', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ' }
         ]
       },
       {
         id: 'pet_vmpet',
         thicknessOptions: [
-          { id: 'light', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + PE 60μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + PE 80μ' },
-          { id: 'heavy', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + PE 100μ' }
+          { id: 'light', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 60μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 80μ' },
+          { id: 'heavy', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 100μ' }
         ]
       },
       {
@@ -102,9 +229,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       {
         id: 'pet_ny_al',
         thicknessOptions: [
-          { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + PE 60μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + PE 80μ' },
-          { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + PE 100μ' }
+          { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 60μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ' },
+          { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ' }
         ]
       }
     ];
@@ -162,14 +289,54 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     const issueDate = today.toISOString().split('T')[0];
     const expiryDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // Build items from multi-quantity quotes or single quote
-    const items = hasMultiQuantityResults && multiQuantityQuotes.length > 0
+    // Build items from SKU mode, multi-quantity quotes, or single quote
+    const items = hasValidSKUData
+      ? state.skuQuantities.map((qty, index) => {
+          // Use SKU cost details if available from pricing engine
+          const skuCost = result.skuCostDetails?.costPerSKU?.[index];
+
+          // Calculate unit price and amount based on SKU cost
+          // If SKU cost is available, use its proportional share of the total
+          // Otherwise, fallback to unit price from result
+          let unitPrice: number;
+          let amount: number;
+
+          if (skuCost) {
+            // skuCost.costJPY is the cost for this specific SKU
+            // unitPrice = cost / quantity, amount = cost
+            unitPrice = Math.round(skuCost.costJPY / qty);
+            amount = Math.round(skuCost.costJPY);
+          } else {
+            // Fallback: distribute total price proportionally
+            const totalQuantity = state.skuQuantities.reduce((sum, q) => sum + q, 0);
+            const proportion = qty / totalQuantity;
+            unitPrice = Math.round(result.unitPrice);
+            amount = Math.round(result.totalPrice * proportion);
+          }
+
+          return {
+            id: `sku-${index + 1}`,
+            name: `SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''}`,
+            description: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
+            quantity: qty,
+            unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
+            unitPrice,
+            amount,
+            // Add SKU breakdown for detailed pricing info
+            skuBreakdown: skuCost ? [{
+              skuNumber: index + 1,
+              designName: state.skuNames?.[index],
+              quantity: qty
+            }] : undefined
+          };
+        })
+      : hasMultiQuantityResults && multiQuantityQuotes.length > 0
       ? multiQuantityQuotes.map((quote, index) => ({
           id: `item-${index + 1}`,
           name: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
           description: `サイズ: ${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}mm`,
           quantity: quote.quantity,
-          unit: '個',
+          unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
           unitPrice: Math.round(quote.unitPrice),
           amount: Math.round(quote.totalPrice)
         }))
@@ -178,7 +345,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           name: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
           description: `サイズ: ${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}mm`,
           quantity: state.quantity,
-          unit: '個',
+          unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
           unitPrice: Math.round(result.unitPrice),
           amount: Math.round(result.totalPrice)
         }];
@@ -257,6 +424,36 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         ? `${user.kanjiLastName} ${user.kanjiFirstName}`
         : '田中 太郎',
       items,
+      // Add SKU data if in SKU mode
+      skuData: hasValidSKUData ? {
+        count: state.skuCount,
+        items: state.skuQuantities.map((qty, index) => {
+          const skuCost = result.skuCostDetails?.costPerSKU?.[index];
+
+          // Calculate unit price and total price based on SKU cost
+          let unitPrice: number;
+          let totalPrice: number;
+
+          if (skuCost) {
+            unitPrice = Math.round(skuCost.costJPY / qty);
+            totalPrice = Math.round(skuCost.costJPY);
+          } else {
+            // Fallback: distribute total price proportionally
+            const totalQuantity = state.skuQuantities.reduce((sum, q) => sum + q, 0);
+            const proportion = qty / totalQuantity;
+            unitPrice = Math.round(result.unitPrice);
+            totalPrice = Math.round(result.totalPrice * proportion);
+          }
+
+          return {
+            skuNumber: index + 1,
+            designName: state.skuNames?.[index],
+            quantity: qty,
+            unitPrice,
+            totalPrice
+          };
+        })
+      } : undefined,
       specifications: quoteSpecs,
       optionalProcessing: parseOptionalProcessing(),
       paymentTerms: '銀行振込（前払い）',
@@ -278,7 +475,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       });
 
       if (pdfResult.success && pdfResult.pdfBuffer) {
-        // 1. PDF 다운로드
+        // 1. PDFダウンロード
         const uint8Array = new Uint8Array(pdfResult.pdfBuffer);
         const blob = new Blob([uint8Array], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
@@ -290,12 +487,29 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
+        // Log PDF download to document_access_log table
+        try {
+          await fetch('/api/member/documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              document_type: 'quote',
+              document_id: quoteData.quoteNumber,
+              action: 'downloaded',
+            }),
+          });
+        } catch (logError) {
+          console.error('Failed to log PDF download:', logError);
+          // Don't fail the download if logging fails
+        }
+
         setPdfStatus('success');
         setTimeout(() => setPdfStatus('idle'), 3000);
 
-        // 2. 자동으로 데이터베이스에 저장
+        // 2. 自動的にデータベースに保存
         if (user?.id) {
-          console.log('[handleDownloadPdf] 자동 저장 시작...');
+          console.log('[handleDownloadPdf] 自動保存開始...');
           await saveQuotationToDatabase();
         }
       } else {
@@ -311,7 +525,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     }
   };
 
-  // 데이터베이스 저장 함수 (handleDownloadPdf에서 자동 호출)
+  // データベース保存関数 (handleDownloadPdfから自動呼び出し)
   const saveQuotationToDatabase = async () => {
     if (!user?.id) {
       console.warn('[saveQuotationToDatabase] User not logged in, skipping save');
@@ -319,7 +533,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     }
 
     try {
-      // 아이템 데이터 변환
+      // アイテムデータ変換
       const itemsToSave = hasMultiQuantityResults
         ? multiQuantityQuotes.map((quote) => {
             const itemState = state.items.find(i => i.id === quote.itemId);
@@ -395,11 +609,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       }
 
       const savedQuotation = await response.json();
-      console.log('[saveQuotationToDatabase] 견적이 자동 저장되었습니다:', savedQuotation);
+      console.log('[saveQuotationToDatabase] 見積が自動保存されました:', savedQuotation);
     } catch (error) {
-      console.error('[saveQuotationToDatabase] 저장 실패:', error);
-      // 사용자 경험을 방해하지 않기 위해 에러를 표시하지 않음
-      // PDF 다운로드는 성공했으므로 계속 진행
+      console.error('[saveQuotationToDatabase] 保存失敗:', error);
+      // ユーザー体験を妨げないためにエラーを表示しない
+      // PDFダウンロードは成功したので継続
     }
   };
 
@@ -524,7 +738,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {multiQuantityQuotes.map((quote) => (
               <div key={quote.quantity} className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-sm font-medium mb-1">{quote.quantity.toLocaleString()}個</div>
+                <div className="text-sm font-medium mb-1">{quote.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</div>
                 <div className="text-xl font-bold">¥{quote.totalPrice.toLocaleString()}</div>
                 <div className="text-xs opacity-90 mt-1">
                   単価: ¥{quote.unitPrice.toLocaleString()}
@@ -535,7 +749,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           {multiQuantityState.comparison && (
             <div className="mt-4 pt-4 border-t border-white/20 text-center">
               <div className="text-sm opacity-90">
-                最適数量: <span className="font-bold">{multiQuantityState.comparison.bestValue.quantity.toLocaleString()}個</span>
+                最適数量: <span className="font-bold">{multiQuantityState.comparison.bestValue.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</span>
                 （{multiQuantityState.comparison.bestValue.percentage}%節約）
               </div>
             </div>
@@ -548,9 +762,19 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             ¥{result.totalPrice.toLocaleString()}
           </div>
           <div className="text-sm opacity-90">
-            単価: ¥{result.unitPrice.toLocaleString()} / 最小注文数: {result.minOrderQuantity.toLocaleString()}個
+            {console.log('[ResultStep] Price display - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film')}
+            単価: ¥{result.unitPrice.toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'} / 最小注文数: {result.minOrderQuantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
           </div>
         </div>
+      )}
+
+      {/* Admin-only cost breakdown */}
+      {isAdmin && result.skuCostDetails && (
+        <CostBreakdownPanel
+          costBreakdown={result.skuCostDetails}
+          markedUpPrice={result.totalPrice}
+          marginRate={0.5}
+        />
       )}
 
       {/* Order Summary */}
@@ -560,21 +784,38 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           <div>
             <h4 className="font-medium text-gray-700 mb-2">基本仕様</h4>
             <div className="text-sm space-y-1 text-gray-600">
+              {console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film')}
               <div>タイプ: {getBagTypeLabel(state.bagTypeId)}</div>
               <div>素材: {getMaterialDescription(state.materialId, 'ja')}</div>
-              <div>サイズ: {state.width} × {state.height} {state.depth > 0 && `× ${state.depth}`} mm</div>
+              <div>サイズ: {state.bagTypeId === 'roll_film'
+                ? `幅: ${state.width} mm`
+                : `${state.width} × ${state.height} ${state.depth > 0 ? `× ${state.depth}` : ''} mm`}</div>
               {state.thicknessSelection && <div>厚さ: {state.thicknessSelection}</div>}
             </div>
           </div>
           <div>
             <h4 className="font-medium text-gray-700 mb-2">数量・印刷</h4>
             <div className="text-sm space-y-1 text-gray-600">
-              {hasMultiQuantityResults ? (
+              {hasValidSKUData ? (
+                <div>
+                  <div className="font-medium">SKU別数量 ({result?.skuCount || state.skuCount}種類):</div>
+                  {(result?.skuQuantities || state.skuQuantities || []).map((qty, index) => (
+                    <div key={index} className="ml-2">
+                      • SKU {index + 1}{(result?.skuNames || state.skuNames)?.[index] ? `: ${(result?.skuNames || state.skuNames)[index]}` : ''}: {qty.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                    </div>
+                  ))}
+                  <div className="mt-2 font-medium">
+                    総数量: {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                  </div>
+                  <div className="mt-1">印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
+                  <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
+                </div>
+              ) : hasMultiQuantityResults ? (
                 <div>
                   <div className="font-medium">数量比較見積もり:</div>
                   {safeMap(multiQuantityQuotes, (mq) => (
                     <div key={mq.quantity} className="ml-2">
-                      • {mq.quantity.toLocaleString()}個 = ¥{mq.totalPrice.toLocaleString()}
+                      • {mq.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'} = ¥{mq.totalPrice.toLocaleString()}
                     </div>
                   ))}
                   <div className="mt-2">印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
@@ -582,7 +823,12 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 </div>
               ) : (
                 <>
-                  <div>数量: {state.quantity.toLocaleString()}個</div>
+                  <div>数量: {
+                    // ロールフィルムの場合はSKU数量を優先、それ以外はstate.quantityを使用
+                    state.bagTypeId === 'roll_film' && state.skuQuantities && state.skuQuantities.length > 0
+                      ? state.skuQuantities[0].toLocaleString()
+                      : state.quantity.toLocaleString()
+                  }{state.bagTypeId === 'roll_film' ? 'm' : '個'}</div>
                   <div>印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
                   <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
                 </>
@@ -668,6 +914,51 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Optimization Suggestions - Parallel Production & Economic Quantity */}
+      {showOptimizationSuggestions && (
+        <div className="space-y-6">
+          {/* Parallel Production Options */}
+          {parallelProductionOptions.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2 text-yellow-600" />
+                並列生産オプションのご提案
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                複数個まとめて注文すると、同じ原反を効率的に使用でき、単価が下がります。
+              </p>
+              <ParallelProductionOptions
+                options={parallelProductionOptions}
+                currentUnitCost={result.unitPrice}
+                onOptionSelect={(option) => {
+                  console.log('Selected parallel production option:', option);
+                  // TODO: Update quantity and recalculate quote
+                  // setState({ ...state, quantity: option.quantity });
+                }}
+              />
+            </div>
+          )}
+
+          {/* Economic Quantity Proposal */}
+          {economicQuantitySuggestion && economicQuantitySuggestion.recommendedQuantity !== state.quantity && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2 text-green-600" />
+                経済的生産数量のご提案
+              </h3>
+              <EconomicQuantityProposal
+                suggestion={economicQuantitySuggestion}
+                onAcceptRecommendation={() => {
+                  console.log('Accepted economic quantity recommendation:', economicQuantitySuggestion.recommendedQuantity);
+                  // TODO: Update quantity and recalculate quote
+                  // setState({ ...state, quantity: economicQuantitySuggestion.recommendedQuantity });
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 

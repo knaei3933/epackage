@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import type { Database } from '@/types/database';
+import { sendOrderStatusUpdateEmail, createRecipient } from '@/lib/email';
 
 interface ConvertRequestBody {
   notes?: string;
@@ -184,6 +185,49 @@ export async function POST(
       orderNumber: order.order_number,
       quotationId,
     });
+
+    // ============================================================
+    // Email Notification: Order Confirmation
+    // ============================================================
+
+    try {
+      if (quotation.customer_email) {
+        const recipient = createRecipient(
+          quotation.customer_name || 'お客様',
+          quotation.customer_email,
+          quotation.company_id || undefined
+        );
+
+        const orderInfo = {
+          orderId: order.id,
+          orderDate: order.created_at,
+          totalAmount: order.total_amount,
+          items: completeOrder?.order_items?.map((item: any) => ({
+            name: item.product_name,
+            quantity: item.quantity,
+            price: item.unit_price,
+          })) || [],
+        };
+
+        await sendOrderStatusUpdateEmail(
+          recipient,
+          orderInfo,
+          'processing',
+          {
+            estimatedCompletion: order.estimated_delivery_date,
+            statusDetails: '見積から注文を作成しました。製造を開始するまでしばらくお待ちください。',
+          }
+        );
+
+        console.log('[API /quotations/[id]/convert] Order confirmation email sent:', {
+          orderId: order.id,
+          customerEmail: quotation.customer_email,
+        });
+      }
+    } catch (emailError) {
+      console.error('[API /quotations/[id]/convert] Email error:', emailError);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json(
       {

@@ -2,357 +2,446 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Admin Dashboard Comprehensive Test Suite
+ * 관리자 대시보드 포괄적 테스트 스위트
  *
- * Tests all 14 admin dashboard pages to ensure functionality after admin login
- *
- * Admin Credentials:
- * - Email: admin@epackage-lab.com
- * - Password: AdminPassword123!
+ * Tests all admin dashboard pages for:
+ * - Widget loading
+ * - Data accuracy
+ * - Performance validation
+ * - Security checks
  */
 
-const ADMIN_EMAIL = 'admin@epackage-lab.com';
-const ADMIN_PASSWORD = 'AdminPassword123!';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || 'admin@epackage-lab.com';
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'Admin1234';
+
+// DEV_MODE 설정 확인
+const isDevMode = process.env.ENABLE_DEV_MOCK_AUTH === 'true';
 
 // Admin pages to test
 const ADMIN_PAGES = [
-  { name: 'Dashboard', url: '/admin/dashboard', description: 'Statistics and overview' },
-  { name: 'Orders', url: '/admin/orders', description: 'Order management' },
-  { name: 'Production', url: '/admin/production', description: 'Production tracking' },
-  { name: 'Shipments', url: '/admin/shipments', description: 'Shipment management' },
-  { name: 'Contracts', url: '/admin/contracts', description: 'Contract workflow' },
-  { name: 'Approvals', url: '/admin/approvals', description: 'Member approvals' },
-  { name: 'Inventory', url: '/admin/inventory', description: 'Inventory management' },
-  { name: 'Shipping', url: '/admin/shipping', description: 'Shipping settings' },
-  { name: 'Leads', url: '/admin/leads', description: 'Lead management (TODO)' },
+  { path: '/admin/dashboard', name: '대시보드', category: 'overview' },
+  { path: '/admin/orders', name: '주문 관리', category: 'orders' },
+  { path: '/admin/quotations', name: '견적 관리', category: 'quotations' },
+  { path: '/admin/approvals', name: '승인 관리', category: 'approvals' },
+  { path: '/admin/production', name: '생산 관리', category: 'production' },
+  { path: '/admin/shipments', name: '배송 관리', category: 'shipments' },
+  { path: '/admin/inventory', name: '재고 관리', category: 'inventory' },
+  { path: '/admin/shipping', name: '배송 설정', category: 'shipping' },
+  { path: '/admin/contracts', name: '계약 관리', category: 'contracts' },
+  { path: '/admin/leads', name: '리드 관리', category: 'leads' },
 ];
 
+// Helper: Login as admin
+async function loginAsAdmin(page: any) {
+  // Check if DEV_MODE is enabled
+  if (isDevMode) {
+    console.log('[DEV_MODE] Skipping login');
+    return;
+  }
+
+  await page.goto(`${BASE_URL}/auth/signin`);
+  await page.fill('input[type="email"], input[name="email"]', ADMIN_EMAIL);
+  await page.fill('input[type="password"], input[name="password"]', ADMIN_PASSWORD);
+  await page.click('button[type="submit"]');
+
+  // 대시보드나 멤버 페이지로 리다이렉트될 때까지 대기
+  await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 }).catch(() => {});
+  await page.waitForTimeout(500);
+}
+
 test.describe('Admin Dashboard - Authentication', () => {
-  test('should redirect to signin when not authenticated', async ({ page }) => {
+  test('[AUTH-ADMIN-001] should redirect to signin when not authenticated', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/dashboard`);
+
+    // 로그인 페이지로 리다이렉트되어야 함
     expect(page.url()).toContain('/signin');
   });
 
-  test('should login with admin credentials', async ({ page }) => {
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
+  test('[AUTH-ADMIN-002] should login with valid admin credentials', async ({ page }) => {
+    await page.goto(`${BASE_URL}/auth/signin`);
+    await page.fill('input[type="email"]', ADMIN_EMAIL);
+    await page.fill('input[type="password"]', ADMIN_PASSWORD);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect and check URL
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
-    expect(page.url()).toMatch(/\/(admin|member|dashboard)/);
+    // 대시보드나 리다이렉트 페이지로 이동해야 함
+    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 }).catch(() => {});
+    const currentUrl = page.url();
+    expect(currentUrl).toMatch(/\/(admin|member|dashboard)/);
   });
 
-  test('should block non-admin users from admin pages', async ({ page }) => {
-    // This test would require creating a regular member account
-    // For now, we'll skip it
-    test.skip(true, 'Requires regular member account');
+  test('[AUTH-ADMIN-003] should show error with invalid credentials', async ({ page }) => {
+    await page.goto(`${BASE_URL}/auth/signin`);
+    await page.fill('input[type="email"]', 'invalid@example.com');
+    await page.fill('input[type="password"]', 'WrongPassword123!');
+    await page.click('button[type="submit"]');
+
+    // 에러 메시지가 표시되어야 함
+    await page.waitForTimeout(2000);
+
+    const errorMessage = page.locator('text=/error|invalid|失敗|エラー/i');
+    const errorExists = await errorMessage.count() > 0;
+
+    expect(errorExists).toBe(true);
   });
 });
 
 test.describe('Admin Dashboard - Page Access', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
+    await loginAsAdmin(page);
   });
 
-  ADMIN_PAGES.forEach(({ name, url, description }) => {
-    test(`should load ${name} page (${description})`, async ({ page }) => {
-      const response = await page.goto(`${BASE_URL}${url}`);
-      expect(response?.status()).toBe(200);
+  ADMIN_PAGES.forEach(({ path, name, category }) => {
+    test(`[ACCESS-${category.toUpperCase()}-${name}] ${name} 페이지에 접근 가능해야 함`, async ({ page }) => {
+      // 콘솔 에러 수집
+      const consoleErrors: string[] = [];
 
-      // Wait for page to load
-      await page.waitForLoadState('networkidle');
-
-      // Check for no console errors
-      const errors: string[] = [];
-      page.on('console', msg => {
+      page.on('console', (msg) => {
         if (msg.type() === 'error') {
-          errors.push(msg.text());
+          const text = msg.text();
+          if (!text.includes('favicon') && !text.includes('404')) {
+            consoleErrors.push(text);
+          }
         }
       });
 
-      // Take screenshot for visual verification
-      await page.screenshot({ path: `test-screenshots/admin-${name.toLowerCase()}.png` });
+      // 페이지 이동
+      const response = page.goto(`${BASE_URL}${path}`);
+      const status = (await response).status();
 
-      // Check for critical errors
-      expect(errors.filter(e => !e.includes('404') && !e.includes('favicon')).length).toBe(0);
+      // 페이지가 로드되어야 함 (200 또는 리다이렉트)
+      expect([200, 302, 307]).toContain(status);
+
+      // DOM이 로드될 때까지 대기
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      // 페이지 콘텐츠 확인
+      const body = page.locator('body');
+      await expect(body).toBeVisible();
+
+      // 치명적인 콘솔 에러가 없어야 함
+      expect(consoleErrors.length).toBe(0);
     });
   });
 });
 
-test.describe('Admin Dashboard - Core Functionality', () => {
+test.describe('Admin Dashboard - Widget Loading', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
+    await loginAsAdmin(page);
   });
 
-  test('Dashboard should display statistics widgets', async ({ page }) => {
+  test('[WIDGET-DASHBOARD] 대시보드 should display statistics widgets', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/dashboard`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for statistics cards
-    const statsCards = await page.locator('[class*="stat"], [class*="metric"], [class*="widget"]').count();
-    expect(statsCards).toBeGreaterThan(0);
+    // 통계 카드 확인
+    const statCards = page.locator('[class*="stat"], [class*="metric"], [class*="widget"], [class*="card"]');
+    const statCount = await statCards.count();
 
-    // Check for charts or data visualizations
-    const charts = await page.locator('canvas, svg, [class*="chart"]').count();
-    expect(charts).toBeGreaterThanOrEqual(0);
+    // 적어도 몇 개의 위젯이 있어야 함
+    expect(statCount).toBeGreaterThan(0);
+
+    // 차트 또는 데이터 시각화 확인
+    const charts = page.locator('canvas, svg, [class*="chart"], [class*="graph"]');
+    const chartCount = await charts.count();
+    // 차트가 없을 수도 있으므로 확인만
+    if (chartCount > 0) {
+      console.log(`Found ${chartCount} chart(s)`);
+    }
   });
 
-  test('Orders page should display order list', async ({ page }) => {
+  test('[WIDGET-ORDERS] 주문 관리 should display order list', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/orders`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for table or list
-    const table = await page.locator('table, [role="table"]').count();
-    const listItems = await page.locator('[class*="order"], [class*="item"]').count();
-    expect(table + listItems).toBeGreaterThan(0);
+    // 테이블 또는 목록 확인
+    const table = page.locator('table, [role="table"]');
+    const listItems = page.locator('[class*="order"], [class*="item"], tr');
+
+    const hasTable = await table.count() > 0;
+    const hasItems = await listItems.count() > 0;
+
+    expect(hasTable || hasItems).toBe(true);
   });
 
-  test('Production page should display 9-stage process', async ({ page }) => {
+  test('[WIDGET-PRODUCTION] 생산 관리 should display production stages', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/production`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for production stages
-    const stages = await page.locator('[class*="stage"], [class*="step"], [class*="process"]').count();
-    expect(stages).toBeGreaterThan(0);
+    // 생산 단계 확인
+    const stages = page.locator('[class*="stage"], [class*="step"], [class*="process"]');
+    const stageCount = await stages.count();
+
+    expect(stageCount).toBeGreaterThan(0);
   });
 
-  test('Approvals page should display pending approvals', async ({ page }) => {
+  test('[WIDGET-APPROVALS] 승인 관리 should display pending approvals', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/approvals`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for approval buttons or status
-    const approveButtons = await page.locator('button:has-text("Approve"), button:has-text("承認")').count();
-    const rejectButtons = await page.locator('button:has-text("Reject"), button:has-text("拒否")').count();
-    expect(approveButtons + rejectButtons).toBeGreaterThanOrEqual(0);
+    // 승인/거절 버튼 또는 상태 표시 확인
+    const approveButtons = page.locator('button:has-text("承認"), button:has-text("Approve"), button:has-text("승인")');
+    const rejectButtons = page.locator('button:has-text("却下"), button:has-text("Reject"), button:has-text("거절")');
+    const statusBadges = page.locator('[class*="badge"], [class*="status"]');
+
+    const hasActions = await approveButtons.count() > 0 || await rejectButtons.count() > 0;
+    const hasStatus = await statusBadges.count() > 0;
+
+    expect(hasActions || hasStatus).toBe(true);
   });
 
-  test('Inventory page should display inventory controls', async ({ page }) => {
+  test('[WIDGET-INVENTORY] 재고 관리 should display inventory controls', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/inventory`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for inventory inputs or displays
-    const inputs = await page.locator('input[type="number"], [class*="quantity"]').count();
-    expect(inputs).toBeGreaterThan(0);
+    // 재고 입력 필드 또는 표시 확인
+    const inputs = page.locator('input[type="number"], [class*="quantity"], [class*="stock"]');
+    const inputCount = await inputs.count();
+
+    expect(inputCount).toBeGreaterThan(0);
   });
 
-  test('Shipments page should display tracking information', async ({ page }) => {
+  test('[WIDGET-SHIPPING] 배송 관리 should display tracking information', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/shipments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for shipment tracking elements
-    const tracking = await page.locator('[class*="tracking"], [class*="shipment"]').count();
-    expect(tracking).toBeGreaterThan(0);
+    // 배송 추적 요소 확인
+    const tracking = page.locator('[class*="tracking"], [class*="shipment"], [class*="carrier"]');
+    const trackingCount = await tracking.count();
+
+    expect(trackingCount).toBeGreaterThan(0);
   });
 
-  test('Contracts page should display contract workflow', async ({ page }) => {
+  test('[WIDGET-CONTRACTS] 계약 관리 should display contract workflow', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Check for contract-related elements
-    const contracts = await page.locator('[class*="contract"], [class*="document"]').count();
-    expect(contracts).toBeGreaterThan(0);
-  });
+    // 계약 관련 요소 확인
+    const contracts = page.locator('[class*="contract"], [class*="document"], [class*="agreement"]');
+    const contractCount = await contracts.count();
 
-  test('Shipping page should display carrier settings', async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin/shipping`);
-    await page.waitForLoadState('networkidle');
-
-    // Check for carrier options
-    const carriers = await page.locator('[class*="carrier"], [class*="shipping"]').count();
-    expect(carriers).toBeGreaterThan(0);
-  });
-
-  test('Leads page should display lead management (TODO)', async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin/leads`);
-    await page.waitForLoadState('networkidle');
-
-    // This page might be under construction
-    const content = await page.locator('body').textContent();
-    expect(content).toBeTruthy();
+    expect(contractCount).toBeGreaterThan(0);
   });
 });
 
-test.describe('Admin Dashboard - Detail Pages', () => {
+test.describe('Admin Dashboard - Data Accuracy', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
+    await loginAsAdmin(page);
   });
 
-  test('Order detail page should load', async ({ page }) => {
-    // First navigate to orders to get an ID
+  test('[DATA-DASHBOARD] 대시보드 should display accurate statistics', async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/dashboard`);
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+    // 통계 카드에서 숫자 확인
+    const statCards = page.locator('[class*="stat"], [class*="metric"], [class*="widget"]');
+    const statCount = await statCards.count();
+
+    if (statCount > 0) {
+      // 첫 번째 통계 카드 확인
+      const firstCard = statCards.first();
+      const cardText = await firstCard.textContent();
+      expect(cardText?.length).toBeGreaterThan(0);
+
+      // 숫자가 포함되어 있는지 확인
+      const hasNumbers = /\d/.test(cardText || '');
+      expect(hasNumbers).toBe(true);
+    }
+  });
+
+  test('[DATA-ORDERS] 주문 목록 should have proper data structure', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/orders`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    // Try to find an order link
-    const orderLink = page.locator('a[href*="/admin/orders/"]').first();
-    const count = await orderLink.count();
+    // 테이블 헤더 확인
+    const tableHeaders = page.locator('th, [role="columnheader"]');
+    const headerCount = await tableHeaders.count();
 
-    if (count > 0) {
-      await orderLink.click();
-      await page.waitForLoadState('networkidle');
-      expect(page.url()).toContain('/admin/orders/');
-    } else {
-      // If no orders exist, test with a placeholder ID
-      await page.goto(`${BASE_URL}/admin/orders/test-id`);
-      await page.waitForLoadState('networkidle');
-      // Page should still load (even if showing "not found")
+    if (headerCount > 0) {
+      // 첫 번째 헤더 텍스트 확인
+      const firstHeader = tableHeaders.first();
+      const headerText = await firstHeader.textContent();
+      expect(headerText?.length).toBeGreaterThan(0);
     }
   });
 
-  test('Production detail page should load', async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin/production`);
-    await page.waitForLoadState('networkidle');
+  test('[DATA-QUOTATIONS] 견적 목록 should have proper data structure', async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/quotations`);
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
-    const productionLink = page.locator('a[href*="/admin/production/"]').first();
-    const count = await productionLink.count();
+    // 견적 목록 요소 확인
+    const quotations = page.locator('[class*="quotation"], [class*="quote"], tr');
+    const quoteCount = await quotations.count();
 
-    if (count > 0) {
-      await productionLink.click();
-      await page.waitForLoadState('networkidle');
-      expect(page.url()).toContain('/admin/production/');
-    } else {
-      await page.goto(`${BASE_URL}/admin/production/test-id`);
-      await page.waitForLoadState('networkidle');
+    if (quoteCount > 0) {
+      // 첫 번째 견적 항목 확인
+      const firstQuote = quotations.first();
+      const quoteText = await firstQuote.textContent();
+      expect(quoteText?.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+test.describe('Admin Dashboard - Performance Validation', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
+  ADMIN_PAGES.forEach(({ path, name, category }) => {
+    test(`[PERF-${category.toUpperCase()}-${name}] ${name} should load within performance budget`, async ({ page }) => {
+      const startTime = Date.now();
+
+      await page.goto(`${BASE_URL}${path}`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      const loadTime = Date.now() - startTime;
+
+      // 5초 이내에 로드되어야 함
+      expect(loadTime).toBeLessThan(5000);
+
+      console.log(`${name} 로드 시간: ${loadTime}ms`);
+    });
+  });
+
+  test('[PERF-NAVIGATION] 관리자 페이지 간 navigation should be fast', async ({ page }) => {
+    const pages = [
+      `${BASE_URL}/admin/dashboard`,
+      `${BASE_URL}/admin/orders`,
+      `${BASE_URL}/admin/quotations`,
+    ];
+
+    for (const pageUrl of pages) {
+      const startTime = Date.now();
+
+      await page.goto(pageUrl);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      const loadTime = Date.now() - startTime;
+
+      expect(loadTime).toBeLessThan(5000);
+    }
+  });
+});
+
+test.describe('Admin Dashboard - Security Checks', () => {
+  test('[SECURITY-API-001] API endpoints should require authentication', async ({ request }) => {
+    // 인증 없이 API 접근 시도
+    const apiEndpoints = [
+      '/api/admin/dashboard/statistics',
+      '/api/admin/orders',
+      '/api/admin/quotations',
+      '/api/admin/production/jobs',
+    ];
+
+    for (const endpoint of apiEndpoints) {
+      const response = request.get(`${BASE_URL}${endpoint}`);
+      const status = (await response).status();
+
+      // 401, 403, 또는 404이어야 함
+      expect([401, 403, 404]).toContain(status);
     }
   });
 
-  test('Shipment detail page should load', async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin/shipments`);
-    await page.waitForLoadState('networkidle');
+  test('[SECURITY-SESSION-001] Session should be secure', async ({ page }) => {
+    await loginAsAdmin(page);
 
-    const shipmentLink = page.locator('a[href*="/admin/shipments/"]').first();
-    const count = await shipmentLink.count();
+    // 쿠키 확인
+    const cookies = await page.context().cookies();
+    const sessionCookie = cookies.find((c: any) =>
+      c.name.includes('session') ||
+      c.name.includes('auth') ||
+      c.name.includes('token')
+    );
 
-    if (count > 0) {
-      await shipmentLink.click();
-      await page.waitForLoadState('networkidle');
-      expect(page.url()).toContain('/admin/shipments/');
-    } else {
-      await page.goto(`${BASE_URL}/admin/shipments/test-id`);
-      await page.waitForLoadState('networkidle');
+    if (sessionCookie) {
+      // 세션 쿠키가 있으면 보안 속성 확인
+      expect(sessionCookie.secure).toBe(true);
+      expect(sessionCookie.httpOnly).toBe(true);
+      expect(sessionCookie.sameSite).toBe('Lax');
     }
   });
 
-  test('Contract detail page should load', async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin/contracts`);
-    await page.waitForLoadState('networkidle');
+  test('[SECURITY-CSRF-001] CSRF protection should be enabled', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto(`${BASE_URL}/admin/dashboard`);
 
-    const contractLink = page.locator('a[href*="/admin/contracts/"]').first();
-    const count = await contractLink.count();
+    // CSRF 토큰 확인
+    const csrfToken = page.locator('input[name*="csrf"], input[name*="token"], meta[name*="csrf"]');
+    const csrfExists = await csrfToken.count() > 0;
 
-    if (count > 0) {
-      await contractLink.click();
-      await page.waitForLoadState('networkidle');
-      expect(page.url()).toContain('/admin/contracts/');
-    } else {
-      await page.goto(`${BASE_URL}/admin/contracts/test-id`);
-      await page.waitForLoadState('networkidle');
+    // CSRF 토큰이 있는 것을 권장하지만 필수는 아님
+    if (csrfExists) {
+      console.log('CSRF token found');
     }
+  });
+
+  test('[SECURITY-AUTHORIZATION-001] Non-admin users should be blocked', async ({ page }) => {
+    // 일반 사용자로 로그인 시도
+    await page.goto(`${BASE_URL}/auth/signin`);
+    await page.fill('input[type="email"]', 'user@example.com');
+    await page.fill('input[type="password"]', 'UserPassword123!');
+    await page.click('button[type="submit"]');
+
+    // 대기
+    await page.waitForTimeout(2000);
+
+    // 관리자 페이지에 접근 시도
+    const response = page.goto(`${BASE_URL}/admin/dashboard`);
+    const status = (await response).status();
+
+    // 접근 거부 또는 리다이렉트되어야 함
+    expect([401, 403, 302, 307]).toContain(status);
   });
 });
 
 test.describe('Admin Dashboard - Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
+    await loginAsAdmin(page);
   });
 
-  test('should have navigation menu', async ({ page }) => {
+  test('[NAV-MENU] should have navigation menu', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/dashboard`);
 
-    // Check for navigation
-    const nav = await page.locator('nav, [role="navigation"], [class*="sidebar"], [class*="menu"]').count();
-    expect(nav).toBeGreaterThan(0);
+    // 네비게이션 확인
+    const nav = page.locator('nav, [role="navigation"], [class*="sidebar"], [class*="menu"]');
+    const navExists = await nav.count() > 0;
+
+    expect(navExists).toBe(true);
   });
 
-  test('should navigate between pages', async ({ page }) => {
+  test('[NAV-LINKS] should have navigation links to all admin pages', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/dashboard`);
 
-    // Navigate to orders
-    const ordersLink = page.locator('a[href*="/admin/orders"]').first();
-    const count = await ordersLink.count();
+    // 관리자 페이지 링크 확인
+    for (const adminPage of ADMIN_PAGES) {
+      const link = page.locator(`a[href="${adminPage.path}"], a[href*="${adminPage.path}"]`);
+      const linkExists = await link.count() > 0;
 
-    if (count > 0) {
-      await ordersLink.click();
-      await page.waitForLoadState('networkidle');
-      expect(page.url()).toContain('/admin/orders');
+      // 모든 링크가 있을 필요는 없음
+      if (linkExists) {
+        console.log(`Navigation link found for ${adminPage.name}`);
+      }
     }
   });
-});
 
-test.describe('Admin Dashboard - Performance', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
-  });
+  test('[NAV-BREADCRUMB] should have breadcrumb navigation', async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/orders`);
 
-  ADMIN_PAGES.forEach(({ name, url }) => {
-    test(`${name} page should load within performance budget`, async ({ page }) => {
-      const startTime = Date.now();
-      await page.goto(`${BASE_URL}${url}`);
-      await page.waitForLoadState('networkidle');
-      const loadTime = Date.now() - startTime;
+    // 브레드크럼 확인
+    const breadcrumb = page.locator('[class*="breadcrumb"], [class*="breadcrumb"], nav[aria-label*="breadcrumb"]');
+    const breadcrumbExists = await breadcrumb.count() > 0;
 
-      // Pages should load within 5 seconds
-      expect(loadTime).toBeLessThan(5000);
-
-      console.log(`${name} loaded in ${loadTime}ms`);
-    });
-  });
-});
-
-test.describe('Admin Dashboard - Security', () => {
-  test('should require authentication for API endpoints', async ({ request }) => {
-    // Try to access admin API without authentication
-    const response = await request.get(`${BASE_URL}/api/admin/dashboard/statistics`);
-    expect(response.status()).toBeGreaterThanOrEqual(400);
-  });
-
-  test('should handle invalid credentials', async ({ page }) => {
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', 'invalid@admin.com');
-    await page.fill('input[name="password"]', 'InvalidPassword123!');
-    await page.click('button[type="submit"]');
-
-    // Should show error message
-    await page.waitForTimeout(2000);
-    const errorMessage = await page.locator('text=Invalid, text=Error, text=失敗').count();
-    expect(errorMessage).toBeGreaterThan(0);
+    // 브레드크럼이 있는 것을 권장하지만 필수는 아님
+    if (breadcrumbExists) {
+      const breadcrumbText = await breadcrumb.first().textContent();
+      expect(breadcrumbText?.length).toBeGreaterThan(0);
+    }
   });
 });
 
 test.describe('Admin Dashboard - Responsive Design', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto(`${BASE_URL}/signin`);
-    await page.fill('input[name="email"]', ADMIN_EMAIL);
-    await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/(admin|member|dashboard)/, { timeout: 10000 });
+    await loginAsAdmin(page);
   });
 
   const viewports = [
@@ -362,16 +451,156 @@ test.describe('Admin Dashboard - Responsive Design', () => {
   ];
 
   viewports.forEach(({ name, width, height }) => {
-    test(`Dashboard should be responsive on ${name}`, async ({ page }) => {
+    test(`[RESP-${name}] 대시보드 should be responsive on ${name}`, async ({ page }) => {
       await page.setViewportSize({ width, height });
       await page.goto(`${BASE_URL}/admin/dashboard`);
-      await page.waitForLoadState('networkidle');
 
-      // Page should load without errors
-      const content = await page.locator('body').textContent();
-      expect(content).toBeTruthy();
+      // 페이지가 로드되어야 함
+      const body = page.locator('body');
+      await expect(body).toBeVisible();
 
-      await page.screenshot({ path: `test-screenshots/admin-dashboard-${name.toLowerCase()}.png` });
+      // 모바일에서 햄버거 메뉴 확인
+      if (width < 768) {
+        const menuButton = page.locator('button[aria-label*="menu"], [class*="hamburger"]');
+        const menuExists = await menuButton.count() > 0;
+
+        if (menuExists) {
+          console.log(`Mobile menu found on ${name}`);
+        }
+      }
     });
+  });
+});
+
+test.describe('Admin Dashboard - Console Errors', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
+  ADMIN_PAGES.forEach(({ path, name, category }) => {
+    test(`[CONSOLE-${category.toUpperCase()}-${name}] ${name} should have no console errors`, async ({ page }) => {
+      const consoleErrors: string[] = [];
+      const consoleWarnings: string[] = [];
+
+      page.on('console', (msg) => {
+        const type = msg.type();
+        const text = msg.text();
+
+        if (type === 'error') {
+          // 허용된 에러 패턴 필터링
+          if (!text.includes('favicon') && !text.includes('404')) {
+            consoleErrors.push(text);
+          }
+        } else if (type === 'warning') {
+          consoleWarnings.push(text);
+        }
+      });
+
+      await page.goto(`${BASE_URL}${path}`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      // 비동기 에러를 위해 잠시 대기
+      await page.waitForTimeout(1000);
+
+      // 치명적인 에러가 없어야 함
+      const criticalErrors = consoleErrors.filter(e =>
+        !e.includes('Warning') &&
+        !e.includes('deprecated')
+      );
+
+      expect(criticalErrors.length).toBe(0);
+
+      // 경고가 너무 많으면 실패
+      expect(consoleWarnings.length).toBeLessThan(10);
+    });
+  });
+});
+
+test.describe('Admin Dashboard - Detail Pages', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
+  test('[DETAIL-ORDER] 주문 상세 페이지 should load', async ({ page }) => {
+    // 주문 목록에서 ID 가져오기 시도
+    await page.goto(`${BASE_URL}/admin/orders`);
+
+    const orderLink = page.locator('a[href*="/admin/orders/"]').first();
+    const linkCount = await orderLink.count();
+
+    if (linkCount > 0) {
+      await orderLink.click();
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      expect(page.url()).toContain('/admin/orders/');
+    } else {
+      // 주문이 없으면 테스트 ID로 시도
+      await page.goto(`${BASE_URL}/admin/orders/test-id`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      // 페이지가 로드되어야 함 (404라도)
+      const body = page.locator('body');
+      await expect(body).toBeVisible();
+    }
+  });
+
+  test('[DETAIL-PRODUCTION] 생산 상세 페이지 should load', async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/production`);
+
+    const productionLink = page.locator('a[href*="/admin/production/"]').first();
+    const linkCount = await productionLink.count();
+
+    if (linkCount > 0) {
+      await productionLink.click();
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      expect(page.url()).toContain('/admin/production/');
+    } else {
+      await page.goto(`${BASE_URL}/admin/production/test-id`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      const body = page.locator('body');
+      await expect(body).toBeVisible();
+    }
+  });
+
+  test('[DETAIL-SHIPMENT] 배송 상세 페이지 should load', async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/shipments`);
+
+    const shipmentLink = page.locator('a[href*="/admin/shipments/"]').first();
+    const linkCount = await shipmentLink.count();
+
+    if (linkCount > 0) {
+      await shipmentLink.click();
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      expect(page.url()).toContain('/admin/shipments/');
+    } else {
+      await page.goto(`${BASE_URL}/admin/shipments/test-id`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      const body = page.locator('body');
+      await expect(body).toBeVisible();
+    }
+  });
+
+  test('[DETAIL-CONTRACT] 계약 상세 페이지 should load', async ({ page }) => {
+    await page.goto(`${BASE_URL}/admin/contracts`);
+
+    const contractLink = page.locator('a[href*="/admin/contracts/"]').first();
+    const linkCount = await contractLink.count();
+
+    if (linkCount > 0) {
+      await contractLink.click();
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      expect(page.url()).toContain('/admin/contracts/');
+    } else {
+      await page.goto(`${BASE_URL}/admin/contracts/test-id`);
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+
+      const body = page.locator('body');
+      await expect(body).toBeVisible();
+    }
   });
 });

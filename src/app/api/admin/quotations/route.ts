@@ -1,10 +1,10 @@
 /**
  * Admin Quotations Management API
  *
- * 관리자 견적 관리 API
- * - GET: 모든 견적 조회 (검색, 필터, 정렬)
- * - PATCH: 견적 정보 수정
- * - DELETE: 견적 삭제
+ * 管理者見積管理API
+ * - GET: すべての見積を取得（検索、フィルタ、ソート）
+ * - PATCH: 見積情報を更新
+ * - DELETE: 見積を削除
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('[Admin Quotations API] Get quotations error:', error);
       return NextResponse.json(
-        { error: ' 견적 목록 조회에 실패했습니다.', details: error.message },
+        { error: '見積リストの取得に失敗しました。', details: error.message },
         { status: 500 }
       );
     }
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[Admin Quotations API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '예기치 못한 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -165,7 +165,7 @@ export async function PATCH(request: NextRequest) {
 
     if (!quotationId) {
       return NextResponse.json(
-        { error: '견적 ID가 필요합니다.' },
+        { error: '見積IDが必要です。' },
         { status: 400 }
       );
     }
@@ -193,7 +193,7 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       console.error('[Admin Quotations API] Update quotation error:', error);
       return NextResponse.json(
-        { error: '견적 수정에 실패했습니다.', details: error.message },
+        { error: '見積の更新に失敗しました。', details: error.message },
         { status: 500 }
       );
     }
@@ -201,12 +201,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       quotation,
-      message: '견적이 수정되었습니다.',
+      message: '見積が更新されました。',
     });
   } catch (error) {
     console.error('[Admin Quotations API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '예기치 못한 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -229,7 +229,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!quotationId) {
       return NextResponse.json(
-        { error: '견적 ID가 필요합니다.' },
+        { error: '見積IDが必要です。' },
         { status: 400 }
       );
     }
@@ -246,19 +246,19 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('[Admin Quotations API] Delete quotation error:', error);
       return NextResponse.json(
-        { error: '견적 삭제에 실패했습니다.', details: error.message },
+        { error: '見積の削除に失敗しました。', details: error.message },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: '견적이 삭제되었습니다.',
+      message: '見積が削除されました。',
     });
   } catch (error) {
     console.error('[Admin Quotations API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '예기치 못한 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

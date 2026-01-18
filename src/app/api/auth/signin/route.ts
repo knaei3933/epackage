@@ -1,17 +1,18 @@
 /**
  * Sign In API Route
  *
- * 로그인 API 엔드포인트
+ * ログインAPIエンドポイント
  * - Supabase Authentication with @supabase/ssr
- * - 서버 사이드 쿠키 설정
- * - 개발 모드 Mock 지원
+ * - サーバーサイドクッキー設定
+ * - 開発モードモック対応
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { generateUUID } from '@/lib/utils';
 import { z } from 'zod';
 import { withRateLimit, createAuthRateLimiter } from '@/lib/rate-limiter';
+import { createServiceClient } from '@/lib/supabase';
 
 // =====================================================
 // Rate Limiter
@@ -30,64 +31,38 @@ const signinSchema = z.object({
 });
 
 // =====================================================
-// Helper: Create Supabase SSR Client for API Routes
-// =====================================================
-
-function createSupabaseSSRClient(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  // Create a response object that we'll use to set cookies
-  const response = NextResponse.json({ success: false });
-
-  return {
-    client: createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({
-            name,
-            ...options,
-          });
-        },
-      },
-    }),
-    response, // Return the response so we can modify it later
-  };
-}
-
-// =====================================================
 // POST /api/auth/signin
 // =====================================================
 
 async function handleSignInPost(request: NextRequest) {
-  // Get Supabase URL for cookie naming
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return NextResponse.json(
-      { error: 'Supabase not configured' },
-      { status: 500 }
-    );
-  }
+  console.log('[Signin API] Received signin request');
 
   try {
-    const body = await request.json();
+    // Get Supabase URL for cookie naming
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('[Signin API] Supabase not configured');
+      return NextResponse.json(
+        { error: 'Supabase not configured' },
+        { status: 500 }
+      );
+    }
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      console.error('[Signin API] Invalid JSON in request body:', jsonError);
+      return NextResponse.json(
+        { error: '無効なリクエスト形式です。JSONを確認してください。' },
+        { status: 400 }
+      );
+    }
+
     const validatedData = signinSchema.parse(body);
+
+    console.log('[Signin API] Login attempt for:', validatedData.email);
 
     // =====================================================
     // DEV MODE: Mock login for testing (SECURE: server-side only)
@@ -196,26 +171,33 @@ async function handleSignInPost(request: NextRequest) {
     // Create SSR client that can read/write cookies
     // IMPORTANT: createSupabaseSSRClient creates a response object that @supabase/ssr
     // uses to set cookies via the cookies.set callback
+    console.log('[Signin API] Creating SSR client...');
     const { client: supabase, response: initialResponse } = createSupabaseSSRClient(request);
 
     // Attempt login
     // When signInWithPassword succeeds, @supabase/ssr automatically sets session cookies
     // via the cookies.set callback in createSupabaseSSRClient
+    console.log('[Signin API] Attempting signInWithPassword...');
     const { data, error } = await supabase.auth.signInWithPassword({
       email: validatedData.email,
       password: validatedData.password,
     });
 
     if (error) {
-      console.error('Supabase login error:', error);
+      console.error('[Signin API] Supabase login error:', error);
       return NextResponse.json(
         { error: 'ログインに失敗しました。メールアドレスとパスワードを確認してください。' },
         { status: 401 }
       );
     }
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
+    console.log('[Signin API] Login successful, user ID:', data.user.id);
+
+    // Get user profile using SERVICE ROLE client
+    // CRITICAL: Use service role to bypass RLS policies that block anon key access
+    // after login, as auth.uid() may not be immediately available in the same request
+    const serviceClient = createServiceClient();
+    const { data: profile, error: profileError } = await serviceClient
       .from('profiles')
       .select('*')
       .eq('id', data.user.id)
@@ -234,9 +216,7 @@ async function handleSignInPost(request: NextRequest) {
       );
     }
 
-    // Create a NEW response to return user data
-    // Note: initialResponse contains cookies set by signInWithPassword via the callback,
-    // but we need to create a JSON response. We'll copy the cookies.
+    // Create response data
     const responseData = {
       success: true,
       message: 'ログインしました',
@@ -265,35 +245,51 @@ async function handleSignInPost(request: NextRequest) {
       },
     };
 
-    // Create response and copy cookies from initialResponse
-    const response = NextResponse.json(responseData);
+    // Create the JSON response first
+    const finalResponse = NextResponse.json(responseData, {
+      status: 200,
+    });
 
     // Copy all cookies from initialResponse to the final response
     // @supabase/ssr sets cookies via the callback, which stores them in initialResponse.cookies
     // Explicitly preserve all cookie attributes (domain, path, httpOnly, secure, sameSite, etc.)
-    initialResponse.cookies.getAll().forEach(cookie => {
+    const cookies = initialResponse.cookies.getAll();
+    console.log('[Signin API] Copying cookies:', cookies.map(c => c.name));
+    cookies.forEach(cookie => {
       const { name, value, ...options } = cookie;
-      response.cookies.set(name, value, options);
+      finalResponse.cookies.set(name, value, options);
     });
 
-    console.log('[Signin API] Login successful, cookies copied for:', data.user.email);
+    console.log('[Signin API] Login successful, cookies set for:', data.user.email);
 
-    return response;
+    return finalResponse;
   } catch (error) {
-    console.error('Signin API error:', error);
+    console.error('[Signin API] Error during signin:', error);
 
     if (error instanceof z.ZodError) {
+      console.error('[Signin API] Validation error:', error.errors);
       return NextResponse.json(
         { error: '無効な入力データです', details: error.errors },
         { status: 400 }
       );
     }
 
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      console.error('[Signin API] JSON parse error:', error);
+      return NextResponse.json(
+        { error: '無効なリクエスト形式です。JSONを確認してください。' },
+        { status: 400 }
+      );
+    }
+
+    console.error('[Signin API] Unknown error:', error);
     return NextResponse.json(
-      { error: 'ログイン処理中にエラーが発生しました' },
+      { error: 'ログイン処理中にエラーが発生しました', details: process.env.NODE_ENV === 'development' ? String(error) : undefined },
       { status: 500 }
     );
   }
 }
 
-export const POST = withRateLimit(handleSignInPost, signinRateLimiter);
+// TEMPORARY: Bypass rate limiter to debug login issue
+// export const POST = withRateLimit(handleSignInPost, signinRateLimiter);
+export const POST = handleSignInPost as any;

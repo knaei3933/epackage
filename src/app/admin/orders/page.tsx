@@ -22,7 +22,7 @@ export default function AdminOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
 
-  // 주문 목록 조회
+  // 注文リスト取得
   useEffect(() => {
     fetchOrders();
   }, [selectedStatus]);
@@ -49,13 +49,13 @@ export default function AdminOrdersPage() {
       if (error) throw error;
       setOrders(data || []);
     } catch (error) {
-      console.error('주문 목록 조회 실패:', error);
+      console.error('注文リスト取得失敗:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 주문 상태 변경
+  // 注文ステータス変更
   const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     if (!supabase) return;
 
@@ -67,23 +67,23 @@ export default function AdminOrdersPage() {
 
       if (error) throw error;
 
-      // 목록 갱신
+      // リスト更新
       fetchOrders();
-      alert('주문 상태가 변경되었습니다.');
+      alert('注文ステータスが変更されました。');
     } catch (error) {
-      console.error('주문 상태 변경 실패:', error);
-      alert('주문 상태 변경에 실패했습니다.');
+      console.error('注文ステータス変更失敗:', error);
+      alert('注文ステータスの変更に失敗しました。');
     }
   };
 
-  // 대량 상태 변경
+  // 一括ステータス変更
   const bulkUpdateStatus = async (newStatus: OrderStatus) => {
     if (selectedOrders.size === 0) {
-      alert('선택된 주문이 없습니다.');
+      alert('選択された注文がありません。');
       return;
     }
 
-    if (!confirm(`${selectedOrders.size}개 주문의 상태를 ${getStatusLabel(newStatus)}(으)로 변경하시겠습니까?`)) {
+    if (!confirm(`${selectedOrders.size}件の注文のステータスを${getStatusLabel(newStatus)}に変更しますか？`)) {
       return;
     }
 
@@ -97,14 +97,14 @@ export default function AdminOrdersPage() {
 
       setSelectedOrders(new Set());
       fetchOrders();
-      alert('대량 상태 변경이 완료되었습니다.');
+      alert('一括ステータス変更が完了しました。');
     } catch (error) {
-      console.error('대량 상태 변경 실패:', error);
-      alert('대량 상태 변경에 실패했습니다.');
+      console.error('一括ステータス変更失敗:', error);
+      alert('一括ステータスの変更に失敗しました。');
     }
   };
 
-  // 주문 선택 토글
+  // 注文選択トグル
   const toggleOrderSelection = (orderId: string) => {
     const newSelection = new Set(selectedOrders);
     if (newSelection.has(orderId)) {
@@ -115,7 +115,7 @@ export default function AdminOrdersPage() {
     setSelectedOrders(newSelection);
   };
 
-  // 전체 선택 토글
+  // 全選択トグル
   const toggleSelectAll = () => {
     if (selectedOrders.size === orders.length) {
       setSelectedOrders(new Set());
@@ -135,7 +135,7 @@ export default function AdminOrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* 헤더 */}
+        {/* ヘッダー */}
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
             注文管理
@@ -145,10 +145,10 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* 필터 및 대량 작업 */}
+        {/* フィルター及び一括操作 */}
         <div className="bg-white rounded-lg shadow p-4 space-y-4">
           <div className="flex flex-wrap gap-4 items-center justify-between">
-            {/* 상태 필터 */}
+            {/* ステータスフィルター */}
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700">ステータス:</label>
               <select
@@ -165,7 +165,7 @@ export default function AdminOrdersPage() {
               </select>
             </div>
 
-            {/* 대량 작업 */}
+            {/* 一括操作 */}
             {selectedOrders.size > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">
@@ -193,7 +193,7 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* 주문 목록 테이블 */}
+        {/* 注文リストテーブル */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

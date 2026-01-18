@@ -20,7 +20,7 @@ import { CartItemComponent } from '@/components/cart/CartItem'
 import { useCart } from '@/contexts/CartContext'
 
 export default function CartPageClient() {
-  const { items, cart, clearCart, requestQuote, isLoading } = useCart()
+  const { items, cart, clearCart, isLoading } = useCart()
 
   const formatCurrency = (amount: number) => `¥${amount.toLocaleString()}`
 
@@ -95,7 +95,7 @@ export default function CartPageClient() {
                       製品カタログを見る
                     </Button>
                   </Link>
-                  <Link href="/roi-calculator/">
+                  <Link href="/roi-calculator">
                     <Button variant="outline" size="lg" className="w-full">
                       <Calculator className="w-5 h-5 mr-2" />
                       まず見積計算から始める
@@ -203,7 +203,7 @@ export default function CartPageClient() {
                             {isLoading ? '処理中...' : '詳細見積計算'}
                           </Button>
 
-                          <Link href="/roi-calculator/">
+                          <Link href="/roi-calculator">
                             <Button
                               variant="outline"
                               size="lg"

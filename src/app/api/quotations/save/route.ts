@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as SaveQuotationRequestBody;
 
-    // Validate required fields (userId is no longer required - we get it from middleware)
+    // Validate required fields
     if (!body.quotationNumber || body.totalAmount === undefined) {
       return NextResponse.json(
         { error: 'Missing required fields: quotationNumber, totalAmount' },
@@ -118,16 +118,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get authenticated user ID from middleware headers (SECURE: cannot be spoofed by client)
-    const userIdFromHeader = request.headers.get('x-user-id');
-    if (!userIdFromHeader) {
-      return NextResponse.json(
-        { error: 'Unauthorized: No user ID from authentication middleware' },
-        { status: 401 }
-      );
-    }
-
-    // Verify the user actually exists in auth system
+    // Get authenticated user ID using SSR (same as member quotations API)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -137,27 +128,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create SSR client to read cookies
+    const response = NextResponse.json({ success: false });
     const authClient = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         get(name: string) {
-          const cookie = request.cookies.get(name);
-          return cookie?.value;
+          return request.cookies.get(name)?.value;
         },
-        set() { /* Not needed for verification */ },
-        remove() { /* Not needed for verification */ },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          response.cookies.delete({ name, ...options });
+        },
       },
     });
 
     const { data: { user }, error: authError } = await authClient.auth.getUser();
-    if (authError || !user || user.id !== userIdFromHeader) {
+
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized: Invalid authentication' },
+        { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Use the authenticated user ID (ignore client-provided userId for security)
-    const userIdForDb = userIdFromHeader;
+    const userIdForDb = user.id;
 
     // Create service client for server-side operations (bypasses RLS)
     const supabase = createServiceClient();

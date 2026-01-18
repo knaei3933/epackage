@@ -13,13 +13,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Badge, Button, Input } from '@/components/ui';
+import { Card, Badge, Button, Input, PageLoadingState } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Eye, Search, Filter, ChevronDown, Package, Truck, CheckCircle, Clock, FileText, XCircle } from 'lucide-react';
 import type { OrderStatus } from '@/types/order-status';
 import { safeMap } from '@/lib/array-helpers';
+
+// Disable static generation for this page due to client-side interactivity
+export const dynamic = 'force-dynamic';
 
 // =====================================================
 // Types
@@ -190,7 +193,7 @@ export default function OrdersPage() {
         throw new Error('Not authenticated');
       }
 
-      // API 호출
+      // API呼び出し
       const params = new URLSearchParams();
       if (filters.status !== 'all') {
         params.append('status', filters.status);
@@ -279,14 +282,7 @@ export default function OrdersPage() {
 
   // Show loading state while auth context is initializing
   if (authLoading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-text-muted">読み込み中...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingState isLoading={true} message="注文一覧を読み込み中..." />;
   }
 
   return (

@@ -1,10 +1,10 @@
 /**
  * Profile Management API Route (Admin) - Supabase
  *
- * 관리자 전용: 다른 사용자의 프로필을 조회하고 수정합니다.
- * GET: 특정 사용자 프로필 조회
- * PATCH: 특정 사용자 프로필 수정 (관리자만)
- * DELETE: 특정 사용자 삭제 (관리자만)
+ * 管理者専用：他のユーザーのプロフィールを取得・修正します
+ * GET: 特定のユーザープロフィールを取得
+ * PATCH: 特定のユーザープロフィールを修正（管理者のみ）
+ * DELETE: 特定のユーザーを削除（管理者のみ）
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -34,35 +34,35 @@ const adminProfileUpdateSchema = z.object({
   kanaLastName: z.string().min(1).max(50).optional(),
   kanaFirstName: z.string().min(1).max(50).optional(),
 
-  // 전화번호
+  // 電話番号
   corporatePhone: z.string().optional(),
   personalPhone: z.string().optional(),
 
-  // 사업자 유형
+  // 事業者タイプ
   businessType: z.enum(['INDIVIDUAL', 'CORPORATION']).optional(),
 
-  // 회사 정보
+  // 会社情報
   companyName: z.string().max(200).optional(),
   legalEntityNumber: z.string().optional(),
   position: z.string().max(100).optional(),
   department: z.string().max(100).optional(),
   companyUrl: z.string().url().optional().or(z.literal('')),
 
-  // 제품 카테고리
+  // 製品カテゴリ
   productCategory: z
     .enum(['COSMETICS', 'CLOTHING', 'ELECTRONICS', 'KITCHEN', 'FURNITURE', 'OTHER'])
     .optional(),
 
-  // 유입 경로
+  // 流入経路
   acquisitionChannel: z.string().max(100).optional(),
 
-  // 주소 정보
+  // 住所情報
   postalCode: z.string().optional(),
   prefecture: z.string().optional(),
   city: z.string().optional(),
   street: z.string().optional(),
 
-  // 역할 및 상태 (관리자만 수정 가능)
+  // ロールおよびステータス（管理者のみ修正可能）
   role: z.enum(['ADMIN', 'MEMBER']).optional(),
   status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED', 'DELETED']).optional(),
 });
@@ -70,7 +70,7 @@ const adminProfileUpdateSchema = z.object({
 type AdminProfileUpdateData = z.infer<typeof adminProfileUpdateSchema>;
 
 // =====================================================
-// Helper: 관리자 권한 확인
+// Helper: 管理者権限確認
 // =====================================================
 
 async function checkAdminPermission(supabase: any, userId: string) {
@@ -81,22 +81,22 @@ async function checkAdminPermission(supabase: any, userId: string) {
     .single();
 
   if (!profile) {
-    return { authorized: false, error: '프로필을 찾을 수 없습니다.' };
+    return { authorized: false, error: 'プロフィールが見つかりませんでした。' };
   }
 
   if (profile.status !== 'ACTIVE') {
-    return { authorized: false, error: '활성 계정이 아닙니다.' };
+    return { authorized: false, error: 'アクティブなアカウントではありません。' };
   }
 
   if (profile.role !== 'ADMIN') {
-    return { authorized: false, error: '관리자 권한이 필요합니다.' };
+    return { authorized: false, error: '管理者権限が必要です。' };
   }
 
   return { authorized: true };
 }
 
 // =====================================================
-// GET: 특정 사용자 프로필 조회 (관리자만)
+// GET: 特定のユーザープロフィール取得（管理者のみ）
 // =====================================================
 
 export async function GET(
@@ -128,7 +128,7 @@ export async function GET(
       },
     });
 
-    // 세션 확인
+    // セッション確認
     const { data: { user }, error: userError } =
       await supabase.auth.getUser();
 
@@ -139,7 +139,7 @@ export async function GET(
       );
     }
 
-    // 관리자 권한 확인
+    // 管理者権限確認
     const permissionCheck = await checkAdminPermission(
       supabase,
       user.id
@@ -152,7 +152,7 @@ export async function GET(
       );
     }
 
-    // 요청된 사용자 프로필 조회
+    // リクエストされたユーザープロフィール取得
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -162,19 +162,19 @@ export async function GET(
     if (profileError) {
       console.error('Profile fetch error:', profileError);
       return NextResponse.json(
-        { error: '프로필 조회 중 오류가 발생했습니다.' },
+        { error: 'プロフィールの取得中にエラーが発生しました。' },
         { status: 500 }
       );
     }
 
     if (!profile) {
       return NextResponse.json(
-        { error: '프로필을 찾을 수 없습니다.' },
+        { error: 'プロフィールが見つかりませんでした。' },
         { status: 404 }
       );
     }
 
-    // 응답 데이터 변환
+    // レスポンスデータ変換
     const userProfile = {
       id: profile.id,
       email: profile.email,
@@ -217,7 +217,7 @@ export async function GET(
 }
 
 // =====================================================
-// PATCH: 특정 사용자 프로필 수정 (관리자만)
+// PATCH: 特定のユーザープロフィール修正（管理者のみ）
 // =====================================================
 
 export async function PATCH(
@@ -249,7 +249,7 @@ export async function PATCH(
       },
     });
 
-    // 세션 확인
+    // セッション確認
     const { data: { user }, error: userError } =
       await supabase.auth.getUser();
 
@@ -260,7 +260,7 @@ export async function PATCH(
       );
     }
 
-    // 관리자 권한 확인
+    // 管理者権限確認
     const permissionCheck = await checkAdminPermission(
       supabase,
       user.id
@@ -275,7 +275,7 @@ export async function PATCH(
 
     const body = await request.json();
 
-    // 스키마 검증
+    // スキーマ検証
     const validationResult = adminProfileUpdateSchema.safeParse(body);
 
     if (!validationResult.success) {
@@ -290,7 +290,7 @@ export async function PATCH(
 
     const data = validationResult.data;
 
-    // Supabase로 업데이트 (camelCase → snake_case 변환)
+    // Supabaseで更新 (camelCase → snake_case 変換)
     const updateData: Record<string, any> = {};
 
     if (data.kanjiLastName !== undefined)
@@ -340,12 +340,12 @@ export async function PATCH(
     if (updateError) {
       console.error('Profile update error:', updateError);
       return NextResponse.json(
-        { error: '프로필 수정 중 오류가 발생했습니다.' },
+        { error: 'プロフィールの修正中にエラーが発生しました。' },
         { status: 500 }
       );
     }
 
-    // 업데이트된 사용자 정보 반환
+    // 更新されたユーザー情報を返す
     const userProfile = {
       id: profile.id,
       email: profile.email,
@@ -391,7 +391,7 @@ export async function PATCH(
 }
 
 // =====================================================
-// DELETE: 특정 사용자 삭제 (관리자만)
+// DELETE: 特定のユーザーを削除（管理者のみ）
 // =====================================================
 
 export async function DELETE(
@@ -423,7 +423,7 @@ export async function DELETE(
       },
     });
 
-    // 세션 확인
+    // セッション確認
     const { data: { user }, error: userError } =
       await supabase.auth.getUser();
 
@@ -434,7 +434,7 @@ export async function DELETE(
       );
     }
 
-    // 관리자 권한 확인
+    // 管理者権限確認
     const permissionCheck = await checkAdminPermission(
       supabase,
       user.id
@@ -447,15 +447,15 @@ export async function DELETE(
       );
     }
 
-    // 자기 자신은 삭제 불가
+    // 自分自身は削除不可
     if (id === user.id) {
       return NextResponse.json(
-        { error: '자기 자신은 삭제할 수 없습니다.' },
+        { error: '自分自身を削除することはできません。' },
         { status: 400 }
       );
     }
 
-    // 상태를 DELETED로 변경 (실제 삭제는 아님)
+    // ステータスをDELETEDに変更（実際の削除ではない）
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ status: 'DELETED' })
@@ -464,7 +464,7 @@ export async function DELETE(
     if (updateError) {
       console.error('Profile delete error:', updateError);
       return NextResponse.json(
-        { error: '프로필 삭제 중 오류가 발생했습니다.' },
+        { error: 'プロフィールの削除中にエラーが発生しました。' },
         { status: 500 }
       );
     }
@@ -485,7 +485,7 @@ export async function DELETE(
 }
 
 // =====================================================
-// OPTIONS 메서드 - CORS preflight 요청 처리
+// OPTIONSメソッド - CORS preflightリクエスト処理
 // =====================================================
 
 export async function OPTIONS() {

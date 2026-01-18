@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * 입고 처리 컴포넌트 (Stock In Component)
- * 생산 완료 제품의 입고 처리
+ * 入荷処理コンポーネント (Stock In Component)
+ * 生産完了製品の入荷処理
  */
 
 import React, { useState, useCallback } from 'react';
@@ -39,12 +39,12 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
 
   const handleStockIn = useCallback(async () => {
     if (quantity <= 0) {
-      setStatus({ type: 'error', message: '수량을 입력해주세요.' });
+      setStatus({ type: 'error', message: '数量を入力してください。' });
       return;
     }
 
     if (!warehouseLocation) {
-      setStatus({ type: 'error', message: '창고 위치를 입력해주세요.' });
+      setStatus({ type: 'error', message: '倉庫の場所を入力してください。' });
       return;
     }
 
@@ -63,7 +63,7 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
         formData.append('photo', photo);
       }
 
-      const response = await fetch('/api/b2b/stock-in', {
+      const response = await fetch('/api/member/stock-in', {
         method: 'POST',
         body: formData
       });
@@ -71,17 +71,17 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
       const result = await response.json();
 
       if (result.success) {
-        setStatus({ type: 'success', message: '입고 처리가 완료되었습니다.' });
+        setStatus({ type: 'success', message: '入荷処理が完了しました。' });
 
         if (onComplete) {
           onComplete();
         }
       } else {
-        setStatus({ type: 'error', message: result.error || '입고 처리 중 오류가 발생했습니다.' });
+        setStatus({ type: 'error', message: result.error || '入荷処理中にエラーが発生しました。' });
       }
     } catch (error) {
       console.error('Stock in error:', error);
-      setStatus({ type: 'error', message: '입고 처리 중 오류가 발생했습니다.' });
+      setStatus({ type: 'error', message: '入荷処理中にエラーが発生しました。' });
     } finally {
       setIsSaving(false);
     }
@@ -91,7 +91,7 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
         <Warehouse className="w-5 h-5" />
-        입고 처리
+        入荷処理
       </h2>
 
       <div className="space-y-4">
@@ -99,14 +99,14 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
         <div>
           <label className="block text-sm font-medium mb-2">
             <Scale className="w-4 h-4 inline mr-1" />
-            입고 수량
+            入荷数量
           </label>
           <Input
             type="number"
             min="0"
             value={quantity}
             onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-            placeholder="입고할 수량을 입력하세요"
+            placeholder="入荷する数量を入力してください"
           />
         </div>
 
@@ -114,19 +114,19 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
         <div>
           <label className="block text-sm font-medium mb-2">
             <Package className="w-4 h-4 inline mr-1" />
-            창고 위치
+            倉庫の場所
           </label>
           <Input
             type="text"
             value={warehouseLocation}
             onChange={(e) => setWarehouseLocation(e.target.value)}
-            placeholder="예: A-01-03 (구역-선반-칸)"
+            placeholder="例: A-01-03 (エリア-棚-列)"
           />
         </div>
 
         {/* Quality Status */}
         <div>
-          <label className="block text-sm font-medium mb-2">품질 검사 결과</label>
+          <label className="block text-sm font-medium mb-2">品質検査結果</label>
           <div className="flex gap-4">
             <label className="flex items-center gap-2">
               <input
@@ -137,7 +137,7 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
                 onChange={() => setQualityStatus('PASSED')}
                 className="rounded"
               />
-              <span>합격</span>
+              <span>合格</span>
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -148,7 +148,7 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
                 onChange={() => setQualityStatus('FAILED')}
                 className="rounded"
               />
-              <span>불합</span>
+              <span>不合格</span>
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -159,17 +159,17 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
                 onChange={() => setQualityStatus('REWORK')}
                 className="rounded"
               />
-              <span>재작업</span>
+              <span>再作業</span>
             </label>
           </div>
         </div>
 
         {/* QC Notes */}
         <div>
-          <label className="block text-sm font-medium mb-2">검사 메모</label>
+          <label className="block text-sm font-medium mb-2">検査メモ</label>
           <textarea
             className="w-full px-4 py-2 border border-gray-300 rounded-lg min-h-[80px]"
-            placeholder="품질 검사 결과에 대한 메모..."
+            placeholder="品質検査結果に関するメモ..."
             value={qcNotes}
             onChange={(e) => setQcNotes(e.target.value)}
           />
@@ -179,7 +179,7 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
         <div>
           <label className="block text-sm font-medium mb-2">
             <Camera className="w-4 h-4 inline mr-1" />
-            입고 사진
+            入荷写真
           </label>
           <Input
             type="file"
@@ -216,7 +216,7 @@ export default function StockInComponent({ orderId, onComplete }: StockInProps) 
             size="lg"
           >
             <Save className="w-4 h-4 mr-2" />
-            입고 완료
+            入荷完了
           </Button>
         </div>
       </div>

@@ -9,24 +9,20 @@
  * 4. Downloads documents
  * 5. Updates profile
  * 6. Adds order notes
+ *
+ * NOTE: These tests require Supabase credentials to run.
+ * If credentials are not configured, tests will be skipped.
  */
 
 import { test, expect } from '@playwright/test';
-import { createClient } from '@supabase/supabase-js';
 import { testUsers, AuthHelper, TestDataManager } from '../fixtures/test-data';
+import { getSupabaseClient, isSupabaseConfigured, logSupabaseStatus } from '../fixtures/supabase-helper';
 
-// Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-const getSupabaseClient = () => {
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase credentials not configured');
-  }
-  return createClient(supabaseUrl, supabaseServiceKey);
-};
-
+// Test suite that runs only when Supabase is configured
 test.describe('Customer Portal', () => {
+  // Skip entire suite if Supabase is not configured
+  test.skip(!isSupabaseConfigured(), 'Supabase credentials not configured - skipping customer portal tests');
+
   let testUser: ReturnType<typeof testUsers.japaneseMember>;
   let authHelper: AuthHelper;
   let page: any;
@@ -41,6 +37,11 @@ test.describe('Customer Portal', () => {
   test.afterEach(async () => {
     try {
       const supabase = getSupabaseClient();
+      if (!supabase) {
+        console.warn('Supabase client not available for cleanup');
+        return;
+      }
+
       const { data: users } = await supabase.auth.admin.listUsers();
       const user = users.users.find(u => u.email === testUser.email);
       if (user) {
@@ -59,6 +60,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -105,6 +111,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -178,6 +189,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -261,6 +277,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -335,6 +356,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -439,6 +465,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -517,6 +548,11 @@ test.describe('Customer Portal', () => {
     await authHelper.register(testUser);
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      test.skip(true, 'Supabase client not available');
+      return;
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')

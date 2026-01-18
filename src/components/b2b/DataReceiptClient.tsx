@@ -111,7 +111,7 @@ export function DataReceiptClient({ order, canUploadData }: DataReceiptClientPro
       formData.append('data_type', 'design_file')
 
       // Upload file
-      const uploadResponse = await fetch('/api/b2b/ai-extraction/upload', {
+      const uploadResponse = await fetch('/api/member/ai-extraction/upload', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -150,7 +150,7 @@ export function DataReceiptClient({ order, canUploadData }: DataReceiptClientPro
       attempts++
 
       try {
-        const response = await fetch(`/api/b2b/ai-extraction/status?file_id=${fileId}`, {
+        const response = await fetch(`/api/member/ai-extraction/status?file_id=${fileId}`, {
           credentials: 'include',
         })
 
@@ -241,7 +241,7 @@ export function DataReceiptClient({ order, canUploadData }: DataReceiptClientPro
     setError(null)
 
     try {
-      const response = await fetch('/api/b2b/ai-extraction/approve', {
+      const response = await fetch('/api/member/ai-extraction/approve', {
         method: 'POST',
         credentials: 'include',
         headers: {

@@ -1,7 +1,7 @@
 /**
  * Debug Auth API
  *
- * 현재 인증 상태를 디버깅합니다
+ * 現在の認証状態をデバッグします
  */
 
 import { NextRequest, NextResponse } from 'next/server';

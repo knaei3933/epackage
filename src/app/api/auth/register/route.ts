@@ -127,7 +127,11 @@ async function handleRegisterPost(request: NextRequest) {
 
     const userId = authData.user.id
 
-    // Step 2: Create profile in database
+    // Step 2: Determine user_type based on business_type
+    // CORPORATION → B2B, INDIVIDUAL → B2C
+    const userType = validatedData.businessType === 'CORPORATION' ? 'B2B' : 'B2C'
+
+    // Step 3: Create profile in database
     const { data: profile, error } = await supabase
       .from('profiles')
       .insert({
@@ -140,6 +144,7 @@ async function handleRegisterPost(request: NextRequest) {
         corporate_phone: validatedData.corporatePhone || null,
         personal_phone: validatedData.personalPhone || null,
         business_type: validatedData.businessType,
+        user_type: userType, // B2B or B2C based on business_type
         company_name: validatedData.companyName || null,
         legal_entity_number: validatedData.legalEntityNumber || null,
         position: validatedData.position || null,
@@ -151,6 +156,10 @@ async function handleRegisterPost(request: NextRequest) {
         prefecture: validatedData.prefecture || null,
         city: validatedData.city || null,
         street: validatedData.street || null,
+        // B2B additional fields (CORPORATION only)
+        founded_year: validatedData.foundedYear || null,
+        capital: validatedData.capital || null,
+        representative_name: validatedData.representativeName || null,
         role: 'MEMBER',
         status: 'PENDING', // Requires admin approval
         created_at: new Date().toISOString(),

@@ -62,7 +62,7 @@ test.describe('Member Pages Audit', () => {
     // Login before each test
     await page.goto('/auth/signin');
     await page.fill('input[type="email"]', 'test@epackage-lab.com');
-    await page.fill('input[type="password"]', 'password123');
+    await page.fill('input[type="password"]', 'Test1234!');
     await page.click('button[type="submit"]');
 
     // Wait for successful login

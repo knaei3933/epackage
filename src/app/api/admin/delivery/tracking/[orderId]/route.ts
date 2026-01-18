@@ -10,8 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { calculateDeliverySchedule } from '@/lib/delivery-estimator';
@@ -35,16 +34,15 @@ interface TrackingUpdateRequest {
 
 interface CarrierLabel {
   ja: string;
-  ko: string;
   en: string;
 }
 
 const CARRIER_LABELS: Record<string, CarrierLabel> = {
-  ems: { ja: 'EMS', ko: 'EMS', en: 'EMS' },
-  surface_mail: { ja: '船便', ko: '배편(선박)', en: 'Surface Mail' },
-  sea_freight: { ja: '海上コンテナ', ko: '해상 컨테이너', en: 'Sea Freight' },
-  air_freight: { ja: '航空貨物', ko: '항공 화물', en: 'Air Freight' },
-  other: { ja: 'その他', ko: '기타', en: 'Other' },
+  ems: { ja: 'EMS', en: 'EMS' },
+  surface_mail: { ja: '船便', en: 'Surface Mail' },
+  sea_freight: { ja: '海上コンテナ', en: 'Sea Freight' },
+  air_freight: { ja: '航空貨物', en: 'Air Freight' },
+  other: { ja: 'その他', en: 'Other' },
 };
 
 // ============================================================
