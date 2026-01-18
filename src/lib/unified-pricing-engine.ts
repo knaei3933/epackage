@@ -611,20 +611,6 @@ export class UnifiedPricingEngine {
       });
     }
 
-    // 3. 印刷費計算
-    // ロールフィルムの場合は、メートル数とフィルム幅を使用
-    const printingCost = this.calculatePrintingCost(
-      printingType,
-      printingColors,
-      quantity,
-      doubleSided,
-      isUVPrinting,
-      bagTypeId === 'roll_film' ? {
-        lengthInMeters: quantity,  // quantityはロールフィルムの場合は長さ(m)
-        filmWidthM: determineMaterialWidth(width) / 1000  // 製品幅から原反幅を決定してm単位に変換
-      } : undefined
-    )
-
     // 4. 設定費計算（削除：版代はなし）
     const setupCost = 0
 
@@ -640,6 +626,22 @@ export class UnifiedPricingEngine {
       ? 500
       : Math.ceil(theoreticalMeters / 50) * 50;
     const totalUsedMeters = (bagTypeId === 'roll_film' ? quantity : securedMeters) + 400;
+
+    // 3. 印刷費計算
+    // ロールフィルムの場合は、メートル数とフィルム幅を使用
+    // パウチの場合は、使用メートル数を使用（ドキュメント仕様準拠）
+    const printingCost = this.calculatePrintingCost(
+      printingType,
+      printingColors,
+      quantity,
+      doubleSided,
+      isUVPrinting,
+      bagTypeId === 'roll_film' ? {
+        lengthInMeters: quantity,  // quantityはロールフィルムの場合は長さ(m)
+        filmWidthM: determineMaterialWidth(width) / 1000  // 製品幅から原反幅を決定してm単位に変換
+      } : undefined,
+      bagTypeId === 'roll_film' ? undefined : totalUsedMeters  // パウチの場合は使用メートル数を渡す
+    )
 
     // ========================================
     // 3.5. マット印刷追加費計算
@@ -741,8 +743,8 @@ export class UnifiedPricingEngine {
     const importCost = manufacturerPrice * 1.05;
 
     // Step 3: 輸入原価 + 配送費 + 販売マージン = 最終販売価格
-    // フィルムロール: 25%、パウチ加工品: markupRate
-    const salesMargin = bagTypeId === 'roll_film' ? 0.20 : markupRate;
+    // ドキュメント仕様: フィルムロール20%、パウチ加工品20%
+    const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
 
     console.log('[Sales Margin Calculation]', {
       bagTypeId,
@@ -783,6 +785,7 @@ export class UnifiedPricingEngine {
       currency: 'JPY',
       quantity,
       filmUsage: totalUsedMeters,
+      materialWidth: materialWidth || undefined,  // 原反幅情報を追加
       breakdown: {
         material: Math.round(materialCost),
         processing: Math.round(processingCost),
@@ -1131,8 +1134,8 @@ export class UnifiedPricingEngine {
     const importCost = manufacturerPrice * 1.05;
 
     // Step 3: 輸入原価 + 配送費 + 販売マージン = 最終販売価格
-    // フィルムロール: 25%、パウチ加工品: markupRate
-    const salesMargin = bagTypeId === 'roll_film' ? 0.20 : markupRate;
+    // ドキュメント仕様: フィルムロール20%、パウチ加工品20%
+    const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
 
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
@@ -1511,6 +1514,8 @@ export class UnifiedPricingEngine {
 
   /**
    * 印刷費計算
+   * ドキュメント仕様: 印刷費は常に1mで計算（フィルム幅と無関係）
+   * 印刷費用(ウォン) = 1m × 使用メートル数 × 475ウォン/m²
    */
   private calculatePrintingCost(
     printingType: 'digital' | 'gravure',
@@ -1521,7 +1526,8 @@ export class UnifiedPricingEngine {
     rollFilmParams?: {
       lengthInMeters?: number    // ロールフィルムの長さ（m）
       filmWidthM?: number        // フィルム幅
-    }
+    },
+    pouchMeters?: number  // パウチの使用メートル数（ロス込み）
   ): number {
     if (isUVPrinting) {
       return CONSTANTS.UV_PRINTING_FIXED_COST
@@ -1557,7 +1563,28 @@ export class UnifiedPricingEngine {
       return totalCostJPY;
     }
 
-    // パウチの場合：数量を使用 従来の計算方法
+    // パウチの場合：メートル数を使用（ドキュメント仕様準拠）
+    // 印刷費用(ウォン) = 1m × 使用メートル数 × 475ウォン/m²
+    const totalMeters = pouchMeters || 0;
+    if (totalMeters > 0) {
+      const printingCostKRW = totalMeters * printingConfig.perColorPerMeter;
+      const totalCostKRW = Math.max(printingCostKRW, printingConfig.minCharge);
+      const totalCostJPY = totalCostKRW * 0.12;
+
+      console.log('[Printing Cost Pouch]', {
+        totalMeters,
+        perColorPerMeter: printingConfig.perColorPerMeter,
+        printingCostKRW,
+        totalCostKRW,
+        totalCostJPY,
+        note: 'フィルム幅に関係なく1mで計算'
+      });
+
+      return totalCostJPY;
+    }
+
+    // フォールバック：従来の数量ベース計算（非推奨）
+    console.warn('[Printing Cost] メートル数が指定されていないため、数量ベースで計算（非推奨）');
     const colorCost = colors * colorMultiplier * (printingConfig.perColorPerMeter || 5) * quantity;
     const totalCost = colorCost;
 

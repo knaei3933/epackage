@@ -16,10 +16,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { withAdminAuth } from '@/lib/api-auth';
+import { handleApiError, ValidationError } from '@/lib/api-error-handler';
+import { uuidSchema } from '@/lib/validation-schemas';
 import { Database } from '@/types/database';
 import { headers } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 
 // @ts-nocheck - Supabase type inference issues with complex update payloads
 
@@ -55,6 +58,26 @@ interface PendingMember {
   created_at: string;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
 }
+
+// ============================================================
+// Validation Schemas
+// ============================================================
+
+const approvalSchema = z.object({
+  userId: uuidSchema,
+  action: z.enum(['approve', 'reject']),
+  reason: z.string().optional(),
+});
+
+const updateSchema = z.object({
+  userId: uuidSchema,
+  updates: z.object({
+    company_name: z.string().optional(),
+    corporate_number: z.string().optional(),
+    position: z.string().optional(),
+    department: z.string().optional(),
+  }),
+});
 
 interface ApprovalRequestBody {
   userId: string;

@@ -339,7 +339,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Get current session from SERVER API
         // IMPORTANT: Call the server endpoint to read cookies (httpOnly cookies can't be read by client JS)
         // CRITICAL: credentials: 'include' is required to send cookies with the request
-        const sessionResponse = await fetch('/api/auth/session/', {
+        const sessionResponse = await fetch('/api/auth/session', {
           credentials: 'include', // Include cookies in the request
         })
         const sessionData = await sessionResponse.json()
@@ -526,7 +526,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshSession = useCallback(async () => {
     try {
       // Call server-side session endpoint to refresh httpOnly cookies
-      const response = await fetch('/api/auth/session/', {
+      const response = await fetch('/api/auth/session', {
         credentials: 'include', // Critical: include cookies in request
       })
 

@@ -263,21 +263,22 @@ export class PouchCostCalculator {
     // 2. 確保量計算（最小確保量 + 50m単位切り上げ）
     const securedMeters = this.calculateSecuredMeters(theoreticalMeters, skuCount);
 
-    // 3. ロス計算（各SKUにロスを配分）
-    // ロスは400m固定。SKU数で等分する
-    const lossMeters = 400 / skuCount;
+    // 3. 各SKUのフィルム原価計算用メートル数（ロス込み）
+    // ドキュメント仕様: 各SKUは自分の確保量 + 分配されたロス分を使用
+    // 例: 2SKUの場合、各SKUは (自分の確保量 + 200m) を使用
+    const totalMetersForCost = securedMeters + (FIXED_LOSS_METERS / skuCount);
 
-    // 4. 総メートル数（確保量 + ロス）
-    const totalMeters = securedMeters + lossMeters;
+    // 4. 集計用メートル数（ロスなし）
+    const totalMeters = securedMeters;
 
     // 4.5. 配送重量計算
     // FilmCostCalculatorに任せるため、ここでは計算しない (undefinedを渡す)
     // FilmCostCalculatorは width(m) * length(m) * density で計算する (JIS規格/ガイド準拠)
 
-    // 5. フィルム原価計算（総メートル数を使用）
+    // 5. フィルム原価計算（ロス込みメートル数を使用）
     const filmCostResult = this.calculateFilmCost(
       dimensions,
-      totalMeters, // Secured + Loss
+      totalMetersForCost, // Secured + Loss per SKU
       materialId,
       thicknessSelection,
       materialWidth,
@@ -309,8 +310,8 @@ export class PouchCostCalculator {
       quantity,
       theoreticalMeters,
       securedMeters,
-      lossMeters,
-      totalMeters,
+      lossMeters: 0,  // 各SKUにはロスを含めない
+      totalMeters: securedMeters,  // 集計用（ロスなし）
       costJPY,
       costBreakdown
     };

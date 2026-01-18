@@ -1,10 +1,16 @@
 /**
- * Member Invoices API
+ * Member Invoices API (UNIFIED - Using new auth middleware)
+ *
  * GET /api/member/invoices - List authenticated member's invoices with filtering
+ *
+ * SECURITY: Uses unified auth middleware from api-auth.ts
+ * SECURITY: Uses unified error handling from api-error-handler.ts
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { withAuth } from '@/lib/api-auth';
+import { withApiHandler } from '@/lib/api-error-handler';
 import type { Database } from '@/types/database';
 
 type InvoiceWithItems = Database['public']['Tables']['invoices']['Row'] & {
@@ -12,36 +18,12 @@ type InvoiceWithItems = Database['public']['Tables']['invoices']['Row'] & {
 };
 
 /**
- * Get user ID from middleware headers (cookie-based auth or DEV_MODE header)
+ * GET /api/member/invoices
+ * List authenticated member's invoices with filtering
  */
-async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  try {
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const userId = headersList.get('x-user-id');
-
-    // Log DEV_MODE usage for debugging
-    const isDevMode = headersList.get('x-dev-mode') === 'true';
-    if (isDevMode && userId) {
-      console.log('[Invoices API] DEV_MODE: Using x-user-id header:', userId);
-    }
-
-    return userId;
-  } catch (error) {
-    console.error('[getUserIdFromRequest] Error:', error);
-    return null;
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const userId = await getUserIdFromRequest(request);
-    if (!userId) {
-      return NextResponse.json(
-        { error: '認証されていません', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
-    }
+export const GET = withApiHandler(
+  withAuth(async (request: NextRequest, auth) => {
+    const userId = auth.userId;
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -83,27 +65,13 @@ export async function GET(request: NextRequest) {
     const { data: invoices, error } = await query;
 
     if (error) {
-      console.error('Error fetching invoices:', error);
-      return NextResponse.json(
-        { error: '請求書一覧の取得中にエラーが発生しました', code: 'FETCH_ERROR' },
-        { status: 500 }
-      );
+      console.error('[Invoices API] Error fetching invoices:', error);
+      throw error;
     }
 
     return NextResponse.json({
       success: true,
       data: invoices || [],
     });
-
-  } catch (error) {
-    console.error('Member Invoices API error:', error);
-    return NextResponse.json(
-      {
-        error: 'サーバーエラーが発生しました',
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
-}
+  })
+);

@@ -12,7 +12,9 @@ import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email-order';
 import { Database } from '@/types/database';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { withAdminAuth } from '@/lib/api-auth';
+import { handleApiError, ValidationError, fromZodError } from '@/lib/api-error-handler';
+import { uuidSchema, dateSchema, prefectureSchema, postalCodeSchema, phoneSchema, emailSchema } from '@/lib/validation-schemas';
 
 // =====================================================
 // Types
@@ -26,30 +28,30 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 // =====================================================
 
 const convertToOrderSchema = z.object({
-  quotationId: z.string().uuid('Invalid quotation ID format'),
+  quotationId: uuidSchema,
   paymentTerm: z.enum(['credit', 'advance']).optional(),
   shippingAddress: z.object({
-    postalCode: z.string().min(1, 'Postal code is required'),
-    prefecture: z.string().min(1, 'Prefecture is required'),
+    postalCode: postalCodeSchema,
+    prefecture: prefectureSchema,
     city: z.string().min(1, 'City is required'),
     addressLine1: z.string().min(1, 'Address line 1 is required'),
     addressLine2: z.string().optional(),
     company: z.string().min(1, 'Company name is required'),
     contactName: z.string().min(1, 'Contact name is required'),
-    phone: z.string().min(1, 'Phone is required'),
+    phone: phoneSchema,
   }).optional(),
   billingAddress: z.object({
-    postalCode: z.string().min(1, 'Postal code is required'),
-    prefecture: z.string().min(1, 'Prefecture is required'),
+    postalCode: postalCodeSchema,
+    prefecture: prefectureSchema,
     city: z.string().min(1, 'City is required'),
     address: z.string().min(1, 'Address is required'),
     building: z.string().optional(),
     companyName: z.string().min(1, 'Company name is required'),
-    email: z.string().email('Invalid email format').optional(),
-    phone: z.string().optional(),
+    email: emailSchema.optional(),
+    phone: phoneSchema.optional(),
     taxNumber: z.string().optional(),
   }).optional(),
-  requestedDeliveryDate: z.string().optional(),
+  requestedDeliveryDate: dateSchema.optional(),
   deliveryNotes: z.string().optional(),
   customerNotes: z.string().optional(),
 });
@@ -212,14 +214,8 @@ async function createAuditLog(
 // Main API Handler
 // =====================================================
 
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request: NextRequest, auth) => {
   try {
-    // ✅ Verify admin authentication first
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
-      return unauthorizedResponse();
-    }
-
     const supabase = createServiceClient();
 
     // Parse and validate request body
@@ -227,13 +223,7 @@ export async function POST(request: NextRequest) {
     const validationResult = convertToOrderSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request data',
-          details: validationResult.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      );
+      throw fromZodError(validationResult.error);
     }
 
     const data = validationResult.data;
@@ -460,24 +450,15 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: unknown) {
-    console.error('Quote to order conversion error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-    return NextResponse.json(
-      {
-        error: 'Failed to convert quotation to order',
-        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
-}
+});
 
 /**
  * GET: Check if quotation can be converted to order
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdminAuth(async (request: NextRequest, auth) => {
   const supabase = createServiceClient();
 
   try {
@@ -485,10 +466,7 @@ export async function GET(request: NextRequest) {
     const quotationId = searchParams.get('quotationId');
 
     if (!quotationId) {
-      return NextResponse.json(
-        { error: 'quotationId parameter is required' },
-        { status: 400 }
-      );
+      throw new ValidationError('quotationId parameter is required');
     }
 
     // Validate quotation
@@ -532,16 +510,7 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: unknown) {
-    console.error('Quote validation error:', error);
-
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      {
-        error: 'Failed to validate quotation',
-        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error);
   }
-}
+});

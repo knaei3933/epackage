@@ -83,8 +83,9 @@ export function calculatePouchFilmWidth(
       return columns === 1 ? (height * 2) + 41 : (height * 4) + 71;
 
     case 'stand_up':
-      // スタンドアップ: H × 2 + G + 余白
-      return columns === 1 ? (height * 2) + depth + 35 : (height * 4) + depth + 40;
+      // スタンドアップ: 1列: (H × 2) + G + 35, 2列: (H × 4) + (G × 2) + 40
+      // 2列では各列にマチが必要なためG×2
+      return columns === 1 ? (height * 2) + depth + 35 : (height * 4) + (depth * 2) + 40;
 
     case 'center_seal':
       // 合掌袋: W × 2 + 余白

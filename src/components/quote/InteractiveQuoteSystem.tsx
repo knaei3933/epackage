@@ -213,13 +213,13 @@ export function InteractiveQuoteSystem({ onStepComplete, initialData }: Interact
   // Get product image
   const getProductImage = (productType: string) => {
     const imageMap: Record<string, string> = {
-      'flat_3_side': '/images/processing-icons/三方シール.png',
-      'stand_up': '/images/processing-icons/スタンド.png',
-      'box': '/images/processing-icons/チャック三方.png',
-      'spout_pouch': '/images/processing-icons/スパウト.png',
-      'roll_film': '/images/processing-icons/ロール.png'
+      'flat_3_side': '/images/processing-icons/flat-3-side.png',
+      'stand_up': '/images/processing-icons/flat-3-side-stand.png',
+      'box': '/images/processing-icons/box-pouch.png',
+      'spout_pouch': '/images/processing-icons/spout.png',
+      'roll_film': '/images/processing-icons/roll-film.png'
     }
-    return imageMap[productType] || '/images/processing-icons/三方シール.png'
+    return imageMap[productType] || '/images/processing-icons/flat-3-side.png'
   }
 
   // Handle input changes

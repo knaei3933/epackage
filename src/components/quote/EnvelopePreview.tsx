@@ -24,7 +24,7 @@ const bagTypeConfigs = {
     baseWidth: 200,
     baseHeight: 300,
     color: '#4A5568',
-    previewImage: '/images/processing-icons/三方.png'
+    previewImage: '/images/processing-icons/flat-3-side.png'
   },
   'stand_up': {
     name: 'スタンドパウチ',
@@ -33,7 +33,7 @@ const bagTypeConfigs = {
     baseHeight: 240,
     color: '#2B6CB0',
     hasGusset: true,
-    previewImage: '/images/processing-icons/三方スタンド.png'
+    previewImage: '/images/processing-icons/flat-3-side-stand.png'
   },
   'lap_seal': {
     name: '合掌袋',
@@ -41,7 +41,7 @@ const bagTypeConfigs = {
     baseWidth: 200,
     baseHeight: 300,
     color: '#718096',
-    previewImage: '/images/processing-icons/合掌.png'
+    previewImage: '/images/processing-icons/gusset.png'
   },
   'box': {
     name: 'ボックス型パウチ',
@@ -49,7 +49,7 @@ const bagTypeConfigs = {
     baseWidth: 200,
     baseHeight: 200,
     color: '#2F855A',
-    previewImage: '/images/processing-icons/ボックス型パウチ.png'
+    previewImage: '/images/processing-icons/box-pouch.png'
   },
   'spout_pouch': {
     name: 'スパウトパウチ',
@@ -57,7 +57,7 @@ const bagTypeConfigs = {
     baseWidth: 200,
     baseHeight: 280,
     color: '#D69E2E',
-    previewImage: '/images/processing-icons/スパウト.png'
+    previewImage: '/images/processing-icons/spout.png'
   },
   'roll_film': {
     name: 'ロールフィルム',
@@ -65,7 +65,7 @@ const bagTypeConfigs = {
     baseWidth: 300,
     baseHeight: 100,
     color: '#805AD5',
-    previewImage: '/images/processing-icons/ロールフィルム.png'
+    previewImage: '/images/processing-icons/roll-film.png'
   }
 };
 

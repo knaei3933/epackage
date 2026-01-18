@@ -115,7 +115,7 @@ function SpecsStep() {
       description: '基本的な平たい袋タイプ',
       descriptionJa: '最も一般的な平袋タイプ。三方をシールし、一方は開口部',
       basePrice: 15,
-      image: '/images/processing-icons/三方.png'
+      image: '/images/processing-icons/flat-3-side.png'
     },
     {
       id: 'stand_up',
@@ -124,7 +124,7 @@ function SpecsStep() {
       description: '底が広がり自立するタイプ',
       descriptionJa: '底部がガセット構造で自立可能。陳列効果に優れる',
       basePrice: 25,
-      image: '/images/processing-icons/三方スタンド.png'
+      image: '/images/processing-icons/flat-3-side-stand.png'
     },
     {
       id: 'lap_seal',
@@ -133,7 +133,7 @@ function SpecsStep() {
       description: '両サイドを合掌シールした袋',
       descriptionJa: '両サイドを合掌状にシールし、底部は平らな構造',
       basePrice: 17,
-      image: '/images/processing-icons/合掌.png'
+      image: '/images/processing-icons/gusset.png'
     },
     {
       id: 'box',
@@ -142,7 +142,7 @@ function SpecsStep() {
       description: '箱型形状で保護性に優れる',
       descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
       basePrice: 30,
-      image: '/images/processing-icons/ボックス型パウチ.png'
+      image: '/images/processing-icons/box-pouch.png'
     },
     {
       id: 'spout_pouch',
@@ -151,7 +151,7 @@ function SpecsStep() {
       description: '液体製品に最適な注ぎ口付き',
       descriptionJa: '液体・粉末製品向けの注ぎ口付き。注ぎやすく再密閉可能',
       basePrice: 35,
-      image: '/images/processing-icons/スパウト.png'
+      image: '/images/processing-icons/spout.png'
     },
     {
       id: 'roll_film',
@@ -160,7 +160,7 @@ function SpecsStep() {
       description: '自動包装機対応のフィルム',
       descriptionJa: '自動包装機向けロール状フィルム。大量生産に最適',
       basePrice: 8,
-      image: '/images/processing-icons/ロールフィルム.png'
+      image: '/images/processing-icons/roll-film.png'
     }
   ];
 

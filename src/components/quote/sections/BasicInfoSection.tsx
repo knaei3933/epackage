@@ -27,7 +27,7 @@ const BAG_TYPES: BagTypeOption[] = [
     description: '基本的な平たい袋タイプ',
     descriptionJa: '最も一般的な平袋タイプ。三方をシールし、一方は開口部',
     basePrice: 15,
-    image: '/images/processing-icons/三方シール.png'
+    image: '/images/processing-icons/flat-3-side.png'
   },
   {
     id: 'stand_up',
@@ -36,7 +36,7 @@ const BAG_TYPES: BagTypeOption[] = [
     description: '底が広がり自立するタイプ',
     descriptionJa: '底部がガセット構造で自立可能。陳列効果に優れる',
     basePrice: 25,
-    image: '/images/processing-icons/スタンドパウチ.png'
+    image: '/images/processing-icons/flat-3-side-stand.png'
   },
   {
     id: 'box',
@@ -45,7 +45,7 @@ const BAG_TYPES: BagTypeOption[] = [
     description: '箱型形状で保護性に優れる',
     descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
     basePrice: 30,
-    image: '/images/processing-icons/BOX型.png'
+    image: '/images/processing-icons/box-type.png'
   },
   {
     id: 'spout_pouch',
@@ -54,7 +54,7 @@ const BAG_TYPES: BagTypeOption[] = [
     description: '液体製品に最適な注ぎ口付き',
     descriptionJa: '液体・粉末製品向けの注ぎ口付き。注ぎやすく再密閉可能',
     basePrice: 35,
-    image: '/images/processing-icons/スパウト.png'
+    image: '/images/processing-icons/spout.png'
   },
   {
     id: 'roll_film',
@@ -63,7 +63,7 @@ const BAG_TYPES: BagTypeOption[] = [
     description: '自動包装機対応のフィルム',
     descriptionJa: '自動包装機向けロール状フィルム。大量生産に最適',
     basePrice: 8,
-    image: '/images/processing-icons/ロールフィルム.png'
+    image: '/images/processing-icons/roll-film.png'
   }
 ];
 
