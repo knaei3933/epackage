@@ -45,10 +45,46 @@ const DEV_MOCK_USER_ID_COOKIE = 'dev_mock_user_id';
  * Uses ENABLE_DEV_MOCK_AUTH (without NEXT_PUBLIC_ prefix) to prevent client exposure
  *
  * SECURITY: This prevents accidental dev mode activation in production
+ * ENHANCED: Now includes environment validation to block production activation
  */
 const SECURE_DEV_MODE_ENABLED =
   process.env.NODE_ENV === 'development' &&
   process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+
+/**
+ * Production safety check - validates environment configuration
+ *
+ * SECURITY: Enhanced validation that actually throws in production builds
+ * when dev mode is attempted to be enabled
+ */
+if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
+  // Server-side: CRITICAL ERROR in production
+  if (typeof window === 'undefined') {
+    // Import dynamically to avoid circular dependency
+    try {
+      // Direct check here for immediate safety
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const isProductionEnv =
+        appUrl.includes('prod') ||
+        appUrl.includes('production') ||
+        (!appUrl.includes('localhost') && !appUrl.includes('127.0.0.1'));
+
+      if (isProductionEnv) {
+        throw new Error(
+          'CRITICAL SECURITY ERROR: Dev mode (ENABLE_DEV_MOCK_AUTH) is enabled in PRODUCTION environment.\n' +
+          'This is a security vulnerability. Immediately disable ENABLE_DEV_MOCK_AUTH.\n' +
+          `Current NODE_ENV: ${process.env.NODE_ENV}\n` +
+          `Current APP_URL: ${appUrl}`
+        );
+      }
+    } catch (error) {
+      // Re-throw security errors
+      if (error instanceof Error && error.message.includes('CRITICAL')) {
+        throw error;
+      }
+    }
+  }
+}
 
 /**
  * Production safety check - warns if dev mode is enabled in production build

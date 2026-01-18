@@ -254,7 +254,13 @@ export async function insertQuotation(data: {
 }
 
 /**
- * Insert quotation items
+ * Insert quotation items (SECURE - Parameterized Query)
+ *
+ * SECURITY: Uses parameterized queries to prevent SQL injection attacks.
+ * Each item is inserted as a separate query with proper parameter binding.
+ *
+ * @param items - Array of quotation items to insert
+ * @returns SqlResult with success/error status
  */
 export async function insertQuotationItems(
   items: Array<{
@@ -269,39 +275,37 @@ export async function insertQuotationItems(
     notes: string | null;
   }>
 ): Promise<SqlResult> {
-  const valuesClauses = items.map((item) => {
-    return `(
-      '${item.quotation_id}',
-      ${item.display_order},
-      '${item.product_name.replace(/'/g, "''")}',
-      ${item.category ? `'${item.category.replace(/'/g, "''")}'` : 'NULL'},
-      ${item.quantity},
-      ${item.unit_price},
-      ${item.total_price},
-      ${item.specifications ? `'${item.specifications.replace(/'/g, "''")}'` : 'NULL'},
-      ${item.notes ? `'${item.notes.replace(/'/g, "''")}'` : 'NULL'},
-      NOW()
-    )`;
-  }).join(',\n');
-
-  return executeSql(
-    `
-    INSERT INTO quotation_items (
-      quotation_id,
-      display_order,
-      product_name,
-      category,
-      quantity,
-      unit_price,
-      total_price,
-      specifications,
-      notes,
-      created_at
-    ) VALUES
-    ${valuesClauses}
+  // SECURITY: Use executeTransaction with parameterized queries
+  // This prevents SQL injection by properly escaping all user input
+  const queries = items.map((item) => ({
+    query: `
+      INSERT INTO quotation_items (
+        quotation_id,
+        display_order,
+        product_name,
+        category,
+        quantity,
+        unit_price,
+        total_price,
+        specifications,
+        notes,
+        created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
     `,
-    []
-  );
+    params: [
+      item.quotation_id,
+      item.display_order,
+      item.product_name,
+      item.category,
+      item.quantity,
+      item.unit_price,
+      item.total_price,
+      item.specifications,
+      item.notes,
+    ] as (string | number | boolean | null)[],
+  }));
+
+  return executeTransaction(queries);
 }
 
 /**
