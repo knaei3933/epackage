@@ -21,6 +21,7 @@ export interface ProcessingOptionConfig {
   benefitsJa: string[]
   applications: string[]
   applicationsJa: string[]
+  isDefault?: boolean  // カテゴリのデフォルト値
   variants?: {
     id: string
     name: string
@@ -38,7 +39,89 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 1. OPENING/CLOSING (開封/密閉) - 10 options
   // =====================================================
 
-  // 1-1. Zipper (ジッパー)
+  // =====================================================
+  // 1. OPENING/CLOSING (開封/密閉)
+  // カテゴリ別に1つのみ選択可能
+  // デフォルト値: 左側の項目（-no, -yes順で前者をデフォルト）
+  // =====================================================
+
+  // 1-1. Valve (バルブ) - バルブ関連を最初に配置
+  {
+    id: 'valve-no',
+    name: 'バルブなし',
+    nameJa: 'バルブなし',
+    description: '通常構造',
+    descriptionJa: '通常構造',
+    beforeImage: '/images/post-processing/バルブなし.png',
+    afterImage: '/images/post-processing/バルブなし.png',
+    thumbnail: '/images/post-processing/バルブなし.png',
+    priceMultiplier: 1.00,
+    features: ['標準構造', 'コスト効率'],
+    featuresJa: ['標準構造', 'コスト効率'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
+    category: 'opening-sealing',
+    processingTime: 'Standard production time',
+    processingTimeJa: '標準生産時間',
+    minimumQuantity: 500,
+    technicalNotes: 'Standard pouch structure',
+    technicalNotesJa: '標準パウチ構造',
+    benefits: ['コスト効率', '生産の簡素化'],
+    benefitsJa: ['コスト効率', '生産の簡素さ'],
+    applications: ['一般的な食品', '非食品製品'],
+    applicationsJa: ['一般食品', '非食品製品'],
+    isDefault: true  // デフォルト値
+  },
+  {
+    id: 'valve-yes',
+    name: 'バルブあり',
+    nameJa: 'バルブあり',
+    description: 'ガス排出バルブ機能',
+    descriptionJa: 'ガス排出バルブ機能',
+    beforeImage: '/images/post-processing/バルブなし.png',
+    afterImage: '/images/post-processing/バルブあり.png',
+    thumbnail: '/images/post-processing/バルブあり.png',
+    priceMultiplier: 1.0,
+    features: ['ガス排出', '内容物保護', '膨張防止'],
+    featuresJa: ['ガス排出', '内容物保護', '膨張防止'],
+    compatibleWith: ['stand_up', 'gusset'],
+    category: 'opening-sealing',
+    processingTime: '+3 business days',
+    processingTimeJa: '+3営業日',
+    minimumQuantity: 2000,
+    technicalNotes: 'One-way degassing valve',
+    technicalNotesJa: '一方向ガス排出バルブ',
+    benefits: ['鮮度維持', '品質保護', 'ガス蓄積防止'],
+    benefitsJa: ['鮮度維持', '品質保護', 'ガス蓄積防止'],
+    applications: ['コーヒー豆', 'ロースト製品', '発酵食品'],
+    applicationsJa: ['コーヒー豆', 'ロースト製品', '発酵食品']
+  },
+
+  // 1-2. Zipper (ジッパー)
+  {
+    id: 'zipper-no',
+    name: 'ジッパーなし',
+    nameJa: 'ジッパーなし',
+    description: '通常熱接着密閉機能',
+    descriptionJa: '通常熱接着密閉機能',
+    beforeImage: '/images/post-processing/1.ジッパーなし.png',
+    afterImage: '/images/post-processing/1.ジッパーなし.png',
+    thumbnail: '/images/post-processing/1.ジッパーなし.png',
+    priceMultiplier: 1.00,
+    features: ['通常熱接着', 'コスト効率', '簡単な生産'],
+    featuresJa: ['通常熱接着', 'コスト効率', '簡単な生産'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
+    category: 'opening-sealing',
+    processingTime: 'Standard production time',
+    processingTimeJa: '標準生産時間',
+    minimumQuantity: 500,
+    technicalNotes: 'Heat seal without zipper mechanism',
+    technicalNotesJa: 'ジッパー機構なし熱接着',
+    benefits: ['コスト削減', '生産効率', '信頼性'],
+    benefitsJa: ['コスト削減', '生産効率', '信頼性'],
+    applications: ['一回用包装', '医薬品', 'サンプルパック'],
+    applicationsJa: ['一回用包装', '医薬品', 'サンプルパック'],
+    isDefault: true  // デフォルト値
+  },
   {
     id: 'zipper-yes',
     name: 'ジッパーあり',
@@ -48,10 +131,10 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/1.ジッパーなし.png',
     afterImage: '/images/post-processing/1.ジッパーあり.png',
     thumbnail: '/images/post-processing/1.ジッパーあり.png',
-    priceMultiplier: 1.12,
+    priceMultiplier: 1.0,  // Fixed price: pouch-cost-calculator.ts handles zipper surcharge (30,000 KRW)
     features: ['ジッパー再密閉', '鮮度維持', '消費者に便利'],
     featuresJa: ['ジッパー再密閉', '鮮度維持', '消費者に便利'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'opening-sealing',
     processingTime: '+2 business days',
     processingTimeJa: '+2営業日',
@@ -83,80 +166,6 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
       }
     ]
   },
-  {
-    id: 'zipper-no',
-    name: 'ジッパーなし',
-    nameJa: 'ジッパーなし',
-    description: '通常熱接着密閉機能',
-    descriptionJa: '通常熱接着密閉機能',
-    beforeImage: '/images/post-processing/1.ジッパーなし.png',
-    afterImage: '/images/post-processing/1.ジッパーなし.png',
-    thumbnail: '/images/post-processing/1.ジッパーなし.png',
-    priceMultiplier: 1.00,
-    features: ['通常熱接着', 'コスト効率', '簡単な生産'],
-    featuresJa: ['通常熱接着', 'コスト効率', '簡単な生産'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
-    category: 'opening-sealing',
-    processingTime: 'Standard production time',
-    processingTimeJa: '標準生産時間',
-    minimumQuantity: 500,
-    technicalNotes: 'Heat seal without zipper mechanism',
-    technicalNotesJa: 'ジッパー機構なし熱接着',
-    benefits: ['コスト削減', '生産効率', '信頼性'],
-    benefitsJa: ['コスト削減', '生産効率', '信頼性'],
-    applications: ['一回用包装', '医薬品', 'サンプルパック'],
-    applicationsJa: ['一回用包装', '医薬品', 'サンプルパック']
-  },
-
-  // 1-2. Valve (バルブ)
-  {
-    id: 'valve-yes',
-    name: 'バルブあり',
-    nameJa: 'バルブあり',
-    description: 'ガス排出バルブ機能',
-    descriptionJa: 'ガス排出バルブ機能',
-    beforeImage: '/images/post-processing/バルブなし.png',
-    afterImage: '/images/post-processing/バルブあり.png',
-    thumbnail: '/images/post-processing/バルブあり.png',
-    priceMultiplier: 1.08,
-    features: ['ガス排出', '内容物保護', '膨張防止'],
-    featuresJa: ['ガス排出', '内容物保護', '膨張防止'],
-    compatibleWith: ['stand_up', 'gusset'],
-    category: 'opening-sealing',
-    processingTime: '+3 business days',
-    processingTimeJa: '+3営業日',
-    minimumQuantity: 2000,
-    technicalNotes: 'One-way degassing valve',
-    technicalNotesJa: '一方向ガス排出バルブ',
-    benefits: ['鮮度維持', '品質保護', 'ガス蓄積防止'],
-    benefitsJa: ['鮮度維持', '品質保護', 'ガス蓄積防止'],
-    applications: ['コーヒー豆', 'ロースト製品', '発酵食品'],
-    applicationsJa: ['コーヒー豆', 'ロースト製品', '発酵食品']
-  },
-  {
-    id: 'valve-no',
-    name: 'バルブなし',
-    nameJa: 'バルブなし',
-    description: '通常構造',
-    descriptionJa: '通常構造',
-    beforeImage: '/images/post-processing/バルブなし.png',
-    afterImage: '/images/post-processing/バルブなし.png',
-    thumbnail: '/images/post-processing/バルブなし.png',
-    priceMultiplier: 1.00,
-    features: ['標準構造', 'コスト効率'],
-    featuresJa: ['標準構造', 'コスト効率'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
-    category: 'opening-sealing',
-    processingTime: 'Standard production time',
-    processingTimeJa: '標準生産時間',
-    minimumQuantity: 500,
-    technicalNotes: 'Standard pouch structure',
-    technicalNotesJa: '標準パウチ構造',
-    benefits: ['コスト効率', '生産の簡素化'],
-    benefitsJa: ['コスト効率', '生産の簡素さ'],
-    applications: ['一般的な食品', '非食品製品'],
-    applicationsJa: ['一般食品', '非食品製品']
-  },
 
   // 1-3. Notch (ノッチ)
   {
@@ -168,10 +177,10 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/3.ノッチなし.png',
     afterImage: '/images/post-processing/3.ノッチあり.png',
     thumbnail: '/images/post-processing/3.ノッチあり.png',
-    priceMultiplier: 1.03,
+    priceMultiplier: 1.0,
     features: ['簡単な開封', '道具不要', '綺麗な切断'],
     featuresJa: ['簡単な開封', '道具不要', 'きれいな切断'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'opening-sealing',
     processingTime: '+1 business day',
     processingTimeJa: '+1営業日',
@@ -195,7 +204,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.00,
     features: ['綺麗なデザイン', '標準仕上げ'],
     featuresJa: ['クリーンなデザイン', '標準仕上げ'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'opening-sealing',
     processingTime: 'Standard production time',
     processingTimeJa: '標準生産時間',
@@ -205,7 +214,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefits: ['コスト効率', '生産スピード'],
     benefitsJa: ['コスト効率', '生産スピード'],
     applications: ['産業用包装', '標準製品'],
-    applicationsJa: ['産業包装', '標準製品']
+    applicationsJa: ['産業包装', '標準製品'],
+    isDefault: true  // デフォルト値
   },
 
   // 1-4. Tear Notch (ティアノッチ)
@@ -221,7 +231,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.04,
     features: ['強化された切断', '一定の開封経路', '綺麗な仕上げ'],
     featuresJa: ['強化された切断', '一定な開封経路', 'きれいな仕上げ'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'opening-sealing',
     processingTime: '+1 business day',
     processingTimeJa: '+1営業日',
@@ -247,7 +257,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.15,
     features: ['簡単な開封', '再密閉可能', '高級ジッパー'],
     featuresJa: ['手軽な開封', '再密閉可能', '高級ジッパー'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'opening-sealing',
     processingTime: '+3 business days',
     processingTimeJa: '+3営業日',
@@ -274,10 +284,10 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/2.マット.png',
     afterImage: '/images/post-processing/2.光沢.png',
     thumbnail: '/images/post-processing/2.光沢.png',
-    priceMultiplier: 1.06,
+    priceMultiplier: 1.0, // デフォルト（追加費用なし）
     features: ['光沢効果', '高級感', '視覚的的魅力'],
     featuresJa: ['光沢効果', '高級感', '視覚的魅力'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'surface-treatment',
     processingTime: '+1-2 business days',
     processingTimeJa: '+1-2営業日',
@@ -287,7 +297,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefits: ['製品外観向上', 'ブランドイメージ強化'],
     benefitsJa: ['製品外観向上', 'ブランドイメージ強化'],
     applications: ['プレミアム製品', '化粧品'],
-    applicationsJa: ['プレミアム製品', '化粧品']
+    applicationsJa: ['プレミアム製品', '化粧品'],
+    isDefault: true  // デフォルト値
   },
 
   // 2-2. Matte (マット)
@@ -300,10 +311,10 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/2.光沢.png',
     afterImage: '/images/post-processing/2.マット.png',
     thumbnail: '/images/post-processing/2.マット.png',
-    priceMultiplier: 1.04,
+    priceMultiplier: 1.0, // 固定（追加費用なし）
     features: ['무광 효과', '부드러운 질감', '글레어 방지'],
     featuresJa: ['マット効果', '滑らかな手触り', '指紋防止'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'surface-treatment',
     processingTime: '+1-2 business days',
     processingTimeJa: '+1-2営業日',
@@ -329,7 +340,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.08,
     features: ['내스크래치', '광택 유지', '내구성'],
     featuresJa: ['耐スクラッチ', '光沢維持', '耐久性'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'surface-treatment',
     processingTime: '+2-3 business days',
     processingTimeJa: '+2-3営業日',
@@ -355,7 +366,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.12,
     features: ['부드러운 촉감', '고급 느낌', '지문 방지'],
     featuresJa: ['柔らかい手触り', '高級感', '指紋防止'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'surface-treatment',
     processingTime: '+2-3 business days',
     processingTimeJa: '+2-3営業日',
@@ -381,7 +392,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.15,
     features: ['금속 광택', '시선 끌기', '프리미엄 느낌'],
     featuresJa: ['金属光沢', '視線を惹く', 'プレミアム感'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'surface-treatment',
     processingTime: '+3-4 business days',
     processingTimeJa: '+3-4営業日',
@@ -408,10 +419,10 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/4.걸이타공 없음.png',
     afterImage: '/images/post-processing/4.걸이타공 있음.png',
     thumbnail: '/images/post-processing/4.걸이타공 있음.png',
-    priceMultiplier: 1.04,
+    priceMultiplier: 1.0,
     features: ['6mm 걸이타공', '소매 전시용', '공간 효율'],
     featuresJa: ['6mm吊り穴', '小売表示', '省スペース'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'shape-structure',
     processingTime: '+1 business day',
     processingTimeJa: '+1営業日',
@@ -452,7 +463,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/4.걸이타공 없음.png',
     afterImage: '/images/post-processing/4.걸이타공 있음.png',
     thumbnail: '/images/post-processing/4.걸이타공 있음.png',
-    priceMultiplier: 1.05,
+    priceMultiplier: 1.0,
     features: ['8mm 걸이타공', '대형 제품용', '내구성'],
     featuresJa: ['8mm吊り穴', '大型製品用', '耐久性'],
     compatibleWith: ['stand_up', 'flat_3_side', 'heavy_duty'],
@@ -479,7 +490,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.00,
     features: ['깨끗한 표면', '다목적 사용'],
     featuresJa: ['クリーンな表面', '多目的使用'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'shape-structure',
     processingTime: 'Standard production time',
     processingTimeJa: '標準生産時間',
@@ -489,7 +500,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefits: ['디자인 자유도', '비용 절감'],
     benefitsJa: ['デザイン自由度', 'コスト削減'],
     applications: ['一般的な包装', '直接包装'],
-    applicationsJa: ['一般包装', '直接パッケージング']
+    applicationsJa: ['一般包装', '直接パッケージング'],
+    isDefault: true  // デフォルト値
   },
 
   // 3-2. Corner Round (角丸)
@@ -502,7 +514,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/5.角直角.png',
     afterImage: '/images/post-processing/5.角丸.png',
     thumbnail: '/images/post-processing/5.角丸.png',
-    priceMultiplier: 1.05,
+    priceMultiplier: 1.0,
     features: ['安全な取り扱い', '柔らかい感触', '怪我の防止'],
     featuresJa: ['安全な取り扱い', '滑らかな手触り', '手に安全'],
     compatibleWith: ['stand_up', 'flat_3_side', 'soft_pouch'],
@@ -529,7 +541,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.00,
     features: ['伝統的なデザイン', '最大限の空間活用'],
     featuresJa: ['伝統的な外観', '最大スペース'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'shape-structure',
     processingTime: 'Standard production time',
     processingTimeJa: '標準生産時間',
@@ -539,7 +551,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefits: ['空間効率', 'コスト削減'],
     benefitsJa: ['スペース効率', 'コスト節約'],
     applications: ['産業用製品', '標準包装'],
-    applicationsJa: ['産業製品', '標準包装']
+    applicationsJa: ['産業製品', '標準包装'],
+    isDefault: true  // デフォルト値
   },
 
   // 3-3. Gusset (ガゼット)
@@ -555,7 +568,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.08,
     features: ['容量増加', '安定した構造', '自立可能'],
     featuresJa: ['容量増加', '安定した構造', '自立可能'],
-    compatibleWith: ['flat_3_side', 'box'],
+    compatibleWith: ['flat_3_side', 'box', 'gassho'],
     category: 'shape-structure',
     processingTime: '+2-3 business days',
     processingTimeJa: '+2-3営業日',
@@ -581,7 +594,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.07,
     features: ['内容物確認', '視覚的マーケティング', '購入促進'],
     featuresJa: ['内容物確認', '視覚的マーケティング', '購買誘導'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'shape-structure',
     processingTime: '+2 business days',
     processingTimeJa: '+2営業日',
@@ -611,7 +624,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.10,
     features: ['湿気遮断', '製品保護', '賞味期限延長'],
     featuresJa: ['湿気遮断', '製品保護', '賞味期限延長'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'functionality',
     processingTime: '+2-3 business days',
     processingTimeJa: '+2-3営業日',
@@ -637,7 +650,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.06,
     features: ['セキュリティ機能', '偽造防止', '消費者信頼'],
     featuresJa: ['保安機能', '偽造防止', '消費者信頼'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'functionality',
     processingTime: '+2 business days',
     processingTimeJa: '+2営業日',
@@ -663,7 +676,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.12,
     features: ['酸素遮断', '酸化防止', '品質維持'],
     featuresJa: ['酸素遮断', '酸化防止', '品質維持'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'functionality',
     processingTime: '+3-4 business days',
     processingTimeJa: '+3-4営業日',
@@ -689,7 +702,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.05,
     features: ['帯電防止効果', 'ほこり付着防止', '製品保護'],
     featuresJa: ['帯電防止効果', 'ほこり付着防止', '製品保護'],
-    compatibleWith: ['flat_3_side', 'gusset'],
+    compatibleWith: ['flat_3_side', 'gusset', 'gassho'],
     category: 'functionality',
     processingTime: '+1-2 business days',
     processingTimeJa: '+1-2営業日',
@@ -715,7 +728,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.15,
     features: ['어린이 보호', '특수 개봉', '안전성'],
     featuresJa: ['子供保護', '特別な開封', '安全性'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gassho'],
     category: 'functionality',
     processingTime: '+3-4 business days',
     processingTimeJa: '+3-4営業日',
@@ -730,7 +743,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
 
   // Opening Position Options
   {
-    id: 'opening-top',
+    id: 'top-open',
     name: '上端開封',
     nameJa: '上端開封',
     description: '上部からの簡単な開封',
@@ -738,10 +751,10 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/6.하단 오픈.png',
     afterImage: '/images/post-processing/6.상단 오픈.png',
     thumbnail: '/images/post-processing/6.상단 오픈.png',
-    priceMultiplier: 1.02,
+    priceMultiplier: 1.0,
     features: ['상단 개봉', '편리한 사용', '내용물 보호'],
     featuresJa: ['上端開封', '便利な使用', '内容物保護'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'gassho'],
     category: 'opening-sealing',
     processingTime: '+1 business day',
     processingTimeJa: '+1営業日',
@@ -754,7 +767,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     applicationsJa: ['一般製品', '食品']
   },
   {
-    id: 'opening-bottom',
+    id: 'bottom-open',
     name: '下端開封',
     nameJa: '下端開封',
     description: '下部からの完全な開封',
@@ -762,7 +775,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     beforeImage: '/images/post-processing/6.상단 오픈.png',
     afterImage: '/images/post-processing/6.하단 오픈.png',
     thumbnail: '/images/post-processing/6.하단 오픈.png',
-    priceMultiplier: 1.03,
+    priceMultiplier: 1.0,
     features: ['하단 개봉', '완전 배출', '폐기물 최소화'],
     featuresJa: ['下端開封', '完全な空にする', '廃棄物最小化'],
     compatibleWith: ['stand_up', 'gusset', 'soft_pouch'],
@@ -874,3 +887,54 @@ export const getProcessingCategories = [
     descriptionJa: '追加機能性'
   }
 ] as const
+
+/**
+ * カテゴリ別のデフォルト値を取得
+ * 各カテゴリでisDefault: trueが設定されているオプションを返す
+ */
+export const getDefaultPostProcessingOptions = (): string[] => {
+  const categories: ProcessingOptionConfig['category'][] = [
+    'opening-sealing',
+    'surface-treatment',
+    'shape-structure'
+    // 'functionality' はデフォルトで選択しない（オプション）
+  ];
+
+  const defaults: string[] = [];
+
+  for (const category of categories) {
+    const defaultOption = processingOptionsConfig.find(
+      option => option.category === category && option.isDefault === true
+    );
+    if (defaultOption) {
+      defaults.push(defaultOption.id);
+    }
+  }
+
+  return defaults;
+};
+
+/**
+ * カテゴリ別に1つのみ選択可能かチェック
+ * 同じカテゴリで複数選択されている場合はfalseを返す
+ */
+export const validateCategorySelection = (
+  selectedOptions: string[],
+  selectedOptionId: string
+): { valid: boolean; conflictingOption?: string } => {
+  const newOption = processingOptionsConfig.find(opt => opt.id === selectedOptionId);
+  if (!newOption) return { valid: true };
+
+  // 同じカテゴリで選択されている他のオプションをチェック
+  const conflictingOption = selectedOptions.find(optionId => {
+    if (optionId === selectedOptionId) return false;
+    const existingOption = processingOptionsConfig.find(opt => opt.id === optionId);
+    return existingOption?.category === newOption.category;
+  });
+
+  if (conflictingOption) {
+    return { valid: false, conflictingOption };
+  }
+
+  return { valid: true };
+};

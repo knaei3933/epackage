@@ -16,6 +16,11 @@ import {
   type PostProcessingValidationError
 } from '@/components/quote/postProcessingLimits';
 import type { ProcessingOptionConfig } from '@/components/quote/processingConfig';
+import {
+  processingOptionsConfig,
+  getDefaultPostProcessingOptions,
+  validateCategorySelection
+} from '@/components/quote/processingConfig';
 
 // Quote state interface
 export interface QuoteState {
@@ -32,6 +37,8 @@ export interface QuoteState {
   postProcessingLimit: PostProcessingLimitState;
   postProcessingValidationError?: PostProcessingValidationError;
   thicknessSelection?: string;
+  // Internal flag to force recalculation when post-processing options change
+  _forceRecalculate?: boolean;
   printingType?: 'digital' | 'gravure';
   printingColors?: number;
   doubleSided?: boolean;
@@ -51,9 +58,13 @@ export interface QuoteState {
   // SKU-related fields (新增: SKU別原価計算対応)
   skuCount: number;               // Number of SKUs (1-100)
   skuQuantities: number[];        // Quantity for each SKU [500, 500] for 2 SKUs
-  skuNames?: string[];            // Optional design names for each SKU
   quantityMode: 'single' | 'sku'; // Single quantity vs SKU-specific mode
   useSKUCalculation: boolean;     // Enable SKU-based cost calculation
+  // 2列生産オプション適用情報 (オプション適用後の価格を保持)
+  twoColumnOptionApplied?: 'same' | 'double' | null;
+  discountedUnitPrice?: number;   // オプション適用後の単価
+  discountedTotalPrice?: number;  // オプション適用後の合計価格
+  originalUnitPrice?: number;     // オプション適用前の元の単価
 }
 
 // Action types
@@ -77,43 +88,75 @@ type QuoteAction =
   | { type: 'SET_SKU_COUNT'; payload: number }
   | { type: 'SET_SKU_QUANTITIES'; payload: number[] }
   | { type: 'UPDATE_SKU_QUANTITY'; payload: { index: number; value: number } }
-  | { type: 'UPDATE_SKU_NAME'; payload: { index: number; name: string } }
   | { type: 'SET_QUANTITY_MODE'; payload: 'single' | 'sku' }
-  | { type: 'TOGGLE_SKU_CALCULATION'; payload: boolean };
+  | { type: 'TOGGLE_SKU_CALCULATION'; payload: boolean }
+  // 新規: 推奨機能関連
+  | { type: 'CLEAR_RECOMMENDATION_CACHE' }
+  | { type: 'APPLY_TWO_COLUMN_OPTION'; payload: { optionType: 'same' | 'double'; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number } }
+  | { type: 'APPLY_SKU_SPLIT'; payload: { skuCount: number; quantities: number[] } }
+  | { type: 'CLEAR_APPLIED_OPTION' }; // 옵션 적용 상태를 클리어
 
-// Helper function to get default film layers based on material ID
-// Default LLDPE thickness is 90μm (standard selection)
-function getDefaultFilmLayers(materialId: string): Array<{ materialId: string; thickness: number }> {
-  const layerMap: Record<string, Array<{ materialId: string; thickness: number }>> = {
-    'pet_al': [
+// Helper function to get default film layers based on material ID and thickness selection
+// LLDPE thickness varies based on thicknessSelection: light=50, medium=70, standard=90, heavy=100, ultra=110
+function getDefaultFilmLayers(materialId: string, thicknessSelection: string = 'standard'): Array<{ materialId: string; thickness: number }> {
+  // LLDPE base thickness for each thickness selection - 50, 70, 90, 100, 110μm
+  const lldpeBaseThickness: Record<string, number> = {
+    'light': 50,
+    'medium': 70,
+    'standard': 90,
+    'heavy': 100,
+    'ultra': 110
+  };
+
+  const lldpeThickness = lldpeBaseThickness[thicknessSelection] ?? 90;
+
+  const layerMap: Record<string, (lldpe: number) => Array<{ materialId: string; thickness: number }>> = {
+    'pet_al': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
       { materialId: 'AL', thickness: 7 },
       { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: 90 }
+      { materialId: 'LLDPE', thickness: lldpe }
     ],
-    'pet_ny': [
+    'pet_vmpet': (lldpe: number) => [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'VMPET', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: lldpe }
+    ],
+    'pet_ny': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
       { materialId: 'NY', thickness: 15 },
       { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: 90 }
+      { materialId: 'LLDPE', thickness: lldpe }
     ],
-    'kp_pe': [
+    'pet_ny_al': (lldpe: number) => [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'NY', thickness: 16 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'LLDPE', thickness: lldpe }
+    ],
+    'pet_ldpe': (lldpe: number) => [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: lldpe }
+    ],
+    'kp_pe': () => [
       { materialId: 'KP', thickness: 12 },
       { materialId: 'PE', thickness: 60 }
     ],
-    'pet': [
+    'pet': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: 90 }
+      { materialId: 'LLDPE', thickness: lldpe }
     ],
-    'pet_al_pet': [
+    'pet_al_pet': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
       { materialId: 'AL', thickness: 7 },
       { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: 90 }
+      { materialId: 'LLDPE', thickness: lldpe }
     ]
   };
 
-  return layerMap[materialId] || layerMap['pet_al']; // Default to pet_al
+  const layersFn = layerMap[materialId] || layerMap['pet_al'];
+  return layersFn(lldpeThickness);
 }
 
 // Initial state
@@ -126,7 +169,7 @@ const initialState: QuoteState = {
   quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
   quantity: 500,
   isUVPrinting: false,
-  postProcessingOptions: [],
+  postProcessingOptions: getDefaultPostProcessingOptions(), // デフォルト値を適用
   postProcessingMultiplier: 1.0,
   postProcessingLimit: {
     selectedItems: [],
@@ -145,11 +188,10 @@ const initialState: QuoteState = {
   distributedQuantities: undefined,
   editableQuantities: undefined,
   materialWidth: determineMaterialWidth(200), // 幅200mmに基づいて動的に決定（590mm）
-  filmLayers: getDefaultFilmLayers('pet_al'), // Default film layers
+  filmLayers: getDefaultFilmLayers('pet_al', 'medium'), // Default film layers with medium thickness (70μ)
   // SKU-related fields (新增: SKU別原価計算対応)
   skuCount: 1,
-  skuQuantities: [500],
-  skuNames: [],
+  skuQuantities: [0], // デフォルトは数量未入力
   quantityMode: 'single',
   useSKUCalculation: false
 };
@@ -161,6 +203,49 @@ console.log('[QuoteContext] initialState created:', {
   filmLayersCount: initialState.filmLayers?.length
 });
 
+/**
+ * 後加工オプション配列から乗数を計算
+ * processingConfig.tsのpriceMultiplierを使用
+ *
+ * 注意: glossyとmatteは価格乘数ではなく追加費用として計算されるため除外
+ * - 表面処理費用 = フィルム幅 × 単価 × 長さ
+ */
+function calculatePostProcessingMultiplier(options: string[]): number {
+  console.log('[calculatePostProcessingMultiplier] Input options:', options);
+
+  if (!options || options.length === 0) {
+    console.log('[calculatePostProcessingMultiplier] No options, returning 1.0');
+    return 1.0
+  }
+
+  // 価格乘数計算から除外するオプション（追加費用として計算されるもの）
+  const EXCLUDED_FROM_MULTIPLIER = ['glossy', 'matte'];
+
+  let multiplier = 1.0
+  const details: Array<{ id: string; name: string; priceMultiplier: number }> = []
+
+  for (const optionId of options) {
+    // glossyとmatteは乘数計算から除外
+    if (EXCLUDED_FROM_MULTIPLIER.includes(optionId)) {
+      console.log(`[calculatePostProcessingMultiplier] ${optionId} excluded from multiplier (calculated as additional cost)`);
+      continue;
+    }
+
+    const option = processingOptionsConfig.find(opt => opt.id === optionId)
+    if (option) {
+      const before = multiplier
+      multiplier *= option.priceMultiplier
+      details.push({ id: option.id, name: option.name, priceMultiplier: option.priceMultiplier })
+      console.log(`[calculatePostProcessingMultiplier] ${option.id} (${option.name}): ${option.priceMultiplier}, ${before} * ${option.priceMultiplier} = ${multiplier}`)
+    } else {
+      console.warn(`[calculatePostProcessingMultiplier] Option not found: ${optionId}`)
+    }
+  }
+
+  console.log('[calculatePostProcessingMultiplier] Final multiplier:', multiplier, 'Details:', details);
+  return multiplier
+}
+
 // Reducer function
 function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
   switch (action.type) {
@@ -170,10 +255,12 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       const newWidth = action.payload.width ?? state.width;
       const widthChanged = newWidth !== state.width;
       const newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
+      const newThicknessSelection = action.payload.thicknessSelection ?? state.thicknessSelection;
+      const thicknessSelectionChanged = newThicknessSelection !== state.thicknessSelection;
 
-      // 幅変更またはbagTypeId変更時に原反幅を再計算
+      // 幅変更またはbagTypeId変更時に原反幅を再計算（ただし幅が有効な場合のみ）
       let newMaterialWidth = state.materialWidth;
-      if (widthChanged || (newBagTypeId !== state.bagTypeId && newBagTypeId === 'roll_film')) {
+      if ((widthChanged && newWidth >= 70) || (newBagTypeId !== state.bagTypeId && newBagTypeId === 'roll_film' && newWidth >= 70)) {
         newMaterialWidth = determineMaterialWidth(newWidth);
       }
 
@@ -184,11 +271,11 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         width: newWidth,
         height: action.payload.height ?? state.height,
         depth: action.payload.depth ?? state.depth,
-        thicknessSelection: action.payload.thicknessSelection ?? state.thicknessSelection,
+        thicknessSelection: newThicknessSelection,
         materialWidth: newMaterialWidth,
-        // Update filmLayers when materialId changes
-        ...(materialIdChanged ? {
-          filmLayers: getDefaultFilmLayers(newMaterialId)
+        // Update filmLayers when materialId or thicknessSelection changes
+        ...(materialIdChanged || thicknessSelectionChanged ? {
+          filmLayers: getDefaultFilmLayers(newMaterialId, newThicknessSelection)
         } : {})
       };
 
@@ -221,16 +308,32 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
 
     case 'SET_POST_PROCESSING':
       const newOptions = action.payload.options;
+      console.log('[SET_POST_PROCESSING] Action received. payload.options:', newOptions, 'payload.multiplier:', action.payload.multiplier);
       const updatedLimitState = {
         selectedItems: newOptions,
         isAtLimit: isSelectionLimitReached(newOptions.length),
         remainingSlots: calculateRemainingSlots(newOptions.length)
       };
+      // 自動的に乗数を計算（payload.multiplierは無視）
+      const calculatedMultiplier = calculatePostProcessingMultiplier(newOptions);
+      console.log('[SET_POST_PROCESSING] Calculated multiplier:', calculatedMultiplier, '(ignoring payload.multiplier:', action.payload.multiplier, ')');
+
+      // 後工程オプション変更時に結果を無効化して再計算を強制
+      // これにより、結果ページに移動する際に新しいオプションで計算される
+      const currentMultiplier = state.postProcessingMultiplier || 1;
+      const multiplierChanged = calculatedMultiplier !== currentMultiplier;
+
+      // オプション配列が変更されたか確認（マット仕上げ変更時の再計算対応）
+      const optionsChanged = JSON.stringify(newOptions.sort()) !== JSON.stringify(state.postProcessingOptions?.sort() ?? []);
+
       return {
         ...state,
         postProcessingOptions: newOptions,
-        postProcessingMultiplier: action.payload.multiplier,
-        postProcessingLimit: updatedLimitState
+        postProcessingMultiplier: calculatedMultiplier,
+        postProcessingLimit: updatedLimitState,
+        // 後工程変更時にフラグを設定（ ImprovedQuotingWizardで結果をクリアするために使用）
+        // オプション配列が変更されたら常に再計算を強制（マット/光沢変更対応）
+        _forceRecalculate: multiplierChanged || optionsChanged
       };
 
     case 'ADD_POST_PROCESSING_OPTION':
@@ -242,18 +345,47 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         return state;
       }
 
-      // Validate selection - only use proper validation if allOptions has correct structure
-      const isValidProcessingOptionsArray = allOptions.length > 0 &&
-        'name' in allOptions[0] && 'nameJa' in allOptions[0];
+      // カテゴリ別に1つのみ選択可能
+      const validation = validateCategorySelection(currentOptions, optionId);
+      if (!validation.valid && validation.conflictingOption) {
+        // 同じカテゴリの既存オプションを置き換え
+        const updatedOptions = currentOptions.filter(opt => opt !== validation.conflictingOption);
+        const finalOptions = [...updatedOptions, optionId];
 
-      const validation = isValidProcessingOptionsArray
-        ? validatePostProcessingSelection(currentOptions, optionId, allOptions as unknown as ProcessingOptionConfig[])
-        : { isValid: currentOptions.length < MAX_POST_PROCESSING_ITEMS };
+        const newLimitState = {
+          selectedItems: finalOptions,
+          isAtLimit: isSelectionLimitReached(finalOptions.length),
+          remainingSlots: calculateRemainingSlots(finalOptions.length),
+          lastSelectedItem: optionId
+        };
 
-      if (!validation.isValid && validation.error) {
+        console.log('[ADD_POST_PROCESSING_OPTION] Category conflict resolved, replaced:', validation.conflictingOption, 'with:', optionId);
+
+        // 自動的に乗数を再計算
+        const newMultiplier = calculatePostProcessingMultiplier(finalOptions);
+
         return {
           ...state,
-          postProcessingValidationError: validation.error
+          postProcessingOptions: finalOptions,
+          postProcessingMultiplier: newMultiplier,
+          postProcessingLimit: newLimitState,
+          _forceRecalculate: true
+        };
+      }
+
+      // Check limit (basic check - category exclusion is handled in pre-validation)
+      if (currentOptions.length >= MAX_POST_PROCESSING_ITEMS) {
+        return {
+          ...state,
+          postProcessingValidationError: {
+            type: 'limit_exceeded',
+            message: `Maximum ${MAX_POST_PROCESSING_ITEMS} post-processing options allowed.`,
+            messageJa: `後加工オプションは最大${MAX_POST_PROCESSING_ITEMS}個までです。`,
+            suggestedAction: 'Remove an existing option to add a new one',
+            suggestedActionJa: '既存のオプションを削除して新しいオプションを追加してください',
+            itemsToRemove: [],
+            itemsToAdd: [optionId]
+          }
         };
       }
 
@@ -266,11 +398,19 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         lastSelectedItem: optionId
       };
 
+      console.log('[ADD_POST_PROCESSING_OPTION] Adding option, updatedOptions:', updatedOptions);
+
+      // 自動的に乗数を再計算
+      const newMultiplier = calculatePostProcessingMultiplier(updatedOptions);
+
       return {
         ...state,
         postProcessingOptions: updatedOptions,
+        postProcessingMultiplier: newMultiplier,
         postProcessingLimit: newLimitState,
-        postProcessingValidationError: undefined
+        postProcessingValidationError: undefined,
+        // オプション追加時に再計算を強制
+        _forceRecalculate: true
       };
 
     case 'REMOVE_POST_PROCESSING_OPTION':
@@ -282,11 +422,17 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         remainingSlots: calculateRemainingSlots(optionsAfterRemoval.length)
       };
 
+      // 自動的に乗数を再計算
+      const newMultiplierAfterRemoval = calculatePostProcessingMultiplier(optionsAfterRemoval);
+
       return {
         ...state,
         postProcessingOptions: optionsAfterRemoval,
+        postProcessingMultiplier: newMultiplierAfterRemoval,
         postProcessingLimit: limitAfterRemoval,
-        postProcessingValidationError: undefined
+        postProcessingValidationError: undefined,
+        // オプション削除時に再計算を強制
+        _forceRecalculate: true
       };
 
     case 'REPLACE_POST_PROCESSING_OPTION':
@@ -301,11 +447,23 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         lastSelectedItem: newOptionId
       };
 
+      // 自動的に乗数を再計算
+      const newMultiplierAfterReplacement = calculatePostProcessingMultiplier(optionsAfterReplacement);
+
       return {
         ...state,
         postProcessingOptions: optionsAfterReplacement,
+        postProcessingMultiplier: newMultiplierAfterReplacement,
         postProcessingLimit: limitAfterReplacement,
-        postProcessingValidationError: undefined
+        postProcessingValidationError: undefined,
+        // オプション置換時に再計算を強制（光沢↔マット変更対応）
+        _forceRecalculate: true
+      };
+
+    case 'SET_POST_PROCESSING_VALIDATION_ERROR':
+      return {
+        ...state,
+        postProcessingValidationError: action.payload
       };
 
     case 'CLEAR_POST_PROCESSING_VALIDATION_ERROR':
@@ -322,9 +480,25 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
 
     case 'UPDATE_FIELD':
+      // 基本仕様を変更した場合は結果をクリアして再計算を強制
+      const fieldsThatRequireRecalculation = [
+        'bagTypeId',
+        'materialId',
+        'width',
+        'height',
+        'depth',
+        'thicknessSelection',
+        'materialWidth',
+        'filmLayers'
+      ];
+
+      const shouldRecalculate = fieldsThatRequireRecalculation.includes(action.payload.field);
+
       return {
         ...state,
-        [action.payload.field]: action.payload.value
+        [action.payload.field]: action.payload.value,
+        // 基本仕様を変更した場合は再計算を強制
+        _forceRecalculate: shouldRecalculate
       };
 
     case 'RESET_QUOTE':
@@ -463,27 +637,64 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
     }
 
-    case 'UPDATE_SKU_NAME': {
-      const { index, name } = action.payload;
-      const currentNames = state.skuNames || [];
-      // Ensure array is long enough for the index
-      const newSkuNames = [...currentNames];
-      while (newSkuNames.length <= index) {
-        newSkuNames.push(''); // Fill with empty string
-      }
-      newSkuNames[index] = name;
-      console.log('[UPDATE_SKU_NAME] Updated SKU names:', newSkuNames);
-      return {
-        ...state,
-        skuNames: newSkuNames
-      };
-    }
-
     case 'SET_QUANTITY_MODE': {
       return {
         ...state,
         quantityMode: action.payload,
         useSKUCalculation: action.payload === 'sku'
+      };
+    }
+
+    case 'CLEAR_RECOMMENDATION_CACHE': {
+      // 推奨キャッシュクリア
+      return {
+        ...state,
+        _forceRecalculate: true
+      };
+    }
+
+    case 'APPLY_TWO_COLUMN_OPTION': {
+      // 2列生産オプション適用
+      const { optionType, unitPrice, totalPrice, originalUnitPrice, quantity } = action.payload;
+      console.log('[APPLY_TWO_COLUMN_OPTION] Applied option:', action.payload);
+      return {
+        ...state,
+        twoColumnOptionApplied: optionType,
+        discountedUnitPrice: unitPrice,
+        discountedTotalPrice: totalPrice,
+        originalUnitPrice: originalUnitPrice,
+        unitPrice: unitPrice, // 単価も更新
+        quantity: quantity, // 数量も更新
+        skuCount: 1, // 2列生産は単一SKU
+        skuQuantities: [quantity], // 数量を配列に設定
+        quantityMode: 'sku',
+        _forceRecalculate: false // 再計算しない
+      };
+    }
+
+    case 'CLEAR_APPLIED_OPTION': {
+      // オプション適用状態をクリア（元の単価に戻す）
+      console.log('[CLEAR_APPLIED_OPTION] Clearing applied option');
+      return {
+        ...state,
+        twoColumnOptionApplied: null,
+        discountedUnitPrice: undefined,
+        discountedTotalPrice: undefined,
+        originalUnitPrice: undefined,
+        _forceRecalculate: true // 再計算を強制
+      };
+    }
+
+    case 'APPLY_SKU_SPLIT': {
+      // SKU分割適用
+      const { skuCount, quantities } = action.payload;
+      console.log('[APPLY_SKU_SPLIT] Applying SKU split:', { skuCount, quantities });
+      return {
+        ...state,
+        skuCount,
+        skuQuantities: quantities,
+        quantityMode: 'sku',
+        _forceRecalculate: true
       };
     }
 
@@ -501,7 +712,7 @@ interface QuoteContextType {
   updateDelivery: (location: 'domestic' | 'international', urgency: 'standard' | 'express') => void;
   updateField: (field: keyof QuoteState, value: any) => void;
   resetQuote: () => void;
-  addPostProcessingOption: (optionId: string, allOptions?: Array<{ id: string; category: string; compatibility?: string[]; priority: number; impact: number }>) => boolean;
+  addPostProcessingOption: (optionId: string, allOptions?: ProcessingOptionConfig[], currentOptions?: string[]) => boolean;
   removePostProcessingOption: (optionId: string) => void;
   replacePostProcessingOption: (oldOptionId: string, newOptionId: string) => void;
   clearPostProcessingValidationError: () => void;
@@ -509,39 +720,89 @@ interface QuoteContextType {
   setSKUCount: (count: number) => void;
   setSKUQuantities: (quantities: number[]) => void;
   updateSKUQuantity: (index: number, value: number) => void;
-  updateSKUName: (index: number, name: string) => void;
   setQuantityMode: (mode: 'single' | 'sku') => void;
   toggleSKUCalculation: (enabled: boolean) => void;
+  // 新規: 推奨機能関連
+  clearRecommendationCache: () => void;
+  applyTwoColumnOption: (optionType: 'same' | 'double', unitPrice: number, totalPrice: number, originalUnitPrice: number, quantity: number) => void;
+  applySKUSplit: (skuCount: number, quantities: number[]) => void;
+  clearAppliedOption: () => void; // オプション適用をクリア
 }
 
 // Helper functions that need state access - accept state as parameter
 export function checkStepComplete(state: QuoteState, step: string): boolean {
   switch (step) {
     case 'specs':
-      const hasBasicSpecs = !!(state.bagTypeId && state.materialId && state.width > 0);
-      // roll_film doesn't require height input
+      // Size requirement: width >= 70mm, height between 70-355mm
+      const hasValidWidth = state.width >= 70;
       const requiresHeight = state.bagTypeId !== 'roll_film';
-      const hasHeight = !requiresHeight || state.height > 0;
+      const hasValidHeight = !requiresHeight || (state.height >= 70 && state.height <= 355);
+      const hasBasicSpecs = !!(state.bagTypeId && state.materialId && hasValidWidth);
       const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
       const requiresThickness = materialsWithThickness.includes(state.materialId);
       const hasThickness = !!state.thicknessSelection;
-      return hasBasicSpecs && hasHeight && (!requiresThickness || hasThickness);
+      return hasBasicSpecs && hasValidHeight && (!requiresThickness || hasThickness);
     case 'sku-selection':
       // SKU selection is complete if at least one SKU has valid quantity
       return state.skuQuantities.length > 0 && state.skuQuantities.every(qty => qty >= 100);
     case 'sku-quantity':
       // Unified SKU & Quantity step - check based on mode
+      console.log('[checkStepComplete] sku-quantity step check:', {
+        quantityMode: state.quantityMode,
+        skuCount: state.skuCount,
+        skuQuantities: state.skuQuantities,
+        quantity: state.quantity
+      });
       if (state.quantityMode === 'sku') {
         // SKU mode: all SKUs must have valid quantities
-        return state.skuCount > 0 &&
+        const isValid = state.skuCount > 0 &&
                state.skuQuantities.length === state.skuCount &&
                state.skuQuantities.every(qty => qty >= 100);
+        console.log('[checkStepComplete] sku-quantity SKU mode valid:', isValid);
+        return isValid;
       }
       // Single quantity mode
-      return state.quantity >= 100;
+      const singleValid = state.quantity >= 100;
+      console.log('[checkStepComplete] sku-quantity single mode valid:', singleValid);
+      return singleValid;
     case 'quantity':
       return state.quantity >= 100;
     case 'post-processing':
+      // 後加工はすべてのグループから1つずつ選択必須
+      // 各グループの定義
+      const postProcessingGroups = {
+        zipper: ['zipper-yes', 'zipper-no'],
+        finish: ['glossy', 'matte'],
+        notch: ['notch-yes', 'notch-no'],
+        'hang-hole': ['hang-hole-6mm', 'hang-hole-8mm', 'hang-hole-no'],
+        corner: ['corner-round', 'corner-square'],
+        valve: ['valve-yes', 'valve-no'],
+        opening: ['top-open', 'bottom-open']
+      };
+
+      // 各グループから選択されているオプションをチェック
+      const selectedCount = Object.entries(postProcessingGroups).reduce((count, [groupName, options]) => {
+        const hasSelection = options.some(opt => state.postProcessingOptions?.includes(opt));
+        return hasSelection ? count + 1 : count;
+      }, 0);
+
+      // すべてのグループ（7つ）から選択されている必要
+      const requiredGroups = Object.keys(postProcessingGroups).length;
+      if (selectedCount < requiredGroups) {
+        return false;
+      }
+
+      // バルブが選択されている場合、数量チェック
+      if (state.postProcessingOptions.includes('valve-yes')) {
+        // SKUモードの場合
+        if (state.quantityMode === 'sku' && state.skuQuantities.length > 0) {
+          const totalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
+          return totalQuantity >= 40000;
+        }
+        // 単一数量モードの場合
+        return state.quantity >= 40000;
+      }
+
       return true;
     case 'delivery':
       return !!(state.deliveryLocation && state.urgency);
@@ -560,7 +821,13 @@ export function getPostProcessingLimitStatusForState(state: QuoteState): PostPro
 }
 
 export function canAddPostProcessingOptionForState(state: QuoteState): boolean {
-  return !isSelectionLimitReached(state.postProcessingOptions.length);
+  const canAdd = !isSelectionLimitReached(state.postProcessingOptions.length);
+  console.log('[canAddPostProcessingOptionForState] Called:', {
+    currentCount: state.postProcessingOptions.length,
+    isAtLimit: isSelectionLimitReached(state.postProcessingOptions.length),
+    canAdd
+  });
+  return canAdd;
 }
 
 /**
@@ -815,13 +1082,46 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
   // 5-item limit helper functions
   const addPostProcessingOption = useCallback((
     optionId: string,
-    allOptions?: Array<{ id: string; category: string; compatibility?: string[]; priority: number; impact: number }>
+    allOptions?: ProcessingOptionConfig[],
+    currentOptions?: string[]
   ): boolean => {
+    console.log('[addPostProcessingOption] Called with:', {
+      optionId,
+      hasAllOptions: !!allOptions,
+      allOptionsCount: allOptions?.length,
+      hasCurrentOptions: !!currentOptions,
+      currentOptionsCount: currentOptions?.length,
+      currentOptions: currentOptions
+    });
+
+    // Pre-validate before dispatching (for immediate UI feedback)
+    if (currentOptions && allOptions) {
+      console.log('[addPostProcessingOption] Both params provided, calling validatePostProcessingSelection');
+      const validation = validatePostProcessingSelection(currentOptions, optionId, allOptions);
+      console.log('[addPostProcessingOption] Validation result:', validation);
+      if (!validation.isValid) {
+        // Set validation error without adding the option
+        console.log('[addPostProcessingOption] Validation failed, dispatching error:', validation.error);
+        dispatch({
+          type: 'SET_POST_PROCESSING_VALIDATION_ERROR',
+          payload: validation.error
+        });
+        return false;
+      }
+      console.log('[addPostProcessingOption] Validation passed');
+    } else {
+      console.log('[addPostProcessingOption] Skipping validation - missing params:', {
+        hasCurrentOptions: !!currentOptions,
+        hasAllOptions: !!allOptions
+      });
+    }
+
+    console.log('[addPostProcessingOption] Dispatching ADD_POST_PROCESSING_OPTION');
     dispatch({
       type: 'ADD_POST_PROCESSING_OPTION',
       payload: { optionId, allOptions }
     });
-    return true; // Simplified - validation happens in reducer
+    return true;
   }, []);
 
   const removePostProcessingOption = useCallback((optionId: string) => {
@@ -889,18 +1189,34 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     });
   }, []);
 
-  const updateSKUName = useCallback((index: number, name: string) => {
-    dispatch({
-      type: 'UPDATE_SKU_NAME',
-      payload: { index, name }
-    });
-  }, []);
-
   const setQuantityMode = useCallback((mode: 'single' | 'sku') => {
     dispatch({
       type: 'SET_QUANTITY_MODE',
       payload: mode
     });
+  }, []);
+
+  // 新規: 推奨機能関連ヘルパー関数
+  const clearRecommendationCache = useCallback(() => {
+    dispatch({ type: 'CLEAR_RECOMMENDATION_CACHE' });
+  }, []);
+
+  const applyTwoColumnOption = useCallback((optionType: 'same' | 'double', unitPrice: number, totalPrice: number, originalUnitPrice: number, quantity: number) => {
+    dispatch({
+      type: 'APPLY_TWO_COLUMN_OPTION',
+      payload: { optionType, unitPrice, totalPrice, originalUnitPrice, quantity }
+    });
+  }, []);
+
+  const applySKUSplit = useCallback((skuCount: number, quantities: number[]) => {
+    dispatch({
+      type: 'APPLY_SKU_SPLIT',
+      payload: { skuCount, quantities }
+    });
+  }, []);
+
+  const clearAppliedOption = useCallback(() => {
+    dispatch({ type: 'CLEAR_APPLIED_OPTION' });
   }, []);
 
   // Memoize the context value with ONLY functions - never changes
@@ -919,9 +1235,11 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     setSKUCount,
     setSKUQuantities,
     updateSKUQuantity,
-    updateSKUName,
     setQuantityMode,
-    toggleSKUCalculation
+    toggleSKUCalculation,
+    applyTwoColumnOption,
+    applySKUSplit,
+    clearAppliedOption
   }), []); // Empty dependency array - these functions NEVER change
 
   return (
