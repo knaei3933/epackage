@@ -21,6 +21,7 @@ import {
   getDefaultPostProcessingOptions,
   validateCategorySelection
 } from '@/components/quote/processingConfig';
+import { getAvailableGussetSizes, getDefaultGussetSize } from '@/lib/gusset-data';
 
 // Quote state interface
 export interface QuoteState {
@@ -264,13 +265,40 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         newMaterialWidth = determineMaterialWidth(newWidth);
       }
 
+      // 스탠드파ウチ/박스パウチ/合掌型に変更時、マチ（depth）を自動設定
+      let newDepth = action.payload.depth ?? state.depth;
+      const bagTypeIdChanged = newBagTypeId !== state.bagTypeId;
+      const needsGusset = ['stand_up', 'gusset', 'box', 't_shape', 'm_shape', 'gassho'].includes(newBagTypeId);
+
+      if (bagTypeIdChanged && needsGusset) {
+        // マッチが必要なタイプで、現在のdepthが0またはundefinedの場合
+        if (!state.depth || state.depth === 0) {
+          // 幅に基づいてデフォルトマッチサイズを取得
+          if (newWidth >= 70) {
+            newDepth = getDefaultGussetSize(newWidth);
+          } else {
+            newDepth = 30; // デフォルト
+          }
+        }
+      } else if (bagTypeIdChanged && newBagTypeId === 'flat_3_side') {
+        // 平袋に変更時はdepthを0に設定
+        newDepth = 0;
+      } else if (widthChanged && needsGusset && newWidth >= 70) {
+        // マッチが必要なタイプで幅が変更された場合、現在のdepthが新しい幅のオプションに含まれていないか確認
+        const currentGusset = state.depth || 0;
+        const availableGussets = getAvailableGussetSizes(newWidth);
+        if (availableGussets.length > 0 && !availableGussets.includes(currentGusset)) {
+          newDepth = getDefaultGussetSize(newWidth);
+        }
+      }
+
       return {
         ...state,
         bagTypeId: newBagTypeId,
         materialId: newMaterialId,
         width: newWidth,
         height: action.payload.height ?? state.height,
-        depth: action.payload.depth ?? state.depth,
+        depth: newDepth,
         thicknessSelection: newThicknessSelection,
         materialWidth: newMaterialWidth,
         // Update filmLayers when materialId or thicknessSelection changes
