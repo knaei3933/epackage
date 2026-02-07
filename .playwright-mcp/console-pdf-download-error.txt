@@ -1,0 +1,9 @@
+Total messages: 45 (Errors: 3, Warnings: 0)
+Returning 3 messages for level "error"
+
+[ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://localhost:3008/api/supabase-mcp/execute:0
+[ERROR] [executeSql] Error: Error: Dangerous SQL keyword not allowed: CREATE
+    at executeSql (http://localhost:3008/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_e68034d9._.js:172:19)
+    at async handleDownload (http://localhost:3008/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_e68034d9._.js:1453:28) @ http://localhost:3008/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127
+[ERROR] PDF generation error: Error: 注文データの取得に失敗しました: Dangerous SQL keyword not allowed: CREATE
+    at handleDownload (http://localhost:3008/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_e68034d9._.js:1455:23) @ http://localhost:3008/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127

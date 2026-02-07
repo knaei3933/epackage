@@ -82,7 +82,11 @@ export function useQuoteCalculation(options: QuoteCalculationOptions = {}) {
   const calculateSingleQuote = useCallback(async (
     quantity: number
   ): Promise<UnifiedQuoteResult> => {
-    return unifiedPricingEngine.calculateQuote({
+    // デバッグ: postProcessingMultiplierの値を確認
+    console.log('[useQuoteCalculation] state.postProcessingMultiplier:', state.postProcessingMultiplier)
+    console.log('[useQuoteCalculation] state.postProcessingOptions:', state.postProcessingOptions)
+
+    const params = {
       bagTypeId: state.bagTypeId,
       materialId: state.materialId,
       width: state.width,
@@ -92,12 +96,17 @@ export function useQuoteCalculation(options: QuoteCalculationOptions = {}) {
       thicknessSelection: state.thicknessSelection,
       isUVPrinting: state.isUVPrinting,
       postProcessingOptions: state.postProcessingOptions,
+      postProcessingMultiplier: state.postProcessingMultiplier, // QuoteContextで計算されたマルチプライヤを使用
       printingType: state.printingType,
       printingColors: state.printingColors,
       doubleSided: state.doubleSided,
       deliveryLocation: state.deliveryLocation,
       urgency: state.urgency
-    });
+    }
+
+    console.log('[useQuoteCalculation] params passed to calculateQuote:', params.postProcessingMultiplier)
+
+    return unifiedPricingEngine.calculateQuote(params);
   }, [
     state.bagTypeId,
     state.materialId,
@@ -107,6 +116,7 @@ export function useQuoteCalculation(options: QuoteCalculationOptions = {}) {
     state.thicknessSelection,
     state.isUVPrinting,
     state.postProcessingOptions,
+    state.postProcessingMultiplier, // 依存関係に追加
     state.printingType,
     state.printingColors,
     state.doubleSided,

@@ -7,8 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Database } from '@/types/database';
 import { Resend } from 'resend';
 import { z } from 'zod';
@@ -162,12 +161,8 @@ export async function POST(request: NextRequest) {
     const body: InviteRequestBody = await request.json();
     const validatedData = inviteSchema.parse(body);
 
-    // Initialize Supabase client with Member pattern
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // DEV_MODE support
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Initialize Supabase client with SSR pattern
+    const { client: supabase } = createSupabaseSSRClient(request);
 
     // Get current user
     const {
@@ -333,12 +328,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Initialize Supabase client with Member pattern
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // DEV_MODE support
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Initialize Supabase client with SSR pattern
+    const { client: supabase } = createSupabaseSSRClient(request);
 
     // Get current user
     const {

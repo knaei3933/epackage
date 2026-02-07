@@ -14,8 +14,9 @@ export async function generateStaticParams() {
 }
 
 // Generate metadata for each product
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const product = mockProducts.find(p => p.id === params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const product = mockProducts.find(p => p.id === slug)
 
   if (!product) {
     return {
@@ -44,8 +45,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product = mockProducts.find(p => p.id === params.slug)
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const product = mockProducts.find(p => p.id === slug)
 
   if (!product) {
     notFound()

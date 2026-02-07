@@ -2,7 +2,6 @@
  * Type Guard Utilities
  *
  * TypeScriptタイプ安全性を向上させるためのタイプガード関数群
- * @ts-ignore を削除し、安全なコードを実現
  *
  * @module lib/type-guards
  */

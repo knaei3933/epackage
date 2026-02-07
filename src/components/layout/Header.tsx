@@ -1,13 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Menu, X, Globe, ChevronDown } from 'lucide-react'
-import { useLanguage, useTranslation } from '@/contexts/LanguageContext'
+import { Menu, X, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { languageNames, supportedLanguages, type Language } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
@@ -26,92 +24,50 @@ interface NavigationItem {
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const router = useRouter()
-  const { language, setLanguage } = useLanguage()
   const { isAuthenticated, isLoading } = useAuth()
-  const { tn } = useTranslation()
 
   // Prevent hydration issues by setting mounted state
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // Navigation structure with children - consistent rendering
-  const getNavigationItems = (): NavigationItem[] => {
-    if (language === 'ja') {
-      return [
-        {
-          label: 'ホーム',
-          href: '/',
-          description: 'Epackage Labトップページ'
-        },
-        {
-          label: '製品カタログ',
-          href: '/catalog',
-          description: 'パウチ製品一覧'
-        },
-        {
-          label: 'サービス',
-          href: '/service',
-          description: '包装ソリューション',
-          children: [
-            { label: '製造工程', href: '/flow' },
-            { label: '印刷技術', href: '/print' },
-            { label: '品質管理', href: '/guide' },
-          ]
-        },
-        {
-          label: '導入事例',
-          href: '/archives',
-          description: '成功事例と実績'
-        },
-        {
-          label: 'お見積り',
-          href: '/quote-simulator',
-          description: 'AI即時見積もり・ご相談'
-        },
+  // Navigation structure with children - consistent rendering (Japanese only)
+  const navigationItems: NavigationItem[] = [
+    {
+      label: 'ホーム',
+      href: '/',
+      description: 'Epackage Labトップページ'
+    },
+    {
+      label: '製品カタログ',
+      href: '/catalog',
+      description: 'パウチ製品一覧'
+    },
+    {
+      label: 'サービス',
+      href: '/service',
+      description: '包装ソリューション',
+      children: [
+        { label: '製造工程', href: '/flow' },
+        { label: '印刷技術', href: '/print' },
+        { label: '品質管理', href: '/guide' },
       ]
-    } else {
-      return [
-        {
-          label: 'Home',
-          href: '/',
-          description: 'Epackage Lab homepage'
-        },
-        {
-          label: 'Products',
-          href: '/catalog',
-          description: 'Product catalog'
-        },
-        {
-          label: 'Services',
-          href: '/service',
-          description: 'Packaging services',
-          children: [
-            { label: 'Manufacturing', href: '/flow' },
-            { label: 'Printing', href: '/print' },
-            { label: 'Quality Guide', href: '/guide' },
-          ]
-        },
-        {
-          label: 'Case Studies',
-          href: '/archives',
-          description: 'Success stories'
-        },
-        {
-          label: 'Quote',
-          href: '/quote-simulator',
-          description: 'AI Instant Quote & Consultation'
-        },
-      ]
-    }
-  }
-
-  const navigationItems = useMemo(() => getNavigationItems(), [language])
+    },
+    {
+      label: '導入事例',
+      href: '/archives',
+      description: '成功事例と実績'
+    },
+    {
+      label: 'お見積り',
+      href: '/quote-simulator',
+      description: 'AI即時見積もり・ご相談'
+    },
+  ]
 
   // Helper function to generate unique keys
   const generateKey = (href: string, label: string, index: number, parentIndex?: string): string => {
@@ -123,9 +79,6 @@ export function Header() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      if (!target.closest('[data-language-menu]') && !target.closest('[data-language-button]')) {
-        setIsLanguageMenuOpen(false)
-      }
       if (!target.closest('[data-dropdown]')) {
         setDropdownOpen(null)
       }
@@ -139,7 +92,6 @@ export function Header() {
   const handleDropdownToggle = (label: string) => {
     if (!isMounted) return
     setDropdownOpen(dropdownOpen === label ? null : label)
-    setIsLanguageMenuOpen(false)
   }
 
   // Close mobile menu on escape key
@@ -154,12 +106,6 @@ export function Header() {
     return () => document.removeEventListener('keydown', handleEscape)
   }, [isMenuOpen])
 
-  const handleLanguageChange = (newLanguage: Language) => {
-    setLanguage(newLanguage)
-    setIsLanguageMenuOpen(false)
-    setIsMenuOpen(false) // Close mobile menu after language change
-  }
-
   const handleQuoteClick = (e: React.MouseEvent) => {
     e.preventDefault()
     if (!isAuthenticated) {
@@ -171,7 +117,6 @@ export function Header() {
 
   const toggleMobileMenu = () => {
     setIsMenuOpen(!isMenuOpen)
-    setIsLanguageMenuOpen(false) // Close language menu when opening mobile menu
   }
 
   return (
@@ -245,7 +190,7 @@ export function Header() {
                 </button>
               ) : (
                 // Simple link or quote link with auth check
-                item.label === 'お見積り' || item.label === 'Quote' ? (
+                item.label === 'お見積り' ? (
                   <button
                     onClick={handleQuoteClick}
                     className={cn(
@@ -325,56 +270,6 @@ export function Header() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
-          {/* Language Selector */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-              className="flex items-center space-x-2 text-text-secondary hover:text-text-primary"
-              aria-label={`${tn('header', 'languageSelect')}: ${languageNames[language]}`}
-              aria-expanded={isLanguageMenuOpen}
-              aria-haspopup="listbox"
-              data-language-button
-            >
-              <Globe className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs font-medium" suppressHydrationWarning={true}>
-                {languageNames[language]}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "h-3 w-3 transition-transform duration-200",
-                  isLanguageMenuOpen && "rotate-180"
-                )}
-              />
-            </Button>
-
-            {isLanguageMenuOpen && (
-              <div
-                className="absolute right-0 mt-2 w-48 rounded-lg bg-bg-primary border border-border-medium shadow-lg overflow-hidden"
-                role="listbox"
-                data-language-menu
-              >
-                {supportedLanguages.map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => handleLanguageChange(lang)}
-                    className={cn(
-                      "w-full px-4 py-2 text-left text-sm transition-colors hover:bg-bg-secondary focus:outline-none focus:bg-bg-secondary",
-                      language === lang
-                        ? "text-brixa-600 bg-bg-secondary font-medium"
-                        : "text-text-secondary"
-                    )}
-                    role="option"
-                    aria-selected={language === lang}
-                  >
-                    {languageNames[lang]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Auth UI - Desktop */}
           {isMounted && !isLoading && (
             <div className="hidden md:flex items-center space-x-2">
@@ -405,7 +300,7 @@ export function Header() {
                 size="sm"
                 className="font-medium"
               >
-                {tn('header', 'cta')}
+                お問い合わせ
               </Button>
             </Link>
           </div>
@@ -416,7 +311,7 @@ export function Header() {
             size="sm"
             onClick={toggleMobileMenu}
             className="lg:hidden flex items-center justify-center w-12 h-12 text-text-secondary hover:text-text-primary"
-            aria-label={isMenuOpen ? tn('header', 'closeMenu') : tn('header', 'mobileMenu')}
+            aria-label={isMenuOpen ? 'メニューを閉じる' : 'メニューを開く'}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation"
           >
@@ -527,7 +422,7 @@ export function Header() {
                   </div>
                 ) : (
                   // Simple mobile link or quote link with auth check
-                  item.label === 'お見積り' || item.label === 'Quote' ? (
+                  item.label === 'お見積り' ? (
                     <button
                       onClick={(e) => {
                         e.preventDefault()
@@ -620,9 +515,9 @@ export function Header() {
                   variant="ghost"
                   fullWidth
                   className="justify-center font-medium"
-                  aria-label="Get a quote - mobile CTA"
+                  aria-label="お問い合わせ - mobile CTA"
                 >
-                  {tn('header', 'cta')}
+                  お問い合わせ
                 </Button>
               </Link>
             </div>

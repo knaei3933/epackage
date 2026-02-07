@@ -253,6 +253,7 @@ export default function ContactForm() {
                 <input
                   type="text"
                   {...register('company')}
+                  data-testid="contact-company-name"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                   placeholder="株式会社サンプル"
                 />
@@ -270,6 +271,7 @@ export default function ContactForm() {
                 <input
                   type="tel"
                   {...register('phone')}
+                  data-testid="contact-phone-number"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                   placeholder="03-1234-5678"
                 />
@@ -287,6 +289,7 @@ export default function ContactForm() {
                 <input
                   type="tel"
                   {...register('fax')}
+                  data-testid="contact-fax-number"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                   placeholder="03-1234-5678"
                 />
@@ -304,6 +307,7 @@ export default function ContactForm() {
                 <input
                   type="email"
                   {...register('email')}
+                  data-testid="contact-email-address"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                   placeholder="example@company.com"
                 />
@@ -320,6 +324,7 @@ export default function ContactForm() {
                 <input
                   type="text"
                   {...register('postalCode')}
+                  data-testid="contact-postal-code"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                   placeholder="100-0001"
                 />
@@ -336,6 +341,7 @@ export default function ContactForm() {
                 <input
                   type="text"
                   {...register('address')}
+                  data-testid="contact-address"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
                   placeholder="東京都〇〇区〇〇1-2-3"
                 />
@@ -386,6 +392,7 @@ export default function ContactForm() {
             </label>
             <textarea
               {...register('message')}
+              data-testid="contact-message"
               rows={6}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent resize-none text-base"
               placeholder="お客様のパウチ包装に関するご要望やご質問をお聞かせください。&#10;&#10;例：&#10;・包装する製品の種類&#10;・月産数量やロットサイズ&#10;・希望の仕様や機能&#10;・予算や納期についてなど"

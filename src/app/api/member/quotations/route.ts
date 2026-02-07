@@ -30,6 +30,7 @@ interface QuotationItem {
   product_name: string;
   quantity: number;
   unit_price: number;
+  totalPrice?: number; // Optional: pre-calculated total from simulator (to avoid rounding errors)
   category?: string | null;
   specifications?: Record<string, unknown> | null;
   notes?: string | null;
@@ -71,24 +72,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 /**
  * Helper: Get authenticated user from middleware headers
  *
- * IMPORTANT: The middleware already authenticates the user and sets headers.
- * This function simply extracts the user ID from the headers.
- *
- * Do NOT call supabase.auth.getUser() in API routes - it causes redirect loops.
+ * IMPORTANT: Get x-user-id from middleware.
+ * The middleware handles authentication and sets the header.
  */
 async function getAuthenticatedUser(request: NextRequest) {
-  // Use x-user-id header from middleware (already authenticated)
+  // Get x-user-id header from middleware (already authenticated)
   const userId = request.headers.get('x-user-id');
 
-  if (!userId) {
-    console.error('[Quotations API] No x-user-id header found');
-    return null;
+  if (userId) {
+    console.log('[Quotations API] Using x-user-id from middleware:', userId);
+    return { userId, user: { id: userId } };
   }
 
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
-  console.log('[Quotations API] Using x-user-id from middleware:', userId, '(DEV_MODE:', isDevMode + ')');
-
-  return { userId, user: { id: userId } };
+  console.error('[Quotations API] No authentication found');
+  return null;
 }
 
 /**
@@ -178,16 +175,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calculate totals
-    const subtotalAmount = body.items.reduce(
-      (sum, item) => sum + (item.quantity * item.unit_price),
-      0
-    );
-    const taxAmount = subtotalAmount * 0.1; // 10% Japanese consumption tax
-    const totalAmount = subtotalAmount + taxAmount;
+    // Calculate totals with 100-yen rounding
+    // IMPORTANT: Use totalPrice if available (already calculated by frontend), otherwise calculate from unit_price
+    // Calculate from totalPrice for accurate pricing
+    const totalFromItems = body.items.reduce((sum, item) => {
+      // Use totalPrice if available (already calculated by quote simulator), otherwise calculate from unit_price * quantity
+      const itemTotal = (item as any).totalPrice !== undefined
+        ? (item as any).totalPrice
+        : (item.quantity * item.unit_price);
+      return sum + itemTotal;
+    }, 0);
 
-    // Determine status
-    const status = body.status ? body.status.toUpperCase() : 'DRAFT';
+    // Apply 100-yen ceiling rounding (反り上げ) as user requested
+    const roundedSubtotalAmount = Math.ceil(totalFromItems / 100) * 100;
+    const taxAmount = roundedSubtotalAmount * 0.1; // 10% Japanese consumption tax
+    const roundedTaxAmount = Math.ceil(taxAmount);
+    const totalAmount = Math.ceil((roundedSubtotalAmount + roundedTaxAmount) / 100) * 100;
+
+    console.log('[Quotation API] Price calculation:', {
+      totalFromItems,
+      roundedSubtotal: roundedSubtotalAmount,
+      rawTax: taxAmount,
+      roundedTax: roundedTaxAmount,
+      totalAmount,
+    });
+
+    // Determine status - use new 10-step workflow statuses (UPPERCASE)
+    // Default to QUOTATION_PENDING for new quotations (step 1: 検討承認待ち)
+    const status = body.status ? body.status.toUpperCase() : 'QUOTATION_PENDING';
 
     // Insert quotation
     const { data: quotation, error: quotationError } = await serviceClient
@@ -198,18 +213,23 @@ export async function POST(request: NextRequest) {
         customer_name: body.customer_name,
         customer_email: body.customer_email,
         customer_phone: body.customer_phone || null,
-        subtotal_amount: subtotalAmount,
-        tax_amount: taxAmount,
+        subtotal_amount: roundedSubtotalAmount,
+        tax_amount: roundedTaxAmount,
         total_amount: totalAmount,
         notes: body.notes || null,
         valid_until: body.valid_until || null,
         status,
+        // 【追加】見積全体の原価内訳
+        total_cost_breakdown: (body as any).total_cost_breakdown || {},
       })
       .select()
       .single();
 
     if (quotationError) {
       console.error('[Quotation API] Insert quotation error:', quotationError);
+      console.error('[Quotation API] Error details:', JSON.stringify(quotationError, null, 2));
+      console.error('[Quotation API] Request body:', JSON.stringify(body, null, 2));
+      console.error('[Quotation API] User ID:', userId);
       return NextResponse.json(
         {
           error: '見積の作成に失敗しました。',
@@ -221,16 +241,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert quotation items
-    const itemsToInsert = body.items.map((item, index) => ({
+    // Note: total_price is a generated column, cannot insert manually
+    // Insert quotation items
+    // IMPORTANT: unit_price should preserve decimal precision for accurate total_price calculation
+    // total_price is a generated column (unit_price * quantity), so unit_price must be exact
+    const itemsToInsert = body.items.map((item) => ({
       quotation_id: quotation.id,
       product_id: item.product_id || null,
       product_name: item.product_name,
-      category: item.category || null,
       quantity: item.quantity,
+      // unit_priceは小数点以下を保持（total_priceは生成列で自動計算されるため）
       unit_price: item.unit_price,
       specifications: item.specifications || null,
-      notes: item.notes || null,
-      display_order: index,
+      // 【追加】アイテム別原価内訳
+      cost_breakdown: (item as any).cost_breakdown || {},
     }));
 
     const { data: items, error: itemsError } = await serviceClient
@@ -240,6 +264,8 @@ export async function POST(request: NextRequest) {
 
     if (itemsError) {
       console.error('[Quotation API] Insert items error:', itemsError);
+      console.error('[Quotation API] Items error details:', JSON.stringify(itemsError, null, 2));
+      console.error('[Quotation API] Items to insert:', JSON.stringify(itemsToInsert, null, 2));
       // Rollback: delete quotation if items insertion fails
       await serviceClient.from('quotations').delete().eq('id', quotation.id);
 
@@ -278,10 +304,10 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         quotation: response,
-        message: status === 'SENT'
+        message: status === 'QUOTATION_PENDING'
           ? '見積依頼を受け付けました。'
           : '見積を作成しました。',
-        messageEn: status === 'SENT'
+        messageEn: status === 'QUOTATION_PENDING'
           ? 'Quotation request submitted.'
           : 'Quotation created successfully.',
       },
@@ -337,38 +363,78 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    // ✅ N+1 Query Fix: Use RPC function to fetch all data in single query
-    // This reduces queries significantly for better performance
-    const { data: quotations, error } = await serviceClient.rpc('get_quotations_with_relations', {
-      p_user_id: userId,
-      p_limit: limit,
-      p_offset: offset,
-      p_status: status?.toUpperCase() || null
-    });
+    // ✅ RPC関数を使わずに標準クエリを使用
+    // 基本クエリを構築
+    let query = serviceClient
+      .from('quotations')
+      .select(`
+        id,
+        quotation_number,
+        status,
+        customer_name,
+        customer_email,
+        subtotal_amount,
+        tax_amount,
+        total_amount,
+        valid_until,
+        notes,
+        created_at,
+        updated_at
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Get total count separately (still efficient with composite index)
+    // ステータスフィルターを適用 - check both lowercase and uppercase status
+    if (status) {
+      query = query.or(`status.eq.${status.toLowerCase()},status.eq.${status.toUpperCase()}`);
+    }
+
+    const { data: quotations, error } = await query;
+
+    if (error) {
+      console.error('[Quotation API] Fetch quotations error:', error);
+      return NextResponse.json(
+        {
+          error: '見積リストの読み込み中にエラーが発生しました。',
+          errorEn: 'Failed to fetch quotations',
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    // 各見積のアイテムを取得
+    const quotationsWithItems = await Promise.all(
+      (quotations || []).map(async (quotation: any) => {
+        const { data: items } = await serviceClient
+          .from('quotation_items')
+          .select('*')
+          .eq('quotation_id', quotation.id)
+          .order('display_order', { ascending: true });
+
+        return {
+          ...quotation,
+          items: items || [],
+        };
+      })
+    );
+
+    // 総数を取得
     let countQuery = serviceClient
       .from('quotations')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
     if (status) {
-      countQuery = countQuery.eq('status', status.toUpperCase());
+      countQuery = countQuery.or(`status.eq.${status.toLowerCase()},status.eq.${status.toUpperCase()}`);
     }
 
     const { count } = await countQuery;
 
-    if (error) {
-      console.error('Error fetching quotations:', error);
-      return NextResponse.json(
-        { error: '見積リストの読み込み中にエラーが発生しました。' },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
-      quotations: quotations || [],
+      quotations: quotationsWithItems || [],
       pagination: {
         limit,
         offset,

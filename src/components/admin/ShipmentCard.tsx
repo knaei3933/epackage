@@ -16,11 +16,65 @@ import {
 } from '@/types/shipment';
 import { cn } from '@/lib/utils';
 
+// キャリアコードを正規化（大文字→小文字、enumにマッピング）
+function normalizeCarrierCode(code: string): CarrierType {
+  const upperCode = code.toUpperCase();
+  switch (upperCode) {
+    case 'YAMATO':
+      return CarrierType.YAMATO;
+    case 'SAGAWA':
+      return CarrierType.SAGAWA;
+    case 'JP_POST':
+    case 'JPPOST':
+      return CarrierType.JP_POST;
+    case 'SEINO':
+      return CarrierType.SEINO;
+    default:
+      return CarrierType.YAMATO; // デフォルト
+  }
+}
+
+// キャリア名を取得（安全にハンドリング）
+function getCarrierName(carrierCode: string): { ja: string; en: string } {
+  try {
+    const normalized = normalizeCarrierCode(carrierCode);
+    return CARRIER_NAMES[normalized];
+  } catch {
+    return { ja: carrierCode || '配送業者', en: carrierCode || 'Carrier' };
+  }
+}
+
+// ステータス名を取得（安全にハンドリング）
+function getStatusName(status: string): { ja: string; en: string } {
+  try {
+    const statusKey = status.toUpperCase() as keyof typeof SHIPMENT_STATUS_NAMES;
+    if (SHIPMENT_STATUS_NAMES[statusKey]) {
+      return SHIPMENT_STATUS_NAMES[statusKey];
+    }
+  } catch {
+    // エラーを無視
+  }
+  // デフォルトのステータス名マッピング
+  const defaultStatusNames: Record<string, { ja: string; en: string }> = {
+    pending: { ja: '待機中', en: 'Pending' },
+    picked_up: { ja: '引渡済み', en: 'Picked Up' },
+    in_transit: { ja: '輸送中', en: 'In Transit' },
+    out_for_delivery: { ja: '配達中', en: 'Out for Delivery' },
+    delivered: { ja: '配達完了', en: 'Delivered' },
+    failed: { ja: '配達失敗', en: 'Failed' },
+    returned: { ja: '返品', en: 'Returned' },
+  };
+  return defaultStatusNames[status] || { ja: status, en: status };
+}
+
 interface ShipmentCardProps {
   shipment: Shipment & {
     order_number?: string;
     customer_name?: string;
-    recent_tracking?: any[];
+    customer_email?: string;
+    customer_phone?: string;
+    delivery_address?: any;  // API에서 반환하는 배송지 주소
+    recent_tracking?: any;
   };
   onRefreshTracking?: (id: string) => Promise<void>;
   onViewDetails?: (id: string) => void;
@@ -64,8 +118,8 @@ export function ShipmentCard({
           <Package className="w-4 h-4 text-blue-600" />
           <span className="font-semibold">{shipment.shipment_number}</span>
         </div>
-        <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusColors[shipment.status])}>
-          {SHIPMENT_STATUS_NAMES[shipment.status].ja}
+        <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusColors[shipment.status as ShipmentStatus])}>
+          {getStatusName(shipment.status).ja}
         </span>
       </div>
 
@@ -79,7 +133,7 @@ export function ShipmentCard({
           </div>
           <div>
             <span className="text-gray-600">お客様名</span>
-            <p className="font-medium mt-1">{shipment.customer_name || shipment.shipping_address?.name}</p>
+            <p className="font-medium mt-1">{shipment.customer_name || '-'}</p>
           </div>
         </div>
 
@@ -90,7 +144,7 @@ export function ShipmentCard({
               <Truck className="w-4 h-4 text-gray-600" />
               <span className="text-gray-600">配送業者</span>
             </div>
-            <span className="font-medium">{CARRIER_NAMES[shipment.carrier].ja}</span>
+            <span className="font-medium">{getCarrierName(shipment.carrier_code || shipment.carrier_name || 'yamato').ja}</span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -99,10 +153,10 @@ export function ShipmentCard({
               <span className="text-gray-600">追跡番号</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium font-mono">{shipment.tracking_number || '未発行'}</span>
-              {shipment.tracking_number && (
+              <span className="font-medium font-mono text-sm">{shipment.tracking_number || '未発行'}</span>
+              {shipment.tracking_number && shipment.tracking_url && (
                 <a
-                  href={`https://www.kuronekoyamato.co.jp/tracking/?js=xs&ng=1&number01=${shipment.tracking_number}`}
+                  href={shipment.tracking_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800"
@@ -114,11 +168,11 @@ export function ShipmentCard({
           </div>
 
           {/* Latest Tracking Event */}
-          {shipment.recent_tracking && shipment.recent_tracking.length > 0 && (
+          {shipment.recent_tracking && (
             <div className="text-xs text-gray-600 pt-2 border-t border-gray-200">
               <p className="font-medium">最新情報</p>
-              <p>{shipment.recent_tracking[0].description_ja}</p>
-              <p className="text-gray-500">{formatDate(shipment.recent_tracking[0].event_time)}</p>
+              <p>{shipment.recent_tracking.status_description || shipment.recent_tracking.description_ja || '-'}</p>
+              <p className="text-gray-500">{formatDate(shipment.recent_tracking.event_at || shipment.recent_tracking.created_at)}</p>
             </div>
           )}
         </div>
@@ -130,14 +184,14 @@ export function ShipmentCard({
               <Clock className="w-3 h-3" />
               <span>集荷予定</span>
             </div>
-            <p className="mt-1 text-xs">{formatDate(shipment.pickup_scheduled_for)}</p>
+            <p className="mt-1 text-xs">{formatDate(shipment.shipped_at)}</p>
           </div>
           <div>
             <div className="flex items-center gap-1 text-gray-600">
               <Clock className="w-3 h-3" />
               <span>配達予定</span>
             </div>
-            <p className="mt-1 text-xs">{formatDate(shipment.estimated_delivery)}</p>
+            <p className="mt-1 text-xs">{formatDate(shipment.estimated_delivery_date)}</p>
           </div>
         </div>
 
@@ -145,9 +199,14 @@ export function ShipmentCard({
         <div className="text-sm">
           <span className="text-gray-600">配送先</span>
           <p className="mt-1 text-xs">
-            {shipment.shipping_address?.prefecture} {shipment.shipping_address?.city}{' '}
-            {shipment.shipping_address?.address}
+            〒{shipment.delivery_address?.postal_code || '-'}
+            {shipment.delivery_address?.prefecture} {shipment.delivery_address?.city}{' '}
+            {shipment.delivery_address?.address}
+            {shipment.delivery_address?.building && ` ${shipment.delivery_address.building}`}
           </p>
+          {shipment.delivery_address?.name && (
+            <p className="text-xs text-gray-600 mt-1">{shipment.delivery_address.name}</p>
+          )}
         </div>
       </div>
 

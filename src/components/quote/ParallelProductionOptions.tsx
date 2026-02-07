@@ -4,7 +4,6 @@ import React from 'react'
 import { CheckCircle2, Circle, TrendingDown, Zap } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { motion } from 'framer-motion'
-
 /**
  * 並列生産オプション表示用インターフェース
  */

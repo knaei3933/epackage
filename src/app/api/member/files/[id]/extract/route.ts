@@ -169,41 +169,31 @@ export async function POST(
       },
     });
 
-    // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
+    // Get authenticated user ID
     let userId: string;
 
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Files Extract] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
+    // Try to get user from middleware header first (more reliable)
+    const userIdFromMiddleware = request.headers.get('x-user-id');
+    const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
+
+    if (userIdFromMiddleware && isFromMiddleware) {
+      userId = userIdFromMiddleware;
+      console.log('[Files Extract] Using user ID from middleware:', userId);
     } else {
-      // Normal auth: Use cookie-based auth
-      // Try to get user from middleware header first (more reliable)
-      const userIdFromMiddleware = request.headers.get('x-user-id');
-      const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
+      // Fallback to SSR client auth
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      if (userIdFromMiddleware && isFromMiddleware) {
-        userId = userIdFromMiddleware;
-        console.log('[Files Extract] Using user ID from middleware:', userId);
-      } else {
-        // Fallback to SSR client auth
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          return NextResponse.json(
-            { error: 'Unauthorized', code: 'UNAUTHORIZED' },
-            { status: 401 }
-          );
-        }
-        userId = user.id;
-        console.log('[Files Extract] Authenticated user:', userId);
+      if (userError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized', code: 'UNAUTHORIZED' },
+          { status: 401 }
+        );
       }
+      userId = user.id;
+      console.log('[Files Extract] Authenticated user:', userId);
     }
 
     // Get file record
@@ -396,41 +386,31 @@ export async function GET(
       },
     });
 
-    // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
+    // Get authenticated user ID
     let userId: string;
 
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Files Extract GET] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
+    // Try to get user from middleware header first (more reliable)
+    const userIdFromMiddleware = request.headers.get('x-user-id');
+    const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
+
+    if (userIdFromMiddleware && isFromMiddleware) {
+      userId = userIdFromMiddleware;
+      console.log('[Files Extract GET] Using user ID from middleware:', userId);
     } else {
-      // Normal auth: Use cookie-based auth
-      // Try to get user from middleware header first (more reliable)
-      const userIdFromMiddleware = request.headers.get('x-user-id');
-      const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
+      // Fallback to SSR client auth
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      if (userIdFromMiddleware && isFromMiddleware) {
-        userId = userIdFromMiddleware;
-        console.log('[Files Extract GET] Using user ID from middleware:', userId);
-      } else {
-        // Fallback to SSR client auth
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          return NextResponse.json(
-            { error: 'Unauthorized', code: 'UNAUTHORIZED' },
-            { status: 401 }
-          );
-        }
-        userId = user.id;
-        console.log('[Files Extract GET] Authenticated user:', userId);
+      if (userError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized', code: 'UNAUTHORIZED' },
+          { status: 401 }
+        );
       }
+      userId = user.id;
+      console.log('[Files Extract GET] Authenticated user:', userId);
     }
 
     // Get extraction results

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 
@@ -47,12 +47,19 @@ interface PendingUsersResponse {
 
 export async function GET(request: NextRequest) {
   try {
-    // Initialize Supabase client with Admin pattern
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // DEV_MODE support
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Initialize Supabase SSR client
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
 
     // Get current user
     const {

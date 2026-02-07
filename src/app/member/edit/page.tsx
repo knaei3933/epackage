@@ -39,11 +39,8 @@ interface UserProfile {
 }
 
 interface ProfileFormData {
-  companyName: string;
-  kanjiLastName: string;
-  kanjiFirstName: string;
-  kanaLastName: string;
-  kanaFirstName: string;
+  corporatePhone?: string;
+  personalPhone?: string;
 }
 
 interface PasswordFormData {
@@ -77,13 +74,10 @@ export default function ProfileEditPage() {
     }
   }, [user, authLoading, router]);
 
-  // プロフィールフォーム
+  // プロフィールフォーム（電話番号のみ編集可能）
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
-    companyName: '',
-    kanjiLastName: '',
-    kanjiFirstName: '',
-    kanaLastName: '',
-    kanaFirstName: '',
+    corporatePhone: '',
+    personalPhone: '',
   });
 
   // パスワードフォーム
@@ -100,38 +94,16 @@ export default function ProfileEditPage() {
   useEffect(() => {
     if (user) {
       setProfileForm({
-        companyName: user.companyName || '',
-        kanjiLastName: user.kanjiLastName || '',
-        kanjiFirstName: user.kanjiFirstName || '',
-        kanaLastName: user.kanaLastName || '',
-        kanaFirstName: user.kanaFirstName || '',
+        corporatePhone: user.corporatePhone || '',
+        personalPhone: user.personalPhone || '',
       });
     }
   }, [user]);
 
-  // プロフィールバリデーション
+  // プロフィールバリデーション（電話番号のみ）
   const validateProfile = (): boolean => {
-    const errors: Partial<Record<keyof ProfileFormData, string>> = {};
-
-    if (!profileForm.kanjiLastName.trim()) {
-      errors.kanjiLastName = '名字を入力してください';
-    }
-    if (!profileForm.kanjiFirstName.trim()) {
-      errors.kanjiFirstName = '名前を入力してください';
-    }
-    if (!profileForm.kanaLastName.trim()) {
-      errors.kanaLastName = '名字（カタカナ）を入力してください';
-    } else if (!/^[ァ-ヶー]+$/.test(profileForm.kanaLastName)) {
-      errors.kanaLastName = 'カタカナで入力してください';
-    }
-    if (!profileForm.kanaFirstName.trim()) {
-      errors.kanaFirstName = '名前（カタカナ）を入力してください';
-    } else if (!/^[ァ-ヶー]+$/.test(profileForm.kanaFirstName)) {
-      errors.kanaFirstName = 'カタカナで入力してください';
-    }
-
-    setProfileErrors(errors);
-    return Object.keys(errors).length === 0;
+    // 電話番号は必須ではないので、バリデーション不要
+    return true;
   };
 
   // パスワードバリデーション
@@ -149,7 +121,7 @@ export default function ProfileEditPage() {
     return Object.keys(errors).length === 0;
   };
 
-  // プロフィール更新
+  // プロフィール更新（電話番号のみ）
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -163,17 +135,14 @@ export default function ProfileEditPage() {
 
     try {
       await updateProfile({
-        companyName: profileForm.companyName || undefined,
-        kanjiLastName: profileForm.kanjiLastName,
-        kanjiFirstName: profileForm.kanjiFirstName,
-        kanaLastName: profileForm.kanaLastName,
-        kanaFirstName: profileForm.kanaFirstName,
+        corporatePhone: profileForm.corporatePhone || undefined,
+        personalPhone: profileForm.personalPhone || undefined,
       });
 
-      setSuccessMessage('プロフィールを更新しました');
+      setSuccessMessage('連絡先を更新しました');
     } catch (err) {
       console.error('Failed to update profile:', err);
-      setError('プロフィールの更新に失敗しました');
+      setError('連絡先の更新に失敗しました');
     } finally {
       setIsSaving(false);
     }
@@ -388,72 +357,36 @@ export default function ProfileEditPage() {
             </p>
           </div>
 
-          {/* 会社名 */}
+          {/* 連絡先（編集可能） */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">
-              会社名
-            </label>
-            <Input
-              type="text"
-              value={profileForm.companyName}
-              onChange={(e) => setProfileForm({ ...profileForm, companyName: e.target.value })}
-              placeholder="例: 株式会社〇〇"
-            />
-          </div>
-
-          {/* 漢字氏名 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">
-                名字（漢字）<span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                value={profileForm.kanjiLastName}
-                onChange={(e) => setProfileForm({ ...profileForm, kanjiLastName: e.target.value })}
-                placeholder="例: 山田"
-                error={profileErrors.kanjiLastName}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">
-                名前（漢字）<span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                value={profileForm.kanjiFirstName}
-                onChange={(e) => setProfileForm({ ...profileForm, kanjiFirstName: e.target.value })}
-                placeholder="例: 太郎"
-                error={profileErrors.kanjiFirstName}
-              />
-            </div>
-          </div>
-
-          {/* カタカナ氏名 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">
-                名字（カタカナ）<span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                value={profileForm.kanaLastName}
-                onChange={(e) => setProfileForm({ ...profileForm, kanaLastName: e.target.value })}
-                placeholder="例: ヤマダ"
-                error={profileErrors.kanaLastName}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">
-                名前（カタカナ）<span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                value={profileForm.kanaFirstName}
-                onChange={(e) => setProfileForm({ ...profileForm, kanaFirstName: e.target.value })}
-                placeholder="例: タロウ"
-                error={profileErrors.kanaFirstName}
-              />
+            <p className="text-sm font-medium text-text-primary mb-3">
+              連絡先
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1">
+                  会社電話番号
+                </label>
+                <Input
+                  type="tel"
+                  data-testid="company-phone-input"
+                  value={profileForm.corporatePhone || ''}
+                  onChange={(e) => setProfileForm({ ...profileForm, corporatePhone: e.target.value })}
+                  placeholder="例: 03-1234-5678"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1">
+                  携帯電話
+                </label>
+                <Input
+                  type="tel"
+                  data-testid="personal-phone-input"
+                  value={profileForm.personalPhone || ''}
+                  onChange={(e) => setProfileForm({ ...profileForm, personalPhone: e.target.value })}
+                  placeholder="例: 090-1234-5678"
+                />
+              </div>
             </div>
           </div>
 
@@ -479,10 +412,25 @@ export default function ProfileEditPage() {
         <form onSubmit={handlePasswordUpdate} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">
+              現在のパスワード<span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="password"
+              data-testid="current-password-input"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              placeholder="現在のパスワードを入力"
+              error={passwordErrors.currentPassword}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-1">
               新しいパスワード<span className="text-red-500">*</span>
             </label>
             <Input
               type="password"
+              data-testid="new-password-input"
               value={passwordForm.newPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
               placeholder="8文字以上"
@@ -492,10 +440,11 @@ export default function ProfileEditPage() {
 
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">
-              新しいパスワード（確認）<span className="text-red-500">*</span>
+              パスワード確認<span className="text-red-500">*</span>
             </label>
             <Input
               type="password"
+              data-testid="confirm-password-input"
               value={passwordForm.confirmPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
               placeholder="同じパスワードを入力"

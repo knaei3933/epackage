@@ -40,29 +40,17 @@ export async function GET(
       }
     );
 
-    // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Get authenticated user from session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    let userId: string;
-
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Order Detail API] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
-    } else {
-      // Normal auth: Use cookie-based auth
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
-          { status: 401 }
-        );
-      }
-      userId = user.id;
-      console.log('[Order Detail API] Authenticated user:', userId);
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
     }
+
+    const userId = user.id;
 
     const { id: orderId } = await context.params;
 
@@ -84,6 +72,29 @@ export async function GET(
           subtotal_amount,
           tax_amount,
           total_amount
+        ),
+        delivery_addresses (
+          id,
+          name,
+          postal_code,
+          prefecture,
+          city,
+          address,
+          building,
+          phone,
+          contact_person
+        ),
+        billing_addresses (
+          id,
+          company_name,
+          postal_code,
+          prefecture,
+          city,
+          address,
+          building,
+          tax_number,
+          email,
+          phone
         ),
         order_items (*)
       `)
@@ -257,28 +268,17 @@ export async function POST(
       }
     );
 
-    // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Get authenticated user from session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    let userId: string;
-
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Order Notes API] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
-    } else {
-      // Normal auth: Use cookie-based auth
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
-          { status: 401 }
-        );
-      }
-      userId = user.id;
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
     }
+
+    const userId = user.id;
 
     const { id: orderId } = await context.params;
 

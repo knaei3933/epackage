@@ -31,34 +31,20 @@ interface ConvertToOrderRequest {
 }
 
 /**
- * Helper: Get authenticated user with DEV_MODE support
+ * Helper: Get authenticated user
  */
 async function getAuthenticatedUser(request: NextRequest) {
-  // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
+  // Normal auth: Use cookie-based auth with createSupabaseSSRClient
+  const { client: supabase } = createSupabaseSSRClient(request);
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-  let userId: string;
-  let user: any;
-
-  if (isDevMode && devModeUserId) {
-    // DEV_MODE: Use header from middleware
-    console.log('[Convert to Order] DEV_MODE: Using x-user-id header:', devModeUserId);
-    userId = devModeUserId;
-    user = { id: devModeUserId, email: 'dev@example.com' };
-  } else {
-    // Normal auth: Use cookie-based auth with createSupabaseSSRClient
-    const { client: supabase } = createSupabaseSSRClient(request);
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authUser) {
-      return null;
-    }
-
-    userId = authUser.id;
-    user = authUser;
-    console.log('[Convert to Order] Authenticated user:', userId);
+  if (authError || !authUser) {
+    return null;
   }
+
+  const userId = authUser.id;
+  const user = authUser;
+  console.log('[Convert to Order] Authenticated user:', userId);
 
   return { userId, user };
 }
@@ -85,29 +71,18 @@ export async function POST(
     }
 
     const { userId, user } = authResult;
-    const { client: supabase } = createSupabaseSSRClient(request);
 
     // Parse request body
     const body: ConvertToOrderRequest = await request.json();
     const { notes, deliveryAddress } = body;
 
-    // Get quotation data with items
+    // Use normal SSR client with cookie auth
+    const { client: supabase } = createSupabaseSSRClient(request);
+
+    // Get quotation data (simple query first)
     const { data: quotation, error: quotationError } = await supabase
       .from('quotations')
-      .select(`
-        *,
-        companies (
-          id,
-          name,
-          name_kana,
-          postal_code,
-          prefecture,
-          city,
-          address,
-          building
-        ),
-        quotation_items (*)
-      `)
+      .select('*')
       .eq('id', quotationId)
       .single();
 
@@ -126,8 +101,40 @@ export async function POST(
       );
     }
 
-    // Check if quotation is approved
-    if (quotation.status !== 'APPROVED') {
+    // Use authenticated service client with audit logging
+    const supabaseAdmin = createAuthenticatedServiceClient({
+      operation: 'convert_quotation_to_order',
+      userId,
+      route: '/api/member/quotations/[id]/convert',
+    });
+
+    // Check if order already exists (check FIRST before status validation)
+    // This allows returning existing order even if quotation was already converted
+    const { data: existingOrder } = await supabaseAdmin
+      .from('orders')
+      .select('id, order_number')
+      .eq('quotation_id', quotationId)
+      .maybeSingle();
+
+    if (existingOrder) {
+      return NextResponse.json(
+        {
+          success: true,
+          data: existingOrder,
+          message: '既に注文が生成されています。',
+          alreadyExists: true,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Check if quotation is approved (only if no existing order)
+    // Support both legacy statuses (approved, APPROVED) and new workflow (QUOTATION_APPROVED)
+    const isApproved = quotation.status === 'approved' ||
+                      quotation.status === 'APPROVED' ||
+                      quotation.status === 'QUOTATION_APPROVED';
+
+    if (!isApproved) {
       return NextResponse.json(
         {
           success: false,
@@ -146,20 +153,6 @@ export async function POST(
       );
     }
 
-    // Use authenticated service client with audit logging
-    const supabaseAdmin = createAuthenticatedServiceClient({
-      operation: 'convert_quotation_to_order',
-      userId,
-      route: '/api/member/quotations/[id]/convert',
-    });
-
-    // Check if order already exists
-    const { data: existingOrder } = await supabaseAdmin
-      .from('orders')
-      .select('id, order_number')
-      .eq('quotation_id', quotationId)
-      .single();
-
     if (existingOrder) {
       return NextResponse.json(
         {
@@ -172,70 +165,180 @@ export async function POST(
       );
     }
 
-    // Use the RPC function to create order from quotation
-    const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc(
-      'create_order_from_quotation',
-      {
-        p_quotation_id: quotationId,
-        p_user_id: userId,
-        p_order_number: null, // Auto-generated
+    // Generate order number
+    const orderNumber = `ORD-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`;
+
+    // Get or create delivery and billing addresses
+    let deliveryAddressId = quotation.delivery_address_id;
+    let billingAddressId = quotation.billing_address_id;
+
+    // Priority for delivery address:
+    // 1. Use quotation's delivery_address_id if exists
+    // 2. Use registered default delivery address (is_default = true)
+    // 3. Create from user profile (registration address)
+    if (!deliveryAddressId) {
+      const { data: defaultDelivery } = await supabaseAdmin
+        .from('delivery_addresses')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_default', true)
+        .maybeSingle();
+
+      if (defaultDelivery) {
+        deliveryAddressId = defaultDelivery.id;
+      } else {
+        // Create delivery address from user profile
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('kanji_last_name, kanji_first_name, company_name, postal_code, prefecture, city, street, building')
+          .eq('id', userId)
+          .single();
+
+        if (profile) {
+          const fullName = (profile.kanji_last_name && profile.kanji_first_name)
+            ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+            : profile.company_name || 'お客様';
+
+          const { data: newDeliveryAddress } = await supabaseAdmin
+            .from('delivery_addresses')
+            .insert({
+              user_id: userId,
+              name: fullName,
+              postal_code: profile.postal_code || '',
+              prefecture: profile.prefecture || '',
+              city: profile.city || '',
+              address: profile.street || '',
+              building: profile.building || '',
+              phone: '',
+              is_default: true,
+            })
+            .select('id')
+            .single();
+
+          deliveryAddressId = newDeliveryAddress?.id || null;
+        }
       }
-    );
+    }
 
-    if (rpcError) {
-      console.error('[Convert to Order] RPC Error:', rpcError);
+    // Same priority for billing address
+    if (!billingAddressId) {
+      const { data: defaultBilling } = await supabaseAdmin
+        .from('billing_addresses')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_default', true)
+        .maybeSingle();
+
+      if (defaultBilling) {
+        billingAddressId = defaultBilling.id;
+      } else {
+        // Create billing address from user profile
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('kanji_last_name, kanji_first_name, company_name, postal_code, prefecture, city, street, building, email')
+          .eq('id', userId)
+          .single();
+
+        if (profile) {
+          const companyName = profile.company_name ||
+            ((profile.kanji_last_name && profile.kanji_first_name)
+              ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+              : 'お客様');
+
+          const { data: newBillingAddress } = await supabaseAdmin
+            .from('billing_addresses')
+            .insert({
+              user_id: userId,
+              company_name: companyName,
+              postal_code: profile.postal_code || '',
+              prefecture: profile.prefecture || '',
+              city: profile.city || '',
+              address: profile.street || '',
+              building: profile.building || '',
+              email: profile.email || '',
+              is_default: true,
+            })
+            .select('id')
+            .single();
+
+          billingAddressId = newBillingAddress?.id || null;
+        }
+      }
+    }
+
+    // Get quotation items to copy to order
+    const { data: quotationItems, error: itemsError } = await supabaseAdmin
+      .from('quotation_items')
+      .select('*')
+      .eq('quotation_id', quotationId);
+
+    if (itemsError) {
+      console.error('[Convert to Order] Failed to fetch quotation items:', itemsError);
       return NextResponse.json(
-        { success: false, error: '注文作成中にエラーが発生しました。', details: rpcError.message },
+        { success: false, error: '見積アイテムの取得に失敗しました。', details: itemsError?.message },
         { status: 500 }
       );
     }
 
-    if (!rpcResult || rpcResult.length === 0) {
-      return NextResponse.json(
-        { success: false, error: '注文作成中に不明なエラーが発生しました。' },
-        { status: 500 }
-      );
-    }
-
-    const result = rpcResult[0];
-
-    // Handle failure case
-    if (!result.success || !result.order_id) {
-      return NextResponse.json(
-        {
-          error: result.error_message || '注文作成中にエラーが発生しました。',
-          success: result.success,
-          order_id: result.order_id,
-        },
-        { status: result.error_message?.includes('見つかりません') ? 404 : 400 }
-      );
-    }
-
-    // Fetch complete order data
-    const { data: order, error: fetchError } = await supabaseAdmin
+    // Create order directly with contract skip
+    // 새로운 워크플로우: 견적 승인 후 DATA_UPLOAD_PENDING 상태로 시작
+    const { data: order, error: createError } = await supabaseAdmin
       .from('orders')
-      .select(`
-        *,
-        companies (*),
-        quotations (
-          id,
-          quotation_number,
-          pdf_url
-        ),
-        order_items (*)
-      `)
-      .eq('id', result.order_id)
+      .insert({
+        user_id: userId,
+        quotation_id: quotationId,
+        order_number: orderNumber,
+        status: 'DATA_UPLOAD_PENDING',  // 새 워크플로우: 데이터 입고 대기
+        current_stage: 'AWAITING_DATA',  // 데이터 입고 대기
+        total_amount: quotation.total_amount,
+        customer_name: quotation.customer_name,
+        customer_email: quotation.customer_email,
+        customer_phone: quotation.customer_phone,
+        delivery_address_id: deliveryAddressId,
+        billing_address_id: billingAddressId,
+        skip_contract: true,  // 계약서 프로세스 건너뛰기
+      })
+      .select()
       .single();
 
-    if (fetchError) {
-      console.error('[Convert to Order] Fetch error:', fetchError);
-      // Order was created successfully, but fetch failed
-      return NextResponse.json({
-        success: true,
-        data: { id: result.order_id, order_number: result.order_number },
-        message: '注文が生成されました。',
-      });
+    if (createError || !order) {
+      console.error('[Convert to Order] Create error:', createError);
+      return NextResponse.json(
+        { success: false, error: '注文作成中にエラーが発生しました。', details: createError?.message },
+        { status: 500 }
+      );
     }
+
+    // Copy quotation items to order items
+    if (quotationItems && quotationItems.length > 0) {
+      const orderItems = quotationItems.map((item: any) => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        specifications: item.specifications,
+        // Note: total_price is a generated column (unit_price * quantity)
+        // sku_index is not in order_items table
+      }));
+
+      const { error: itemsInsertError } = await supabaseAdmin
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsInsertError) {
+        console.error('[Convert to Order] Failed to insert order items:', itemsInsertError);
+        // Don't fail the order creation, just log the error
+      } else {
+        console.log('[Convert to Order] Copied', orderItems.length, 'items to order');
+      }
+    }
+
+    // Update quotation status to converted
+    await supabaseAdmin
+      .from('quotations')
+      .update({ status: 'converted' })
+      .eq('id', quotationId);
 
     // Notify admins about new order
     const { data: admins } = await supabaseAdmin
@@ -244,8 +347,8 @@ export async function POST(
       .eq('role', 'ADMIN');
 
     console.log('[Convert to Order] New order created by customer:', {
-      orderId: result.order_id,
-      orderNumber: result.order_number,
+      orderId: order.id,
+      orderNumber: order.order_number,
       quotationId,
       customerEmail: user.email,
       adminEmails: admins?.map((a: any) => a.email) || [],
@@ -287,15 +390,14 @@ export async function GET(
     }
 
     const { userId } = authResult;
+
+    // Use normal SSR client with cookie auth
     const { client: supabase } = createSupabaseSSRClient(request);
 
     // Get quotation data
     const { data: quotation, error } = await supabase
       .from('quotations')
-      .select(`
-        *,
-        companies (*)
-      `)
+      .select('*')
       .eq('id', quotationId)
       .single();
 
@@ -329,7 +431,10 @@ export async function GET(
       .maybeSingle();
 
     // Check conversion eligibility
-    const canConvert = quotation.status === 'APPROVED';
+    // Support both legacy statuses (approved, APPROVED) and new workflow (QUOTATION_APPROVED)
+    const canConvert = quotation.status === 'approved' ||
+                      quotation.status === 'APPROVED' ||
+                      quotation.status === 'QUOTATION_APPROVED';
     const isExpired =
       quotation.valid_until && new Date(quotation.valid_until) < new Date();
     const hasOrder = !!existingOrder;

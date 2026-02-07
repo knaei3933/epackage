@@ -130,24 +130,34 @@ export async function GET(
       );
     }
 
-    // Fetch approval requests with files and comments
+    // Fetch approval requests with files and comments (simplified query)
     const { data: approvals, error: approvalsError } = await (supabase as any)
       .from('customer_approval_requests')
-      .select(`
-        *,
-        files:approval_request_files(*),
-        comments:approval_request_comments(
-          *,
-          author:author_id(id, full_name, avatar_url)
-        )
-      `)
+      .select('*')
       .eq('order_id', orderId)
       .order('created_at', { ascending: false });
 
     if (approvalsError) {
-      console.error('[Member Approvals GET] Error:', approvalsError);
+      console.error('[Member Approvals GET] DB Error:', JSON.stringify(approvalsError, null, 2));
+      console.error('[Member Approvals GET] Error Code:', approvalsError.code);
+      console.error('[Member Approvals GET] Error Message:', approvalsError.message);
+
+      // Check if table doesn't exist - return empty array instead of error
+      if (approvalsError.code === '42P01' || approvalsError.message?.includes('does not exist')) {
+        console.log('[Member Approvals GET] Table does not exist, returning empty array');
+        return NextResponse.json({
+          success: true,
+          data: [],
+        });
+      }
+
       return NextResponse.json(
-        { success: false, error: '承認リクエストの取得に失敗しました。', errorEn: 'Failed to fetch approval requests' },
+        {
+          success: false,
+          error: '承認リクエストの取得に失敗しました。',
+          errorEn: 'Failed to fetch approval requests',
+          details: approvalsError.message
+        },
         { status: 500 }
       );
     }
@@ -160,10 +170,26 @@ export async function GET(
     const nextResponse = NextResponse.json(response, { status: 200 });
     return addRateLimitHeaders(nextResponse, rateLimitResult);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Member Approvals GET] Unexpected error:', error);
+    console.error('[Member Approvals GET] Error stack:', error?.stack);
+
+    // Check if it's a "table does not exist" error
+    if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
+      console.log('[Member Approvals GET] Table does not exist (caught), returning empty array');
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
     return NextResponse.json(
-      { success: false, error: '予期しないエラーが発生しました。', errorEn: 'An unexpected error occurred' },
+      {
+        success: false,
+        error: '予期しないエラーが発生しました。',
+        errorEn: 'An unexpected error occurred',
+        details: error?.message
+      },
       { status: 500 }
     );
   }

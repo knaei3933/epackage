@@ -81,14 +81,39 @@ export interface Contact extends DatabaseEntity, DatabaseTimestamps {
   industry?: string | null
 }
 
-export interface Product extends DatabaseEntity, DatabaseTimestamps {
+// Partial Product interface for static data (without timestamps)
+export interface ProductBase {
+  id: string
   name: string
-  category: ProductCategory
+  name_ja?: string
+  name_en?: string
+  name_ko?: string
+  category: ProductCategory | string
   description?: string | null
+  description_ja?: string | null
+  description_en?: string | null
+  description_ko?: string | null
   specifications?: Json | null
+  materials?: string[]
+  image?: string | null
+  pricing_formula?: {
+    base_cost?: number
+    per_unit_cost?: number
+    min_quantity?: number
+    unit_type?: string
+  } | null
   min_order_quantity?: number | null
+  lead_time_days?: number | null
+  sort_order?: number | null
   unit_price?: number | null
   is_active: boolean
+  tags?: string[]
+  applications?: string[]
+  features?: string[]
+}
+
+export interface Product extends DatabaseEntity, DatabaseTimestamps, ProductBase {
+  // All fields from ProductBase plus timestamps
 }
 
 export interface QuotationRequest extends DatabaseEntity, DatabaseTimestamps {
@@ -430,4 +455,91 @@ export interface DatabaseError {
   code?: string
   details?: Json
   hint?: string
+}
+
+// ============================================================
+// Unified Notifications Types (통합 알림 시스템)
+// ============================================================
+
+export type RecipientType = 'member' | 'admin'
+
+export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
+
+export interface UnifiedNotification extends DatabaseEntity {
+  recipient_id: string
+  recipient_type: RecipientType
+  type: string
+  title: string
+  message: string
+  related_id?: string | null
+  related_type?: string | null
+  priority: NotificationPriority
+  metadata: Json
+  channels: Json
+  is_read: boolean
+  read_at?: string | null
+  action_url?: string | null
+  action_label?: string | null
+  expires_at?: string | null
+  created_at: string
+}
+
+export interface CreateUnifiedNotificationRequest {
+  recipient_id: string
+  recipient_type: RecipientType
+  type: string
+  title: string
+  message: string
+  related_id?: string
+  related_type?: string
+  priority?: NotificationPriority
+  metadata?: Json
+  action_url?: string
+  action_label?: string
+  expires_at?: string
+}
+
+// ============================================================
+// RBAC Types (Role-Based Access Control)
+// ============================================================
+
+export type RBACRole = 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING' | 'MEMBER' | 'GUEST'
+
+export type RBACPermission =
+  // User management
+  | 'user:read' | 'user:write' | 'user:approve' | 'user:delete'
+  // Order management
+  | 'order:read' | 'order:create' | 'order:update' | 'order:delete' | 'order:approve'
+  // Quotation management
+  | 'quotation:read' | 'quotation:create' | 'quotation:update' | 'quotation:delete' | 'quotation:approve'
+  // Production
+  | 'production:read' | 'production:update' | 'production:manage'
+  // Inventory
+  | 'inventory:read' | 'inventory:update' | 'inventory:adjust'
+  // Finance
+  | 'finance:read' | 'finance:approve'
+  // Shipment
+  | 'shipment:read' | 'shipment:create' | 'shipment:update'
+  // Contract
+  | 'contract:read' | 'contract:sign' | 'contract:approve'
+  // Sample
+  | 'sample:read' | 'sample:create' | 'sample:approve'
+  // Settings
+  | 'settings:read' | 'settings:write'
+  // Notification
+  | 'notification:read' | 'notification:send'
+  // Report
+  | 'report:read' | 'report:export'
+
+export interface Permission extends DatabaseEntity {
+  name: RBACPermission
+  description: string | null
+  category: string
+  created_at: string
+}
+
+export interface RolePermission extends DatabaseEntity {
+  role: RBACRole
+  permission_id: string
+  created_at: string
 }

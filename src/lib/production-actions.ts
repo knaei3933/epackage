@@ -760,6 +760,73 @@ export async function createProductionOrder(
 // Export All Functions
 // =====================================================
 
+// =====================================================
+// Production Start Validation
+// =====================================================
+
+/**
+ * Check if production can be started for an order
+ * 製造開始可能かチェック
+ *
+ * Requirements for production start:
+ * 1. Payment confirmed (payment_confirmed_at is not null)
+ * 2. Data approved (spec_approved_at is not null)
+ * 3. Contract signed (contract_signed_at is not null)
+ *
+ * @param order - Order object with required fields
+ * @returns Object with canStart boolean and missing requirements array
+ */
+export function canStartProduction(order: {
+  payment_confirmed_at?: string | null;
+  spec_approved_at?: string | null;
+  contract_signed_at?: string | null;
+}): {
+  canStart: boolean;
+  missingRequirements: string[];
+} {
+  const missingRequirements: string[] = [];
+
+  // Check payment confirmation
+  if (!order.payment_confirmed_at) {
+    missingRequirements.push('入金確認');
+  }
+
+  // Check data approval
+  if (!order.spec_approved_at) {
+    missingRequirements.push('データ承認');
+  }
+
+  // Check contract signature
+  if (!order.contract_signed_at) {
+    missingRequirements.push('契約署名');
+  }
+
+  return {
+    canStart: missingRequirements.length === 0,
+    missingRequirements,
+  };
+}
+
+/**
+ * Get formatted error message for missing production requirements
+ * 製造開始できない場合のエラーメッセージを取得
+ *
+ * @param missingRequirements - Array of missing requirement names
+ * @returns Formatted error message
+ */
+export function getProductionStartErrorMessage(missingRequirements: string[]): string {
+  if (missingRequirements.length === 0) {
+    return '';
+  }
+
+  const reqNames = missingRequirements.join('、');
+  return `製造開始には以下の条件が必要です：${reqNames}`;
+}
+
+// =====================================================
+// Export All Functions
+// =====================================================
+
 export const productionActions = {
   // Stage transitions
   advanceToNextStage,
@@ -782,6 +849,10 @@ export const productionActions = {
 
   // Create
   createProductionOrder,
+
+  // Validation
+  canStartProduction,
+  getProductionStartErrorMessage,
 };
 
 export default productionActions;

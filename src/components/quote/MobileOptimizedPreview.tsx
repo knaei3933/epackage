@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { motion, AnimatePresence, PanInfo, useAnimation } from 'framer-motion'
+import type { PanInfo } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+const useAnimation = dynamic(() => import('framer-motion').then(mod => ({ default: mod.useAnimation })), { ssr: false })
 import {
   Smartphone,
   Tablet,

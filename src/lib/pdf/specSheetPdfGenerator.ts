@@ -588,7 +588,7 @@ function getDefaultTemplate(): HandlebarsTemplateDelegate {
     <!-- Footer -->
     <div class="footer">
       <p>この仕様書はEPACKAGE Lab株式会社の機密情報です。無断転載を禁じます。</p>
-      <p>EPACKAGE Lab株式会社 | 兵庫県明石市上ノ丸2-11-21-102 | TEL: +81-80-6942-7235</p>
+      <p>EPACKAGE Lab株式会社 | 兵庫県明石市上ノ丸2-11-21 | TEL: 050-1793-6500</p>
     </div>
   </div>
 </body>
@@ -783,9 +783,9 @@ function prepareTemplateData(data: SpecSheetData): SpecSheetTemplateData {
     header: {
       companyName: 'EPACKAGE Lab株式会社',
       companyNameKana: 'イーパックケージラボカブシキガイシャ',
-      address: '兵庫県明石市上ノ丸2-11-21-102',
-      phone: '+81-80-6942-7235',
-      email: 'info@epackage-lab.com',
+      address: '兵庫県明石市上ノ丸2-11-21',
+      phone: '050-1793-6500',
+      email: 'info@package-lab.com',
       website: 'https://epackage-lab.com',
     },
     specSheet: {
@@ -866,14 +866,13 @@ export async function generateSpecSheetPdf(
     });
 
     // Generate PDF
-    // Type assertion for Puppeteer PDF options (orientation is valid but not in older type definitions)
+    // Type assertion for Puppeteer PDF options (orientation is valid in Playwright's PDF options)
     const pdfBuffer = await page.pdf({
       format: opts.format,
-      // @ts-ignore - orientation is valid in newer Puppeteer versions
       orientation: opts.orientation as 'portrait' | 'landscape',
       displayHeaderFooter: false,
       printBackground: true,
-    } as Parameters<typeof page.pdf>[0]);
+    });
 
     // Save to file if output path specified
     if (opts.outputPath) {

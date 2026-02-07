@@ -26,8 +26,24 @@ import type { QuotationData } from './excelQuotationTypes';
 // =====================================================
 
 /**
+ * Convert ArrayBuffer to Base64 Data URL
+ * @react-pdf/renderer requires data URL format for browser fonts
+ */
+function arrayBufferToDataUrl(buffer: ArrayBuffer, mimeType: string = 'font/woff2'): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+  return `data:${mimeType};base64,${base64}`;
+}
+
+/**
  * Register fonts for client-side PDF generation
- * Uses Google Fonts CDN for browser environment
+ * Uses Google Fonts API with fallback to multiple CDNs
+ * Converts ArrayBuffer to base64 data URL for @react-pdf/renderer
  */
 async function registerClientFonts(): Promise<void> {
   // Check if fonts are already registered
@@ -35,39 +51,80 @@ async function registerClientFonts(): Promise<void> {
     return;
   }
 
-  // Use Google Fonts CDN for Noto Sans JP
-  const fontUrls = {
-    regular: 'https://fonts.gstatic.com/s/notosansjp/v52/-F6pfjtIhW9rqJkC6h8mNKNQBs9EKRfGvQfL9NEh7u.woff2',
-    bold: 'https://fonts.gstatic.com/s/notosansjp/v52/-F6fjvtIhW9rqJkC6h8mNKNQBs9EKRfGvQfL9NEh6oYh3Bg.woff2',
-  };
+  // Multiple CDN sources for fallback
+  const fontSources = [
+    {
+      name: 'Google Fonts gstatic',
+      regular: 'https://fonts.gstatic.com/s/notosansjp/v25/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2',
+      bold: 'https://fonts.gstatic.com/s/notosansjp/v25/KFOkCnqEu92Fr1Mu51xMIzIFKw.woff2',
+    },
+    {
+      name: 'unpkg CDN',
+      regular: 'https://unpkg.com/@fontsource/noto-sans-jp@5.0.21/files/noto-sans-jp-japanese-400-normal.woff2',
+      bold: 'https://unpkg.com/@fontsource/noto-sans-jp@5.0.21/files/noto-sans-jp-japanese-700-normal.woff2',
+    },
+  ];
 
-  try {
-    // Fetch fonts from CDN
-    const [regularResponse, boldResponse] = await Promise.all([
-      fetch(fontUrls.regular),
-      fetch(fontUrls.bold),
-    ]);
+  let lastError: Error | null = null;
 
-    const [regularBuffer, boldBuffer] = await Promise.all([
-      regularResponse.arrayBuffer(),
-      boldResponse.arrayBuffer(),
-    ]);
+  for (const source of fontSources) {
+    try {
+      console.log(`[Client PDF] Trying ${source.name}...`);
 
-    // Register fonts
-    Font.register({
-      family: 'Noto Sans JP',
-      fonts: [
-        { src: regularBuffer, fontWeight: 400 },
-        { src: boldBuffer, fontWeight: 700 },
-      ],
-    });
+      // Fetch fonts from current source
+      const [regularResponse, boldResponse] = await Promise.all([
+        fetch(source.regular, { mode: 'cors' }),
+        fetch(source.bold, { mode: 'cors' }),
+      ]);
 
-    (globalThis as any).__fontsRegistered = true;
-    console.log('[Client PDF] Fonts registered successfully');
-  } catch (error) {
-    console.error('[Client PDF] Failed to register fonts:', error);
-    throw error;
+      // Check responses
+      if (!regularResponse.ok || !boldResponse.ok) {
+        throw new Error(`Failed to fetch: regular=${regularResponse.status}, bold=${boldResponse.status}`);
+      }
+
+      const [regularBuffer, boldBuffer] = await Promise.all([
+        regularResponse.arrayBuffer(),
+        boldResponse.arrayBuffer(),
+      ]);
+
+      console.log('[Client PDF] Font buffers loaded, converting to data URLs...');
+
+      // Convert to base64 data URLs for @react-pdf/renderer
+      const regularDataUrl = arrayBufferToDataUrl(regularBuffer);
+      const boldDataUrl = arrayBufferToDataUrl(boldBuffer);
+
+      console.log('[Client PDF] Registering fonts...');
+
+      // Register fonts with data URL format
+      Font.register({
+        family: 'Noto Sans JP',
+        fonts: [
+          {
+            src: regularDataUrl,
+            fontWeight: 400,
+            fontStyle: 'normal',
+          },
+          {
+            src: boldDataUrl,
+            fontWeight: 700,
+            fontStyle: 'normal',
+          },
+        ],
+      });
+
+      (globalThis as any).__fontsRegistered = true;
+      console.log(`[Client PDF] Fonts registered successfully from ${source.name}`);
+      return; // Success - exit function
+    } catch (error) {
+      console.warn(`[Client PDF] Failed to fetch from ${source.name}:`, error);
+      lastError = error as Error;
+      // Try next source
+    }
   }
+
+  // All sources failed
+  console.error('[Client PDF] All font sources failed');
+  throw new Error(`Failed to register fonts from all sources. Last error: ${lastError?.message}`);
 }
 
 // =====================================================
@@ -82,7 +139,7 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     padding: 30,
-    fontFamily: 'Noto Sans JP',
+    fontFamily: 'Helvetica', // Using standard font for stability
     fontSize: 10,
     backgroundColor: '#FFFFFF',
   },
@@ -477,10 +534,10 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
  * @returns PDF blob
  */
 export async function generatePdfBlob(data: QuotationData): Promise<Blob> {
-  // Register fonts first
-  await registerClientFonts();
+  // Note: Using standard Helvetica font for stability
+  // Custom font registration is disabled due to CSP and compatibility issues
 
-  // Generate PDF
+  // Generate PDF directly without custom fonts
   const doc = pdf(<QuotationPDFDocument data={data} />);
   const blob = await doc.toBlob();
 

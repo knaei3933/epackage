@@ -162,8 +162,15 @@ export function validatePostProcessingSelection(
   attemptedItem: string,
   allOptions: ProcessingOptionConfig[]
 ): { isValid: boolean; error?: PostProcessingValidationError } {
+  console.log('[validatePostProcessingSelection] Input:', {
+    currentSelection,
+    attemptedItem,
+    allOptionsCount: allOptions.length
+  });
+
   // Check limit
   if (isSelectionLimitReached(currentSelection.length)) {
+    console.log('[validatePostProcessingSelection] Limit reached');
     return {
       isValid: false,
       error: generateReplacementSuggestions(currentSelection, attemptedItem, allOptions)
@@ -172,6 +179,7 @@ export function validatePostProcessingSelection(
 
   // Check compatibility (if available)
   const attemptedOption = allOptions.find(opt => opt.id === attemptedItem)
+  console.log('[validatePostProcessingSelection] attemptedOption:', attemptedOption);
   if (attemptedOption?.compatibleWith && attemptedOption.compatibleWith.length > 0) {
     const incompatibleItems = currentSelection.filter(selectedId => {
       const selectedOption = allOptions.find(opt => opt.id === selectedId)
@@ -194,7 +202,44 @@ export function validatePostProcessingSelection(
     }
   }
 
-  return { isValid: true }
+  // Check same category exclusion (동일 카테고리 상호 배제)
+  // 예: glossy와 matte는 같은 surface-treatment 카테고리에 속하므로 하나만 선택 가능
+  if (attemptedOption?.category) {
+    console.log('[validatePostProcessingSelection] Checking category:', attemptedOption.category);
+    const sameCategoryItems = currentSelection.filter(selectedId => {
+      const selectedOption = allOptions.find(opt => opt.id === selectedId)
+      return selectedOption && selectedOption.category === attemptedOption.category
+    })
+    console.log('[validatePostProcessingSelection] sameCategoryItems:', sameCategoryItems);
+
+    if (sameCategoryItems.length > 0) {
+      const categoryNames: Record<string, string> = {
+        'surface-treatment': '表面処理',
+        'opening-sealing': '開封/密閉機能',
+        'shape-structure': '形状/構造',
+        'functionality': '機能性'
+      }
+
+      const categoryJa = categoryNames[attemptedOption.category] || attemptedOption.category
+      console.log('[validatePostProcessingSelection] Category conflict detected!');
+
+      return {
+        isValid: false,
+        error: {
+          type: 'incompatible_selection',
+          message: `This option belongs to the "${attemptedOption.category}" category which is already selected. You can only select one option per category.`,
+          messageJa: `このオプションは「${categoryJa}」カテゴリに属しており、すでに同じカテゴリのオプションが選択されています。各カテゴリから1つずつしか選択できません。`,
+          suggestedAction: `Remove the existing option from ${attemptedOption.category} category to select this one`,
+          suggestedActionJa: `既存の「${categoryJa}」オプションを削除してからこのオプションを選択してください`,
+          itemsToRemove: sameCategoryItems,
+          itemsToAdd: [attemptedItem]
+        }
+      }
+    }
+  }
+
+  console.log('[validatePostProcessingSelection] Validation passed, returning isValid: true');
+  return { isValid: true };
 }
 
 /**

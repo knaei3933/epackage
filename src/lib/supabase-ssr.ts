@@ -68,15 +68,35 @@ export function createSupabaseSSRClient(request: NextRequest): SupabaseSSRClient
         return request.cookies.get(name)?.value;
       },
       set(name: string, value: string, options: Record<string, unknown>) {
-        response.cookies.set({
+        const cookieOptions: Record<string, unknown> = {
           name,
           value,
-          ...options,
-        });
+          httpOnly: true,   // ✅ httpOnly設定（JavaScriptアクセス禁止）
+          secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS時のみ
+          sameSite: 'lax',   // ✅ CSRF対策（lax: 同一サイトGET許可）
+          path: '/',         // ✅ 全パスで有効
+          maxAge: 1800,      // ✅ 30分セッション維持 (1800秒 = 30分)
+        };
+
+        // CRITICAL: Only set domain in production
+        // localhost will reject cookies with domain attribute
+        if (process.env.NODE_ENV === 'production') {
+          cookieOptions.domain = '.epackage-lab.com';
+        }
+
+        // Merge with any additional options
+        Object.assign(cookieOptions, options);
+
+        response.cookies.set(cookieOptions);
       },
       remove(name: string, options: Record<string, unknown>) {
         response.cookies.delete({
           name,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          domain: process.env.NODE_ENV === 'production' ? '.epackage-lab.com' : undefined,
           ...options,
         });
       },
@@ -146,7 +166,7 @@ export async function isAdminUser(request: NextRequest): Promise<boolean> {
     .eq('id', user.id)
     .single();
 
-  return profile?.role === 'ADMIN';
+  return profile?.role?.toLowerCase() === 'admin';
 }
 
 // ============================================================

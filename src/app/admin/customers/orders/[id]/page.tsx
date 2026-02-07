@@ -14,7 +14,6 @@
  */
 
 import React from 'react';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { OrderSummaryCard } from '@/components/shared';
@@ -23,42 +22,51 @@ import { DocumentDownloadCard } from '@/components/shared/document';
 import { ShipmentTrackingCard } from '@/components/shared/shipping';
 import { getOrderStatusLabel, getOrderStatusColor, formatCurrency, formatDate, formatDateTime } from '@/types/portal';
 import { cn } from '@/lib/utils';
+import { createServiceClient } from '@/lib/supabase';
+import { checkOrderAccess } from '@/lib/rbac/order-access';
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
 
 async function getOrderDetail(orderId: string) {
-  const cookieStore = await cookies();
+  // Check order access permissions
+  const accessResult = await checkOrderAccess(orderId);
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/member/orders/${orderId}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; '),
-      },
-      cache: 'no-store',
-    }
-  );
-
-  if (!response.ok) {
-    if (response.status === 404) return null;
+  if (!accessResult.allowed) {
     return null;
   }
 
-  const result = await response.json();
-  return result.data;
+  const supabase = createServiceClient();
+
+  // Fetch order with related data
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      order_items (*),
+      production_stages (*),
+      available_documents (*),
+      shipment_info,
+      shipping_address,
+      billing_address
+    `)
+    .eq('id', orderId)
+    .single();
+
+  if (error || !order) {
+    return null;
+  }
+
+  return order;
 }
 
 export default async function CustomerOrderDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const order = await getOrderDetail(params.id);
+  const { id } = await params;
+  const order = await getOrderDetail(id);
 
   if (!order) {
     notFound();

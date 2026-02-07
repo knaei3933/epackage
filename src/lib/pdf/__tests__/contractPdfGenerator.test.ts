@@ -51,12 +51,12 @@ const createValidContractData = (): ContractData => ({
     name: 'EPACKAGE Lab株式会社',
     nameKana: 'イーパックケージラボカブシキガイシャ',
     postalCode: '673-0846',
-    address: '兵庫県明石市上ノ丸2-11-21-102',
+    address: '兵庫県明石市上ノ丸2-11-21',
     representative: '金井 一郎',
     representativeTitle: '代表取締役',
     contact: {
-      phone: '+81-80-6942-7235',
-      email: 'kim@kanei-trade.co.jp',
+      phone: '050-1793-6500',
+      email: 'info@package-lab.com',
     },
     bankInfo: {
       bankName: 'PayPay銀行',

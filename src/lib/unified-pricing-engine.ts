@@ -11,6 +11,65 @@ import type {
   SKUCostBreakdown
 } from './pouch-cost-calculator'
 import { determineMaterialWidth } from './material-width-selector'
+import { processingOptionsConfig, type ProcessingOptionConfig } from '../components/quote/processingConfig'
+
+// ========================================
+// ヘルパー関数
+// ========================================
+
+/**
+ * 素材IDと厚さ選択から材料構造を取得
+ * @param materialId 素材ID (例: 'pet_al')
+ * @param thicknessSelection 厚さ選択 (例: 'light', 'medium', 'heavy', 'ultra')
+ * @returns 材料構造文字列 (例: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ')
+ */
+export function getMaterialSpecification(
+  materialId: string,
+  thicknessSelection: string
+): string {
+  const options = MATERIAL_THICKNESS_OPTIONS[materialId]
+  if (!options) return '-'
+
+  const thickness = options.find(opt => opt.id === thicknessSelection)
+  return thickness?.specification || '-'
+}
+
+// ========================================
+// 価格計算ログ表示ヘルパー
+// ========================================
+
+/**
+ * 価格計算の詳細をユーザーに見やすく表示
+ * 開発環境でのみ出力
+ */
+function logPriceCalculationDetail(step: string, data: any) {
+  if (process.env.NODE_ENV === 'development') {
+    const style = 'background: #f0f9ff; color: #0369a1; padding: 8px 12px; border-radius: 4px; font-weight: bold;';
+    console.log(`%c【${step}】`, style);
+    console.log(JSON.stringify(data, null, 2));
+  }
+}
+
+/**
+ * 価格計算のサマリーを表示
+ */
+function logPriceSummary(summary: {
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  currency: string
+  breakdown: any
+}) {
+  if (process.env.NODE_ENV === 'development') {
+    const style = 'background: #fef3c7; color: #92400e; padding: 12px 16px; border-radius: 8px; font-weight: bold; font-size: 14px;';
+    console.log(`%c💰 最終価格サマリー`, style);
+    console.table({
+      '数量': `${summary.quantity.toLocaleString()}個`,
+      '単価': `${summary.currency}${summary.unitPrice.toLocaleString()}`,
+      '総額': `${summary.currency}${summary.totalPrice.toLocaleString()}`
+    });
+  }
+}
 
 // 統合価格エンジン用のインターフェース定義
 export interface UnifiedQuoteParams {
@@ -43,6 +102,12 @@ export interface UnifiedQuoteParams {
   skuQuantities?: number[] // SKU별 수량 [500, 500]
   useSKUCalculation?: boolean // SKU 계산 사용 여부
 
+  // 2열생산 옵션 관련 파라미터
+  twoColumnOptionApplied?: 'same' | 'double' | null
+  discountedUnitPrice?: number // 옵션 적용 후 단가
+  discountedTotalPrice?: number // 옵션 적용 후 총가
+  originalUnitPrice?: number // 옵션 적용 전 원래 단가
+
   // Roll film specific parameters
   rollCount?: number // 롤 필름 시 롤 개수 (롤당 배송비 계산용)
 }
@@ -52,6 +117,12 @@ export interface UnifiedQuoteResult {
   totalPrice: number
   currency: string
   breakdown: {
+    // 素材費（フィルム材料費のみ）
+    filmCost?: number // フィルム素材費
+    // ラミネーション費・スリッター費
+    laminationCost?: number // ラミネーション費
+    slitterCost?: number // スリッター費
+    // 素材費合計（フィルム＋ラミネーション＋スリッター）
     material: number
     processing: number
     printing: number
@@ -60,10 +131,12 @@ export interface UnifiedQuoteResult {
     delivery: number
     subtotal: number
     total: number
-    // 필름 원가 계산 관련 (새로운 기능)
-    filmCost?: number // 필름 원가
-    pouchProcessingCost?: number // 파우치 가공비
-    baseCost?: number // 기본 원가 (필름 + 가공비)
+    // 파우치 가공비
+    pouchProcessingCost?: number
+    // 기본 원가
+    baseCost?: number
+    // SKU追加料金（SKU数量に基づく追加料金）
+    skuSurcharge?: number // SKU数による追加料金: (skuCount - 1) × ¥10,000
   }
   leadTimeDays: number
   validUntil: Date
@@ -132,142 +205,150 @@ export interface ThicknessOption {
   multiplier: number
 }
 
-// 素材別厚さオプション (LLDPE厚さ: 50, 70, 90, 100, 110μm)
+// 素材別厚さオプション (MaterialSelection.tsxと同期)
 export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
-  'opp-alu-foil': [
+  'pet_al': [
     {
       id: 'light',
-      name: 'Light Weight (~100g)',
+      name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'PET12μ+AL７μ+PET12μ+LLDPE50μ',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ',
       weightRange: '~100g',
-      multiplier: 0.85
+      multiplier: 0.9
     },
     {
       id: 'medium',
-      name: 'Standard (~300g)',
-      nameJa: '標準タイプ (~300g)',
-      specification: 'PET12μ+AL７μ+PET12μ+LLDPE70μ',
-      weightRange: '~300g',
-      multiplier: 0.95
-    },
-    {
-      id: 'standard',
-      name: 'Regular (~500g)',
-      nameJa: 'レギュラータイプ (~500g)',
-      specification: 'PET12μ+AL７μ+PET12μ+LLDPE90μ',
+      name: '標準タイプ (~500g)',
+      nameJa: '標準タイプ (~500g)',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
     {
       id: 'heavy',
-      name: 'Heavy Duty (~800g)',
+      name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'PET12μ+AL７μ+PET12μ+LLDPE100μ',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
     },
     {
       id: 'ultra',
-      name: 'Ultra Heavy (800g+)',
+      name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
-      specification: 'PET12μ+AL７μ+PET12μ+LLDPE110μ',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }
   ],
-  'kraft-pe': [
+  'pet_vmpet': [
     {
       id: 'light',
-      name: 'Light Weight (~200g)',
-      nameJa: '軽量タイプ (~200g)',
-      specification: 'Kraft紙70μ+PE30μ',
-      weightRange: '~200g',
+      name: '軽量タイプ (~100g)',
+      nameJa: '軽量タイプ (~100g)',
+      specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ',
+      weightRange: '~100g',
       multiplier: 0.9
     },
     {
+      id: 'light_medium',
+      name: '中軽量タイプ (~300g)',
+      nameJa: '中軽量タイプ (~300g)',
+      specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ',
+      weightRange: '~300g',
+      multiplier: 0.95
+    },
+    {
       id: 'medium',
-      name: 'Standard (~500g)',
+      name: '標準タイプ (~500g)',
       nameJa: '標準タイプ (~500g)',
-      specification: 'Kraft紙80μ+PE40μ',
+      specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
     {
       id: 'heavy',
-      name: 'Heavy Duty (~800g)',
+      name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'Kraft紙90μ+PE50μ',
+      specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
+    },
+    {
+      id: 'ultra',
+      name: '超耐久タイプ (800g~)',
+      nameJa: '超耐久タイプ (800g~)',
+      specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ',
+      weightRange: '800g~',
+      multiplier: 1.2
     }
   ],
-  'alu-vapor': [
+  'pet_ldpe': [
+    {
+      id: 'medium',
+      name: '標準タイプ (~500g)',
+      nameJa: '標準タイプ (~500g)',
+      specification: 'PET 12μ + LLDPE 110μ',
+      weightRange: '~500g',
+      multiplier: 1.0
+    },
+    {
+      id: 'heavy',
+      name: '高耐久タイプ (~800g)',
+      nameJa: '高耐久タイプ (~800g)',
+      specification: 'PET 12μ + LLDPE 120μ',
+      weightRange: '~800g',
+      multiplier: 1.1
+    },
+    {
+      id: 'ultra',
+      name: '超耐久タイプ (800g~)',
+      nameJa: '超耐久タイプ (800g~)',
+      specification: 'PET 12μ + LLDPE 130μ',
+      weightRange: '800g~',
+      multiplier: 1.2
+    }
+  ],
+  'pet_ny_al': [
     {
       id: 'light',
-      name: 'Light Weight (~100g)',
+      name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'PET12μ+VMPET７μ+PET12μ+LLDPE50μ',
+      specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ',
       weightRange: '~100g',
-      multiplier: 0.85
+      multiplier: 0.9
     },
     {
-      id: 'medium',
-      name: 'Standard (~300g)',
-      nameJa: '標準タイプ (~300g)',
-      specification: 'PET12μ+VMPET７μ+PET12μ+LLDPE70μ',
+      id: 'light_medium',
+      name: '中軽量タイプ (~300g)',
+      nameJa: '中軽量タイプ (~300g)',
+      specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ',
       weightRange: '~300g',
       multiplier: 0.95
     },
     {
-      id: 'standard',
-      name: 'Regular (~500g)',
-      nameJa: 'レギュラータイプ (~500g)',
-      specification: 'PET12μ+VMPET７μ+PET12μ+LLDPE90μ',
+      id: 'medium',
+      name: '標準タイプ (~500g)',
+      nameJa: '標準タイプ (~500g)',
+      specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
     {
       id: 'heavy',
-      name: 'Heavy Duty (~800g)',
+      name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'PET12μ+VMPET７μ+PET12μ+LLDPE100μ',
+      specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
-    }
-  ],
-  'pet-transparent': [
-    {
-      id: 'light',
-      name: 'Thin Film (~50g)',
-      nameJa: '薄肉タイプ (~50g)',
-      specification: 'PET12μ+LLDPE40μ',
-      weightRange: '~50g',
-      multiplier: 0.85
     },
     {
-      id: 'medium',
-      name: 'Standard (~200g)',
-      nameJa: '標準タイプ (~200g)',
-      specification: 'PET12μ+LLDPE50μ',
-      weightRange: '~200g',
-      multiplier: 0.95
-    },
-    {
-      id: 'standard',
-      name: 'Regular (~300g)',
-      nameJa: 'レギュラータイプ (~300g)',
-      specification: 'PET12μ+LLDPE70μ',
-      weightRange: '~300g',
-      multiplier: 1.0
-    },
-    {
-      id: 'heavy',
-      name: 'Heavy Duty (~600g)',
-      nameJa: '高耐久タイプ (~600g)',
-      specification: 'PET12μ+LLDPE90μ',
-      weightRange: '~600g',
-      multiplier: 1.1
+      id: 'ultra',
+      name: '超耐久タイプ (800g~)',
+      nameJa: '超耐久タイプ (800g~)',
+      specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ',
+      weightRange: '800g~',
+      multiplier: 1.2
     }
   ]
 }
@@ -277,7 +358,7 @@ const CONSTANTS = {
   MIN_ORDER_QUANTITY: 100,
   MAX_ORDER_QUANTITY: 100000,
   SMALL_LOT_THRESHOLD: 3000,
-  MINIMUM_PRICE: 170000, // 170,000円最低価格
+  MINIMUM_PRICE: 0, // 最小価格を無効化（ドキュメント通りの計算のみ適用）
 
   // 素材コスト (円/kg)
   MATERIAL_COSTS: {
@@ -357,25 +438,39 @@ const CONSTANTS = {
   // 後加工乗数（デフォルト）
   DEFAULT_POST_PROCESSING_MULTIPLIER: 1.0,
 
+  // ロールフィルム専用定数（475元/m印刷費、ラミネート・スリッター計算用）
+  ROLL_FILM_PRINTING_COST_PER_M: 475, // 원/m (폭 무관)
+  ROLL_FILM_LAMINATION_COST_PER_M: 75,  // 원/m
+  ROLL_FILM_SLITTER_MIN_COST: 30000,    // 원
+  ROLL_FILM_SLITTER_COST_PER_M: 10,    // 원/m
+
   // 필름 원가 계산 설정 (새로운 기능)
   MANUFACTURER_MARGIN: 0.4, // 제조업체 마진율 40%
-  SALES_MARGIN: 0.5, // 판매 마진율 50%
-  DEFAULT_MARKUP_RATE: 0.5, // デフォルトマージン率 50%
-  // 총 마진율 = (1 + 0.4) × (1 + 0.5) - 1 = 1.1 (110%)
+  SALES_MARGIN: 0.2, // 판매 마진율 20%
+  DEFAULT_MARKUP_RATE: 0.2, // デフォルトマージン率 20%
+  // 총 마진율 = (1 + 0.4) × (1 + 0.2) - 1 = 0.68 (68%)
   DEFAULT_LOSS_RATE: 0.4, // 기본 로스율 40%
   DEFAULT_MATERIAL_WIDTH: 760, // 기본 원단 폭 (590 또는 760)
 
   // 파우치 가공비 계산식 (원화/cm) - 가로CM × 계수
-  // 최소단가 적용: 삼방 ₩200,000, 스탠드/지퍼 ₩250,000, 지퍼스탠드 ₩280,000, T/M방 ₩440,000
+  // 최소단가 적용: 삼방 ₩200,000, 스탠드 ₩250,000, T/M방 ₩440,000
+  // 주의: 지퍼 추가는 postProcessingMultiplier로 조정 (이중과세 방지)
   POUCH_PROCESSING_COSTS: {
     'flat_3_side': { coefficient: 0.4, minimumPrice: 200000 }, // 3방파우치: 가로CM*0.4, 최소 ₩200,000
     'stand_up': { coefficient: 1.2, minimumPrice: 250000 }, // 스탠드파우치: 가로CM*1.2, 최소 ₩250,000
-    'zipper': { coefficient: 1.2, minimumPrice: 250000 }, // 지퍼파우치: 가로CM*1.2, 최소 ₩250,000
-    'zipper_stand': { coefficient: 1.7, minimumPrice: 280000 }, // 지퍼스탠드: 가로CM*1.7, 최소 ₩280,000
     't_shape': { coefficient: 1.2, minimumPrice: 440000 }, // T방파우치: 가로CM*1.2, 최소 ₩440,000
     'm_shape': { coefficient: 1.2, minimumPrice: 440000 }, // M방파우치: 가로CM*1.2, 최소 ₩440,000
-    'box': { coefficient: 1.2, minimumPrice: 250000 }, // 박스형파우치 (지퍼파우치와 동일)
+    'box': { coefficient: 1.2, minimumPrice: 440000 }, // 박스형파우치: 가로CM*1.2, 최소 ₩440,000
     'other': { coefficient: 1.0, minimumPrice: 200000 } // 기타
+  } as const,
+
+  // 지퍼 추가 시 최소단가 상향 (원화)
+  ZIPPER_SURCHARGE: {
+    'flat_3_side': 50000,   // 200,000 → 250,000
+    'stand_up': 30000,      // 250,000 → 280,000
+    't_shape': 0,           // 440,000 → 440,000 (변화 없음)
+    'm_shape': 0,           // 440,000 → 440,000 (변화 없음)
+    'box': 0                // 440,000 → 440,000 (변화 없음)
   } as const
 } as const
 
@@ -414,6 +509,27 @@ export class UnifiedPricingEngine {
 
   // 包装単位（27kgごと） - ドルの最大重量制限
   private static readonly PACKAGE_WEIGHT_LIMIT = 27; // kg
+
+  /**
+   * 後加工オプション配列から乗数を計算
+   * processingConfig.tsのpriceMultiplierを使用
+   */
+  private calculatePostProcessingMultiplier(postProcessingOptions?: string[]): number {
+    if (!postProcessingOptions || postProcessingOptions.length === 0) {
+      return 1.0
+    }
+
+    // 各オプションの乗数を取得して積算
+    let multiplier = 1.0
+    for (const optionId of postProcessingOptions) {
+      const option = processingOptionsConfig.find(opt => opt.id === optionId)
+      if (option) {
+        multiplier *= option.priceMultiplier
+      }
+    }
+
+    return multiplier
+  }
 
   constructor() {
     // キャッシュサイズ制限
@@ -488,8 +604,28 @@ export class UnifiedPricingEngine {
 
   /**
    * 統合見積計算メソッド
+   * SKUモードのみ対応（일반 모드는 삭제）
    */
   async calculateQuote(params: UnifiedQuoteParams): Promise<UnifiedQuoteResult> {
+    // 2列生産オプションが適用されている場合は、割引価格を直接返す
+    if (params.twoColumnOptionApplied && params.discountedUnitPrice && params.discountedTotalPrice) {
+      logPriceCalculationDetail('2列生産割引適用', {
+        適用オプション: params.twoColumnOptionApplied === 'same' ? '同数量（15% OFF）' : '倍数量（31% OFF）',
+        割引単価: `¥${params.discountedUnitPrice.toLocaleString()}/個`,
+        割引総額: `¥${params.discountedTotalPrice.toLocaleString()}`
+      });
+
+      // 基本計算を実行してbreakdownを取得
+      const baseResult = await this.performSKUCalculation(params);
+
+      // 割引価格で上書き
+      return {
+        ...baseResult,
+        unitPrice: params.discountedUnitPrice,
+        totalPrice: params.discountedTotalPrice
+      };
+    }
+
     // キャッシュキー生成
     const cacheKey = this.generateCacheKey(params)
 
@@ -498,23 +634,12 @@ export class UnifiedPricingEngine {
       return { ...this.cache.get(cacheKey)! }
     }
 
-    // SKU計算モード確認 (새로운 기능)
-    if (params.useSKUCalculation && params.skuQuantities && params.skuQuantities.length > 0) {
-      const skuResult = await this.performSKUCalculation(params)
-      // キャッシュ保存（コピー保存）
-      this.cache.set(cacheKey, { ...skuResult })
-      return skuResult
-    }
-
-    // 필름 원가 계산 사용 여부 확인 (새로운 기능)
-    const result = params.useFilmCostCalculation
-      ? await this.performFilmCostCalculation(params)
-      : await this.performCalculation(params)
+    // 무조건 SKU 모드로 계산（일반 모드는 삭제됨）
+    const skuResult = await this.performSKUCalculation(params)
 
     // キャッシュ保存（コピー保存）
-    this.cache.set(cacheKey, { ...result })
-
-    return result
+    this.cache.set(cacheKey, { ...skuResult })
+    return skuResult
   }
 
   /**
@@ -531,8 +656,9 @@ export class UnifiedPricingEngine {
       thicknessSelection,
       thicknessMultiplier = 1.0,
       isUVPrinting = false,
-      postProcessingMultiplier = CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
       postProcessingOptions,
+      // params.postProcessingMultiplierが渡された場合はそれを優先、渡されない場合はオプションから計算
+      postProcessingMultiplier: paramsPostProcessingMultiplier,
       printingType = 'digital',
       printingColors = 1,
       doubleSided = false,
@@ -543,10 +669,22 @@ export class UnifiedPricingEngine {
       filmLayers
     } = params
 
+    // postProcessingMultiplierの決定: 渡された値を優先、なければオプションから計算
+    const postProcessingMultiplier = paramsPostProcessingMultiplier ?? (
+      postProcessingOptions
+        ? this.calculatePostProcessingMultiplier(postProcessingOptions)
+        : CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER
+    )
+
+    logPriceCalculationDetail('後加工乗数', {
+      後加工オプション: postProcessingOptions || 'なし',
+      適用乗数: postProcessingMultiplier.toFixed(2)
+    });
+
     // パラメータ検証
     this.validateParams(params)
 
-    // 1. 素材費計算
+    // 1. 素材費計算（初期値）
     let materialCost = this.calculateMaterialCost(
       materialId,
       width,
@@ -557,58 +695,43 @@ export class UnifiedPricingEngine {
       thicknessMultiplier
     )
 
-    // 2. 加工費計算
-    const processingCost = this.calculateProcessingCost(
-      bagTypeId,
-      quantity,
-      isUVPrinting,
-      {
-        productWidth: width,  // 製品幅（顧客が指定する印刷幅）を渡す
-        filmLayers,
-        thicknessSelection
-      }
-    )
-
-    // ========================================
-    // ロールフィルムの場合: 材料費を上書き
-    // ========================================
+    // 2. 加工費計算（ロールフィルムとパウチ製品で分離）
+    let processingCost = 0
     if (bagTypeId === 'roll_film') {
-      // calculateProcessingCost内で計算された材料費と同じ計算を行う
-      const lengthInMeters = quantity;
-      const productWidth = width;
-      const determinedMaterialWidth = determineMaterialWidth(productWidth);
-      const widthM = determinedMaterialWidth / 1000;
-      const totalMeters = lengthInMeters + 400;
+      // ロールフィルム専用計算：ラミネート費 + スリッター費のみ
+      // ドキュメント基準：docs/reports/calcultae/04-미터수_및_원가_계산.md
 
-      // フィルム構造レイヤー
-      const defaultLayers: FilmStructureLayer[] = [
-        { materialId: 'PET', thickness: 12 },
-        { materialId: 'AL', thickness: 7 },
-        { materialId: 'PET', thickness: 12 },
-        { materialId: 'LLDPE', thickness: 80 }
-      ];
-      const layers = filmLayers || defaultLayers;
-      const adjustedLayers = this.adjustLayersForThickness(layers, thicknessSelection);
+      // 原反幅(m)を取得
+      const materialWidthM = determineMaterialWidth(width) / 1000
 
-      // 各レイヤーの材料費計算（ウォン）
-      let materialCostKRW = 0;
-      for (const layer of adjustedLayers) {
-        const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
-        if (materialInfo) {
-          const thicknessMm = layer.thickness / 1000;
-          const weight = thicknessMm * widthM * totalMeters * materialInfo.density;
-          const cost = weight * materialInfo.unitPrice;
-          materialCostKRW += cost;
-        }
-      }
+      // 総メートル数 = 注文長さ + 400m ロス
+      const totalMeters = quantity + 400
 
-      // 円換算（×0.12）
-      materialCost = materialCostKRW * 0.12;
+      // ラミネート費(ウォン) = 原反幅(m) × 総メートル数 × 75ウォン/m × 3回（4層構造）
+      const laminationCostKRW = materialWidthM * totalMeters * CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M * 3
 
-      console.log('[RollFilm Material Cost Override]', {
-        materialCostKRW,
-        materialCostJPY: materialCost
-      });
+      // スリッター費(ウォン) = MAX(30,000ウォン, 総メートル数 × 10ウォン/m)
+      const slitterCostKRW = Math.max(CONSTANTS.ROLL_FILM_SLITTER_MIN_COST, totalMeters * CONSTANTS.ROLL_FILM_SLITTER_COST_PER_M)
+
+      // 合計加工費（円換算）
+      processingCost = (laminationCostKRW + slitterCostKRW) * 0.12
+
+      console.log('[Processing Cost] Roll film: lamination + slitter only', {
+        materialWidthM,
+        totalMeters,
+        laminationCostKRW,
+        slitterCostKRW,
+        processingCost
+      })
+    } else {
+      // パウチ製品：既存のcalculatePouchProcessingCostを使用
+      processingCost = this.calculatePouchProcessingCost(
+        bagTypeId,
+        width,
+        quantity,
+        postProcessingOptions
+      )
+      console.log('[Processing Cost] Pouch: using calculatePouchProcessingCost')
     }
 
     // 4. 設定費計算（削除：版代はなし）
@@ -622,10 +745,73 @@ export class UnifiedPricingEngine {
     }
     const pouchesPerMeter = 1000 / pitch;
     const theoreticalMeters = quantity / pouchesPerMeter;
-    const securedMeters = theoreticalMeters < 500
-      ? 500
-      : Math.ceil(theoreticalMeters / 50) * 50;
+
+    // ========================================
+    // 확보량 계산 (商品タイプ別ルール適用)
+    // docs/reports/calcultae/00-README.md 基準
+    // ========================================
+    let securedMeters: number;
+
+    if (bagTypeId === 'roll_film') {
+      // ロールフィルム: 1SKU → 500m, 2+SKU → 各300m, 50m単位
+      const minMetersPerSku = 500; // single SKU
+      if (theoreticalMeters <= minMetersPerSku) {
+        securedMeters = minMetersPerSku;
+      } else {
+        securedMeters = Math.ceil(theoreticalMeters / 50) * 50;
+      }
+    } else {
+      // パウチ商品: 最小確保量なし、1m単位
+      // docs/reports/calcultae/시나리오_상세/02-소량생산_시나리오.md 参照
+      // 例: 500個パウチ、理論メートル60m → 確保量60m
+      securedMeters = Math.ceil(theoreticalMeters);
+    }
+
     const totalUsedMeters = (bagTypeId === 'roll_film' ? quantity : securedMeters) + 400;
+
+    // ========================================
+    // 材料費の再計算（フィルム構造に基づく正しい計算）
+    // ========================================
+    // 製品幅に基づいて原反幅を決定
+    const determinedMaterialWidth = determineMaterialWidth(width);
+    const widthM = determinedMaterialWidth / 1000;
+
+    // フィルム構造レイヤー（PET/AL/PET/LLDPE 4層構造）
+    const defaultLayers: FilmStructureLayer[] = [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: 80 }
+    ];
+    const layers = filmLayers || defaultLayers;
+    const adjustedLayers = this.adjustLayersForThickness(layers, thicknessSelection);
+
+    // 各レイヤーの材料費計算（ウォン）
+    let materialCostKRW = 0;
+    for (const layer of adjustedLayers) {
+      const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+      if (materialInfo) {
+        const thicknessMm = layer.thickness / 1000;
+        const weight = thicknessMm * widthM * totalUsedMeters * materialInfo.density;
+        const cost = weight * materialInfo.unitPrice;
+        materialCostKRW += cost;
+      }
+    }
+
+    // 円換算（×0.12）
+    materialCost = materialCostKRW * 0.12;
+
+    logPriceCalculationDetail('素材費計算', {
+      パウチタイプ: bagTypeId,
+      サイズ: `${width}×${height}${depth ? `×${depth}` : ''}mm`,
+      数量: `${quantity.toLocaleString()}個`,
+      原反幅: `${determinedMaterialWidth}mm (${widthM.toFixed(2)}m)`,
+      総使用メートル: `${totalUsedMeters.toFixed(0)}m`,
+      理論メートル: `${theoreticalMeters.toFixed(0)}m`,
+      確保メートル: `${securedMeters.toFixed(0)}m`,
+      素材費_KRW: `${materialCostKRW.toLocaleString()}ウォン`,
+      素材費_JPY: `¥${materialCost.toLocaleString()}`
+    });
 
     // 3. 印刷費計算
     // ロールフィルムの場合は、メートル数とフィルム幅を使用
@@ -646,28 +832,38 @@ export class UnifiedPricingEngine {
     // ========================================
     // 3.5. マット印刷追加費計算
     // ========================================
-    // マット印刷追加費(ウォン) = フィルム幅(m) × 20ウォン/m × 使用メートル数
-    // 例: 590mm幅フィルム、500m使用 = 0.59 × 20 × 500 = 5,900ウォン追加
+    // マット印刷追加費(ウォン) = 原反幅(m) × 40ウォン/m × 長さ(m)
+    // 原反幅: 590mm または 760mm（製品幅に応じて自動決定）
+    // 例: 590mm原反、500m使用 = 0.59 × 40 × 500 = 11,800ウォン追加
     let mattePrintingCost = 0
     const hasMatteFinishing = postProcessingOptions?.includes('matte') ?? false
+    const hasGlossyFinishing = postProcessingOptions?.includes('glossy') ?? false
+
+    logPriceCalculationDetail('表面仕上げ', {
+      マット仕上げ: hasMatteFinishing,
+      光沢仕上げ: hasGlossyFinishing,
+      選択オプション: postProcessingOptions
+    })
 
     if (hasMatteFinishing) {
-      // フィルム幅（m）を取得
-      const filmWidthM = determineMaterialWidth(width) / 1000
+      // 原反幅（m）を取得（590mm または 760mm）
+      const materialWidthM = determineMaterialWidth(width) / 1000
 
-      // マット印刷追加費(ウォン) = フィルム幅(m) × 20ウォン/m × 使用メートル数
-      const matteCostKRW = filmWidthM * 20 * totalUsedMeters
+      // マット印刷追加費(ウォン) = 原反幅(m) × 40ウォン/m × 長さ(m)
+      const matteCostKRW = materialWidthM * 40 * totalUsedMeters
 
       // エン換算（×0.12）
       mattePrintingCost = matteCostKRW * 0.12
 
-      console.log('[Matte Printing Cost]', {
-        hasMatteFinishing,
-        bagTypeId,
-        filmWidthM,
-        usedMeters: totalUsedMeters,
-        matteCostKRW,
-        mattePrintingCost
+      logPriceCalculationDetail('マット印刷追加費', {
+        原反幅_m: `${materialWidthM}m`,
+        使用メートル: `${totalUsedMeters.toFixed(0)}m`,
+        追加費_KRW: `${matteCostKRW.toLocaleString()}ウォン`,
+        追加費_JPY: `¥${mattePrintingCost.toLocaleString()}`
+      })
+    } else {
+      logPriceCalculationDetail('光沢仕上げ', {
+        note: 'マット印刷追加費は適用されません'
       })
     }
 
@@ -678,13 +874,26 @@ export class UnifiedPricingEngine {
       isUVPrinting
     )
 
-    // 6. 中間計算
-    const subtotal = materialCost + processingCost + printingCost + mattePrintingCost + surcharge
+    // 6. 中間計算（マット印刷追加費は除外）
+    const subtotal = materialCost + processingCost + printingCost + surcharge
 
     // 7. 後加工乗数適用
     const postProcessingAdjustedTotal = subtotal * postProcessingMultiplier
 
+    // 7.5. マット印刷追加費を乗算後に追加（乗数の影響を受けない）
+    const totalWithMatteCost = postProcessingAdjustedTotal + mattePrintingCost
+
     // 8. 配送料計算
+    // パウチ製品用フィルム構造レイヤーの準備（配送料計算用）
+    const pouchDefaultLayers: FilmStructureLayer[] = [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: 80 }
+    ];
+    const pouchLayers = filmLayers || pouchDefaultLayers;
+    const adjustedPouchLayers = this.adjustLayersForThickness(pouchLayers, thicknessSelection);
+
     // ロールフィルム用パラメータの準備
     let rollFilmDeliveryParams: {
       lengthInMeters?: number;
@@ -707,16 +916,16 @@ export class UnifiedPricingEngine {
         { materialId: 'LLDPE', thickness: 80 }
       ];
       const layers = filmLayers || defaultLayers;
-      const adjustedLayers = this.adjustLayersForThickness(layers, thicknessSelection);
+      const adjustedRollFilmLayers = this.adjustLayersForThickness(layers, thicknessSelection);
 
       // 総厚さ計算
-      const totalThickness = adjustedLayers.reduce((sum, layer) => sum + layer.thickness, 0);
+      const totalThickness = adjustedRollFilmLayers.reduce((sum, layer) => sum + layer.thickness, 0);
 
       rollFilmDeliveryParams = {
         lengthInMeters,
         filmWidthM,
         totalThickness,
-        layers: adjustedLayers
+        layers: adjustedRollFilmLayers
       };
     }
 
@@ -729,14 +938,19 @@ export class UnifiedPricingEngine {
       materialId,
       bagTypeId,
       params.rollCount,
-      rollFilmDeliveryParams
+      rollFilmDeliveryParams,
+      // パウチ製品用パラメータ
+      bagTypeId !== 'roll_film' ? {
+        filmLayers: adjustedPouchLayers,
+        materialWidth: materialWidth
+      } : undefined
     )
 
     // 9. 最終価格計算
     // 計算式: docs/reports/tjfrP/old/原価計算.md 基づ
     //
     // Step 1: 基礎原価 + 製造者マージン40% = 製造者価格
-    const baseCost = postProcessingAdjustedTotal; // 材料原価 + 印刷費 + 加工費
+    const baseCost = totalWithMatteCost; // 材料原価 + 印刷費 + 加工費 + マット印刷追加費
     const manufacturerPrice = baseCost * (1 + CONSTANTS.MANUFACTURER_MARGIN);
 
     // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
@@ -746,26 +960,20 @@ export class UnifiedPricingEngine {
     // ドキュメント仕様: フィルムロール20%、パウチ加工品20%
     const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
 
-    console.log('[Sales Margin Calculation]', {
-      bagTypeId,
-      isRollFilm: bagTypeId === 'roll_film',
-      salesMargin,
-      markupRate,
-      importCost,
-      deliveryCost,
-      totalBeforeMargin: importCost,
-      marginAmount: importCost * salesMargin,
-      totalBeforeMinPrice: importCost * (1 + salesMargin) + deliveryCost,
-      note: '配送料は販売マージン計算対象外 (ガイド準拠)'
-    });
-
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
     // 輸入原価は既に製造者マージン40% + 関税5%が含まれている
     let total = importCost * (1 + salesMargin) + deliveryCost;
 
-    // Step 4: 最小価格適用（最終段階のみ）
-    total = Math.max(total, CONSTANTS.MINIMUM_PRICE);
+    logPriceCalculationDetail('最終価格計算', {
+      製造者価格: `¥${manufacturerPrice.toLocaleString()}`,
+      輸入原価: `¥${importCost.toLocaleString()}`,
+      販売マージン率: `${(salesMargin * 100).toFixed(0)}%`,
+      販売マージン額: `¥${(importCost * salesMargin).toLocaleString()}`,
+      配送料: `¥${deliveryCost.toLocaleString()}`,
+      最終販売価格: `¥${total.toLocaleString()}`,
+      note: '配送料は販売マージン計算対象外'
+    });
 
     // 12. リードタイム計算
     const leadTimeDays = this.calculateLeadTime(
@@ -785,7 +993,7 @@ export class UnifiedPricingEngine {
       currency: 'JPY',
       quantity,
       filmUsage: totalUsedMeters,
-      materialWidth: materialWidth || undefined,  // 原反幅情報を追加
+      materialWidth: materialWidth as 590 | 760 | undefined,  // 原反幅情報を追加 (型キャスト)
       breakdown: {
         material: Math.round(materialCost),
         processing: Math.round(processingCost),
@@ -816,6 +1024,15 @@ export class UnifiedPricingEngine {
       minimumPriceApplied: total <= CONSTANTS.MINIMUM_PRICE
     }
 
+    // 最終価格サマリーを表示
+    logPriceSummary({
+      quantity,
+      unitPrice: result.unitPrice,
+      totalPrice: result.totalPrice,
+      currency: 'JPY',
+      breakdown: result.breakdown
+    });
+
     return result
   }
 
@@ -833,8 +1050,8 @@ export class UnifiedPricingEngine {
       filmLayers,
       lossRate = CONSTANTS.DEFAULT_LOSS_RATE,
       isUVPrinting = false,
-      postProcessingMultiplier = CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
       postProcessingOptions,
+      postProcessingMultiplier = postProcessingOptions ? this.calculatePostProcessingMultiplier(postProcessingOptions) : CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
       urgency = 'standard'
     } = params
 
@@ -906,7 +1123,8 @@ export class UnifiedPricingEngine {
       hasPrinting: true, // 기본 인쇄 포함
       printingType: hasMatteFinishing ? 'matte' : 'basic', // 매트 인쇄 시 'matte' 타입 사용
       colors: 1,
-      materialWidth
+      materialWidth,
+      postProcessingOptions  // 表面処理オプションを渡す (glossy等)
     }, filmCostSettings)
 
     // ========================================
@@ -955,22 +1173,23 @@ export class UnifiedPricingEngine {
     const importCost = manufacturerPrice * 1.05;
 
     // Step 3: 輸入原価 + 販売マージン = 最終販売価格
-    // フィルムロール: 25%、パウチ加工品: markupRate
-    const salesMargin = bagTypeId === 'roll_film' ? 0.20 : markupRate;
+    // ドキュメント基準: フィルムロール20%、パウチ加工品20%
+    // シナリオ確認済み: 全製品20%で統一
+    const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
 
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
     let totalPrice = importCost * (1 + salesMargin) + deliveryCost;
 
     // ========================================
-    // 7. 最小価格適用（最終段階のみ）
+    // 最小価格適用は無効化（ドキュメント通りの計算のみ）
     // ========================================
-    // すべての計算を完了した後、MINIMUM_PRICEとの比較を行う
-    totalPrice = Math.max(totalPrice, CONSTANTS.MINIMUM_PRICE);
-    const unitPrice = totalPrice / quantity
+    // totalPrice = Math.max(totalPrice, CONSTANTS.MINIMUM_PRICE);
+    let unitPrice = totalPrice / quantity
 
-    // マークアップ適用情報を計算
-    const markedUpPrice = postProcessingAdjustedBaseCost * (1 + markupRate);
+    // マークアップ適用情報を計算（全製品20%で統一）
+    const salesMarginRate = 0.20; // 全製品20%で統一（ドキュメント準拠）
+    const markedUpPrice = postProcessingAdjustedBaseCost * (1 + salesMarginRate);
     const markupAmount = markedUpPrice - postProcessingAdjustedBaseCost;
 
     // ========================================
@@ -988,9 +1207,18 @@ export class UnifiedPricingEngine {
     // ========================================
     // totalPrice を先に丸めてから unitPrice を計算することで、
     // unitPrice * totalQuantity === totalPrice を保証
-    const roundedTotalPrice = Math.round(totalPrice);
+    // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
+    // 小数点以下を含む場合: 168400.646... → 168500
+    console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
+    const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
+    console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
+    console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
+    // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
+    // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
+    // 100円単位で切り上げた totalPrice から unitPrice を再計算
+    unitPrice = roundedTotalPrice / quantity;
     const result: UnifiedQuoteResult = {
-      unitPrice: Math.round(roundedTotalPrice / quantity),
+      unitPrice: unitPrice,
       totalPrice: roundedTotalPrice,
       currency: 'JPY',
       quantity,
@@ -1023,7 +1251,7 @@ export class UnifiedPricingEngine {
       postProcessingMultiplier: postProcessingMultiplier !== 1.0 ? postProcessingMultiplier : undefined,
       minimumPriceApplied: markedUpPrice < CONSTANTS.MINIMUM_PRICE,
       markupApplied: {
-        rate: markupRate,
+        rate: salesMarginRate, // 全製品20%で統一（ドキュメント準拠）
         baseCost: Math.round(postProcessingAdjustedBaseCost),
         markupAmount: Math.round(markupAmount)
       }
@@ -1048,7 +1276,7 @@ export class UnifiedPricingEngine {
       thicknessMultiplier = 1.0,
       isUVPrinting = false,
       postProcessingOptions,
-      postProcessingMultiplier = CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
+      postProcessingMultiplier = postProcessingOptions ? this.calculatePostProcessingMultiplier(postProcessingOptions) : CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
       urgency = 'standard',
       markupRate = CONSTANTS.DEFAULT_MARKUP_RATE,
       materialWidth = CONSTANTS.DEFAULT_MATERIAL_WIDTH,
@@ -1104,7 +1332,13 @@ export class UnifiedPricingEngine {
     // 総数量計算
     const totalQuantity = skuQuantities.reduce((sum, q) => sum + q, 0)
 
-    // 総原価（マークアップ前）
+    // 総原価（既に最終販売価格として計算済み）
+    // PouchCostCalculator.calculateCostBreakdownですでに以下が適用されています：
+    // - 製造者マージン40%
+    // - 円貨換算（×0.12）
+    // - 関税5%（円貨で計算）
+    // - 配送料（円貨で計算、15,358円）
+    // - 販売マージン20%（円貨で計算）
     const baseCost = skuCostResult.totalCostJPY
 
     // ========================================
@@ -1113,37 +1347,83 @@ export class UnifiedPricingEngine {
     const postProcessingAdjustedBaseCost = baseCost * postProcessingMultiplier
 
     // ========================================
-    // 配送料計算
+    // 最終価格計算
     // ========================================
-    // 配送料は後で追加（マージン計算には含まない）
-    // 基本配送料 (50,000円以上無料) - パウチのみ適用
-    let deliveryCost = 0
-    if (postProcessingAdjustedBaseCost < 50000) {
-      deliveryCost = 1500
+    // PouchCostCalculatorですでに最終販売価格が計算されています：
+    // - 製造者マージン40%
+    // - 円貨換算（×0.12）
+    // - 関税5%
+    // - 配送料（重量ベースで既に計算済み）
+    // - 販売マージン20%
+    //
+    // そのため、追加のマージン計算や配送料計算は不要です。
+    // 後加工乗数のみ適用します。
+    let totalPrice = postProcessingAdjustedBaseCost;
+
+    // ========================================
+    // マット印刷追加費計算
+    // ========================================
+    // マット印刷追加費(ウォン) = 原反幅 × 40ウォン/m × 長さ
+    // 原反幅: 590mm または 760mm（製品幅に応じて自動決定）
+
+    // デバッグログ: postProcessingOptionsの内容を確認
+    logPriceCalculationDetail('SKU後加工オプション', {
+      後加工オプション: postProcessingOptions || 'なし',
+      マット仕上げ: postProcessingOptions?.includes('matte') ?? false,
+      光沢仕上げ: postProcessingOptions?.includes('glossy') ?? false
+    });
+
+    const hasMatteFinishing = postProcessingOptions?.includes('matte') ?? false
+    const hasGlossyFinishing = postProcessingOptions?.includes('glossy') ?? false
+
+    if (hasMatteFinishing) {
+      // 原反幅（m）を取得（590mm または 760mm）
+      const materialWidthM = determineMaterialWidth(width) / 1000
+
+      // 総使用メートル数（ロス含む）
+      const totalUsedMeters = skuCostResult.summary.totalWithLossMeters
+
+      // マット印刷追加費(ウォン) = 原反幅 × 40ウォン/m × 長さ
+      const matteCostKRW = materialWidthM * 40 * totalUsedMeters
+
+      // 円換算（×0.12）
+      const mattePrintingCostJPY = matteCostKRW * 0.12
+
+      logPriceCalculationDetail('SKUマット印刷追加費', {
+        原反幅_m: `${materialWidthM}m`,
+        総使用メートル: `${totalUsedMeters.toFixed(0)}m`,
+        追加費_KRW: `${matteCostKRW.toLocaleString()}ウォン`,
+        追加費_JPY: `¥${mattePrintingCostJPY.toLocaleString()}`
+      })
+
+      // 追加費を総価格に加算
+      totalPrice += mattePrintingCostJPY
+    } else {
+      console.log('[SKU Calculation - Using Glossy Finish]', {
+        hasGlossyFinishing,
+        note: 'マット印刷追加費は適用されません'
+      })
     }
 
     // ========================================
-    // 最終価格計算
+    // SKU数量に基づく追加料金計算
     // ========================================
-    // 計算式: docs/reports/tjfrP/old/原価計算.md 基づ
-    //
-    // Step 1: 基礎原価 + 製造者マージン40% = 製造者価格
-    const manufacturerPrice = postProcessingAdjustedBaseCost * (1 + CONSTANTS.MANUFACTURER_MARGIN);
+    // 1 SKU: ¥0, 2 SKUs: ¥10,000, 3 SKUs: ¥20,000
+    // 計算式: (skuCount - 1) × ¥10,000
+    const skuCount = skuQuantities.length;
+    const skuSurcharge = Math.max(0, (skuCount - 1) * 10000);
 
-    // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
-    const importCost = manufacturerPrice * 1.05;
+    logPriceCalculationDetail('SKU追加料金', {
+      SKU数: skuCount,
+      追加料金: `¥${skuSurcharge.toLocaleString()}`,
+      計算式: `(${skuCount} - 1) × ¥10,000 = ¥${skuSurcharge.toLocaleString()}`
+    });
 
-    // Step 3: 輸入原価 + 配送費 + 販売マージン = 最終販売価格
-    // ドキュメント仕様: フィルムロール20%、パウチ加工品20%
-    const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
+    // 追加料金を総価格に加算
+    totalPrice += skuSurcharge;
 
-    // ガイド準拠: 配送料はマージン計算対象外
-    // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
-    let totalPrice = importCost * (1 + salesMargin) + deliveryCost;
-
-    // Step 4: 最小価格適用（最終段階のみ）
-    totalPrice = Math.max(totalPrice, CONSTANTS.MINIMUM_PRICE);
-    const unitPrice = totalPrice / totalQuantity
+    // 最小価格適用は無効化（ドキュメント通りの計算のみ）
+    // totalPrice = Math.max(totalPrice, CONSTANTS.MINIMUM_PRICE);
 
     // ========================================
     // リードタイム計算
@@ -1160,9 +1440,17 @@ export class UnifiedPricingEngine {
     // ========================================
     // totalPrice を先に丸めてから unitPrice を計算することで、
     // unitPrice * totalQuantity === totalPrice を保証
-    const roundedTotalPrice = Math.round(totalPrice);
+    // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
+    // 小数点以下を含む場合: 168400.646... → 168500
+    console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
+    const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
+    console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
+    console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
+    // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
+    // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
+    const unitPrice = roundedTotalPrice / totalQuantity;
     const result: UnifiedQuoteResult = {
-      unitPrice: Math.round(roundedTotalPrice / totalQuantity),
+      unitPrice: unitPrice,
       totalPrice: roundedTotalPrice,
       currency: 'JPY',
       quantity: totalQuantity,
@@ -1171,17 +1459,26 @@ export class UnifiedPricingEngine {
       hasValidSKUData: true,
       filmUsage: skuCostResult.summary.totalWithLossMeters,
       breakdown: {
+        // 素材費（フィルム材料費のみ）
+        filmCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.materialCost, 0)),
+        // ラミネーション費
+        laminationCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.laminationCost, 0)),
+        // スリッター費
+        slitterCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.slitterCost, 0)),
+        // 素材費合計（フィルム＋ラミネーション＋スリッター）
         material: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.materialCost + sku.costBreakdown.laminationCost + sku.costBreakdown.slitterCost, 0)),
         processing: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.pouchProcessingCost, 0)),
         printing: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.printingCost, 0)),
         setup: 0,
         discount: 0,
-        delivery: Math.round(deliveryCost),
+        // delivery: PouchCostCalculatorで既に計算済みのため0を設定（二重計算防止）
+        delivery: 0,
         subtotal: Math.round(baseCost),
         total: Math.round(totalPrice),
-        filmCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.materialCost, 0)),
         pouchProcessingCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.pouchProcessingCost, 0)),
-        baseCost: Math.round(baseCost)
+        baseCost: Math.round(baseCost),
+        // SKU追加料金（SKU数量に基づく追加料金）
+        skuSurcharge: skuSurcharge
       },
       leadTimeDays,
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -1189,7 +1486,7 @@ export class UnifiedPricingEngine {
       details: {
         fixedCost: 0,
         variableCostPerUnit: unitPrice,
-        surcharge: 0,
+        surcharge: skuSurcharge,
         materialRate: 1.4,
         area: width * height
       },
@@ -1210,10 +1507,13 @@ export class UnifiedPricingEngine {
   }
 
   /**
-   * 파우치 가공비 계산 (가로 폭 기반)
-   * 삼방파우치: 가로CM*0.4, 스탠드파우치: 가로CM*1.2
-   * 지퍼파우치(삼방+지퍼): 가로CM*1.2, 지퍼스탠드(스탠드+지퍼): 가로CM*1.7
-   * 최소단가 적용: 삼방 ₩200,000, 스탠드 ₩250,000, 지퍼 ₩250,000, 지퍼스탠드 ₩280,000
+   * 파우치 가공비 계산 (고정비용 방식)
+   *
+   * [평방(3방) / 스탠드 후가공비]
+   * - 평방(3방): 200,000원 → 지퍼 있으면 250,000원 (+50,000원)
+   * - 스탠드: 250,000원 → 지퍼 있으면 280,000원 (+30,000원)
+   * - T/M방/박스: 440,000원 (지퍼 미지원)
+   * - 기타: 200,000원
    *
    * @param bagTypeId 파우치 타입
    * @param width 폭 (mm)
@@ -1230,80 +1530,65 @@ export class UnifiedPricingEngine {
     // 기본 파우치 타입 결정
     let basePouchType: 'flat_3_side' | 'stand_up' | 't_shape' | 'm_shape' | 'box' | 'other' = 'other'
 
-    if (bagTypeId.includes('3_side') || bagTypeId.includes('flat') || bagTypeId.includes('three_side')) {
+    // 合掌袋(lap_seal)はt_shapeとして判定
+    if (bagTypeId.includes('lap_seal') || bagTypeId.includes('t_shape') || bagTypeId.includes('T방')) {
+      basePouchType = 't_shape'
+    } else if (bagTypeId.includes('3_side') || bagTypeId.includes('flat') || bagTypeId.includes('three_side')) {
       basePouchType = 'flat_3_side'
     } else if (bagTypeId.includes('stand') || bagTypeId.includes('standing')) {
       basePouchType = 'stand_up'
-    } else if (bagTypeId.includes('t_shape') || bagTypeId.includes('T방')) {
-      basePouchType = 't_shape'
     } else if (bagTypeId.includes('m_shape') || bagTypeId.includes('M방')) {
       basePouchType = 'm_shape'
     } else if (bagTypeId.includes('box') || bagTypeId.includes('gusset')) {
       basePouchType = 'box'
     }
 
-    // 지퍼 여부 확인 (postProcessingOptions에서 'zipper-yes' 확인)
+    // ジッパーがあっても基本タイプのまま計算（二重課税防止）
+    const finalPouchType = basePouchType
     const hasZipper = postProcessingOptions?.includes('zipper-yes')
 
-    // 지퍼가 있는 경우 최종 파우치 타입 결정
-    let finalPouchType: typeof basePouchType | 'zipper' | 'zipper_stand' = basePouchType
-
-    if (hasZipper) {
-      if (basePouchType === 'flat_3_side') {
-        finalPouchType = 'zipper' // 삼방 + 지퍼 = 지퍼파우치
-      } else if (basePouchType === 'stand_up') {
-        finalPouchType = 'zipper_stand' // 스탠드 + 지퍼 = 지퍼스탠드
-      }
-    }
-
-    // 파우치 가공비 계산식
+    // 파우치 가공비 계산식 (고정비용 방식)
     const costConfig = CONSTANTS.POUCH_PROCESSING_COSTS[finalPouchType] || CONSTANTS.POUCH_PROCESSING_COSTS.other
 
-    // 가로 폭(cm) 변환
-    const widthCM = width / 10
+    // 기본 가공비 (원화) - coefficient 방식 대신 고정비용 사용
+    let baseCostKRW = costConfig.minimumPrice
 
-    // 단위당 가공비 (원화)
-    const costPerUnitKRW = widthCM * costConfig.coefficient
-
-    // 전체 가공비 (원화)
-    const totalCostKRW = costPerUnitKRW * quantity
-
-    // 최소단가 적용
-    const finalCostKRW = Math.max(totalCostKRW, costConfig.minimumPrice)
+    // 지퍼가 있는 경우 추가비용 적용
+    if (hasZipper) {
+      const surcharge = CONSTANTS.ZIPPER_SURCHARGE[finalPouchType as keyof typeof CONSTANTS.ZIPPER_SURCHARGE] || 0
+      baseCostKRW += surcharge
+    }
 
     console.log('[Pouch Processing Cost]', {
       bagTypeId,
       basePouchType,
       hasZipper,
       finalPouchType,
-      widthCM,
-      coefficient: costConfig.coefficient,
-      costPerUnitKRW,
-      quantity,
-      totalCostKRW,
-      minimumPrice: costConfig.minimumPrice,
-      finalCostKRW,
-      appliedMinimum: totalCostKRW < costConfig.minimumPrice
+      baseMinimumPrice: costConfig.minimumPrice,
+      zipperSurcharge: hasZipper ? CONSTANTS.ZIPPER_SURCHARGE[finalPouchType as keyof typeof CONSTANTS.ZIPPER_SURCHARGE] : 0,
+      finalCostKRW: baseCostKRW
     })
 
     // 엔화 환산 (0.12 고정 환율)
-    return finalCostKRW * 0.12
+    return baseCostKRW * 0.12
   }
 
   /**
    * bagTypeId를 올바른 pouchType으로 매핑
    * @param bagTypeId 제품 유형 ID
    * @param postProcessingOptions 후가공 옵션 (지퍼 등)
-   * @returns 매핑된 파우치 타입
+   * @returns 매핑된 파우치 타입 (지퍼 없는 기본 타입)
+   *
+   * 注意: ジッパー追加は postProcessingMultiplier で調整するため、
+   * ここでは基本タイプのみを返す（二重課税防止）
    */
   private mapToPouchType(bagTypeId: string, postProcessingOptions?: string[]): string {
     if (bagTypeId === 'pouch') {
-      // 기본 파우치 타입 - 지퍼 유무에 따라 결정
-      const hasZipper = postProcessingOptions?.includes('zipper-yes');
-      return hasZipper ? 'zipper' : 'flat_3_side';
+      // 基本パウチタイプのみ返す（ジッパーなし）
+      return 'flat_3_side';
     }
 
-    // 다른 타입들은 그대로 반환
+    // その他のタイプはそのまま返す
     return bagTypeId;
   }
 
@@ -1313,11 +1598,17 @@ export class UnifiedPricingEngine {
   private validateParams(params: UnifiedQuoteParams): void {
     const minOrderQty = params.bagTypeId === 'roll_film' ? 500 : CONSTANTS.MIN_ORDER_QUANTITY;
     const unit = params.bagTypeId === 'roll_film' ? 'm' : '個';
-    if (params.quantity < minOrderQty) {
+
+    // SKUモードの場合はskuQuantitiesの総数量をチェック
+    const actualQuantity = params.useSKUCalculation && params.skuQuantities
+      ? params.skuQuantities.reduce((sum, q) => sum + q, 0)
+      : params.quantity;
+
+    if (actualQuantity < minOrderQty) {
       throw new Error(`最小注文数量は${minOrderQty}${unit}です。`)
     }
 
-    if (params.quantity > CONSTANTS.MAX_ORDER_QUANTITY) {
+    if (actualQuantity > CONSTANTS.MAX_ORDER_QUANTITY) {
       throw new Error(`最大注文数量は${CONSTANTS.MAX_ORDER_QUANTITY}個です。`)
     }
 
@@ -1537,13 +1828,16 @@ export class UnifiedPricingEngine {
     const colorMultiplier = doubleSided ? 2 : 1
 
     // ロールフィルムの場合：メートル数とフィルム幅を使用
+    // 修正：印刷費は幅無関係、常に475元/mで計算（ドキュメント基準）
+    // docs/reports/calcultae/04-미터수_및_원가_계산.md 参照
     if (rollFilmParams?.lengthInMeters && rollFilmParams?.filmWidthM) {
       // 総メートル数 = 使用メートル数 + ロス(400m)
       const totalMeters = rollFilmParams.lengthInMeters + 400;
 
-      // 印刷費用(ウォン) = 総メートル数 × 印刷単価(ウォン/m)
-      // 注: perColorPerMeterは「ウォン/m」の単価なので、長さ(m)のみを乗算
-      const printingCostKRW = totalMeters * printingConfig.perColorPerMeter;
+      // ロールフィルム印刷費は幅無関係、常に475元/mで計算
+      // ドキュメント基準：docs/reports/calcultae/04-미터수_및_원가_계산.md
+      // パウチ製品の印刷費計算（1777-1794行目）には影響なし（分岐が分かれているため）
+      const printingCostKRW = totalMeters * CONSTANTS.ROLL_FILM_PRINTING_COST_PER_M;
       const totalCostKRW = Math.max(printingCostKRW, printingConfig.minCharge);
 
       // 円換算（×0.12）
@@ -1554,7 +1848,8 @@ export class UnifiedPricingEngine {
         lengthInMeters: rollFilmParams.lengthInMeters,
         totalMeters,
         lossMeters: 400,
-        perColorPerMeter: printingConfig.perColorPerMeter,
+        perColorPerMeter: CONSTANTS.ROLL_FILM_PRINTING_COST_PER_M, // 475固定
+        note: 'ロールフィルム印刷費は幅無関係、常に475元/m',
         printingCostKRW,
         totalCostKRW,
         totalCostJPY
@@ -1654,6 +1949,10 @@ export class UnifiedPricingEngine {
       filmWidthM?: number        // フィルム幅
       totalThickness?: number    // 総厚さ（μm）
       layers?: Array<{ thickness: number, materialId: string }>  // 各層の情報
+    },
+    pouchParams?: {
+      filmLayers?: Array<{ materialId: string; thickness: number }>;
+      materialWidth?: 590 | 760;
     }
   ): number {
     const DELIVERY_COST_PER_ROLL = 16800 // 롤당 배송비 (엔)
@@ -1702,11 +2001,55 @@ export class UnifiedPricingEngine {
     }
 
     // Roll film with rollCount (従来の方法) - 削除
-    // 27kg制限の無視 → calculateDeliveryCostByWeightのみ使用
-    // if (bagTypeId === 'roll_film' && rollCount) {
-    //   return rollCount * DELIVERY_COST_PER_ROLL;
-    // }
+    // パウチ製品: フィルム構造に基づく正確な重量計算
+    if (pouchParams?.filmLayers && pouchParams.filmLayers.length > 0) {
+      // パウチの面積（m²）
+      const pouchAreaM2 = (width * height) / 1000000;
 
+      // 各層の重量を計算
+      let totalThicknessMm = 0;
+      let totalWeightPerM2 = 0; // m²あたりの重量（kg）
+
+      for (const layer of pouchParams.filmLayers) {
+        const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+        if (materialInfo) {
+          const thicknessMm = layer.thickness / 1000; // μm→mm変換
+          totalThicknessMm += thicknessMm;
+          // 重量(kg/m²) = 厚さ(mm) × 比重
+          totalWeightPerM2 += thicknessMm * materialInfo.density;
+        }
+      }
+
+      // 1個あたりの重量（kg）
+      const weightPerPouch = pouchAreaM2 * totalWeightPerM2;
+
+      // 総配送重量（kg）
+      const totalDeliveryWeightKg = weightPerPouch * quantity;
+
+      // 29kg/箱で箱数を計算
+      const BOX_CAPACITY_KG = 29;
+      const deliveryBoxes = Math.ceil(totalDeliveryWeightKg / BOX_CAPACITY_KG);
+
+      // 配送料計算（箱数 × 1箱あたりの配送料）
+      const DELIVERY_COST_PER_BOX_KRW = 127980;
+      const EXCHANGE_RATE = 0.12;
+      const totalDeliveryJPY = deliveryBoxes * DELIVERY_COST_PER_BOX_KRW * EXCHANGE_RATE;
+
+      console.log('[Pouch Delivery Cost]', {
+        pouchAreaM2,
+        totalThicknessMm,
+        totalWeightPerM2,
+        weightPerPouch,
+        quantity,
+        totalDeliveryWeightKg,
+        deliveryBoxes,
+        totalDeliveryJPY
+      });
+
+      return totalDeliveryJPY;
+    }
+
+    // パウチ製品でフィルム構造情報がない場合、簡易計算（従来方法）
     const deliveryConfig = CONSTANTS.DELIVERY_COSTS[deliveryLocation]
 
     // 想定重量計算
@@ -1930,6 +2273,8 @@ export class UnifiedPricingEngine {
       params.thicknessMultiplier?.toString() || '1.0',
       params.isUVPrinting?.toString() || 'false',
       params.postProcessingMultiplier?.toString() || '1.0',
+      // postProcessingOptionsをキャッシュキーに追加（マット/光沢変更対応）
+      JSON.stringify(params.postProcessingOptions?.sort() || []),
       params.printingType || 'digital',
       params.printingColors?.toString() || '1',
       params.doubleSided?.toString() || 'false',
@@ -1937,11 +2282,16 @@ export class UnifiedPricingEngine {
       params.urgency || 'standard',
       // 필름 원가 계산 관련 파라미터 (새로운 기능)
       params.useFilmCostCalculation?.toString() || 'false',
-      params.markupRate?.toString() || CONSTANTS.DEFAULT_MARKUP_RATE.toString(),
+      // キャッシュキーからmarkupRateを削除 - 常にsalesMargin=0.20を使用するため
+      // params.markupRate?.toString() || CONSTANTS.DEFAULT_MARKUP_RATE.toString(),
       params.materialWidth?.toString() || '760', // デフォルト760mm
       params.lossRate?.toString() || CONSTANTS.DEFAULT_LOSS_RATE.toString(),
       // 필름 레이어 정보를 문자열로 변환
-      params.filmLayers ? JSON.stringify(params.filmLayers) : 'default'
+      params.filmLayers ? JSON.stringify(params.filmLayers) : 'default',
+      // 2열생산 옵션 관련 파라미터
+      params.twoColumnOptionApplied || 'none',
+      params.discountedUnitPrice?.toString() || 'none',
+      params.discountedTotalPrice?.toString() || 'none'
     ]
 
     return keyParts.join('|')
@@ -1952,6 +2302,7 @@ export class UnifiedPricingEngine {
    */
   public clearCache(): void {
     this.cache.clear()
+    console.log('[UnifiedPricingEngine] Cache cleared')
   }
 
   /**
@@ -1959,6 +2310,24 @@ export class UnifiedPricingEngine {
    */
   public getCacheSize(): number {
     return this.cache.size
+  }
+
+  /**
+   * 特定数量のキャッシュをクリア（推奨更新時使用）
+   * @param quantity クリアする数量
+   */
+  public clearCacheForQuantity(quantity: number): void {
+    const keysToDelete: string[] = []
+
+    for (const [key] of this.cache.keys()) {
+      // キャッシュキーに数量が含まれる場合削除
+      if (key.includes(`quantity:${quantity}`)) {
+        keysToDelete.push(key)
+      }
+    }
+
+    keysToDelete.forEach(key => this.cache.delete(key))
+    console.log(`[UnifiedPricingEngine] Cleared ${keysToDelete.length} cache entries for quantity ${quantity}`)
   }
 
   /**

@@ -34,7 +34,7 @@ interface ActionResponseBody {
 // Workflow State Machine
 // ============================================================
 
-// @ts-ignore - Workflow transitions don't need all actions for each status
+// Workflow transitions: each status maps to allowed actions and their resulting statuses
 const WORKFLOW_TRANSITIONS: Record<
   ContractWorkflowStatus,
   Partial<Record<WorkflowAction, ContractWorkflowStatus | null>>

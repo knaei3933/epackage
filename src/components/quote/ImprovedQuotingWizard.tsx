@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,11 +9,9 @@ import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
 import { safeMap } from '@/lib/array-helpers';
-import { supabase } from '@/lib/supabase';
 import EnvelopePreview from './EnvelopePreview';
 import MultiQuantityStep from './MultiQuantityStep';
 import MultiQuantityComparisonTable from './MultiQuantityComparisonTable';
-import { PostProcessingGroups } from './PostProcessingGroups';
 import {
   MATERIAL_TYPE_LABELS,
   MATERIAL_TYPE_LABELS_JA,
@@ -22,6 +21,7 @@ import {
   getThicknessLabel,
   getWeightRange
 } from '@/constants/materialTypes';
+import { getAvailableGussetSizes } from '@/lib/gusset-data';
 import {
   ChevronRight,
   ChevronLeft,
@@ -56,32 +56,57 @@ import { ParallelProductionOptions, EconomicQuantityProposal } from './index';
 import { OrderSummarySection, QuantityOptionsGrid } from './index';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import type { ParallelProductionOption, EconomicQuantitySuggestionData, QuantityOption } from './index';
+import { generateQuotePDF } from '@/lib/pdf-generator';
 
-/**
- * Fetch customer-specific markup rate from Supabase
- * @param userId User ID to fetch markup rate for
- * @returns Markup rate (default 0.5 = 50% if not set or error)
- */
-async function getCustomerMarkupRate(userId: string): Promise<number> {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('markup_rate')
-      .eq('id', userId)
-      .single();
+// 内容物ラベル定数
+const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+  'food': '食品',
+  'health_supplement': '健康食品',
+  'cosmetic': '化粧品',
+  'quasi_drug': '医薬部外品',
+  'drug': '医薬品',
+  'other': 'その他'
+};
 
-    if (error) {
-      console.warn('[getCustomerMarkupRate] Error fetching markup rate:', error);
-      return 0.5; // Default 50%
-    }
+const CONTENTS_TYPE_LABELS: Record<string, string> = {
+  'solid': '固体',
+  'powder': '粉体',
+  'liquid': '液体'
+};
 
-    // Return markup_rate if set, otherwise default to 0.5
-    return data?.markup_rate ?? 0.5;
-  } catch (error) {
-    console.warn('[getCustomerMarkupRate] Exception:', error);
-    return 0.5; // Default 50%
+const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+  'general_neutral': '一般/中性',
+  'oil_surfactant': 'オイル/界面活性剤',
+  'acidic_salty': '酸性/塩分',
+  'volatile_fragrance': '揮発性/香料',
+  'other': 'その他'
+};
+
+const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+  'general_roomTemp': '一般/常温',
+  'light_oxygen_sensitive': '光/酸素敏感',
+  'refrigerated': '冷凍保管',
+  'high_temp_sterilized': '高温殺菌',
+  'other': 'その他'
+};
+
+// 内容物表示文字列を生成
+const getContentsDisplay = (
+  productCategory: string,
+  contentsType: string,
+  mainIngredient: string,
+  distributionEnvironment: string
+): string => {
+  const categoryLabel = PRODUCT_CATEGORY_LABELS[productCategory] || '';
+  const typeLabel = CONTENTS_TYPE_LABELS[contentsType] || '';
+  const ingredientLabel = MAIN_INGREDIENT_LABELS[mainIngredient] || '';
+  const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[distributionEnvironment] || '';
+
+  if (categoryLabel && typeLabel && ingredientLabel && environmentLabel) {
+    return `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`;
   }
-}
+  return '';
+};
 
 // Step configuration
 const STEPS = [
@@ -100,11 +125,58 @@ function SpecsStep() {
   const isStepComplete = (step: string) => checkStepComplete(state, step);
   const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
 
+  // Validation state
+  const [heightError, setHeightError] = useState<string>('');
+  const [widthError, setWidthError] = useState<string>('');
+
+  // Validation functions
+  const validateHeight = (height: number, bagTypeId: string, width?: number, depth?: number): string => {
+    // 平袋(平袋): 最大高さ 360mm
+    if (bagTypeId === 'flat_3_side' && height > 360) {
+      return '高さは360mm以下で入力してください';
+    }
+
+    // スタンドパウチ: 展開サイズ (高さ×2＋底) 690mm以下
+    if (bagTypeId === 'stand_up' && height && depth) {
+      const expandedSize = (height * 2) + depth;
+      if (expandedSize > 690) {
+        return `展開サイズ（高さ×2＋底）は690mm以下（現在: ${expandedSize}mm）`;
+      }
+    }
+
+    // ボックス型パウチ: 横＋側面 350mm以下（側面＝depth/2）
+    if (bagTypeId === 'box' && width && depth) {
+      const widthWithSide = width + (depth / 2);
+      if (widthWithSide > 350) {
+        return `横＋側面は350mm以下（現在: ${width}mm＋${depth / 2}mm＝${widthWithSide}mm）`;
+      }
+    }
+
+    return '';
+  };
+
   // Determine if gusset (マチ) should be shown based on bag type
   const shouldShowGusset = () => {
     // Don't show gusset for flat_3_side and roll_film
     return state.bagTypeId !== 'flat_3_side' && state.bagTypeId !== 'roll_film';
   };
+
+  // Calculate available gusset sizes based on current width
+  const availableGussetSizes = useMemo(() => {
+    const width = state.width;
+    if (!width || width < 70) return [];
+    return getAvailableGussetSizes(width);
+  }, [state.width]);
+
+  // バリデーション: 高さ、幅、深さ、バッグタイプが変更されたときに実行
+  useEffect(() => {
+    if (state.height) {
+      const error = validateHeight(state.height, state.bagTypeId, state.width, state.depth);
+      setHeightError(error);
+    } else {
+      setHeightError('');
+    }
+  }, [state.height, state.width, state.depth, state.bagTypeId]);
 
   // Enhanced bag type options with images
   const bagTypes = [
@@ -333,6 +405,21 @@ function SpecsStep() {
             { materialId: 'PET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 100 }
           ]
+        },
+        {
+          id: 'ultra',
+          name: '超耐久タイプ (800g~)',
+          nameJa: '超耐久タイプ (800g~)',
+          specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
         }
       ]
     },
@@ -429,32 +516,47 @@ function SpecsStep() {
       thicknessOptions: [
         {
           id: 'light',
-          name: '軽量タイプ (~100g)',
-          nameJa: '軽量タイプ (~100g)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン60μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 60μ',
-          weightRange: '~100g',
-          multiplier: 0.9,
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
           filmLayers: [
             { materialId: 'PET', thickness: 12 },
             { materialId: 'NY', thickness: 16 },
             { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 60 }
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'light_medium',
+          name: '軽量タイプ (~200g)',
+          nameJa: '軽量タイプ (~200g)',
+          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'NY', thickness: 16 },
+            { materialId: 'AL', thickness: 7 },
+            { materialId: 'LLDPE', thickness: 70 }
           ]
         },
         {
           id: 'medium',
           name: '標準タイプ (~500g)',
           nameJa: '標準タイプ (~500g)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン80μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ',
+          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
           weightRange: '~500g',
           multiplier: 1.0,
           filmLayers: [
             { materialId: 'PET', thickness: 12 },
             { materialId: 'NY', thickness: 16 },
             { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 80 }
+            { materialId: 'LLDPE', thickness: 90 }
           ]
         },
         {
@@ -471,10 +573,67 @@ function SpecsStep() {
             { materialId: 'AL', thickness: 7 },
             { materialId: 'LLDPE', thickness: 100 }
           ]
+        },
+        {
+          id: 'ultra',
+          name: '超耐久タイプ (800g~)',
+          nameJa: '超耐久タイプ (800g~)',
+          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'NY', thickness: 16 },
+            { materialId: 'AL', thickness: 7 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
         }
       ]
     }
   ];
+
+  // Contents dropdown options
+  const PRODUCT_CATEGORIES = [
+    { value: '', label: '選択してください', labelJa: '選択してください', disabled: true },
+    { value: 'food', label: '食品', labelJa: '食品' },
+    { value: 'health_supplement', label: '健康食品', labelJa: '健康食品' },
+    { value: 'cosmetic', label: '化粧品', labelJa: '化粧品' },
+    { value: 'quasi_drug', label: '医薬部外品', labelJa: '医薬部外品' },
+    { value: 'drug', label: '医薬品', labelJa: '医薬品' },
+    { value: 'other', label: 'その他', labelJa: 'その他' },
+  ] as const;
+
+  const CONTENTS_TYPES = [
+    { value: '', label: '選択してください', labelJa: '選択してください', disabled: true },
+    { value: 'solid', label: '固体', labelJa: '固体' },
+    { value: 'powder', label: '粉体', labelJa: '粉体' },
+    { value: 'liquid', label: '液体', labelJa: '液体' },
+  ] as const;
+
+  const MAIN_INGREDIENTS = [
+    { value: '', label: '選択してください', labelJa: '選択してください', disabled: true },
+    { value: 'general_neutral', label: '一般/中性', labelJa: '一般/中性' },
+    { value: 'oil_surfactant', label: 'オイル/界面活性剤', labelJa: 'オイル/界面活性剤' },
+    { value: 'acidic_salty', label: '酸性/塩分', labelJa: '酸性/塩分' },
+    { value: 'volatile_fragrance', label: '揮発性/香料', labelJa: '揮発性/香料' },
+    { value: 'other', label: 'その他', labelJa: 'その他' },
+  ] as const;
+
+  const DISTRIBUTION_ENVIRONMENTS = [
+    { value: '', label: '選択してください', labelJa: '選択してください', disabled: true },
+    { value: 'general_roomTemp', label: '一般/常温', labelJa: '一般/常温' },
+    { value: 'light_oxygen_sensitive', label: '光/酸素敏感', labelJa: '光/酸素敏感' },
+    { value: 'refrigerated', label: '冷凍保管', labelJa: '冷凍保管' },
+    { value: 'high_temp_sterilized', label: '高温殺菌', labelJa: '高温殺菌' },
+    { value: 'other', label: 'その他', labelJa: 'その他' },
+  ] as const;
+
+  // Get current values - no defaults to enforce selection
+  const selectedCategory = state.productCategory;
+  const selectedType = state.contentsType;
+  const selectedIngredient = state.mainIngredient;
+  const selectedEnvironment = state.distributionEnvironment;
 
   return (
     <div className="space-y-6">
@@ -484,6 +643,100 @@ function SpecsStep() {
           基本仕様の選択
         </h2>
 
+        {/* Contents Dropdowns - 4 dropdowns in a row */}
+        <div className="mb-6" data-section="contents-dropdowns">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            内容物 <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Product Category */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">製品タイプ</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+              >
+                {PRODUCT_CATEGORIES.map(cat => (
+                  <option
+                    key={cat.value}
+                    value={cat.value}
+                    disabled={(cat as any).disabled}
+                  >
+                    {cat.labelJa}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Contents Type */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">内容物の形態</label>
+              <select
+                value={selectedType}
+                onChange={(e) => updateField('contentsType', e.target.value as typeof selectedType)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+              >
+                {CONTENTS_TYPES.map(type => (
+                  <option
+                    key={type.value}
+                    value={type.value}
+                    disabled={(type as any).disabled}
+                  >
+                    {type.labelJa}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Main Ingredient */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">主成分</label>
+              <select
+                value={selectedIngredient}
+                onChange={(e) => updateField('mainIngredient', e.target.value as typeof selectedIngredient)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+              >
+                {MAIN_INGREDIENTS.map(ing => (
+                  <option
+                    key={ing.value}
+                    value={ing.value}
+                    disabled={(ing as any).disabled}
+                  >
+                    {ing.labelJa}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Distribution Environment */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">流通環境</label>
+              <select
+                value={selectedEnvironment}
+                onChange={(e) => updateField('distributionEnvironment', e.target.value as typeof selectedEnvironment)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+              >
+                {DISTRIBUTION_ENVIRONMENTS.map(env => (
+                  <option
+                    key={env.value}
+                    value={env.value}
+                    disabled={(env as any).disabled}
+                  >
+                    {env.labelJa}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {/* Selection Summary */}
+          <div className="mt-2 text-xs text-gray-600">
+            選択: {PRODUCT_CATEGORIES.find(c => c.value === selectedCategory)?.labelJa} /
+            {CONTENTS_TYPES.find(t => t.value === selectedType)?.labelJa} /
+            {MAIN_INGREDIENTS.find(i => i.value === selectedIngredient)?.labelJa} /
+            {DISTRIBUTION_ENVIRONMENTS.find(e => e.value === selectedEnvironment)?.labelJa}
+          </div>
+        </div>
 
         {/* Form Content - Unified responsive design */}
         <div className="space-y-6">
@@ -583,8 +836,8 @@ function SpecsStep() {
                 ))}
               </div>
               {state.spoutPosition && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
+                <div className="mt-3 p-3 bg-info-50 border border-info-200 rounded-lg">
+                  <p className="text-sm text-info-800">
                     選択されたスパウト位置: <span className="font-medium">{spoutPositions.find(p => p.id === state.spoutPosition)?.labelJa}</span>
                   </p>
                 </div>
@@ -595,54 +848,139 @@ function SpecsStep() {
           {/* Size Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">サイズ (mm)</label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className={`grid grid-cols-1 gap-4 ${
+              state.bagTypeId === 'roll_film' ? 'sm:grid-cols-2' :
+              state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box' ? 'sm:grid-cols-4' :
+              'sm:grid-cols-3'
+            }`}>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">幅</label>
                 <input
                   type="number"
                   min="50"
-                  value={state.width}
-                  onChange={(e) => updateBasicSpecs({ width: parseInt(e.target.value) || 0 })}
+                  value={state.width ?? ''}
+                  onChange={(e) => updateBasicSpecs({ width: e.target.value === '' ? undefined : parseInt(e.target.value) })}
                   className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   placeholder={state.bagTypeId === 'roll_film' ? "300" : "200"}
                 />
               </div>
-              {/* Height input - HIDE for roll_film */}
-              {state.bagTypeId !== 'roll_film' && (
+              {/* Height input - HIDE for roll_film, SHOW pitch instead */}
+              {state.bagTypeId === 'roll_film' ? (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">高さ</label>
+                  <label className="block text-xs text-gray-500 mb-1">ピッチ (デザイン周期)</label>
                   <input
                     type="number"
                     min="50"
-                    value={state.height}
-                    onChange={(e) => updateBasicSpecs({ height: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                    placeholder="300"
+                    max="1000"
+                    value={state.pitch || ''}
+                    onChange={(e) => updateBasicSpecs({ pitch: parseInt(e.target.value) || undefined })}
+                    className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
+                      !state.pitch || (state.pitch < 50 || state.pitch > 1000)
+                        ? 'border-gray-300 focus:ring-navy-500'
+                        : 'border-green-500 focus:ring-green-500'
+                    }`}
+                    placeholder="例: 200"
                   />
+                  {state.pitch && state.pitch >= 50 && state.pitch <= 1000 ? (
+                    <p className="mt-1 text-xs text-green-600">✓ ピッチ入力完了</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-gray-400">※ 50mm以上1000mm以下で入力してください</p>
+                  )}
+                </div>
+              ) : (
+                state.bagTypeId !== 'roll_film' && (
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">高さ</label>
+                    <input
+                      type="number"
+                      min="50"
+                      value={state.height ?? ''}
+                      onChange={(e) => {
+                        const newHeight = e.target.value === '' ? undefined : parseInt(e.target.value);
+                        updateBasicSpecs({ height: newHeight });
+                        // バリデーション実行
+                        if (newHeight !== undefined) {
+                          const error = validateHeight(newHeight, state.bagTypeId, state.width, state.depth);
+                          setHeightError(error);
+                        } else {
+                          setHeightError('');
+                        }
+                      }}
+                      onBlur={() => {
+                        // フォーカス喪失時にバリデーション再実行
+                        if (state.height) {
+                          const error = validateHeight(state.height, state.bagTypeId, state.width, state.depth);
+                          setHeightError(error);
+                        }
+                      }}
+                      className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
+                        heightError
+                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                          : 'border-gray-300 focus:ring-navy-500'
+                      }`}
+                      placeholder="300"
+                    />
+                    {heightError && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {heightError}
+                      </p>
+                    )}
+                  </div>
+                )
+              )}
+              {shouldShowGusset() && state.bagTypeId !== 'roll_film' && (
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">マチ (底)</label>
+                  {(() => {
+                    const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
+                    return hasValidGusset ? (
+                      <select
+                        value={state.depth || availableGussetSizes[0] || 30}
+                        onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) || 30 })}
+                        className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                      >
+                        {availableGussetSizes.map((size) => (
+                          <option key={size} value={size}>
+                            {size}mm
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="number"
+                        min="0"
+                        value={state.depth ?? ''}
+                        onChange={(e) => updateBasicSpecs({ depth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    );
+                  })()}
+                  {state.width && state.width >= 70 && availableGussetSizes.length > 0 && (
+                    <p className="mt-1 text-xs text-gray-400">
+                      幅{state.width}mmで選択可能なマチサイズ
+                    </p>
+                  )}
                 </div>
               )}
-              {shouldShowGusset() && (
+              {/* 側面 (よこめん) - 合掌袋とボックス型パウチのみ */}
+              {(state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') && (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">マチ</label>
+                  <label className="block text-xs text-gray-500 mb-1">側面</label>
                   <input
                     type="number"
                     min="0"
-                    value={state.depth}
-                    onChange={(e) => updateBasicSpecs({ depth: parseInt(e.target.value) || 0 })}
+                    value={state.sideWidth ?? ''}
+                    onChange={(e) => updateBasicSpecs({ sideWidth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
                     className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                    placeholder="0"
+                    placeholder="例: 50"
                   />
+                  <p className="mt-1 text-xs text-gray-400">
+                    {state.bagTypeId === 'lap_seal' ? '※ 175mm以下で入力してください' : '※ 側面を入力してください（オプション）'}
+                  </p>
                 </div>
               )}
             </div>
-            {/* Info message for roll_film */}
-            {state.bagTypeId === 'roll_film' && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                <p className="text-xs text-blue-800">
-                  ロールフィルム: 幅のみ入力してください。長さは次のステップで入力します。
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Material Selection */}
@@ -754,7 +1092,7 @@ function SpecsStep() {
                         <div className="text-sm text-gray-600 pr-8">{thickness.nameJa}</div>
                         <div className="font-medium text-gray-900 mt-1">{thickness.specificationEn || thickness.specification}</div>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                          <span className="inline-block px-2 py-1 text-xs bg-info-50 text-info-700 rounded">
                             重量: {thickness.weightRange}
                           </span>
                         </div>
@@ -777,10 +1115,21 @@ function SpecsStep() {
 // Use the new MultiQuantityStep component
 // The old QuantityStep function has been replaced by MultiQuantityStep.tsx
 
+// Sealing width options (シール幅オプション)
+// Note: Sealing width does NOT affect pricing - priceMultiplier is always 1.0
+const SEALING_WIDTH_OPTIONS = [
+  { id: '5mm', name: 'シール幅 5mm', value: '5mm', priceMultiplier: 1.0, previewImage: '/images/post-processing/seal_5.jpg' },
+  { id: '7-5mm', name: 'シール幅 7.5mm', value: '7.5mm', priceMultiplier: 1.0, previewImage: '/images/post-processing/seal_7.5.jpg' },
+  { id: '10mm', name: 'シール幅 10mm', value: '10mm', priceMultiplier: 1.0, previewImage: '/images/post-processing/seal_10.jpg' },
+];
+
 function PostProcessingStep() {
   const state = useQuoteState();
-  const { updatePostProcessing } = useQuote();
+  const { updatePostProcessing, setSealWidth } = useQuote();
   const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
+
+  // ホバー状態管理（パターンA用）
+  const [hoveredOption, setHoveredOption] = useState<{option: any; element: HTMLElement} | null>(null);
 
   // Define post-processing groups
   const groups = [
@@ -788,6 +1137,7 @@ function PostProcessingStep() {
       id: 'zipper',
       name: 'ジッパー',
       icon: '🔒',
+      required: true,
       options: [
         { id: 'zipper-yes', name: 'ジッパー付き', multiplier: 1.15, previewImage: '/images/post-processing/1.ジッパーあり.png' },
         { id: 'zipper-no', name: 'ジッパーなし', multiplier: 1.0, previewImage: '/images/post-processing/1.ジッパーなし.png' }
@@ -797,6 +1147,7 @@ function PostProcessingStep() {
       id: 'finish',
       name: '表面処理',
       icon: '✨',
+      required: true,
       options: [
         { id: 'glossy', name: '光沢仕上げ', multiplier: 1.08, previewImage: '/images/post-processing/2.光沢.png' },
         { id: 'matte', name: 'マット仕上げ', multiplier: 1.05, previewImage: '/images/post-processing/2.マット.png' }
@@ -806,15 +1157,18 @@ function PostProcessingStep() {
       id: 'notch',
       name: 'ノッチ',
       icon: '✂️',
+      required: false,
       options: [
-        { id: 'notch-yes', name: 'ノッチ付き', multiplier: 1.03, previewImage: '/images/post-processing/3.ノッチあり.png' },
+        { id: 'notch-yes', name: 'Vノッチ', multiplier: 1.03, previewImage: '/images/post-processing/3.ノッチあり.png' },
+        { id: 'notch-straight', name: '直線ノッチ', multiplier: 1.02, previewImage: '/images/post-processing/3.直線ノッチ.png' },
         { id: 'notch-no', name: 'ノッチなし', multiplier: 1.0, previewImage: '/images/post-processing/3.ノッチなし.png' }
       ]
     },
     {
       id: 'hang-hole',
-      name: '吊り穴',
+      name: '吊り下げ穴加工',
       icon: '⭕',
+      required: false,
       options: [
         { id: 'hang-hole-6mm', name: '吊り下げ穴 (6mm)', multiplier: 1.03, previewImage: '/images/post-processing/4.吊り穴あり.png' },
         { id: 'hang-hole-8mm', name: '吊り下げ穴 (8mm)', multiplier: 1.04, previewImage: '/images/post-processing/4.吊り穴あり.png' },
@@ -823,8 +1177,9 @@ function PostProcessingStep() {
     },
     {
       id: 'corner',
-      name: '角形状',
+      name: '角加工',
       icon: '📐',
+      required: false,
       options: [
         { id: 'corner-round', name: '角丸', multiplier: 1.06, previewImage: '/images/post-processing/5.角丸.png' },
         { id: 'corner-square', name: '角直角', multiplier: 1.0, previewImage: '/images/post-processing/5.角直.png' }
@@ -832,23 +1187,54 @@ function PostProcessingStep() {
     },
     {
       id: 'valve',
-      name: 'バルブ',
+      name: 'ガス抜きバルブ',
       icon: '⚙️',
+      required: false,
       options: [
-        { id: 'valve-yes', name: 'バルブ付き', multiplier: 1.08, previewImage: '/images/post-processing/バルブあり.png' },
-        { id: 'valve-no', name: 'バルブなし', multiplier: 1.0, previewImage: '/images/post-processing/バルブなし.png' }
+        { id: 'valve-no', name: 'バルブなし', multiplier: 1.0, previewImage: '/images/post-processing/バルブなし.png' },
+        { id: 'valve-yes', name: 'バルブ付き', multiplier: 1.08, previewImage: '/images/post-processing/バルブあり.png' }
       ]
     },
     {
       id: 'opening',
       name: '開封位置',
       icon: '📍',
+      required: false,
       options: [
         { id: 'top-open', name: '上端開封', multiplier: 1.02, previewImage: '/images/post-processing/6.上端オープン.png' },
         { id: 'bottom-open', name: '下端開封', multiplier: 1.03, previewImage: '/images/post-processing/6.下端オープン.png' }
       ]
+    },
+    {
+      id: 'machi-printing',
+      name: 'マチ印刷',
+      icon: '🖨️',
+      required: false,
+      options: [
+        { id: 'machi-printing-no', name: 'マチ印刷なし', multiplier: 1.0, previewImage: '/images/post-processing/マッチ印刷無し.png' },
+        { id: 'machi-printing-yes', name: 'マチ印刷あり', multiplier: 1.05, previewImage: '/images/post-processing/マッチ印刷あり.png' }
+      ]
     }
   ];
+
+  // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示
+  // スタンドパウチ、ボックス型パウチ、スパウトパウチの場合は開封位置を上端開封のみに制限
+  // スタンドパウチ、ボックス型パウチの場合のみマチ印刷オプションを表示
+  const forceTopOpen = state.bagTypeId === 'stand_up' || state.bagTypeId === 'box' || state.bagTypeId === 'spout_pouch';
+  const showMachiPrinting = state.bagTypeId === 'stand_up' || state.bagTypeId === 'box';
+
+  const visibleGroups = state.bagTypeId === 'spout_pouch' || state.bagTypeId === 'roll_film'
+    ? groups.filter(g => g.id === 'finish')
+    : groups.filter(g => showMachiPrinting || g.id !== 'machi-printing').map(group => {
+        // 開封位置グループで、強制上端開封が必要な場合はオプションをフィルタリング
+        if (forceTopOpen && group.id === 'opening') {
+          return {
+            ...group,
+            options: group.options.filter(opt => opt.id === 'top-open')
+          };
+        }
+        return group;
+      });
 
   // Zipper position options (shown conditionally)
   const zipperPositionOptions = [
@@ -859,27 +1245,52 @@ function PostProcessingStep() {
   const handleToggleOption = (optionId: string, multiplier: number) => {
     const currentOptions = state.postProcessingOptions || [];
 
-    // Mutually exclusive groups are handled by PostProcessingGroups component
-    let newOptions: string[];
+    console.log('[handleToggleOption] Clicked option:', optionId, 'Current options:', currentOptions);
 
-    if (currentOptions.includes(optionId)) {
-      newOptions = currentOptions.filter(id => id !== optionId);
-    } else {
-      newOptions = [...currentOptions, optionId];
+    // 常に新しい選択を適用 - 同じカテゴリのオプションは自動的に除外される
+    // オプションのカテゴリーを取得（visibleGroups定義から）
+    const clickedGroup = visibleGroups.find(g => g.options.some(opt => opt.id === optionId));
+    const clickedCategory = clickedGroup?.id; // category → id に修正
+
+    console.log('[handleToggleOption] Category:', clickedCategory);
+
+    // 同じカテゴリーのオプションを除外
+    // 重要：選択しようとしているオプション自体はフィルタリングから除外する
+    const newOptions = currentOptions.filter(id => {
+      // 選択しようとしているオプションは削除（toggle処理のため）
+      if (id === optionId) return false;
+
+      // クリックされたオプションのグループを探す
+      const group = visibleGroups.find(g => g.options.some(opt => opt.id === id));
+      return group?.id !== clickedCategory; // category → id に修正
+    });
+
+    console.log('[handleToggleOption] After filter:', newOptions);
+
+    // オプションを追加（既に選択されている場合はtoggle処理で削除済みのため追加）
+    // 選択されていなかった場合、またはフィルタリングで削除された場合のみ追加
+    const isAlreadySelected = currentOptions.includes(optionId);
+    if (!isAlreadySelected || newOptions.length < currentOptions.length) {
+      newOptions.push(optionId);
     }
 
+    console.log('[handleToggleOption] Final options:', newOptions);
+
     // Calculate total multiplier
-    const allOptions = [...zipperPositionOptions, ...groups.flatMap(g => g.options)];
+    const allOptions = [...zipperPositionOptions, ...visibleGroups.flatMap(g => g.options)];
     const totalMultiplier = newOptions.reduce((acc, id) => {
       const option = allOptions.find(opt => opt.id === id);
       return acc + (option ? option.multiplier - 1 : 0);
     }, 1.0);
 
+    console.log('[handleToggleOption] Updating with multiplier:', totalMultiplier);
     updatePostProcessing(newOptions, totalMultiplier);
   };
 
   // Show zipper position selector only when zipper-yes is selected
-  const showZipperPosition = state.postProcessingOptions?.includes('zipper-yes');
+  // スパウトパウチの場合はジッパー位置の選択も非表示
+  // ジッパー位置UIは常に非表示（ユーザー要求により削除）
+  const showZipperPosition = false;
 
   return (
     <div className="space-y-6">
@@ -899,46 +1310,140 @@ function PostProcessingStep() {
           </div>
         </div>
 
-        {/* Post-processing groups */}
-        <PostProcessingGroups
-          groups={groups}
-          selectedOptions={state.postProcessingOptions || []}
-          onToggleOption={handleToggleOption}
-          totalMultiplier={state.postProcessingMultiplier || 1.0}
-          bagTypeId={state.bagTypeId}
-        />
+        {/* Sealing Width Selection - Pattern A (水平スクロール) */}
+        {state.bagTypeId !== 'roll_film' && (
+          <div className="mb-6 bg-gray-50 rounded-xl p-4 border-2 border-gray-200 relative">
+            {/* Category Header */}
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-base font-bold text-gray-900">シール幅</h3>
+              {state.sealWidth && (
+                <Check className="w-5 h-5 text-green-500" />
+              )}
+            </div>
 
-        {/* Zipper position selector (conditional) */}
-        {showZipperPosition && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="text-sm font-medium text-blue-900 mb-3 flex items-center">
-              <Settings className="w-4 h-4 mr-1" />
-              ジッパー位置の選択
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {zipperPositionOptions.map((position) => (
-                <button
-                  key={position.id}
-                  type="button"
-                  onClick={() => handleToggleOption(position.id, position.multiplier)}
-                  className={`p-3 border rounded-lg text-left transition-all duration-200 ${state.postProcessingOptions?.includes(position.id)
-                    ? 'border-blue-500 bg-blue-100 text-blue-900'
-                    : 'border-gray-300 bg-white text-gray-900 hover:border-blue-300 hover:bg-blue-50'
-                    }`}
-                >
-                  <div className="font-medium text-sm">{position.name}</div>
-                  <div className="text-xs text-gray-600 mt-1">{position.description}</div>
-                  {position.multiplier > 0 && (
-                    <div className="text-xs text-blue-600 font-medium mt-2">
-                      追加倍率: ×{position.multiplier}
+            {/* Horizontal Scroll Options */}
+            <div className="flex gap-2 pb-2 scrollbar-hide flex-wrap">
+              {SEALING_WIDTH_OPTIONS.map((option) => {
+                const isSelected = state.sealWidth === option.value;
+                return (
+                  <div key={option.id} className="relative flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setSealWidth(option.value)}
+                      onMouseEnter={(e) => setHoveredOption({ option, element: e.currentTarget })}
+                      onMouseLeave={() => setHoveredOption(null)}
+                      className={`px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
+                        isSelected
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : 'border-gray-300 bg-white text-gray-900 hover:border-navy-300'
+                      }`}
+                    >
+                      {option.name}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Post-processing Groups - Pattern A (水平スクロール) */}
+        {visibleGroups.map((group) => {
+          const hasSelectedOption = group.options.some(opt => state.postProcessingOptions?.includes(opt.id));
+
+          return (
+            <div key={group.id} className="mb-6 bg-gray-50 rounded-xl p-4 border-2 border-gray-200 relative">
+              {/* Category Header */}
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-base font-bold text-gray-900">{group.name}</h3>
+                {group.required && (
+                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">必須</span>
+                )}
+                {hasSelectedOption && (
+                  <Check className="w-5 h-5 text-green-500" />
+                )}
+              </div>
+
+              {/* Horizontal Scroll Options */}
+              <div className="flex gap-2 pb-2 scrollbar-hide flex-wrap">
+                {group.options.map((option) => {
+                  const isSelected = state.postProcessingOptions?.includes(option.id);
+                  return (
+                    <div key={option.id} className="relative flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleOption(option.id, option.multiplier)}
+                        onMouseEnter={(e) => setHoveredOption({ option, element: e.currentTarget })}
+                        onMouseLeave={() => setHoveredOption(null)}
+                        className={`px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
+                          isSelected
+                            ? 'border-green-500 bg-green-500 text-white'
+                            : 'border-gray-300 bg-white text-gray-900 hover:border-navy-300'
+                        }`}
+                      >
+                        {option.name}
+                      </button>
                     </div>
-                  )}
-                </button>
-              ))}
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Zipper position selector (conditional) - Pattern A */}
+        {showZipperPosition && (
+          <div className="mb-6 bg-blue-50 rounded-xl p-4 border-2 border-blue-200 relative">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-base font-bold text-gray-900">ジッパー位置</h3>
+            </div>
+
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {zipperPositionOptions.map((position) => {
+                const isSelected = state.postProcessingOptions?.includes(position.id);
+                return (
+                  <div key={position.id} className="relative flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleOption(position.id, position.multiplier)}
+                      className={`px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-500 text-white'
+                          : 'border-gray-300 bg-white text-gray-900 hover:border-blue-300'
+                      }`}
+                    >
+                      {position.name}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
+
+      {/* Global Hover Popup using Portal to avoid parent container constraints */}
+      {hoveredOption?.option && hoveredOption.element && createPortal(
+        <div className="fixed z-[9999] pointer-events-none" style={{
+          left: `${hoveredOption.element.getBoundingClientRect().left + hoveredOption.element.getBoundingClientRect().width / 2}px`,
+          top: `${hoveredOption.element.getBoundingClientRect().top}px`,
+          transform: 'translate(-50%, -100%)',
+        }}>
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-navy-300 p-2">
+            <img
+              src={hoveredOption.option.previewImage}
+              alt={hoveredOption.option.name}
+              className="w-[31rem] h-[21rem] object-contain rounded-lg"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/images/pouch.png';
+              }}
+            />
+            <p className="text-sm text-gray-700 text-center mt-1 font-medium">{hoveredOption.option.name}</p>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -964,7 +1469,8 @@ function getPostProcessingLabel(optionId: string): string {
     'zipper-position-specified': 'ジッパー位置 (指定)',
     'glossy': '光沢仕上げ',
     'matte': 'マット仕上げ',
-    'notch-yes': 'ノッチ付き',
+    'notch-yes': 'Vノッチ',
+    'notch-straight': '直線ノッチ',
     'notch-no': 'ノッチなし',
     'hang-hole-6mm': '吊り下げ穴 (6mm)',
     'hang-hole-8mm': '吊り下げ穴 (8mm)',
@@ -1239,7 +1745,12 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           postProcessingOptions: state.postProcessingOptions,
           deliveryLocation: state.deliveryLocation,
           urgency: state.urgency,
-          skuQuantities: state.skuQuantities
+          skuQuantities: state.skuQuantities,
+          // 2列生産オプション関連パラメータ
+          twoColumnOptionApplied: state.twoColumnOptionApplied,
+          discountedUnitPrice: state.discountedUnitPrice,
+          discountedTotalPrice: state.discountedTotalPrice,
+          originalUnitPrice: state.originalUnitPrice
         })
 
         // 結果を更新して画面に反映
@@ -1274,9 +1785,11 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       {
         id: 'pet_vmpet',
         thicknessOptions: [
-          { id: 'light', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 60μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 80μ' },
-          { id: 'heavy', specificationEn: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 100μ' }
+          { id: 'light', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ' },
+          { id: 'light_medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' },
+          { id: 'heavy', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ' },
+          { id: 'ultra', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ' }
         ]
       },
       {
@@ -1290,9 +1803,11 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       {
         id: 'pet_ny_al',
         thicknessOptions: [
-          { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 60μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ' },
-          { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ' }
+          { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ' },
+          { id: 'light_medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' },
+          { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ' },
+          { id: 'ultra', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ' }
         ]
       }
     ];
@@ -1318,45 +1833,123 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
     setSaveStatus('idle');
 
     try {
+      // Calculate hasValidSKUData for determining which quantity to use
+      const hasValidSKUData = result?.hasValidSKUData ?? false;
+
       // Prepare quotation data for saving
+      // Prepare quotation data in the format expected by /api/member/quotations
       const quotationData = {
-        userId: user.id,
-        quotationNumber: `QT-${Date.now()}`,
-        status: 'draft' as const,
-        totalAmount: result.totalPrice,
-        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-        notes: null,
-        items: [
-          {
-            productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-            quantity: state.quantity,
-            unitPrice: result.unitPrice,
-            specifications: {
-              bagTypeId: state.bagTypeId,
-              materialId: state.materialId,
-              width: state.width,
-              height: state.height,
-              depth: state.depth,
-              thicknessSelection: state.thicknessSelection,
-              isUVPrinting: state.isUVPrinting,
-              printingType: state.printingType,
-              printingColors: state.printingColors,
-              doubleSided: state.doubleSided,
-              postProcessingOptions: state.postProcessingOptions,
-              deliveryLocation: state.deliveryLocation,
-              urgency: state.urgency,
-              dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
-            }
-          }
-        ]
+        customer_name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
+          ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
+          : user.email?.split('@')[0] || 'Customer',
+        customer_email: user.email || 'customer@example.com',
+        customer_phone: user.user_metadata?.phone || null,
+        notes: JSON.stringify({
+          bagTypeId: state.bagTypeId,
+          materialId: state.materialId,
+          width: state.width,
+          height: state.height,
+          depth: state.depth,
+          pitch: state.pitch,  // ロールフィルム用ピッチ
+          quantity: hasValidSKUData
+            ? (state.skuQuantities.length === 1 ? state.skuQuantities[0] : state.skuQuantities.reduce((sum, qty) => sum + qty, 0))
+            : state.quantity,
+          unitPrice: result.unitPrice,
+          totalPrice: result.totalPrice,
+        }),
+        valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'draft',
+        items: hasValidSKUData
+          ? state.skuQuantities.map((qty, index) => ({
+              product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''})`,
+              quantity: qty,
+              unit_price: Math.round(result.unitPrice),
+              specifications: {
+                bagTypeId: state.bagTypeId,
+                materialId: state.materialId,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                pitch: state.pitch,  // ロールフィルム用ピッチ
+                thicknessSelection: state.thicknessSelection,
+                isUVPrinting: state.isUVPrinting,
+                printingType: state.printingType,
+                printingColors: state.printingColors,
+                doubleSided: state.doubleSided,
+                postProcessingOptions: state.postProcessingOptions,
+                deliveryLocation: state.deliveryLocation,
+                urgency: state.urgency,
+                // ロールフィルムの場合は「幅: ○mm、ピッチ: ○mm」、それ以外は「幅 x 高さ x 深さ mm」
+                dimensions: state.bagTypeId === 'roll_film'
+                  ? `幅: ${state.width}mm、ピッチ: ${state.pitch || 0}mm`
+                  : `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`,
+                // 内容物データ
+                productCategory: state.productCategory,
+                contentsType: state.contentsType,
+                mainIngredient: state.mainIngredient,
+                distributionEnvironment: state.distributionEnvironment,
+                // 内容物表示文字列（PDF用）
+                contents: getContentsDisplay(
+                  state.productCategory || '',
+                  state.contentsType || '',
+                  state.mainIngredient || '',
+                  state.distributionEnvironment || ''
+                )
+              }
+            }))
+          : [
+              {
+                product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+                quantity: state.quantity,
+                unit_price: result.unitPrice,
+                totalPrice: result.totalPrice, // 100円単位切り上げ済み
+                specifications: {
+                  bagTypeId: state.bagTypeId,
+                  materialId: state.materialId,
+                  width: state.width,
+                  height: state.height,
+                  depth: state.depth,
+                  pitch: state.pitch,  // ロールフィルム用ピッチ
+                  thicknessSelection: state.thicknessSelection,
+                  isUVPrinting: state.isUVPrinting,
+                  printingType: state.printingType,
+                  printingColors: state.printingColors,
+                  doubleSided: state.doubleSided,
+                  postProcessingOptions: state.postProcessingOptions,
+                  deliveryLocation: state.deliveryLocation,
+                  urgency: state.urgency,
+                  // ロールフィルムの場合は「幅: ○mm、ピッチ: ○mm」、それ以外は「幅 x 高さ x 深さ x 側面 mm」
+                  dimensions: state.bagTypeId === 'roll_film'
+                    ? `幅: ${state.width}mm、ピッチ: ${state.pitch || 0}mm`
+                    : `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
+                  // 側面幅
+                  sideWidth: state.sideWidth,
+                  // シール幅
+                  sealWidth: state.sealWidth,
+                  // 内容物データ
+                  productCategory: state.productCategory,
+                  contentsType: state.contentsType,
+                  mainIngredient: state.mainIngredient,
+                  distributionEnvironment: state.distributionEnvironment,
+                  // 内容物表示文字列（PDF用）
+                  contents: getContentsDisplay(
+                    state.productCategory || '',
+                    state.contentsType || '',
+                    state.mainIngredient || '',
+                    state.distributionEnvironment || ''
+                  )
+                }
+              }
+            ]
       };
 
-      // Call API to save quotation
-      const response = await fetch('/api/quotations/save', {
+      // Call API to save quotation (use /api/member/quotations for authentication)
+      const response = await fetch('/api/member/quotations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(quotationData),
       });
 
@@ -1400,42 +1993,108 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       let quotationId = savedQuotationId;
 
       if (!quotationId) {
+        // Calculate hasValidSKUData for determining which quantity to use
+        const hasValidSKUData = result?.hasValidSKUData ?? false;
+
         // Prepare and save quotation first
+        // Prepare quotation data in the format expected by /api/member/quotations
         const quotationData = {
-          userId: user.id,
-          quotationNumber: `QT-${Date.now()}`,
-          status: 'draft' as const,
-          totalAmount: result.totalPrice,
-          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          notes: null,
-          items: [
-            {
-              productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-              quantity: state.quantity,
-              unitPrice: result.unitPrice,
-              specifications: {
-                bagTypeId: state.bagTypeId,
-                materialId: state.materialId,
-                width: state.width,
-                height: state.height,
-                depth: state.depth,
-                thicknessSelection: state.thicknessSelection,
-                isUVPrinting: state.isUVPrinting,
-                printingType: state.printingType,
-                printingColors: state.printingColors,
-                doubleSided: state.doubleSided,
-                postProcessingOptions: state.postProcessingOptions,
-                deliveryLocation: state.deliveryLocation,
-                urgency: state.urgency,
-                dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
-              }
-            }
-          ]
+          customer_name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
+            ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
+            : user.email?.split('@')[0] || 'Customer',
+          customer_email: user.email || 'customer@example.com',
+          customer_phone: user.user_metadata?.phone || null,
+          notes: JSON.stringify({
+            bagTypeId: state.bagTypeId,
+            materialId: state.materialId,
+            width: state.width,
+            height: state.height,
+            depth: state.depth,
+            pitch: state.pitch,  // ロールフィルム用ピッチ
+            quantity: hasValidSKUData
+              ? (state.skuQuantities.length === 1 ? state.skuQuantities[0] : state.skuQuantities.reduce((sum, qty) => sum + qty, 0))
+              : state.quantity,
+            unitPrice: result.unitPrice,
+            totalPrice: result.totalPrice,
+          }),
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'draft',
+          items: hasValidSKUData
+            ? state.skuQuantities.map((qty, index) => ({
+                product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''})`,
+                quantity: qty,
+                unit_price: Math.round(result.unitPrice),
+                totalPrice: Math.round(result.totalPrice), // 【追加】totalPriceをAPIに送信
+                specifications: {
+                  bagTypeId: state.bagTypeId,
+                  materialId: state.materialId,
+                  width: state.width,
+                  height: state.height,
+                  depth: state.depth,
+                  pitch: state.pitch,  // ロールフィルム用ピッチ
+                  thicknessSelection: state.thicknessSelection,
+                  isUVPrinting: state.isUVPrinting,
+                  printingType: state.printingType,
+                  printingColors: state.printingColors,
+                  doubleSided: state.doubleSided,
+                  postProcessingOptions: state.postProcessingOptions,
+                  deliveryLocation: state.deliveryLocation,
+                  urgency: state.urgency,
+                  // ロールフィルムの場合は「幅: ○mm、ピッチ: ○mm」、それ以外は「幅 x 高さ x 深さ x 側面 mm」
+                  dimensions: state.bagTypeId === 'roll_film'
+                    ? `幅: ${state.width}mm、ピッチ: ${state.pitch || 0}mm`
+                    : `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
+                  // 側面幅
+                  sideWidth: state.sideWidth,
+                  // シール幅
+                  sealWidth: state.sealWidth,
+                  // 内容物データ
+                  productCategory: state.productCategory,
+                  contentsType: state.contentsType,
+                  mainIngredient: state.mainIngredient,
+                  distributionEnvironment: state.distributionEnvironment,
+                  // 内容物表示文字列（PDF用）
+                  contents: getContentsDisplay(
+                    state.productCategory || '',
+                    state.contentsType || '',
+                    state.mainIngredient || '',
+                    state.distributionEnvironment || ''
+                  )
+                }
+              }))
+            : [
+                {
+                  product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+                  quantity: state.quantity,
+                  unit_price: Math.round(result.unitPrice),
+                  specifications: {
+                    bagTypeId: state.bagTypeId,
+                    materialId: state.materialId,
+                    width: state.width,
+                    height: state.height,
+                    depth: state.depth,
+                    thicknessSelection: state.thicknessSelection,
+                    isUVPrinting: state.isUVPrinting,
+                    printingType: state.printingType,
+                    printingColors: state.printingColors,
+                    doubleSided: state.doubleSided,
+                    postProcessingOptions: state.postProcessingOptions,
+                    deliveryLocation: state.deliveryLocation,
+                    urgency: state.urgency,
+                    dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
+                    // 側面幅
+                    sideWidth: state.sideWidth,
+                    // シール幅
+                    sealWidth: state.sealWidth
+                  }
+                }
+              ]
         };
 
-        const saveResponse = await fetch('/api/quotations/save', {
+        const saveResponse = await fetch('/api/member/quotations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(quotationData),
         });
 
@@ -1453,30 +2112,9 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         setSavedQuotationId(quotationId);
       }
 
-      // Submit the quotation
-      const submitResponse = await fetch('/api/quotations/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quotationId,
-          customerInfo: {
-            name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
-              ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
-              : user.email?.split('@')[0] || 'Customer',
-            email: user.email || 'customer@example.com',
-            phone: user.user_metadata?.phone || null,
-          }
-        }),
-      });
-
-      if (!submitResponse.ok) {
-        const errorData = await submitResponse.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Failed to submit quotation');
-      }
-
-      const submitResult = await submitResponse.json();
-
-      console.log('Quotation submitted successfully:', submitResult);
+      // Quotation saved successfully
+      // Note: The submit endpoint is not implemented yet, so we just mark as successful after saving
+      console.log('Quotation saved successfully, ready for submission:', quotationId);
       setSubmitStatus('success');
       setTimeout(() => setSubmitStatus('idle'), 3000);
     } catch (error) {
@@ -1510,20 +2148,66 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       const quoteItem = {
         id: 'ITEM-001',
         name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-        description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+        description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
         quantity: state.quantity,
         unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
-        unitPrice: Math.round(result.unitPrice),
-        amount: Math.round(result.totalPrice),
+        unitPrice: result.unitPrice,
+        amount: result.totalPrice,
       };
 
       // Build specifications for Excel
+      // 内容物ラベルマッピング（PDF用）
+      const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+        'food': '食品',
+        'health_supplement': '健康食品',
+        'cosmetic': '化粧品',
+        'quasi_drug': '医薬部外品',
+        'drug': '医薬品',
+        'other': 'その他'
+      };
+      const CONTENTS_TYPE_LABELS: Record<string, string> = {
+        'solid': '固体',
+        'powder': '粉体',
+        'liquid': '液体'
+      };
+      const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+        'general_neutral': '一般/中性',
+        'oil_surfactant': 'オイル/界面活性剤',
+        'acidic_salty': '酸性/塩分',
+        'volatile_fragrance': '揮発性/香料',
+        'other': 'その他'
+      };
+      const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+        'general_roomTemp': '一般/常温',
+        'light_oxygen_sensitive': '光/酸素敏感',
+        'refrigerated': '冷凍保管',
+        'high_temp_sterilized': '高温殺菌',
+        'other': 'その他'
+      };
+
+      // contentsフィールドを生成: 4つのフィールドから
+      const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''] || '';
+      const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''] || '';
+      const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''] || '';
+      const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''] || '';
+
+      let contentsValue = '粉体'; // デフォルト値（後方互換性）
+      if (categoryLabel && typeLabel && ingredientLabel && environmentLabel) {
+        contentsValue = `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`;
+      } else if (categoryLabel && typeLabel) {
+        contentsValue = `${categoryLabel}（${typeLabel}）`;
+      } else if (categoryLabel) {
+        contentsValue = categoryLabel;
+      } else if (typeLabel) {
+        contentsValue = typeLabel;
+      }
+
       const specifications = {
         bagType: getBagTypeLabel(state.bagTypeId),
-        contents: '粉体',
-        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`,
+        contents: contentsValue,
+        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}${state.sideWidth ? `×側面${state.sideWidth}` : ''}`,
         material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
-        sealWidth: '5mm',
+        sealWidth: state.sealWidth ? `シール幅 ${state.sealWidth}` : 'シール幅 5mm',
         sealDirection: '上',
         notchShape: 'V',
         notchPosition: '指定位置',
@@ -1531,17 +2215,23 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         hangingPosition: '指定位置',
         zipperPosition: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
         cornerR: 'R5',
+        // ロールフィルム用: ピッチを追加
+        ...(state.bagTypeId === 'roll_film' && { pitch: state.pitch }),
       };
 
       // Build optional processing
       const optionalProcessing = {
         zipper: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
         notch: state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
-        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hanging')),
+        // 吊り下げ穴: hang-hole-6mm または hang-hole-8mm をチェック
+        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hang-hole')),
         cornerProcessing: state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
         gasValve: state.postProcessingOptions.some((opt: string) => opt.includes('valve') || opt.includes('gas')),
         easyCut: state.postProcessingOptions.some((opt: string) => opt.includes('easy') || opt.includes('cut')),
         dieCut: state.postProcessingOptions.some((opt: string) => opt.includes('die')),
+        // 表面仕上げ: マットが優先、次いで光沢
+        surfaceFinish: state.postProcessingOptions.includes('matte') ? 'マット' as const :
+                       state.postProcessingOptions.includes('glossy') ? '光沢' as const : undefined,
       };
 
       // Prepare Excel data
@@ -1625,8 +2315,6 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
     setDownloadStatusPDF('idle');
 
     try {
-      // Generate quotation number (same for PDF and DB)
-      const quoteNumber = `QT-${Date.now()}`;
       const today = new Date();
       const expiryDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -1639,13 +2327,17 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       };
 
       // =====================================================
-      // Step 1: Generate PDF
+      // Step 1: Prepare quotation data and save to database FIRST
+      // This gives us the formal quoteNumber (QT20260206-XXXX)
       // =====================================================
-      const { generateQuotePDF } = await import('@/lib/pdf-generator');
 
-      // =====================================================
-      // SKU Mode Detection
-      // =====================================================
+      // Debug: Check state values before building quotationData
+      console.log('[handleDownloadPDF] DEBUG - state.sideWidth:', state.sideWidth);
+      console.log('[handleDownloadPDF] DEBUG - state.sealWidth:', state.sealWidth);
+      console.log('[handleDownloadPDF] DEBUG - state.bagTypeId:', state.bagTypeId);
+      console.log('[handleDownloadPDF] DEBUG - hasValidSKUData:', result?.hasValidSKUData);
+
+      // Calculate hasValidSKUData for database save
       const hasValidSKUData = result?.hasValidSKUData ?? (
         state.skuCount > 1 &&
         state.skuQuantities &&
@@ -1653,68 +2345,434 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         state.skuQuantities.every(qty => qty && qty >= 100)
       );
 
+      // Prepare quotation data in the format expected by /api/member/quotations
+      const quotationData = {
+        customer_name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
+          ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
+          : user.email?.split('@')[0] || 'Customer',
+        customer_email: user.email || 'customer@example.com',
+        customer_phone: user.user_metadata?.phone || null,
+        notes: JSON.stringify({
+          bagTypeId: state.bagTypeId,
+          materialId: state.materialId,
+          width: state.width,
+          height: state.height,
+          depth: state.depth,
+          pitch: state.pitch,  // ロールフィルム用ピッチ
+          quantity: hasValidSKUData
+            ? (state.skuQuantities.length === 1 ? state.skuQuantities[0] : state.skuQuantities.reduce((sum, qty) => sum + qty, 0))
+            : state.quantity,
+          unitPrice: result.unitPrice,
+          totalPrice: result.totalPrice,
+        }),
+        valid_until: expiryDate.toISOString(),
+        status: 'draft',
+        items: hasValidSKUData
+          ? (() => {
+              console.log('[handleDownloadPDF] SKU mode - Building items, state.sideWidth:', state.sideWidth, 'state.sealWidth:', state.sealWidth);
+              return state.skuQuantities.map((qty, index) => {
+                const itemSpecs = {
+                  product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''})`,
+                  quantity: qty,
+                  unit_price: Math.round(result.unitPrice),
+                  specifications: {
+                    bagTypeId: state.bagTypeId,
+                    materialId: state.materialId,
+                    width: state.width,
+                    height: state.height,
+                    depth: state.depth,
+                    pitch: state.pitch,  // ロールフィルム用ピッチ
+                    thicknessSelection: state.thicknessSelection,
+                    isUVPrinting: state.isUVPrinting,
+                    printingType: state.printingType,
+                    printingColors: state.printingColors,
+                    doubleSided: state.doubleSided,
+                    postProcessingOptions: state.postProcessingOptions,
+                    deliveryLocation: state.deliveryLocation,
+                    urgency: state.urgency,
+                    // ロールフィルムの場合は「幅: ○mm、ピッチ: ○mm」、それ以外は「幅 x 高さ x 深さ x 側面 mm」
+                    dimensions: state.bagTypeId === 'roll_film'
+                      ? `幅: ${state.width}mm、ピッチ: ${state.pitch || 0}mm`
+                      : `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
+                    // 【追加】側面幅
+                    sideWidth: state.sideWidth,
+                    // 【追加】シール幅
+                    sealWidth: state.sealWidth,
+                    // 【追加】内容物データ
+                    productCategory: state.productCategory,
+                    contentsType: state.contentsType,
+                    mainIngredient: state.mainIngredient,
+                    distributionEnvironment: state.distributionEnvironment,
+                    // 内容物表示文字列（PDF用）
+                    contents: getContentsDisplay(
+                      state.productCategory || '',
+                      state.contentsType || '',
+                      state.mainIngredient || '',
+                      state.distributionEnvironment || ''
+                    )
+                  }
+                };
+                console.log('[handleDownloadPDF] SKU mode - Item specs:', itemSpecs.specifications);
+                return itemSpecs;
+              });
+            })()
+          : state.multiQuantityResults && multiQuantityQuotes && multiQuantityQuotes.length > 0
+          ? multiQuantityQuotes.map((mq) => ({
+              product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (${mq.quantity.toLocaleString()}${state.bagTypeId === 'roll_film' ? 'm' : '個'})`,
+              quantity: mq.quantity,
+              unit_price: mq.unitPrice,
+              specifications: {
+                bagTypeId: state.bagTypeId,
+                materialId: state.materialId,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                pitch: state.pitch,  // ロールフィルム用ピッチ
+                thicknessSelection: state.thicknessSelection,
+                isUVPrinting: state.isUVPrinting,
+                printingType: state.printingType,
+                printingColors: state.printingColors,
+                doubleSided: state.doubleSided,
+                postProcessingOptions: state.postProcessingOptions,
+                deliveryLocation: state.deliveryLocation,
+                urgency: state.urgency,
+                // ロールフィルムの場合は「幅: ○mm、ピッチ: ○mm」、それ以外は「幅 x 高さ x 深さ x 側面 mm」
+                dimensions: state.bagTypeId === 'roll_film'
+                  ? `幅: ${state.width}mm、ピッチ: ${state.pitch || 0}mm`
+                  : `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
+                // 側面幅
+                sideWidth: state.sideWidth,
+                // シール幅
+                sealWidth: state.sealWidth,
+                // 【追加】内容物データ
+                productCategory: state.productCategory,
+                contentsType: state.contentsType,
+                mainIngredient: state.mainIngredient,
+                distributionEnvironment: state.distributionEnvironment,
+                // 内容物表示文字列（PDF用）
+                contents: getContentsDisplay(
+                  state.productCategory || '',
+                  state.contentsType || '',
+                  state.mainIngredient || '',
+                  state.distributionEnvironment || ''
+                )
+              }
+            }))
+          : [
+              {
+                product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
+                quantity: state.quantity,
+                unit_price: result.unitPrice,
+                totalPrice: result.totalPrice, // 100円単位切り上げ済み
+                specifications: {
+                  bagTypeId: state.bagTypeId,
+                  materialId: state.materialId,
+                  width: state.width,
+                  height: state.height,
+                  depth: state.depth,
+                  pitch: state.pitch,  // ロールフィルム用ピッチ
+                  thicknessSelection: state.thicknessSelection,
+                  isUVPrinting: state.isUVPrinting,
+                  printingType: state.printingType,
+                  printingColors: state.printingColors,
+                  doubleSided: state.doubleSided,
+                  postProcessingOptions: state.postProcessingOptions,
+                  deliveryLocation: state.deliveryLocation,
+                  urgency: state.urgency,
+                  // ロールフィルムの場合は「幅: ○mm、ピッチ: ○mm」、それ以外は「幅 x 高さ x 深さ x 側面 mm」
+                  dimensions: state.bagTypeId === 'roll_film'
+                    ? `幅: ${state.width}mm、ピッチ: ${state.pitch || 0}mm`
+                    : `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
+                  // 側面幅
+                  sideWidth: state.sideWidth,
+                  // シール幅
+                  sealWidth: state.sealWidth,
+                  // 内容物データ
+                  productCategory: state.productCategory,
+                  contentsType: state.contentsType,
+                  mainIngredient: state.mainIngredient,
+                  distributionEnvironment: state.distributionEnvironment,
+                  // 内容物表示文字列（PDF用）
+                  contents: getContentsDisplay(
+                    state.productCategory || '',
+                    state.contentsType || '',
+                    state.mainIngredient || '',
+                    state.distributionEnvironment || ''
+                  )
+                }
+              }
+            ]
+      };
+
+      // =====================================================
+      // Cost Breakdown Calculation (原価内訳計算)
+      // =====================================================
+      console.log('[handleDownloadPDF] Calculating cost breakdown...');
+
+      // 原価内訳を計算する関数
+      const calculateCostBreakdown = (): {
+        total_cost_breakdown: any;
+        itemsWithCostBreakdown: any[];
+      } => {
+        // SKUモードの場合はskuCostDetailsから、通常モードはresultから計算
+        let totalCostBreakdown: any = null;
+        let itemsWithCost: any[] = [];
+
+        if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
+          // 複数SKUモード: 各SKUの原価を合計
+          console.log('[calculateCostBreakdown] SKU mode detected, calculating from skuCostDetails');
+          const skuCosts = result.skuCostDetails.costPerSKU;
+
+          totalCostBreakdown = {
+            materialCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
+            printingCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
+            laminationCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
+            slitterCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
+            surfaceTreatmentCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
+            pouchProcessingCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
+            duty: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
+            delivery: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+          };
+
+          // 各SKUアイテムにcost_breakdownを追加
+          itemsWithCost = quotationData.items.map((item: any, index: number) => ({
+            ...item,
+            cost_breakdown: skuCosts[index]?.costBreakdown || null
+          }));
+
+        } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
+          // result.breakdownから直接計算
+          console.log('[calculateCostBreakdown] Using result.breakdown');
+          const breakdown = result.breakdown;
+          const baseCost = breakdown.baseCost || breakdown.filmCost || 0;
+
+          totalCostBreakdown = {
+            materialCost: Math.round(breakdown.filmCost || baseCost * 0.4),
+            printingCost: Math.round(breakdown.printing || breakdown.material * 0.25),
+            laminationCost: Math.round(breakdown.laminationCost || baseCost * 0.06),
+            slitterCost: Math.round(breakdown.slitterCost || baseCost * 0.02),
+            surfaceTreatmentCost: Math.round(breakdown.surfaceTreatmentCost || baseCost * 0.03),
+            pouchProcessingCost: Math.round(breakdown.pouchProcessingCost || breakdown.processing || baseCost * 0.15),
+            duty: Math.round(baseCost * 0.05),
+            delivery: Math.round(breakdown.delivery || baseCost * 0.08),
+          };
+
+          // 単一アイテムの場合は全て同じcost_breakdown
+          itemsWithCost = quotationData.items.map((item: any) => ({
+            ...item,
+            cost_breakdown: { ...totalCostBreakdown }
+          }));
+
+        } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.baseCost && result.baseCost > 0)) {
+          // 通常モード・単一SKUモード（totalPriceから推定）
+          console.log('[calculateCostBreakdown] Estimating from totalPrice');
+          const baseCost = result.baseCost || result.totalPrice || (result.unitPrice * (result.quantity || state.quantity || 1)) || 0;
+
+          totalCostBreakdown = {
+            materialCost: Math.round(baseCost * 0.40),
+            printingCost: Math.round(baseCost * 0.10),
+            laminationCost: Math.round(baseCost * 0.06),
+            slitterCost: Math.round(baseCost * 0.02),
+            surfaceTreatmentCost: Math.round(baseCost * 0.03),
+            pouchProcessingCost: Math.round(baseCost * 0.15),
+            duty: Math.round(baseCost * 0.05),
+            delivery: Math.round(baseCost * 0.08),
+          };
+
+          // 単一アイテムの場合は全て同じcost_breakdown
+          itemsWithCost = quotationData.items.map((item: any) => ({
+            ...item,
+            cost_breakdown: { ...totalCostBreakdown }
+          }));
+        } else {
+          console.warn('[calculateCostBreakdown] No valid pricing data found, cost_breakdown will be null');
+          itemsWithCost = quotationData.items;
+        }
+
+        console.log('[calculateCostBreakdown] totalCostBreakdown:', totalCostBreakdown);
+        console.log('[calculateCostBreakdown] itemsWithCost length:', itemsWithCost.length);
+
+        return { total_cost_breakdown: totalCostBreakdown, itemsWithCostBreakdown: itemsWithCost };
+      };
+
+      // 原価内訳を計算してquotationDataに追加
+      const { total_cost_breakdown, itemsWithCostBreakdown } = calculateCostBreakdown();
+
+      // quotationDataを更新
+      quotationData.total_cost_breakdown = total_cost_breakdown;
+      quotationData.items = itemsWithCostBreakdown;
+
+      console.log('[handleDownloadPDF] quotationData.total_cost_breakdown:', quotationData.total_cost_breakdown);
+      console.log('[handleDownloadPDF] quotationData.items[0].cost_breakdown:', quotationData.items[0]?.cost_breakdown);
+
+      // Call API to save quotation FIRST (before PDF generation)
+      // This gives us the formal quoteNumber (QT20260206-XXXX)
+      console.log('[handleDownloadPDF] Saving quotation to database first...');
+      const response = await fetch('/api/member/quotations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(quotationData),
+      });
+
+      let savedQuotation = null;
+      let formalQuoteNumber = `QT-${Date.now()}`; // Fallback if save fails
+
+      if (response.ok) {
+        savedQuotation = await response.json();
+        formalQuoteNumber = savedQuotation.quotation.quotation_number;
+        console.log('[handleDownloadPDF] Quotation saved successfully, formal quoteNumber:', formalQuoteNumber);
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.warn('[handleDownloadPDF] Failed to save quotation to database:', errorData.error);
+        // Continue with temporary quoteNumber if save fails
+      }
+
+      // =====================================================
+      // Step 2: Generate PDF with formal quoteNumber
+      // =====================================================
+
       // Build quote items data (support SKU mode, multi-quantity patterns)
       const quoteItems = hasValidSKUData
         ? state.skuQuantities.map((qty, index) => ({
           id: `SKU-${String(index + 1).padStart(3, '0')}`,
           name: `SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''} - ${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-          description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+          description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
           quantity: qty,
           unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
-          unitPrice: Math.round(result.unitPrice),
-          amount: Math.round(result.unitPrice * qty),
+          unitPrice: result.unitPrice,
+          amount: result.unitPrice * qty,
         }))
         : hasMultiQuantityResults && multiQuantityQuotes.length > 0
           ? multiQuantityQuotes.map((mq, index) => ({
             id: `ITEM-${String(index + 1).padStart(3, '0')}`,
             name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (${mq.quantity.toLocaleString()}${state.bagTypeId === 'roll_film' ? 'm' : '個'})`,
-            description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+            description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
             quantity: mq.quantity,
             unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
-            unitPrice: Math.round(mq.unitPrice),
-            amount: Math.round(mq.totalPrice),
+            unitPrice: mq.unitPrice,
+            amount: mq.totalPrice,
           }))
           : [{
             id: 'ITEM-001',
             name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-            description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
+            description: `サイズ: ${state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width} x ${state.height}${state.depth > 0 ? ` x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''}`} mm | ${MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId)}`,
             quantity: state.quantity,
             unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
-            unitPrice: Math.round(result.unitPrice),
-            amount: Math.round(result.totalPrice),
+            unitPrice: result.unitPrice,
+            amount: result.totalPrice,
           }];
 
       // Build specifications for PDF
+      console.log('[ImprovedQuotingWizard] postProcessingOptions:', state.postProcessingOptions);
+      console.log('[ImprovedQuotingWizard] postProcessingOptions.includes("notch-straight"):', state.postProcessingOptions.includes('notch-straight'));
+      console.log('[ImprovedQuotingWizard] postProcessingOptions.includes("hang-hole-8mm"):', state.postProcessingOptions.includes('hang-hole-8mm'));
+      console.log('[ImprovedQuotingWizard] postProcessingOptions.includes("corner-square"):', state.postProcessingOptions.includes('corner-square'));
+
+      // 内容物ラベルマッピング（PDF用）
+      const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+        'food': '食品',
+        'health_supplement': '健康食品',
+        'cosmetic': '化粧品',
+        'quasi_drug': '医薬部外品',
+        'drug': '医薬品',
+        'other': 'その他'
+      };
+      const CONTENTS_TYPE_LABELS: Record<string, string> = {
+        'solid': '固体',
+        'powder': '粉体',
+        'liquid': '液体'
+      };
+      const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+        'general_neutral': '一般/中性',
+        'oil_surfactant': 'オイル/界面活性剤',
+        'acidic_salty': '酸性/塩分',
+        'volatile_fragrance': '揮発性/香料',
+        'other': 'その他'
+      };
+      const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+        'general_roomTemp': '一般/常温',
+        'light_oxygen_sensitive': '光/酸素敏感',
+        'refrigerated': '冷凍保管',
+        'high_temp_sterilized': '高温殺菌',
+        'other': 'その他'
+      };
+
+      // contentsフィールドを生成: 4つのフィールドから
+      const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''] || '';
+      const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''] || '';
+      const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''] || '';
+      const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''] || '';
+
+      let contentsValue = '粉体'; // デフォルト値（後方互換性）
+      if (categoryLabel && typeLabel && ingredientLabel && environmentLabel) {
+        contentsValue = `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`;
+      } else if (categoryLabel && typeLabel) {
+        contentsValue = `${categoryLabel}（${typeLabel}）`;
+      } else if (categoryLabel) {
+        contentsValue = categoryLabel;
+      } else if (typeLabel) {
+        contentsValue = typeLabel;
+      }
+
       const specifications = {
         bagType: getBagTypeLabel(state.bagTypeId),
-        contents: '粉体',
-        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`,
+        contents: contentsValue,
+        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}${state.sideWidth ? `×側面${state.sideWidth}` : ''}`,
         material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
         thicknessType: state.thicknessSelection ? getFilmStructureSpec(state.materialId, state.thicknessSelection) : '指定なし',
-        sealWidth: '5mm',
+        sealWidth: state.sealWidth ? `シール幅 ${state.sealWidth}` : 'シール幅 5mm',
         sealDirection: '上',
-        notchShape: 'V',
-        notchPosition: '指定位置',
-        hanging: 'なし',
-        hangingPosition: '指定位置',
+        // ノッチ形状: state.postProcessingOptionsから抽出
+        notchShape: state.postProcessingOptions.includes('notch-yes') ? 'V' :
+                    state.postProcessingOptions.includes('notch-straight') ? '直線' :
+                    state.postProcessingOptions.includes('notch-no') ? 'なし' : 'V',
+        notchPosition: (state.postProcessingOptions.includes('notch-yes') || state.postProcessingOptions.includes('notch-straight')) ? '指定位置' : 'なし',
+        // 吊り下げ穴: state.postProcessingOptionsから抽出
+        hanging: (state.postProcessingOptions.includes('hang-hole-6mm') || state.postProcessingOptions.includes('hang-hole-8mm')) ? 'あり' : 'なし',
+        hangingPosition: state.postProcessingOptions.includes('hang-hole-6mm') ? '6mm' :
+                        state.postProcessingOptions.includes('hang-hole-8mm') ? '8mm' : '指定位置',
         zipperPosition: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
-        cornerR: 'R5',
+        // 角加工: state.postProcessingOptionsから抽出
+        cornerR: state.postProcessingOptions.includes('corner-round') ? 'R5' :
+                 state.postProcessingOptions.includes('corner-square') ? 'R0' : 'R5',
+        // マチ印刷（スタンドパウチ、合掌パウチ、BOX型パウチのみ）
+        machiPrinting: (state.bagTypeId === 'stand_up' ||
+                        state.bagTypeId === 'lap_seal' ||
+                        state.bagTypeId === 'flat_3_side' ||
+                        state.bagTypeId === 'box') &&
+                       state.depth > 0
+                       ? (state.postProcessingOptions.includes('machi-printing-yes') ? 'あり' : 'なし')
+                       : undefined,
       };
+
+      console.log('[ImprovedQuotingWizard] specifications FULL:', JSON.stringify(specifications, null, 2));
+      console.log('[ImprovedQuotingWizard] specifications.notchShape:', specifications.notchShape);
+      console.log('[ImprovedQuotingWizard] specifications.hanging:', specifications.hanging);
+      console.log('[ImprovedQuotingWizard] specifications.hangingPosition:', specifications.hangingPosition);
+      console.log('[ImprovedQuotingWizard] specifications.cornerR:', specifications.cornerR);
+      console.log('[ImprovedQuotingWizard] specifications.machiPrinting:', specifications.machiPrinting);
 
       // Build optional processing
       const optionalProcessing = {
         zipper: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
         notch: state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
-        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hanging')),
+        // 吊り下げ穴: hang-hole-6mm または hang-hole-8mm をチェック
+        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hang-hole')),
         cornerProcessing: state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
         gasValve: state.postProcessingOptions.some((opt: string) => opt.includes('valve') || opt.includes('gas')),
         easyCut: state.postProcessingOptions.some((opt: string) => opt.includes('easy') || opt.includes('cut')),
         dieCut: state.postProcessingOptions.some((opt: string) => opt.includes('die')),
+        // 表面仕上げ: マットが優先、次いで光沢
+        surfaceFinish: state.postProcessingOptions.includes('matte') ? 'マット' as const :
+                       state.postProcessingOptions.includes('glossy') ? '光沢' as const : undefined,
       };
 
-      // Prepare PDF data
+      // Prepare PDF data (with formal quoteNumber from database)
       const pdfData = {
-        quoteNumber,
+        quoteNumber: formalQuoteNumber,
         issueDate: formatDate(today),
         expiryDate: formatDate(expiryDate),
         quoteCreator: 'EPACKAGE Lab 自動見積もりシステム',
@@ -1764,26 +2822,36 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       };
 
       // Generate PDF directly in browser (client-side)
-      const pdfResult = await generateQuotePDF(pdfData, { filename: `${quoteNumber}.pdf` });
+      const pdfResult = await generateQuotePDF(pdfData, { filename: `${formalQuoteNumber}.pdf` });
 
       if (!pdfResult.success || !pdfResult.pdfBuffer) {
         throw new Error(pdfResult.error || 'PDF generation failed');
       }
 
-      // Create blob and download
+      // Create blob and download using Blob URL
       const blob = new Blob([pdfResult.pdfBuffer], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${quoteNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
+      console.log('[PDF Download] Blob created, size:', blob.size);
 
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Blob URL 생성 - 非表示で直接ダウンロード（画面にボタンを表示しない）
+      const url = URL.createObjectURL(blob);
+      console.log('[PDF Download] Blob URL created:', url);
 
-      console.log('PDF downloaded successfully:', quoteNumber);
+      // 非表示のリンクで直接ダウンロード
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = `${formalQuoteNumber}.pdf`;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+
+      setTimeout(() => {
+        if (downloadLink.parentNode) {
+          document.body.removeChild(downloadLink);
+        }
+        URL.revokeObjectURL(url);
+      }, 100);
+
+      console.log('PDF download ready:', formalQuoteNumber);
 
       // Log PDF download to document_access_log table
       try {
@@ -1794,7 +2862,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           credentials: 'include',
           body: JSON.stringify({
             document_type: 'quote',
-            document_id: quoteNumber, // Use quote number as document_id
+            document_id: formalQuoteNumber, // Use formal quote number as document_id
             action: 'downloaded',
           }),
         });
@@ -1807,81 +2875,44 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       }
 
       // =====================================================
-      // Step 2: Save to Database (Log)
+      // Step 3: Save PDF to Storage (using savedQuotation from Step 1)
       // =====================================================
-      const quotationData = {
-        userId: user.id,
-        quotationNumber: quoteNumber, // Use same quote number
-        status: 'draft' as const,
-        totalAmount: hasMultiQuantityResults && multiQuantityQuotes.length > 0
-          ? multiQuantityQuotes[multiQuantityQuotes.length - 1].totalPrice  // Use largest quantity total
-          : result.totalPrice,
-        validUntil: expiryDate.toISOString(),
-        notes: null,
-        items: hasMultiQuantityResults && multiQuantityQuotes.length > 0
-          ? multiQuantityQuotes.map((mq) => ({
-            productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (${mq.quantity.toLocaleString()}${state.bagTypeId === 'roll_film' ? 'm' : '個'})`,
-            quantity: mq.quantity,
-            unitPrice: mq.unitPrice,
-            specifications: {
-              bagTypeId: state.bagTypeId,
-              materialId: state.materialId,
-              width: state.width,
-              height: state.height,
-              depth: state.depth,
-              thicknessSelection: state.thicknessSelection,
-              isUVPrinting: state.isUVPrinting,
-              printingType: state.printingType,
-              printingColors: state.printingColors,
-              doubleSided: state.doubleSided,
-              postProcessingOptions: state.postProcessingOptions,
-              deliveryLocation: state.deliveryLocation,
-              urgency: state.urgency,
-              dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
-            }
-          }))
-          : [
-            {
-              productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-              quantity: state.quantity,
-              unitPrice: result.unitPrice,
-              specifications: {
-                bagTypeId: state.bagTypeId,
-                materialId: state.materialId,
-                width: state.width,
-                height: state.height,
-                depth: state.depth,
-                thicknessSelection: state.thicknessSelection,
-                isUVPrinting: state.isUVPrinting,
-                printingType: state.printingType,
-                printingColors: state.printingColors,
-                doubleSided: state.doubleSided,
-                postProcessingOptions: state.postProcessingOptions,
-                deliveryLocation: state.deliveryLocation,
-                urgency: state.urgency,
-                dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''} mm`
-              }
-            }
-          ]
-      };
+      if (savedQuotation?.quotation?.id && pdfResult?.pdfBuffer) {
+        try {
+          console.log('[handleDownloadPDF] Saving PDF to Storage...');
 
-      // Call API to save quotation (log the PDF generation)
-      const response = await fetch('/api/quotations/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quotationData),
-      });
+          // Convert ArrayBuffer to Base64
+          const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+          };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.warn('Failed to save quotation to database:', errorData.error);
-        // Don't throw error - PDF download was successful
-        // Just log the save failure
-      } else {
-        const savedQuotation = await response.json();
-        console.log('Quotation saved successfully (logged):', savedQuotation);
+          const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer);
+          const quotationId = savedQuotation.quotation.id;
+
+          const saveResponse = await fetch(`/api/member/quotations/${quotationId}/save-pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              pdfData: `data:application/pdf;base64,${pdfBase64}`,
+            }),
+          });
+
+          if (saveResponse.ok) {
+            const saveResult = await saveResponse.json();
+            console.log('[handleDownloadPDF] PDF saved to Storage:', saveResult.pdf_url);
+          } else {
+            console.warn('[handleDownloadPDF] Failed to save PDF to Storage:', await saveResponse.text());
+          }
+        } catch (saveError) {
+          console.warn('[handleDownloadPDF] Error saving PDF to Storage:', saveError);
+          // PDF保存に失敗してもダウンロードは成功したので続行
+        }
       }
 
       setDownloadStatusPDF('success');
@@ -2041,7 +3072,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             ¥{result.totalPrice.toLocaleString()}
           </div>
           <div className="text-sm opacity-90">
-            単価: ¥{result.unitPrice.toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'} / 最小注文数: {result.minOrderQuantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+            単価: ¥{result.unitPrice.toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
           </div>
         </div>
       )}
@@ -2088,25 +3119,25 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <p className="text-xs text-gray-500">最適数量</p>
-                <p className="text-lg font-bold text-green-600">
+                <p className="text-lg font-bold text-success-600">
                   {multiQuantityState.comparison.bestValue.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
                 </p>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-xs text-gray-500">最大節約</p>
-                <p className="text-lg font-bold text-blue-600">
+                <p className="text-lg font-bold text-info-600">
                   {multiQuantityState.comparison.bestValue.percentage}%
                 </p>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-center p-4 bg-brixa-primary-50 rounded-lg">
                 <p className="text-xs text-gray-500">効率性改善</p>
-                <p className="text-lg font-bold text-purple-600">
+                <p className="text-lg font-bold text-brixa-primary-600">
                   {multiQuantityState.comparison.trends.optimalQuantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
                 </p>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
+              <div className="text-center p-4 bg-warning-50 rounded-lg">
                 <p className="text-xs text-gray-500">価格トレンド</p>
-                <p className="text-lg font-bold text-yellow-600">
+                <p className="text-lg font-bold text-warning-600">
                   {multiQuantityState.comparison.trends.priceTrend === 'decreasing' ? '低下' :
                     multiQuantityState.comparison.trends.priceTrend === 'increasing' ? '上昇' : '安定'}
                 </p>
@@ -2138,7 +3169,8 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         </div>
       )}
 
-      {/* Quantity Options Grid - 統合オプション選択UI */}
+      {/* Quantity Options Grid - 非表示（最終ページでは数量推薦UIを削除） */}
+      {/*
       <QuantityOptionsGrid
         options={quantityOptions}
         currentQuantity={state.quantity}
@@ -2146,9 +3178,10 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         bagTypeId={state.bagTypeId}
         onSelectOption={handleQuantityChange}
       />
+      */}
 
-
-      {/* Price Breakdown */}
+      {/* Price Breakdown - 非表示（内部詳細はユーザーに表示しない） */}
+      {/*
       <div className="border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">価格内訳</h3>
         <div className="space-y-2">
@@ -2164,11 +3197,6 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             <span>印刷費:</span>
             <span>¥{result.breakdown.printing.toLocaleString()}</span>
           </div>
-          {/* 配送費非表示 - ユーザーリクエストによりコメントアウト */}
-          {/* <div className="flex justify-between text-sm">
-            <span>配送費:</span>
-            <span>¥{result.breakdown.delivery.toLocaleString()}</span>
-          </div> */}
           <div className="border-t pt-2 mt-2">
             <div className="flex justify-between font-semibold">
               <span>合計:</span>
@@ -2177,6 +3205,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           </div>
         </div>
       </div>
+      */}
 
       {/* クーポン入力セクション */}
       <div className="border rounded-lg p-6 bg-gradient-to-br from-orange-50 to-white">
@@ -2209,7 +3238,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
               </button>
             </div>
             {couponError && (
-              <div className="text-sm text-red-600 flex items-center">
+              <div className="text-sm text-error-600 flex items-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
                 {couponError}
               </div>
@@ -2222,7 +3251,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           <div className="space-y-3">
             <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle2 className="w-5 h-5 text-success-600" />
                 <div>
                   <div className="font-medium text-green-900">{appliedCoupon.nameJa || appliedCoupon.name}</div>
                   <div className="text-sm text-green-700">
@@ -2238,7 +3267,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                 </div>
                 <button
                   onClick={handleRemoveCoupon}
-                  className="text-xs text-red-600 hover:text-red-700 underline mt-1"
+                  className="text-xs text-error-600 hover:text-error-700 underline mt-1"
                 >
                   削除
                 </button>
@@ -2247,7 +3276,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             {appliedCoupon.discountAmount > 0 && (
               <div className="flex justify-between items-center pt-2 border-t border-green-200">
                 <span className="font-semibold text-gray-900">クーポン適用後金額:</span>
-                <span className="font-bold text-lg text-green-600">¥{adjustedPrice.toLocaleString()}</span>
+                <span className="font-bold text-lg text-success-600">¥{adjustedPrice.toLocaleString()}</span>
               </div>
             )}
           </div>
@@ -2276,7 +3305,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             : downloadStatusPDF === 'success'
               ? 'bg-green-600 hover:bg-green-700 text-white'
               : downloadStatusPDF === 'error'
-                ? 'bg-red-600 hover:bg-red-700 text-white'
+                ? 'bg-error-600 hover:bg-error-700 text-white'
                 : 'bg-navy-700 hover:bg-navy-600 text-white'
             }`}
         >
@@ -2430,7 +3459,12 @@ function RealTimePriceDisplay() {
             doubleSided: state.doubleSided,
             deliveryLocation: state.deliveryLocation,
             urgency: state.urgency,
-            rollCount: state.rollCount // 롤 필름 시 롤 개수
+            rollCount: state.rollCount, // 롤 필름 시 롤 개수
+            // 2列生産オプション関連パラメータ
+            twoColumnOptionApplied: state.twoColumnOptionApplied,
+            discountedUnitPrice: state.discountedUnitPrice,
+            discountedTotalPrice: state.discountedTotalPrice,
+            originalUnitPrice: state.originalUnitPrice
           });
 
           // Determine price break and discount rate
@@ -2590,8 +3624,8 @@ function RealTimePriceDisplay() {
               </div>
 
               <div className="text-right">
-                <div className={`text-2xl font-bold mb-1 transition-all duration-500 ${quote.quantity === state.quantity && priceChange === 'increase' ? 'scale-105 text-green-600' :
-                  quote.quantity === state.quantity && priceChange === 'decrease' ? 'scale-95 text-red-600' :
+                <div className={`text-2xl font-bold mb-1 transition-all duration-500 ${quote.quantity === state.quantity && priceChange === 'increase' ? 'scale-105 text-success-600' :
+                  quote.quantity === state.quantity && priceChange === 'decrease' ? 'scale-95 text-error-600' :
                     'text-gray-900'
                   }`}>
                   ¥{quote.totalPrice.toLocaleString()}
@@ -2608,7 +3642,7 @@ function RealTimePriceDisplay() {
             <span>タイプ: {state.bagTypeId?.replace('_', ' ')}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500">
-            サイズ: {state.bagTypeId === 'roll_film' ? `幅: ${state.width}` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`}mm
+            サイズ: {state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`}mm
             {state.thicknessSelection && ` | 厚さ: ${getThicknessLabel(state.thicknessSelection)}`}
           </div>
         </div>
@@ -2636,6 +3670,17 @@ export function ImprovedQuotingWizard() {
   const wizardRef = useRef<HTMLDivElement>(null);
 
   const handleNext = async () => {
+    // Validate contents dropdowns before proceeding
+    if (!state.productCategory || !state.contentsType || !state.mainIngredient || !state.distributionEnvironment) {
+      showError('内容物のすべてのドロップダウンを選択してください。');
+      // Scroll to contents section
+      const contentsSection = document.querySelector('[data-section="contents-dropdowns"]');
+      if (contentsSection) {
+        contentsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     if (currentStep < STEPS.length - 1) {
       // Calculate quote when moving from sku-quantity or quantity step to result step
       if (currentStepId === 'sku-quantity' || currentStepId === 'quantity') {
@@ -2701,8 +3746,15 @@ export function ImprovedQuotingWizard() {
           let markupRate = 0.5; // Default 50%
           if (user?.id) {
             try {
-              markupRate = await getCustomerMarkupRate(user.id);
-              console.log('[handleNext] Customer markup rate:', markupRate);
+              // Fetch customer markup rate from API
+              const response = await fetch(`/api/admin/settings/customer-markup/${user.id}`);
+              if (response.ok) {
+                const data = await response.json();
+                markupRate = data.markupRate ?? 0.5;
+                console.log('[handleNext] Customer markup rate:', markupRate);
+              } else {
+                console.warn('[handleNext] Failed to fetch markup rate, using default 50%');
+              }
             } catch (error) {
               console.warn('[handleNext] Failed to fetch markup rate, using default 50%:', error);
             }
@@ -2731,7 +3783,12 @@ export function ImprovedQuotingWizard() {
             skuQuantities: useSKUMode ? state.skuQuantities : [totalQuantity],
             // Roll film specific parameters (materialWidthはQuoteContextで動的に決定)
             materialWidth: state.materialWidth,
-            filmLayers: state.filmLayers
+            filmLayers: state.filmLayers,
+            // 2列生産オプション関連パラメータ
+            twoColumnOptionApplied: state.twoColumnOptionApplied,
+            discountedUnitPrice: state.discountedUnitPrice,
+            discountedTotalPrice: state.discountedTotalPrice,
+            originalUnitPrice: state.originalUnitPrice
           });
 
           console.log('[handleNext] Quote calculation result:', quoteResult);
@@ -2788,6 +3845,12 @@ export function ImprovedQuotingWizard() {
 
   const handleBack = () => {
     if (currentStep > 0) {
+      // Clear result when going back from result step to prevent stale data
+      if (currentStepId === 'result') {
+        console.log('[handleBack] Clearing result cache when leaving result step');
+        setResult(null);
+      }
+
       setCurrentStep(currentStep - 1);
       // Scroll to top when going back
       setTimeout(() => {
@@ -2898,6 +3961,10 @@ export function ImprovedQuotingWizard() {
                   height: state.height,
                   depth: state.depth
                 }}
+                productCategory={state.productCategory}
+                contentsType={state.contentsType}
+                mainIngredient={state.mainIngredient}
+                distributionEnvironment={state.distributionEnvironment}
               />
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -2936,7 +4003,7 @@ export function ImprovedQuotingWizard() {
                           <div className={`font-medium text-sm ${isActive ? 'text-navy-900' : isCompleted ? 'text-green-800' : 'text-gray-400'}`}>
                             {step.title}
                           </div>
-                          <div className={`text-xs ${isActive ? 'text-navy-600' : isCompleted ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div className={`text-xs ${isActive ? 'text-navy-600' : isCompleted ? 'text-success-600' : 'text-gray-400'}`}>
                             {step.description}
                           </div>
                         </div>
@@ -2984,7 +4051,7 @@ export function ImprovedQuotingWizard() {
                     disabled={!canProceed || isCalculating}
                     className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center relative shadow-lg w-full sm:w-auto border-2 ${!canProceed || isCalculating
                       ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed opacity-70'
-                      : 'bg-blue-700 border-blue-800 hover:bg-blue-800 hover:border-blue-900 hover:shadow-xl'
+                      : 'bg-info-700 border-info-800 hover:bg-info-800 hover:border-info-900 hover:shadow-xl'
                       }`}
                     style={!canProceed || isCalculating ? {} : {
                       backgroundColor: '#1e3a8a',
@@ -3065,16 +4132,16 @@ export function ImprovedQuotingWizard() {
 
               {/* 総合見積りツール */}
               <button
-                className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-blue-300 text-left"
+                className="bg-gradient-to-r from-info-50 to-info-100 border-2 border-info-200 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-blue-300 text-left"
                 aria-label="総合見積りツール - すべてのオプションを網羅した詳細見積を表示"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-info-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Package className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-blue-900 text-sm lg:text-base truncate">総合見積りツール</h3>
-                    <p className="text-xs lg:text-sm text-blue-700 hidden sm:block">すべてのオプションを網羅した詳細見積</p>
+                    <h3 className="font-semibold text-info-900 text-sm lg:text-base truncate">総合見積りツール</h3>
+                    <p className="text-xs lg:text-sm text-info-700 hidden sm:block">すべてのオプションを網羅した詳細見積</p>
                   </div>
                 </div>
               </button>
@@ -3097,9 +4164,9 @@ export function ImprovedQuotingWizard() {
 
               {/* 即時相談 */}
               <a
-                href="tel:+81-80-6942-7235"
+                href="tel:050-1793-6500"
                 className="bg-gradient-to-r from-navy-600 to-navy-700 text-white border-2 border-navy-600 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-navy-300 text-left sm:col-span-2 lg:col-span-1"
-                aria-label="即時相談 - 専門家との無料相談。電話番号: +81-80-6942-7235"
+                aria-label="即時相談 - 専門家との無料相談。電話番号: 050-1793-6500"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 lg:w-10 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -3107,7 +4174,7 @@ export function ImprovedQuotingWizard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm lg:text-base truncate">即時相談</h3>
-                    <p className="text-xs lg:text-sm text-white/90 hidden sm:block">専門家との無料相談 +81-80-6942-7235</p>
+                    <p className="text-xs lg:text-sm text-white/90 hidden sm:block">専門家との無料相談 050-1793-6500</p>
                   </div>
                 </div>
               </a>
@@ -3118,20 +4185,20 @@ export function ImprovedQuotingWizard() {
               <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0">
                 <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 lg:space-x-6 text-xs sm:text-sm text-gray-600">
                   <a
-                    href="tel:+81-80-6942-7235"
+                    href="tel:050-1793-6500"
                     className="flex items-center space-x-2 hover:text-navy-700 transition-colors"
-                    aria-label="電話番号: +81-80-6942-7235"
+                    aria-label="電話番号: 050-1793-6500"
                   >
                     <Phone className="w-4 h-4 text-navy-600" />
-                    <span className="font-medium">+81-80-6942-7235</span>
+                    <span className="font-medium">050-1793-6500</span>
                   </a>
                   <a
-                    href="mailto:info@epackage-lab.com"
+                    href="mailto:info@package-lab.com"
                     className="flex items-center space-x-2 hover:text-navy-700 transition-colors"
-                    aria-label="メールアドレス: info@epackage-lab.com"
+                    aria-label="メールアドレス: info@package-lab.com"
                   >
                     <Mail className="w-4 h-4 text-navy-600" />
-                    <span className="font-medium hidden sm:inline">info@epackage-lab.com</span>
+                    <span className="font-medium hidden sm:inline">info@package-lab.com</span>
                     <span className="font-medium sm:hidden">メール</span>
                   </a>
                   <div className="flex items-center space-x-2">

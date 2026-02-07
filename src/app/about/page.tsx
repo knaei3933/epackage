@@ -60,8 +60,8 @@ export default function AboutPage() {
                   <div>
                     <dt className="text-sm font-medium text-text-muted">所在地</dt>
                     <dd className="text-lg text-text-primary">
-                      〒100-0001<br />
-                      東京都千代田区千代田1-1-1
+                      兵庫県明石市上ノ丸2-11-21<br />
+                      <span className="text-sm text-text-muted">ロジスティクス：兵庫県加古郡稲美町六分一486</span>
                     </dd>
                   </div>
                 </dl>

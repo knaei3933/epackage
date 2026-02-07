@@ -19,10 +19,9 @@ import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { EnhancedProductCard } from '@/components/catalog/EnhancedProductCard'
 import { ProductListItem } from '@/components/catalog/ProductListItem'
-import { AdvancedFilters } from '@/components/catalog/AdvancedFilters'
 import Link from 'next/link'
 import { PRODUCT_CATEGORIES, getAllProducts } from '@/lib/product-data'
-import { Product } from '@/types/database'
+import { Product, ProductBase } from '@/types/database'
 
 interface FilterState {
   viewMode: 'grid' | 'list'
@@ -40,11 +39,15 @@ interface FilterState {
 }
 
 export function CatalogClient() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  console.log('[Catalog] CatalogClient component rendering')
+
+  const [products, setProducts] = useState<ProductBase[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<ProductBase[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [useDBFiltering, setUseDBFiltering] = useState(true)
+  const [selectedProduct, setSelectedProduct] = useState<ProductBase | null>(null)
+  const [useDBFiltering, setUseDBFiltering] = useState(false)
+
+  console.log('[Catalog] State:', { isLoading, productsLength: products.length, filteredLength: filteredProducts.length })
 
   // Calculate initial filter state
   const getInitialFilterState = (): FilterState => {
@@ -64,6 +67,7 @@ export function CatalogClient() {
   }, [])
 
   const fetchProducts = async () => {
+    console.log('[Catalog] fetchProducts: Setting isLoading=true')
     setIsLoading(true)
     try {
       // Try to fetch from database first
@@ -72,6 +76,7 @@ export function CatalogClient() {
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
+            console.log('[Catalog] DB fetch success:', result.data.length)
             setProducts(result.data)
             setFilteredProducts(result.data)
             setIsLoading(false)
@@ -81,16 +86,21 @@ export function CatalogClient() {
       }
 
       // Fallback to static data
-      const safeProducts = getAllProducts(null, 'ja') as unknown as Product[]
+      const safeProducts = getAllProducts(null, 'ja') as ProductBase[]
+      console.log('[Catalog] Loaded products:', safeProducts.length, safeProducts)
+      console.log('[Catalog] Setting products state:', safeProducts.length)
       setProducts(safeProducts)
+      console.log('[Catalog] Setting filteredProducts state:', safeProducts.length)
       setFilteredProducts(safeProducts)
     } catch (error) {
       console.error('Failed to fetch products:', error)
       // Fallback to static data on error
-      const safeProducts = getAllProducts(null, 'ja') as unknown as Product[]
+      const safeProducts = getAllProducts(null, 'ja') as ProductBase[]
+      console.log('[Catalog] Error fallback products:', safeProducts.length, safeProducts)
       setProducts(safeProducts)
       setFilteredProducts(safeProducts)
     } finally {
+      console.log('[Catalog] fetchProducts: Setting isLoading=false')
       setIsLoading(false)
     }
   }
@@ -136,6 +146,7 @@ export function CatalogClient() {
 
   // Client-side filtering fallback
   const applyClientSideFilters = () => {
+    console.log('[Catalog] applyClientSideFilters called', { productsLength: products.length, filteredLength: filteredProducts.length, category: filterState.selectedCategory })
     let filtered = products
 
     // Category filter
@@ -189,8 +200,10 @@ export function CatalogClient() {
       filtered = filtered.filter(p => p.lead_time_days <= filterState.maxLeadTime!)
     }
 
+    console.log('[Catalog] Filtering result:', { inputLength: products.length, outputLength: filtered.length, category: filterState.selectedCategory })
+    console.log('[Catalog] Setting filteredProducts:', filtered.length)
     setFilteredProducts(filtered)
-    setIsLoading(false)
+    // Note: Don't manage isLoading here - it's handled by fetchProducts and applyDBFilters
   }
 
   // Get unique materials from products
@@ -226,10 +239,14 @@ export function CatalogClient() {
 
   // Handle filter changes - apply client-side filtering for non-DB mode
   useEffect(() => {
-    if (!useDBFiltering) {
+    if (!useDBFiltering && products.length > 0) {
       applyClientSideFilters()
+    } else if (!useDBFiltering && products.length === 0) {
+      // No products loaded yet, keep filteredProducts empty
+      setFilteredProducts([])
     }
   }, [
+    products,
     filterState.searchQuery,
     filterState.selectedCategory,
     filterState.materials,
@@ -299,7 +316,7 @@ export function CatalogClient() {
                     <span className="text-xs sm:text-sm">サンプルご依頼</span>
                   </Button>
                 </Link>
-                <Link href="/roi-calculator">
+                <Link href="/quote-simulator">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -316,22 +333,8 @@ export function CatalogClient() {
       </section>
 
       <Container size="6xl" className="py-8">
-        <div className="flex gap-8">
-          {/* Sidebar - Advanced Filters */}
-          <aside className="w-72 flex-shrink-0 hidden lg:block">
-            <AdvancedFilters
-              products={products}
-              filterState={filterState}
-              onFilterChange={handleFilterChange}
-              onClearAll={handleClearAll}
-              onApplyFilters={applyDBFilters}
-              filteredProductsCount={filteredProducts.length}
-              useDBFiltering={useDBFiltering}
-            />
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1 min-w-0">
+        {/* Main Content */}
+        <main className="w-full">
             {/* Sort and View Controls */}
             <div className="flex justify-between items-center mb-6">
               <p className="text-lg font-medium text-gray-900">
@@ -363,7 +366,6 @@ export function CatalogClient() {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent text-sm font-medium bg-white shadow-sm"
                 >
                   <option value="name">名前順</option>
-                  <option value="price">価格順</option>
                   <option value="leadTime">納期順</option>
                 </select>
               </div>
@@ -426,7 +428,6 @@ export function CatalogClient() {
               </div>
             )}
           </main>
-        </div>
       </Container>
 
       {/* Product Detail Modal */}
@@ -477,7 +478,7 @@ function ProductCard({ product, index, onSelect }: {
               <img
                 src={product.image}
                 alt={product.name_ja}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                 onError={(e) => {
                   // Fallback to placeholder on error
                   e.currentTarget.style.display = 'none'
@@ -527,22 +528,6 @@ function ProductCard({ product, index, onSelect }: {
             </div>
           </div>
 
-          {/* Price */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-600">初期費用</p>
-              <p className="text-xl font-bold text-gray-900">
-                ¥{((product.pricing_formula as any)?.base_cost || 0).toLocaleString()}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">単価</p>
-              <p className="text-lg font-medium text-gray-900">
-                ¥{(product.pricing_formula as any).per_unit_cost}/個
-              </p>
-            </div>
-          </div>
-
           {/* Actions */}
           <div className="grid grid-cols-2 gap-1 sm:gap-2">
             <Link href="/samples" className="col-span-1">
@@ -551,7 +536,7 @@ function ProductCard({ product, index, onSelect }: {
                 <span className="text-[10px] sm:text-xs">サンプル</span>
               </Button>
             </Link>
-            <Link href="/roi-calculator" className="col-span-1">
+            <Link href="/quote-simulator" className="col-span-1">
               <Button variant="primary" className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2">
                 <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
                 <span className="text-[10px] sm:text-xs">見積もり</span>
@@ -567,17 +552,34 @@ function ProductCard({ product, index, onSelect }: {
 
 // Product Detail Modal Component
 function ProductDetailModal({ product, onClose }: {
-  product: Product;
+  product: ProductBase;
   onClose: () => void;
 }) {
   const category = PRODUCT_CATEGORIES[product.category as keyof typeof PRODUCT_CATEGORIES]
+  const [activeTab, setActiveTab] = useState<'overview' | 'specifications' | 'faq' | 'downloads' | 'cases' | 'certifications'>('overview')
+
+  // Get extended product data with Phase 1 content
+  const extendedProduct = getAllProducts(null, 'ja').find(p => p.id === product.id)
+
+  // Convert materials array to display string
+  const getMaterialDisplay = (materials: string[]) => {
+    const materialMap: Record<string, string> = {
+      'PE': 'PE',
+      'PP': 'PP',
+      'PET': 'PET',
+      'ALUMINUM': 'AL',
+      'NYLON': 'NY',
+      'PAPER': '紙'
+    }
+    return materials.map(m => materialMap[m] || m).join(', ')
+  }
 
   return (
     <div className="relative">
       {/* Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center"
+        className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center z-10"
       >
         <X className="w-4 h-4" />
       </button>
@@ -591,123 +593,260 @@ function ProductDetailModal({ product, onClose }: {
               <Badge variant="secondary">{category?.name_ja}</Badge>
             </div>
             <p className="text-gray-600">{product.description_ja}</p>
-            <p className="text-sm text-gray-500 mt-2">{product.description_en}</p>
           </div>
         </div>
       </div>
 
-      {/* Product Content */}
-      <div className="p-6">
-        <Grid xs={1} lg={2} gap={8}>
-          {/* Left Column - Image and Basic Info */}
+      {/* Tabs */}
+      <div className="flex border-b overflow-x-auto">
+        {[
+          { id: 'overview' as const, label: '概要' },
+          { id: 'specifications' as const, label: '仕様' },
+          { id: 'faq' as const, label: 'FAQ' },
+          { id: 'downloads' as const, label: '見積シミュレーター' },
+          { id: 'cases' as const, label: '導入事例' },
+          { id: 'certifications' as const, label: '認証' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-3 font-medium whitespace-nowrap border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? 'border-brixa-600 text-brixa-700'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="p-6 max-h-[60vh] overflow-y-auto">
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
           <div className="space-y-6">
-            {/* Product Image */}
-            <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name_ja}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                  }}
-                />
-              ) : null}
-              <Package className={`w-24 h-24 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+            <Grid xs={1} lg={2} gap={6}>
+              {/* Left Column - Image and Basic Info */}
+              <div className="space-y-4">
+                {/* Product Image */}
+                <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.name_ja}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                      }}
+                    />
+                  ) : null}
+                  <Package className={`w-24 h-24 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+                </div>
+
+                {/* Quick Specs */}
+                <Card className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">基本仕様</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">最低注文数量:</span>
+                      <span className="font-medium">{product.min_order_quantity.toLocaleString()}個</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">納期:</span>
+                      <span className="font-medium">{product.lead_time_days}日</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Materials */}
+                <Card className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">素材</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.materials.map((material, idx) => (
+                      <Badge key={idx} variant="outline">{material}</Badge>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              {/* Right Column - Features and Applications */}
+              <div className="space-y-4">
+                {/* Features */}
+                <Card className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">特徴</h3>
+                  <ul className="space-y-2">
+                    {extendedProduct?.features?.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+
+                {/* Applications */}
+                <Card className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">用途</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {extendedProduct?.applications?.map((app, idx) => (
+                      <Badge key={idx} variant="secondary">{app}</Badge>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Tags */}
+                <Card className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">タグ</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {extendedProduct?.tags?.map((tag, idx) => (
+                      <Badge key={idx} variant="outline">{tag}</Badge>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+            </Grid>
+          </div>
+        )}
+
+        {/* Specifications Tab */}
+        {activeTab === 'specifications' && (
+          <Card className="p-4">
+            <h3 className="font-semibold text-gray-900 mb-3">技術仕様</h3>
+            <div className="space-y-2 text-sm">
+              {Object.entries(product.specifications as any).map(([key, value]) => {
+                const keyMap: Record<string, string> = {
+                  'width_range': '幅',
+                  'height_range': '高さ',
+                  'depth_range': '奥行き',
+                  'thickness_range': '厚さ',
+                  'materials': '素材',
+                  'capacity_range': '容量',
+                  'length_range': '長さ'
+                }
+                const displayKey = keyMap[key] || key
+
+                // Special handling for materials field
+                let displayValue: string
+                if (key === 'materials' && Array.isArray(value)) {
+                  displayValue = 'PET, AL, NY, VMPET, CPP, 透明蒸着PET'
+                } else {
+                  displayValue = Array.isArray(value) ? value.join(', ') : String(value)
+                }
+
+                return (
+                  <div key={key} className="flex justify-between border-b pb-2">
+                    <span className="text-gray-600">{displayKey}:</span>
+                    <span className="font-medium">{displayValue}</span>
+                  </div>
+                )
+              })}
+              {/* Additional materials row */}
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-gray-600">対応素材:</span>
+                <span className="font-medium">PET, AL, NY, VMPET, CPP, 透明蒸着PET</span>
+              </div>
             </div>
+          </Card>
+        )}
 
-            {/* Quick Specs */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">基本仕様</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">最低注文数量:</span>
-                  <span className="font-medium">{product.min_order_quantity.toLocaleString()}個</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">納期:</span>
-                  <span className="font-medium">{product.lead_time_days}日</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">素材:</span>
-                  <span className="font-medium">{product.materials.join(', ')}</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Materials */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">素材</h3>
-              <div className="space-y-2">
-                {(product.materials || []).map((material, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">{material}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
+        {/* FAQ Tab - Extended */}
+        {activeTab === 'faq' && extendedProduct?.faq && extendedProduct.faq.length > 0 && (
+          <div className="space-y-3">
+            {extendedProduct.faq.map((faq, idx) => (
+              <Card key={idx} className="p-4">
+                <h4 className="font-medium text-gray-900 mb-2">{faq.question_ja}</h4>
+                <p className="text-sm text-gray-700">{faq.answer_ja}</p>
+              </Card>
+            ))}
           </div>
+        )}
 
-          {/* Right Column - Detailed Information */}
-          <div className="space-y-6">
-            {/* Pricing */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">価格情報</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">初期費用:</span>
-                  <span className="text-xl font-bold text-brixa-600">
-                    ¥{((product.pricing_formula as any)?.base_cost || 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">単価:</span>
-                  <span className="text-lg font-medium">
-                    ¥{((product.pricing_formula as any)?.per_unit_cost || 0)}/個
-                  </span>
-                </div>
+        {/* Downloads Tab - Quote Simulator */}
+        {activeTab === 'downloads' && (
+          <Card className="p-6 text-center">
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-brixa-100 rounded-full flex items-center justify-center mx-auto">
+                <BarChart3 className="w-8 h-8 text-brixa-600" />
               </div>
-            </Card>
+              <h3 className="text-lg font-semibold text-gray-900">見積シミュレーター</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                製品の仕様を入力して、お見積もりを算出できます。<br />
+                希望するサイズ、数量、印刷などの詳細をご入力ください。
+              </p>
+              <Link href="/quote-simulator" className="inline-block">
+                <Button variant="primary" size="lg">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  見積シミュレーターへ
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
 
-            {/* Specifications */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">技術仕様</h3>
-              <div className="space-y-2 text-sm">
-                {Object.entries(product.specifications as any).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="text-gray-600 capitalize">{key}:</span>
-                    <span className="font-medium">
-                      {Array.isArray(value) ? value.join(', ') : String(value)}
-                    </span>
+        {/* Cases Tab - Archives Link */}
+        {activeTab === 'cases' && (
+          <Card className="p-6 text-center">
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <Package className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">導入事例アーカイブ</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                実際の導入事例をご覧いただけます。<br />
+                業界別の活用事例、効果、お客様の声を確認できます。
+              </p>
+              <Link href="/archives" className="inline-block">
+                <Button variant="primary" size="lg">
+                  <Package className="w-4 h-4 mr-2" />
+                  アーカイブページへ
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
+
+        {/* Certifications Tab - Phase 1 */}
+        {activeTab === 'certifications' && extendedProduct?.certifications && extendedProduct.certifications.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {extendedProduct.certifications.map((cert, idx) => (
+              <Card key={idx} className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Check className="w-5 h-5 text-blue-600" />
                   </div>
-                ))}
-              </div>
-            </Card>
+                  <div>
+                    <p className="font-medium text-gray-900">{cert.name}</p>
+                    <p className="text-sm text-gray-600">{cert.issuer}</p>
+                    {cert.description && <p className="text-xs text-gray-500 mt-1">{cert.description}</p>}
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
-        </Grid>
+        )}
+      </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 pt-6 border-t">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <Button variant="outline" onClick={onClose} className="flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2">
-              <X className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-              <span className="text-[10px] sm:text-xs">閉じる</span>
+      {/* Action Buttons */}
+      <div className="p-6 pt-0 border-t mt-6">
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="outline" onClick={onClose} className="flex-col py-2 h-auto min-h-[50px]">
+            <X className="w-4 h-4 mb-1" />
+            <span className="text-xs">閉じる</span>
+          </Button>
+          <Link href="/samples" className="col-span-1">
+            <Button variant="outline" className="w-full flex-col py-2 h-auto min-h-[50px]">
+              <Package className="w-4 h-4 mb-1" />
+              <span className="text-xs">サンプル</span>
             </Button>
-            <Link href="/samples" className="col-span-1">
-              <Button variant="outline" className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2">
-                <Package className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-                <span className="text-[10px] sm:text-xs">サンプルご依頼</span>
-              </Button>
-            </Link>
-            <Link href={`/roi-calculator/`} className="col-span-1">
-              <Button variant="primary" className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2">
-                <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-                <span className="text-[10px] sm:text-xs">パウチ見積もり</span>
-              </Button>
-            </Link>
-          </div>
+          </Link>
+          <Link href="/quote-simulator" className="col-span-1">
+            <Button variant="primary" className="w-full flex-col py-2 h-auto min-h-[50px]">
+              <BarChart3 className="w-4 h-4 mb-1" />
+              <span className="text-xs">見積もり</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { withAuth } from '@/lib/api-auth';
+import { withMemberAuth } from '@/lib/api-auth';
 import { withApiHandler } from '@/lib/api-error-handler';
 import type { Database } from '@/types/database';
 
@@ -22,7 +22,7 @@ type InvoiceWithItems = Database['public']['Tables']['invoices']['Row'] & {
  * List authenticated member's invoices with filtering
  */
 export const GET = withApiHandler(
-  withAuth(async (request: NextRequest, auth) => {
+  withMemberAuth(async (request: NextRequest, auth) => {
     const userId = auth.userId;
 
     // Get query parameters

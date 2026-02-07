@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const user = await requireAuth();
 
     // Fetch notifications for the user
+    const supabase = getServerClient();
     const { data: notifications, error } = await supabase
       .from('notifications')
       .select('*')

@@ -9,47 +9,44 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { DocumentDownloadCard } from '@/components/shared/document';
+import { createServiceClient } from '@/lib/supabase';
 import { DOCUMENT_TYPE_LABELS } from '@/types/portal';
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
 
 async function getDocuments(searchParams: { type?: string }) {
-  const cookieStore = await cookies();
+  // Use service client for admin pages
+  const supabase = createServiceClient();
 
-  const params = new URLSearchParams();
-  if (searchParams.type) params.set('type', searchParams.type);
+  let query = supabase
+    .from('documents')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/member/documents?${params}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; '),
-      },
-      cache: 'no-store',
-    }
-  );
+  // Apply type filter if specified
+  if (searchParams.type) {
+    query = query.eq('type', searchParams.type);
+  }
 
-  if (!response.ok) return null;
+  const { data, error } = await query;
 
-  const result = await response.json();
-  return result.data;
+  if (error) {
+    console.error('Documents fetch error:', error);
+    return { documents: [] };
+  }
+
+  return { documents: data || [] };
 }
 
 export default async function CustomerDocumentsPage({
   searchParams,
 }: {
-  searchParams: { type?: string };
+  searchParams: Promise<{ type?: string }>;
 }) {
-  const data = await getDocuments(searchParams);
-  const documents = data?.documents || [];
+  const params = await searchParams;
+  const { documents } = await getDocuments(params);
 
   return (
     <div className="space-y-6">
@@ -73,7 +70,7 @@ export default async function CustomerDocumentsPage({
             href="/admin/customers/documents"
             className={cn(
               'px-3 py-1.5 text-sm rounded-lg border transition-colors',
-              !searchParams.type
+              !params.type
                 ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 font-medium'
                 : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
             )}
@@ -86,7 +83,7 @@ export default async function CustomerDocumentsPage({
               href={`/admin/customers/documents?type=${type}`}
               className={cn(
                 'px-3 py-1.5 text-sm rounded-lg border transition-colors flex items-center gap-1.5',
-                searchParams.type === type
+                params.type === type
                   ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 font-medium'
                   : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
               )}
@@ -117,7 +114,7 @@ export default async function CustomerDocumentsPage({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-slate-900 dark:text-white truncate">
-                    {doc.name_ja}
+                    {doc.name_ja || doc.name}
                   </p>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     {new Date(doc.created_at).toLocaleDateString('ja-JP')}
@@ -152,8 +149,8 @@ export default async function CustomerDocumentsPage({
             ドキュメントがありません
           </h3>
           <p className="text-slate-600 dark:text-slate-400">
-            {searchParams.type
-              ? `${DOCUMENT_TYPE_LABELS[searchParams.type as keyof typeof DOCUMENT_TYPE_LABELS]?.ja || searchParams.type}のドキュメントはありません`
+            {params.type
+              ? `${DOCUMENT_TYPE_LABELS[params.type as keyof typeof DOCUMENT_TYPE_LABELS]?.ja || params.type}のドキュメントはありません`
               : 'まだダウンロード可能なドキュメントがありません'}
           </p>
         </div>

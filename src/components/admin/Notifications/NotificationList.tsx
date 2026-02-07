@@ -10,8 +10,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Check, X, Trash2, Package, FileText, ClipboardList, User, Factory, Truck, PenTool, AlertCircle } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { Check, X, Trash2, Package, FileText, ClipboardList, User, Factory, Truck, PenTool, AlertCircle, Bell } from 'lucide-react'
+import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface Notification {
@@ -201,7 +201,7 @@ export function NotificationList({
         {/* ヘッダー */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            通知
+            お知らせ
           </h3>
           <button
             onClick={onClose}
@@ -263,10 +263,7 @@ export function NotificationList({
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-xs text-gray-400 dark:text-gray-500">
-                        {formatDistanceToNow(new Date(notification.created_at), {
-                          addSuffix: true,
-                          locale: ja,
-                        })}
+                        {format(new Date(notification.created_at), 'yyyy年M月d日', { locale: ja })}
                       </p>
 
                       {/* アクションボタン */}

@@ -49,7 +49,7 @@ export default function PrivacyPolicy() {
               </div>
               <div>
                 <span className="font-medium">所在地：</span>
-                <span className="ml-2">〒673-0846 兵庫県明石市上ノ丸2-11-21 レラフォール102</span>
+                <span className="ml-2">兵庫県明石市上ノ丸2-11-21</span>
               </div>
               <div>
                 <span className="font-medium">代表者：</span>
@@ -57,11 +57,11 @@ export default function PrivacyPolicy() {
               </div>
               <div>
                 <span className="font-medium">電話番号：</span>
-                <span className="ml-2">+81-80-6942-7235</span>
+                <span className="ml-2">050-1793-6500</span>
               </div>
               <div>
                 <span className="font-medium">メール：</span>
-                <span className="ml-2">kim@kanei-trade.co.jp</span>
+                <span className="ml-2">info@package-lab.com</span>
               </div>
             </div>
           </div>
@@ -302,7 +302,7 @@ export default function PrivacyPolicy() {
                     </div>
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
                       <p className="text-sm">
-                        <strong>ご連絡先：</strong>個人情報に関するお問い合わせは、kim@kanei-trade.co.jp までご連絡ください。
+                        <strong>ご連絡先：</strong>個人情報に関するお問い合わせは、info@package-lab.com までご連絡ください。
                       </p>
                     </div>
                   </div>
@@ -348,9 +348,9 @@ export default function PrivacyPolicy() {
                     <div className="bg-surface-secondary rounded-lg p-4 mt-4">
                       <p className="font-medium text-text-primary">個人情報保護管理者</p>
                       <p>金　乾雄</p>
-                      <p>〒673-0846 兵庫県明石市上ノ丸2-11-21 レラフォール102</p>
-                      <p>電話：+81-80-6942-7235</p>
-                      <p>メール：kim@kanei-trade.co.jp</p>
+                      <p>兵庫県明石市上ノ丸2-11-21</p>
+                      <p>電話：050-1793-6500</p>
+                      <p>メール：info@package-lab.com</p>
                     </div>
                     <p className="mt-4">
                       お客様からのご意見やご要望を真摯に受け止め、速やかに対応することをお約束します。

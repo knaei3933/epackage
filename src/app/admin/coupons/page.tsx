@@ -118,6 +118,7 @@ export default function AdminCouponsPage() {
               setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            data-testid="new-coupon-button"
           >
             <Plus className="h-4 w-4" />
             새 쿠폰
@@ -280,6 +281,7 @@ function CouponForm({
     maxUses: coupon?.maxUses || null,
     maxUsesPerCustomer: coupon?.maxUsesPerCustomer || 1,
     status: coupon?.status || 'active' as CouponStatus,
+    validFrom: coupon?.validFrom || '',
     validUntil: coupon?.validUntil || ''
   });
 
@@ -307,6 +309,7 @@ function CouponForm({
               onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
               required
               placeholder="WELCOME5"
+              data-testid="coupon-code"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -319,6 +322,7 @@ function CouponForm({
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as CouponType })}
+              data-testid="coupon-type"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="percentage">퍼센트 (%)</option>
@@ -370,6 +374,7 @@ function CouponForm({
               min={0}
               max={formData.type === 'percentage' ? 100 : undefined}
               placeholder={formData.type === 'percentage' ? '5' : '5000'}
+              data-testid="coupon-value"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -391,6 +396,38 @@ function CouponForm({
               onChange={(e) => setFormData({ ...formData, minimumOrderAmount: parseFloat(e.target.value) })}
               min={0}
               placeholder="0"
+              data-testid="minimum-order-amount"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Max Discount Amount */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              최대 할인 금액 (엔)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.maximumDiscountAmount || ''}
+              onChange={(e) => setFormData({ ...formData, maximumDiscountAmount: e.target.value ? parseFloat(e.target.value) : null })}
+              min={0}
+              placeholder="무제한"
+              data-testid="maximum-discount-amount"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Valid From */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              유효 기간 시작
+            </label>
+            <input
+              type="datetime-local"
+              value={formData.validFrom}
+              onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })}
+              data-testid="valid-from"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -406,8 +443,27 @@ function CouponForm({
               onChange={(e) => setFormData({ ...formData, maxUses: e.target.value ? parseInt(e.target.value) : null })}
               min={1}
               placeholder="무제한"
+              data-testid="max-uses"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              상태 *
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as CouponStatus })}
+              data-testid="coupon-status"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="active">활성</option>
+              <option value="inactive">비활성</option>
+              <option value="scheduled">예약</option>
+              <option value="expired">만료</option>
+            </select>
           </div>
 
           {/* Valid Until */}
@@ -419,6 +475,7 @@ function CouponForm({
               type="datetime-local"
               value={formData.validUntil}
               onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })}
+              data-testid="valid-until"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -435,6 +492,7 @@ function CouponForm({
           </button>
           <button
             type="submit"
+            data-testid="save-coupon-button"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             {coupon ? '수정' : '생성'}

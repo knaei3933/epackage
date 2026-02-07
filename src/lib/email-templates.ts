@@ -290,10 +290,9 @@ function getJapaneseEmailFooter(companyName = 'Epackage Lab'): string {
   return `
 ================================
 ${companyName}
-〒100-0001
-東京都千代田区1-1-1
-電話: 03-1234-5678
-Email: info@epackage-lab.com
+兵庫県明石市上ノ丸2-11-21
+電話: 050-1793-6500
+Email: info@package-lab.com
 https://epackage-lab.com
 
 ================================
@@ -333,7 +332,18 @@ export type EmailTemplateType =
   | 'delivery_completion'
   | 'invoice_created'
   | 'invoice_reminder'
-  | 'invoice_overdue';
+  | 'invoice_overdue'
+  | 'payment_confirmation'
+  | 'purchase_order_korea'
+  | 'order_created_customer'
+  | 'order_created_admin'
+  | 'spec_rejected_admin'
+  | 'production_started_customer'
+  | 'shipping_info_customer'
+  | 'archive_completed_admin'
+  | 'korea_designer_data_notification'
+  | 'correction_ready_for_review'
+  | 'correction_rejected';
 
 // =====================================================
 // Welcome Email Templates
@@ -624,8 +634,8 @@ ${footer}
     <div class="footer">
       <div class="footer-info">
         <strong>Epackage Lab</strong><br>
-        〒100-0001 東京都千代田区1-1-1<br>
-        電話: 03-1234-5678 | Email: info@epackage-lab.com<br>
+        兵庫県明石市上ノ丸2-11-21<br>
+        電話: 050-1793-6500 | Email: info@package-lab.com<br>
         <a href="https://epackage-lab.com" style="color: #667eea; text-decoration: none;">https://epackage-lab.com</a>
       </div>
       <div class="footer-info">
@@ -883,7 +893,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -1136,7 +1146,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -1436,7 +1446,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -1729,7 +1739,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -2024,7 +2034,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -3314,7 +3324,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -3523,7 +3533,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -3871,7 +3881,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4130,7 +4140,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4397,7 +4407,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4435,6 +4445,68 @@ export interface InvoiceEmailData {
   paymentMethod?: string;
   /** 備考 / Remarks */
   remarks?: string;
+}
+
+/**
+ * 入金確認メールデータ
+ * Payment Confirmation Email Data
+ */
+export interface PaymentConfirmationEmailData extends TemplateData {
+  orderNumber: string;
+  customerName: string;
+  paymentAmount: number;
+  paymentDate: string;
+  totalAmount: number;
+}
+
+/**
+ * 韓国発注書メールデータ
+ * Purchase Order to Korea Email Data
+ */
+export interface PurchaseOrderKoreaEmailData extends TemplateData {
+  orderNumber: string;
+  companyName: string;
+  items: Array<{
+    productName: string;
+    quantity: number;
+    specifications: Record<string, any>;
+  }>;
+  totalQuantity: number;
+  estimatedDelivery: string;
+  purchaseOrderPdfUrl?: string;
+}
+
+/**
+ * 韓国デザイナーデータ入稿通知メールデータ
+ * Korea Designer Data Notification Email Data
+ */
+export interface KoreaDesignerDataNotificationEmailData extends TemplateData {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  dataUploadUrl: string;
+  correctionUploadUrl: string;
+}
+
+/**
+ * 教正データ完成通知メールデータ（顧客向け）
+ * Correction Ready for Review Email Data
+ */
+export interface CorrectionReadyForReviewEmailData extends TemplateData {
+  orderNumber: string;
+  revisionNumber: number;
+  previewImageUrl: string;
+  reviewUrl: string;
+}
+
+/**
+ * 教正データ差し戻し通知メールデータ（韓国デザイナー向け）
+ * Correction Rejected Email Data
+ */
+export interface CorrectionRejectedEmailData extends TemplateData {
+  orderNumber: string;
+  customerComment: string;
+  correctionUploadUrl: string;
 }
 
 /**
@@ -4479,8 +4551,8 @@ ${data.remarks ? `■ 備考\n${data.remarks}\n` : ''}────────�
 
 ────────────────────────────────
 Epackage Lab
-〒100-0001 東京都千代田区1-1-1
-Email: info@epackage-lab.com
+兵庫県明石市上ノ丸2-11-21
+Email: info@package-lab.com
 ${formatDateJP(new Date().toISOString())}
 ────────────────────────────────
     `.trim(),
@@ -4666,8 +4738,8 @@ ${formatDateJP(new Date().toISOString())}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
-      <div>Email: info@epackage-lab.com</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>Email: info@package-lab.com</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4727,8 +4799,8 @@ ${isOverdue ? `■ 遅延日数：${data.daysOverdue}日\n` : ''}─────
 
 ────────────────────────────────
 Epackage Lab
-〒100-0001 東京都千代田区1-1-1
-Email: info@epackage-lab.com
+兵庫県明石市上ノ丸2-11-21
+Email: info@package-lab.com
 ${formatDateJP(new Date().toISOString())}
 ────────────────────────────────
     `.trim(),
@@ -4880,8 +4952,8 @@ ${formatDateJP(new Date().toISOString())}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>〒100-0001 東京都千代田区1-1-1</div>
-      <div>Email: info@epackage-lab.com</div>
+      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>Email: info@package-lab.com</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4919,6 +4991,8 @@ export function renderEmailTemplate(
     | DeliveryCompletionEmailData
     | InvoiceEmailData
     | (InvoiceEmailData & { daysOverdue?: number })
+    | PaymentConfirmationEmailData
+    | PurchaseOrderKoreaEmailData
 ): EmailTemplate {
   switch (type) {
     case 'welcome_customer':
@@ -4982,6 +5056,21 @@ export function renderEmailTemplate(
     case 'invoice_overdue':
       return getInvoiceReminderEmail(data as InvoiceEmailData & { daysOverdue?: number });
 
+    case 'payment_confirmation':
+      return getPaymentConfirmationEmail(data as PaymentConfirmationEmailData);
+
+    case 'purchase_order_korea':
+      return getPurchaseOrderKoreaEmail(data as PurchaseOrderKoreaEmailData);
+
+    case 'korea_designer_data_notification':
+      return getKoreaDesignerDataNotificationEmail(data as KoreaDesignerDataNotificationEmailData);
+
+    case 'correction_ready_for_review':
+      return getCorrectionReadyForReviewEmail(data as CorrectionReadyForReviewEmailData);
+
+    case 'correction_rejected':
+      return getCorrectionRejectedEmail(data as CorrectionRejectedEmailData);
+
     default:
       throw new Error(`Unknown email template type: ${type}`);
   }
@@ -5003,5 +5092,689 @@ export function createRecipient(
     name: sanitizeContent(name),
     email: sanitizeContent(email),
     company: company ? sanitizeContent(company) : undefined,
+  };
+}
+
+// =====================================================
+// Payment Confirmation Email Template
+// =====================================================
+
+/**
+ * 入金確認メール（顧客向け）
+ * Payment Confirmation Email (Customer)
+ */
+export function getPaymentConfirmationEmail(data: PaymentConfirmationEmailData): EmailTemplate {
+  const formatYen = (amount: number) => `¥${amount.toLocaleString('ja-JP')}`;
+  const formatDateJP = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  return {
+    subject: `【入金確認】${data.orderNumber} Epackage Lab`,
+    text: `
+${data.customerName} 様
+
+平素はEpackage Labをご利用いただき、誠にありがとうございます。
+
+この度、以下の注文について入金を確認いたしました。
+
+────────────────────────────────
+■ 入金情報
+────────────────────────────────
+注文番号　：${data.orderNumber}
+入金額　　：${formatYen(data.paymentAmount)}
+入金日　　：${formatDateJP(data.paymentDate)}
+注文総額　：${formatYen(data.totalAmount)}
+
+${data.paymentAmount < data.totalAmount ? `残金　　　：${formatYen(data.totalAmount - data.paymentAmount)}
+※ 残金につきましては、別途ご請求いたします。` : ''}
+※ 入金が確認でき次第、製造工程を開始いたします。
+
+────────────────────────────────
+■ 今後の流れ
+────────────────────────────────
+1. データ承認完了
+2. 契約書署名
+3. 製造開始
+
+────────────────────────────────
+
+ご不明な点がございましたら、お気軽にお問い合わせください。
+
+引き続き、どうぞよろしくお願い申し上げます。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EPACKAGE Lab
+〒100-0001
+東京都〇〇区〇〇1-2-3
+TEL: 050-1793-6500
+Email: info@package-lab.com
+Web: https://epackage-lab.com
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`,
+    html: `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>入金確認</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .content {
+      padding: 30px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      border-left: 4px solid #10b981;
+    }
+    .section h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #10b981;
+      font-size: 18px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .info-value {
+      color: #111827;
+      font-weight: 500;
+    }
+    .amount {
+      font-size: 24px;
+      font-weight: bold;
+      color: #10b981;
+    }
+    .highlight {
+      background-color: #d1fae5;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+    .steps {
+      margin-top: 20px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+    }
+    .step-number {
+      width: 30px;
+      height: 30px;
+      background-color: #10b981;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    .footer {
+      background-color: #1f2937;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .footer p {
+      margin: 5px 0;
+    }
+    .footer a {
+      color: #10b981;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>入金確認</h1>
+    </div>
+
+    <div class="content">
+      <p style="margin-top: 0;">
+        ${data.customerName} 様<br>
+        平素はEpackage Labをご利用いただき、誠にありがとうございます。
+      </p>
+      <p>この度、以下の注文について入金を確認いたしました。</p>
+
+      <div class="section">
+        <h3>入金情報</h3>
+        <div class="info-row">
+          <span class="info-label">注文番号</span>
+          <span class="info-value">${data.orderNumber}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">入金額</span>
+          <span class="info-value amount">${formatYen(data.paymentAmount)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">入金日</span>
+          <span class="info-value">${formatDateJP(data.paymentDate)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">注文総額</span>
+          <span class="info-value">${formatYen(data.totalAmount)}</span>
+        </div>
+
+        ${data.paymentAmount < data.totalAmount ? `
+        <div class="highlight">
+          <p style="margin: 0; color: #065f46;">
+            <strong>残金：${formatYen(data.totalAmount - data.paymentAmount)}</strong><br>
+            <span style="font-size: 14px;">※ 残金につきましては、別途ご請求いたします。</span>
+          </p>
+        </div>
+        ` : `
+        <div class="highlight">
+          <p style="margin: 0; color: #065f46;">
+            <strong>※ 入金が確認でき次第、製造工程を開始いたします。</strong>
+          </p>
+        </div>
+        `}
+      </div>
+
+      <div class="section">
+        <h3>今後の流れ</h3>
+        <div class="steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <span>データ承認完了</span>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <span>契約書署名</span>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <span>製造開始</span>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align: center; margin-top: 30px;">
+        ご不明な点がございましたら、お気軽にお問い合わせください。<br>
+        引き続き、どうぞよろしくお願い申し上げます。
+      </p>
+    </div>
+
+    <div class="footer">
+      <p><strong>EPACKAGE Lab</strong></p>
+      <p>〒100-0001 東京都〇〇区〇〇1-2-3</p>
+      <p>TEL: 050-1793-6500 | Email: info@package-lab.com</p>
+      <p><a href="https://epackage-lab.com">https://epackage-lab.com</a></p>
+    </div>
+  </div>
+</body>
+</html>
+`,
+  };
+}
+
+// =====================================================
+// Purchase Order to Korea Email Template
+// =====================================================
+
+/**
+ * 韓国発注書メール（韓国パートナー向け）
+ * Purchase Order to Korea Email
+ */
+export function getPurchaseOrderKoreaEmail(data: PurchaseOrderKoreaEmailData): EmailTemplate {
+  const formatYen = (amount: number) => `¥${amount.toLocaleString('ja-JP')}`;
+  const formatDateJP = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  // Build items list
+  const itemsList = data.items.map((item, index) => {
+    const specs = item.specifications || {};
+    const size = specs.dimensions || `${specs.width || 0}×${specs.height || 0}${specs.depth ? `×${specs.depth}` : ''}`;
+    const material = specs.materialId === 'pet_al' ? 'PET/AL' :
+                   specs.materialId === 'pet_pe' ? 'PET/PE' :
+                   specs.materialId === 'kp' ? 'クラフト' :
+                   specs.materialId || '-';
+    return `${index + 1}. ${item.productName}
+   - サイズ: ${size}
+   - 素材: ${material}
+   - 数量: ${item.quantity.toLocaleString()}個`;
+  }).join('\n');
+
+  // Calculate total amount
+  const totalAmount = data.items.reduce((sum: number, item: any) => {
+    const unitPrice = item.specifications?.unitPrice || 0;
+    return sum + (unitPrice * item.quantity);
+  }, 0);
+
+  return {
+    subject: `【発注】${data.orderNumber} ${data.companyName}`,
+    text: `
+韓国パートナーの皆様
+
+平素はお世話になっております。
+
+この度、以下の内容で発注させていただきます。
+
+────────────────────────────────
+■ 発注情報
+────────────────────────────────
+注文番号　：${data.orderNumber}
+顧客名　　：${data.companyName}
+納品予定　：${data.estimatedDelivery ? formatDateJP(data.estimatedDelivery) : '未定'}
+総数量　　：${data.totalQuantity.toLocaleString()}個
+
+────────────────────────────────
+■ 注文明細
+────────────────────────────────
+${itemsList}
+
+総額　　　：${formatYen(totalAmount)}
+
+────────────────────────────────
+
+ご確認のほど、よろしくお願い申し上げます。
+
+EPACKAGE Lab
+東京本社
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email: info@package-lab.com
+Tel: 050-1793-6500
+`,
+    html: `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>発注書</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .content {
+      padding: 30px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      border-left: 4px solid #8b5cf6;
+    }
+    .section h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #8b5cf6;
+      font-size: 18px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .info-value {
+      color: #111827;
+      font-weight: 500;
+    }
+    .items-list {
+      background-color: #ffffff;
+      padding: 15px;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+      white-space: pre-line;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .footer {
+      background-color: #1f2937;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .footer p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>発注書</h1>
+    </div>
+
+    <div class="content">
+      <p style="margin-top: 0;">
+        韓国パートナーの皆様<br>
+        平素はお世話になっております。
+      </p>
+      <p>この度、以下の内容で発注させていただきます。</p>
+
+      <div class="section">
+        <h3>発注情報</h3>
+        <div class="info-row">
+          <span class="info-label">注文番号</span>
+          <span class="info-value">${data.orderNumber}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">顧客名</span>
+          <span class="info-value">${data.companyName}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">納品予定</span>
+          <span class="info-value">${data.estimatedDelivery ? formatDateJP(data.estimatedDelivery) : '未定'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">総数量</span>
+          <span class="info-value">${data.totalQuantity.toLocaleString()}個</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>注文明細</h3>
+        <div class="items-list">${itemsList.replace(/\n/g, '<br>')}</div>
+      </div>
+
+      <p style="text-align: center; margin-top: 30px;">
+        ご確認のほど、よろしくお願い申し上げます。
+      </p>
+    </div>
+
+    <div class="footer">
+      <p><strong>EPACKAGE Lab</strong></p>
+      <p>東京本社</p>
+      <p>Email: info@package-lab.com</p>
+      <p>Tel: 050-1793-6500</p>
+    </div>
+  </div>
+</body>
+</html>
+`,
+  };
+}
+
+// =====================================================
+// Korea Designer Data Notification Email Template
+// =====================================================
+
+/**
+ * 韓国デザイナーデータ入稿通知メール
+ */
+export function getKoreaDesignerDataNotificationEmail(data: KoreaDesignerDataNotificationEmailData): EmailTemplate {
+  return {
+    subject: `【データ入稿依頼】注文 ${data.orderNumber}`,
+    text: `
+韓国デザイナーの皆様
+
+新しい注文でデータが入稿されました。
+
+────────────────────────────────
+■ 注文情報
+────────────────────────────────
+注文番号　：${data.orderNumber}
+顧客名　　：${data.customerName}
+顧客メール：${data.customerEmail}
+
+────────────────────────────────
+■ データ入稿URL
+────────────────────────────────
+${data.dataUploadUrl}
+
+────────────────────────────────
+■ 教正データアップロード
+────────────────────────────────
+以下のURLから教正データをアップロードしてください：
+
+${data.correctionUploadUrl}
+
+データをご確認の上、教正データの作成をお願いいたします。
+`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>データ入稿依頼</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #1f2937;">【データ入稿依頼】新しい注文のデータが入稿されました</h2>
+
+    <p>以下の注文でデータが入稿されました。</p>
+
+    <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">注文情報</h3>
+      <p><strong>注文番号：</strong>${data.orderNumber}</p>
+      <p><strong>顧客名：</strong>${data.customerName}</p>
+      <p><strong>顧客メール：</strong>${data.customerEmail}</p>
+    </div>
+
+    <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">データ入稿URL</h3>
+      <p><a href="${data.dataUploadUrl}" style="color: #1d4ed8; text-decoration: none;">${data.dataUploadUrl}</a></p>
+    </div>
+
+    <div style="background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">教正データアップロード</h3>
+      <p>以下のURLから教正データをアップロードしてください：</p>
+      <p><a href="${data.correctionUploadUrl}" style="color: #1d4ed8; text-decoration: none; font-weight: bold;">${data.correctionUploadUrl}</a></p>
+    </div>
+
+    <p>データをご確認の上、教正データの作成をお願いいたします。</p>
+  </div>
+</body>
+</html>
+`,
+  };
+}
+
+// =====================================================
+// Correction Ready for Review Email Template (Customer)
+// =====================================================
+
+/**
+ * 教正データ完成通知メール（顧客向け）
+ */
+export function getCorrectionReadyForReviewEmail(data: CorrectionReadyForReviewEmailData): EmailTemplate {
+  return {
+    subject: `【教正データ完成】注文 ${data.orderNumber} のご確認をお願いいたします`,
+    text: `
+${data.recipient.name} 様
+
+平素はEpackage Labをご利用いただき、誠にありがとうございます。
+
+この度、注文 ${data.orderNumber} の教正データが完成いたしました。
+以下のページからご確認ください。
+
+────────────────────────────────
+■ 教正データ情報
+────────────────────────────────
+注文番号　　：${data.orderNumber}
+教正回数　　：${data.revisionNumber}回目
+
+プレビュー画像：
+${data.previewImageUrl}
+
+────────────────────────────────
+■ 確認ページ
+────────────────────────────────
+${data.reviewUrl}
+
+内容をご確認の上、承認または修正依頼をお選びください。
+`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教正データ完成</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #1f2937;">【教正データ完成】ご確認をお願いいたします</h2>
+
+    <p>${data.recipient.name} 様</p>
+    <p>平素はEpackage Labをご利用いただき、誠にありがとうございます。</p>
+
+    <p>この度、注文 ${data.orderNumber} の教正データが完成いたしました。</p>
+
+    <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">教正データ情報</h3>
+      <p><strong>注文番号：</strong>${data.orderNumber}</p>
+      <p><strong>教正回数：</strong>${data.revisionNumber}回目</p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <img src="${data.previewImageUrl}" alt="教正データプレビュー" style="max-width: 100%; border-radius: 5px; border: 1px solid #e5e7eb;">
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${data.reviewUrl}" style="display: inline-block; padding: 12px 24px; background-color: #1d4ed8; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">教正データを確認する</a>
+    </div>
+
+    <p>内容をご確認の上、承認または修正依頼をお選びください。</p>
+  </div>
+</body>
+</html>
+`,
+  };
+}
+
+// =====================================================
+// Correction Rejected Email Template (Korea Designer)
+// =====================================================
+
+/**
+ * 教正データ差し戻し通知メール（韓国デザイナー向け）
+ */
+export function getCorrectionRejectedEmail(data: CorrectionRejectedEmailData): EmailTemplate {
+  return {
+    subject: `【教正データ差し戻し】注文 ${data.orderNumber}`,
+    text: `
+韓国デザイナーの皆様
+
+以下の注文で顧客から修正依頼がありました。
+
+────────────────────────────────
+■ 注文情報
+────────────────────────────────
+注文番号：${data.orderNumber}
+
+顧客コメント：
+${data.customerComment}
+
+────────────────────────────────
+■ 再度教正データをアップロード
+────────────────────────────────
+以下のURLから再度教正データをアップロードしてください：
+
+${data.correctionUploadUrl}
+
+お手数をおかけしますが、ご対応のほどよろしくお願いいたします。
+`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教正データ差し戻し</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #dc2626;">【教正データ差し戻し】顧客より修正依頼がありました</h2>
+
+    <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;">
+      <h3 style="margin-top: 0; color: #dc2626;">注文情報</h3>
+      <p><strong>注文番号：</strong>${data.orderNumber}</p>
+    </div>
+
+    <div style="background-color: #fffbeb; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">顧客コメント</h3>
+      <p style="white-space: pre-wrap;">${data.customerComment}</p>
+    </div>
+
+    <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">再度教正データをアップロード</h3>
+      <p>以下のURLから再度教正データをアップロードしてください：</p>
+      <p><a href="${data.correctionUploadUrl}" style="color: #1d4ed8; text-decoration: none; font-weight: bold;">${data.correctionUploadUrl}</a></p>
+    </div>
+
+    <p>お手数をおかけしますが、ご対応のほどよろしくお願いいたします。</p>
+  </div>
+</body>
+</html>
+`,
   };
 }

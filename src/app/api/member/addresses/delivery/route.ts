@@ -34,21 +34,13 @@ const deliveryAddressSchema = z.object({
 // ============================================================
 
 /**
- * Get user ID from middleware headers (cookie-based auth or DEV_MODE header)
+ * Get user ID from middleware headers (cookie-based auth)
  */
 async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
   try {
     const { headers } = await import('next/headers');
     const headersList = await headers();
-    const userId = headersList.get('x-user-id');
-
-    // Log DEV_MODE usage for debugging
-    const isDevMode = headersList.get('x-dev-mode') === 'true';
-    if (isDevMode && userId) {
-      console.log('[Delivery Addresses API] DEV_MODE: Using x-user-id header:', userId);
-    }
-
-    return userId;
+    return headersList.get('x-user-id');
   } catch (error) {
     console.error('[getUserIdFromRequest] Error:', error);
     return null;
@@ -75,7 +67,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .from('delivery_addresses')
       .select('*')
       .eq('user_id', userId)
+      // is_default = true인 항목이 먼저 오도록 정렬
       .order('is_default', { ascending: false })
+      // 그 다음 created_at 순으로 정렬 (최신순)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -86,9 +80,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Transform snake_case to camelCase for frontend
+    const transformedAddresses = (addresses || []).map((addr: any) => ({
+      id: addr.id,
+      userId: addr.user_id,
+      name: addr.name,
+      postalCode: addr.postal_code,
+      prefecture: addr.prefecture,
+      city: addr.city,
+      address: addr.address,
+      building: addr.building,
+      phone: addr.phone,
+      contactPerson: addr.contact_person,
+      isDefault: addr.is_default,
+      createdAt: addr.created_at,
+      updatedAt: addr.updated_at,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: addresses || [],
+      data: transformedAddresses,
     });
   } catch (error) {
     console.error('Delivery addresses API error:', error);

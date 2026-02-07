@@ -92,11 +92,9 @@ export async function POST(request: NextRequest) {
         customer_name,
         customer_email,
         customer_phone,
-        shipping_address,
-        production_status,
-        payment_status,
-        total_amount,
-        paid_amount
+        delivery_address,
+        status,
+        total_amount
       `)
       .eq('id', body.order_id)
       .single();
@@ -107,20 +105,12 @@ export async function POST(request: NextRequest) {
 
     const orderTyped = order as any;
 
-    // Check production status - must be in final_inspection or completed
-    const validProductionStatuses = ['final_inspection', 'completed', 'quality_check_passed'];
-    if (!validProductionStatuses.includes(orderTyped.production_status)) {
+    // Check order status - must be PRODUCTION (10-step workflow)
+    const validOrderStatuses = ['PRODUCTION', 'READY_TO_SHIP'];
+    if (!validOrderStatuses.includes(orderTyped.status)) {
       throw new ShipmentError(
-        `Order production status must be completed, current status: ${orderTyped.production_status}`,
+        `Order status must be PRODUCTION or READY_TO_SHIP, current status: ${orderTyped.status}`,
         'ORDER_NOT_READY'
-      );
-    }
-
-    // Check payment status if applicable
-    if (orderTyped.payment_status === 'pending' && orderTyped.total_amount > 0) {
-      throw new ShipmentError(
-        'Order payment must be completed before shipping',
-        'PAYMENT_PENDING'
       );
     }
 
@@ -157,7 +147,7 @@ export async function POST(request: NextRequest) {
       body.carrier,
       pickupDate,
       DEFAULT_SENDER_ADDRESS,
-      orderTyped.shipping_address,
+      orderTyped.delivery_address,
       body.service_type || ShippingServiceType.TAKKYUBIN,
       body.package_count || 1,
       body.weight_kg,
@@ -174,38 +164,73 @@ export async function POST(request: NextRequest) {
           body.service_type || ShippingServiceType.TAKKYUBIN,
           pickupDate,
           DEFAULT_SENDER_ADDRESS.postal_code,
-          orderTyped.shipping_address.postal_code
+          orderTyped.delivery_address.postal_code
         );
+
+    // Generate shipment number: SHP-YYYYMMDD-NNNN
+    const shipmentNumber = `SHP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+    // Map carrier type to carrier name and code
+    const carrierNameMap: Record<string, string> = {
+      yamato: 'Yamato Transport',
+      sagawa: 'Sagawa Express',
+      jp_post: 'Japan Post',
+      seino: 'Seino Transport',
+    };
+
+    const carrierCodeMap: Record<string, string> = {
+      yamato: 'YTO',
+      sagawa: 'SGE',
+      jp_post: 'JPP',
+      seino: 'SNO',
+    };
+
+    // Map service type to service level
+    const serviceLevelMap: Record<string, string> = {
+      [ShippingServiceType.TAKKYUBIN]: 'STANDARD',
+      [ShippingServiceType.COOL]: 'EXPRESS',
+      [ShippingServiceType.REGULAR]: 'ECONOMY',
+      [ShippingServiceType.MAIL]: 'STANDARD',
+    };
+
+    // Prepare package details as JSONB
+    const packageDetails = {
+      packages_count: body.package_count || 1,
+      total_weight_kg: body.weight_kg,
+      dimensions: body.dimensions_cm,
+      special_handling: body.delivery_time_slot !== DeliveryTimeSlot.NONE ? [body.delivery_time_slot] : [],
+    };
 
     // =====================================================
     // Step 3: Create shipment record in database
     // =====================================================
 
+    // Use user-provided tracking number or auto-generate
+    const trackingNumber = body.tracking_number || carrierResponse.trackingNumber;
+
     const { data: shipment, error: shipmentError } = await (supabase as any)
       .from('shipments')
       .insert({
         order_id: body.order_id,
-        carrier: body.carrier,
-        service_type: body.service_type || ShippingServiceType.TAKKYUBIN,
-        tracking_number: carrierResponse.trackingNumber,
-        package_count: body.package_count || 1,
-        weight_kg: body.weight_kg,
-        dimensions_cm: body.dimensions_cm,
-        delivery_time_slot: body.delivery_time_slot || DeliveryTimeSlot.NONE,
-        delivery_date_request: body.delivery_date_request,
-        shipping_address: orderTyped.shipping_address,
-        sender_address: DEFAULT_SENDER_ADDRESS,
-        pickup_scheduled_for: pickupDate.toISOString(),
-        estimated_delivery: estimatedDelivery.toISOString(),
-        tracking_data: carrierResponse,
-        shipping_label_url: carrierResponse.labelUrl,
-        customer_notes: body.customer_notes,
+        shipment_number: shipmentNumber,
+        tracking_number: trackingNumber,
+        carrier_name: carrierNameMap[body.carrier] || body.carrier,
+        carrier_code: carrierCodeMap[body.carrier] || body.carrier.toUpperCase().slice(0, 3),
+        service_level: serviceLevelMap[body.service_type || ShippingServiceType.TAKKYUBIN] || 'STANDARD',
+        shipping_method: 'courier',
+        shipping_cost: 0,
+        package_details: packageDetails,
+        tracking_url: getTrackingUrl(body.carrier, trackingNumber),
+        estimated_delivery_date: estimatedDelivery.toISOString().split('T')[0],
+        shipped_at: pickupDate.toISOString(),
         status: 'pending',
+        shipping_notes: body.customer_notes,
       })
       .select()
       .single();
 
     if (shipmentError || !shipment) {
+      console.error('[Shipment] DB Error Details:', JSON.stringify(shipmentError, null, 2));
       throw new ShipmentError('Failed to create shipment record', 'DB_ERROR', shipmentError);
     }
 
@@ -213,24 +238,24 @@ export async function POST(request: NextRequest) {
     // Step 4: Create initial tracking event
     // =====================================================
 
-    await (supabase as any).from('shipment_tracking_events').insert({
+    await (supabase as any).from('shipment_tracking').insert({
       shipment_id: shipment.id,
-      event_time: new Date().toISOString(),
-      status: 'CREATED',
+      status_code: 'CREATED',
+      status_description: '配送を作成しました',
       location: DEFAULT_SENDER_ADDRESS.city + ', ' + DEFAULT_SENDER_ADDRESS.prefecture,
-      description_ja: '配送を作成しました',
-      description_en: 'Shipment created',
-      raw_data: carrierResponse,
+      event_at: new Date().toISOString(),
+      event_data: carrierResponse,
+      source: 'api',
     });
 
     // =====================================================
-    // Step 5: Update order status
+    // Step 5: Update order status to READY_TO_SHIP (10-step workflow)
     // =====================================================
 
     await (supabase as any)
       .from('orders')
       .update({
-        production_status: 'shipped',
+        status: 'READY_TO_SHIP',
         updated_at: new Date().toISOString(),
       })
       .eq('id', body.order_id);
@@ -254,14 +279,14 @@ export async function POST(request: NextRequest) {
         };
 
         const shipmentInfo = {
-          trackingNumber: carrierResponse.trackingNumber,
+          trackingNumber: trackingNumber,
           carrier: body.carrier,
           estimatedDelivery: estimatedDelivery.toISOString(),
-          shippingAddress: orderTyped.shipping_address,
+          shippingAddress: orderTyped.delivery_address,
         };
 
         // Generate tracking URL based on carrier
-        const trackingUrl = getTrackingUrl(body.carrier, carrierResponse.trackingNumber);
+        const trackingUrl = getTrackingUrl(body.carrier, trackingNumber);
 
         await sendShipmentNotificationEmail(
           recipient,
@@ -273,7 +298,7 @@ export async function POST(request: NextRequest) {
         console.log('[Shipment] Notification email sent:', {
           orderId: body.order_id,
           customerEmail: orderTyped.customer_email,
-          trackingNumber: carrierResponse.trackingNumber,
+          trackingNumber: trackingNumber,
         });
       }
     } catch (emailError) {
@@ -349,9 +374,8 @@ export async function GET(request: NextRequest) {
         customer_name,
         customer_email,
         customer_phone,
-        shipping_address,
-        production_status,
-        payment_status,
+        delivery_address,
+        status,
         total_amount,
         created_at,
         shipments(id, status, tracking_number)
@@ -361,10 +385,10 @@ export async function GET(request: NextRequest) {
 
     // Filter by status if provided
     if (status) {
-      query = query.eq('production_status', status);
+      query = query.eq('status', status);
     } else {
-      // Default: show orders ready for shipment
-      query = query.in('production_status', ['final_inspection', 'completed', 'quality_check_passed']);
+      // Default: show orders ready for shipment (PRODUCTION status in 10-step workflow)
+      query = query.eq('status', 'PRODUCTION');
     }
 
     const { data: orders, error, count } = await query;

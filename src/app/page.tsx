@@ -1,7 +1,6 @@
-import { PerformanceMonitor } from '@/components/PerformanceMonitor'
 import { OrganizationSchema, LocalBusinessSchema, FAQSchema } from '@/components/seo/StructuredData'
 import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingProcessShowcase'
-import { HeroSection, ProductShowcaseSection, CTASection } from '@/components/home'
+import { HeroSection, ProductShowcaseSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts, getLatestAnnouncements } from '@/lib/products'
 
@@ -50,8 +49,8 @@ export default async function Home() {
           <AnnouncementBanner announcements={announcements} />
         )}
 
-        <PerformanceMonitor />
         <HeroSection />
+        <IndustryShowcase />
 
         {/* Product Showcase - Dynamic from Supabase */}
         <ProductShowcaseSection products={featuredProducts} />

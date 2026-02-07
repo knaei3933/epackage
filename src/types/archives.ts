@@ -17,6 +17,14 @@ export interface TradeRecord {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  // ブログ用フィールド
+  content?: string;
+  publishedAt?: string;
+  author?: {
+    name: string;
+    role: string;
+  };
+  readTime?: number;
 }
 
 export interface TradeRecordImage {

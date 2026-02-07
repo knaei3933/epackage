@@ -1,0 +1,2 @@
+[ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/shipments/7b8332d4-4015-4cbf-a32a-775bd5566cb3:0
+[ERROR] Failed to fetch shipment details: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127

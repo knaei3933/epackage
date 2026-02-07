@@ -369,9 +369,10 @@ export function hasStatus(
 
 /**
  * Check if user can access admin resources
+ * Note: Normalizes role to lowercase for consistency with database
  */
 export function isAdmin(profile: UserProfile): boolean {
-  return profile.role === 'ADMIN';
+  return profile.role?.toLowerCase() === 'admin';
 }
 
 /**

@@ -1,82 +1,114 @@
 /**
- * Single Shipment API
- * GET /api/shipments/[id] - Get shipment details
- * PATCH /api/shipments/[id] - Update shipment
- * DELETE /api/shipments/[id] - Delete shipment (not recommended)
+ * Shipment Update API
+ * PUT /api/shipments/[id]
+ *
+ * Updates shipment details including tracking number, carrier, status, etc.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseClient } from '@/lib/supabase';
-import { ShipmentError } from '@/types/shipment';
+import { createClient } from '@supabase/supabase-js';
+
+// Helper function to create service role client
+function createServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+  });
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/**
- * GET handler - Get shipment details
- */
-export async function GET(
+interface UpdateShipmentRequest {
+  tracking_number?: string;
+  carrier_name?: string;
+  carrier_code?: string;
+  service_level?: string;
+  status?: string;
+  estimated_delivery_date?: string;
+  shipping_notes?: string;
+  package_details?: any;
+}
+
+export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createSupabaseClient();
-    const { id: shipmentId } = await context.params;
+    const { id: shipmentId } = await params;
 
-    // Get shipment with order details
-    const { data: shipment, error } = await supabase
-      .from('shipments_with_order_details')
-      .select('*')
+    // Parse request body
+    const body: UpdateShipmentRequest = await request.json();
+
+    // Use service role client to bypass RLS
+    const supabase = createServiceRoleClient();
+
+    // Build update object with only provided fields
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.tracking_number !== undefined) updateData.tracking_number = body.tracking_number;
+    if (body.carrier_name !== undefined) updateData.carrier_name = body.carrier_name;
+    if (body.carrier_code !== undefined) updateData.carrier_code = body.carrier_code;
+    if (body.service_level !== undefined) updateData.service_level = body.service_level;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.estimated_delivery_date !== undefined) updateData.estimated_delivery_date = body.estimated_delivery_date;
+    if (body.shipping_notes !== undefined) updateData.shipping_notes = body.shipping_notes;
+    if (body.package_details !== undefined) updateData.package_details = body.package_details;
+
+    // Update shipment
+    const { data, error } = await supabase
+      .from('shipments')
+      .update(updateData)
       .eq('id', shipmentId)
+      .select()
       .single();
 
-    if (error || !shipment) {
-      throw new ShipmentError('Shipment not found', 'SHIPMENT_NOT_FOUND');
-    }
-
-    // Get tracking history
-    const { data: trackingEvents } = await supabase
-      .from('shipment_tracking_events')
-      .select('*')
-      .eq('shipment_id', shipmentId)
-      .order('event_time', { ascending: false });
-
-    // Get notifications
-    const { data: notifications } = await supabase
-      .from('shipment_notifications')
-      .select('*')
-      .eq('shipment_id', shipmentId)
-      .order('sent_at', { ascending: false });
-
-    const shipmentTyped = shipment as any;
-
-    return NextResponse.json({
-      success: true,
-      shipment: {
-        ...shipmentTyped,
-        tracking_history: trackingEvents || [],
-        notifications: notifications || [],
-      },
-    });
-
-  } catch (error) {
-    console.error('Get shipment error:', error);
-
-    if (error instanceof ShipmentError) {
+    if (error) {
+      console.error('[ShipmentUpdate] DB Error:', error);
       return NextResponse.json({
         success: false,
         error: {
-          code: error.code,
-          message: error.message,
+          code: 'DB_ERROR',
+          message: 'Failed to update shipment',
+          details: error.message,
+        },
+      }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Shipment not found',
         },
       }, { status: 404 });
     }
 
     return NextResponse.json({
+      success: true,
+      shipment: data,
+    });
+
+  } catch (error) {
+    console.error('Shipment update error:', error);
+
+    return NextResponse.json({
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: 'Failed to fetch shipment',
+        message: 'An unexpected error occurred',
         details: error instanceof Error ? error.message : String(error),
       },
     }, { status: 500 });
@@ -84,201 +116,59 @@ export async function GET(
 }
 
 /**
- * PATCH handler - Update shipment
+ * GET handler - Fetch shipment details
  */
-export async function PATCH(
+export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createSupabaseClient();
-    const { id: shipmentId } = await context.params;
+    const { id: shipmentId } = await params;
+    const supabase = createServiceRoleClient();
 
-    // Check if shipment exists
-    const { data: existingShipment } = await supabase
+    // まず shipments データを取得
+    const { data: shipmentData, error: shipmentError } = await supabase
       .from('shipments')
       .select('*')
       .eq('id', shipmentId)
       .single();
 
-    if (!existingShipment) {
-      throw new ShipmentError('Shipment not found', 'SHIPMENT_NOT_FOUND');
+    if (shipmentError || !shipmentData) {
+      console.error('[ShipmentGet] DB Error:', shipmentError);
+      throw shipmentError || new Error('Shipment not found');
     }
 
-    const existingShipmentTyped = existingShipment as any;
-
-    // Parse update data
-    const updateData = await request.json();
-
-    // Allowed fields to update
-    const allowedFields = [
-      'status',
-      'delivery_time_slot',
-      'delivery_date_request',
-      'pickup_scheduled_for',
-      'estimated_delivery',
-      'delivered_at',
-      'tracking_number',
-      'shipping_cost',
-      'cod_amount',
-      'internal_notes',
-      'customer_notes',
-      'carrier_notes',
-      'shipping_label_url',
-      'commercial_invoice_url',
-      'pickup_slip_url',
-      'tracking_data',
-    ];
-
-    // Filter only allowed fields
-    const filteredData: any = {};
-    for (const field of allowedFields) {
-      if (updateData[field] !== undefined) {
-        filteredData[field] = updateData[field];
-      }
-    }
-
-    // Validate status transitions
-    if (filteredData.status) {
-      const validTransitions: Record<string, string[]> = {
-        'pending': ['picked_up', 'failed'],
-        'picked_up': ['in_transit', 'failed'],
-        'in_transit': ['out_for_delivery', 'failed'],
-        'out_for_delivery': ['delivered', 'failed'],
-        'delivered': [],
-        'failed': ['returned', 'pending'],
-        'returned': [],
-      };
-
-      const currentStatus = existingShipmentTyped.status;
-      const newStatus = filteredData.status;
-
-      if (validTransitions[currentStatus] && !validTransitions[currentStatus].includes(newStatus)) {
-        throw new ShipmentError(
-          `Invalid status transition from ${currentStatus} to ${newStatus}`,
-          'INVALID_STATUS_TRANSITION'
-        );
-      }
-    }
-
-    // Update shipment
-    const { data: updatedShipment, error } = await (supabase as any)
-      .from('shipments')
-      .update(filteredData)
-      .eq('id', shipmentId)
-      .select()
+    // order_id を使用して orders データを取得
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .select('id, order_number, customer_name, customer_email, delivery_address')
+      .eq('id', shipmentData.order_id)
       .single();
 
-    if (error || !updatedShipment) {
-      throw new ShipmentError('Failed to update shipment', 'UPDATE_FAILED', error);
+    if (orderError) {
+      console.error('[ShipmentGet] Order fetch error:', orderError);
+      // 注文データがなくても shipment データは返す
     }
 
-    // Create tracking event if status changed
-    if (filteredData.status && filteredData.status !== existingShipmentTyped.status) {
-      await (supabase as any).from('shipment_tracking_events').insert({
-        shipment_id: shipmentId,
-        event_time: new Date().toISOString(),
-        status: filteredData.status.toUpperCase(),
-        description_ja: `ステータスが「${filteredData.status}」に変更されました`,
-        description_en: `Status changed to "${filteredData.status}"`,
-      });
-    }
+    // shipment データに order データをマージ
+    const data = {
+      ...shipmentData,
+      order: orderData || null,
+    };
 
     return NextResponse.json({
       success: true,
-      shipment: updatedShipment,
+      shipment: data,
     });
 
   } catch (error) {
-    console.error('Update shipment error:', error);
-
-    if (error instanceof ShipmentError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-        },
-      }, { status: 400 });
-    }
+    console.error('Shipment fetch error:', error);
 
     return NextResponse.json({
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
-        message: 'Failed to update shipment',
-        details: error instanceof Error ? error.message : String(error),
-      },
-    }, { status: 500 });
-  }
-}
-
-/**
- * DELETE handler - Delete shipment (use with caution)
- */
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const supabase = createSupabaseClient();
-    const { id: shipmentId } = await context.params;
-
-    // Check if shipment exists
-    const { data: existingShipment } = await supabase
-      .from('shipments')
-      .select('status')
-      .eq('id', shipmentId)
-      .single();
-
-    if (!existingShipment) {
-      throw new ShipmentError('Shipment not found', 'SHIPMENT_NOT_FOUND');
-    }
-
-    const existingShipmentDelete = existingShipment as any;
-
-    // Prevent deletion of shipments that are in transit
-    if (['picked_up', 'in_transit', 'out_for_delivery'].includes(existingShipmentDelete.status)) {
-      throw new ShipmentError(
-        'Cannot delete shipment that is in transit',
-        'INVALID_SHIPMENT_STATE'
-      );
-    }
-
-    // Delete shipment (cascades to tracking events and notifications)
-    const { error } = await supabase
-      .from('shipments')
-      .delete()
-      .eq('id', shipmentId);
-
-    if (error) {
-      throw new ShipmentError('Failed to delete shipment', 'DELETE_FAILED', error);
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Shipment deleted successfully',
-    });
-
-  } catch (error) {
-    console.error('Delete shipment error:', error);
-
-    if (error instanceof ShipmentError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      }, { status: 400 });
-    }
-
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to delete shipment',
+        message: 'An unexpected error occurred',
         details: error instanceof Error ? error.message : String(error),
       },
     }, { status: 500 });

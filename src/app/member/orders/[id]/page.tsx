@@ -5,47 +5,29 @@
  * - 注文情報の詳細表示
  * - 納品先・請求先情報
  * - 商品明細
+ * - デザインワークフロー
+ *
+ * UI改善版:
+ * - 情報系セクションをアコーディオンでコンパクト化
+ * - アクション系セクションをワークフロー形式で表示
+ * - 商品明細をサマリー形式で表示
  */
 
 import { Suspense } from 'react';
 import { redirect, notFound } from 'next/navigation';
 import { requireAuth } from '@/lib/dashboard';
 import { getOrderById, getOrderStatusHistory } from '@/lib/dashboard';
-import { Card, Badge, FullPageSpinner } from '@/components/ui';
+import { Card, FullPageSpinner } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Order } from '@/types/dashboard';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { OrderActions } from './OrderActions';
-import { OrderFileUploadSection } from './OrderFileUploadSection';
-import { OrderCommentsSection, CustomerApprovalSection } from '@/components/orders';
+import { OrderCommentsSectionWrapper, CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
+import { OrderInfoAccordion, OrderAddressInfo, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection } from '@/components/member';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
-
-// =====================================================
-// Constants
-// =====================================================
-
-const orderStatusLabels: Record<string, string> = {
-  pending: '受付待',
-  processing: '処理中',
-  manufacturing: '製造中',
-  ready: '発送待',
-  shipped: '発送完了',
-  delivered: '配送完了',
-  cancelled: 'キャンセル',
-};
-
-const orderStatusVariants: Record<string, 'warning' | 'info' | 'success' | 'secondary' | 'error' | 'default'> = {
-  pending: 'warning',
-  processing: 'info',
-  manufacturing: 'info',
-  ready: 'secondary',
-  shipped: 'success',
-  delivered: 'default',
-  cancelled: 'error',
-};
 
 // =====================================================
 // Page Content
@@ -77,289 +59,137 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
             注文番号: {order.orderNumber}
           </p>
         </div>
-        <Badge variant={orderStatusVariants[order.status]} size="md">
-          {orderStatusLabels[order.status]}
-        </Badge>
+        <OrderStatusBadge status={order.status} locale="ja" />
       </div>
 
-      {/* 注文情報 */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">注文情報</h2>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-text-muted">注文日時</dt>
-            <dd className="text-text-primary mt-1">
-              {new Date(order.createdAt).toLocaleString('ja-JP')}
-              <span className="text-text-muted ml-2">
-                ({formatDistanceToNow(new Date(order.createdAt), { addSuffix: true, locale: ja })})
-              </span>
-            </dd>
+      {/* =====================================================
+          状態別ガイダンスメッセージ
+          ===================================================== */}
+      {order.status === 'CUSTOMER_APPROVAL_PENDING' && (
+        <div className="p-4 bg-orange-50 border-2 border-orange-300 rounded-lg flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
           </div>
-          <div>
-            <dt className="text-text-muted">最終更新</dt>
-            <dd className="text-text-primary mt-1">
-              {new Date(order.updatedAt).toLocaleString('ja-JP')}
-            </dd>
-          </div>
-          {order.shippedAt && (
-            <div>
-              <dt className="text-text-muted">発送日時</dt>
-              <dd className="text-text-primary mt-1">
-                {new Date(order.shippedAt).toLocaleString('ja-JP')}
-              </dd>
-            </div>
-          )}
-          {order.deliveredAt && (
-            <div>
-              <dt className="text-text-muted">配送完了日時</dt>
-              <dd className="text-text-primary mt-1">
-                {new Date(order.deliveredAt).toLocaleString('ja-JP')}
-              </dd>
-            </div>
-          )}
-        </dl>
-      </Card>
-
-      {/* 顧客情報 */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">顧客情報</h2>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-text-muted">注文番号</dt>
-            <dd className="text-text-primary mt-1 font-medium">
-              {order.orderNumber}
-            </dd>
-          </div>
-          {order.customer_name && (
-            <div>
-              <dt className="text-text-muted">顧客名</dt>
-              <dd className="text-text-primary mt-1">
-                {order.customer_name}
-              </dd>
-            </div>
-          )}
-          {order.customer_email && (
-            <div>
-              <dt className="text-text-muted">メールアドレス</dt>
-              <dd className="text-text-primary mt-1">
-                {order.customer_email}
-              </dd>
-            </div>
-          )}
-          {order.customer_phone && (
-            <div>
-              <dt className="text-text-muted">電話番号</dt>
-              <dd className="text-text-primary mt-1">
-                {order.customer_phone}
-              </dd>
-            </div>
-          )}
-        </dl>
-      </Card>
-
-      {/* 商品明細 */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">商品明細</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-border-secondary">
-                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">商品名</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">数量</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">単価</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">仕様・オプション</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-text-muted">金額</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items.map((item) => (
-                <tr key={item.id} className="border-b border-border-secondary">
-                  <td className="py-3 px-4">
-                    <p className="font-medium text-text-primary">{item.productName}</p>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-text-primary">
-                    {item.quantity.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-text-primary">
-                    {item.unitPrice.toLocaleString()}円
-                  </td>
-                  <td className="py-3 px-4 text-sm">
-                    {item.specifications && Object.keys(item.specifications).length > 0 ? (
-                      <div className="space-y-1">
-                        {item.specifications.size && (
-                          <div className="flex">
-                            <span className="text-text-muted w-20">サイズ:</span>
-                            <span className="text-text-primary">{item.specifications.size}</span>
-                          </div>
-                        )}
-                        {item.specifications.material && (
-                          <div className="flex">
-                            <span className="text-text-muted w-20">素材:</span>
-                            <span className="text-text-primary">{item.specifications.material}</span>
-                          </div>
-                        )}
-                        {item.specifications.printing && (
-                          <div className="flex">
-                            <span className="text-text-muted w-20">印刷:</span>
-                            <span className="text-text-primary">{item.specifications.printing}</span>
-                          </div>
-                        )}
-                        {item.specifications.postProcessing && (
-                          <div className="flex">
-                            <span className="text-text-muted w-20">後加工:</span>
-                            <span className="text-text-primary">
-                              {Array.isArray(item.specifications.postProcessing)
-                                ? item.specifications.postProcessing.join(', ')
-                                : item.specifications.postProcessing}
-                            </span>
-                          </div>
-                        )}
-                        {item.specifications.thickness && (
-                          <div className="flex">
-                            <span className="text-text-muted w-20">厚さ:</span>
-                            <span className="text-text-primary">{item.specifications.thickness}</span>
-                          </div>
-                        )}
-                        {item.specifications.zipper && (
-                          <div className="flex">
-                            <span className="text-text-muted w-20">ジッパー:</span>
-                            <span className="text-text-primary">{item.specifications.zipper}</span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-text-muted">-</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-right font-medium text-text-primary">
-                    {item.totalPrice.toLocaleString()}円
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4 pt-4 border-t border-border-secondary space-y-2">
-          {order.subtotal !== undefined && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">小計</span>
-              <span className="text-text-primary">
-                {order.subtotal.toLocaleString()}円
-              </span>
-            </div>
-          )}
-          {order.taxAmount !== undefined && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">消費税 (10%)</span>
-              <span className="text-text-primary">
-                {order.taxAmount.toLocaleString()}円
-              </span>
-            </div>
-          )}
-          <div className="flex items-center justify-between text-lg font-semibold pt-2 border-t border-border-secondary">
-            <span className="text-text-primary">合計</span>
-            <span className="text-text-primary">
-              {order.totalAmount.toLocaleString()}円
-            </span>
+          <div className="flex-1">
+            <p className="font-medium text-orange-900">
+              📋 教正データの承認待ちです
+            </p>
+            <p className="text-sm text-orange-700 mt-1">
+              下記「デザインワークフロー」Step 2でプレビューをご確認の上、承認ボタンを押してください
+            </p>
           </div>
         </div>
-      </Card>
-
-      {/* 納品先情報 */}
-      {order.deliveryAddress && (
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">納品先</h2>
-          <div className="text-sm space-y-2">
-            <p className="font-medium text-text-primary">
-              {order.deliveryAddress.name}
-            </p>
-            <p className="text-text-muted">
-              〒{order.deliveryAddress.postalCode}
-            </p>
-            <p className="text-text-muted">
-              {order.deliveryAddress.prefecture} {order.deliveryAddress.city}
-              <br />
-              {order.deliveryAddress.address}
-              {order.deliveryAddress.building && (
-                <>
-                  <br />
-                  {order.deliveryAddress.building}
-                </>
-              )}
-            </p>
-            <p className="text-text-muted">
-              TEL: {order.deliveryAddress.phone}
-            </p>
-            {order.deliveryAddress.contactPerson && (
-              <p className="text-text-muted">
-                担当者: {order.deliveryAddress.contactPerson}
-              </p>
-            )}
-          </div>
-        </Card>
       )}
 
-      {/* 請求先情報 */}
-      {order.billingAddress && (
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">請求先</h2>
-          <div className="text-sm space-y-2">
-            <p className="font-medium text-text-primary">
-              {order.billingAddress.companyName}
-            </p>
-            <p className="text-text-muted">
-              〒{order.billingAddress.postalCode}
-            </p>
-            <p className="text-text-muted">
-              {order.billingAddress.prefecture} {order.billingAddress.city}
-              <br />
-              {order.billingAddress.address}
-              {order.billingAddress.building && (
-                <>
-                  <br />
-                  {order.billingAddress.building}
-                </>
-              )}
-            </p>
-            {order.billingAddress.taxNumber && (
-              <p className="text-text-muted">
-                法人番号: {order.billingAddress.taxNumber}
-              </p>
-            )}
-            {order.billingAddress.email && (
-              <p className="text-text-muted">
-                メール: {order.billingAddress.email}
-              </p>
-            )}
-            {order.billingAddress.phone && (
-              <p className="text-text-muted">
-                TEL: {order.billingAddress.phone}
-              </p>
-            )}
+      {order.status === 'MODIFICATION_REQUESTED' && (
+        <div className="p-4 bg-orange-50 border-2 border-orange-300 rounded-lg flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
           </div>
-        </Card>
+          <div className="flex-1">
+            <p className="font-medium text-orange-900">
+              ⚠️ 修正承認待ちです
+            </p>
+            <p className="text-sm text-orange-700 mt-1">
+              管理者が注文内容を修正しました。下部の「修正承認待ち」セクションで修正内容をご確認の上、承認または拒否を選択してください
+            </p>
+          </div>
+        </div>
       )}
 
-      {/* ステータス履歴 */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">ステータス履歴</h2>
-        <OrderStatusTimeline
-          statusHistory={statusHistory}
-          currentStatus={order.status}
-        />
-      </Card>
+      {order.status === 'MODIFICATION_APPROVED' && (
+        <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-green-900">
+              ✓ 修正が承認されました
+            </p>
+            <p className="text-sm text-green-700 mt-1">
+              管理者の修正内容が承認されました。校正作業に進みます
+            </p>
+          </div>
+        </div>
+      )}
 
-      {/* デザインファイル入稿 */}
-      <OrderFileUploadSection order={order} />
+      {order.status === 'MODIFICATION_REJECTED' && (
+        <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-red-900">
+              ✕ 修正が拒否されました
+            </p>
+            <p className="text-sm text-red-700 mt-1">
+              管理者の修正内容が拒否されました。管理者が再検討します
+            </p>
+          </div>
+        </div>
+      )}
 
-      {/* コメントセクション */}
-      <OrderCommentsSection orderId={order.id} />
+      {order.status === 'CORRECTION_IN_PROGRESS' && (
+        <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-blue-900">
+              ⏳ 教正作業中です
+            </p>
+            <p className="text-sm text-blue-700 mt-1">
+              現在、デザイナーが教正データを作成中です。完成次第、ここで通知いたします
+            </p>
+          </div>
+        </div>
+      )}
 
-      {/* 承認待ちリクエストセクション */}
+      {/* =====================================================
+          情報系セクション（3列グリッドでコンパクト化）
+          ===================================================== */}
+      <OrderInfoAccordion order={order} statusHistory={statusHistory} />
+
+      {/* =====================================================
+          商品明細と納品先/請求先（2列グリッド）
+          ===================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 左列: 商品明細 */}
+        <OrderItemsSummary order={order} quotationId={order.quotation_id} />
+
+        {/* 右列: 納品先・請求先 */}
+        <OrderAddressInfo order={order} />
+      </div>
+
+      {/* =====================================================
+          デザインワークフロー（2列レイアウト）
+          ===================================================== */}
+      <DesignWorkflowSection order={order} />
+
+      {/* =====================================================
+          その他のアクションボタン（キャンセル、PDFダウンロード、戻る）
+          ===================================================== */}
+      <OrderActions order={order} excludeModifyButton={true} />
+
+      {/* =====================================================
+          管理者修正承認セクション
+          ===================================================== */}
+      <ModificationApprovalSection order={order} />
+
+      {/* =====================================================
+          承認待ちリクエストセクション
+          ===================================================== */}
       <CustomerApprovalSection orderId={order.id} />
-
-      {/* アクションボタン */}
-      <OrderActions order={order} />
     </div>
   );
 }

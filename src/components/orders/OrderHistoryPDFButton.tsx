@@ -11,13 +11,17 @@
  */
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
+
+// PDFライブラリを動的import - ボタンクリック時のみロード（+80KB節約）
+const jsPDF = dynamic(() => import('jspdf').then(mod => ({ default: mod.default || mod })), { ssr: false })
+const html2canvas = dynamic(() => import('html2canvas').then(mod => ({ default: mod.default || mod })), { ssr: false })
+const DOMPurify = dynamic(() => import('dompurify').then(mod => ({ default: mod.default || mod })), { ssr: false })
+
 import { Button } from '@/components/ui/Button'
 import { getOrdersForExport } from '@/lib/supabase-mcp'
-import { jsPDF } from 'jspdf'
-import html2canvas from 'html2canvas'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import DOMPurify from 'dompurify'
 
 interface OrderHistoryPDFButtonProps {
   orderIds: string[]

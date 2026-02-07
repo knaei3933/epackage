@@ -13,6 +13,7 @@ const staticRoutes: StaticRoute[] = [
   { url: '', changefreq: 'daily', priority: 1.0 },
   { url: 'catalog', changefreq: 'weekly', priority: 0.9 },
   { url: 'quote-simulator', changefreq: 'monthly', priority: 0.8 },
+  { url: 'archives', changefreq: 'weekly', priority: 0.8 },
 
   // Industry pages
   { url: 'industry/cosmetics', changefreq: 'monthly', priority: 0.7 },

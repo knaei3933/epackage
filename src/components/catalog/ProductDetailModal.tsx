@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useState, useCallback } from 'react'
-import { useLanguage } from '@/contexts/LanguageContext'
 import { useCatalog } from '@/contexts/CatalogContext'
 import { Button } from '@/components/ui/Button'
 import { Badge, TagBadge, CurrencyBadge } from '@/components/ui/Badge'
@@ -14,7 +13,6 @@ import type { PackageProduct, PackageFeatures } from '@/types/catalog'
 import { X, ChevronLeft, ChevronRight, Mail, Phone, MessageCircle } from 'lucide-react'
 
 export function ProductDetailModal() {
-  const { language, t, tn } = useLanguage()
   const {
     modalOpen,
     selectedProduct,
@@ -51,28 +49,32 @@ export function ProductDetailModal() {
 
   const getName = () => {
     if (!selectedProduct) return ''
-    switch (language) {
-      case 'en': return selectedProduct.nameEn
-      case 'ja':
-      default: return selectedProduct.name
-    }
+    return selectedProduct.name
   }
 
   const getDescription = () => {
     if (!selectedProduct) return ''
-    switch (language) {
-      case 'en': return selectedProduct.descriptionEn
-      case 'ja':
-      default: return selectedProduct.description
-    }
+    return selectedProduct.description
   }
 
   const getPriceDisplay = () => {
     if (!selectedProduct) return ''
     if (selectedProduct.type === 'custom' && selectedProduct.pricing.basePrice === 0) {
-      return tn('catalog', 'actions.contactUs')
+      return 'お問い合わせ'
     }
     return `${selectedProduct.pricing.basePrice.toLocaleString()} ${selectedProduct.pricing.currency} / ${selectedProduct.pricing.unit}`
+  }
+
+  const getPackageTypeName = (type: string): string => {
+    const typeMap: Record<string, string> = {
+      standard: 'スタンダード',
+      premium: 'プレミアム',
+      eco: 'エコ',
+      luxury: 'ラグジュアリー',
+      industrial: '工業用',
+      custom: 'カスタム'
+    }
+    return typeMap[type] || type
   }
 
   const renderFeature = (key: keyof PackageFeatures, label: string) => {
@@ -149,7 +151,7 @@ export function ProductDetailModal() {
                     {/* Image Counter */}
                     {selectedProduct.images.length > 1 && (
                       <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-                        {currentImageIndex + 1} {tn('catalog', 'modal.imageOf')} {selectedProduct.images.length}
+                        {currentImageIndex + 1} / {selectedProduct.images.length}
                       </div>
                     )}
                   </div>
@@ -206,13 +208,13 @@ export function ProductDetailModal() {
                             {getPriceDisplay()}
                           </div>
                           <div className="text-sm text-gray-500 mt-1">
-                            <div>{tn('catalog', 'details.minOrder')}: {selectedProduct.minOrder.quantity} {selectedProduct.minOrder.unit}</div>
-                            <div>{tn('catalog', 'details.leadTime')}: {selectedProduct.leadTime.min}-{selectedProduct.leadTime.max} {selectedProduct.leadTime.unit}</div>
+                            <div>最小注文数: {selectedProduct.minOrder.quantity} {selectedProduct.minOrder.unit}</div>
+                            <div>納期: {selectedProduct.leadTime.min}-{selectedProduct.leadTime.max} {selectedProduct.leadTime.unit}</div>
                           </div>
                         </div>
                         <div className="text-right">
                           <Badge variant="outline" size="lg">
-                            {tn('catalog', 'packageTypes.' + selectedProduct.type)}
+                            {getPackageTypeName(selectedProduct.type)}
                           </Badge>
                         </div>
                       </Flex>
@@ -222,11 +224,11 @@ export function ProductDetailModal() {
                   {/* Specifications */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>{tn('catalog', 'details.specifications')}</CardTitle>
+                      <CardTitle>仕様</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div>
-                        <strong>{tn('catalog', 'details.dimensions')}:</strong>
+                        <strong>寸法:</strong>
                         <div className="text-sm text-gray-600">
                           {selectedProduct.specs.dimensions.length} × {selectedProduct.specs.dimensions.width} × {selectedProduct.specs.dimensions.height} {selectedProduct.specs.dimensions.unit}
                         </div>
@@ -251,7 +253,7 @@ export function ProductDetailModal() {
                   {/* Materials */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>{tn('catalog', 'details.materials')}</CardTitle>
+                      <CardTitle>素材</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
@@ -265,7 +267,7 @@ export function ProductDetailModal() {
                   {/* Features */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>{tn('catalog', 'details.features')}</CardTitle>
+                      <CardTitle>機能</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2 gap-2">
@@ -284,7 +286,7 @@ export function ProductDetailModal() {
                   {/* Applications */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>{tn('catalog', 'details.applications')}</CardTitle>
+                      <CardTitle>用途</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {selectedProduct.applications.map((app, index) => (
@@ -307,7 +309,7 @@ export function ProductDetailModal() {
                       className="flex-1"
                     >
                       <Mail className="w-4 h-4 mr-2" />
-                      {tn('catalog', 'modal.inquireAbout')}
+                      お問い合わせ
                     </Button>
                     <Button
                       variant="outline"

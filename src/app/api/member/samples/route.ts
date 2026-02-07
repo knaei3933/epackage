@@ -16,19 +16,13 @@ import { createServiceClient } from '@/lib/supabase';
 // ============================================================
 
 /**
- * Get user ID from middleware headers (cookie-based auth or DEV_MODE header)
+ * Get user ID from middleware headers (cookie-based auth)
  */
 async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
   try {
     const { headers } = await import('next/headers');
     const headersList = await headers();
     const userId = headersList.get('x-user-id');
-
-    // Log DEV_MODE usage for debugging
-    const isDevMode = headersList.get('x-dev-mode') === 'true';
-    if (isDevMode && userId) {
-      console.log('[Samples API] DEV_MODE: Using x-user-id header:', userId);
-    }
 
     return userId;
   } catch (error) {

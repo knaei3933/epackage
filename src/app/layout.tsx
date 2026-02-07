@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { WebVitalsMonitor } from "@/components/performance/WebVitalsMonitor";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -22,10 +21,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://epackage-lab.com'),
   title: {
-    default: "Epackage Lab | 韓国品質の包装材料で日本のものづくりを支援 | パッケージングソリューション",
+    default: "Epackage Lab | デジタル印刷・小ロット・短納期 | パッケージングソリューション",
     template: "%s | Epackage Lab"
   },
-  description: "韓国品質の包装材料と日本規制完全準拠で日本のものづくりを支援するEpackage Lab。ISO 9001、JIS規格取得済み。500社以上の日本企業実績。平均30%コスト削減、最短10日納期。食品包装、医薬品包装、化粧品包装に対応。無料サンプル、即時見積もり、技術サポート充実。",
+  description: "韓国品質の包装材料と日本規制完全準拠で日本のものづくりを支援するEpackage Lab。ISO 9001、JIS規格取得済み。500社以上の日本企業実績。平均30%コスト削減、最短10日納期。食品包装、医薬品包装、化粧品包装に対応。今すぐ無料見積もりで最適な包装ソリューションをご提案。",
   keywords: [
     // 基本キーワード
     "パッケージング", "包装", "梱包", "包装資材", "包装会社",
@@ -64,10 +63,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/',
-    languages: {
-      'ja-JP': '/ja',
-      'en-US': '/en',
-    },
   },
   openGraph: {
     type: 'website',
@@ -159,7 +154,6 @@ export default function RootLayout({
               <BreadcrumbList />
               <main>{children}</main>
               <Footer />
-              <WebVitalsMonitor />
             </LanguageProvider>
           </AuthProvider>
         </ThemeProvider>

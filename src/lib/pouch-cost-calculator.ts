@@ -234,6 +234,58 @@ export class PouchCostCalculator {
   }
 
   /**
+   * 最適な列数を自動決定（パウチは1~2列、ロールフィルムは1~7列）
+   *
+   * @param pouchType 製品タイプ
+   * @param dimensions 寸法
+   * @param totalQuantity 総数量
+   * @param materialWidth 原反幅
+   * @returns 最適列数
+   */
+  private calculateOptimalColumnCount(
+    pouchType: string,
+    dimensions: PouchDimensions,
+    totalQuantity: number,
+    materialWidth: number
+  ): number {
+    // ========================================
+    // ロールフィルムの場合: 1~7列まで対応
+    // ========================================
+    if (pouchType === 'roll_film') {
+      const rollFilmWidth = dimensions.width; // ロール幅（mm）
+      const MAX_PRINTABLE_WIDTH = 740; // 760mm原反の印刷可能幅
+
+      // 最大列数計算
+      const maxColumns = Math.floor(MAX_PRINTABLE_WIDTH / rollFilmWidth);
+
+      // 数量による条件
+      if (totalQuantity < 1000) {
+        return 1; // 1000m未満は1列
+      }
+
+      // 可能な最大列数を使用（効率極大化）
+      return Math.min(maxColumns, 7); // 最大7列
+    }
+
+    // ========================================
+    // パウチの場合: 1~2列まで対応
+    // ========================================
+    // 2列フィルム幅計算（2列が可能か確認）
+    const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
+    const printableWidth = materialWidth === 590 ? 570 : 740;
+    const canUse2Columns = filmWidth2Columns <= printableWidth;
+
+    // 小量生産の場合は1列のみ使用（2列は大量生産時のみ効率的）
+    if (totalQuantity < 500) {
+      return 1; // 500個未満: 無条件1列（小量生産）
+    } else if (totalQuantity < 1000) {
+      return 1; // 500~1000個: 1列優先（2列効率が大きくない）
+    } else {
+      return canUse2Columns ? 2 : 1; // 1000個以上: 2列可能であれば2列使用
+    }
+  }
+
+  /**
    * SKU別原価計算メインメソッド
    */
   calculateSKUCost(params: SKUCostParams): SKUCostResult {
@@ -261,31 +313,19 @@ export class PouchCostCalculator {
     // ========================================
     // 列数自動判定ロジック（原反幅を考慮）
     // ========================================
-    // 2列フィルム幅計算 (2列が可能か確認)
-    const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
-
-    // 2列採用可能判定: 2列フィルム幅が選択された原反の印刷可能幅以下である場合
-    const canUse2Columns = filmWidth2Columns <= printableWidth;
-
-    // 小量生産の場合は1列のみ使用 (2列は大量生産時のみ効率的)
-    // 500個未満は無条件1列、1000個未満は1列優先、1000個以上は2列検討
-    const totalQuantity = skuQuantities.reduce((sum, q) => sum + q, 0);
-
-    let optimalColumnCount: 1 | 2;
-    if (totalQuantity < 500) {
-      // 500個未満: 無条件1列 (小量生産)
-      optimalColumnCount = 1;
-    } else if (totalQuantity < 1000) {
-      // 500~1000個: 1列優先 (2列効率が大きくない)
-      optimalColumnCount = 1;
-    } else {
-      // 1000個以上: 2列可能であれば2列使用 (大量生産効率化)
-      // 原反幅の印刷可能幅に収まるかチェック
-      optimalColumnCount = canUse2Columns ? 2 : 1;
-    }
+    // 最適列数を自動決定（パウチは1~2列、ロールフィルムは1~7列）
+    const optimalColumnCount = this.calculateOptimalColumnCount(
+      pouchType,
+      dimensions,
+      skuQuantities.reduce((sum, q) => sum + q, 0),
+      materialWidth
+    );
 
     // 最終フィルム幅計算
     const filmWidth = this.calculateFilmWidth(pouchType, dimensions, optimalColumnCount);
+
+    // 全数量の計算（後で使用）
+    const totalQuantity = skuQuantities.reduce((sum, q) => sum + q, 0);
 
     console.log('[Film Width Calculation]', JSON.stringify({
       pouchType,
@@ -293,11 +333,12 @@ export class PouchCostCalculator {
       skuCount,
       totalQuantity,
       materialWidth,
-      printableWidth,
-      filmWidth2Columns,
-      canUse2Columns,
+      printableWidth: materialWidth === 590 ? 570 : 740,
       optimalColumnCount,
-      calculatedFilmWidth: filmWidth
+      calculatedFilmWidth: filmWidth,
+      note: pouchType === 'roll_film'
+        ? `ロールフィルム: ${optimalColumnCount}列並列生産`
+        : `パウチ: ${optimalColumnCount}列生産`
     }, null, 2));
 
     // ========================================
@@ -459,12 +500,13 @@ export class PouchCostCalculator {
       // 配送料以外のコストを取得
       const { delivery, totalCost, ...otherBreakdown } = sku.costBreakdown;
 
-      // 新しい配送料で再計算
+      // 新しい配送料で再計算（小数点以下を保持して、unified-pricing-engine.tsで正しく切り上げできるようにする）
       const newCostBreakdown: SKUCostBreakdown = {
         ...otherBreakdown,
         delivery: Math.round(deliveryJPY),
-        // 小計と総コストを再計算
-        totalCost: Math.round((totalCost - delivery) + deliveryJPY)
+        // 小数点以下を保持: totalCost（小数点以下含む）- delivery + deliveryJPY
+        // 例: 168400.646... - 0 + 15358 = 183758.646...
+        totalCost: (totalCost - delivery) + deliveryJPY
       };
 
       return {
@@ -625,6 +667,10 @@ export class PouchCostCalculator {
     const { height: H, width: W, depth: G = 0 } = dimensions;
 
     switch (pouchType) {
+      case 'roll_film':
+        // 롤 필름: columnCount × 롤 폭
+        return W * columnCount;
+
       case 'flat_3_side':
       case 'three_side':
       case 'zipper':
@@ -809,10 +855,14 @@ export class PouchCostCalculator {
     // 基本パウチタイプを判定（ジッパーなし）
     // ジッパー追加は postProcessingMultiplier で調整するため、
     // ここでは基本タイプのみを使用して二重課税を防ぐ
-    let basePouchType: 'flat_3_side' | 'stand_up' | 't_shape' | 'm_shape' | 'box' | 'other' = 'other';
+    let basePouchType: 'flat_3_side' | 'stand_up' | 't_shape' | 'm_shape' | 'box' | 'spout' | 'other' = 'other';
 
-    // 合掌袋(lap_seal)はt_shapeとして判定（最初にチェック）
-    if (pouchType.includes('lap_seal') || pouchType.includes('t_shape') || pouchType.includes('T방')) {
+    // スパウトパウチは最初にチェック（別部品と追加加工が必要）
+    if (pouchType.includes('spout')) {
+      basePouchType = 'spout';
+    }
+    // 合掌袋(lap_seal)はt_shapeとして判定
+    else if (pouchType.includes('lap_seal') || pouchType.includes('t_shape') || pouchType.includes('T방')) {
       basePouchType = 't_shape';
     } else if (pouchType.includes('3_side') || pouchType.includes('flat') || pouchType.includes('three_side')) {
       basePouchType = 'flat_3_side';
@@ -837,6 +887,7 @@ export class PouchCostCalculator {
       't_shape': { pricePerCm: 1.2, minimumPrice: 440000 },      // 合掌袋: 1.2ウォン/cm, 最小440,000ウォン
       'm_shape': { pricePerCm: 1.2, minimumPrice: 440000 },      // M封: 1.2ウォン/cm, 最小440,000ウォン
       'box': { pricePerCm: 1.2, minimumPrice: 440000 },          // ボックス: 1.2ウォン/cm, 最小440,000ウォン
+      'spout': { pricePerCm: 1.8, minimumPrice: 500000 },        // スパウトパウチ: 1.8ウォン/cm, 最小500,000ウォン (別部品・追加加工が必要)
       'other': { pricePerCm: 1.2, minimumPrice: 200000 }         // その他: 1.2ウォン/cm, 最小200,000ウォン
     } as const;
 
@@ -978,8 +1029,12 @@ export class PouchCostCalculator {
       });
     }
 
-    // 丸めた項目の合計をtotalCostとして使用することで一貫性を保証
-    const consistentTotalCost = sumOfRoundedItems;
+    // 小数点以下を保持して、unified-pricing-engine.tsで100円単位の切り上げ処理が正しく動作するようにする
+    // 例: 168400.646... → unified-pricing-engine.tsで Math.ceil(168400.646... / 100) * 100 = 168500
+    const consistentTotalCost = finalPriceJPY;
+
+    // デバッグ: totalCostの値をログ出力
+    console.log('[calculateCostBreakdown] totalCost（小数点以下保持）:', consistentTotalCost);
 
     return {
       materialCost: roundedMaterialCost,
@@ -1364,15 +1419,15 @@ export class PouchCostCalculator {
             totalDiscountedCost: Math.round(totalDiscountedCost),
             estimatedUnitCost: Math.round(estimatedUnitCost),
             savingsRate: savingsRate.toFixed(1) + '%',
-            discountRule: count === 2 ? '40% OFF (2本目)' : count >= 3 ? '70% OFF (3本目以降)' : 'No discount'
+            discountRule: count === 2 ? '7.5% OFF (2列)' : count === 3 ? '10% OFF (3列)' : count === 4 ? '11.25% OFF (4列)' : 'No discount'
           });
         } else {
-          // 従来の近似計算（フォールバック）
-          // 🆕 並列生産割引ルールに基づき近似計算を修正
+          // 近似計算（フォールバック）
+          // 🆕 新ビジネスロジックに基づき近似計算を修正
           const baseFilmCost = currentUnitPrice * 0.7; // フィルム原価の概算（約70%）
           const nonFilmCost = currentUnitPrice * 0.3; // 加工費などの概算（約30%）
 
-          // 並列生産割引適用
+          // 並列生産割引適用（新しいロジック: 7.5%, 10%, 11.25%）
           const discountedFilmCost = this.calculateParallelDiscount(baseFilmCost, count);
           const totalCost = discountedFilmCost + nonFilmCost;
           estimatedUnitCost = totalCost;
@@ -1412,13 +1467,24 @@ export class PouchCostCalculator {
   }
 
   /**
-   * 並列生産割引計算
+   * 並列生産割引計算（ビジネスロジックベース）
    *
-   * docs/reports/tjfrP/Pouch_Cost_Calculation_Guide_2026.md セクション8参照
+   * 設計原則:
+   * 1. 実際のコスト構造を反映：スリッター費の分散効果のみを割引に反映
+   * 2. 漸進的割引：並列数が増えるほど追加割引が減少（限界効用逓減）
+   * 3. 購買者魅力度確保：割引率が視認できることで選択動機を付与
+   * 4. 販売者利益保護：過度な割引でマージン悪化を防止
    *
-   * 割引ルール:
-   * - 2本目（2列目）: 40%割引 = 60%価格
-   * - 3本目以降: 70%割引 = 30%価格
+   * 割引設計（単価基準）:
+   * - 1列: 100% (基準)
+   * - 2列: 個別92.5% = 総185% (7.5% OFF)
+   * - 3列: 個別90.0% = 総270% (10% OFF)
+   * - 4列: 個別88.75% = 総355% (11.25% OFF)
+   *
+   * 設計根拠:
+   * - スリッター費: 30,000円 ÷ 2 = 15,000円/個 (15,000円節減)
+   * - 500m × 10円/m = 5,000円の場合、スリッター費節減効果 = 15,000円
+   * - 総コスト約20万円想定時、約7.5%割引
    *
    * @param basePrice 基準価格（フィルム原価+印刷費+ラミネート費）
    * @param parallelCount 並列数（1=単独生産、2=2列/2本、3=3列/3本...）
@@ -1430,23 +1496,19 @@ export class PouchCostCalculator {
   ): number {
     if (parallelCount <= 1) return basePrice;
 
-    // 2本目（2列目）: 40%割引 = 60%価格
-    // 3本目以降: 70%割引 = 30%価格
-    let discountMultiplier = 1; // 1本目は100%
+    // 並列数別総倍率（個別SKU単価基準）
+    const multipliers: Record<number, number> = {
+      2: 1.85,   // 2列: 個別92.5% = 総185% (7.5% OFF)
+      3: 2.70,   // 3列: 個別90.0% = 総270% (10% OFF)
+      4: 3.55,   // 4列: 個別88.75% = 総355% (11.25% OFF)
+    };
 
-    if (parallelCount >= 2) {
-      discountMultiplier += 0.6; // 2本目は60%
-    }
-
-    if (parallelCount >= 3) {
-      discountMultiplier += 0.3 * (parallelCount - 2); // 3本目以降は各30%
-    }
-
-    return basePrice * discountMultiplier;
+    const multiplier = multipliers[parallelCount] ?? parallelCount;
+    return basePrice * multiplier;
   }
 
   /**
-   * 並列生産割引詳細計算
+   * 並列生産割引詳細計算（ビジネスロジックベース）
    *
    * 割引内訳を返す
    *
@@ -1474,26 +1536,32 @@ export class PouchCostCalculator {
     const discountAmount = originalPrice - discountedPrice;
     const discountRate = (discountAmount / originalPrice) * 100;
 
-    // 割引係数計算
-    let discountMultiplier = 1;
-    if (parallelCount >= 2) discountMultiplier += 0.6;
-    if (parallelCount >= 3) discountMultiplier += 0.3 * (parallelCount - 2);
+    // 新しい割引係数計算（ビジネスロジックベース）
+    const multipliers: Record<number, number> = {
+      2: 1.85,   // 2列: 7.5% OFF
+      3: 2.70,   // 3列: 10% OFF
+      4: 3.55,   // 4列: 11.25% OFF
+    };
+    const discountMultiplier = multipliers[parallelCount] ?? parallelCount;
 
     // 内訳計算
     const firstUnit = basePrice; // 1本目は100%
     let additionalUnits = 0;
     if (parallelCount >= 2) {
-      additionalUnits += basePrice * 0.6; // 2本目は60%
+      additionalUnits += basePrice * 0.85; // 2本目は85%
     }
     if (parallelCount >= 3) {
-      additionalUnits += basePrice * 0.3 * (parallelCount - 2); // 3本目以降は各30%
+      additionalUnits += basePrice * 0.85; // 3本目も85%
+    }
+    if (parallelCount >= 4) {
+      additionalUnits += basePrice * 0.85; // 4本目も85%
     }
 
     return {
       originalPrice: Math.round(originalPrice),
       discountedPrice: Math.round(discountedPrice),
       discountAmount: Math.round(discountAmount),
-      discountRate: Math.round(discountRate * 10) / 10,
+      discountRate: Math.round(discountRate * 100) / 100, // 小数点第2位まで（7.5%, 11.25%など）
       discountMultiplier: Math.round(discountMultiplier * 100) / 100,
       breakdown: {
         firstUnit: Math.round(firstUnit),
@@ -1564,9 +1632,9 @@ export class PouchCostCalculator {
     const roundedQuantity = this.roundDownToHundreds(economicQuantity);
     const sameQuantityPrice = currentUnitPrice * 0.85; // ドキュメント: 原価削減30% → 顧客割引15%
 
-    // 31% OFF: 倍の数量（経済的数量×2を100単位で切り捨て）
+    // 30% OFF: 倍の数量（経済的数量×2を100単位で切り捨て）
     const doubleQuantity = this.roundDownToHundreds(economicQuantity * 2);
-    const doubleQuantityPrice = currentUnitPrice * 0.69; // ドキュメント: 31%割引
+    const doubleQuantityPrice = currentUnitPrice * 0.70; // 原価削減50%: 顧客30% OFF + 販売者マージン20%追加
 
     console.log('[calculateTwoColumnProductionOptions] 計算結果:', {
       currentQuantity,
@@ -1583,16 +1651,16 @@ export class PouchCostCalculator {
 
     return {
       sameQuantity: {
-        quantity: roundedQuantity,
+        quantity: currentQuantity, // ユーザー入力の数量を保持
         unitPrice: Math.round(sameQuantityPrice),
-        totalPrice: Math.round(sameQuantityPrice * roundedQuantity),
+        totalPrice: Math.round(sameQuantityPrice * currentQuantity),
         savingsRate: 15
       },
       doubleQuantity: {
         quantity: doubleQuantity,
         unitPrice: Math.round(doubleQuantityPrice),
         totalPrice: Math.round(doubleQuantityPrice * doubleQuantity),
-        savingsRate: 31
+        savingsRate: 30
       }
     };
   }

@@ -6,9 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
+import { getServerClient } from '@/lib/supabase';
 
 // ============================================================
 // Types
@@ -102,12 +101,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize Supabase client with Admin pattern
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // DEV_MODE support
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Initialize Supabase client with SSR pattern
+    const { client: supabase } = createSupabaseSSRClient(request);
 
     // Get current user
     const {

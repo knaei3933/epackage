@@ -81,26 +81,10 @@ const DEFAULT_SETTINGS: UserSettings = {
 // ============================================================
 
 /**
- * Get user ID from authorization header or x-user-id header (DEV_MODE)
+ * Get user ID from authorization header
  */
 async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  // Check for DEV_MODE header first (set by middleware in DEV_MODE)
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
-  if (isDevMode && devModeUserId) {
-    console.log('[Settings API] DEV_MODE: Using x-user-id header:', devModeUserId);
-    return devModeUserId;
-  }
-
-  // Check for dev-mock-user-id cookie (set by signin API in DEV_MODE)
-  const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
-  if (devMockUserId && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
-    console.log('[Settings API] DEV_MODE: Using dev-mock-user-id cookie:', devMockUserId);
-    return devMockUserId;
-  }
-
-  // Normal auth: Use Bearer token
+  // Use Bearer token
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;

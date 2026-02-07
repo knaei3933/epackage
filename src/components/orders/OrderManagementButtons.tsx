@@ -25,6 +25,7 @@ interface OrderManagementButtonsProps {
   onReordered?: (newOrderId: string) => void
   showPDFDownload?: boolean
   showDetailView?: boolean
+  showModifyButton?: boolean
   className?: string
 }
 
@@ -39,6 +40,7 @@ export function OrderManagementButtons({
   onReordered,
   showPDFDownload = true,
   showDetailView = true,
+  showModifyButton = true,
   className = '',
 }: OrderManagementButtonsProps) {
   const status = order.status?.toUpperCase() || ''
@@ -53,10 +55,12 @@ export function OrderManagementButtons({
       />
 
       {/* 変更ボタン - 特定ステータスで表示 */}
-      <OrderModifyButton
-        order={order}
-        onOrderModified={onOrderModified}
-      />
+      {showModifyButton && (
+        <OrderModifyButton
+          order={order}
+          onOrderModified={onOrderModified}
+        />
+      )}
 
       {/* 再注文ボタン - 完了/キャンセル済みで表示 */}
       <ReorderButton

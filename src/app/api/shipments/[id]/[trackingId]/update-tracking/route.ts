@@ -122,6 +122,48 @@ export async function POST(
         .from('shipments')
         .update(updateData)
         .eq('id', shipmentId);
+
+      // Auto-transition order status: READY_TO_SHIP → SHIPPED when shipped
+      if (newShipmentStatus === 'shipped' && shipment.order_id) {
+        await (supabase as any)
+          .from('orders')
+          .update({
+            status: 'SHIPPED',
+            shipped_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', shipment.order_id);
+
+        // Log status history
+        await (supabase as any).from('order_status_history').insert({
+          order_id: shipment.order_id,
+          old_status: 'READY_TO_SHIP',
+          new_status: 'SHIPPED',
+          changed_by: user.id,
+          changed_at: new Date().toISOString(),
+        });
+      }
+
+      // Auto-transition order status: SHIPPED → DELIVERED when delivered
+      if (newShipmentStatus === 'delivered' && shipment.order_id) {
+        await (supabase as any)
+          .from('orders')
+          .update({
+            status: 'DELIVERED',
+            delivered_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', shipment.order_id);
+
+        // Log status history
+        await (supabase as any).from('order_status_history').insert({
+          order_id: shipment.order_id,
+          old_status: 'SHIPPED',
+          new_status: 'DELIVERED',
+          changed_by: 'SYSTEM',
+          changed_at: new Date().toISOString(),
+        });
+      }
     }
 
     return NextResponse.json({

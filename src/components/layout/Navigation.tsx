@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X, ChevronDown, ChevronRight, Home, Building2, Package, CreditCard, Phone, BarChart3, Grid3X3, Calculator } from 'lucide-react'
-import { useTranslation } from '@/contexts/LanguageContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -52,7 +51,6 @@ interface SidebarNavigationProps {
  */
 export function MobileNavigation({ items, isOpen, onClose, className }: MobileNavigationProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
-  const { tn } = useTranslation()
   const drawerRef = useRef<HTMLDivElement>(null)
 
   // Close drawer when clicking outside
@@ -195,14 +193,14 @@ export function MobileNavigation({ items, isOpen, onClose, className }: MobileNa
         {/* Drawer Header */}
         <div className="flex items-center justify-between p-4 border-b border-border-medium">
           <h2 className="text-lg font-semibold text-text-primary">
-            {tn('header', 'mobileMenu')}
+            メニュー
           </h2>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
             className="text-text-secondary hover:text-text-primary"
-            aria-label={tn('header', 'closeMenu')}
+            aria-label="メニューを閉じる"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -221,7 +219,7 @@ export function MobileNavigation({ items, isOpen, onClose, className }: MobileNa
               fullWidth
               className="justify-center"
             >
-              {tn('header', 'cta')}
+              お問い合わせ
             </Button>
           </Link>
         </div>

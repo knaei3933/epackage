@@ -1,0 +1,37 @@
+{
+  "name": "epac-test-runner",
+  "version": "1.0.0",
+  "description": "EPAC Homepage Test Runner - Playwright MCP 기반 테스트 자동화",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "tsx index.ts",
+    "test:homepage": "tsx index.ts homepage",
+    "test:member": "tsx index.ts member",
+    "test:admin": "tsx index.ts admin",
+    "test:integration": "tsx index.ts integration",
+    "test:skip-db": "tsx index.ts --skip-db",
+    "test:no-screenshots": "tsx index.ts --no-screenshots",
+    "build": "tsc",
+    "watch": "tsx watch index.ts"
+  },
+  "keywords": [
+    "testing",
+    "playwright",
+    "e2e",
+    "automation"
+  ],
+  "author": "EPAC",
+  "license": "MIT",
+  "dependencies": {
+    "@playwright/test": "^1.57.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^17.2.3",
+    "playwright": "^1.57.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

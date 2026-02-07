@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase, auth, type Profile } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
+import { auth, type Profile } from '@/lib/supabase'
 import type { User, Session, RegistrationFormData } from '@/types/auth'
 import type { User as SupabaseUser, Session as SupabaseSession } from '@supabase/supabase-js'
 import { isDevMode } from '@/lib/dev-mode'
@@ -339,9 +340,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Get current session from SERVER API
         // IMPORTANT: Call the server endpoint to read cookies (httpOnly cookies can't be read by client JS)
         // CRITICAL: credentials: 'include' is required to send cookies with the request
-        const sessionResponse = await fetch('/api/auth/session', {
-          credentials: 'include', // Include cookies in the request
-        })
+        let sessionResponse
+        try {
+          sessionResponse = await fetch('/api/auth/session', {
+            credentials: 'include', // Include cookies in the request
+          })
+        } catch (fetchError) {
+          console.warn('[AuthContext] Session fetch failed:', fetchError)
+          if (mounted) {
+            setSession(null)
+            setProfile(null)
+            setUser(null)
+            setIsLoading(false)
+          }
+          return
+        }
+
+        if (!sessionResponse.ok) {
+          console.warn('[AuthContext] Session check failed:', sessionResponse.status)
+          if (mounted) {
+            setSession(null)
+            setProfile(null)
+            setUser(null)
+            setIsLoading(false)
+          }
+          return
+        }
+
         const sessionData = await sessionResponse.json()
 
         if (sessionData.session?.user) {
@@ -380,15 +405,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession()
 
+    // =====================================================
+    // ✅ Session Refresh Logic (30分セッション維持)
+    // =====================================================
+    // 1分ごとにセッションを確認し、期限切れ5分前に自動リフレッシュ
+
+    const refreshInterval = setInterval(async () => {
+      if (!mounted || !session) return;
+
+      try {
+        // セッション有効期限をチェック
+        const expiresAt = new Date(session.expires).getTime();
+        const now = Date.now();
+        const timeUntilExpiry = expiresAt - now;
+
+        // 期限切れ5分前（300,000ms）または既に期限切れの場合にリフレッシュ
+        if (timeUntilExpiry <= 5 * 60 * 1000) {
+          console.log('[AuthContext] Session expiring soon, refreshing...');
+
+          const response = await fetch('/api/auth/session', {
+            credentials: 'include',
+          });
+
+          if (response.ok) {
+            const sessionData = await response.json();
+
+            if (sessionData.session?.user && sessionData.profile) {
+              setSession({
+                token: 'server-managed',
+                expires: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // ✅ 30分延長
+              });
+              setProfile(sessionData.profile);
+              setUser(convertSupabaseUser(sessionData.session.user, sessionData.profile));
+              console.log('[AuthContext] Session refreshed successfully');
+            } else {
+              // セッションが無効になった場合、ログアウト状態に
+              console.warn('[AuthContext] Session no longer valid');
+              setSession(null);
+              setProfile(null);
+              setUser(null);
+            }
+          } else {
+            console.warn('[AuthContext] Failed to refresh session');
+            setSession(null);
+            setProfile(null);
+            setUser(null);
+          }
+        }
+      } catch (error) {
+        console.error('[AuthContext] Session refresh error:', error);
+      }
+    }, 60 * 1000); // ✅ 1分ごとにチェック
+
     // NOTE: onAuthStateChange listener removed because:
     // 1. Client-side supabase client uses localStorage, but we're using httpOnly cookies
     // 2. Auth state changes are handled by page navigation (full reload after login)
     // 3. The session API endpoint is called on page load to get the current state
     //
-    // If needed in the future, we can implement polling or SSE for real-time auth state updates
+    // ✅ セッションリフレッシュ: 1分ごとにチェックし、5分前に自動リフレッシュ
 
     return () => {
       mounted = false
+      clearInterval(refreshInterval) // ✅ インターバルをクリア
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -629,7 +707,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // =====================================================
 
   const isAuthenticated = !!user
-  const isAdmin = user?.role === 'ADMIN'
+  // Normalize role to lowercase for consistency with rbac-helpers.ts normalizeRole()
+  const isAdmin = user?.role?.toLowerCase() === 'admin'
 
   const value: AuthContextType = {
     user,

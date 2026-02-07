@@ -21,15 +21,16 @@ import {
   getDefaultPostProcessingOptions,
   validateCategorySelection
 } from '@/components/quote/processingConfig';
-import { getAvailableGussetSizes, getDefaultGussetSize } from '@/lib/gusset-data';
+import { getAvailableGussetSizes, getDefaultGussetSize, validateWidthStep } from '@/lib/gusset-data';
 
 // Quote state interface
 export interface QuoteState {
   bagTypeId: string;
   materialId: string;
-  width: number;
-  height: number;
-  depth: number;
+  width: number | undefined;
+  height: number | undefined;
+  depth: number | undefined;
+  sideWidth?: number; // Side width (よこめん) - for center_seal and box_pouch
   quantities: number[]; // Multiple quantity patterns
   quantity: number; // Selected quantity for calculation
   isUVPrinting: boolean;
@@ -47,6 +48,7 @@ export interface QuoteState {
   urgency?: 'standard' | 'express';
   spoutPosition?: 'top-left' | 'top-right' | 'center-left' | 'center-right' | 'bottom-left' | 'bottom-right';
   // Roll film specific fields
+  pitch?: number;                 // Design pitch/repeat (mm) - for roll_film (デザインの繰り返し周期)
   totalLength?: number;           // Total length (m) - for roll_film
   rollCount?: number;             // Number of rolls - for roll_film
   distributedQuantities?: number[]; // Auto-distributed lengths per roll
@@ -66,11 +68,18 @@ export interface QuoteState {
   discountedUnitPrice?: number;   // オプション適用後の単価
   discountedTotalPrice?: number;  // オプション適用後の合計価格
   originalUnitPrice?: number;     // オプション適用前の元の単価
+  fixedTotalQuantity?: number;     // 2列生産オプション適用後の固定総数量（SKU数量変更時に維持）
+  sealWidth?: string;              // Seal width option ('5mm', '7.5mm', '10mm')
+  // 내용물 (Contents) 필드 - 기본값 없음 (사용자 선택 필수)
+  productCategory?: 'food' | 'health_supplement' | 'cosmetic' | 'quasi_drug' | 'drug' | ''; // 제품 유형
+  contentsType?: 'solid' | 'powder' | 'liquid' | ''; // 내용물 형태
+  mainIngredient?: 'general_neutral' | 'oil_surfactant' | 'acidic_salty' | 'volatile_fragrance' | 'other' | ''; // 주요성분
+  distributionEnvironment?: 'general_roomTemp' | 'light_oxygen_sensitive' | 'refrigerated' | 'high_temp_sterilized' | 'other' | ''; // 유통환경
 }
 
 // Action types
 type QuoteAction =
-  | { type: 'SET_BASIC_SPECS'; payload: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'thicknessSelection'>> }
+  | { type: 'SET_BASIC_SPECS'; payload: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'thicknessSelection' | 'pitch'>> }
   | { type: 'SET_QUANTITY_OPTIONS'; payload: Partial<Pick<QuoteState, 'quantities' | 'quantity' | 'isUVPrinting' | 'printingType' | 'printingColors' | 'doubleSided'>> & { isUVPrinting?: boolean } }
   | { type: 'SET_POST_PROCESSING'; payload: { options: string[]; multiplier: number } }
   | { type: 'SET_DELIVERY'; payload: { location: 'domestic' | 'international'; urgency: 'standard' | 'express' } }
@@ -95,7 +104,9 @@ type QuoteAction =
   | { type: 'CLEAR_RECOMMENDATION_CACHE' }
   | { type: 'APPLY_TWO_COLUMN_OPTION'; payload: { optionType: 'same' | 'double'; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number } }
   | { type: 'APPLY_SKU_SPLIT'; payload: { skuCount: number; quantities: number[] } }
-  | { type: 'CLEAR_APPLIED_OPTION' }; // 옵션 적용 상태를 클리어
+  | { type: 'CLEAR_APPLIED_OPTION' } // 옵션 적용 상태를 클리어
+  | { type: 'SET_SEAL_WIDTH'; payload: string } // Seal width setting
+  | { type: 'SET_CONTENTS'; payload: { productCategory: QuoteState['productCategory']; contentsType: QuoteState['contentsType']; mainIngredient: QuoteState['mainIngredient']; distributionEnvironment: QuoteState['distributionEnvironment'] } }; // 내용물 설정
 
 // Helper function to get default film layers based on material ID and thickness selection
 // LLDPE thickness varies based on thicknessSelection: light=50, medium=70, standard=90, heavy=100, ultra=110
@@ -120,7 +131,7 @@ function getDefaultFilmLayers(materialId: string, thicknessSelection: string = '
     ],
     'pet_vmpet': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
-      { materialId: 'VMPET', thickness: 7 },
+      { materialId: 'VMPET', thickness: 12 },
       { materialId: 'PET', thickness: 12 },
       { materialId: 'LLDPE', thickness: lldpe }
     ],
@@ -167,11 +178,12 @@ const initialState: QuoteState = {
   width: 200,
   height: 300,
   depth: 0,
+  sideWidth: undefined, // Side width (よこめん) - for center_seal and box_pouch
   quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
   quantity: 500,
   isUVPrinting: false,
-  postProcessingOptions: getDefaultPostProcessingOptions(), // デフォルト値を適用
-  postProcessingMultiplier: 1.0,
+  postProcessingOptions: getDefaultPostProcessingOptions('flat_3_side'), // デフォルト値を設定（processingConfig.tsから）
+  postProcessingMultiplier: 1.0, // 初期値は1.0（PostProcessingStepで更新）
   postProcessingLimit: {
     selectedItems: [],
     isAtLimit: false,
@@ -184,6 +196,7 @@ const initialState: QuoteState = {
   deliveryLocation: 'domestic',
   urgency: 'standard',
   // Roll film specific fields
+  pitch: undefined,               // Design pitch (mm) - 入力必須
   totalLength: undefined,
   rollCount: undefined,
   distributedQuantities: undefined,
@@ -194,7 +207,13 @@ const initialState: QuoteState = {
   skuCount: 1,
   skuQuantities: [0], // デフォルトは数量未入力
   quantityMode: 'single',
-  useSKUCalculation: false
+  useSKUCalculation: false,
+  sealWidth: '5mm', // Seal width default
+  // 내용물 (Contents) - 기본값 없음 (사용자 선택 필수)
+  productCategory: '', // 선택 필수
+  contentsType: '', // 선택 필수
+  mainIngredient: '', // 선택 필수
+  distributionEnvironment: '' // 선택 필수
 };
 
 // DEBUG: Log initial state to verify
@@ -253,10 +272,19 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
     case 'SET_BASIC_SPECS':
       const newMaterialId = action.payload.materialId ?? state.materialId;
       const materialIdChanged = newMaterialId !== state.materialId;
-      const newWidth = action.payload.width ?? state.width;
+      let newWidth = 'width' in action.payload ? action.payload.width : state.width;
       const widthChanged = newWidth !== state.width;
       const newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
       const newThicknessSelection = action.payload.thicknessSelection ?? state.thicknessSelection;
+
+      // スタンドパウチ、ボックスパウチ、スパウトパウチの場合、幅を5mm単位に自動調整
+      const needsWidthStep = ['stand_up', 'gusset', 'box', 't_shape', 'm_shape', 'lap_seal', 'spout'].includes(newBagTypeId);
+      if (needsWidthStep && newWidth && newWidth >= 70) {
+        const widthValidation = validateWidthStep(newWidth);
+        if (!widthValidation.valid) {
+          newWidth = widthValidation.suggestedWidth;
+        }
+      }
       const thicknessSelectionChanged = newThicknessSelection !== state.thicknessSelection;
 
       // 幅変更またはbagTypeId変更時に原反幅を再計算（ただし幅が有効な場合のみ）
@@ -266,9 +294,9 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       }
 
       // 스탠드파ウチ/박스パウチ/合掌型に変更時、マチ（depth）を自動設定
-      let newDepth = action.payload.depth ?? state.depth;
+      let newDepth = 'depth' in action.payload ? action.payload.depth : state.depth;
       const bagTypeIdChanged = newBagTypeId !== state.bagTypeId;
-      const needsGusset = ['stand_up', 'gusset', 'box', 't_shape', 'm_shape', 'gassho'].includes(newBagTypeId);
+      const needsGusset = ['stand_up', 'gusset', 'box', 't_shape', 'm_shape', 'lap_seal', 'spout'].includes(newBagTypeId);
 
       if (bagTypeIdChanged && needsGusset) {
         // マッチが必要なタイプで、現在のdepthが0またはundefinedの場合
@@ -292,6 +320,75 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         }
       }
 
+      // ★製品タイプ変更時はSKU数量をリセット（ロールフィルム ↔ パウチ）
+      if (bagTypeIdChanged) {
+        console.log('[SET_BASIC_SPECS] Product type changed from', state.bagTypeId, 'to', newBagTypeId, '- resetting SKU quantities');
+        const defaultQuantity = 500;
+
+        // ロールフィルムとパウチの間の切り替え時にheight/pitchを適切に処理
+        const isRollFilmNow = newBagTypeId === 'roll_film';
+        const wasRollFilm = state.bagTypeId === 'roll_film';
+
+        let newHeight = 'height' in action.payload ? action.payload.height : state.height;
+        let newPitch = 'pitch' in action.payload ? action.payload.pitch : state.pitch;
+
+        // パウチ→ロールフィルム: heightはリセット、pitchはundefined
+        if (isRollFilmNow && !wasRollFilm) {
+          newHeight = undefined;
+          newPitch = undefined;
+        }
+        // ロールフィルム→パウチ: pitchはリセット、heightは維持
+        else if (!isRollFilmNow && wasRollFilm) {
+          newPitch = undefined;
+        }
+
+        // バッグタイプ変更時に投稿加工オプションを更新
+        // ロールフィルムとスパウトパウチの場合は表面処理のみ
+        // 既存のfinish設定（glossy/matte）を保持する
+        const existingFinishOption = state.postProcessingOptions?.find(opt => opt === 'glossy' || opt === 'matte');
+        const newPostProcessingOptions = (newBagTypeId === 'roll_film' || newBagTypeId === 'spout_pouch')
+          ? (existingFinishOption ? [existingFinishOption] : ['glossy'])
+          : getDefaultPostProcessingOptions(newBagTypeId);
+        const newPostProcessingMultiplier = calculatePostProcessingMultiplier(newPostProcessingOptions);
+
+        console.log('[SET_BASIC_SPECS] bagTypeId changed:', state.bagTypeId, '->', newBagTypeId);
+        console.log('[SET_BASIC_SPECS] existingFinishOption:', existingFinishOption);
+        console.log('[SET_BASIC_SPECS] Updating post-processing options:', newPostProcessingOptions);
+        console.log('[SET_BASIC_SPECS] newPostProcessingMultiplier:', newPostProcessingMultiplier);
+
+        // SKU数量を1個、デフォルト値にリセット
+        return {
+          ...state,
+          bagTypeId: newBagTypeId,
+          materialId: newMaterialId,
+          width: newWidth,
+          height: newHeight,
+          depth: newDepth,
+          sideWidth: action.payload.sideWidth ?? state.sideWidth,
+          thicknessSelection: newThicknessSelection,
+          materialWidth: newMaterialWidth,
+          pitch: newPitch,
+          // SKU数量をリセット
+          skuCount: 1,
+          skuQuantities: [defaultQuantity],
+          quantityMode: 'single' as const,
+          useSKUCalculation: false,
+          // 割引関連状態も初期化
+          twoColumnOptionApplied: false,
+          appliedOption: null,
+          fixedTotalQuantity: undefined,
+          // 投稿加工オプションを更新
+          postProcessingOptions: newPostProcessingOptions,
+          postProcessingMultiplier: newPostProcessingMultiplier,
+          // Update filmLayers when materialId or thicknessSelection changes
+          ...(materialIdChanged || thicknessSelectionChanged ? {
+            filmLayers: getDefaultFilmLayers(newMaterialId, newThicknessSelection)
+          } : {})
+        };
+      }
+
+      const newSideWidth = action.payload.sideWidth ?? state.sideWidth;
+      console.log('[SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth:', action.payload.sideWidth, 'state.sideWidth:', state.sideWidth, 'newSideWidth:', newSideWidth);
       return {
         ...state,
         bagTypeId: newBagTypeId,
@@ -299,8 +396,10 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         width: newWidth,
         height: action.payload.height ?? state.height,
         depth: newDepth,
+        sideWidth: newSideWidth,
         thicknessSelection: newThicknessSelection,
         materialWidth: newMaterialWidth,
+        pitch: action.payload.pitch ?? state.pitch,
         // Update filmLayers when materialId or thicknessSelection changes
         ...(materialIdChanged || thicknessSelectionChanged ? {
           filmLayers: getDefaultFilmLayers(newMaterialId, newThicknessSelection)
@@ -335,15 +434,56 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
 
     case 'SET_POST_PROCESSING':
-      const newOptions = action.payload.options;
-      console.log('[SET_POST_PROCESSING] Action received. payload.options:', newOptions, 'payload.multiplier:', action.payload.multiplier);
+      let optionsToSet = action.payload.options;
+      console.log('[SET_POST_PROCESSING] Action received. payload.options:', optionsToSet, 'payload.multiplier:', action.payload.multiplier);
+
+      // カテゴリー別に1つのみ選択されるように強制
+      // PostProcessingStep.tsxのOPTION_CATEGORIESと同じ定義を使用
+      const OPTION_CATEGORIES_LOCAL: Record<string, string> = {
+        'zipper-yes': 'zipper',
+        'zipper-no': 'zipper',
+        'glossy': 'finish',
+        'matte': 'finish',
+        'notch-yes': 'notch',
+        'notch-no': 'notch',
+        'hang-hole-6mm': 'hang-hole',
+        'hang-hole-8mm': 'hang-hole',
+        'hang-hole-no': 'hang-hole',
+        'corner-round': 'corner',
+        'corner-square': 'corner',
+        'valve-yes': 'valve',
+        'valve-no': 'valve',
+        'top-open': 'open',
+        'bottom-open': 'open',
+        'zipper-position-any': 'zipper-position',
+        'zipper-position-specified': 'zipper-position'
+      };
+
+      // 各カテゴリーから最初のオプションのみを保持
+      const categorySeen = new Set<string>();
+      const filteredOptions = optionsToSet.filter(optionId => {
+        const category = OPTION_CATEGORIES_LOCAL[optionId];
+        if (!category) return true; // カテゴリーがないオプションはそのまま保持
+        if (categorySeen.has(category)) {
+          console.log('[SET_POST_PROCESSING] Filtering out duplicate category option:', optionId, 'category:', category);
+          return false;
+        }
+        categorySeen.add(category);
+        return true;
+      });
+
+      if (filteredOptions.length !== optionsToSet.length) {
+        console.log('[SET_POST_PROCESSING] Filtered options from', optionsToSet.length, 'to', filteredOptions.length);
+        optionsToSet = filteredOptions;
+      }
+
       const updatedLimitState = {
-        selectedItems: newOptions,
-        isAtLimit: isSelectionLimitReached(newOptions.length),
-        remainingSlots: calculateRemainingSlots(newOptions.length)
+        selectedItems: optionsToSet,
+        isAtLimit: isSelectionLimitReached(optionsToSet.length),
+        remainingSlots: calculateRemainingSlots(optionsToSet.length)
       };
       // 自動的に乗数を計算（payload.multiplierは無視）
-      const calculatedMultiplier = calculatePostProcessingMultiplier(newOptions);
+      const calculatedMultiplier = calculatePostProcessingMultiplier(optionsToSet);
       console.log('[SET_POST_PROCESSING] Calculated multiplier:', calculatedMultiplier, '(ignoring payload.multiplier:', action.payload.multiplier, ')');
 
       // 後工程オプション変更時に結果を無効化して再計算を強制
@@ -352,11 +492,11 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       const multiplierChanged = calculatedMultiplier !== currentMultiplier;
 
       // オプション配列が変更されたか確認（マット仕上げ変更時の再計算対応）
-      const optionsChanged = JSON.stringify(newOptions.sort()) !== JSON.stringify(state.postProcessingOptions?.sort() ?? []);
+      const optionsChanged = JSON.stringify(optionsToSet.sort()) !== JSON.stringify(state.postProcessingOptions?.sort() ?? []);
 
       return {
         ...state,
-        postProcessingOptions: newOptions,
+        postProcessingOptions: optionsToSet,
         postProcessingMultiplier: calculatedMultiplier,
         postProcessingLimit: updatedLimitState,
         // 後工程変更時にフラグを設定（ ImprovedQuotingWizardで結果をクリアするために使用）
@@ -665,6 +805,23 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
     }
 
+    // ★제품 타입 변경 시 SKU 수량 초기화 (롤 ↔ 파우치 전환)
+    case 'RESET_SKU_QUANTITIES_ON_PRODUCT_CHANGE': {
+      const { defaultQuantity } = action.payload;
+      console.log('[RESET_SKU_QUANTITIES_ON_PRODUCT_CHANGE] Resetting SKU quantities to default:', defaultQuantity);
+      return {
+        ...state,
+        skuCount: 1,
+        skuQuantities: [defaultQuantity],
+        quantityMode: 'single',
+        useSKUCalculation: false,
+        // 할인 관련 상태도 초기화
+        twoColumnOptionApplied: false,
+        appliedOption: null,
+        fixedTotalQuantity: undefined
+      };
+    }
+
     case 'SET_QUANTITY_MODE': {
       return {
         ...state,
@@ -683,20 +840,79 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
 
     case 'APPLY_TWO_COLUMN_OPTION': {
       // 2列生産オプション適用
-      const { optionType, unitPrice, totalPrice, originalUnitPrice, quantity } = action.payload;
+      // SKU数を維持し、総数量のみを推奨数量に変更
+      const { optionType, unitPrice, totalPrice, originalUnitPrice, quantity, preserveSKUCount = true } = action.payload;
       console.log('[APPLY_TWO_COLUMN_OPTION] Applied option:', action.payload);
+
+      // 重要：originalUnitPriceは常に初期価格を保持する
+      // 既にoriginalUnitPriceが設定されている場合は、現在の値（initialUnitPrice）を保持
+      // 初回適用時のみ、originalUnitPriceを設定
+      const effectiveOriginalUnitPrice = state.originalUnitPrice || originalUnitPrice;
+
+      if (preserveSKUCount && state.skuCount > 1) {
+        // 複数SKUの場合：総数量を均等分割
+        // 各SKUの数量を100単位に丸める
+        const quantityPerSKU = Math.floor(quantity / state.skuCount / 100) * 100;
+
+        // 最小数量チェック（パウチ: 500個、ロールフィルム: 300m）
+        const minQuantityPerSku = state.bagTypeId === 'roll_film' ? 300 : 500;
+        const adjustedQuantityPerSKU = Math.max(quantityPerSKU, minQuantityPerSku);
+
+        // 調整後の総数量を計算
+        const adjustedTotalQuantity = adjustedQuantityPerSKU * state.skuCount;
+
+        // 調整された数量配列を作成
+        const adjustedQuantities = Array(state.skuCount).fill(adjustedQuantityPerSKU);
+
+        // 調整された総数量に基づいて価格を再計算（単価は維持）
+        const adjustedTotalPrice = Math.round(unitPrice * adjustedTotalQuantity);
+
+        console.log('[APPLY_TWO_COLUMN_OPTION] Adjusted for multiple SKUs:', {
+          originalTotalQuantity: quantity,
+          skuCount: state.skuCount,
+          quantityPerSKU: adjustedQuantityPerSKU,
+          adjustedTotalQuantity,
+          adjustedTotalPrice,
+          effectiveOriginalUnitPrice
+        });
+
+        return {
+          ...state,
+          twoColumnOptionApplied: optionType,
+          discountedUnitPrice: unitPrice,
+          discountedTotalPrice: adjustedTotalPrice,
+          originalUnitPrice: effectiveOriginalUnitPrice, // 既存の値を保持
+          unitPrice: unitPrice,
+          quantity: adjustedTotalQuantity,
+          skuCount: state.skuCount, // SKU数を維持
+          skuQuantities: adjustedQuantities, // 均等分割された数量
+          quantityMode: 'sku',
+          fixedTotalQuantity: adjustedTotalQuantity, // 総数量を固定
+          _forceRecalculate: false
+        };
+      }
+
+      // 単一SKUの場合：従来通り
+      console.log('[APPLY_TWO_COLUMN_OPTION] Single SKU:', {
+        effectiveOriginalUnitPrice,
+        optionType,
+        unitPrice,
+        totalPrice
+      });
+
       return {
         ...state,
         twoColumnOptionApplied: optionType,
         discountedUnitPrice: unitPrice,
         discountedTotalPrice: totalPrice,
-        originalUnitPrice: originalUnitPrice,
-        unitPrice: unitPrice, // 単価も更新
-        quantity: quantity, // 数量も更新
-        skuCount: 1, // 2列生産は単一SKU
-        skuQuantities: [quantity], // 数量を配列に設定
+        originalUnitPrice: effectiveOriginalUnitPrice, // 既存の値を保持
+        unitPrice: unitPrice,
+        quantity: quantity,
+        skuCount: 1,
+        skuQuantities: [quantity],
         quantityMode: 'sku',
-        _forceRecalculate: false // 再計算しない
+        fixedTotalQuantity: quantity, // 総数量を固定
+        _forceRecalculate: false
       };
     }
 
@@ -709,6 +925,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         discountedUnitPrice: undefined,
         discountedTotalPrice: undefined,
         originalUnitPrice: undefined,
+        fixedTotalQuantity: undefined, // 固定総数量もクリア
         _forceRecalculate: true // 再計算を強制
       };
     }
@@ -726,6 +943,28 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
     }
 
+    case 'SET_SEAL_WIDTH': {
+      // シーラー幅を設定
+      console.log('[SET_SEAL_WIDTH] Setting seal width to:', action.payload);
+      return {
+        ...state,
+        sealWidth: action.payload,
+        _forceRecalculate: true // 再計算を強制
+      };
+    }
+
+    case 'SET_CONTENTS': {
+      // 내용물 설정 (제품 카테고리, 내용물 형태, 주요성분, 유통환경)
+      console.log('[SET_CONTENTS] Setting contents:', action.payload);
+      return {
+        ...state,
+        productCategory: action.payload.productCategory,
+        contentsType: action.payload.contentsType,
+        mainIngredient: action.payload.mainIngredient,
+        distributionEnvironment: action.payload.distributionEnvironment
+      };
+    }
+
     default:
       return state;
   }
@@ -734,7 +973,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
 // Context interface - only functions, no state
 interface QuoteContextType {
   dispatch: React.Dispatch<QuoteAction>;
-  updateBasicSpecs: (specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'thicknessSelection'>>) => void;
+  updateBasicSpecs: (specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'pitch' | 'thicknessSelection'>>) => void;
   updateQuantityOptions: (options: Partial<Pick<QuoteState, 'quantities' | 'quantity' | 'isUVPrinting' | 'printingType' | 'printingColors' | 'doubleSided'>> & { isUVPrinting?: boolean }) => void;
   updatePostProcessing: (options: string[], multiplier: number) => void;
   updateDelivery: (location: 'domestic' | 'international', urgency: 'standard' | 'express') => void;
@@ -755,21 +994,62 @@ interface QuoteContextType {
   applyTwoColumnOption: (optionType: 'same' | 'double', unitPrice: number, totalPrice: number, originalUnitPrice: number, quantity: number) => void;
   applySKUSplit: (skuCount: number, quantities: number[]) => void;
   clearAppliedOption: () => void; // オプション適用をクリア
+  setSealWidth: (width: string) => void; // シーラー幅設定
+  setContents: (productCategory: QuoteState['productCategory'], contentsType: QuoteState['contentsType'], mainIngredient: QuoteState['mainIngredient'], distributionEnvironment: QuoteState['distributionEnvironment']) => void; // 内容量設定（4つのフィールド対応）
 }
 
 // Helper functions that need state access - accept state as parameter
 export function checkStepComplete(state: QuoteState, step: string): boolean {
+  console.log('[checkStepComplete] Called with step:', step, 'state:', {
+    bagTypeId: state.bagTypeId,
+    materialId: state.materialId,
+    width: state.width,
+    height: state.height,
+    pitch: state.pitch,
+    thicknessSelection: state.thicknessSelection,
+    // 내용물 필드 추가
+    productCategory: state.productCategory,
+    contentsType: state.contentsType,
+    mainIngredient: state.mainIngredient,
+    distributionEnvironment: state.distributionEnvironment
+  });
+
   switch (step) {
     case 'specs':
-      // Size requirement: width >= 70mm, height between 70-355mm
+      // Size requirement: width >= 70mm, height between 70-300mm
       const hasValidWidth = state.width >= 70;
       const requiresHeight = state.bagTypeId !== 'roll_film';
-      const hasValidHeight = !requiresHeight || (state.height >= 70 && state.height <= 355);
+      const hasValidHeight = !requiresHeight || (state.height >= 70 && state.height <= 300);
       const hasBasicSpecs = !!(state.bagTypeId && state.materialId && hasValidWidth);
       const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
       const requiresThickness = materialsWithThickness.includes(state.materialId);
       const hasThickness = !!state.thicknessSelection;
-      return hasBasicSpecs && hasValidHeight && (!requiresThickness || hasThickness);
+      // ロールフィルムの場合はピッチ（50-1000mm）も必須
+      const isRollFilm = state.bagTypeId === 'roll_film';
+      const hasValidPitch = !isRollFilm || (state.pitch && state.pitch >= 50 && state.pitch <= 1000);
+
+      // 내용물 필수 선택 확인
+      const hasContents = !!(
+        state.productCategory &&
+        state.contentsType &&
+        state.mainIngredient &&
+        state.distributionEnvironment
+      );
+
+      const result = hasBasicSpecs && hasValidHeight && hasValidPitch && (!requiresThickness || hasThickness) && hasContents;
+      console.log('[checkStepComplete] specs result:', {
+        hasValidWidth,
+        requiresHeight,
+        hasValidHeight,
+        hasBasicSpecs,
+        requiresThickness,
+        hasThickness,
+        isRollFilm,
+        hasValidPitch,
+        hasContents,
+        finalResult: result
+      });
+      return result;
     case 'sku-selection':
       // SKU selection is complete if at least one SKU has valid quantity
       return state.skuQuantities.length > 0 && state.skuQuantities.every(qty => qty >= 100);
@@ -801,24 +1081,47 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
       const postProcessingGroups = {
         zipper: ['zipper-yes', 'zipper-no'],
         finish: ['glossy', 'matte'],
-        notch: ['notch-yes', 'notch-no'],
+        notch: ['notch-yes', 'notch-straight', 'notch-no'],
         'hang-hole': ['hang-hole-6mm', 'hang-hole-8mm', 'hang-hole-no'],
         corner: ['corner-round', 'corner-square'],
         valve: ['valve-yes', 'valve-no'],
         opening: ['top-open', 'bottom-open']
       };
 
+      // ロールフィルム/スパウトパウチの場合、finishグループのみ必須（他は不要）
+      const optionalGroups = (state.bagTypeId === 'roll_film' || state.bagTypeId === 'spout_pouch')
+        ? ['zipper', 'notch', 'hang-hole', 'corner', 'valve', 'opening']
+        : [];
+
       // 各グループから選択されているオプションをチェック
       const selectedCount = Object.entries(postProcessingGroups).reduce((count, [groupName, options]) => {
+        // オプショングループの場合はカウントしない
+        if (optionalGroups.includes(groupName)) {
+          return count;
+        }
         const hasSelection = options.some(opt => state.postProcessingOptions?.includes(opt));
         return hasSelection ? count + 1 : count;
       }, 0);
 
-      // すべてのグループ（7つ）から選択されている必要
-      const requiredGroups = Object.keys(postProcessingGroups).length;
+      // すべての必須グループから選択されている必要
+      const requiredGroups = Object.keys(postProcessingGroups).length - optionalGroups.length;
       if (selectedCount < requiredGroups) {
+        console.log('[checkStepComplete] post-processing incomplete:', {
+          selectedCount,
+          requiredGroups,
+          optionalGroups,
+          isRollFilm: state.bagTypeId === 'roll_film',
+          currentOptions: state.postProcessingOptions
+        });
         return false;
       }
+
+      console.log('[checkStepComplete] post-processing complete:', {
+        selectedCount,
+        requiredGroups,
+        optionalGroups,
+        isRollFilm: state.bagTypeId === 'roll_film'
+      });
 
       // バルブが選択されている場合、数量チェック
       if (state.postProcessingOptions.includes('valve-yes')) {
@@ -965,6 +1268,37 @@ export function createStepSummary(state: QuoteState, getLimitStatus: () => PostP
       const filmLayers = getFilmLayersForMaterial(state.materialId, state.thicknessSelection);
       const filmLayerDisplay = getFilmLayerDisplay(filmLayers);
 
+      // 내용물 라벨 매핑
+      const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+        'food': '食品',
+        'health_supplement': '健康食品',
+        'cosmetic': '化粧品',
+        'quasi_drug': '医薬部外品',
+        'drug': '医薬品'
+      };
+      const CONTENTS_TYPE_LABELS: Record<string, string> = {
+        'solid': '固体',
+        'powder': '粉体',
+        'liquid': '液体'
+      };
+      const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+        'general_neutral': '一般/中性',
+        'oil_surfactant': 'オイル/界面活性剤',
+        'acidic_salty': '酸性/塩分',
+        'volatile_fragrance': '揮発性/香料'
+      };
+      const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+        'general_roomTemp': '一般/常温',
+        'light_oxygen_sensitive': '光/酸素敏感',
+        'refrigerated': '冷凍保管',
+        'high_temp_sterilized': '高温殺菌'
+      };
+
+      const productCategoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || 'food'] || '食品';
+      const contentsTypeLabel = CONTENTS_TYPE_LABELS[state.contentsType || 'solid'] || '固体';
+      const mainIngredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || 'general_neutral'] || '一般/中性';
+      const distributionEnvironmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || 'general_roomTemp'] || '一般/常温';
+
       // 롤 필름: 폭만 표시, 길이는 quantity 단계에서 입력
       if (state.bagTypeId === 'roll_film') {
         return (
@@ -972,7 +1306,9 @@ export function createStepSummary(state: QuoteState, getLimitStatus: () => PostP
             <div><span className="font-medium">{LABEL_JA['Type:']}</span> {translateBagType(state.bagTypeId)}</div>
             <div><span className="font-medium">{LABEL_JA['Material:']}</span> {translateMaterialType(state.materialId)}</div>
             <div><span className="font-medium">幅:</span> {state.width}mm</div>
+            <div><span className="font-medium">ピッチ:</span> {state.pitch}mm</div>
             <div><span className="font-medium">フィルム構造:</span> {filmLayerDisplay}</div>
+            <div><span className="font-medium">内容物:</span> {productCategoryLabel}（{contentsTypeLabel}） / {mainIngredientLabel} / {distributionEnvironmentLabel}</div>
           </div>
         );
       }
@@ -982,9 +1318,10 @@ export function createStepSummary(state: QuoteState, getLimitStatus: () => PostP
         <div className="text-sm space-y-1">
           <div><span className="font-medium">{LABEL_JA['Type:']}</span> {translateBagType(state.bagTypeId)}</div>
           <div><span className="font-medium">{LABEL_JA['Material:']}</span> {translateMaterialType(state.materialId)}</div>
-          <div><span className="font-medium">{LABEL_JA['Size:']}</span> {state.width} × {state.height} {state.depth > 0 && `× ${state.depth}`} mm</div>
+          <div><span className="font-medium">{LABEL_JA['Size:']}</span> {state.width} × {state.height} {state.depth > 0 && `× ${state.depth}`}{state.sideWidth && ` × 側面${state.sideWidth}`} mm</div>
           {/* 필름 구조 상세 표시 (모든 파우치 공통) */}
           <div><span className="font-medium">フィルム構造:</span> {filmLayerDisplay}</div>
+          <div><span className="font-medium">内容物:</span> {productCategoryLabel}（{contentsTypeLabel}） / {mainIngredientLabel} / {distributionEnvironmentLabel}</div>
         </div>
       );
     case 'quantity':
@@ -1086,7 +1423,9 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
 
   // Action helpers - wrapped in useCallback with NO state dependencies
   // The reducer handles merging with existing state
-  const updateBasicSpecs = useCallback((specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'thicknessSelection'>>) => {
+  const updateBasicSpecs = useCallback((specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'thicknessSelection'>>) => {
+    console.log('[updateBasicSpecs] Called with specs:', specs);
+    console.log('[updateBasicSpecs] sideWidth in payload:', specs.sideWidth);
     dispatch({
       type: 'SET_BASIC_SPECS',
       payload: specs
@@ -1174,6 +1513,17 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
   }, []);
 
   const updateField = useCallback((field: keyof QuoteState, value: any) => {
+    // ★제품 타입 변경 시 SKU 수량 초기화 (롤 ↔ 파우치 전환 시)
+    if (field === 'bagTypeId') {
+      console.log('[updateField] Product type changed, resetting SKU quantities');
+      // SKU 수량을 1개, 기본 수량(롤: 500, 파우치: 500)로 초기화
+      const defaultQuantity = value === 'roll_film' ? 500 : 500;
+      dispatch({
+        type: 'RESET_SKU_QUANTITIES_ON_PRODUCT_CHANGE',
+        payload: { defaultQuantity }
+      });
+    }
+
     dispatch({
       type: 'UPDATE_FIELD',
       payload: { field, value }
@@ -1247,6 +1597,27 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     dispatch({ type: 'CLEAR_APPLIED_OPTION' });
   }, []);
 
+  const setSealWidth = useCallback((width: string) => {
+    dispatch({ type: 'SET_SEAL_WIDTH', payload: width });
+  }, []);
+
+  const setContents = useCallback((
+    productCategory: QuoteState['productCategory'],
+    contentsType: QuoteState['contentsType'],
+    mainIngredient: QuoteState['mainIngredient'],
+    distributionEnvironment: QuoteState['distributionEnvironment']
+  ) => {
+    dispatch({
+      type: 'SET_CONTENTS',
+      payload: {
+        productCategory,
+        contentsType,
+        mainIngredient,
+        distributionEnvironment
+      }
+    });
+  }, []);
+
   // Memoize the context value with ONLY functions - never changes
   const value: QuoteContextType = useMemo(() => ({
     dispatch,
@@ -1267,7 +1638,9 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     toggleSKUCalculation,
     applyTwoColumnOption,
     applySKUSplit,
-    clearAppliedOption
+    clearAppliedOption,
+    setSealWidth,
+    setContents
   }), []); // Empty dependency array - these functions NEVER change
 
   return (

@@ -29,8 +29,19 @@ export function ProductListItem({
       <Card className="p-6 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={onSelect}>
         <div className="flex gap-6">
           {/* Image */}
-          <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Package className="w-12 h-12 text-gray-400" />
+          <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.name_ja}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                }}
+              />
+            ) : null}
+            <Package className={`w-12 h-12 text-gray-400 ${product.image ? 'hidden' : ''}`} />
           </div>
 
           {/* Content */}
@@ -63,24 +74,14 @@ export function ProductListItem({
                 </Badge>
               ))}
             </div>
-          </div>
 
-          {/* Price and Actions */}
-          <div className="w-48 text-right flex flex-col justify-between">
-            <div>
-              <p className="text-sm text-gray-600">初期費用</p>
-              <p className="text-xl font-bold text-gray-900 mb-1">
-                ¥{(product.pricing_formula as any)?.base_cost?.toLocaleString() || 'お問い合わせ'}
-              </p>
-              <p className="text-sm text-gray-600">単価 ¥{(product.pricing_formula as any)?.per_unit_cost || '---'}/個</p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Button variant="outline" size="sm" className="w-full">
+            {/* Actions */}
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
                 詳細を見る
               </Button>
               <Link href="/quote-simulator">
-                <Button variant="primary" size="sm" className="w-full">
+                <Button variant="primary" size="sm">
                   見積もり
                 </Button>
               </Link>

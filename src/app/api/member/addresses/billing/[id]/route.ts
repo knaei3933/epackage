@@ -36,21 +36,13 @@ const updateBillingAddressSchema = z.object({
 // ============================================================
 
 /**
- * Get user ID from middleware headers (cookie-based auth or DEV_MODE header)
+ * Get user ID from middleware headers (cookie-based auth)
  */
 async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
   try {
     const { headers } = await import('next/headers');
     const headersList = await headers();
-    const userId = headersList.get('x-user-id');
-
-    // Log DEV_MODE usage for debugging
-    const isDevMode = headersList.get('x-dev-mode') === 'true';
-    if (isDevMode && userId) {
-      console.log('[Billing Address [id] API] DEV_MODE: Using x-user-id header:', userId);
-    }
-
-    return userId;
+    return headersList.get('x-user-id');
   } catch (error) {
     console.error('[getUserIdFromRequest] Error:', error);
     return null;

@@ -79,7 +79,7 @@ const updateUserSchema = z.object({
  * Check if current user is admin
  */
 async function isAdmin(
-  supabase: ReturnType<typeof createRouteHandlerClient<Database>>,
+  supabase: any,
   userId: string
 ): Promise<boolean> {
   const { data: profile } = await supabase
@@ -88,14 +88,14 @@ async function isAdmin(
     .eq('id', userId)
     .single();
 
-  return profile?.role === 'ADMIN';
+  return profile?.role?.toLowerCase() === 'admin';
 }
 
 /**
  * Build Supabase query with filters
  */
 function buildQuery(
-  supabase: ReturnType<typeof createRouteHandlerClient<Database>>,
+  supabase: any,
   query: UserListQuery
 ) {
   let dbQuery = supabase

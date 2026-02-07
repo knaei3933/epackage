@@ -278,3 +278,52 @@ export type TemplateDataMap = {
  * テンプレートIDからデータ型を取得
  */
 export type GetTemplateData<T extends EmailTemplateId> = TemplateDataMap[T]
+
+// ============================================================
+// Epackage Lab Email Types
+// ============================================================
+
+/**
+ * Epackage Lab メールテンプレートID
+ */
+export type EpackEmailTemplateId =
+  | 'quoteReady'                    // 見積作成完了（顧客）
+  | 'quoteApproved'                 // 見積承認完了（顧客）
+  | 'dataUploadRequest'             // データ入稿依頼（顧客）
+  | 'dataReceived'                  // データ受領確認（顧客）
+  | 'modificationRequest'           // 修正承認依頼（顧客）
+  | 'modificationApproved'          // 修正承認完了（顧客）
+  | 'modificationRejected'          // 修正却下確認（顧客）
+  | 'correctionReady'               // 校正完了（顧客）
+  | 'approvalRequest'               // 顧客承認待ち（顧客）
+  | 'productionStarted'             // 製造開始（顧客）
+  | 'readyToShip'                   // 出荷準備完了（顧客）
+  | 'shipped'                       // 出荷完了（顧客）
+  | 'orderCancelled'                // 注文キャンセル（顧客）
+  | 'koreaCorrectionRequest'        // 韓国チーム校正依頼（韓国）
+
+/**
+ * オーダーステータスに対応するメールテンプレートID
+ */
+export type OrderStatusToEmailTemplate = {
+  'draft': never
+  'pending_payment': never
+  'payment_confirmed': 'dataUploadRequest'
+  'data_upload_required': 'dataUploadRequest'
+  'data_received': 'dataReceived'
+  'modification_required': 'modificationRequest'
+  'modification_approved': 'modificationApproved'
+  'modification_rejected': 'modificationRejected'
+  'correction_ready': 'correctionReady'
+  'approval_pending': 'approvalRequest'
+  'approved': 'productionStarted'
+  'in_production': 'productionStarted'
+  'quality_check': never
+  'ready_to_ship': 'readyToShip'
+  'shipped': 'shipped'
+  'delivered': never
+  'cancelled': 'orderCancelled'
+  'korea_correction_pending': 'koreaCorrectionRequest'
+  'refund_requested': never
+  'refunded': never
+}

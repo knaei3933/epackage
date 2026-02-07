@@ -22,47 +22,49 @@ import {
 // =====================================================
 
 function getCarrierConfig(carrier: CarrierType): CarrierApiConfig {
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+
   switch (carrier) {
     case CarrierType.YAMATO:
-      if (!process.env.YAMATO_API_KEY) {
+      if (!process.env.YAMATO_API_KEY && !isDevelopment) {
         throw new Error('YAMATO_API_KEY not configured');
       }
       return {
-        apiKey: process.env.YAMATO_API_KEY,
-        senderCode: process.env.YAMATO_SENDER_CODE,
+        apiKey: process.env.YAMATO_API_KEY || 'dev-test-key',
+        senderCode: process.env.YAMATO_SENDER_CODE || 'TEST001',
         endpoint: process.env.YAMATO_ENDPOINT || 'https://dataplus.kuronekoyamato.co.jp',
-        sandbox: process.env.NODE_ENV !== 'production',
+        sandbox: isDevelopment || !process.env.YAMATO_API_KEY,
       };
 
     case CarrierType.SAGAWA:
-      if (!process.env.SAGAWA_API_KEY) {
+      if (!process.env.SAGAWA_API_KEY && !isDevelopment) {
         throw new Error('SAGAWA_API_KEY not configured');
       }
       return {
-        apiKey: process.env.SAGAWA_API_KEY,
-        contractCode: process.env.SAGAWA_CONTRACT_CODE,
+        apiKey: process.env.SAGAWA_API_KEY || 'dev-test-key',
+        contractCode: process.env.SAGAWA_CONTRACT_CODE || 'TEST001',
         endpoint: process.env.SAGAWA_ENDPOINT || 'https://k2k.sagawa-exp.co.jp',
-        sandbox: process.env.NODE_ENV !== 'production',
+        sandbox: isDevelopment || !process.env.SAGAWA_API_KEY,
       };
 
     case CarrierType.JP_POST:
-      if (!process.env.JP_POST_API_KEY) {
+      if (!process.env.JP_POST_API_KEY && !isDevelopment) {
         throw new Error('JP_POST_API_KEY not configured');
       }
       return {
-        apiKey: process.env.JP_POST_API_KEY,
+        apiKey: process.env.JP_POST_API_KEY || 'dev-test-key',
         endpoint: process.env.JP_POST_ENDPOINT || 'https://www.post.japanpost.jp',
-        sandbox: process.env.NODE_ENV !== 'production',
+        sandbox: isDevelopment || !process.env.JP_POST_API_KEY,
       };
 
     case CarrierType.SEINO:
-      if (!process.env.SEINO_API_KEY) {
+      if (!process.env.SEINO_API_KEY && !isDevelopment) {
         throw new Error('SEINO_API_KEY not configured');
       }
       return {
-        apiKey: process.env.SEINO_API_KEY,
+        apiKey: process.env.SEINO_API_KEY || 'dev-test-key',
         endpoint: process.env.SEINO_ENDPOINT || 'https://api.seino.co.jp',
-        sandbox: process.env.NODE_ENV !== 'production',
+        sandbox: isDevelopment || !process.env.SEINO_API_KEY,
       };
 
     default:

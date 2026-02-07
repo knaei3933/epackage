@@ -41,9 +41,12 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/robots',
   '/api/sitemap',
   '/api/auth',
+  '/api/auth/session', // Explicitly exempt session endpoint
   '/api/products', // Public catalog API
   '/api/categories', // Public categories API
   '/api/member', // Member API - handles its own auth via SSR
+  '/api/comparison', // Comparison API - handles client-side data
+  '/api/registry', // Postal code search API - public endpoint
 ];
 
 // =====================================================
@@ -51,7 +54,7 @@ const CSRF_EXEMPT_API_PATHS = [
 // =====================================================
 
 const PROTECTED_ROUTES = {
-  member: ['/member'],
+  member: ['/member', '/quote-simulator'],
   admin: ['/admin'],
 };
 
@@ -62,7 +65,6 @@ const PUBLIC_ROUTES = [
   '/samples',
   '/print',
   '/guide',
-  '/quote-simulator',
   '/roi-calculator',
   '/smart-quote',
   '/industry',
@@ -85,6 +87,7 @@ const PUBLIC_ROUTES = [
   '/auth/reset-password',
   '/auth/pending', // Public page shown after registration
   '/auth/suspended', // Public page for suspended accounts
+  '/auth/error', // Public error page
 ];
 
 // =====================================================
@@ -105,7 +108,10 @@ function createMiddlewareClient(request: NextRequest) {
     console.log('[Middleware] All cookies:', allCookies.map(c => ({ name: c.name, value: c.value ? 'set' : 'empty' })));
   }
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  // Create response object for cookie setting
+  const response = NextResponse.next();
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
         const cookie = request.cookies.get(name);
@@ -115,13 +121,45 @@ function createMiddlewareClient(request: NextRequest) {
         return cookie?.value;
       },
       set(name: string, value: string, options: any) {
-        request.cookies.set({ name, value, ...options });
+        // ✅ requestとresponseの両方にクッキーを設定
+        request.cookies.set({
+          name,
+          value,
+          httpOnly: true,   // ✅ httpOnly設定
+          secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS時のみ
+          sameSite: 'lax',   // ✅ CSRF対策
+          path: '/',         // ✅ 全パスで有効
+          maxAge: 1800,      // ✅ 30分セッション維持
+          ...options,
+        });
+
+        // ✅ responseにも設定（重要：クライアントに送信されるため）
+        response.cookies.set({
+          name,
+          value,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 1800,  // ✅ 30分セッション維持
+          ...options,
+        });
       },
       remove(name: string, options: any) {
         request.cookies.delete({ name, ...options });
+        response.cookies.delete({
+          name,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          ...options,
+        });
       },
     },
   });
+
+  return { supabase, response };
 }
 
 // =====================================================
@@ -251,6 +289,10 @@ export async function middleware(request: NextRequest) {
     console.log('[Middleware] EXECUTING for path:', pathname);
   }
 
+  // DEV_MODE configuration - must be defined early for use in route handlers
+  const isNonProduction = process.env.NODE_ENV !== 'production';
+  const isDevMode = isNonProduction && process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+
   // =====================================================
   // B2B Routes - Return 404 (Deleted Routes)
   // =====================================================
@@ -318,13 +360,76 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
+  // /api/admin routes handle their own authentication in each route
+  // But we still need to add auth headers for the API to use
+  if (pathname.startsWith('/api/admin')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] Processing /api/admin route:', pathname);
+    }
+
+    const response = NextResponse.next();
+
+    // DEV_MODE: Check for mock user cookie first
+    if (isDevMode) {
+      const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+
+      if (devMockUserId) {
+        console.log('[Middleware] DEV_MODE: Setting headers for /api/admin:', devMockUserId);
+        response.headers.set('x-dev-mode', 'true');
+        response.headers.set('x-user-id', devMockUserId);
+        response.headers.set('x-user-role', 'ADMIN');
+        response.headers.set('x-user-status', 'ACTIVE');
+
+        return addSecurityHeaders(response);
+      }
+    }
+
+    // Normal auth: extract user info and add to headers for the API route to use
+    const { supabase, response: authResponse } = createMiddlewareClient(request);
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (user && !error) {
+      // Get user profile for role and status
+      const profile = await getUserProfile(supabase, user.id);
+
+      // Only add headers for admin users
+      if (profile?.role === 'ADMIN') {
+        authResponse.headers.set('x-user-id', user.id);
+        authResponse.headers.set('x-user-role', profile.role);
+        authResponse.headers.set('x-user-status', profile.status || 'ACTIVE');
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] Added auth headers for /api/admin:', user.id, profile?.role, profile?.status);
+        }
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] User is not admin, not adding headers for /api/admin');
+        }
+      }
+    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] No auth for /api/admin - API will handle auth check');
+      }
+    }
+
+    return addSecurityHeaders(authResponse);
+  }
+
+  // /api/cron routes handle their own authentication via CRON_SECRET
+  // Must exempt here to allow cron jobs to run
+  if (pathname.startsWith('/api/cron')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] EARLY EXEMPTION for /api/cron route:', pathname);
+    }
+    return addSecurityHeaders(NextResponse.next());
+  }
+
   // =====================================================
   // DEV_MODE: Bypass authentication for testing (SECURE: server-side only)
   // =====================================================
   // Check for dev mode - enabled when ENABLE_DEV_MOCK_AUTH is true in non-production environments
   // This allows E2E tests to run without real authentication
-  const isNonProduction = process.env.NODE_ENV !== 'production';
-  const isDevMode = isNonProduction && process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+  // Note: isDevMode is now defined at the top of middleware function for early access
 
   // /api/member routes - pass through with authentication headers for API to use
   // Also handle DEV_MODE for /api/member routes
@@ -351,15 +456,15 @@ export async function middleware(request: NextRequest) {
     }
 
     // Normal auth: extract user info and add to headers for the API route to use
-    const supabase = createMiddlewareClient(request);
+    const { supabase, response: authResponse } = createMiddlewareClient(request);
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (user && !error) {
       // Get user profile for role and status
       const profile = await getUserProfile(supabase, user.id);
-      response.headers.set('x-user-id', user.id);
-      response.headers.set('x-user-role', profile?.role || 'MEMBER');
-      response.headers.set('x-user-status', profile?.status || 'ACTIVE');
+      authResponse.headers.set('x-user-id', user.id);
+      authResponse.headers.set('x-user-role', profile?.role || 'MEMBER');
+      authResponse.headers.set('x-user-status', profile?.status || 'ACTIVE');
 
       if (process.env.NODE_ENV === 'development') {
         console.log('[Middleware] Added auth headers for /api/member:', user.id, profile?.role, profile?.status);
@@ -370,7 +475,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    return addSecurityHeaders(response);
+    return addSecurityHeaders(authResponse);
   }
 
   if (isDevMode) {
@@ -419,7 +524,7 @@ export async function middleware(request: NextRequest) {
 
     // 認証が必要なAPIの場合セッション検証
     // (ただし、/api/contact、/api/samples等は認証なしでも許可)
-    const publicAPIs = ['/api/contact', '/api/samples', '/api/quotation'];
+    const publicAPIs = ['/api/contact', '/api/samples', '/api/quotation', '/api/comparison'];
     if (publicAPIs.some(api => pathname.startsWith(api))) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[Middleware] Exempting public API route:', pathname);
@@ -480,7 +585,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check authentication (SECURE: using getUser() instead of getSession())
-  const supabase = createMiddlewareClient(request);
+  const { supabase, response: authResponse } = createMiddlewareClient(request);
   const {
     data: { user },
     error,
@@ -540,15 +645,18 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.redirect(url));
   }
 
-  // Admin routes - require ADMIN role, EXCEPT /admin/customers which allows ACTIVE MEMBER too
+  // Admin routes - require admin role (normalized to lowercase), EXCEPT /admin/customers which allows ACTIVE MEMBER too
   const isAdminRoute = PROTECTED_ROUTES.admin.some((route) =>
     pathname.startsWith(route)
   );
   const isCustomerPortalRoute = pathname.startsWith('/admin/customers');
 
-  // Internal admin routes require ADMIN role only
+  // Normalize role from database (uppercase) to lowercase for comparison
+  const normalizedRole = profile.role?.toLowerCase();
+
+  // Internal admin routes require admin role only
   if (isAdminRoute && !isCustomerPortalRoute) {
-    if (profile.role !== 'ADMIN') {
+    if (normalizedRole !== 'admin') {
       return addSecurityHeaders(
         NextResponse.redirect(new URL('/auth/error?error=AccessDenied', request.url))
       );
@@ -577,12 +685,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Add user info to headers for server components
-  const response = NextResponse.next();
-  response.headers.set('x-user-id', user.id);
-  response.headers.set('x-user-role', profile.role);
-  response.headers.set('x-user-status', profile.status);
+  // ✅ authResponseを使用してクッキー設定を保持
+  authResponse.headers.set('x-user-id', user.id);
+  authResponse.headers.set('x-user-role', profile.role);
+  authResponse.headers.set('x-user-status', profile.status);
 
-  return addSecurityHeaders(response);
+  return addSecurityHeaders(authResponse);
 }
 
 // =====================================================
@@ -606,15 +714,15 @@ function addSecurityHeaders(response: NextResponse) {
   const isDev = process.env.NODE_ENV === 'development';
 
   const cspDirectives = [
-    "default-src 'self'",
+    "default-src 'self' blob:",
     // 開発環境ではunsafe-inline/evalを許可
     isDev
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com"
       : "script-src 'self' https://js.sendgrid.com",
     isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self'",
     "img-src 'self' data: https: blob:",
-    "font-src 'self' data:",
-    "connect-src 'self' https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co",
+    "font-src 'self' data: blob: https://fonts.gstatic.com",
+    "connect-src 'self' blob: data: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co https://fonts.gstatic.com",
     "frame-src 'none'",
     // form-actionを'self'に制限してCSRF防御
     "form-action 'self'",

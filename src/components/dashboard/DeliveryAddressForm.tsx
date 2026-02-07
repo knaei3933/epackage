@@ -40,8 +40,7 @@ export function DeliveryAddressForm({
     postalCode: address?.postalCode || '',
     prefecture: address?.prefecture || '',
     city: address?.city || '',
-    address: address?.address || '',
-    building: address?.building || '',
+    address: address?.address || address?.building || '', // address와 building 결합
     phone: address?.phone || '',
     contactPerson: address?.contactPerson || '',
     isDefault: address?.isDefault || false,
@@ -149,6 +148,7 @@ export function DeliveryAddressForm({
             </label>
             <Input
               type="text"
+              data-testid="delivery-name-input"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="例: 株式会社〇〇 本社"
@@ -163,6 +163,7 @@ export function DeliveryAddressForm({
             </label>
             <Input
               type="text"
+              data-testid="postal-code-input"
               value={formData.postalCode}
               onChange={(e) => handlePostalCodeChange(e.target.value)}
               placeholder="XXX-XXXX"
@@ -177,6 +178,7 @@ export function DeliveryAddressForm({
               都道府県 <span className="text-red-500">*</span>
             </label>
             <select
+              data-testid="prefecture-select"
               value={formData.prefecture}
               onChange={(e) => setFormData({ ...formData, prefecture: e.target.value })}
               className="w-full px-3 py-2 border border-border-secondary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -200,6 +202,7 @@ export function DeliveryAddressForm({
             </label>
             <Input
               type="text"
+              data-testid="city-input"
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
               placeholder="例: 渋谷区"
@@ -207,30 +210,18 @@ export function DeliveryAddressForm({
             />
           </div>
 
-          {/* 番地 */}
+          {/* 番地・建物名 */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">
-              番地 <span className="text-red-500">*</span>
+              番地・建物名 <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
+              data-testid="address-input"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="例: 1-2-3"
+              placeholder="例: 1-2-3 テストビル 5F"
               error={errors.address}
-            />
-          </div>
-
-          {/* 建物名 */}
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">
-              建物名・部屋番号
-            </label>
-            <Input
-              type="text"
-              value={formData.building}
-              onChange={(e) => setFormData({ ...formData, building: e.target.value })}
-              placeholder="例: 〇〇ビル 5F"
             />
           </div>
 
@@ -241,6 +232,7 @@ export function DeliveryAddressForm({
             </label>
             <Input
               type="tel"
+              data-testid="phone-input"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="XXX-XXXX-XXXX"
@@ -255,6 +247,7 @@ export function DeliveryAddressForm({
             </label>
             <Input
               type="text"
+              data-testid="contact-person-input"
               value={formData.contactPerson}
               onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
               placeholder="例: 山田 太郎"
@@ -268,6 +261,7 @@ export function DeliveryAddressForm({
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
+            data-testid="default-delivery-checkbox"
             checked={formData.isDefault}
             onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
             className="w-4 h-4 text-primary border-border-secondary rounded focus:ring-primary"
@@ -280,7 +274,7 @@ export function DeliveryAddressForm({
 
       {/* アクションボタン */}
       <div className="flex gap-3">
-        <Button type="submit" variant="primary" disabled={isSubmitting}>
+        <Button type="submit" variant="primary" disabled={isSubmitting} data-testid="save-delivery-button">
           {isSubmitting ? '保存中...' : submitLabel}
         </Button>
         {onCancel && (

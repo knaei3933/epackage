@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { motion, AnimatePresence, useAnimation } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+const useAnimation = dynamic(() => import('framer-motion').then(mod => ({ default: mod.useAnimation })), { ssr: false })
 import {
   Sparkles,
   Trophy,

@@ -2,7 +2,8 @@
 
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
+;
 
 interface GlassCardProps {
     children: ReactNode;

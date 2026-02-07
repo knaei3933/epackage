@@ -191,14 +191,13 @@ export async function generateContractPdf(
     });
 
     // Generate PDF
-    // Type assertion for Puppeteer PDF options (orientation is valid but not in older type definitions)
+    // Type assertion for Puppeteer PDF options (orientation is valid in Playwright's PDF options)
     const pdfBuffer = await page.pdf({
       format: opts.format,
-      // @ts-ignore - orientation is valid in newer Puppeteer versions
       orientation: opts.orientation as 'portrait' | 'landscape',
       displayHeaderFooter: opts.displayHeaderFooter,
       printBackground: opts.printBackground,
-    } as Parameters<typeof page.pdf>[0]);
+    });
 
     // Save to file if output path specified
     if (opts.outputPath) {
@@ -294,14 +293,13 @@ export async function generateContractPdfWithStyling(
       timeout: 30000,
     });
 
-    // Type assertion for Puppeteer PDF options (orientation is valid but not in older type definitions)
+    // Type assertion for Puppeteer PDF options (orientation is valid in Playwright's PDF options)
     const pdfBuffer = await page.pdf({
       format: opts.format,
-      // @ts-ignore - orientation is valid in newer Puppeteer versions
       orientation: opts.orientation as 'portrait' | 'landscape',
       displayHeaderFooter: opts.displayHeaderFooter,
       printBackground: opts.printBackground,
-    } as Parameters<typeof page.pdf>[0]);
+    });
 
     if (opts.outputPath) {
       await fs.promises.mkdir(path.dirname(opts.outputPath), { recursive: true });
@@ -453,12 +451,12 @@ export function createMockContractData(): ContractData {
       name: 'EPACKAGE Lab株式会社',
       nameKana: 'イーパックケージラボカブシキガイシャ',
       postalCode: '673-0846',
-      address: '兵庫県明石市上ノ丸2-11-21-102',
+      address: '兵庫県明石市上ノ丸2-11-21',
       representative: '金井 一郎',
       representativeTitle: '代表取締役',
       contact: {
-        phone: '+81-80-6942-7235',
-        email: 'kim@kanei-trade.co.jp',
+        phone: '050-1793-6500',
+        email: 'info@package-lab.com',
       },
       bankInfo: {
         bankName: 'PayPay銀行',

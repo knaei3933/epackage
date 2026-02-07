@@ -15,17 +15,20 @@ import {
   ChevronRight,
   DollarSign,
   Tag,
+  Bell,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'ダッシュボード', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: '注文管理', href: '/admin/orders', icon: ShoppingCart },
   { name: '見積管理', href: '/admin/quotations', icon: FileText },
-  { name: '生産管理', href: '/admin/production', icon: Package },
+  // 生産管理は非表示
+  // { name: '生産管理', href: '/admin/production', icon: Package },
   { name: '配送管理', href: '/admin/shipments', icon: Truck },
   { name: '契約管理', href: '/admin/contracts', icon: FileText },
   { name: '会員承認', href: '/admin/approvals', icon: UserCheck },
   { name: '在庫管理', href: '/admin/inventory', icon: Boxes },
+  { name: 'お知らせ管理', href: '/admin/notifications', icon: Bell },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },
   { name: 'リード管理', href: '/admin/leads', icon: Users },
   { name: 'システム設定', href: '/admin/settings', icon: DollarSign },

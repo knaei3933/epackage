@@ -1,0 +1,84 @@
+Total messages: 58 (Errors: 0, Warnings: 0)
+Returning 51 messages for level "info"
+
+[LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [checkStepComplete] Called with step: result state: {bagTypeId: stand_up, materialId: pet_al, width: 200, height: 300, pitch: undefined} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [checkStepComplete] Called with step: result state: {bagTypeId: stand_up, materialId: pet_al, width: 200, height: 300, pitch: undefined} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: true, hasDismiss: true, hasConfirm: false} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Fast Refresh] done in 44ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] postProcessingOptions: [corner-round, glossy, hang-hole-6mm, machi-printing-yes, notch-yes, sealing-width-5mm, top-open, valve-no, zipper-yes] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] postProcessingOptions.includes("notch-straight"): false @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] postProcessingOptions.includes("hang-hole-8mm"): false @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] postProcessingOptions.includes("corner-square"): false @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] specifications FULL: {
+  "bagType": "スタンドパウチ",
+  "contents": "粉体",
+  "size": "200×300×30",
+  "material": "PET AL",
+  "thicknessType": "PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ",
+  "sealWidth": "シール幅 5mm",
+  "sealDirection": "上",
+  "notchShape": "V",
+  "notchPosition": "指定位置",
+  "hanging": "あり",
+  "hangingPosition": "6mm",
+  "zipperPosition": "指定位置",
+  "cornerR": "R5",
+  "machiPrinting": "あり"
+} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] specifications.notchShape: V @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] specifications.hanging: あり @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] specifications.hangingPosition: 6mm @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] specifications.cornerR: R5 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ImprovedQuotingWizard] specifications.machiPrinting: あり @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Received data: {quoteNumber: QT-1770296294429, specifications: Object, optionalProcessing: Object} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] data.optionalProcessing: {zipper: true, notch: true, hangingHole: true, cornerProcessing: true, gasValve: true} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] processing before: {zipper: true, notch: true, hangingHole: true, cornerProcessing: true, gasValve: true} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] specs FULL: {
+  "bagType": "スタンドパウチ",
+  "contents": "粉体",
+  "size": "200×300×30",
+  "material": "PET AL",
+  "thicknessType": "PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ",
+  "sealWidth": "シール幅 5mm",
+  "sealDirection": "上",
+  "notchShape": "V",
+  "notchPosition": "指定位置",
+  "hanging": "あり",
+  "hangingPosition": "6mm",
+  "zipperPosition": "指定位置",
+  "cornerR": "R5",
+  "machiPrinting": "あり"
+} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] specs.notchShape: V @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] specs.hanging: あり @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] specs.hangingPosition: 6mm @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] specs.cornerR: R5 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] specs.machiPrinting: あり type: string truthy: true @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] processing after: {zipper: true, notch: true, hangingHole: true, cornerProcessing: true, gasValve: true} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] processing.surfaceFinish: 光沢 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] hasSKUData: false @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF HTML Generator] skuData: {count: 1, items: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Waiting for container to render... @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Container dimensions: {scrollWidth: 794, scrollHeight: 1123, offsetWidth: 794, offsetHeight: 1123} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Starting html2canvas capture... @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] html2canvas onclone called @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Cloned container found: {scrollWidth: 794, scrollHeight: 1123} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Canvas captured successfully: {width: 1588, height: 2246, dataSize: 728762} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] Cleaning up container... @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Generator] PDF dimensions: {canvasSize: Object, a4Size: Object, margins: Object, contentArea: Object, finalSize: Object} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Download] Blob created, size: 383796 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Download] Blob URL created: blob:http://localhost:3000/2fed2061-c354-43a0-9d36-cacbbe0b66e4 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Download] Download link displayed @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [PDF Download] Link clicked @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] PDF download ready: QT-1770296294429 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] PDF download logged successfully @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Quotation saved successfully (logged): {success: true, quotation: Object, message: 見積を作成しました。, messageEn: Quotation created successfully.} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
+;
 import {
   ChevronDown,
   ChevronUp,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBrowserClient } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 
 /**
@@ -29,13 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const supabase = getBrowserClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
+    const supabase = getServerClient();
 
     // Find coupon by code
     const { data: coupon, error } = await supabase

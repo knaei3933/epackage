@@ -33,78 +33,65 @@ type OrderWithRelations = Database['public']['Tables']['orders']['Row'] & {
 };
 
 /**
- * Helper: Get authenticated user with DEV_MODE support
+ * Helper: Get authenticated user
  */
 async function getAuthenticatedUser(request: NextRequest) {
-  // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
+  // Normal auth: Use cookie-based auth
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   let userId: string;
   let user: any;
   let supabase: any;
 
-  if (isDevMode && devModeUserId) {
-    // DEV_MODE: Use header from middleware
-    console.log('[Orders API] DEV_MODE: Using x-user-id header:', devModeUserId);
-    userId = devModeUserId;
-    user = { id: devModeUserId };
-    const { client: supabaseClient } = createSupabaseSSRClient(request);
-    supabase = supabaseClient;
+  // Try to get user from middleware header first (more reliable)
+  const userIdFromMiddleware = request.headers.get('x-user-id');
+  const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
+
+  if (userIdFromMiddleware && isFromMiddleware) {
+    userId = userIdFromMiddleware;
+    console.log('[Orders API] Using user ID from middleware:', userId);
+    const response = NextResponse.json({ success: false });
+    supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          response.cookies.delete({ name, ...options });
+        },
+      },
+    });
+    user = { id: userId };
   } else {
-    // Normal auth: Use cookie-based auth
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    // Try to get user from middleware header first (more reliable)
-    const userIdFromMiddleware = request.headers.get('x-user-id');
-    const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
-
-    if (userIdFromMiddleware && isFromMiddleware) {
-      userId = userIdFromMiddleware;
-      console.log('[Orders API] Using user ID from middleware:', userId);
-      const response = NextResponse.json({ success: false });
-      supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            response.cookies.set({ name, value, ...options });
-          },
-          remove(name: string, options: any) {
-            response.cookies.delete({ name, ...options });
-          },
+    // Fallback to SSR client auth
+    const response = NextResponse.json({ success: false });
+    supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
         },
-      });
-      user = { id: userId };
-    } else {
-      // Fallback to SSR client auth
-      const response = NextResponse.json({ success: false });
-      supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            response.cookies.set({ name, value, ...options });
-          },
-          remove(name: string, options: any) {
-            response.cookies.delete({ name, ...options });
-          },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options });
         },
-      });
+        remove(name: string, options: any) {
+          response.cookies.delete({ name, ...options });
+        },
+      },
+    });
 
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-      if (authError || !authUser) {
-        console.error('[Orders API] Auth error:', authError);
-        return null;
-      }
-      userId = authUser.id;
-      user = authUser;
-      console.log('[Orders API] Authenticated user:', userId);
+    if (authError || !authUser) {
+      console.error('[Orders API] Auth error:', authError);
+      return null;
     }
+    userId = authUser.id;
+    user = authUser;
+    console.log('[Orders API] Authenticated user:', userId);
   }
 
   return { userId, user, supabase };
@@ -211,8 +198,15 @@ export async function GET(request: NextRequest) {
 
     // Transform and calculate progress percentage for each order
     const statusOrder = [
+      'PENDING',
+      'QUOTATION_PENDING',
       'QUOTATION',
+      'QUOTATION_APPROVED',
+      'DATA_UPLOAD_PENDING',
       'DATA_RECEIVED',
+      'CORRECTION_IN_PROGRESS',
+      'CUSTOMER_APPROVAL_PENDING',
+      'SPEC_APPROVED',
       'WORK_ORDER',
       'CONTRACT_SENT',
       'CONTRACT_SIGNED',
@@ -223,14 +217,11 @@ export async function GET(request: NextRequest) {
     ];
 
     const ordersWithProgress = (ordersWithRelations || []).map((order) => {
-      // Calculate progress percentage
-      const progressPercentage = order.current_state
-        ? (() => {
-            const currentIndex = statusOrder.indexOf(order.current_state);
-            return currentIndex >= 0
-              ? Math.round(((currentIndex + 1) / statusOrder.length) * 100)
-              : 0;
-          })()
+      // Calculate progress percentage - statusを優先、current_stateがなければstatusを使用
+      const statusForProgress = order.current_state || order.status || 'PENDING';
+      const currentIndex = statusOrder.indexOf(statusForProgress);
+      const progressPercentage = currentIndex >= 0
+        ? Math.round(((currentIndex + 1) / statusOrder.length) * 100)
         : 0;
 
       return {

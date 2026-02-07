@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'
+;
 import { Package, Maximize2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 
@@ -14,6 +15,10 @@ interface EnvelopeDimensions {
 interface EnvelopePreviewProps {
   bagTypeId: string;
   dimensions: EnvelopeDimensions;
+  productCategory?: string;
+  contentsType?: string;
+  mainIngredient?: string;
+  distributionEnvironment?: string;
 }
 
 // 封筒タイプ別プレビュー設定
@@ -69,7 +74,7 @@ const bagTypeConfigs = {
   }
 };
 
-const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions }) => {
+const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions, productCategory, contentsType, mainIngredient, distributionEnvironment }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const config = bagTypeConfigs[bagTypeId as keyof typeof bagTypeConfigs];
 
@@ -78,7 +83,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions
     setIsAnimating(true);
     const timer = setTimeout(() => setIsAnimating(false), 300);
     return () => clearTimeout(timer);
-  }, [dimensions]);
+  }, [dimensions.width, dimensions.height, dimensions.depth]);
 
   if (!config) return null;
 
@@ -244,7 +249,46 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
         >
-          現在の設定でプレビューが表示されています。サイズを変更するとリアルタイムで更新されます。
+          {(() => {
+            const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+              'food': '食品',
+              'health_supplement': '健康食品',
+              'cosmetic': '化粧品',
+              'quasi_drug': '医薬部外品',
+              'drug': '医薬品',
+              'other': 'その他'
+            };
+            const CONTENTS_TYPE_LABELS: Record<string, string> = {
+              'solid': '固体',
+              'powder': '粉体',
+              'liquid': '液体'
+            };
+            const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+              'general_neutral': '一般/中性',
+              'oil_surfactant': 'オイル/界面活性剤',
+              'acidic_salty': '酸性/塩分',
+              'volatile_fragrance': '揮発性/香料',
+              'other': 'その他'
+            };
+            const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+              'general_roomTemp': '一般/常温',
+              'light_oxygen_sensitive': '光/酸素敏感',
+              'refrigerated': '冷凍保管',
+              'high_temp_sterilized': '高温殺菌',
+              'other': 'その他'
+            };
+            const categoryLabel = PRODUCT_CATEGORY_LABELS[productCategory || ''] || '';
+            const typeLabel = CONTENTS_TYPE_LABELS[contentsType || ''] || '';
+            const ingredientLabel = MAIN_INGREDIENT_LABELS[mainIngredient || ''] || '';
+            const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[distributionEnvironment || ''] || '';
+            const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
+              ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
+              : '';
+            return contentsDisplay ? (
+              <div className="mb-2">内容物: {contentsDisplay}</div>
+            ) : null;
+          })()}
+          サイズを変更するとリアルタイムで更新されます。
         </motion.div>
       )}
     </motion.div>

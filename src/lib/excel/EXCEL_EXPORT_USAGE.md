@@ -102,9 +102,9 @@ const quotationData: QuotationData = {
     description: 'オーダーメイドバッグ印刷専門',
     companyName: '金井貿易株式会社',
     postalCode: '〒673-0846',
-    address: '兵庫県明石市上ノ丸2-11-21-102',
-    phone: 'TEL: 080-6942-7235',
-    email: 'info@epackage-lab.com'
+    address: '兵庫県明石市上ノ丸2-11-21',
+    phone: 'TEL: 050-1793-6500',
+    email: 'info@package-lab.com'
   },
 
   paymentTerms: {

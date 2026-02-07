@@ -97,20 +97,20 @@ export function EnhancedProductCard({
       {/* Enhanced Image Section */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         {/* Main Product Image */}
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full flex items-center justify-center p-0">
           {product.image ? (
             <>
               <img
                 src={product.image}
                 alt={product.name_ja}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                   e.currentTarget.nextElementSibling?.classList.remove('hidden')
                 }}
               />
               {/* Fallback placeholder */}
-              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hidden">
                 <Package className="w-16 h-16 text-gray-400" />
               </div>
             </>
@@ -198,7 +198,7 @@ export function EnhancedProductCard({
       </div>
 
       {/* Enhanced Content Section */}
-      <div className="p-6 space-y-4">
+      <div className="p-6 space-y-4 text-center">
         {/* Product Title and Description */}
         <div className="space-y-2">
           <h3 className="text-lg font-bold text-gray-900 group-hover:text-brixa-700 transition-colors line-clamp-2">
@@ -241,7 +241,7 @@ export function EnhancedProductCard({
         </div>
 
         {/* Materials */}
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 justify-center">
           {product.materials.slice(0, 3).map((material, idx) => (
             <Badge
               key={idx}
@@ -256,44 +256,6 @@ export function EnhancedProductCard({
               +{product.materials.length - 3}
             </Badge>
           )}
-        </div>
-
-        {/* Pricing Section */}
-        <div className="space-y-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">初期費用</p>
-              <p className="text-xl font-bold text-gray-900">
-                ¥{(product.pricing_formula as any)?.base_cost?.toLocaleString() || 'お問い合わせ'}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500 mb-1">単価</p>
-              <p className="text-lg font-semibold text-brixa-700">
-                ¥{(product.pricing_formula as any)?.per_unit_cost || '---'}
-                <span className="text-xs text-gray-500">/個</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Rating and Reviews */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <div className="flex">
-                {[...Array(5)].map((_, idx) => (
-                  <Star
-                    key={idx}
-                    className={cn(
-                      "w-4 h-4",
-                      idx < 4 ? "text-yellow-400 fill-current" : "text-gray-300"
-                    )}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-600">(4.8)</span>
-            </div>
-            <span className="text-xs text-gray-500">23件の評価</span>
-          </div>
         </div>
 
         {/* Enhanced Action Buttons */}

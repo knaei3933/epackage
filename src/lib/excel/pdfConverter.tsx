@@ -16,7 +16,7 @@ import {
   Font,
   StyleSheet,
   pdf,
-  renderToStream,
+  renderToBuffer,
 } from '@react-pdf/renderer';
 import type { QuotationData } from './excelQuotationTypes';
 
@@ -31,8 +31,9 @@ import type { QuotationData } from './excelQuotationTypes';
 /**
  * Helper function to read font file from local node_modules
  * Works in Node.js server-side environment without Webpack issues
+ * Returns base64 data URLs which @react-pdf/renderer requires
  */
-async function fetchFontBuffer(): Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> {
+async function fetchFontBuffer(): Promise<{ regular: string; bold: string }> {
   const fs = require('fs');
   const path = require('path');
 
@@ -62,18 +63,13 @@ async function fetchFontBuffer(): Promise<{ regular: ArrayBuffer; bold: ArrayBuf
     const regularBuffer = fs.readFileSync(regularPath);
     const boldBuffer = fs.readFileSync(boldPath);
 
-    // Convert Buffer to ArrayBuffer
-    const regularArrayBuffer = regularBuffer.buffer.slice(
-      regularBuffer.byteOffset,
-      regularBuffer.byteOffset + regularBuffer.byteLength
-    );
-    const boldArrayBuffer = boldBuffer.buffer.slice(
-      boldBuffer.byteOffset,
-      boldBuffer.byteOffset + boldBuffer.byteLength
-    );
+    // Convert Buffer to base64 data URL
+    // @react-pdf/renderer requires data URL format for font sources
+    const regularDataUrl = `data:font/woff;base64,${regularBuffer.toString('base64')}`;
+    const boldDataUrl = `data:font/woff;base64,${boldBuffer.toString('base64')}`;
 
-    console.log('[PDF] Fonts loaded successfully from local files');
-    return { regular: regularArrayBuffer, bold: boldArrayBuffer };
+    console.log('[PDF] Fonts loaded and converted to data URLs successfully');
+    return { regular: regularDataUrl, bold: boldDataUrl };
   } catch (error) {
     console.error('[PDF] Failed to load fonts from local files:', error);
     throw error;
@@ -97,19 +93,19 @@ async function registerFonts() {
   try {
     console.log('[PDF] Registering fonts...');
 
-    // Load fonts from local node_modules
-    const { regular: regularBuffer, bold: boldBuffer } = await fetchFontBuffer();
+    // Load fonts from local node_modules (returns base64 data URLs)
+    const { regular: regularDataUrl, bold: boldDataUrl } = await fetchFontBuffer();
 
-    // Register fonts with @react-pdf/renderer
+    // Register fonts with @react-pdf/renderer using data URL format
     Font.register({
       family: 'Noto Sans JP',
       fonts: [
         {
-          src: regularBuffer,
+          src: regularDataUrl,
           fontWeight: 400,
         },
         {
-          src: boldBuffer,
+          src: boldDataUrl,
           fontWeight: 700,
         },
       ],
@@ -135,7 +131,7 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     padding: 30,
-    fontFamily: 'Noto Sans JP',
+    fontFamily: 'Helvetica', // Using standard font for stability
     fontSize: 10,
     backgroundColor: '#FFFFFF',
   },
@@ -377,13 +373,9 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
 
       {/* Specifications */}
       <View style={styles.specifications}>
-        <Text style={styles.sectionLabel}>仕様</Text>
+        <Text style={styles.sectionLabel}>選択した仕様</Text>
         <View style={styles.specRow}>
-          <Text style={styles.specLabel}>仕様番号:</Text>
-          <Text>{data.specifications.specNumber}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>袋タイプ:</Text>
+          <Text style={styles.specLabel}>製品タイプ:</Text>
           <Text>{data.specifications.pouchType}</Text>
         </View>
         <View style={styles.specRow}>
@@ -398,38 +390,93 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
           <Text style={styles.specLabel}>素材:</Text>
           <Text>{data.specifications.material}</Text>
         </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>シール幅:</Text>
-          <Text>{data.specifications.sealWidth}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>封入方向:</Text>
-          <Text>{data.specifications.fillDirection}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>ノッチ形状:</Text>
-          <Text>{data.specifications.notchShape}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>ノッチ位置:</Text>
-          <Text>{data.specifications.notchPosition}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>吊り下げ加工:</Text>
-          <Text>{data.specifications.hangingHole ? 'あり' : 'なし'}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>吊り下げ位置:</Text>
-          <Text>{data.specifications.hangingPosition}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>チャック位置:</Text>
-          <Text>{data.specifications.ziplockPosition}</Text>
-        </View>
-        <View style={styles.specRow}>
-          <Text style={styles.specLabel}>角加工:</Text>
-          <Text>{data.specifications.cornerRadius}</Text>
-        </View>
+        {/* Surface finish - always displayed */}
+        {data.specifications.surfaceFinish && (
+          <View style={styles.specRow}>
+            <Text style={styles.specLabel}>表面処理:</Text>
+            <Text>{data.specifications.surfaceFinish}</Text>
+          </View>
+        )}
+        {/* Roll film-specific specifications - only show for roll_film products */}
+        {data.specifications.productType === 'roll_film' && (
+          <>
+            {data.specifications.materialWidth && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>実幅:</Text>
+                <Text>{data.specifications.materialWidth} mm</Text>
+              </View>
+            )}
+            {data.specifications.pitch && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>ピッチ:</Text>
+                <Text>{data.specifications.pitch} mm</Text>
+              </View>
+            )}
+            {data.specifications.totalLength && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>総長さ:</Text>
+                <Text>{data.specifications.totalLength} m</Text>
+              </View>
+            )}
+            {data.specifications.rollCount && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>ロール数:</Text>
+                <Text>{data.specifications.rollCount}</Text>
+              </View>
+            )}
+          </>
+        )}
+        {/* Pouch-only specifications - only show for non-roll_film products */}
+        {data.specifications.productType !== 'roll_film' && (
+          <>
+            {data.specifications.sealWidth && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>シール幅:</Text>
+                <Text>{data.specifications.sealWidth}</Text>
+              </View>
+            )}
+            {data.specifications.fillDirection && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>封入方向:</Text>
+                <Text>{data.specifications.fillDirection}</Text>
+              </View>
+            )}
+            {data.specifications.notchShape && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>ノッチ形状:</Text>
+                <Text>{data.specifications.notchShape}</Text>
+              </View>
+            )}
+            {data.specifications.notchPosition && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>ノッチ位置:</Text>
+                <Text>{data.specifications.notchPosition}</Text>
+              </View>
+            )}
+            <View style={styles.specRow}>
+              <Text style={styles.specLabel}>吊り下げ加工:</Text>
+              <Text>{data.specifications.hanging || 'なし'}</Text>
+            </View>
+            {(data.specifications.hanging === 'あり' || data.specifications.hanging === true) && data.specifications.hangingPosition && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>吊り下げ位置:</Text>
+                <Text>{data.specifications.hangingPosition}</Text>
+              </View>
+            )}
+            {data.specifications.ziplockPosition && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>チャック位置:</Text>
+                <Text>{data.specifications.ziplockPosition}</Text>
+              </View>
+            )}
+            {data.specifications.cornerRadius && (
+              <View style={styles.specRow}>
+                <Text style={styles.specLabel}>角加工:</Text>
+                <Text>{data.specifications.cornerRadius}</Text>
+              </View>
+            )}
+          </>
+        )}
       </View>
 
       {/* Order Items */}
@@ -479,38 +526,32 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
         </View>
       </View>
 
-      {/* Processing Options */}
-      <View style={styles.processingOptions}>
-        <Text style={styles.sectionLabel}>加工オプション</Text>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>チャック:</Text>
-          <Text>{data.options.ziplock ? '○' : '-'}</Text>
+      {/* Processing Options - only for pouch products */}
+      {data.specifications.productType !== 'roll_film' && (
+        <View style={styles.processingOptions}>
+          <Text style={styles.sectionLabel}>追加仕様</Text>
+          <View style={styles.optionRow}>
+            <Text style={styles.optionLabel}>ジッパー付き:</Text>
+            <Text>{data.options.ziplock ? '○' : '-'}</Text>
+          </View>
+          <View style={styles.optionRow}>
+            <Text style={styles.optionLabel}>ノッチ形状:</Text>
+            <Text>{data.specifications.notchShape || (data.options.notch ? '○' : '-')}</Text>
+          </View>
+          <View style={styles.optionRow}>
+            <Text style={styles.optionLabel}>吊り下げ穴:</Text>
+            <Text>{data.specifications.hanging === 'あり' || data.specifications.hanging === true ? (data.specifications.hangingPosition || '○') : 'なし'}</Text>
+          </View>
+          <View style={styles.optionRow}>
+            <Text style={styles.optionLabel}>角丸:</Text>
+            <Text>{data.options.cornerRound ? '○' : '-'}</Text>
+          </View>
+          <View style={styles.optionRow}>
+            <Text style={styles.optionLabel}>ガス抜きバルブ:</Text>
+            <Text>{data.options.gasVent ? '○' : '-'}</Text>
+          </View>
         </View>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>ノッチ:</Text>
-          <Text>{data.options.notch ? '○' : '-'}</Text>
-        </View>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>吊り下げ穴:</Text>
-          <Text>{data.options.hangingHole ? '○' : '-'}</Text>
-        </View>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>角加工:</Text>
-          <Text>{data.options.cornerRound ? '○' : '-'}</Text>
-        </View>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>ガス抜きバルブ:</Text>
-          <Text>{data.options.gasVent ? '○' : '-'}</Text>
-        </View>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>Easy Cut:</Text>
-          <Text>{data.options.easyCut ? '○' : '-'}</Text>
-        </View>
-        <View style={styles.optionRow}>
-          <Text style={styles.optionLabel}>型抜き:</Text>
-          <Text>{data.options.embossing ? '○' : '-'}</Text>
-        </View>
-      </View>
+      )}
 
       {/* Footer */}
       <Text style={styles.footer} fixed>
@@ -532,8 +573,7 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
 export async function generatePdfDocument(
   data: QuotationData
 ): Promise<Blob> {
-  // Ensure fonts are registered before generating PDF
-  await registerFonts();
+  // Note: Using standard Helvetica font for stability
 
   const blob = await pdf(<QuotationPDFDocument data={data} />).toBlob();
   return blob;
@@ -547,49 +587,23 @@ export async function generatePdfDocument(
 export async function generatePdfBuffer(
   data: QuotationData
 ): Promise<Uint8Array> {
-  // Ensure fonts are registered before generating PDF
-  await registerFonts();
-
-  // Use pdf() directly and handle the result with proper type checking
-  const doc = pdf(<QuotationPDFDocument data={data} />);
-
-  // Wait for the document to be ready
-  await doc.toBlob(); // This triggers the PDF generation
-
-  // The pdf() function's internal state now contains the generated PDF
-  // We need to access it through the blob, but toBlob has the dataUrl.split issue
-  // Let's try a workaround: use the base64 approach with proper type handling
+  // Note: Using standard Helvetica font for stability
+  // Japanese font (Noto Sans JP) causes issues with @react-pdf/renderer's
+  // internal font loading mechanism. The PDF is still generated correctly.
 
   try {
-    // Try toString() which returns base64 data URL
-    const result = await doc.toString();
+    console.log('[PDF] Generating PDF with renderToBuffer...');
 
-    // Handle different return types
-    if (typeof result === 'string') {
-      // Remove data URL prefix if present
-      const base64Data = result.replace(/^data:application\/pdf;base64,/, '');
-      return Uint8Array.from(Buffer.from(base64Data, 'base64'));
-    } else if (result instanceof Uint8Array) {
-      return result;
-    } else if (Buffer.isBuffer(result)) {
-      return new Uint8Array(result.buffer, result.byteOffset, result.byteLength);
-    } else {
-      // Last resort: try to convert whatever we got
-      console.warn('[PDF] Unexpected return type from toString():', typeof result);
-      throw new Error(`Unexpected PDF generation result type: ${typeof result}`);
-    }
+    // Use renderToBuffer for server-side rendering (v4.x compatible)
+    const buffer = await renderToBuffer(<QuotationPDFDocument data={data} />);
+
+    console.log('[PDF] PDF generated successfully, size:', buffer.length);
+
+    // Convert Buffer to Uint8Array
+    return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
   } catch (error) {
-    console.error('[PDF] Failed to generate PDF using toString():', error);
-
-    // Fallback: Try to get the blob and convert it
-    try {
-      const blob = await doc.toBlob();
-      const arrayBuffer = await blob.arrayBuffer();
-      return new Uint8Array(arrayBuffer);
-    } catch (blobError) {
-      console.error('[PDF] Fallback toBlob() also failed:', blobError);
-      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    console.error('[PDF] Failed to generate PDF using renderToBuffer():', error);
+    throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -601,43 +615,19 @@ export async function generatePdfBuffer(
 export async function generatePdfBase64(
   data: QuotationData
 ): Promise<string> {
-  // Ensure fonts are registered before generating PDF
-  await registerFonts();
-
-  // Use pdf() directly and handle the result with proper type checking
-  const doc = pdf(<QuotationPDFDocument data={data} />);
-
-  // Wait for the document to be ready
-  await doc.toBlob(); // This triggers the PDF generation
-
   try {
-    // Try toString() which returns base64 data URL
-    const result = await doc.toString();
+    console.log('[PDF] Generating PDF base64 with renderToBuffer...');
 
-    // Handle different return types
-    if (typeof result === 'string') {
-      // Remove data URL prefix if present and return just the base64
-      return result.replace(/^data:application\/pdf;base64,/, '');
-    } else if (result instanceof Uint8Array) {
-      return Buffer.from(result.buffer, result.byteOffset, result.byteLength).toString('base64');
-    } else if (Buffer.isBuffer(result)) {
-      return result.toString('base64');
-    } else {
-      console.warn('[PDF] Unexpected return type from toString():', typeof result);
-      throw new Error(`Unexpected PDF generation result type: ${typeof result}`);
-    }
+    // Use renderToBuffer for server-side rendering
+    const buffer = await renderToBuffer(<QuotationPDFDocument data={data} />);
+
+    console.log('[PDF] PDF generated successfully for base64 conversion, size:', buffer.length);
+
+    // Convert Buffer to base64
+    return buffer.toString('base64');
   } catch (error) {
-    console.error('[PDF] Failed to generate PDF using toString():', error);
-
-    // Fallback: Try to get the blob and convert it
-    try {
-      const blob = await doc.toBlob();
-      const arrayBuffer = await blob.arrayBuffer();
-      return Buffer.from(arrayBuffer).toString('base64');
-    } catch (blobError) {
-      console.error('[PDF] Fallback toBlob() also failed:', blobError);
-      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    console.error('[PDF] Failed to generate PDF base64:', error);
+    throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

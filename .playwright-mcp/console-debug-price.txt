@@ -1,0 +1,1180 @@
+[LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Fast Refresh] done in 301ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] 📊 INP: {value: 56.00ms, rating: good, delta: 56.00ms} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] 📊 CLS: {value: 0.02, rating: good, delta: 0.02} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [QuoteContext] initialState created: {materialWidth: 590, filmLayers: Array(4), filmLayersCount: 4} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [QuoteProvider] State updated: {materialWidth: 590, filmLayers: Array(4), filmLayersCount: 4, materialId: pet_al} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Initializing auth context... @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] NODE_ENV: development @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 4.700000047683716ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 1.9000000953674316ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ImagePreload = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.40000009536743164ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AuthModal = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.3000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 4.299999952316284ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.8000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] 📊 FCP: {value: 1660.00ms, rating: good, delta: 1660.00ms} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] 📊 TTFB: {value: 1571.30ms, rating: needs-improvement, delta: 1571.30ms} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ http://localhost:3000/api/comparison/save:0
+[LOG] API unavailable, using localStorage data @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: flat_3_side, basePouchType: flat_3_side, hasZipper: false, finalPouchType: flat_3_side, baseMinimumPrice: 200000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 500, perColorPerMeter: 475, printingCostKRW: 237500, totalCostKRW: 237500, totalCostJPY: 28500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: flat_3_side, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 121275.00383405399} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: flat_3_side, basePouchType: flat_3_side, hasZipper: false, finalPouchType: flat_3_side, baseMinimumPrice: 200000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 600, perColorPerMeter: 475, printingCostKRW: 285000, totalCostKRW: 285000, totalCostJPY: 34200} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 1000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: flat_3_side, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 129654.00383405399} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: flat_3_side, basePouchType: flat_3_side, hasZipper: false, finalPouchType: flat_3_side, baseMinimumPrice: 200000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 800, perColorPerMeter: 475, printingCostKRW: 380000, totalCostKRW: 380000, totalCostJPY: 45600} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 2000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: flat_3_side, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 146412.003834054} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: flat_3_side, basePouchType: flat_3_side, hasZipper: false, finalPouchType: flat_3_side, baseMinimumPrice: 200000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 1400, perColorPerMeter: 475, printingCostKRW: 665000, totalCostKRW: 665000, totalCostJPY: 79800} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 5000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: flat_3_side, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 152586.003834054} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: flat_3_side, basePouchType: flat_3_side, hasZipper: false, finalPouchType: flat_3_side, baseMinimumPrice: 200000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 2400, perColorPerMeter: 475, printingCostKRW: 1140000, totalCostKRW: 1140000, totalCostJPY: 136800} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 10000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: flat_3_side, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 236376.00383405402} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 3.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 1.899999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ImagePreload = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 1.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AuthModal = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 2.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.3000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 4.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] 📊 FID: {value: 0.50ms, rating: good, delta: 0.50ms} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 500, perColorPerMeter: 475, printingCostKRW: 237500, totalCostKRW: 237500, totalCostJPY: 28500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 85995.00383405399} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 600, perColorPerMeter: 475, printingCostKRW: 285000, totalCostKRW: 285000, totalCostJPY: 34200} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 1000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 94374.00383405399} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 800, perColorPerMeter: 475, printingCostKRW: 380000, totalCostKRW: 380000, totalCostJPY: 45600} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 2000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 111132.00383405399} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 1400, perColorPerMeter: 475, printingCostKRW: 665000, totalCostKRW: 665000, totalCostJPY: 79800} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 5000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 161406.003834054} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 2400, perColorPerMeter: 475, printingCostKRW: 1140000, totalCostKRW: 1140000, totalCostJPY: 136800} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.06, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.007349399999999999, quantity: 10000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 245196.003834054} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 2.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 1.5999999046325684ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 2.5999999046325684ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 2.200000047683716ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.4000000953674316ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 465, perColorPerMeter: 475, printingCostKRW: 220875, totalCostKRW: 220875, totalCostJPY: 26505} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.039, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.004777109999999999, quantity: 500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 83062.35249213509} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 530, perColorPerMeter: 475, printingCostKRW: 251750, totalCostKRW: 251750, totalCostJPY: 30210} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.039, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.004777109999999999, quantity: 1000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 88508.7024921351} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 660, perColorPerMeter: 475, printingCostKRW: 313500, totalCostKRW: 313500, totalCostJPY: 37620} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.039, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.004777109999999999, quantity: 2000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 99401.4024921351} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 1050, perColorPerMeter: 475, printingCostKRW: 498750, totalCostKRW: 498750, totalCostJPY: 59850} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.039, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.004777109999999999, quantity: 5000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 132079.50249213507} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 1700, perColorPerMeter: 475, printingCostKRW: 807500, totalCostKRW: 807500, totalCostJPY: 96900} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.039, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.004777109999999999, quantity: 10000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 186543.0024921351} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 1.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.9000000953674316ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 4.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 465, perColorPerMeter: 475, printingCostKRW: 220875, totalCostKRW: 220875, totalCostJPY: 26505} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.0169, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.0020700809999999997, quantity: 500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 83062.35107992521} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 530, perColorPerMeter: 475, printingCostKRW: 251750, totalCostKRW: 251750, totalCostJPY: 30210} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.0169, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.0020700809999999997, quantity: 1000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 88508.7010799252} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 660, perColorPerMeter: 475, printingCostKRW: 313500, totalCostKRW: 313500, totalCostJPY: 37620} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.0169, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.0020700809999999997, quantity: 2000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 99401.40107992518} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 1050, perColorPerMeter: 475, printingCostKRW: 498750, totalCostKRW: 498750, totalCostJPY: 59850} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.0169, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.0020700809999999997, quantity: 5000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 132079.5010799252} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] params.postProcessingMultiplier: undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] paramsPostProcessingMultiplier (extracted): undefined @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] final postProcessingMultiplier: 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UnifiedPricingEngine] postProcessingOptions: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {bagTypeId: stand_up, basePouchType: stand_up, hasZipper: false, finalPouchType: stand_up, baseMinimumPrice: 250000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Printing Cost Pouch] {totalMeters: 1700, perColorPerMeter: 475, printingCostKRW: 807500, totalCostKRW: 807500, totalCostJPY: 96900} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Delivery Cost] {pouchAreaM2: 0.0169, totalThicknessMm: 0.107, totalWeightPerM2: 0.12248999999999999, weightPerPouch: 0.0020700809999999997, quantity: 10000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Sales Margin Calculation] {bagTypeId: stand_up, isRollFilm: false, salesMargin: 0.2, markupRate: 0.2, importCost: 186543.0010799252} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.5999999046325684ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 1.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.3000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 2.0999999046325684ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 4.199999928474426ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 6.400000095367432ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 2.3000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.2000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 3.0999999046325684ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 2.299999952316284ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 2.200000047683716ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 4.299999952316284ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.200000047683716ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 2.1999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.2000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 4.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.3000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 5.699999928474426ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no, corner-square] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no, corner-square] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] corner-square (角直角): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no, corner-square] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no, corner-square] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] corner-square (角直角): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.8000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.899999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 5.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 4.099999904632568ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.9000000953674316ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] corner-square (角直角): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] valve-no (バルブなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no] payload.multiplier: 1.05 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] corner-square (角直角): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] valve-no (バルブなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.05 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.40000009536743164ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.40000009536743164ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 6.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.9000000953674316ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.4000000953674316ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no, top-open] payload.multiplier: 1.07 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no, top-open] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] corner-square (角直角): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] valve-no (バルブなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[WARNING] [calculatePostProcessingMultiplier] Option not found: top-open @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.07 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Action received. payload.options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no, top-open] payload.multiplier: 1.07 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Input options: [matte, zipper-no, notch-no, hang-hole-no, corner-square, valve-no, top-open] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] matte excluded from multiplier (calculated as additional cost) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] zipper-no (ジッパーなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] notch-no (ノッチなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] hang-hole-no (吊り穴なし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] corner-square (角直角): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] valve-no (バルブなし): 1, 1 * 1 = 1 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[WARNING] [calculatePostProcessingMultiplier] Option not found: top-open @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculatePostProcessingMultiplier] Final multiplier: 1 Details: [Object, Object, Object, Object, Object] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [SET_POST_PROCESSING] Calculated multiplier: 1 (ignoring payload.multiplier: 1.07 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.5999999046325684ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PostProcessingGroups = 5.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 3.8000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 4.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 9.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 2.200000047683716ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.100000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UPDATE_SKU_QUANTITY] Updating index: 0 to value: 5000 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UPDATE_SKU_QUANTITY] Current quantities: [500] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UPDATE_SKU_QUANTITY] New quantities: [5000] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UPDATE_SKU_QUANTITY] Updating index: 0 to value: 5000 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UPDATE_SKU_QUANTITY] Current quantities: [500] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [UPDATE_SKU_QUANTITY] New quantities: [5000] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ChevronRight = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 4.400000095367432ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 2.799999952316284ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Current state: {quantityMode: single, skuCount: 1, skuQuantities: Array(1), quantity: 500} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] hasValidSKUData Check: @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] - skuCount > 1: false (skuCount = 1 ) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] - skuQuantities exists: true @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] - skuQuantities: [5000] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] - Length check: 1 === 1 : true @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] - Every check (all >= 100): true @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] - FINAL hasValidSKUData: true @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] SKU mode detected (via hasValidSKUData), quantities: [5000] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Setting quantityMode to "sku" @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Calculated total quantity: 5000 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Calculating quote for SKU mode, total quantity: 5000 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[WARNING] [getCustomerMarkupRate] Exception: Error: Supabase service credentials not configured
+    at createServiceClient (http://localhost:3000/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_99b1b402._.js:1548:15)
+    at getCustomerMarkupRate (http://localhost:3000/_next/static/chunks/925d6_02_epac_homepagever1_1_src_components_quote_ImprovedQuotingWizard_tsx_f44bd2d9._.js:79:229)
+    at handleNext (http://localhost:3000/_next/static/chunks/925d6_02_epac_homepagever1_1_src_components_quote_ImprovedQuotingWizard_tsx_f44bd2d9._.js:4198:48)
+    at executeDispatch (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:10314:13)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:965:74)
+    at processDispatchQueue (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:10340:41)
+    at http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:10615:13
+    at batchedUpdates$1 (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:2253:44)
+    at dispatchEventForPluginEventSystem (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:10416:9)
+    at dispatchEvent (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:12935:37)
+    at dispatchDiscreteEvent (http://localhost:3000/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:12917:64) @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Customer markup rate: 0.5 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Film Width Calculation] {pouchType: stand_up, dimensions: Object, skuCount: 1, totalQuantity: 5000, filmWidth2Columns: 620} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateTheoreticalMeters] {pouchType: stand_up, dimensions: Object, pitch: 130, columnCount: 2, quantity: 5000} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateTheoreticalMeters] result: {pouchesPerMeter: 15.384615384615385, result: 325} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateSingleSKUCost] Delivery Weight: {deliveryWeight: 10.972585, quantity: 5000, pouchType: stand_up} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateSingleSKUCost] Before calculateFilmCost: {theoreticalMeters: 325, securedMeters: 325, totalMetersForCost: 725, materialWidth: 590, skuCount: 1} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateFilmCost] DEBUG: {filmLayersReceived: Array(4), baseLayers: Array(4), thicknessSelection: medium} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [FilmCostCalculator DEBUG] lossRate: 0 effectiveLossRate: 0 length: 725 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [FilmCostCalculator DEBUG] lengthWithLoss calculation: 725 * (1 + 0 ) = 725 @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.59, lengthWithLoss: 725} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateMaterialCost] LAYER: {materialId: PET, thickness: 12, thicknessMm: 0.012, widthM: 0.59, lengthWithLoss: 725} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateMaterialCost] LAYER: {materialId: AL, thickness: 7, thicknessMm: 0.007, widthM: 0.59, lengthWithLoss: 725} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateMaterialCost] LAYER: {materialId: PET, thickness: 12, thicknessMm: 0.012, widthM: 0.59, lengthWithLoss: 725} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateMaterialCost] LAYER: {materialId: LLDPE, thickness: 70, thicknessMm: 0.07, widthM: 0.59, lengthWithLoss: 725} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateMaterialCost] RESULT: {totalCost: 180667.0565, totalWeight: 50.0339175, totalCostRounded: 180667} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.59, lengthWithLoss: 725, postProcessingOptions: Array(7), hasGlossy: false, hasMatte: true} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateSurfaceTreatmentCost] Matte treatment cost calculated: {widthM: 0.59, MATTE_SURFACE_COST_PER_M: 40, lengthWithLoss: 725, cost: 17110, roundedCost: 17110} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Pouch Processing Cost] {pouchType: stand_up, finalPouchType: stand_up, baseMinimumPrice: 250000, hasZipper: false, zipperSurcharge: 0} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateCostBreakdown] DEBUG: {filmCostTotalKRW: 685506, pouchProcessingCostKRW: 250000, baseCostKRW: 935506, quantity: 5000, deliveryJPY: 15358} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [calculateSKUCost] Delivery Calculation: {totalDeliveryWeight: 10.972585, deliveryBoxes: 1, totalDeliveryJPY: 15357.599999999999, perBoxCostJPY: 15357.599999999999} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Quote calculation result: {unitPrice: 45, totalPrice: 225116, currency: JPY, quantity: 5000, skuCount: 1} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Enhanced result: {unitPrice: 45, totalPrice: 225116, currency: JPY, quantity: 5000, skuCount: 1} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Setting result with hasValidSKUData: true @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] Setting result with skuQuantities: [5000] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.8999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 2.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.600000023841858ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.2000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [handleNext] About to change step to result @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 4.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 1.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Unmount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ErrorToast = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ResponsiveStepIndicators = 1.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​EnvelopePreview = 1.3000000715255737ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.7000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 8.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Mount = 0.3999999761581421ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1)} @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Cascading Update = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6000000238418579ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​QuantityOptionsGrid = 1.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1.399999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​OptionCard = 1.2000000476837158ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 1ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Card = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.button) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 2.899999976158142ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 2.5ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef = 0ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Input = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Button = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.20000004768371582ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​LinkComponent = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​Container = 0.30000007152557373ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: Update = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.6999999284744263ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​AnimatePresence = 0.2999999523162842ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​PresenceChild = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.19999992847442627ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.09999990463256836ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] Performance: ​ForwardRef(motion.div) = 0.10000002384185791ms @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297

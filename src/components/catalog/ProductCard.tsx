@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useCallback } from 'react'
-import { useLanguage } from '@/contexts/LanguageContext'
 import { useCatalog } from '@/contexts/CatalogContext'
 import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { Badge, TagBadge } from '@/components/ui/Badge'
@@ -16,7 +15,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const { language, t, tn } = useLanguage()
   const { openModal } = useCatalog()
 
   const handleCardClick = useCallback(() => {
@@ -57,24 +55,16 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const primaryImage = product.images.find(img => img.isPrimary) || product.images[0]
 
   const getName = () => {
-    switch (language) {
-      case 'en': return product.nameEn
-      case 'ja':
-      default: return product.name
-    }
+    return product.name
   }
 
   const getDescription = () => {
-    switch (language) {
-      case 'en': return product.descriptionEn
-      case 'ja':
-      default: return product.description
-    }
+    return product.description
   }
 
   const getPriceDisplay = () => {
     if (product.type === 'custom' && product.pricing.basePrice === 0) {
-      return tn('catalog', 'actions.contactUs')
+      return 'お問い合わせ'
     }
     return `${product.pricing.basePrice.toLocaleString()} ${product.pricing.currency}`
   }
@@ -103,12 +93,12 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {product.isNew && (
             <Badge variant="success" size="sm">
-              {language === 'en' ? 'NEW' : '新商品'}
+              新商品
             </Badge>
           )}
           {product.isFeatured && (
             <Badge variant="warning" size="sm">
-              {language === 'en' ? 'FEATURED' : '注目'}
+              注目
             </Badge>
           )}
         </div>
@@ -121,7 +111,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             onClick={handleQuickView}
             className="bg-white/95 hover:bg-white text-brixa-700 border border-brixa-600 shadow-lg min-w-[80px] font-medium"
           >
-            {language === 'en' ? 'Quick View' : '詳細'}
+            詳細
           </Button>
         </div>
       </div>
@@ -187,7 +177,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                   onClick={handleSampleRequest}
                   className="border-brixa-400 text-brixa-700 hover:bg-brixa-50 hover:border-brixa-500 font-medium min-w-[80px]"
                 >
-                  {tn('catalog', 'actions.requestSample')}
+                  サンプル依頼
                 </Button>
               )}
               <Button
@@ -197,7 +187,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                 className="font-medium min-w-[80px]"
               >
                 <span className="text-xs">
-                  {language === 'en' ? 'Template' : 'テンプレート'}
+                  テンプレート
                 </span>
               </Button>
             </div>
@@ -206,8 +196,8 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             {/* Additional Info */}
           <div className="mt-3 pt-3 border-t border-gray-100">
             <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>{tn('catalog', 'details.minOrder')}: {product.minOrder.quantity} {product.minOrder.unit}</span>
-              <span>{tn('catalog', 'details.leadTime')}: {product.leadTime.min}-{product.leadTime.max} {product.leadTime.unit}</span>
+              <span>最小注文数: {product.minOrder.quantity} {product.minOrder.unit}</span>
+              <span>納期: {product.leadTime.min}-{product.leadTime.max} {product.leadTime.unit}</span>
             </div>
           </div>
         </div>

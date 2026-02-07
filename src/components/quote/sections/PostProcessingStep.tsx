@@ -8,6 +8,7 @@
 import React from 'react';
 import { Settings, Check, AlertCircle, Info } from 'lucide-react';
 import { useQuote, useQuoteState, createStepSummary, getPostProcessingLimitStatusForState } from '@/contexts/QuoteContext';
+import { getDefaultPostProcessingOptions, calculatePostProcessingMultiplier } from '../processingConfig';
 
 export interface PostProcessingOption {
   id: string;
@@ -58,12 +59,21 @@ const POST_PROCESSING_OPTIONS: PostProcessingOption[] = [
   },
   {
     id: 'notch-yes',
-    name: 'ノッチ付き',
+    name: 'Vノッチ',
     multiplier: 1.03,
-    description: '開封しやすいノッチ付き',
-    detailedDescription: '手で簡単に開封できるノッチ加工。スナック包装に適しています。',
+    description: '開封しやすいVノッチ付き',
+    detailedDescription: '手で簡単に開封できるVノッチ加工。スナック包装に適しています。',
     previewImage: '/images/post-processing/3.ノッチあり.png',
     features: ['手で簡単開封', '清潔な切断', '工具不要']
+  },
+  {
+    id: 'notch-straight',
+    name: '直線ノッチ',
+    multiplier: 1.02,
+    description: '直線的なノッチ加工',
+    detailedDescription: '直線的なノッチ加工で綺麗な開封を実現。',
+    previewImage: '/images/post-processing/3.直線ノッチ.png',
+    features: ['綺麗な切断', '直線的デザイン', '開封簡単']
   },
   {
     id: 'notch-no',
@@ -120,15 +130,6 @@ const POST_PROCESSING_OPTIONS: PostProcessingOption[] = [
     features: ['伝統外観', '最大スペース', 'クラシックデザイン']
   },
   {
-    id: 'valve-yes',
-    name: 'バルブ付き',
-    multiplier: 1.08,
-    description: 'コーヒー製品用の一方弁付き',
-    detailedDescription: '空気を逃がす一方通行バルブ。コーヒー豆などの脱ガスが必要な製品に最適です。',
-    previewImage: '/images/post-processing/バルブあり.png',
-    features: ['脱ガス機能', '湿気防止', '鮮度保持']
-  },
-  {
     id: 'valve-no',
     name: 'バルブなし',
     multiplier: 1.0,
@@ -136,6 +137,15 @@ const POST_PROCESSING_OPTIONS: PostProcessingOption[] = [
     detailedDescription: 'バルブなしの標準パウチ構造。',
     previewImage: '/images/post-processing/バルブなし.png',
     features: ['シンプル構造', 'コスト効率', '標準デザイン']
+  },
+  {
+    id: 'valve-yes',
+    name: 'バルブ付き',
+    multiplier: 1.08,
+    description: 'コーヒー製品用の一方弁付き',
+    detailedDescription: '空気を逃がす一方通行バルブ。コーヒー豆などの脱ガスが必要な製品に最適です。',
+    previewImage: '/images/post-processing/バルブあり.png',
+    features: ['脱ガス機能', '湿気防止', '鮮度保持']
   },
   {
     id: 'top-open',
@@ -179,14 +189,46 @@ const ZIPPER_POSITION_OPTIONS: PostProcessingOption[] = [
   }
 ];
 
+// シール幅オプション（ロールフィルムを除く）
+const SEALING_WIDTH_OPTIONS: PostProcessingOption[] = [
+  {
+    id: 'sealing-width-5mm',
+    name: 'シール幅 5mm',
+    multiplier: 1.0,
+    description: '標準的な5mmシール幅',
+    detailedDescription: '最も一般的な5mmシール幅。コスト効率に優れています。',
+    previewImage: '/images/post-processing/シール幅5mm.png',
+    features: ['標準仕様', 'コスト効率', '汎用性']
+  },
+  {
+    id: 'sealing-width-7-5mm',
+    name: 'シール幅 7.5mm',
+    multiplier: 1.0,
+    description: '強化された7.5mmシール幅',
+    detailedDescription: '強度が必要な中型製品に適した7.5mmシール幅。',
+    previewImage: '/images/post-processing/シール幅7.5mm.png',
+    features: ['強化シール', '中型製品対応', '密封性向上']
+  },
+  {
+    id: 'sealing-width-10mm',
+    name: 'シール幅 10mm',
+    multiplier: 1.0,
+    description: '最強の10mmシール幅',
+    detailedDescription: '重袋や工業用途に適した最強の10mmシール幅。',
+    previewImage: '/images/post-processing/シール幅10mm.png',
+    features: ['最強シール', '重袋対応', '最大耐久性']
+  }
+];
+
 // Mutually exclusive option groups
 const EXCLUSIVE_GROUPS: Record<string, string[]> = {
   'zipper-yes': ['zipper-no'],
   'zipper-no': ['zipper-yes'],
   'glossy': ['matte'],
   'matte': ['glossy'],
-  'notch-yes': ['notch-no'],
-  'notch-no': ['notch-yes'],
+  'notch-yes': ['notch-no', 'notch-straight'],
+  'notch-straight': ['notch-yes', 'notch-no'],
+  'notch-no': ['notch-yes', 'notch-straight'],
   'hang-hole-6mm': ['hang-hole-8mm', 'hang-hole-no'],
   'hang-hole-8mm': ['hang-hole-6mm', 'hang-hole-no'],
   'hang-hole-no': ['hang-hole-6mm', 'hang-hole-8mm'],
@@ -195,7 +237,39 @@ const EXCLUSIVE_GROUPS: Record<string, string[]> = {
   'valve-yes': ['valve-no'],
   'valve-no': ['valve-yes'],
   'top-open': ['bottom-open'],
-  'bottom-open': ['top-open']
+  'bottom-open': ['top-open'],
+  'zipper-position-any': ['zipper-position-specified'],
+  'zipper-position-specified': ['zipper-position-any'],
+  // シール幅（排他グループ）
+  'sealing-width-5mm': ['sealing-width-7-5mm', 'sealing-width-10mm'],
+  'sealing-width-7-5mm': ['sealing-width-5mm', 'sealing-width-10mm'],
+  'sealing-width-10mm': ['sealing-width-5mm', 'sealing-width-7-5mm']
+};
+
+// オプションIDをカテゴリーにマッピング
+const OPTION_CATEGORIES: Record<string, string> = {
+  'zipper-yes': 'zipper',
+  'zipper-no': 'zipper',
+  'glossy': 'finish',
+  'matte': 'finish',
+  'notch-yes': 'notch',
+  'notch-straight': 'notch',
+  'notch-no': 'notch',
+  'hang-hole-6mm': 'hang-hole',
+  'hang-hole-8mm': 'hang-hole',
+  'hang-hole-no': 'hang-hole',
+  'corner-round': 'corner',
+  'corner-square': 'corner',
+  'valve-yes': 'valve',
+  'valve-no': 'valve',
+  'top-open': 'open',
+  'bottom-open': 'open',
+  'zipper-position-any': 'zipper-position',
+  'zipper-position-specified': 'zipper-position',
+  // シール幅
+  'sealing-width-5mm': 'sealing-width',
+  'sealing-width-7-5mm': 'sealing-width',
+  'sealing-width-10mm': 'sealing-width'
 };
 
 interface PostProcessingStepProps {
@@ -207,7 +281,80 @@ interface PostProcessingStepProps {
  */
 export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) {
   const state = useQuoteState();
-  const { updatePostProcessing } = useQuote();
+  const { updatePostProcessing, setSealWidth } = useQuote();
+
+  // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示
+  const getVisibleOptions = (): PostProcessingOption[] => {
+    console.log('[PostProcessingStep] getVisibleOptions called, bagTypeId:', state.bagTypeId);
+    if (state.bagTypeId === 'spout_pouch' || state.bagTypeId === 'roll_film') {
+      // 表面処理のみ（glossy, matte）
+      const filtered = POST_PROCESSING_OPTIONS.filter(opt =>
+        opt.id === 'glossy' || opt.id === 'matte'
+      );
+      console.log('[PostProcessingStep]', state.bagTypeId, 'detected, filtered options:', filtered.map(o => o.id));
+      return filtered;
+    }
+    console.log('[PostProcessingStep] Not spout_pouch/roll_film, returning all options');
+    return POST_PROCESSING_OPTIONS;
+  };
+
+  // 初期状態でデフォルトオプションを自動選択
+  React.useEffect(() => {
+    // processingConfig.tsのgetDefaultPostProcessingOptions()を使用
+    const currentOptions = state.postProcessingOptions || [];
+
+    // スパウトパウチ・ロールフィルムの場合は表面処理のみ（1カテゴリー）
+    // それ以外は7つすべてのカテゴリー
+    const isLimitedPostProcessing = state.bagTypeId === 'spout_pouch' || state.bagTypeId === 'roll_film';
+    const expectedCategoryCount = isLimitedPostProcessing ? 1 : 7;
+
+    // 現在の選択からカテゴリーを抽出
+    const currentCategories = new Set(
+      currentOptions.map(id => OPTION_CATEGORIES[id]).filter(Boolean)
+    );
+
+    // 必要なカテゴリーがすべて揃っていない場合、または重複がある場合、デフォルトを設定
+    const isMissingCategories = currentCategories.size < expectedCategoryCount;
+    const hasDuplicates = currentOptions.length !== currentCategories.size;
+
+    console.log('[PostProcessingStep] Initialization check:', {
+      bagTypeId: state.bagTypeId,
+      isLimitedPostProcessing,
+      expectedCategoryCount,
+      currentCategories: Array.from(currentCategories),
+      isMissingCategories,
+      hasDuplicates,
+      currentOptionsLength: currentOptions.length,
+      currentCategoriesSize: currentCategories.size
+    });
+
+    if (isMissingCategories || hasDuplicates || currentOptions.length === 0) {
+      let defaultOptions: string[];
+
+      if (isLimitedPostProcessing) {
+        // スパウトパウチ・ロールフィルム：表面処理のみ
+        // 既存の選択（glossy/matte）を保持
+        const existingFinish = currentOptions.find(opt => opt === 'glossy' || opt === 'matte');
+        if (existingFinish) {
+          defaultOptions = [existingFinish];
+          console.log('[PostProcessingStep] Preserving existing finish option:', existingFinish);
+        } else {
+          defaultOptions = ['glossy'];
+          console.log('[PostProcessingStep] No existing finish, using default glossy');
+        }
+      } else {
+        // その他：すべてのデフォルトオプション
+        defaultOptions = getDefaultPostProcessingOptions(state.bagTypeId);
+      }
+
+      const defaultMultiplier = calculatePostProcessingMultiplier(defaultOptions);
+      console.log('[PostProcessingStep] Initializing default options:', defaultOptions, 'multiplier:', defaultMultiplier);
+      updatePostProcessing(defaultOptions, defaultMultiplier);
+    } else {
+      // デバッグ: 初期化されなかった場合のログ
+      console.log('[PostProcessingStep] No initialization needed. currentOptions:', currentOptions, 'expectedCategoryCount:', expectedCategoryCount);
+    }
+  }, [state.bagTypeId]); // bagTypeIdが変更されたときにのみ実行（postProcessingOptionsの変更で再実行されないように削除）
 
   // Use the provided getStepSummary or create one from state
   const stepSummary = getStepSummary || ((step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step));
@@ -215,19 +362,35 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
   const toggleOption = (optionId: string, multiplier: number) => {
     const currentOptions = state.postProcessingOptions || [];
 
-    let newOptions: string[];
+    console.log('[toggleOption] Clicked option:', optionId, 'Current options:', currentOptions);
 
-    if (currentOptions.includes(optionId)) {
-      // If deselecting, simply remove the option
-      newOptions = currentOptions.filter(id => id !== optionId);
-    } else {
-      // If selecting, remove mutually exclusive options first
-      const exclusiveOptions = EXCLUSIVE_GROUPS[optionId] || [];
-      newOptions = [
-        ...currentOptions.filter(id => !exclusiveOptions.includes(id)),
-        optionId
-      ];
+    // 常に新しい選択を適用 - 同じカテゴリのオプションは自動的に除外される
+    const category = OPTION_CATEGORIES[optionId];
+    const exclusiveOptions = EXCLUSIVE_GROUPS[optionId] || [];
+
+    console.log('[toggleOption] Category:', category, 'Exclusive:', exclusiveOptions);
+
+    // 同じカテゴリーのオプションを除外（相互排他グループ）
+    // 重要：選択しようとしているオプション自体はフィルタリングから除外する
+    const newOptions = currentOptions.filter(id => {
+      // 選択しようとしているオプションは削除（toggle処理のため）
+      if (id === optionId) return false;
+
+      const idCategory = OPTION_CATEGORIES[id];
+      // 同じカテゴリまたは相互排他グループのオプションを除外
+      return idCategory !== category && !exclusiveOptions.includes(id);
+    });
+
+    console.log('[toggleOption] After filter:', newOptions);
+
+    // オプションを追加（既に選択されている場合はtoggle処理で削除済みのため追加）
+    // 選択されていなかった場合、またはフィルタリングで削除された場合のみ追加
+    const isAlreadySelected = currentOptions.includes(optionId);
+    if (!isAlreadySelected || newOptions.length < currentOptions.length) {
+      newOptions.push(optionId);
     }
+
+    console.log('[toggleOption] Final options:', newOptions);
 
     // Calculate total multiplier (including zipper position options)
     const allOptions = [...ZIPPER_POSITION_OPTIONS, ...POST_PROCESSING_OPTIONS];
@@ -236,6 +399,7 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
       return acc + (option ? option.multiplier - 1 : 0);
     }, 1.0);
 
+    console.log('[toggleOption] Updating with multiplier:', totalMultiplier);
     updatePostProcessing(newOptions, totalMultiplier);
   };
 
@@ -269,13 +433,47 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
           </div>
         </div>
 
+        {/* シール幅選択（ロールフィルムを除く） - カテゴリー内の最初に表示 */}
+        <div className="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <h4 className="text-sm font-medium text-amber-900 mb-3 flex items-center">
+              <Settings className="w-4 h-4 mr-1" />
+              シール幅の選択 <span className="text-xs text-amber-700 ml-2">(必須)</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {SEALING_WIDTH_OPTIONS.map((option) => {
+                const isSelected = state.sealWidth === option.id.replace('sealing-width-', '').replace('-', '.');
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setSealWidth(option.id.replace('sealing-width-', '').replace('-', '.'))}
+                    className={`p-3 border rounded-lg text-left transition-all duration-200 ${
+                      isSelected
+                        ? 'border-amber-500 bg-amber-100 text-amber-900 shadow-sm'
+                        : 'border-gray-300 bg-white text-gray-900 hover:border-amber-300 hover:bg-amber-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm">{option.name}</span>
+                      {isSelected && <Check className="w-4 h-4 text-amber-600" />}
+                    </div>
+                    <div className="text-xs text-gray-600">{option.description}</div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-600 mt-2">
+              現在の選択: {state.sealWidth || '5mm'} (デフォルト)
+            </p>
+          </div>
+
         <div className="mb-4">
           <p className="text-sm text-gray-600 mb-4">
             追加の後加工オプションを選択してください（オプション）
           </p>
 
           <div className="space-y-4">
-            {POST_PROCESSING_OPTIONS.map(option => {
+            {getVisibleOptions().map(option => {
               const conflictingOptions = getConflictingOptions(option.id);
 
               return (
@@ -283,7 +481,7 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
                 key={option.id}
                 className={`border-2 rounded-lg overflow-hidden transition-all relative ${
                   state.postProcessingOptions?.includes(option.id)
-                    ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
+                    ? 'border-success-500 bg-success-50 shadow-md transform scale-[1.01]'
                     : conflictingOptions.length > 0
                     ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400'
                     : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
@@ -291,7 +489,7 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
               >
                 {state.postProcessingOptions?.includes(option.id) && (
                   <div className="absolute top-2 right-2 z-10">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-success-500 rounded-full flex items-center justify-center">
                       <Check className="w-4 h-4 text-white" />
                     </div>
                   </div>
@@ -381,8 +579,8 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
 
         {/* ジッパー位置選択 */}
         {state.postProcessingOptions?.includes('zipper-yes') && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="text-sm font-medium text-blue-900 mb-3 flex items-center">
+          <div className="mt-6 p-4 bg-info-50 rounded-lg border border-blue-200">
+            <h4 className="text-sm font-medium text-info-900 mb-3 flex items-center">
               <Settings className="w-4 h-4 mr-1" />
               ジッパー位置の選択
             </h4>
@@ -394,14 +592,14 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
                   onClick={() => toggleOption(position.id, position.multiplier)}
                   className={`p-3 border rounded-lg text-left transition-all duration-200 ${
                     state.postProcessingOptions?.includes(position.id)
-                      ? 'border-blue-500 bg-blue-100 text-blue-900'
-                      : 'border-gray-300 bg-white text-gray-900 hover:border-blue-300 hover:bg-blue-50'
+                      ? 'border-info-500 bg-info-50 text-info-900'
+                      : 'border-gray-300 bg-white text-gray-900 hover:border-blue-300 hover:bg-info-50'
                   }`}
                 >
                   <div className="font-medium text-sm">{position.name}</div>
                   <div className="text-xs text-gray-600 mt-1">{position.description}</div>
                   {position.multiplier > 0 && (
-                    <div className="text-xs text-blue-600 font-medium mt-2">
+                    <div className="text-xs text-info-600 font-medium mt-2">
                       追加倍率: ×{position.multiplier}
                     </div>
                   )}

@@ -37,24 +37,22 @@ interface PendingMember {
   business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR' | null;
   company_name: string | null;
   legal_entity_number: string | null;
-  corporate_number: string | null;
-  founded_year: string | null;
-  capital: string | null;
-  representative_name: string | null;
   kanji_last_name: string;
   kanji_first_name: string;
   kana_last_name: string;
   kana_first_name: string;
   corporate_phone: string | null;
   personal_phone: string | null;
+  postal_code: string | null;
   prefecture: string | null;
   city: string | null;
   street: string | null;
-  building: string | null;
   business_document_path: string | null;
   position: string | null;
   department: string | null;
+  company_url: string | null;
   product_category: string | null;
+  acquisition_channel: string | null;
   created_at: string;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
 }

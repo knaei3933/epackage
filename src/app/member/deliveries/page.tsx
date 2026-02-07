@@ -178,7 +178,7 @@ export default function DeliveryAddressesPage() {
           </p>
         </div>
         {!isCreating && !editingId && (
-          <Button variant="primary" onClick={() => setIsCreating(true)}>
+          <Button variant="primary" onClick={() => setIsCreating(true)} data-testid="new-delivery-button">
             <span className="mr-2">+</span>新規追加
           </Button>
         )}

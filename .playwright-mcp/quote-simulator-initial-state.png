@@ -1,0 +1,494 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "製品カタログ" [ref=e12] [cursor=pointer]:
+          - /url: /catalog
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19] [cursor=pointer]:
+          - /url: /archives
+        - button "お見積り" [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - button "ユーザーメニュー" [ref=e246] [cursor=pointer]:
+          - generic [ref=e247]: 管
+          - generic [ref=e248]: 管理 者
+          - img [ref=e249]
+        - link "お問い合わせ" [ref=e24] [cursor=pointer]:
+          - /url: /contact
+          - button "お問い合わせ" [ref=e25]:
+            - generic [ref=e26]: お問い合わせ
+  - navigation "Breadcrumb" [ref=e27]:
+    - link "ホーム" [ref=e29] [cursor=pointer]:
+      - /url: /
+      - img [ref=e30]
+      - generic [ref=e33]: ホーム
+    - generic [ref=e34]:
+      - generic [ref=e35]: /
+      - generic [ref=e36]: Quote Simulator
+  - main [ref=e37]:
+    - generic [ref=e38]:
+      - link "メインコンテンツにスキップ" [ref=e39] [cursor=pointer]:
+        - /url: "#main-content"
+      - main [ref=e40]:
+        - generic [ref=e42]:
+          - generic [ref=e45]:
+            - navigation "パンくずリスト" [ref=e46]:
+              - link "ホーム" [ref=e47] [cursor=pointer]:
+                - /url: /
+              - generic [ref=e48]: /
+              - generic [ref=e49]: 統合見積もりシステム
+            - heading "統合見積もりシステム" [level=1] [ref=e50]
+            - paragraph [ref=e51]: AI-poweredでお客様のニーズに合わせた最適な包装ソリューションをご提案します
+          - main [ref=e251]:
+            - generic [ref=e252]:
+              - progressbar "見積もり作成の進捗状況" [ref=e254]:
+                - generic [ref=e255]:
+                  - generic [ref=e256]: 進捗状況
+                  - generic [ref=e257]: 25% 完了
+                - complementary "キーボードショートカット" [ref=e261]:
+                  - img [ref=e262]
+                  - generic [ref=e264]: "キーボードショートカット:"
+                  - generic [ref=e265]:
+                    - generic [ref=e266]: ← →
+                    - generic [ref=e267]: ステップ移動
+                    - generic [ref=e268]: Ctrl + Enter
+                    - generic [ref=e269]: 次へ
+                    - generic [ref=e270]: Esc
+                    - generic [ref=e271]: 閉じる
+                - navigation "見積もり作成のステップ" [ref=e272]:
+                  - generic [ref=e273]:
+                    - button "基本仕様 - 現在のステップ" [disabled] [ref=e274]:
+                      - img [ref=e275]
+                    - generic [ref=e279]: 基本仕様
+                  - generic [ref=e281]:
+                    - button "後加工 - 利用できません" [disabled] [ref=e282]:
+                      - img [ref=e283]
+                    - generic [ref=e286]: 後加工
+                  - generic [ref=e288]:
+                    - button "SKU・数量 - 利用できません" [disabled] [ref=e289]:
+                      - img [ref=e290]
+                    - generic [ref=e294]: SKU・数量
+                  - generic [ref=e296]:
+                    - button "見積結果 - 利用できません" [disabled] [ref=e297]:
+                      - img [ref=e298]
+                    - generic [ref=e300]: 見積結果
+              - generic [ref=e301]:
+                - generic [ref=e303]:
+                  - generic [ref=e304]:
+                    - generic [ref=e305]:
+                      - generic [ref=e306]:
+                        - img [ref=e307]
+                        - heading "袋のプレビュー" [level=3] [ref=e311]
+                      - generic [ref=e312]:
+                        - img [ref=e313]
+                        - generic [ref=e318]: リアルタイム
+                    - generic [ref=e320]:
+                      - generic [ref=e321]:
+                        - img "平袋" [ref=e322]
+                        - generic [ref=e324]:
+                          - text: "幅: 200mm"
+                          - text: "高さ: 300mm"
+                      - generic [ref=e326]: "幅: 200mm | 高さ: 300mm"
+                    - generic [ref=e328]:
+                      - generic [ref=e329]:
+                        - generic [ref=e330]: "タイプ:"
+                        - generic [ref=e331]: 平袋
+                      - generic [ref=e332]:
+                        - generic [ref=e333]: "実寸:"
+                        - generic [ref=e334]: 200×300mm
+                      - generic [ref=e335]:
+                        - generic [ref=e336]: "面積:"
+                        - generic [ref=e337]: 60.0cm²
+                    - generic [ref=e338]: サイズを変更するとリアルタイムで更新されます。
+                  - generic [ref=e339]:
+                    - heading "手順" [level=2] [ref=e340]
+                    - navigation [ref=e341]:
+                      - button "基本仕様 サイズ・素材・厚さ" [ref=e342] [cursor=pointer]:
+                        - img [ref=e344]
+                        - generic [ref=e348]:
+                          - generic [ref=e349]: 基本仕様
+                          - generic [ref=e350]: サイズ・素材・厚さ
+                      - button "後加工 追加仕様" [disabled] [ref=e351]:
+                        - img [ref=e353]
+                        - generic [ref=e356]:
+                          - generic [ref=e357]: 後加工
+                          - generic [ref=e358]: 追加仕様
+                      - button "SKU・数量 SKU数と数量設定" [disabled] [ref=e359]:
+                        - img [ref=e361]
+                        - generic [ref=e365]:
+                          - generic [ref=e366]: SKU・数量
+                          - generic [ref=e367]: SKU数と数量設定
+                      - button "見積結果 価格詳細" [disabled] [ref=e368]:
+                        - img [ref=e370]
+                        - generic [ref=e372]:
+                          - generic [ref=e373]: 見積結果
+                          - generic [ref=e374]: 価格詳細
+                - generic [ref=e376]:
+                  - generic [ref=e378]:
+                    - heading "基本仕様の選択" [level=2] [ref=e379]:
+                      - img [ref=e380]
+                      - text: 基本仕様の選択
+                    - generic [ref=e384]:
+                      - generic [ref=e385]: 内容物 *
+                      - generic [ref=e386]:
+                        - generic [ref=e387]:
+                          - generic [ref=e388]: 製品タイプ
+                          - combobox [ref=e389]:
+                            - option "選択してください" [disabled] [selected]
+                            - option "食品"
+                            - option "健康食品"
+                            - option "化粧品"
+                            - option "医薬部外品"
+                            - option "医薬品"
+                            - option "その他"
+                        - generic [ref=e390]:
+                          - generic [ref=e391]: 内容物の形態
+                          - combobox [ref=e392]:
+                            - option "選択してください" [disabled] [selected]
+                            - option "固体"
+                            - option "粉体"
+                            - option "液体"
+                        - generic [ref=e393]:
+                          - generic [ref=e394]: 主成分
+                          - combobox [ref=e395]:
+                            - option "選択してください" [disabled] [selected]
+                            - option "一般/中性"
+                            - option "オイル/界面活性剤"
+                            - option "酸性/塩分"
+                            - option "揮発性/香料"
+                            - option "その他"
+                        - generic [ref=e396]:
+                          - generic [ref=e397]: 流通環境
+                          - combobox [ref=e398]:
+                            - option "選択してください" [disabled] [selected]
+                            - option "一般/常温"
+                            - option "光/酸素敏感"
+                            - option "冷凍保管"
+                            - option "高温殺菌"
+                            - option "その他"
+                      - generic [ref=e399]: "選択: 選択してください /選択してください /選択してください /選択してください"
+                    - generic [ref=e400]:
+                      - generic [ref=e401]:
+                        - generic [ref=e402]: 袋のタイプ
+                        - generic [ref=e403]:
+                          - 'button "平袋 平袋 基本的な平たい袋タイプ 最も一般的な平袋タイプ。三方をシールし、一方は開口部 基本価格: ¥15/個" [ref=e404] [cursor=pointer]':
+                            - img [ref=e407]
+                            - generic [ref=e409]:
+                              - img "平袋" [ref=e411]
+                              - generic [ref=e412]:
+                                - generic [ref=e413]: 平袋
+                                - text: 基本的な平たい袋タイプ
+                                - generic [ref=e414]: 最も一般的な平袋タイプ。三方をシールし、一方は開口部
+                                - generic [ref=e415]: "基本価格: ¥15/個"
+                          - 'button "スタンドパウチ スタンドパウチ 底が広がり自立するタイプ 底部がガセット構造で自立可能。陳列効果に優れる 基本価格: ¥25/個" [ref=e416] [cursor=pointer]':
+                            - generic [ref=e417]:
+                              - img "スタンドパウチ" [ref=e419]
+                              - generic [ref=e420]:
+                                - generic [ref=e421]: スタンドパウチ
+                                - text: 底が広がり自立するタイプ
+                                - generic [ref=e422]: 底部がガセット構造で自立可能。陳列効果に優れる
+                                - generic [ref=e423]: "基本価格: ¥25/個"
+                          - 'button "合掌袋 合掌袋 両サイドを合掌シールした袋 両サイドを合掌状にシールし、底部は平らな構造 基本価格: ¥17/個" [ref=e424] [cursor=pointer]':
+                            - generic [ref=e425]:
+                              - img "合掌袋" [ref=e427]
+                              - generic [ref=e428]:
+                                - generic [ref=e429]: 合掌袋
+                                - text: 両サイドを合掌シールした袋
+                                - generic [ref=e430]: 両サイドを合掌状にシールし、底部は平らな構造
+                                - generic [ref=e431]: "基本価格: ¥17/個"
+                          - 'button "ボックス型パウチ ボックス型パウチ 箱型形状で保護性に優れる 立体的な箱型形状で内容物を保護。高級感のあるデザイン 基本価格: ¥30/個" [ref=e432] [cursor=pointer]':
+                            - generic [ref=e433]:
+                              - img "ボックス型パウチ" [ref=e435]
+                              - generic [ref=e436]:
+                                - generic [ref=e437]: ボックス型パウチ
+                                - text: 箱型形状で保護性に優れる
+                                - generic [ref=e438]: 立体的な箱型形状で内容物を保護。高級感のあるデザイン
+                                - generic [ref=e439]: "基本価格: ¥30/個"
+                          - 'button "スパウトパウチ スパウトパウチ 液体製品に最適な注ぎ口付き 液体・粉末製品向けの注ぎ口付き。注ぎやすく再密閉可能 基本価格: ¥35/個" [ref=e440] [cursor=pointer]':
+                            - generic [ref=e441]:
+                              - img "スパウトパウチ" [ref=e443]
+                              - generic [ref=e444]:
+                                - generic [ref=e445]: スパウトパウチ
+                                - text: 液体製品に最適な注ぎ口付き
+                                - generic [ref=e446]: 液体・粉末製品向けの注ぎ口付き。注ぎやすく再密閉可能
+                                - generic [ref=e447]: "基本価格: ¥35/個"
+                          - 'button "ロールフィルム ロールフィルム 自動包装機対応のフィルム 自動包装機向けロール状フィルム。大量生産に最適 基本価格: ¥8/個" [ref=e448] [cursor=pointer]':
+                            - generic [ref=e449]:
+                              - img "ロールフィルム" [ref=e451]
+                              - generic [ref=e452]:
+                                - generic [ref=e453]: ロールフィルム
+                                - text: 自動包装機対応のフィルム
+                                - generic [ref=e454]: 自動包装機向けロール状フィルム。大量生産に最適
+                                - generic [ref=e455]: "基本価格: ¥8/個"
+                      - generic [ref=e456]:
+                        - generic [ref=e457]: サイズ (mm)
+                        - generic [ref=e458]:
+                          - generic [ref=e459]:
+                            - generic [ref=e460]: 幅
+                            - spinbutton [ref=e461]: "200"
+                          - generic [ref=e462]:
+                            - generic [ref=e463]: 高さ
+                            - spinbutton [ref=e464]: "300"
+                      - generic [ref=e465]:
+                        - generic [ref=e466]: 素材
+                        - generic [ref=e467]:
+                          - button "PET AL 人気 アルミ箔ラミネートによる高バリア性 高バリア性能 遮光性に優れる 酸素透過率が低い" [ref=e468] [cursor=pointer]:
+                            - img [ref=e471]
+                            - generic [ref=e474]:
+                              - generic [ref=e475]:
+                                - generic [ref=e476]: PET AL
+                                - generic [ref=e477]: 人気
+                              - generic [ref=e478]: アルミ箔ラミネートによる高バリア性
+                              - generic [ref=e480]:
+                                - generic [ref=e481]: 高バリア性能
+                                - generic [ref=e482]: 遮光性に優れる
+                                - generic [ref=e483]: 酸素透過率が低い
+                          - button "PET VMPET アルミ蒸着によるプレミアムバリア性能 薄肉設計 蒸着処理によるバリア性 フレキシブル対応" [ref=e484] [cursor=pointer]:
+                            - generic [ref=e486]:
+                              - generic [ref=e488]: PET VMPET
+                              - generic [ref=e489]: アルミ蒸着によるプレミアムバリア性能
+                              - generic [ref=e491]:
+                                - generic [ref=e492]: 薄肉設計
+                                - generic [ref=e493]: 蒸着処理によるバリア性
+                                - generic [ref=e494]: フレキシブル対応
+                          - button "PET LLDPE 透明性に優れるPETとLLDPEシール層 透明性に優れる 中身が見える シール性良好" [ref=e495] [cursor=pointer]:
+                            - generic [ref=e497]:
+                              - generic [ref=e499]: PET LLDPE
+                              - generic [ref=e500]: 透明性に優れるPETとLLDPEシール層
+                              - generic [ref=e502]:
+                                - generic [ref=e503]: 透明性に優れる
+                                - generic [ref=e504]: 中身が見える
+                                - generic [ref=e505]: シール性良好
+                          - button "PET NY AL 高強度ナイロンとアルミ箔の組み合わせ 高強度・高バリア 耐ピンホール性 ガスバリア性最高" [ref=e506] [cursor=pointer]:
+                            - generic [ref=e508]:
+                              - generic [ref=e510]: PET NY AL
+                              - generic [ref=e511]: 高強度ナイロンとアルミ箔の組み合わせ
+                              - generic [ref=e513]:
+                                - generic [ref=e514]: 高強度・高バリア
+                                - generic [ref=e515]: 耐ピンホール性
+                                - generic [ref=e516]: ガスバリア性最高
+                    - generic [ref=e517]:
+                      - generic [ref=e519]:
+                        - text: 厚さのタイプ
+                        - generic [ref=e520]: 必須
+                      - generic [ref=e521]:
+                        - 'button "軽量タイプ (~100g) PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ 重量: ~100g" [ref=e522] [cursor=pointer]':
+                          - generic [ref=e524]:
+                            - generic [ref=e525]: 軽量タイプ (~100g)
+                            - generic [ref=e526]: PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ
+                            - generic [ref=e528]: "重量: ~100g"
+                        - 'button "標準タイプ (~300g) PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ 重量: ~300g" [ref=e529] [cursor=pointer]':
+                          - img [ref=e532]
+                          - generic [ref=e535]:
+                            - generic [ref=e536]: 標準タイプ (~300g)
+                            - generic [ref=e537]: PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ
+                            - generic [ref=e539]: "重量: ~300g"
+                        - 'button "レギュラータイプ (~500g) PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ 重量: ~500g" [ref=e540] [cursor=pointer]':
+                          - generic [ref=e542]:
+                            - generic [ref=e543]: レギュラータイプ (~500g)
+                            - generic [ref=e544]: PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ
+                            - generic [ref=e546]: "重量: ~500g"
+                        - 'button "高耐久タイプ (~800g) PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ 重量: ~800g" [ref=e547] [cursor=pointer]':
+                          - generic [ref=e549]:
+                            - generic [ref=e550]: 高耐久タイプ (~800g)
+                            - generic [ref=e551]: PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ
+                            - generic [ref=e553]: "重量: ~800g"
+                        - 'button "超耐久タイプ (800g~) PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ 重量: 800g~" [ref=e554] [cursor=pointer]':
+                          - generic [ref=e556]:
+                            - generic [ref=e557]: 超耐久タイプ (800g~)
+                            - generic [ref=e558]: PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ
+                            - generic [ref=e560]: "重量: 800g~"
+                      - paragraph [ref=e561]: "推奨: 中間タイプで最適なバランスです"
+                  - generic [ref=e562]:
+                    - button "前のステップに戻る" [disabled] [ref=e563]:
+                      - img [ref=e564]
+                      - text: 戻る
+                    - button "次のステップに進む" [disabled] [ref=e566]:
+                      - generic [ref=e567]:
+                        - generic [ref=e568]: 次へ
+                        - img [ref=e569]
+              - contentinfo [ref=e571]:
+                - generic [ref=e572]:
+                  - generic [ref=e573]:
+                    - button "総合見積りツール - すべてのオプションを網羅した詳細見積を表示" [ref=e574] [cursor=pointer]:
+                      - generic [ref=e575]:
+                        - img [ref=e577]
+                        - generic [ref=e581]:
+                          - heading "総合見積りツール" [level=3] [ref=e582]
+                          - paragraph [ref=e583]: すべてのオプションを網羅した詳細見積
+                    - button "詳細見積もり - 仕様別の価格比較と分析を表示" [ref=e584] [cursor=pointer]:
+                      - generic [ref=e585]:
+                        - img [ref=e587]
+                        - generic [ref=e589]:
+                          - heading "詳細見積もり" [level=3] [ref=e590]
+                          - paragraph [ref=e591]: 仕様別の価格比較と分析
+                    - 'link "即時相談 - 専門家との無料相談。電話番号: 050-1793-6500" [ref=e592] [cursor=pointer]':
+                      - /url: tel:050-1793-6500
+                      - generic [ref=e593]:
+                        - img [ref=e595]
+                        - generic [ref=e597]:
+                          - heading "即時相談" [level=3] [ref=e598]
+                          - paragraph [ref=e599]: 専門家との無料相談 050-1793-6500
+                  - generic [ref=e601]:
+                    - generic [ref=e602]:
+                      - 'link "電話番号: 050-1793-6500" [ref=e603] [cursor=pointer]':
+                        - /url: tel:050-1793-6500
+                        - img [ref=e604]
+                        - generic [ref=e606]: 050-1793-6500
+                      - 'link "メールアドレス: info@package-lab.com" [ref=e607] [cursor=pointer]':
+                        - /url: mailto:info@package-lab.com
+                        - img [ref=e608]
+                        - generic [ref=e611]: info@package-lab.com
+                      - generic [ref=e612]:
+                        - img [ref=e613]
+                        - generic [ref=e616]: 平日 9:00-18:00 (JST)
+                    - generic [ref=e617]: © 2025 Epackage Lab. 全著作権所有.
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - heading "その他のご案内" [level=2] [ref=e61]
+              - paragraph [ref=e62]: お見積もり以外のご要望にお応えします
+            - generic [ref=e63]:
+              - link "統合見積もりツール AI即時見積もり 複数数量で比較 現在地で利用中 →" [ref=e64] [cursor=pointer]:
+                - /url: /quote-simulator
+                - generic [ref=e66]:
+                  - generic [ref=e67]:
+                    - img [ref=e69]
+                    - generic [ref=e71]:
+                      - heading "統合見積もりツール" [level=3] [ref=e72]
+                      - paragraph [ref=e73]: AI即時見積もり
+                  - generic [ref=e74]:
+                    - generic [ref=e75]:
+                      - img [ref=e76]
+                      - text: 複数数量で比較
+                    - generic [ref=e78]: 現在地で利用中 →
+              - link "詳細見積もり 専門家相談 詳細仕様対応 お問い合わせ →" [ref=e79] [cursor=pointer]:
+                - /url: /contact
+                - generic [ref=e81]:
+                  - generic [ref=e82]:
+                    - img [ref=e84]
+                    - generic [ref=e87]:
+                      - heading "詳細見積もり" [level=3] [ref=e88]
+                      - paragraph [ref=e89]: 専門家相談
+                  - generic [ref=e90]:
+                    - generic [ref=e91]: 詳細仕様対応
+                    - generic [ref=e92]: お問い合わせ →
+              - link "即時相談 電話でご相談 即時対応 発信 → 050-1793-6500" [ref=e93] [cursor=pointer]:
+                - /url: tel:050-1793-6500
+                - generic [ref=e95]:
+                  - generic [ref=e96]:
+                    - img [ref=e98]
+                    - generic [ref=e100]:
+                      - heading "即時相談" [level=3] [ref=e101]
+                      - paragraph [ref=e102]: 電話でご相談
+                  - generic [ref=e103]:
+                    - generic [ref=e104]: 即時対応
+                    - generic [ref=e105]: 発信 →
+                  - generic [ref=e107]: 050-1793-6500
+  - button "ページ上部に移動":
+    - img
+  - contentinfo [ref=e108]:
+    - generic [ref=e111]:
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e115] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e117]
+              - generic [ref=e118]: Epackage Lab
+            - paragraph [ref=e119]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - generic [ref=e125]: info@package-lab.com
+              - generic [ref=e126]:
+                - img [ref=e127]
+                - generic [ref=e129]: 050-1793-6500
+              - generic [ref=e130]:
+                - img [ref=e131]
+                - generic [ref=e134]:
+                  - generic [ref=e135]: 本社：兵庫県明石市上ノ丸2-11-21
+                  - generic [ref=e136]: ロジスティクス：兵庫県加古郡稲美町六分一486
+          - generic [ref=e137]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e138]
+            - generic [ref=e139]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e140] [cursor=pointer]:
+                - /url: /privacy
+                - generic [ref=e141]:
+                  - img [ref=e143]
+                  - generic [ref=e145]:
+                    - heading "個人情報保護方針" [level=4] [ref=e146]
+                    - paragraph [ref=e147]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e148] [cursor=pointer]:
+                - /url: /terms
+                - generic [ref=e149]:
+                  - img [ref=e151]
+                  - generic [ref=e154]:
+                    - heading "利用規約" [level=4] [ref=e155]
+                    - paragraph [ref=e156]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e157] [cursor=pointer]:
+                - /url: /legal
+                - generic [ref=e158]:
+                  - img [ref=e160]
+                  - generic [ref=e165]:
+                    - heading "特定商取引法" [level=4] [ref=e166]
+                    - paragraph [ref=e167]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e168] [cursor=pointer]:
+                - /url: /csr
+                - generic [ref=e169]:
+                  - img [ref=e171]
+                  - generic [ref=e173]:
+                    - heading "社会的責任" [level=4] [ref=e174]
+                    - paragraph [ref=e175]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - img [ref=e180]
+              - heading "最新情報をお届け" [level=3] [ref=e182]
+              - paragraph [ref=e183]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e184]:
+              - generic [ref=e186]:
+                - img [ref=e188]
+                - textbox "メールアドレスを入力" [ref=e191]
+              - button "購読する" [ref=e192] [cursor=pointer]:
+                - generic [ref=e193]:
+                  - img [ref=e194]
+                  - text: 購読する
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e199]
+            - paragraph [ref=e200]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e201]:
+            - link "Facebookでフォローする" [ref=e202] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e203]
+            - link "Twitterでフォローする" [ref=e206] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e207]
+            - link "LinkedInでフォローする" [ref=e210] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e211]
+            - link "Instagramでフォローする" [ref=e216] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e217]
+            - link "YouTubeでフォローする" [ref=e221] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e222]
+      - generic [ref=e228]:
+        - paragraph [ref=e230]: © 2026 Epackage Lab. 全著作権所有.
+        - generic [ref=e231]:
+          - link "個人情報保護方針" [ref=e232] [cursor=pointer]:
+            - /url: /privacy
+          - link "利用規約" [ref=e233] [cursor=pointer]:
+            - /url: /terms
+          - link "サイトマップ" [ref=e234] [cursor=pointer]:
+            - /url: /sitemap
+  - button "Open Next.js Dev Tools" [ref=e240] [cursor=pointer]:
+    - img [ref=e241]
+  - alert [ref=e619]

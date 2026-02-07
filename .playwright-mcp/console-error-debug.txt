@@ -1,0 +1,6 @@
+Total messages: 387 (Errors: 3, Warnings: 2)
+Returning 3 messages for level "error"
+
+[ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ http://localhost:3000/api/comparison/save:0
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/admin/settings/customer-markup/3b67b1c5-5f88-40d8-998a-436f0f81fac0:0
+[ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/member/quotations/13a3be12-d99a-4a82-921e-f49131c00933/save-pdf:0

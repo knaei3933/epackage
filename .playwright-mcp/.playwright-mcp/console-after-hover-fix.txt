@@ -1,0 +1,55 @@
+Total messages: 188 (Errors: 4, Warnings: 0)
+Returning 4 messages for level "error"
+
+[ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ http://localhost:3000/api/comparison/save:0
+[ERROR] ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx:1116:1
+Parsing ecmascript source code failed
+  1114 |     </div>
+  1115 |   );
+> 1116 | }
+       | ^
+  1117 |
+  1118 | // Helper function to get Japanese bag type name
+  1119 | function getBagTypeLabel(bagTypeId: string): string {
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import trace:
+  Client Component Browser:
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127
+[ERROR] ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx:1108:11
+Parsing ecmascript source code failed
+  1106 |             </div>
+  1107 |           </div>
+> 1108 |           {/* Arrow pointer */}
+       |           ^
+  1109 |           <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%) translateY(-1px)' }}>
+  1110 |             <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-white drop-shadow-sm" />
+  1111 |           </div>
+
+Expected '</', got '{'
+
+Import trace:
+  Client Component Browser:
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127
+[ERROR] ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx:1108:10
+Parsing ecmascript source code failed
+  1106 |             </div>
+  1107 |           </div>
+> 1108 |         </div>,
+       |          ^^^^^^
+  1109 |         document.body
+  1110 |       )}
+  1111 |       </div>
+
+Unterminated regexp literal
+
+Import trace:
+  Client Component Browser:
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127

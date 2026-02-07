@@ -8,54 +8,101 @@
  */
 
 import React from 'react';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ProfileCancelButton } from '@/components/shared/ProfileCancelButton';
+import { createServiceClient } from '@/lib/supabase';
+import { getRBACContext } from '@/lib/rbac/rbac-helpers';
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
 
 async function getProfileData() {
-  const cookieStore = await cookies();
+  // Get current user context
+  const context = await getRBACContext();
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/profile`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; '),
-      },
-      cache: 'no-store',
-    }
-  );
+  if (!context || !context.userId) {
+    return null;
+  }
 
-  if (!response.ok) return null;
+  const supabase = createServiceClient();
 
-  const result = await response.json();
-  return result.data;
+  // Fetch user profile
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', context.userId)
+    .single();
+
+  if (profileError || !profile) {
+    return null;
+  }
+
+  // Fetch company data if available
+  let company = null;
+  if (profile.company_name) {
+    const { data: companyData } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', context.userId)
+      .maybeSingle();
+
+    company = companyData;
+  }
+
+  return {
+    user: {
+      id: profile.id,
+      email: profile.email,
+      kanji_last_name: profile.kanji_last_name,
+      kanji_first_name: profile.kanji_first_name,
+      kana_last_name: profile.kana_last_name,
+      kana_first_name: profile.kana_first_name,
+      business_type: profile.business_type,
+      corporate_phone: profile.corporate_phone,
+      personal_phone: profile.personal_phone,
+      company_name: profile.company_name,
+      position: profile.position,
+      department: profile.department,
+      company_url: profile.company_url,
+      postal_code: profile.postal_code,
+      prefecture: profile.prefecture,
+      city: profile.city,
+      street: profile.street,
+      building: profile.building,
+    },
+    company,
+  };
 }
 
 async function updateProfile(data: any) {
-  const cookieStore = await cookies();
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/profile`,
-    {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; '),
-      },
-      body: JSON.stringify(data),
-    }
-  );
+  const context = await getRBACContext();
+  if (!context || !context.userId) {
+    throw new Error('Unauthorized');
+  }
 
-  return response.json();
+  const supabase = createServiceClient();
+
+  // Build update object with only provided fields
+  const updates: Record<string, any> = {};
+  if (data.corporate_phone !== undefined) updates.corporate_phone = data.corporate_phone;
+  if (data.personal_phone !== undefined) updates.personal_phone = data.personal_phone;
+  if (data.position !== undefined) updates.position = data.position;
+  if (data.department !== undefined) updates.department = data.department;
+  if (data.company_url !== undefined) updates.company_url = data.company_url;
+  if (data.postal_code !== undefined) updates.postal_code = data.postal_code;
+  if (data.prefecture !== undefined) updates.prefecture = data.prefecture;
+  if (data.city !== undefined) updates.city = data.city;
+  if (data.street !== undefined) updates.street = data.street;
+  if (data.building !== undefined) updates.building = data.building;
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', context.userId);
+
+  if (error) throw error;
+
+  return { success: true };
 }
 
 export default async function CustomerProfilePage() {

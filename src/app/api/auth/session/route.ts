@@ -74,16 +74,19 @@ export async function GET(request: NextRequest) {
       console.log('[Session API] All cookies:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
     }
 
-    // Get current user (SECURE: getUser() validates JWT on every request)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Get current session (includes access_token)
+    // getSession() retrieves the full session including access_token
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    if (userError || !user) {
-      console.log('[Session API] No valid user found', userError?.message);
+    if (sessionError || !session?.user) {
+      console.log('[Session API] No valid session found', sessionError?.message);
       return NextResponse.json({
         session: null,
         profile: null,
       });
     }
+
+    const user = session.user;
 
     // Get user profile using SERVICE ROLE client
     // CRITICAL: Use service role to bypass RLS policies that may block anon key access
@@ -107,6 +110,10 @@ export async function GET(request: NextRequest) {
           email: user.email,
           user_metadata: user.user_metadata,
         },
+        access_token: session.access_token,
+        expires_at: session.expires_at,
+        expires_in: session.expires_in,
+        token_type: session.token_type,
       },
       profile,
     });

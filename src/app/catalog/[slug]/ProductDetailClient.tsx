@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -14,14 +14,24 @@ import {
   TrendingUp,
   Users,
   Award,
-  ChevronRight
+  ChevronRight,
+  HelpCircle,
+  Download,
+  BookOpen,
+  Shield
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
-import { PRODUCT_CATEGORIES } from '@/lib/product-data'
+import { PRODUCT_CATEGORIES, getAllProducts } from '@/lib/product-data'
+import { ProductSchema } from '@/components/seo/StructuredData'
+import { ProductFAQ } from '@/components/catalog/ProductFAQ'
+import { ProductDownloads } from '@/components/catalog/ProductDownloads'
+import { ProductRelatedCases } from '@/components/catalog/ProductRelatedCases'
+import { ProductCertifications } from '@/components/catalog/ProductCertifications'
+import type { ProductTabType } from '@/types/product-content'
 
 interface ProductDetailClientProps {
   product: {
@@ -39,13 +49,32 @@ interface ProductDetailClientProps {
     tags: string[]
     applications: string[]
     features: string[]
+    faq?: Array<{
+      question_ja: string
+      question_en: string
+      answer_ja: string
+      answer_en: string
+      category?: string
+    }>
+    downloads?: Array<{
+      title_ja: string
+      title_en: string
+      url: string
+      type: 'catalog' | 'spec_sheet' | 'technical_guide'
+      size?: string
+    }>
+    related_case_studies?: string[]
+    certifications?: Array<{
+      name: string
+      issuer: string
+      image_url?: string
+      description?: string
+    }>
   }
 }
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'specifications' | 'applications' | 'pricing'>('overview')
-
-  const categoryInfo = PRODUCT_CATEGORIES[product.category as keyof typeof PRODUCT_CATEGORIES]
+  const [selectedTab, setSelectedTab] = useState<ProductTabType>('overview')
 
   const formatCurrency = (amount: number) => `¥${amount.toLocaleString()}`
 
@@ -68,8 +97,30 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     return total
   }
 
+  // 関連製品を取得（同じカテゴリの製品）
+  const relatedProducts = useMemo(() => {
+    const allProducts = getAllProducts(null, 'ja')
+    return allProducts
+      .filter(p => p.category === product.category && p.id !== product.id)
+      .slice(0, 4)
+  }, [product.category, product.id])
+
+  // 構造化データ用プロパティ
+  const materialNames = product.materials.join(', ')
+  const categoryInfo = PRODUCT_CATEGORIES[product.category as keyof typeof PRODUCT_CATEGORIES]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brixa-50">
+    <>
+      {/* 構造化データ: Product */}
+      <ProductSchema
+        name={product.name_ja}
+        description={product.description_ja}
+        category={categoryInfo?.name_ja || '包装資材'}
+        material={materialNames}
+        foodGrade={product.tags.some(tag => tag.includes('食品') || tag.includes('Food'))}
+        pharmaGrade={product.tags.some(tag => tag.includes('医薬') || tag.includes('医薬品') || tag.includes('Pharmaceutical'))}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brixa-50">
       {/* Breadcrumb */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brixa-600/30 via-transparent to-navy-600/30"></div>
@@ -198,14 +249,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         <Container size="6xl">
           <div className="flex space-x-8 overflow-x-auto">
             {[
-              { id: 'overview', label: '概要', icon: Info },
-              { id: 'specifications', label: '仕様', icon: Ruler },
-              { id: 'applications', label: '用途', icon: Package },
-              { id: 'pricing', label: '価格', icon: TrendingUp }
+              { id: 'overview' as const, label: '概要', icon: Info },
+              { id: 'specifications' as const, label: '仕様', icon: Ruler },
+              { id: 'applications' as const, label: '用途', icon: Package },
+              { id: 'pricing' as const, label: '価格', icon: TrendingUp },
+              // Phase 1 追加タブ
+              ...(product.faq && product.faq.length > 0 ? [{ id: 'faq' as const, label: 'FAQ', icon: HelpCircle }] : []),
+              ...(product.downloads && product.downloads.length > 0 ? [{ id: 'downloads' as const, label: 'ダウンロード', icon: Download }] : []),
+              ...(product.related_case_studies && product.related_case_studies.length > 0 ? [{ id: 'cases' as const, label: '導入事例', icon: BookOpen }] : []),
+              ...(product.certifications && product.certifications.length > 0 ? [{ id: 'certifications' as const, label: '認証', icon: Shield }] : []),
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setSelectedTab(tab.id as any)}
+                onClick={() => setSelectedTab(tab.id)}
                 className={`flex items-center space-x-2 pb-4 px-2 border-b-2 transition-colors whitespace-nowrap ${selectedTab === tab.id
                     ? 'border-brixa-600 text-brixa-700'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -417,27 +473,52 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 </Card>
               </div>
             )}
+
+            {/* FAQ Tab - Phase 1 */}
+            {selectedTab === 'faq' && product.faq && product.faq.length > 0 && (
+              <ProductFAQ faqs={product.faq} />
+            )}
+
+            {/* Downloads Tab - Phase 1 */}
+            {selectedTab === 'downloads' && product.downloads && product.downloads.length > 0 && (
+              <ProductDownloads downloads={product.downloads} />
+            )}
+
+            {/* Related Cases Tab - Phase 1 */}
+            {selectedTab === 'cases' && (
+              <ProductRelatedCases product={product} />
+            )}
+
+            {/* Certifications Tab - Phase 1 */}
+            {selectedTab === 'certifications' && product.certifications && product.certifications.length > 0 && (
+              <ProductCertifications certifications={product.certifications} />
+            )}
           </MotionWrapper>
         </Container>
       </section>
 
       {/* Related Products */}
-      <section className="py-12 bg-white">
-        <Container size="6xl">
-          <MotionWrapper delay={0.4}>
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">関連製品</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* This would be populated with related products */}
-              <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                <Package className="w-12 h-12 text-brixa-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">関連製品1</h3>
-                <p className="text-sm text-gray-600">類似の用途で利用される製品</p>
-              </Card>
-              {/* Add more related products as needed */}
-            </div>
-          </MotionWrapper>
-        </Container>
-      </section>
+      {relatedProducts.length > 0 && (
+        <section className="py-12 bg-white">
+          <Container size="6xl">
+            <MotionWrapper delay={0.4}>
+              <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">関連製品</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedProducts.map((relatedProduct) => (
+                  <Link key={relatedProduct.id} href={`/catalog/${relatedProduct.id}`}>
+                    <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer h-full">
+                      <Package className="w-12 h-12 text-brixa-600 mx-auto mb-4" />
+                      <h3 className="font-semibold text-gray-900 mb-2">{relatedProduct.name_ja}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">{relatedProduct.description_ja}</p>
+                      <ChevronRight className="w-4 h-4 text-brixa-600 mx-auto mt-3" />
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </MotionWrapper>
+          </Container>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-brixa-600 to-amber-600">
@@ -448,8 +529,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <p className="text-xl mb-8 text-brixa-600">
                 専門スタッフが最適な包装ソリューションをご提案いたします
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/roi-calculator">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <Link href="/quote-simulator">
                   <Button
                     variant="secondary"
                     size="lg"
@@ -469,10 +550,33 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   </Button>
                 </Link>
               </div>
+
+              {/* 業界ソリューションへのリンク */}
+              <div className="mt-8 pt-8 border-t border-white/20">
+                <p className="text-sm font-medium mb-4 text-brixa-600">業界別ソリューション</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Link href="/industry/food-manufacturing" className="text-white hover:text-brixa-600 underline decoration-white/30 hover:decoration-brixa-600/50 transition-all">
+                    食品製造業
+                  </Link>
+                  <span className="text-white/50">•</span>
+                  <Link href="/industry/cosmetics" className="text-white hover:text-brixa-600 underline decoration-white/30 hover:decoration-brixa-600/50 transition-all">
+                    化粧品業界
+                  </Link>
+                  <span className="text-white/50">•</span>
+                  <Link href="/industry/pharmaceutical" className="text-white hover:text-brixa-600 underline decoration-white/30 hover:decoration-brixa-600/50 transition-all">
+                    医薬品業界
+                  </Link>
+                  <span className="text-white/50">•</span>
+                  <Link href="/industry/electronics" className="text-white hover:text-brixa-600 underline decoration-white/30 hover:decoration-brixa-600/50 transition-all">
+                    電子機器業界
+                  </Link>
+                </div>
+              </div>
             </div>
           </MotionWrapper>
         </Container>
       </section>
-    </div>
+      </div>
+    </>
   )
 }

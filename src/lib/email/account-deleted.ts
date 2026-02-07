@@ -307,7 +307,7 @@ function getAccountDeletedEmailHTML(data: AccountDeletionEmailData): string {
         </p>
         <p style="margin: 10px 0;">
           <strong>お問い合わせ先：</strong><br>
-          メール：${process.env.ADMIN_EMAIL || 'info@epackage-lab.com'}<br>
+          メール：${process.env.ADMIN_EMAIL || 'info@package-lab.com'}<br>
           ウェブサイト：<a href="https://epackage-lab.com/contact" style="color: #2196F3;">お問い合わせフォーム</a>
         </p>
       </div>
@@ -419,7 +419,7 @@ ${deletionSummaryText}
 ご不明な点がございましたら、お気軽にお問い合わせください。
 
 お問い合わせ先：
-メール：${process.env.ADMIN_EMAIL || 'info@epackage-lab.com'}
+メール：${process.env.ADMIN_EMAIL || 'info@package-lab.com'}
 ウェブサイト：https://epackage-lab.com/contact
 
 【ご意見・ご要望】

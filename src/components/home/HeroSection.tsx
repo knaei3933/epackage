@@ -30,7 +30,7 @@ export function HeroSection() {
         {/* Professional manufacturing facility background - WebP optimized */}
         <div className="absolute inset-0 relative h-full w-full">
           <Image
-            src="/images/stand-pouch-real.jpg"
+            src="/images/main/main15.png"
             alt="オリジナ包装材専用 - 高品質なスタンドパウチ製造"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"

@@ -35,6 +35,9 @@ import {
   type ShippingStatusEmailData,
   type DeliveryCompletionEmailData,
   type InvoiceEmailData,
+  type KoreaDesignerDataNotificationEmailData,
+  type CorrectionReadyForReviewEmailData,
+  type CorrectionRejectedEmailData,
 } from './email-templates';
 
 // Re-export createRecipient for external use
@@ -64,7 +67,7 @@ function sanitizeUserMessage(message: string): string {
 // =====================================================
 
 // Email Settings
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@epackage-lab.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'info@epackage-lab.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
 
 // 環境別戦略自動選択

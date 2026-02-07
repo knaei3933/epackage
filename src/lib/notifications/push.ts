@@ -668,10 +668,13 @@ export async function sendTestPush(userId: string): Promise<SendPushResult> {
     }
   }
 
+  const now = new Date()
+  const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
+
   return sendBulkPushNotifications(
     tokens.map(t => t.token),
-    'テスト通知',
-    `これはテスト通知です。\n時刻: ${new Date().toLocaleString('ja-JP')}`,
+    'お知らせ',
+    `テスト通知\n${dateStr}\nこれはテスト通知です。\nこの通知は、あなたの製品に最適なパッケージソリューション`,
     { type: 'test' }
   )
 }

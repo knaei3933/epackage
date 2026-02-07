@@ -12,10 +12,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { ContractDownloadButton, ContractPreviewButton } from '@/components/admin/ContractDownloadButton';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 
 interface Contract {
   id: string;
@@ -66,6 +66,7 @@ export default function AdminContractDetailPage() {
   const router = useRouter();
   const contractId = params.id as string;
 
+  const { supabase } = useSupabaseClient();
   const [contract, setContract] = useState<Contract | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,10 +74,10 @@ export default function AdminContractDetailPage() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    if (contractId) {
+    if (contractId && supabase) {
       fetchContractDetails();
     }
-  }, [contractId]);
+  }, [contractId, supabase]);
 
   const fetchContractDetails = async () => {
     if (!supabase) return;

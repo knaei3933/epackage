@@ -391,7 +391,7 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                 <Mail className="w-4 h-4 text-navy-700" />
                 <div>
                   <div className="font-medium text-navy-600">メール</div>
-                  <div className="text-sm text-navy-600">info@epackage-lab.com</div>
+                  <div className="text-sm text-navy-600">info@package-lab.com</div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">

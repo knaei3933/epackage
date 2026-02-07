@@ -354,7 +354,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanjiLastNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} data-testid={`${kanjiLastNameName}-hidden`} />
+            <input {...field} value={field.value || ''} data-testid={`${kanjiLastNameName}-hidden`} />
           </div>
         )}
       />
@@ -364,7 +364,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanjiFirstNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} data-testid={`${kanjiFirstNameName}-hidden`} />
+            <input {...field} value={field.value || ''} data-testid={`${kanjiFirstNameName}-hidden`} />
           </div>
         )}
       />
@@ -374,7 +374,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanaLastNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} data-testid={`${kanaLastNameName}-hidden`} />
+            <input {...field} value={field.value || ''} data-testid={`${kanaLastNameName}-hidden`} />
           </div>
         )}
       />
@@ -384,16 +384,16 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
         name={kanaFirstNameName}
         render={({ field }) => (
           <div className="hidden">
-            <input {...field} data-testid={`${kanaFirstNameName}-hidden`} />
+            <input {...field} value={field.value || ''} data-testid={`${kanaFirstNameName}-hidden`} />
           </div>
         )}
       />
 
       <JapaneseNameInput
-        kanjiLastName={useWatch({ control, name: kanjiLastNameName }) as string}
-        kanjiFirstName={useWatch({ control, name: kanjiFirstNameName }) as string}
-        kanaLastName={useWatch({ control, name: kanaLastNameName }) as string}
-        kanaFirstName={useWatch({ control, name: kanaFirstNameName }) as string}
+        kanjiLastName={(useWatch({ control, name: kanjiLastNameName }) as string) || ''}
+        kanjiFirstName={(useWatch({ control, name: kanjiFirstNameName }) as string) || ''}
+        kanaLastName={(useWatch({ control, name: kanaLastNameName }) as string) || ''}
+        kanaFirstName={(useWatch({ control, name: kanaFirstNameName }) as string) || ''}
         onKanjiLastNameChange={(value) => {
           setValue(kanjiLastNameName, value as any, { shouldValidate: true });
           // Trigger validation for all name fields together

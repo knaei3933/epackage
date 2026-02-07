@@ -25,7 +25,13 @@ export function useKeyboardNavigation({
 
   useEffect(() => {
     handlersRef.current = { onNext, onPrevious, onDismiss, onConfirm };
-  });
+    console.log('[useKeyboardNavigation] handlersRef updated:', {
+      hasNext: !!handlersRef.current.onNext,
+      hasPrevious: !!handlersRef.current.onPrevious,
+      hasDismiss: !!handlersRef.current.onDismiss,
+      hasConfirm: !!handlersRef.current.onConfirm
+    });
+  }, [onNext, onPrevious, onDismiss, onConfirm]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     const activeElement = document.activeElement;
@@ -48,9 +54,13 @@ export function useKeyboardNavigation({
 
     switch (event.key) {
       case 'ArrowRight':
+        console.log('[useKeyboardNavigation] ArrowRight pressed. canProceed:', canProceed, 'onNext exists:', !!handlersRef.current.onNext);
         if (handlersRef.current.onNext && canProceed) {
           event.preventDefault();
+          console.log('[useKeyboardNavigation] Calling onNext handler');
           handlersRef.current.onNext();
+        } else {
+          console.log('[useKeyboardNavigation] ArrowRight blocked. canProceed:', canProceed, 'onNext exists:', !!handlersRef.current.onNext);
         }
         break;
 

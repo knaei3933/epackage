@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'
+;
 import {
   Package,
   Plus,

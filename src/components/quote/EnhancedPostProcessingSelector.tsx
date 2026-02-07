@@ -197,13 +197,24 @@ export function EnhancedPostProcessingSelector({
 
   // Handle option selection with 5-item limit
   const handleOptionClick = useCallback((option: ProcessingOptionConfig) => {
+    console.log('[handleOptionClick] Called with:', {
+      optionId: option.id,
+      optionName: option.nameJa,
+      optionCategory: option.category,
+      currentSelectedOptions: state.postProcessingOptions,
+      processingOptionsConfigLength: processingOptionsConfig.length
+    });
+
     if (state.postProcessingOptions.includes(option.id)) {
       // Remove if already selected
+      console.log('[handleOptionClick] Removing existing option');
       removePostProcessingOption(option.id)
       clearPostProcessingValidationError()
     } else {
       // Try to add new option
+      console.log('[handleOptionClick] Adding new option, checking canAddPostProcessingOption');
       if (!canAddPostProcessingOption()) {
+        console.log('[handleOptionClick] canAddPostProcessingOption returned false, showing replacement mode');
         // Show replacement mode
         setReplacementMode({
           active: true,
@@ -212,16 +223,13 @@ export function EnhancedPostProcessingSelector({
         return
       }
 
-      // Add the option
-      const allOptionsMapped = processingOptionsConfig.map(opt => ({
-        id: opt.id,
-        category: opt.category,
-        compatibility: opt.compatibleWith,
-        priority: 1,
-        impact: opt.features.length + opt.benefits.length
-      }))
-      const success = addPostProcessingOption(option.id, allOptionsMapped)
+      console.log('[handleOptionClick] canAddPostProcessingOption passed, calling addPostProcessingOption');
+      // Add the option - pass full ProcessingOptionConfig array for proper validation
+      // The reducer needs name and nameJa properties for category exclusion validation
+      const success = addPostProcessingOption(option.id, processingOptionsConfig, state.postProcessingOptions)
+      console.log('[handleOptionClick] addPostProcessingOption returned:', success);
       if (!success) {
+        console.log('[handleOptionClick] Validation failed, showing replacement mode');
         // Show replacement mode if validation failed
         setReplacementMode({
           active: true,
@@ -229,7 +237,7 @@ export function EnhancedPostProcessingSelector({
         })
       }
     }
-  }, [state.postProcessingOptions, canAddPostProcessingOption, addPostProcessingOption, removePostProcessingOption, clearPostProcessingValidationError])
+  }, [state.postProcessingOptions, canAddPostProcessingOption, addPostProcessingOption, removePostProcessingOption, clearPostProcessingValidationError, processingOptionsConfig])
 
   // Handle replacement
   const handleReplaceOption = useCallback((oldOptionId: string, newOptionId: string) => {

@@ -1,7 +1,9 @@
 /**
  * Member Dashboard Page
  *
- * 会員ダッシュボードメインページ
+ * 会員ダッシュボードメインページ（ハイブリッド構造）
+ * - Server Component: 初期データフェッチ（SSR）
+ * - Client Component: SWRによる自動更新・リアルタイム性
  * - 統計カード
  * - お知らせセクション
  * - 注文・見積・サンプルの最近のアクティビティ
@@ -9,13 +11,14 @@
 
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { requireAuth, AuthRequiredError, getDashboardStats } from '@/lib/dashboard';
+import { requireAuth, AuthRequiredError, getDashboardStats, getUnifiedDashboardStats } from '@/lib/dashboard';
 import {
   DashboardStatsCard,
   AnnouncementCard,
   EmptyState
 } from '@/components/dashboard';
 import { FullPageSpinner, Card } from '@/components/ui';
+import { UnifiedDashboardClient } from './UnifiedDashboardClient';
 
 // =====================================================
 // Helper Functions
@@ -57,6 +60,9 @@ function safeGet<T>(value: T | undefined | null, defaultValue: T): T {
 // =====================================================
 
 async function DashboardContent() {
+  // ⚡ OPTIMIZATION: 並列実行でFCP改善
+  // requireAuth, getUnifiedDashboardStats, getDashboardStats を同時実行
+
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
@@ -68,37 +74,39 @@ async function DashboardContent() {
     throw error;
   }
 
-  // 統計情報を取得（getDashboardStats は DEV_MODE を自動処理）
-  let stats;
-  try {
-    stats = await getDashboardStats();
-  } catch (error) {
-    console.error('[Dashboard] Failed to fetch stats:', error);
-    // エラー時は空の統計情報を返す
-    stats = {
-      orders: { new: [], processing: [], total: 0 },
-      quotations: { pending: [], total: 0 },
-      samples: { pending: [], total: 0 },
-      inquiries: { unread: [], total: 0 },
-      announcements: [],
-      contracts: { pending: [], signed: 0, total: 0 },
-      notifications: [],
-    };
-  }
+  // ⚡ OPTIMIZATION: Promise.all()で並列実行
+  const [initialStats, stats] = await Promise.all([
+    // 統合統計情報を取得（SSR用初期データ）
+    getUnifiedDashboardStats(user.id, 'MEMBER', 30).catch((error) => {
+      console.error('[Dashboard] Failed to fetch unified stats:', error);
+      return {
+        totalOrders: 0,
+        pendingOrders: 0,
+        totalRevenue: 0,
+        activeUsers: 0,
+        pendingQuotations: 0,
+        ordersByStatus: [],
+      };
+    }),
+    // 既存の統計情報も取得（詳細表示用）
+    getDashboardStats().catch((error) => {
+      console.error('[Dashboard] Failed to fetch stats:', error);
+      return {
+        orders: { new: [], processing: [], total: 0 },
+        quotations: { pending: [], total: 0 },
+        samples: { pending: [], total: 0 },
+        inquiries: { unread: [], total: 0 },
+        announcements: [],
+        contracts: { pending: [], signed: 0, total: 0 },
+        notifications: [],
+      };
+    }),
+  ]);
 
-  // statsがundefinedの場合は安全に処理
-  if (!stats) {
-    console.error('[Dashboard] stats is undefined, using default values');
-    stats = {
-      orders: { new: [], processing: [], total: 0 },
-      quotations: { pending: [], total: 0 },
-      samples: { pending: [], total: 0 },
-      inquiries: { unread: [], total: 0 },
-      announcements: [],
-      contracts: { pending: [], signed: 0, total: 0 },
-      notifications: [],
-    };
-  }
+  // ユーザー名の取得
+  const userName = user.user_metadata?.kanji_last_name ||
+                   user.user_metadata?.name_kanji ||
+                   'テスト';
 
   // 安全に各属性を抽出
   const orders = safeGet(stats.orders, { new: [], processing: [], total: 0 });
@@ -109,129 +117,14 @@ async function DashboardContent() {
   const contracts = safeGet(stats.contracts, { pending: [], signed: 0, total: 0 });
   const notifications = safeGet(stats.notifications, []);
 
-  // ユーザー名の取得（Production mode）
-  const userName = user.user_metadata?.kanji_last_name ||
-                   user.user_metadata?.name_kanji ||
-                   'テスト';
-
   return (
     <div className="space-y-6">
-      {/* ページタイトル */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          ようこそ、{userName}様
-        </h1>
-        <p className="text-text-muted mt-1">
-          マイページの概要をご確認いただけます。
-        </p>
-      </div>
-
-      {/* 統計カード */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <DashboardStatsCard
-          title="新規注文"
-          count={safeGet(orders.processing, []).length}
-          total={safeGet(orders.total, 0)}
-          href="/member/orders"
-          icon="📦"
-          color="blue"
-        />
-        <DashboardStatsCard
-          title="見積依頼"
-          count={safeGet(quotations.pending, []).length}
-          total={safeGet(quotations.total, 0)}
-          href="/member/quotations"
-          icon="📁"
-          color="green"
-        />
-        <DashboardStatsCard
-          title="サンプル依頼"
-          count={safeGet(samples.pending, []).length}
-          total={safeGet(samples.total, 0)}
-          href="/member/samples"
-          icon="📝"
-          color="orange"
-        />
-        <DashboardStatsCard
-          title="お問い合わせ"
-          count={safeGet(inquiries.unread, []).length}
-          total={safeGet(inquiries.total, 0)}
-          href="/member/inquiries"
-          icon="💬"
-          color="purple"
-        />
-        {/* B2B integration: 契約 card */}
-        <DashboardStatsCard
-          title="契約"
-          count={safeGet(contracts.signed, 0)}
-          total={safeGet(contracts.total, 0)}
-          href="/member/contracts"
-          icon="📋"
-          color="indigo"
-        />
-      </div>
-
-      {/* クイックアクション (B2B integration) */}
-      <div>
-        <h2 className="text-lg font-semibold text-text-primary mb-4">クイックアクション</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <a href="/member/quotations" className="block">
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer h-full">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-100 dark:bg-green-900/20 p-2.5 rounded-lg">
-                  <span className="text-2xl">📁</span>
-                </div>
-                <div>
-                  <h3 className="font-medium text-text-primary text-sm">見積作成</h3>
-                  <p className="text-xs text-text-muted">新しい見積書</p>
-                </div>
-              </div>
-            </Card>
-          </a>
-
-          <a href="/member/orders" className="block">
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer h-full">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-100 dark:bg-blue-900/20 p-2.5 rounded-lg">
-                  <span className="text-2xl">📦</span>
-                </div>
-                <div>
-                  <h3 className="font-medium text-text-primary text-sm">注文一覧</h3>
-                  <p className="text-xs text-text-muted">すべての注文</p>
-                </div>
-              </div>
-            </Card>
-          </a>
-
-          <a href="/member/samples" className="block">
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer h-full">
-              <div className="flex items-center gap-3">
-                <div className="bg-purple-100 dark:bg-purple-900/20 p-2.5 rounded-lg">
-                  <span className="text-2xl">📝</span>
-                </div>
-                <div>
-                  <h3 className="font-medium text-text-primary text-sm">サンプル申請</h3>
-                  <p className="text-xs text-text-muted">サンプル依頼</p>
-                </div>
-              </div>
-            </Card>
-          </a>
-
-          <a href="/member/contracts" className="block">
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer h-full">
-              <div className="flex items-center gap-3">
-                <div className="bg-indigo-100 dark:bg-indigo-900/20 p-2.5 rounded-lg">
-                  <span className="text-2xl">📋</span>
-                </div>
-                <div>
-                  <h3 className="font-medium text-text-primary text-sm">契約書</h3>
-                  <p className="text-xs text-text-muted">契約管理</p>
-                </div>
-              </div>
-            </Card>
-          </a>
-        </div>
-      </div>
+      {/* 統合ダッシュボード（自動更新付き） */}
+      <UnifiedDashboardClient
+        initialStats={initialStats}
+        userId={user.id}
+        userName={userName}
+      />
 
       {/* お知らせセクション */}
       {safeGet(announcements, []).length > 0 && (
@@ -245,7 +138,7 @@ async function DashboardContent() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-text-primary">新規注文</h2>
-              <a href="/member/orders/new" className="text-sm text-primary hover:underline">
+              <a href="/member/orders" className="text-sm text-primary hover:underline">
                 すべて見る
               </a>
             </div>
@@ -272,14 +165,7 @@ async function DashboardContent() {
               ))}
             </div>
           </Card>
-        ) : (
-          <Card className="p-6">
-            <EmptyState
-              title="新規注文はありません"
-              description="新しい注文を作成してください"
-            />
-          </Card>
-        )}
+        ) : null}
 
         {/* 見積依頼 */}
         {safeGet(quotations.pending, []).length > 0 ? (
@@ -313,14 +199,7 @@ async function DashboardContent() {
               ))}
             </div>
           </Card>
-        ) : (
-          <Card className="p-6">
-            <EmptyState
-              title="見積依頼はありません"
-              description="新しい見積を作成してください"
-            />
-          </Card>
-        )}
+        ) : null}
       </div>
 
       {/* サンプル依頼セクション */}
@@ -357,52 +236,13 @@ async function DashboardContent() {
         </Card>
       )}
 
-      {/* お問い合わせセクション */}
-      {safeGet(inquiries.unread, []).length > 0 && (
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-primary">お問い合わせ</h2>
-            <a href="/member/inquiries" className="text-sm text-primary hover:underline">
-              すべて見る
-            </a>
-          </div>
-          <div className="space-y-3">
-            {safeGet(inquiries.unread, []).slice(0, 5).map((inquiry) => (
-              <div
-                key={inquiry.id}
-                className="p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary transition-colors"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-text-primary">
-                      {inquiry.subject}
-                    </p>
-                    <p className="text-sm text-text-muted line-clamp-2">
-                      {inquiry.message}
-                    </p>
-                  </div>
-                  <span className="text-xs text-text-muted whitespace-nowrap">
-                    {formatDate(inquiry.createdAt)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* 通知セクション (B2B integration) */}
+      {/* 通知セクション */}
       {safeGet(notifications, []).length > 0 && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xl">🔔</span>
               <h2 className="text-lg font-semibold text-text-primary">通知</h2>
-              {!safeGet(notifications, []).some((n) => n.is_read) && (
-                <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
-                  新着
-                </span>
-              )}
             </div>
           </div>
           <div className="space-y-3">

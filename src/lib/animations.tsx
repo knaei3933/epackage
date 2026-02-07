@@ -1,4 +1,5 @@
-import { motion, Variants, MotionProps } from 'framer-motion';
+import type { Variants, MotionProps } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 /**
  * Performance-optimized animation utilities

@@ -23,18 +23,10 @@ const ALLOWED_FILE_TYPES = ['.ai', '.pdf', '.psd', '.png', '.jpg', '.jpeg', '.sv
 const MAX_FILES_PER_CORRECTION = 10;
 
 // ============================================================
-// Helper: Get authenticated user ID with DEV_MODE support
+// Helper: Get authenticated user ID
 // ============================================================
 
 async function getAuthenticatedUserId(request: NextRequest): Promise<string | null> {
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
-  if (isDevMode && devModeUserId) {
-    console.log('[Korea Corrections Upload] DEV_MODE: Using x-user-id header:', devModeUserId);
-    return devModeUserId;
-  }
-
   // Try to get user from middleware header first (more reliable)
   const userIdFromMiddleware = request.headers.get('x-user-id');
   const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';

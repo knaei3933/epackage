@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ArchivePage } from "@/components/archives/ArchivePage";
+import ArchivePage from "@/components/archives/ArchivePage";
 
 // Disable static generation for this page due to client-side interactivity
 export const dynamic = 'force-dynamic';

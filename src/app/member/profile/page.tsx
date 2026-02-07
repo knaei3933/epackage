@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, Button, Badge } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
+import { Pencil } from 'lucide-react';
 import {
   BusinessType,
   ProductCategory,
@@ -218,12 +219,20 @@ export default function ProfilePage() {
         </Card>
 
         {/* =====================================================
-            SECTION 2: 連絡先 (読み取り専用)
+            SECTION 2: 連絡先 (読み取り専用・編集可能)
             ===================================================== */}
         <Card className="p-6 mb-6">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
-            連絡先
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-primary">
+              連絡先（編集可能）
+            </h2>
+            <Link href="/member/edit">
+              <Button variant="outline" size="sm">
+                <Pencil className="w-3 h-3 mr-1" />
+                編集
+              </Button>
+            </Link>
+          </div>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -289,12 +298,17 @@ export default function ProfilePage() {
         )}
 
         {/* =====================================================
-            SECTION 4: 住所 (読み取り専用)
+            SECTION 4: 住所 (読み取り専用・承認済み)
             ===================================================== */}
         <Card className="p-6 mb-6">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
-            住所
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-primary">
+              住所情報（承認済み）
+            </h2>
+            <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
+              変更には管理者承認が必要
+            </span>
+          </div>
 
           <div className="space-y-4">
             <Input
@@ -327,6 +341,14 @@ export default function ProfilePage() {
                 placeholder="未登録"
               />
             </div>
+
+            <p className="text-sm text-text-muted mt-2">
+              ※ 住所を変更する場合は、
+              <Link href="/contact" className="text-primary hover:underline ml-1">
+                お問い合わせ
+              </Link>
+              からご連絡ください。
+            </p>
           </div>
         </Card>
 

@@ -13,6 +13,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui';
+import { ConfirmModal, useConfirmModal } from '@/components/ui/ConfirmModal';
 import type { Order } from '@/types/dashboard';
 
 // =====================================================
@@ -21,6 +22,8 @@ import type { Order } from '@/types/dashboard';
 
 interface OrderFileUploadSectionProps {
   order: Order;
+  fetchFn?: typeof fetch; // Optional custom fetch function (e.g., adminFetch)
+  onFileUploaded?: () => void; // Callback after successful upload
 }
 
 interface UploadedFile {
@@ -29,7 +32,7 @@ interface UploadedFile {
   file_type: string;
   file_url: string;
   uploaded_at: string;
-  validation_status: string;
+  validation_status: 'PENDING' | 'VALID' | 'INVALID';
 }
 
 interface ValidationError {
@@ -39,12 +42,17 @@ interface ValidationError {
   category: string;
 }
 
+type FileType = 'production_data' | 'reference' | 'other';
+
 // =====================================================
 // Main Component
 // =====================================================
 
-export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
+export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded }: OrderFileUploadSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Custom Modal State
+  const { isOpen: isConfirmModalOpen, openConfirmModal, closeConfirmModal, modalProps } = useConfirmModal();
 
   // State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -55,6 +63,7 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [pendingDeleteFile, setPendingDeleteFile] = useState<{ id: string; name: string } | null>(null);
 
   // Load existing files on mount
   useEffect(() => {
@@ -64,7 +73,7 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
   // Load uploaded files
   const loadUploadedFiles = async () => {
     try {
-      const response = await fetch(`/api/member/orders/${order.id}/data-receipt`, {
+      const response = await fetchFn(`/api/member/orders/${order.id}/data-receipt`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -145,7 +154,7 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
       }
 
       // Upload with progress simulation
-      const uploadPromise = fetch(`/api/member/orders/${order.id}/data-receipt`, {
+      const uploadPromise = fetchFn(`/api/member/orders/${order.id}/data-receipt`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -179,6 +188,9 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
         setDescription('');
         loadUploadedFiles();
 
+        // Callback to notify parent component
+        onFileUploaded?.();
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(null), 5000);
       }
@@ -191,15 +203,26 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
   };
 
   // Delete file
-  const handleDelete = async (fileId: string, fileName: string) => {
-    if (!confirm(`「${fileName}」を削除してもよろしいですか？`)) {
-      return;
-    }
+  const handleDelete = (fileId: string, fileName: string) => {
+    // Set pending delete and show custom modal
+    setPendingDeleteFile({ id: fileId, name: fileName });
 
+    openConfirmModal({
+      title: 'ファイル削除の確認',
+      message: `「${fileName}」を削除してもよろしいですか？`,
+      confirmLabel: '削除する',
+      cancelLabel: 'キャンセル',
+      variant: 'danger',
+      onConfirm: () => executeDelete(fileId),
+    });
+  };
+
+  // Execute file deletion
+  const executeDelete = async (fileId: string) => {
     setDeletingFileId(fileId);
 
     try {
-      const response = await fetch(`/api/member/orders/${order.id}/data-receipt/${fileId}`, {
+      const response = await fetch(`/api/member/orders/${order.id}/data-receipt/files/${fileId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -218,6 +241,7 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
       setTimeout(() => setError(null), 5000);
     } finally {
       setDeletingFileId(null);
+      setPendingDeleteFile(null);
     }
   };
 
@@ -244,7 +268,8 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
   };
 
   return (
-    <Card className="p-6">
+    <>
+      <Card className="p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -265,10 +290,10 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
 
         {/* AI Required Warning */}
         {!hasAIFile && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start">
               <svg
-                className="h-5 w-5 text-red-600 mr-3 flex-shrink-0 mt-0.5"
+                className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0 mt-0.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -277,14 +302,14 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
               <div className="flex-1">
-                <h3 className="text-sm font-medium text-red-800">
+                <h3 className="text-sm font-medium text-blue-800">
                   入稿データ（AI）のアップロードが必須です
                 </h3>
-                <p className="text-sm text-red-700 mt-1">
+                <p className="text-sm text-blue-700 mt-1">
                   生産を開始するために、必ず入稿データ（AI）をアップロードしてください。
                 </p>
               </div>
@@ -385,8 +410,8 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
             className={`
               border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
               ${isUploading
-                ? 'border-border-secondary bg-bg-secondary cursor-not-allowed'
-                : 'border-red-300 hover:border-red-400 hover:bg-red-50'
+                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50'
               }
             `}
           >
@@ -491,11 +516,11 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
           )}
 
           {/* Guidelines */}
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <h3 className="text-sm font-medium text-red-900 mb-2">
-              ⚠️ 入稿データアップロードガイドライン
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">
+              入稿データアップロードガイドライン
             </h3>
-            <ul className="text-sm space-y-1 text-red-800">
+            <ul className="text-sm space-y-1 text-gray-700">
               <li>• <strong>入稿データ（AI）は必須です</strong> - 生産開始前に必ずアップロードしてください</li>
               <li>• 対応ファイル形式: AI (Adobe Illustrator), EPS, PDF</li>
               <li>• 最大ファイルサイズ: 10MB</li>
@@ -589,5 +614,15 @@ export function OrderFileUploadSection({ order }: OrderFileUploadSectionProps) {
         )}
       </div>
     </Card>
+
+    {/* Custom Confirm Modal */}
+    {isConfirmModalOpen && modalProps && (
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={closeConfirmModal}
+        {...modalProps}
+      />
+    )}
+    </>
   );
 }

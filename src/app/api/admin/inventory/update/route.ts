@@ -15,7 +15,9 @@ export const dynamic = 'force-dynamic';
 const inventoryUpdateSchema = z.object({
   inventoryId: uuidSchema,
   productId: uuidSchema,
-  quantity: z.number().int().nonzero(),
+  quantity: z.number().int().refine((val) => val !== 0, {
+    message: 'Quantity cannot be zero'
+  }),
   transactionType: z.enum(['receipt', 'issue', 'adjustment', 'transfer', 'return', 'production_in', 'production_out']),
   reason: z.string().optional(),
 });

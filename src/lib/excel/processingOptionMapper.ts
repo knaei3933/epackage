@@ -111,18 +111,47 @@ export function mapProcessingOptionsToExcel(
 /**
  * Convert Excel processing options to display format
  * @param options - OptionalProcessing object
+ * @param postProcessingOptions - Raw postProcessingOptions array for detailed display
  * @returns Array of {name, value} pairs for Excel display
  */
 export function formatProcessingOptionsForDisplay(
-  options: OptionalProcessing
+  options: OptionalProcessing,
+  postProcessingOptions?: string[]
 ): Array<{ name: string; value: string }> {
-  return PROCESSING_OPTION_MAP.map(mapping => {
+  const result = PROCESSING_OPTION_MAP.map(mapping => {
     const enabled = options[mapping.excelOptionKey] || false
     return {
       name: mapping.displayName,
       value: mapping.displayValue(enabled)
     }
   })
+
+  // If we have raw postProcessingOptions, add detailed info for notch and hanging hole
+  if (postProcessingOptions && postProcessingOptions.length > 0) {
+    // Find notch option in result and update with specific type
+    const notchIndex = result.findIndex(item => item.name === 'ノッチ')
+    if (notchIndex >= 0 && options.notch) {
+      const notchOption = postProcessingOptions.find(opt => opt.startsWith('notch-'))
+      if (notchOption === 'notch-yes') {
+        result[notchIndex].value = 'Vノッチ'
+      } else if (notchOption === 'notch-straight') {
+        result[notchIndex].value = '直線ノッチ'
+      }
+    }
+
+    // Find hanging hole option in result and update with specific size
+    const hangingIndex = result.findIndex(item => item.name === '吊り下げ穴')
+    if (hangingIndex >= 0 && options.hangingHole) {
+      const hangOption = postProcessingOptions.find(opt => opt.startsWith('hang-hole-'))
+      if (hangOption === 'hang-hole-6mm') {
+        result[hangingIndex].value = '6mm'
+      } else if (hangOption === 'hang-hole-8mm') {
+        result[hangingIndex].value = '8mm'
+      }
+    }
+  }
+
+  return result
 }
 
 /**

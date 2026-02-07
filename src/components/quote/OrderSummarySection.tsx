@@ -25,6 +25,10 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
   // 제품 타입 라벨
   const getBagTypeLabel = (bagTypeId: string): string => {
     const labels: Record<string, string> = {
+      'flat_3_side': '三方シール平袋',
+      'stand_up': 'スタンドパウチ',
+      'box': 'BOX型パウチ',
+      'spout_pouch': 'スパウトパウチ',
       'roll_film': 'ロールフィルム',
       'flat_pouch': '平袋',
       'stand_pouch': 'スタンドパウチ',
@@ -39,14 +43,64 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
   // 후加工 라벨
   const getPostProcessingLabel = (optionId: string): string => {
     const labels: Record<string, string> = {
-      'zipper-yes': 'チャック付',
-      'zipper-no': 'チャックなし',
-      'valve-yes': 'エアバルブ',
-      'hole-yes': '穴あけ',
-      'tear-notch': 'テアノッチ',
-      'hanging-hole': '吊り穴'
+      'zipper-yes': 'ジッパー付き',
+      'zipper-no': 'ジッパーなし',
+      'zipper-position-any': 'ジッパー位置 (お任せ)',
+      'zipper-position-specified': 'ジッパー位置 (指定)',
+      'glossy': '光沢仕上げ',
+      'matte': 'マット仕上げ',
+      'notch-yes': 'Vノッチ',
+      'notch-straight': '直線ノッチ',
+      'notch-no': 'ノッチなし',
+      'hang-hole-6mm': '吊り下げ穴 (6mm)',
+      'hang-hole-8mm': '吊り下げ穴 (8mm)',
+      'hang-hole-no': '吊り穴なし',
+      'corner-round': '角丸',
+      'corner-square': '角直角',
+      'valve-yes': 'ガス抜きバルブ',
+      'valve-no': 'バルブなし',
+      'top-open': '上端開封',
+      'bottom-open': '下端開封',
+      // シール幅関連（フィルター除外用）
+      'sealing width 5mm': 'シール幅 5mm',
+      'sealing width 7.5mm': 'シール幅 7.5mm',
+      'sealing width 10mm': 'シール幅 10mm',
+      'sealing-width-5mm': 'シール幅 5mm',
+      'sealing-width-7.5mm': 'シール幅 7.5mm',
+      'sealing-width-10mm': 'シール幅 10mm',
+      // マチ印刷関連
+      'machi-printing-yes': 'マチ印刷あり',
+      'machi-printing-no': 'マチ印刷なし'
     }
     return labels[optionId] || optionId.replace(/-/g, ' ')
+  }
+
+  // シール幅ラベル
+  const getSealWidthLabel = (sealWidth: string | undefined): string => {
+    if (!sealWidth) return 'シール幅 5mm' // デフォルト値
+    return `シール幅 ${sealWidth}`
+  }
+
+  // シール幅関連の値をフィルタリング（postProcessingOptionsに含まれるシール幅表示を除外）
+  const filterOutSealWidthOptions = (options: string[]): string[] => {
+    return options.filter(option =>
+      !option.includes('sealing width') &&
+      !option.includes('sealing-width') &&
+      !option.includes('seal-width') &&
+      !option.includes('シール幅') &&
+      option !== '5mm' &&
+      option !== '7.5mm' &&
+      option !== '10mm' &&
+      option !== '7-5mm' &&
+      option !== 'sealing-width-5mm' &&
+      option !== 'sealing-width-7.5mm' &&
+      option !== 'sealing-width-7-5mm' &&
+      option !== 'sealing-width-10mm' &&
+      option !== 'seal-width-5mm' &&
+      option !== 'seal-width-7.5mm' &&
+      option !== 'seal-width-7-5mm' &&
+      option !== 'seal-width-10mm'
+    )
   }
 
   // 수량 표시 (롤 필름은 m, 파우치는 개) - 초기 수량을 사용
@@ -60,7 +114,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
       const total = initialSkuQuantities.reduce((sum, qty) => sum + (qty || 0), 0)
       return {
         display: `${total.toLocaleString()}${unit}`,
-        details: initialSkuQuantities.map((qty, idx) => `SKU${idx + 1}: ${qty?.toLocaleString() || 0}${unit}`)
+        details: initialSkuQuantities.map((qty, idx) => `デザイン${idx + 1}: ${qty?.toLocaleString() || 0}${unit}`)
       }
     }
 
@@ -84,6 +138,90 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
     return 'フルカラー'
   }
 
+  // フィルム構造仕様を取得（materialIdとthicknessSelectionから）- 日本語
+  const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
+    const materialSpecs: Record<string, Record<string, string>> = {
+      'pet_al': {
+        'light': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 60μ',
+        'medium': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ',
+        'standard': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ',
+        'heavy': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ',
+        'ultra': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 110μ'
+      },
+      'pet_vmpet': {
+        'light': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 50μ',
+        'light_medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 70μ',
+        'medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 90μ',
+        'heavy': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 100μ',
+        'ultra': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 110μ'
+      },
+      'pet_ldpe': {
+        'medium': 'PET 12μ / LLDPE 110μ',
+        'heavy': 'PET 12μ / LLDPE 120μ',
+        'ultra': 'PET 12μ / LLDPE 130μ'
+      },
+      'pet_ny_al': {
+        'light': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 60μ',
+        'medium': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 70μ',
+        'heavy': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 100μ'
+      }
+    };
+
+    // マテリアルに対応する仕様を検索（部分一致も許容）
+    const materialKey = Object.keys(materialSpecs).find(key => materialId.includes(key));
+    if (materialKey) {
+      return materialSpecs[materialKey][thicknessId] || '指定なし';
+    }
+    return '指定なし';
+  };
+
+  // 内容物ラベルマッピング
+  const getContentsLabel = (): string => {
+    const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+      'food': '食品',
+      'health_supplement': '健康食品',
+      'cosmetic': '化粧品',
+      'quasi_drug': '医薬部外品',
+      'drug': '医薬品',
+      'other': 'その他'
+    }
+    const CONTENTS_TYPE_LABELS: Record<string, string> = {
+      'solid': '固体',
+      'powder': '粉体',
+      'liquid': '液体'
+    }
+    const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+      'general_neutral': '一般/中性',
+      'oil_surfactant': 'オイル/界面活性剤',
+      'acidic_salty': '酸性/塩分',
+      'volatile_fragrance': '揮発性/香料',
+      'other': 'その他'
+    }
+    const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+      'general_roomTemp': '一般/常温',
+      'light_oxygen_sensitive': '光/酸素敏感',
+      'refrigerated': '冷凍保管',
+      'high_temp_sterilized': '高温殺菌',
+      'other': 'その他'
+    }
+
+    const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || '']
+    const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || '']
+    const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || '']
+    const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || '']
+
+    if (categoryLabel && typeLabel && ingredientLabel && environmentLabel) {
+      return `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
+    } else if (categoryLabel && typeLabel) {
+      return `${categoryLabel}（${typeLabel}）`
+    } else if (categoryLabel) {
+      return categoryLabel
+    } else if (typeLabel) {
+      return typeLabel
+    }
+    return ''
+  }
+
   const quantityInfo = quantityDisplay()
 
   return (
@@ -101,8 +239,8 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-900">現在の選択</h3>
-              <p className="text-sm text-gray-600">お見積もり内容</p>
+              <h3 className="text-xl font-bold text-gray-900">選択した仕様</h3>
+              <p className="text-sm text-gray-600">お見積もり内容の詳細</p>
             </div>
           </div>
         </div>
@@ -113,11 +251,21 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
           <div className="space-y-4">
             <h4 className="font-semibold text-gray-900 flex items-center">
               <Package className="w-4 h-4 mr-2 text-navy-600" />
-              基本仕様
+              製品仕様
             </h4>
             <div className="bg-white rounded-lg p-4 space-y-2 text-sm">
+              {/* 内容物 - 一番上に表示 */}
+              {(() => {
+                const contentsLabel = getContentsLabel()
+                return contentsLabel ? (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">内容物</span>
+                    <span className="font-medium text-gray-900">{contentsLabel}</span>
+                  </div>
+                ) : null
+              })()}
               <div className="flex justify-between">
-                <span className="text-gray-600">製品タイプ</span>
+                <span className="text-gray-600">袋のタイプ</span>
                 <span className="font-medium text-gray-900">{getBagTypeLabel(state.bagTypeId)}</span>
               </div>
               <div className="flex justify-between">
@@ -125,7 +273,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
                 <span className="font-medium text-gray-900">
                   {state.bagTypeId === 'roll_film'
                     ? `幅: ${state.width} mm`
-                    : `${state.width} × ${state.height}${state.depth > 0 ? ` × ${state.depth}` : ''} mm`
+                    : `${state.width} × ${state.height}${state.depth > 0 ? ` × ${state.depth}` : ''}${state.sideWidth ? ` × 側面${state.sideWidth}` : ''} mm`
                   }
                 </span>
               </div>
@@ -146,11 +294,13 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
                           'PP': 'PP',
                           'CPP': 'CPP',
                           'PA': 'NY',
-                          'EVOH': 'EVOH'
+                          'EVOH': 'EVOH',
+                          'VMPET': 'VMPET',
+                          'NY': 'NY'
                         }
                         return `${materialLabels[layer.materialId] || layer.materialId} ${layer.thickness}μ`
                       }).join(' / ')
-                    : (state.thicknessSelection === 'light' ? '薄手' : state.thicknessSelection === 'medium' ? '並厚' : state.thicknessSelection === 'heavy' ? '厚手' : '超厚手')
+                    : getFilmStructureSpec(state.materialId, state.thicknessSelection)
                   }
                 </span>
               </div>
@@ -161,7 +311,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
           <div className="space-y-4">
             <h4 className="font-semibold text-gray-900 flex items-center">
               <Calendar className="w-4 h-4 mr-2 text-navy-600" />
-              数量・印刷
+              注文数と印刷
             </h4>
             <div className="bg-white rounded-lg p-4 space-y-2 text-sm">
               <div className="flex justify-between items-center">
@@ -202,15 +352,22 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
           </div>
         </div>
 
-        {/* 후加工 */}
-        {state.postProcessingOptions && state.postProcessingOptions.length > 0 && (
+        {/* 後加工 */}
+        {((state.postProcessingOptions && state.postProcessingOptions.length > 0) || state.sealWidth) && (
           <div className="mt-4">
             <h4 className="font-semibold text-gray-900 flex items-center mb-2">
               <Settings className="w-4 h-4 mr-2 text-navy-600" />
-              後加工
+              追加仕様
             </h4>
             <div className="bg-white rounded-lg p-3 flex flex-wrap gap-2">
-              {safeMap(state.postProcessingOptions, option => (
+              {/* シール幅 */}
+              {state.sealWidth && (
+                <span className="inline-flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full">
+                  {getSealWidthLabel(state.sealWidth)}
+                </span>
+              )}
+              {/* シール幅関連の値を除外して表示 */}
+              {safeMap(filterOutSealWidthOptions(state.postProcessingOptions || []), option => (
                 <span
                   key={option}
                   className="inline-flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full"

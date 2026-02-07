@@ -399,6 +399,7 @@ export function ConfigurationPanel({
                                 </label>
                                 <input
                                   type="number"
+                                  data-testid="width-input"
                                   value={product.specifications?.width || ''}
                                   onChange={(e) => updateProductSpec(index, 'specifications.width', parseInt(e.target.value) || 0)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -418,6 +419,7 @@ export function ConfigurationPanel({
                                 </label>
                                 <input
                                   type="number"
+                                  data-testid="height-input"
                                   value={product.specifications?.height || ''}
                                   onChange={(e) => updateProductSpec(index, 'specifications.height', parseInt(e.target.value) || 0)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -437,6 +439,7 @@ export function ConfigurationPanel({
                                 </label>
                                 <input
                                   type="number"
+                                  data-testid="thickness-input"
                                   value={product.specifications?.thickness || ''}
                                   onChange={(e) => updateProductSpec(index, 'specifications.thickness', parseInt(e.target.value) || 0)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -456,6 +459,7 @@ export function ConfigurationPanel({
                                 </label>
                                 <input
                                   type="number"
+                                  data-testid="quantity-input"
                                   value={product.quantity || ''}
                                   onChange={(e) => updateProductSpec(index, 'quantity', parseInt(e.target.value) || 0)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -540,7 +544,7 @@ export function ConfigurationPanel({
                             onClick={() => toggleSection(`printing-${index}`)}
                           >
                             <h4 className="text-lg font-semibold flex items-center">
-                              <Settings className="w-5 h-5 mr-2 text-purple-500" />
+                              <Settings className="w-5 h-5 mr-2 text-brixa-primary-600" />
                               印刷オプション
                             </h4>
                             {expandedSections.has(`printing-${index}`) ? (
@@ -566,7 +570,7 @@ export function ConfigurationPanel({
                                         key={printing.value}
                                         className={`p-4 border rounded-lg cursor-pointer transition-all ${
                                           isSelected
-                                            ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-500'
+                                            ? 'border-brixa-primary-600 bg-brixa-primary-50 ring-2 ring-brixa-primary-600'
                                             : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                         }`}
                                         onClick={() => {
@@ -642,7 +646,7 @@ export function ConfigurationPanel({
                             onClick={() => toggleSection(`features-${index}`)}
                           >
                             <h4 className="text-lg font-semibold flex items-center">
-                              <Zap className="w-5 h-5 mr-2 text-yellow-500" />
+                              <Zap className="w-5 h-5 mr-2 text-info-500" />
                               特殊機能
                             </h4>
                             {expandedSections.has(`features-${index}`) ? (
@@ -662,7 +666,7 @@ export function ConfigurationPanel({
                                     key={feature.value}
                                     className={`p-3 border rounded-lg cursor-pointer transition-all ${
                                       isSelected
-                                        ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-500'
+                                        ? 'border-info-500 bg-info-50 ring-2 ring-info-500'
                                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                     }`}
                                     onClick={() => {
@@ -680,7 +684,7 @@ export function ConfigurationPanel({
                                           +¥{feature.cost.toLocaleString()}
                                         </Badge>
                                         {isSelected && (
-                                          <Check className="w-4 h-4 text-yellow-500" />
+                                          <Check className="w-4 h-4 text-info-500" />
                                         )}
                                       </div>
                                     </div>

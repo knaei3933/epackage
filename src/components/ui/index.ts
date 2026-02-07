@@ -1,5 +1,11 @@
 // UI Components Export
 
+// Catalog Components
+export { ProductFAQ } from '../catalog/ProductFAQ';
+export { ProductDownloads } from '../catalog/ProductDownloads';
+export { ProductRelatedCases } from '../catalog/ProductRelatedCases';
+export { ProductCertifications, CertificationBadges } from '../catalog/ProductCertifications';
+
 // Alert Components
 export {
   Alert,
@@ -102,3 +108,29 @@ export type { WizardProps, WizardStep } from './Wizard';
 // Accordion Component
 export { AccordionItem, AccordionSection } from './Accordion';
 export type { AccordionItemProps, AccordionSectionProps } from './Accordion';
+
+// Dialog Component
+export {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from './dialog';
+
+// Confirm Modal Component
+export {
+  ConfirmModal,
+  useConfirmModal,
+} from './ConfirmModal';
+export type { ConfirmModalProps, ConfirmVariant, UseConfirmModalResult } from './ConfirmModal';
+
+// Tabs Component
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from './tabs';

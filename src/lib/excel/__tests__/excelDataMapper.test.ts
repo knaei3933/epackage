@@ -297,9 +297,9 @@ describe('DEFAULT_SUPPLIER constant', () => {
     expect(DEFAULT_SUPPLIER.subBrand).toBe('by kanei-trade');
     expect(DEFAULT_SUPPLIER.companyName).toBe('金井貿易株式会社');
     expect(DEFAULT_SUPPLIER.postalCode).toBe('〒673-0846');
-    expect(DEFAULT_SUPPLIER.address).toBe('兵庫県明石市上ノ丸2-11-21-102');
-    expect(DEFAULT_SUPPLIER.phone).toBe('TEL: 080-6942-7235');
-    expect(DEFAULT_SUPPLIER.email).toBe('info@epackage-lab.com');
+    expect(DEFAULT_SUPPLIER.address).toBe('兵庫県明石市上ノ丸2-11-21');
+    expect(DEFAULT_SUPPLIER.phone).toBe('TEL: 050-1793-6500');
+    expect(DEFAULT_SUPPLIER.email).toBe('info@package-lab.com');
   });
 
   it('should have description in Japanese', () => {

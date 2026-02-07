@@ -46,18 +46,10 @@ const MAX_ATTACHMENTS = 20;
 const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB
 
 // ============================================================
-// Helper: Get authenticated user ID with DEV_MODE support
+// Helper: Get authenticated user ID
 // ============================================================
 
 async function getAuthenticatedUserId(request: NextRequest): Promise<string | null> {
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
-
-  if (isDevMode && devModeUserId) {
-    console.log('[Korea Send Data] DEV_MODE: Using x-user-id header:', devModeUserId);
-    return devModeUserId;
-  }
-
   // Try to get user from middleware header first (more reliable)
   const userIdFromMiddleware = request.headers.get('x-user-id');
   const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';

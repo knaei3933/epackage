@@ -163,6 +163,7 @@ export default function AdminSettingsPage() {
                     <input
                       type="number"
                       step="0.01"
+                      data-testid={`setting-${activeTab}-${key}`}
                       value={data.value}
                       onChange={(e) => {
                         const newValue = parseFloat(e.target.value);

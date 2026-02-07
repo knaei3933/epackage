@@ -6,7 +6,8 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
+;
 import { Truck, Check } from 'lucide-react';
 import { useQuote, useQuoteState, createStepSummary, getPostProcessingLimitStatusForState } from '@/contexts/QuoteContext';
 

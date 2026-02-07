@@ -4,23 +4,42 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getUnreadAdminNotificationCount } from '@/lib/admin-notifications'
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers'
+import { verifyAdminAuth } from '@/lib/auth-helpers'
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr'
 
 // GET /api/admin/notifications/unread-count - Get unread count
 export async function GET(request: NextRequest) {
   try {
-    // ✅ Verify admin authentication first
+    // 認証チェック
     const auth = await verifyAdminAuth(request)
     if (!auth) {
-      return unauthorizedResponse()
+      return NextResponse.json(
+        { error: '認証されていません。' },
+        { status: 401 }
+      )
     }
 
-    const unreadCount = await getUnreadAdminNotificationCount()
+    const { client: supabase } = createSupabaseSSRClient(request)
+
+    // Get unread count from unified_notifications
+    const { count, error } = await supabase
+      .from('unified_notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_type', 'admin')
+      .eq('is_read', false)
+      .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+
+    if (error) {
+      console.error('[Unread Count API] Error:', error)
+      return NextResponse.json(
+        { error: '未読数の取得に失敗しました。', error_code: 'DATABASE_ERROR' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      data: { count: unreadCount },
+      data: { count: count || 0 },
     })
   } catch (error) {
     console.error('[Admin Notifications Unread Count API] Error:', error)

@@ -53,6 +53,7 @@ export function BankInfoCard({ quotationId }: BankInfoCardProps) {
         setLoading(true);
         const response = await fetch(`/api/member/quotations/${quotationId}/invoice`, {
           method: 'POST',
+          credentials: 'include',
         });
 
         if (!response.ok) {

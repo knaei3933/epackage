@@ -20,7 +20,7 @@ import {
   Button,
   Card,
 } from '@/components/ui';
-import JapaneseNameInput from '@/components/ui/JapaneseNameInput';
+import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput';
 import {
   registrationSchema,
   type RegistrationFormData,
@@ -101,6 +101,8 @@ export default function RegistrationForm({
     handleSubmit,
     watch,
     setValue,
+    control,
+    trigger,
     formState: { errors, isDirty },
   } = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
@@ -175,11 +177,21 @@ export default function RegistrationForm({
 
       const data = await response.json();
 
-      if (data.prefecture || data.city || data.street) {
-        // 検索結果をフォームに自動反映
-        if (data.prefecture) setValue('prefecture', data.prefecture);
-        if (data.city) setValue('city', data.city);
-        if (data.street) setValue('street', data.street);
+      if (data.prefecture || data.city) {
+        // 都道府県はドロップダウンから自動選択
+        if (data.prefecture) {
+          const prefectureMatch = PREFECTURE_OPTIONS.find(p => data.prefecture.includes(p));
+          if (prefectureMatch) {
+            setValue('prefecture', prefectureMatch);
+          }
+        }
+        // 市区町村＋番地まで自動入力（例: 加古郡稲美町六分一）
+        if (data.city) {
+          const cityValue = data.street ? `${data.city}${data.street}` : data.city;
+          setValue('city', cityValue);
+        }
+        // streetフィールドはクリア（追加番地はユーザーが直接入力）
+        setValue('street', '');
         setPostalSearchError(null);
       } else {
         setPostalSearchError('住所が見つかりませんでした。郵便番号を確認してください。');
@@ -198,7 +210,7 @@ export default function RegistrationForm({
 
     try {
       // API呼び出し
-      const response = await fetch('/api/auth/register/', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,10 +224,17 @@ export default function RegistrationForm({
         throw new Error(result.error || '会員登録に失敗しました。');
       }
 
-      // 成功処理
+      // 성공 처리
       onSuccess?.(data);
 
-      // 承認待ちページへ移動
+      // 이메일 인증이 필요한 경우 확인 메시지 표시
+      if (result.requiresEmailConfirmation) {
+        // 이메일 인증 안내 페이지로 이동하거나 메시지 표시
+        router.push('/auth/pending?email=' + encodeURIComponent(data.email));
+        return;
+      }
+
+      // 이메일 인증 완료 후 바로 승인 대기 페이지로 이동
       router.push('/auth/pending?email=' + encodeURIComponent(data.email));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '会員登録に失敗しました。';
@@ -302,19 +321,14 @@ export default function RegistrationForm({
             氏名
           </h2>
 
-          <JapaneseNameInput
-            kanjiLastName={watch('kanjiLastName')}
-            kanjiFirstName={watch('kanjiFirstName')}
-            kanaLastName={watch('kanaLastName')}
-            kanaFirstName={watch('kanaFirstName')}
-            onKanjiLastNameChange={(value) => setValue('kanjiLastName', value)}
-            onKanjiFirstNameChange={(value) => setValue('kanjiFirstName', value)}
-            onKanaLastNameChange={(value) => setValue('kanaLastName', value)}
-            onKanaFirstNameChange={(value) => setValue('kanaFirstName', value)}
-            kanjiLastNameError={errors.kanjiLastName?.message}
-            kanjiFirstNameError={errors.kanjiFirstName?.message}
-            kanaLastNameError={errors.kanaLastName?.message}
-            kanaFirstNameError={errors.kanaFirstName?.message}
+          <JapaneseNameInputController
+            control={control}
+            setValue={setValue}
+            trigger={trigger}
+            kanjiLastNameName="kanjiLastName"
+            kanjiFirstNameName="kanjiFirstName"
+            kanaLastNameName="kanaLastName"
+            kanaFirstNameName="kanaFirstName"
             required
           />
         </div>
@@ -460,26 +474,22 @@ export default function RegistrationForm({
           </h2>
 
           <div className="space-y-4">
-            {/* 郵便番号入力 - 自動検索ボタン付き */}
+            {/* 郵便番号入力 - 自動検索 */}
             <div>
               <Input
                 label="郵便番号"
                 placeholder="123-4567"
                 error={errors.postalCode?.message}
-                {...register('postalCode')}
-                helperText="郵便番号を入力して「住所自動検索」ボタンをクリックすると、住所が自動入力されます。"
+                {...register('postalCode', {
+                  onChange: (e) => {
+                    const value = e.target.value.replace('-', '')
+                    // 7桁入力されたら自動検索
+                    if (value.length === 7) {
+                      searchAddressByPostalCode(e.target.value)
+                    }
+                  }
+                })}
               />
-              <div className="mt-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="md"
-                  onClick={() => searchAddressByPostalCode(postalCode || '')}
-                  disabled={isSearchingPostal || !postalCode}
-                >
-                  {isSearchingPostal ? '検索中...' : '住所自動検索'}
-                </Button>
-              </div>
               {postalSearchError && (
                 <p className="mt-2 text-sm text-warning-600">{postalSearchError}</p>
               )}
@@ -488,7 +498,7 @@ export default function RegistrationForm({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-2">
-                  都道府県
+                  都道府県 <span className="text-error-500">*</span>
                 </label>
                 <select
                   {...register('prefecture')}
@@ -501,61 +511,34 @@ export default function RegistrationForm({
                     </option>
                   ))}
                 </select>
+                {errors.prefecture && (
+                  <p className="mt-1 text-sm text-error-500">{errors.prefecture.message}</p>
+                )}
               </div>
 
-              <Input
-                label="市区町村"
-                placeholder="渋谷区"
-                {...register('city')}
-              />
-              <Input
-                label="番地・建物名"
-                placeholder="1-2-3 イパッケージビル"
-                {...register('street')}
-              />
+              <div>
+                <Input
+                  label="市区町村*"
+                  placeholder="加古郡稲美町六分一"
+                  error={errors.city?.message}
+                  {...register('city')}
+                  required
+                />
+              </div>
+              <div>
+                <Input
+                  label="番地"
+                  placeholder="1-2-3"
+                  error={errors.street?.message}
+                  {...register('street')}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* =====================================================
-            SECTION 7: B2B追加情報 (法人のみ表示)
-            ===================================================== */}
-        {businessType === BusinessType.CORPORATION && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-text-primary mb-4">
-              法人追加情報
-            </h2>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input
-                  label="設立年"
-                  placeholder="2020"
-                  error={errors.foundedYear?.message}
-                  {...register('foundedYear')}
-                  helperText="西暦4桁（例: 2020）"
-                />
-                <Input
-                  label="資本金"
-                  placeholder="1,000万円"
-                  error={errors.capital?.message}
-                  {...register('capital')}
-                  helperText="例: 1,000万円、5億円"
-                />
-                <Input
-                  label="代表者名"
-                  placeholder="山田 太郎"
-                  error={errors.representativeName?.message}
-                  {...register('representativeName')}
-                  helperText="姓と名の間にスペース"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* =====================================================
-            SECTION 8: 商品種別
+            SECTION 7: 商品種別
             ===================================================== */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -609,7 +592,7 @@ export default function RegistrationForm({
               className="w-4 h-4 mt-1 text-brixa-500"
             />
             <span className="text-sm text-text-primary">
-              <a href="/privacy" className="text-brixa-500 hover:underline">
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brixa-500 hover:underline">
                 プライバシーポリシー
               </a>
               に同意します。

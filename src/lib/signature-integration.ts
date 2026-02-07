@@ -430,14 +430,13 @@ class DocuSignProvider implements ISignatureProvider {
       const supabase = createServiceClient();
       await supabase
         .from('signature_events')
-        // @ts-ignore - Supabase type inference issue with insert
         .insert({
           envelope_id: envelopeId,
           provider: 'docusign',
           event,
           metadata,
           created_at: new Date().toISOString(),
-        });
+        } as never);
     } catch (error) {
       console.error('[DocuSign] Log event error:', error);
     }
@@ -623,14 +622,13 @@ class HelloSignProvider implements ISignatureProvider {
       const supabase = createServiceClient();
       await supabase
         .from('signature_events')
-        // @ts-ignore - Supabase type inference issue with insert
         .insert({
           envelope_id: envelopeId,
           provider: 'hellosign',
           event,
           metadata,
           created_at: new Date().toISOString(),
-        });
+        } as never);
     } catch (error) {
       console.error('[HelloSign] Log event error:', error);
     }
@@ -656,7 +654,6 @@ class LocalSignatureProvider implements ISignatureProvider {
       // Create signature record
       const { data, error } = await supabase
         .from('signatures')
-        // @ts-ignore - Supabase type inference issue with insert
         .insert({
           document_id: request.document.id,
           provider: 'local',
@@ -666,7 +663,7 @@ class LocalSignatureProvider implements ISignatureProvider {
           subject: request.subject,
           message: request.message,
           expires_at: request.expiresAt?.toISOString() || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        })
+        } as never)
         .select()
         .single();
 
@@ -674,11 +671,9 @@ class LocalSignatureProvider implements ISignatureProvider {
 
       return {
         success: true,
-        // @ts-ignore - data.id exists but type inference fails
-        envelopeId: data.id,
+        envelopeId: (data as { id: string }).id,
         status: SignatureStatus.PENDING,
-        // @ts-ignore - data.id exists but type inference fails
-        signingUrl: `/signature/sign/${data.id}`,
+        signingUrl: `/signature/sign/${(data as { id: string }).id}`,
         provider: 'local',
       };
     } catch (error) {
@@ -703,18 +698,12 @@ class LocalSignatureProvider implements ISignatureProvider {
       if (error) throw error;
 
       return {
-        // @ts-ignore - data.id exists but type inference fails
-        envelopeId: data.id,
-        // @ts-ignore - data.status exists but type inference fails
-        status: data.status,
-        // @ts-ignore - data.signers exists but type inference fails
-        signers: data.signers || [],
-        // @ts-ignore - data.created_at exists but type inference fails
-        createdAt: data.created_at,
-        // @ts-ignore - data.expires_at exists but type inference fails
-        expiresAt: data.expires_at,
-        // @ts-ignore - data.signed_at exists but type inference fails
-        completedAt: data.signed_at,
+        envelopeId: (data as { id: string }).id,
+        status: (data as { status: SignatureStatus }).status,
+        signers: (data as { signers?: unknown[] }).signers || [],
+        createdAt: (data as { created_at: string }).created_at,
+        expiresAt: (data as { expires_at?: string }).expires_at,
+        completedAt: (data as { signed_at?: string }).signed_at,
       };
     } catch (error) {
       console.error('[Local] Check status error:', error);
@@ -728,8 +717,7 @@ class LocalSignatureProvider implements ISignatureProvider {
 
       await supabase
         .from('signatures')
-        // @ts-ignore - Supabase type inference issue with update
-        .update({ status: SignatureStatus.CANCELLED })
+        .update({ status: SignatureStatus.CANCELLED } as never)
         .eq('id', envelopeId);
     } catch (error) {
       console.error('[Local] Cancel error:', error);

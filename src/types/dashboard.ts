@@ -173,6 +173,7 @@ export interface Quotation {
   updatedAt: string;
   sentAt?: string;
   approvedAt?: string;
+  pdfUrl?: string | null;  // 保存されたPDFのURL
 }
 
 export interface QuotationItem {

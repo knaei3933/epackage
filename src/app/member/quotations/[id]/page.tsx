@@ -14,6 +14,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, Badge, Button } from '@/components/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -23,14 +24,15 @@ import {
   FileText,
   ArrowLeft,
   AlertCircle,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { generateQuotePDF, type QuoteData } from '@/lib/pdf-generator';
 import { translateBagType, translateMaterialType } from '@/constants/enToJa';
-import { BankInfoCard } from '@/components/quote/BankInfoCard';
-import { InvoiceDownloadButton } from '@/components/quote/InvoiceDownloadButton';
-import { DataImportStatusPanel } from '@/components/quote/DataImportStatusPanel';
-import Link from 'next/link';
-import type { Quotation, QuotationItem } from '@/types/dashboard';
+import { BankInfoCard, InvoiceDownloadButton } from '@/components/quote';
+import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import type { Quotation } from '@/types/dashboard';
 
 // =====================================================
 // Constants
@@ -59,29 +61,200 @@ const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' 
 // =====================================================
 
 /**
+ * 袋タイプIDを日本語名に変換
+ */
+function getBagTypeName(bagTypeId: string): string {
+  const names: Record<string, string> = {
+    'flat_pouch': 'ピローパウチ',
+    'flat_3_side': '三方シール平袋',
+    'three_side_seal': '三方シール平袋',
+    'stand_up': 'スタンドパウチ',
+    'stand_pouch': 'スタンドパウチ',
+    'gusset': 'ガセットパウチ',
+    'gusset_pouch': 'ガセットパウチ',
+    'roll_film': 'ロールフィルム',
+    'roll-film': 'ロールフィルム',
+    'zipper_pouch': 'ジッパーパウチ',
+  };
+  return names[bagTypeId] || translateBagType(bagTypeId) || bagTypeId || '-';
+}
+
+/**
+ * 素材IDを日本語名に変換
+ */
+function getMaterialName(materialId: string): string {
+  const names: Record<string, string> = {
+    'pet_al': 'PET/AL (アルミ箔ラミネート)',
+    'pet_ny_al': 'PET/NY/AL',
+    'pet_pe': 'PET/PE (透明ラミネート)',
+    'kp': 'kraft (クラフト紙)',
+    'kraft': 'クラフト紙',
+    'paper': '紙',
+    'ny_pe': 'NY/PE',
+    'pet_ny': 'PET/NY',
+  };
+  return names[materialId] || translateMaterialType(materialId) || materialId || '-';
+}
+
+/**
+ * 厚さを材料構造で表示 (materialId + thicknessSelection から specification を取得)
+ */
+function getThicknessName(materialId: string, thicknessSelection: string, fallbackThickness?: string): string {
+  // materialId と thicknessSelection の組み合わせから specification を取得
+  if (materialId && thicknessSelection) {
+    const spec = getMaterialSpecification(materialId, thicknessSelection);
+    if (spec !== '-') return spec;
+  }
+
+  // フォールバック: 日本語変換
+  const names: Record<string, string> = {
+    'thin': '薄手',
+    'standard': '標準',
+    'medium': '中厚',
+    'thick': '厚手',
+    'extra_thick': '超厚手',
+    'extra-thick': '超厚手',
+    'light': '軽量',
+    'heavy': '高耐久',
+    'ultra': '超耐久',
+  };
+  return names[fallbackThickness || ''] || names[thicknessSelection] || fallbackThickness || thicknessSelection || '-';
+}
+
+/**
+ * 내용물 정보를 일본어로 변환
+ */
+function getContentsDisplay(specs: Record<string, unknown> | undefined): string {
+  if (!specs) return '-';
+
+  const productCategoryMap: Record<string, string> = {
+    'food': '食品',
+    'health_supplement': '健康補助食品',
+    'cosmetic': '化粧品',
+    'quasi_drug': '医薬部外品',
+    'drug': '医薬品',
+  };
+  const contentsTypeMap: Record<string, string> = {
+    'solid': '固形',
+    'powder': '粉体',
+    'liquid': '液体',
+  };
+  const mainIngredientMap: Record<string, string> = {
+    'general_neutral': '一般・中性',
+    'oil_surfactant': '油性・界面活性剤',
+    'acidic_salty': '酸性・塩分',
+    'volatile_fragrance': '揮発性・香料',
+    'other': 'その他',
+  };
+  const distributionEnvironmentMap: Record<string, string> = {
+    'general_roomTemp': '一般（常温）',
+    'light_oxygen_sensitive': '光・酸素敏感',
+    'refrigerated': '冷蔵',
+    'high_temp_sterilized': '高温殺菌',
+    'other': 'その他',
+  };
+
+  const contents = [
+    specs.productCategory ? productCategoryMap[specs.productCategory as string] : null,
+    specs.contentsType ? contentsTypeMap[specs.contentsType as string] : null,
+    specs.mainIngredient ? mainIngredientMap[specs.mainIngredient as string] : null,
+    specs.distributionEnvironment ? distributionEnvironmentMap[specs.distributionEnvironment as string] : null,
+  ].filter(Boolean).join('、');
+
+  return contents || '-';
+}
+
+/**
  * Map database specifications to PDF template format
  */
 function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Record<string, string | boolean | number> {
+  console.log('[mapSpecificationsToPDF] Input specs:', JSON.stringify(specs, null, 2));
   if (!specs) return {};
 
   const bagTypeId = specs.bagTypeId as string | undefined;
   const materialId = specs.materialId as string | undefined;
   const postProcessingOptions = specs.postProcessingOptions as string[] | undefined;
+  console.log('[mapSpecificationsToPDF] postProcessingOptions:', postProcessingOptions);
 
-  return {
+  // サイズ表示 - ロールフィルムの場合は常に「幅: ○mm、ピッチ: ○mm」
+  // 旧データ（二重ネスト）と新データ（修正後）の両方に対応
+  const pitchValue = specs.pitch || (specs.specifications as any)?.pitch || 0;
+  const sideWidth = specs.sideWidth as number | undefined;
+  let sizeDisplay = '';
+  if (bagTypeId === 'roll_film' || bagTypeId === 'spout_pouch') {
+    sizeDisplay = `幅: ${specs.width || 0}mm${pitchValue ? `、ピッチ: ${pitchValue}mm` : ''}`;
+  } else {
+    // 既存のdimensionsがある場合はそれをベースに、なければ個別フィールドから構築
+    const existingDimensions = specs.dimensions as string;
+    if (existingDimensions) {
+      // 既存のdimensionsに側面が含まれていない場合、追加する
+      if (sideWidth && !existingDimensions.includes('側面')) {
+        // dimensionsの最後の"mm"の前に側面を追加
+        sizeDisplay = existingDimensions.replace(' mm', `${sideWidth ? `×側面${sideWidth}` : ''} mm`);
+      } else {
+        sizeDisplay = existingDimensions;
+      }
+    } else {
+      // dimensionsがない場合は個別フィールドから構築
+      sizeDisplay = `${specs.width || 0}×${specs.height || 0}${(specs.depth as number || 0) > 0 ? `×${specs.depth}` : ''}${sideWidth ? `×側面${sideWidth}` : ''}`;
+    }
+  }
+
+  // ノッチ形状: postProcessingOptionsからマッピング
+  let notchShape = 'V';
+  if (postProcessingOptions?.includes('notch-straight')) {
+    notchShape = '直線';
+  } else if (postProcessingOptions?.includes('notch-no')) {
+    notchShape = 'なし';
+  }
+
+  // 吊り下げ加工: postProcessingOptionsからマッピング
+  let hanging = 'なし';
+  let hangingPosition = '指定位置';
+  if (postProcessingOptions?.includes('hang-hole-6mm')) {
+    hanging = 'あり';
+    hangingPosition = '6mm';
+  } else if (postProcessingOptions?.includes('hang-hole-8mm')) {
+    hanging = 'あり';
+    hangingPosition = '8mm';
+  }
+
+  // 시일 폭: sealWidth 필드 또는 postProcessingOptions에서 추출
+  let sealWidth = '5mm'; // 기본값
+  const sealWidthField = specs.sealWidth as string | undefined;
+  if (sealWidthField) {
+    sealWidth = sealWidthField.replace('シール幅 ', '').replace('mm', '');
+  } else {
+    // postProcessingOptions에서 시일 폭 찾기
+    const sealWidthOption = postProcessingOptions?.find((opt: string) => opt.startsWith('sealing-width-'));
+    if (sealWidthOption) {
+      const widthMatch = sealWidthOption.match(/sealing-width-(.+)$/);
+      if (widthMatch) {
+        sealWidth = widthMatch[1].replace('-', '.');
+      }
+    }
+  }
+
+  // 시일 방향 (기본값: 상단)
+  const sealDirection = '上';
+
+  const result = {
     bagType: bagTypeId ? translateBagType(bagTypeId) : 'スタンドパウチ',
     contents: '粉体',
-    size: specs.dimensions as string || `${specs.width || 0}×${specs.height || 0}${(specs.depth as number || 0) > 0 ? `×${specs.depth}` : ''}`,
+    size: sizeDisplay,
     material: materialId ? translateMaterialType(materialId) : 'PET+AL',
-    sealWidth: '5mm',
-    sealDirection: '上',
-    notchShape: 'V',
-    notchPosition: '指定位置',
-    hanging: 'なし',
-    hangingPosition: '指定位置',
+    sealWidth,
+    sealDirection,
+    notchShape,
+    notchPosition: (postProcessingOptions?.includes('notch-yes') || postProcessingOptions?.includes('notch-straight')) ? '指定位置' : undefined,
+    hanging,
+    hangingPosition,
     zipperPosition: postProcessingOptions?.some(opt => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
-    cornerR: 'R5',
+    cornerR: postProcessingOptions?.includes('corner-round') ? 'R5' : postProcessingOptions?.includes('corner-square') ? 'R0' : 'R5',
+    machiPrinting: postProcessingOptions?.includes('machi-printing-yes') ? 'あり' : 'なし',
   };
+  console.log('[mapSpecificationsToPDF] Result:', JSON.stringify(result, null, 2));
+  return result;
 }
 
 // =====================================================
@@ -102,6 +275,8 @@ export default function QuotationDetailPage() {
   const [downloadHistory, setDownloadHistory] = useState<any[]>([]);
   const [downloadCount, setDownloadCount] = useState(0);
   const [lastDownloadedAt, setLastDownloadedAt] = useState<string | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+  const [convertError, setConvertError] = useState<string | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -163,11 +338,14 @@ export default function QuotationDetailPage() {
   }, [user?.id, quotationId]);
 
   const handleDownloadPDF = async () => {
+    console.log('[handleDownloadPDF] ========== START ==========');
     if (!quotation) return;
 
     setDownloadingPDF(true);
 
     try {
+      console.log('[handleDownloadPDF] quotation.items:', quotation.items);
+      console.log('[handleDownloadPDF] quotation.items[0]?.specifications:', JSON.stringify(quotation.items[0]?.specifications, null, 2));
       if (!quotation.items || quotation.items.length === 0) {
         throw new Error('見積明細がありません');
       }
@@ -187,12 +365,34 @@ export default function QuotationDetailPage() {
           const specs = item.specifications as Record<string, unknown> | undefined;
           const materialId = specs?.materialId as string | undefined;
           const dimensions = specs?.dimensions as string | undefined;
+          const bagTypeId = specs?.bagTypeId as string | undefined;
+
+          // サイズ表示 - ロールフィルムの場合は常に「幅: ○mm、ピッチ: ○mm」
+          // 旧データ（二重ネスト）と新データ（修正後）の両方に対応
+          let sizeText: string;
+          if (bagTypeId === 'roll_film' || bagTypeId === 'spout_pouch') {
+            const pitchVal = specs?.pitch || (specs?.specifications as any)?.pitch || 0;
+            sizeText = `幅: ${specs?.width || 0}mm${pitchVal ? `、ピッチ: ${pitchVal}mm` : ''}`;
+          } else {
+            const itemSideWidth = specs?.sideWidth as number | undefined;
+            if (dimensions) {
+              // 既存のdimensionsに側面が含まれていない場合、追加する
+              if (itemSideWidth && !dimensions.includes('側面')) {
+                sizeText = dimensions.replace(' mm', `${itemSideWidth ? `×側面${itemSideWidth}` : ''} mm`);
+              } else {
+                sizeText = dimensions;
+              }
+            } else {
+              // dimensionsがない場合は個別フィールドから構築
+              sizeText = `${specs?.width || 0}×${specs?.height || 0}${(specs?.depth as number || 0) > 0 ? `×${specs.depth}` : ''}${itemSideWidth ? `×側面${itemSideWidth}` : ''}`;
+            }
+          }
 
           return {
             id: item.id,
             name: item.productName || '製品名なし',
-            description: dimensions
-              ? `サイズ: ${dimensions} | ${materialId ? translateMaterialType(materialId) : '-'}`
+            description: sizeText
+              ? `サイズ: ${sizeText} | ${materialId ? translateMaterialType(materialId) : '-'}`
               : '-',
             quantity: item.quantity || 0,
             unit: '個',
@@ -227,7 +427,12 @@ export default function QuotationDetailPage() {
         phone: profile?.corporate_phone || profile?.personal_phone || '',
         email: user?.email || '',
         items: quoteItems,
-        specifications: mapSpecificationsToPDF(quotation.items[0]?.specifications),
+        specifications: (() => {
+          console.log('[handleDownloadPDF] Calling mapSpecificationsToPDF with:', quotation.items[0]?.specifications);
+          const specs = mapSpecificationsToPDF(quotation.items[0]?.specifications);
+          console.log('[handleDownloadPDF] mapSpecificationsToPDF returned:', specs);
+          return specs;
+        })(),
         optionalProcessing: (() => {
           const allPostProcessingOptions = quotation.items.flatMap(item =>
             (item.specifications?.postProcessingOptions as string[]) || []
@@ -266,13 +471,34 @@ export default function QuotationDetailPage() {
       const uint8Array = new Uint8Array(result.pdfBuffer);
       const blob = new Blob([uint8Array], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.filename || `${quotation.quotationNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+
+      // 新しいタブでPDFを開く
+      window.open(url, '_blank');
+
+      // Cleanup
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+
+      // PDFをSupabase Storageに保存してpdf_urlを更新（管理者ページで同じPDFを使用するため）
+      try {
+        // Uint8Arrayをbase64に変換
+        const binaryString = uint8Array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+        const base64Data = btoa(binaryString);
+        const dataUrl = `data:application/pdf;base64,${base64Data}`;
+
+        await fetch(`/api/member/quotations/${quotationId}/save-pdf`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ pdfData: dataUrl }),
+        });
+
+        console.log('[handleDownloadPDF] PDF saved to Supabase Storage, pdf_url updated');
+      } catch (saveError) {
+        console.error('[handleDownloadPDF] Failed to save PDF to storage:', saveError);
+        // 保存失敗はダウンロード失敗として扱わない
+      }
 
       // Log PDF download to database
       try {
@@ -356,11 +582,11 @@ export default function QuotationDetailPage() {
     );
   }
 
-  const status = quotation.status.toUpperCase();
+  const status = quotation.status?.toUpperCase() || 'DRAFT';
   const subtotal = quotation.subtotal || quotation.subtotalAmount || quotation.totalAmount * 0.909;
   const taxAmount = quotation.taxAmount || quotation.totalAmount - subtotal;
-  const canDelete = status === 'DRAFT';
-  const canConvert = status === 'APPROVED';
+  // 注文変換可能か: APPROVED状態で注文未作成の場合のみ（大文字小文字を区別せずチェック）
+  const canConvert = quotation.status?.toLowerCase() === 'approved';
 
   return (
     <div className="space-y-6">
@@ -392,10 +618,12 @@ export default function QuotationDetailPage() {
           <div>
             <dt className="text-text-muted">作成日</dt>
             <dd className="text-text-primary mt-1">
-              {new Date(quotation.createdAt).toLocaleDateString('ja-JP')}
-              <span className="text-text-muted ml-2">
-                ({formatDistanceToNow(new Date(quotation.createdAt), { addSuffix: true, locale: ja })})
-              </span>
+              {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('ja-JP') : '-'}
+              {quotation.createdAt && (
+                <span className="text-text-muted ml-2">
+                  ({formatDistanceToNow(new Date(quotation.createdAt), { addSuffix: true, locale: ja })})
+                </span>
+              )}
             </dd>
           </div>
           <div>
@@ -408,11 +636,15 @@ export default function QuotationDetailPage() {
           </div>
           <div>
             <dt className="text-text-muted">お客様名</dt>
-            <dd className="text-text-primary mt-1">{quotation.customer_name}</dd>
+            <dd className="text-text-primary mt-1">
+              {profile?.kanji_last_name && profile?.kanji_first_name
+                ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+                : (profile?.company_name || user?.email?.split('@')[0] || '-')}
+            </dd>
           </div>
           <div>
             <dt className="text-text-muted">メールアドレス</dt>
-            <dd className="text-text-primary mt-1">{quotation.customer_email}</dd>
+            <dd className="text-text-primary mt-1">{user?.email || quotation.customer_email || '-'}</dd>
           </div>
           {quotation.customer_phone && (
             <div>
@@ -464,47 +696,209 @@ export default function QuotationDetailPage() {
       {/* Line Items */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-4">品目明細</h2>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {quotation.items?.map((item) => (
             <div
               key={item.id}
-              className="flex items-start justify-between py-3 border-b border-border-secondary last:border-0"
+              className="border border-border-secondary rounded-lg p-4 space-y-4"
             >
-              <div className="flex-1">
-                <h3 className="font-medium text-text-primary">
+              {/* Product Name */}
+              <div>
+                <h3 className="text-lg font-semibold text-text-primary">
                   {item.productName}
                 </h3>
                 <p className="text-sm text-text-muted mt-1">
-                  数量: {item.quantity} × {item.unitPrice.toLocaleString()}円
+                  数量: {item.quantity.toLocaleString()}個 × {(item.unitPrice || 0).toLocaleString()}円
                 </p>
-                {item.specifications && typeof item.specifications === 'object' && Object.keys(item.specifications).length > 0 && (
-                  <div className="mt-2 text-sm text-text-muted">
-                    <p className="font-medium">仕様:</p>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      {item.specifications.size && (
-                        <li>サイズ: {item.specifications.size}</li>
-                      )}
-                      {item.specifications.material && (
-                        <li>素材: {item.specifications.material}</li>
-                      )}
-                      {item.specifications.printing && (
-                        <li>印刷: {item.specifications.printing}</li>
-                      )}
-                      {item.specifications.postProcessing && (
-                        <li>
-                          後加工:{' '}
-                          {Array.isArray(item.specifications.postProcessing)
-                            ? item.specifications.postProcessing.join(', ')
-                            : item.specifications.postProcessing}
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                )}
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-text-primary">
-                  {item.totalPrice.toLocaleString()}円
+
+              {/* Detailed Specifications */}
+              {item.specifications && typeof item.specifications === 'object' && Object.keys(item.specifications).length > 0 && (
+                <div className="bg-bg-secondary p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-text-primary text-sm border-b border-border-secondary pb-2">
+                    詳細仕様
+                  </h4>
+
+                  {/* Size Information */}
+                  {item.specifications && (
+                    <>
+                      {/* Contents */}
+                      <div className="text-sm">
+                        <span className="text-text-muted">内容物:</span>
+                        <span className="ml-2 text-text-primary">
+                          {getContentsDisplay(item.specifications)}
+                        </span>
+                      </div>
+
+                      {/* Size */}
+                      <div className="text-sm">
+                        <span className="text-text-muted">サイズ:</span>
+                      <span className="ml-2 text-text-primary">
+                        {(() => {
+                          if (item.specifications.bagTypeId === 'roll_film' || item.specifications.bagTypeId === 'spout_pouch') {
+                            return <>幅: {item.specifications.width}mm{(item.specifications.pitch || (item.specifications.specifications as any)?.pitch) && `、ピッチ: ${item.specifications.pitch || (item.specifications.specifications as any)?.pitch}mm`}</>;
+                          }
+                          // 既存のdimensionsとsideWidthをチェック
+                          const existingDimensions = item.specifications.dimensions;
+                          const sideWidth = item.specifications.sideWidth;
+                          if (existingDimensions) {
+                            // dimensionsに側面が含まれていない場合、追加する
+                            if (sideWidth && !existingDimensions.includes('側面')) {
+                              return existingDimensions.replace(' mm', `×側面${sideWidth} mm`);
+                            }
+                            return existingDimensions;
+                          }
+                          // dimensionsがない場合は個別フィールドから構築
+                          return (
+                            <>
+                              {item.specifications.width}mm × {item.specifications.height}mm
+                              {item.specifications.depth && ` × ${item.specifications.depth}mm`}
+                              {item.specifications.sideWidth && ` × 側面${item.specifications.sideWidth}mm`}
+                            </>
+                          );
+                        })()}
+                      </span>
+                    </div>
+                    </>
+                  )}
+
+                  {/* Bag Type */}
+                  {item.specifications.bagTypeId && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">袋タイプ:</span>
+                      <span className="ml-2 text-text-primary">
+                        {getBagTypeName(item.specifications.bagTypeId)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Material */}
+                  {item.specifications.materialId && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">素材:</span>
+                      <span className="ml-2 text-text-primary">
+                        {getMaterialName(item.specifications.materialId)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Thickness */}
+                  {item.specifications.thicknessSelection && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">厚さ:</span>
+                      <span className="ml-2 text-text-primary">
+                        {getThicknessName(
+                          item.specifications.materialId,
+                          item.specifications.thicknessSelection
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Printing */}
+                  {(item.specifications.printingType || item.specifications.printingColors) && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">印刷:</span>
+                      <span className="ml-2 text-text-primary">
+                        {item.specifications.printingType === 'digital' && 'デジタル印刷（フルカラー）'}
+                        {item.specifications.printingType === 'gravure' && 'グラビア印刷（フルカラー）'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Post Processing Options */}
+                  {item.specifications.postProcessingOptions && Array.isArray(item.specifications.postProcessingOptions) && item.specifications.postProcessingOptions.length > 0 && (() => {
+                    // ロールフィルム・スパウトパウチの場合は表面処理のみ表示
+                    const bagTypeId = item.specifications.bagTypeId as string;
+                    const isLimitedPostProcessing = bagTypeId === 'roll_film' || bagTypeId === 'spout_pouch';
+                    const allowedOptions = isLimitedPostProcessing
+                      ? item.specifications.postProcessingOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
+                      : item.specifications.postProcessingOptions;
+
+                    // フィルタリング後に表示するオプションがある場合のみ表示
+                    if (allowedOptions.length === 0) return null;
+
+                    return (
+                      <div className="text-sm">
+                        <span className="text-text-muted">後加工:</span>
+                        <div className="ml-2 mt-1 flex flex-wrap gap-2">
+                          {allowedOptions.map((opt: string) => {
+                            const labelMap: Record<string, string> = {
+                              // 코너 처리
+                              'corner-round': '角丸',
+                              'corner-square': '角直角',
+                              // 표면 처리
+                              'glossy': '光沢仕上げ',
+                              'matte': 'マット仕上げ',
+                              // 노치 (V노치/직선노치 구분)
+                              'notch-yes': 'Vノッチ',
+                              'notch-straight': '直線ノッチ',
+                              'notch-no': 'ノッチなし',
+                              // 매달림 구멍
+                              'hang-hole-6mm': '吊り穴(6mm)',
+                              'hang-hole-8mm': '吊り下げ穴 (8mm)',
+                              'hang-hole-no': '吊り穴なし',
+                              // 밸브
+                              'valve-yes': 'バルブ付き',
+                              'valve-no': 'バルブなし',
+                              // 지퍼
+                              'zipper-yes': 'チャック付き',
+                              'zipper-no': 'チャックなし',
+                              'zipper-position-any': 'ジッパー位置 (お任せ)',
+                              'zipper-position-specified': 'ジッパー位置 (指定)',
+                              // 개구 처리
+                              'top-open': '上部開放',
+                              'bottom-open': '下端開封',
+                              'top-sealed': '上部密閉',
+                              // 시일 폭
+                              'sealing-width-5mm': 'シール幅 5mm',
+                              'sealing-width-7.5mm': 'シール幅 7.5mm',
+                              'sealing-width-10mm': 'シール幅 10mm',
+                              // 마치 인쇄
+                              'machi-printing-yes': 'マチ印刷あり',
+                              'machi-printing-no': 'マチ印刷なし',
+                            };
+                            return (
+                              <span
+                                key={opt}
+                                className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
+                              >
+                                {labelMap[opt] || opt}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Additional Info */}
+                  {item.specifications.urgency && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">納期:</span>
+                      <span className="ml-2 text-text-primary">
+                        {item.specifications.urgency === 'urgent' && '急ぎ'}
+                        {item.specifications.urgency === 'standard' && '標準'}
+                      </span>
+                    </div>
+                  )}
+
+                  {item.specifications.deliveryLocation && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">配送先:</span>
+                      <span className="ml-2 text-text-primary">
+                        {item.specifications.deliveryLocation === 'domestic' && '国内'}
+                        {item.specifications.deliveryLocation === 'international' && '海外'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Price */}
+              <div className="text-right pt-2 border-t border-border-secondary">
+                <p className="text-xl font-bold text-text-primary">
+                  ¥{(item.totalPrice || 0).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -513,26 +907,23 @@ export default function QuotationDetailPage() {
         <div className="mt-4 pt-4 border-t border-border-secondary space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted">小計</span>
-            <span className="text-text-primary">{subtotal.toLocaleString()}円</span>
+            <span className="text-text-primary">¥{(subtotal || 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted">消費税 (10%)</span>
-            <span className="text-text-primary">{taxAmount.toLocaleString()}円</span>
+            <span className="text-text-primary">¥{(taxAmount || 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between text-lg font-semibold">
             <span className="text-text-primary">合計</span>
-            <span className="text-text-primary">
-              {quotation.totalAmount.toLocaleString()}円
+            <span className="text-primary text-xl">
+              ¥{(quotation.totalAmount || quotation.total_amount || 0).toLocaleString()}
             </span>
           </div>
         </div>
       </Card>
 
-      {/* Bank Information */}
-      <BankInfoCard quotationId={quotation.id} />
-
-      {/* Payment Confirmation & Data Import Status (Task 108, 109) */}
-      <DataImportStatusPanel quotationId={quotation.id} orderId={quotation.orderId} />
+      {/* Bank Information - Hidden for quotation detail page */}
+      {/* <BankInfoCard quotationId={quotation.id} /> */}
 
       {/* Download History */}
       {downloadCount > 0 && (
@@ -581,63 +972,117 @@ export default function QuotationDetailPage() {
         </Card>
       )}
 
-      {/* Action Buttons - Enhanced with better visual hierarchy */}
-      <Card className="p-6 bg-gradient-to-br from-[var(--bg-secondary)] to-[var(--bg-primary)] border border-[var(--border-light)]">
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Back Button - Secondary */}
+      {/* Status Message - Separate Card based on quotation status */}
+      {quotation.status?.toLowerCase() === 'draft' ? (
+        // ⏳ ドラフト: 承認待ちメッセージ
+        <Card className="bg-yellow-50 border-yellow-200 p-4">
+          <div className="flex items-center gap-3">
+            <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-yellow-800">
+                現在、管理者の承認待ちです
+              </p>
+              <p className="text-xs text-yellow-600 mt-1">
+                承認完了後、注文確定ボタンが表示されます
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : quotation.status?.toLowerCase() === 'converted' ? (
+        // ✓ 変換済み: 注文済みメッセージ
+        <Card className="bg-green-50 border-green-200 p-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-green-800">
+                この見積は既に注文に変換されています
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                注文詳細ページからご確認いただけます
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : quotation.status?.toLowerCase() === 'rejected' ? (
+        // ✗ 拒否: 拒否メッセージ
+        <Card className="bg-red-50 border-red-200 p-4">
+          <div className="flex items-center gap-3">
+            <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-red-800">
+                この見積は拒否されました
+              </p>
+              <p className="text-xs text-red-600 mt-1">
+                お問い合わせフォームよりご連絡ください
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
+      {/* Action Buttons */}
+      <Card className="p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Back Button */}
           <Button
             variant="ghost"
             size="md"
             onClick={() => router.back()}
-            className="group/btn"
           >
-            <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover/btn:-translate-x-0.5" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             戻る
           </Button>
 
-          <div className="flex-1" />
-
           {/* Right-aligned actions */}
           <div className="flex flex-wrap gap-3">
-            {/* PDF Download - Outline */}
+            {/* PDF Download */}
             <Button
               variant="outline"
               size="md"
               onClick={handleDownloadPDF}
               disabled={downloadingPDF}
-              className="group/btn"
             >
-              <Download className={`w-4 h-4 mr-2 transition-transform ${downloadingPDF ? 'animate-spin' : 'group-hover/btn:scale-110'}`} />
+              <Download className={`w-4 h-4 mr-2 ${downloadingPDF ? 'animate-spin' : ''}`} />
               {downloadingPDF ? 'PDF作成中...' : 'PDFダウンロード'}
             </Button>
 
-            {/* Delete Button - Destructive */}
-            {canDelete && (
-              <Button
-                variant="destructive"
-                size="md"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="group/btn shadow-md hover:shadow-lg"
-              >
-                <Trash2 className={`w-4 h-4 mr-2 transition-transform ${isDeleting ? 'animate-pulse' : 'group-hover/btn:scale-110'}`} />
-                {isDeleting ? '削除中...' : '削除'}
-              </Button>
-            )}
-
-            {/* Convert to Order - Primary (CTA) */}
-            {canConvert && (
+            {/* 注文変換 - 状態に応じて表示を変える */}
+            {quotation.status?.toLowerCase() === 'approved' && (
               <>
                 <Button
                   variant="primary"
                   size="md"
-                  onClick={() => {
-                    router.push(`/member/orders/new?quotationId=${quotation.id}`);
+                  onClick={async () => {
+                    setIsConverting(true);
+                    setConvertError(null);
+                    try {
+                      const response = await fetch(`/api/member/quotations/${quotationId}/convert`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ notes: quotation.notes }),
+                      });
+
+                      const result = await response.json();
+
+                      if (response.ok && result.success) {
+                        router.push(`/member/orders/${result.data.id}`);
+                      } else if (result.alreadyExists) {
+                        router.push(`/member/orders/${result.data.id}`);
+                      } else {
+                        setConvertError(result.error || '注文作成に失敗しました');
+                      }
+                    } catch (error) {
+                      console.error('注文作成エラー:', error);
+                      setConvertError('注文作成中にエラーが発生しました');
+                    } finally {
+                      setIsConverting(false);
+                    }
                   }}
-                  className="group/btn shadow-lg hover:shadow-xl px-6"
+                  disabled={isConverting}
                 >
-                  <FileText className="w-4 h-4 mr-2 transition-transform group-hover/btn:scale-110" />
-                  注文する
+                  <FileText className="w-4 h-4 mr-2" />
+                  {isConverting ? '変換中...' : '注文確定'}
                 </Button>
                 <InvoiceDownloadButton quotationId={quotation.id} variant="outline" />
               </>
@@ -645,6 +1090,14 @@ export default function QuotationDetailPage() {
           </div>
         </div>
       </Card>
+
+      {/* Conversion Error Display */}
+      {convertError && (
+        <div className="flex items-center gap-2 text-error-500 bg-error-50 p-4 rounded-lg">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm">{convertError}</p>
+        </div>
+      )}
     </div>
   );
 }

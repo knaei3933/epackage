@@ -19,13 +19,18 @@ import type { Database } from '@/types/database';
 
 /**
  * Type-safe insert helper for files table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function insertFile(
   supabase: ReturnType<typeof getSupabaseClient>,
   data: Database['public']['Tables']['files']['Insert']
 ) {
-  return (supabase as any)
+  return (supabase as ReturnType<typeof getSupabaseClient> & {
+    from: (table: 'files') => {
+      insert: (data: Database['public']['Tables']['files']['Insert']) => {
+        select: () => { single: () => Promise<{ data: Database['public']['Tables']['files']['Row']; error: null }> };
+      };
+    };
+  })
     .from('files')
     .insert(data)
     .select()
@@ -34,14 +39,19 @@ function insertFile(
 
 /**
  * Type-safe update helper for files table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function updateFile(
   supabase: ReturnType<typeof getSupabaseClient>,
   fileId: string,
   data: Database['public']['Tables']['files']['Update']
 ) {
-  return (supabase as any)
+  return (supabase as ReturnType<typeof getSupabaseClient> & {
+    from: (table: 'files') => {
+      update: (data: Database['public']['Tables']['files']['Update']) => {
+        eq: (field: 'id', value: string) => Promise<{ error: null }>;
+      };
+    };
+  })
     .from('files')
     .update(data)
     .eq('id', fileId);
@@ -244,11 +254,10 @@ async function updateValidationStatus(
 
   const { error } = await supabase
     .from('files')
-    // @ts-ignore - Supabase type inference issue
     .update({
       validation_status: status,
       validation_errors: validationErrors,
-    })
+    } as never)
     .eq('id', fileId);
 
   if (error) {
@@ -435,7 +444,6 @@ export async function revalidateFile(
   const supabase = getSupabaseClient();
 
   // Get file record
-  // @ts-ignore - Supabase type inference issue
   const { data: fileRecord, error } = await supabase
     .from('files')
     .select('*')
@@ -448,8 +456,7 @@ export async function revalidateFile(
 
   // Download file from storage
   const bucket = 'designs';
-  // @ts-ignore - fileRecord type issue
-  const path = fileRecord.file_url.split('/').slice(-2).join('/');
+  const path = (fileRecord.file_url as string).split('/').slice(-2).join('/');
 
   const { data: fileData } = await supabase.storage
     .from(bucket)
@@ -465,8 +472,7 @@ export async function revalidateFile(
   const { validateFileServer } = await import('./server-validator');
   const validationResults = await validateFileServer(
     buffer,
-    // @ts-ignore - fileRecord type issue
-    fileRecord.file_name
+    fileRecord.file_name as string
   );
 
   // Update validation status
@@ -558,8 +564,7 @@ export async function deleteFile(
 
   const { error } = await supabase
     .from('files')
-    // @ts-ignore - Supabase type inference issue
-    .update({ is_latest: false })
+    .update({ is_latest: false } as never)
     .eq('id', fileId)
     .eq('uploaded_by', userId);
 

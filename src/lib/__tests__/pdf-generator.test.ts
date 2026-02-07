@@ -346,8 +346,8 @@ describe('generateInvoicePDF', () => {
         name: 'EPACKAGE Lab',
         postalCode: '673-0846',
         address: '兵庫県明石市...',
-        phone: '080-6942-7235',
-        email: 'info@epackage-lab.com',
+        phone: '050-1793-6500',
+        email: 'info@package-lab.com',
         registrationNumber: 'T2900001234567',
       },
     };

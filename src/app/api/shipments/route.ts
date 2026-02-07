@@ -35,10 +35,20 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get('page_size') || '50');
     const offset = (page - 1) * pageSize;
 
-    // Build query - use view with recent tracking included (N+1 fix)
+    // Build query - join with orders table to get order info
     let query = supabase
-      .from('shipments_with_recent_tracking')
-      .select('*', { count: 'exact' });
+      .from('shipments')
+      .select(`
+        *,
+        orders (
+          order_number,
+          customer_name,
+          customer_email,
+          customer_phone,
+          delivery_address,
+          status
+        )
+      `, { count: 'exact' });
 
     // Apply filters
     if (filters.status) {
@@ -46,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (filters.carrier) {
-      query = query.eq('carrier', filters.carrier);
+      query = query.eq('carrier_name', filters.carrier);
     }
 
     if (filters.tracking_number) {
@@ -66,8 +76,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (filters.search) {
-      // Search in shipment_number or customer_name
-      query = query.or(`shipment_number.ilike.%${filters.search}%,customer_name.ilike.%${filters.search}%`);
+      // Search in shipment_number or order_number
+      query = query.or(`shipment_number.ilike.%${filters.search}%,tracking_number.ilike.%${filters.search}%`);
     }
 
     // Apply pagination and sorting
@@ -81,11 +91,51 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    // N+1 FIX: recent_tracking already included from the view
-    // Format shipments with tracking data from the view
+    // Get recent tracking for each shipment
+    const shipmentIds = shipments?.map((s: any) => s.id) || [];
+    const recentTrackingMap = new Map();
+
+    if (shipmentIds.length > 0) {
+      // Try shipment_tracking_events first, then fall back to shipment_tracking
+      let tracking: any[] | null = null;
+
+      const { data: trackingEvents } = await supabase
+        .from('shipment_tracking_events')
+        .select('*')
+        .in('shipment_id', shipmentIds)
+        .order('event_time', { ascending: false });
+
+      if (trackingEvents && trackingEvents.length > 0) {
+        tracking = trackingEvents;
+      } else {
+        // Fallback to shipment_tracking table
+        const { data: trackingBackup } = await supabase
+          .from('shipment_tracking')
+          .select('*')
+          .in('shipment_id', shipmentIds)
+          .order('event_at', { ascending: false });
+
+        tracking = trackingBackup;
+      }
+
+      // Group by shipment_id and take the most recent
+      tracking?.forEach((t: any) => {
+        if (!recentTrackingMap.has(t.shipment_id)) {
+          recentTrackingMap.set(t.shipment_id, t);
+        }
+      });
+    }
+
+    // Format shipments with order data and tracking
     const shipmentsWithTracking = (shipments || []).map((shipment: any) => ({
       ...shipment,
-      recent_tracking: shipment.recent_tracking || [],
+      order_number: shipment.orders?.[0]?.order_number || null,
+      customer_name: shipment.orders?.[0]?.customer_name || null,
+      customer_email: shipment.orders?.[0]?.customer_email || null,
+      customer_phone: shipment.orders?.[0]?.customer_phone || null,
+      delivery_address: shipment.orders?.[0]?.delivery_address || null,
+      order_status: shipment.orders?.[0]?.status || null,
+      recent_tracking: recentTrackingMap.get(shipment.id) || null,
     }));
 
     return NextResponse.json({

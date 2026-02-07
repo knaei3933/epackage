@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
 
@@ -52,6 +53,34 @@ interface DataReceiptUploadResponse {
 // =====================================================
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (using security-validator default)
+
+// Admin roles that can access any order
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+
+// =====================================================
+// Helper Functions
+// =====================================================
+
+/**
+ * Check if user has admin role
+ */
+async function checkAdminRole(
+  supabase: any,
+  userId: string
+): Promise<boolean> {
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    return profile?.role && ADMIN_ROLES.includes(profile.role);
+  } catch (error) {
+    console.error('[checkAdminRole] Error:', error);
+    return false;
+  }
+}
 
 // File type mapping for database enum
 const FILE_TYPE_MAP: Record<string, 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER'> = {
@@ -133,38 +162,39 @@ export async function POST(
       },
     });
 
-    // Check for DEV_MODE header from middleware
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Normal auth: Use cookie-based auth with getUser()
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    let userId: string;
-
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Data Receipt Upload] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
-    } else {
-      // Normal auth: Use cookie-based auth with getUser()
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !user?.id) {
-        console.error('[Data Receipt Upload] Auth error:', userError?.message);
-        return NextResponse.json(
-          {
-            error: '認証されていません。',
-            errorEn: 'Authentication required',
-            code: 'UNAUTHORIZED',
-          },
-          { status: 401 }
-        );
-      }
-      userId = user.id;
+    if (userError || !user?.id) {
+      console.error('[Data Receipt Upload] Auth error:', userError?.message);
+      return NextResponse.json(
+        {
+          error: '認証されていません。',
+          errorEn: 'Authentication required',
+          code: 'UNAUTHORIZED',
+        },
+        { status: 401 }
+      );
     }
 
+    const userId = user.id;
     const { id: orderId } = await params;
 
-    // 2. Verify order exists and belongs to user
-    const { data: order, error: orderError } = await supabase
+    // For admins, use service role client to bypass RLS
+    const adminClient = createServiceClient();
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const isAdmin = profile?.role && ADMIN_ROLES.includes(profile.role);
+
+    // Use appropriate client for data access
+    const dataClient = isAdmin ? adminClient : supabase;
+
+    // 2. Verify order exists
+    const { data: order, error: orderError } = await dataClient
       .from('orders')
       .select('id, user_id, status')
       .eq('id', orderId)
@@ -181,7 +211,8 @@ export async function POST(
       );
     }
 
-    if (order.user_id !== userId) {
+    // 3. Check user permissions (owner or admin)
+    if (order.user_id !== userId && !isAdmin) {
       return NextResponse.json(
         {
           error: 'この注文にアクセスする権限がありません。',
@@ -237,7 +268,7 @@ export async function POST(
     // 6. Upload file to Supabase Storage
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await dataClient.storage
       .from('production-files')
       .upload(storagePath, fileBuffer, {
         contentType: file.type,
@@ -257,14 +288,14 @@ export async function POST(
     }
 
     // 7. Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = dataClient.storage
       .from('production-files')
       .getPublicUrl(storagePath);
 
     // 8. Create file record in database (files table)
     const fileType = getFileType(file.type);
 
-    const { data: fileRecord, error: dbError } = await supabase
+    const { data: fileRecord, error: dbError } = await dataClient
       .from('files')
       .insert({
         order_id: orderId,
@@ -315,11 +346,6 @@ export async function POST(
         const extractionResponse = await fetch(extractionApiUrl.toString(), {
           method: 'POST',
           body: extractionFormData,
-          // Forward headers for authentication
-          headers: {
-            'x-user-id': request.headers.get('x-user-id') || '',
-            'x-dev-mode': request.headers.get('x-dev-mode') || 'false',
-          },
         });
 
         if (extractionResponse.ok) {
@@ -338,9 +364,9 @@ export async function POST(
 
     // 9.5. Create admin notification for data receipt
     try {
-      const { data: order } = await supabase
+      const { data: order } = await dataClient
         .from('orders')
-        .select('order_number, customer_name')
+        .select('order_number, customer_name, status')
         .eq('id', orderId)
         .single();
 
@@ -352,6 +378,47 @@ export async function POST(
           file.name,
           fileType
         );
+
+        // ============================================================
+        // Auto-transition: DATA_UPLOADED → CORRECTION_IN_PROGRESS
+        // 新しいワークフロー: 顧客がデータをアップロードすると自動的に教正作業中へ
+        // ============================================================
+        if (order.status === 'DATA_UPLOAD_PENDING') {
+          console.log('[Data Receipt Upload] Auto-transition: DATA_UPLOAD_PENDING → CORRECTION_IN_PROGRESS');
+
+          // 現在のステータスを記録
+          const currentStatus = order.status;
+
+          // 直接 CORRECTION_IN_PROGRESS に遷移（サービスロール使用でRLS回避）
+          const { error: updateError } = await adminClient
+            .from('orders')
+            .update({
+              status: 'CORRECTION_IN_PROGRESS',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', orderId);
+
+          if (updateError) {
+            console.error('[Data Receipt Upload] Status update error (CORRECTION_IN_PROGRESS):', updateError);
+            console.warn('[Data Receipt Upload] Status update failed, but file was uploaded. Manual update required.');
+          } else {
+            console.log('[Data Receipt Upload] Auto-transition completed to CORRECTION_IN_PROGRESS');
+
+            // 履歴を記録（サービスロール使用）
+            await adminClient
+              .from('order_status_history')
+              .insert({
+                order_id: orderId,
+                from_status: currentStatus,
+                to_status: 'CORRECTION_IN_PROGRESS',
+                changed_by: 'SYSTEM',
+                changed_at: new Date().toISOString(),
+                reason: 'データ入稿完了による自動遷移',
+              })
+              .then(() => console.log('[Data Receipt Upload] Status history logged'))
+              .catch((err) => console.error('[Data Receipt Upload] History logging error:', err));
+          }
+        }
       }
     } catch (notifyError) {
       console.error('[Data Receipt Upload] Notification error:', notifyError);
@@ -430,40 +497,55 @@ export async function GET(
       },
     });
 
-    // Check for DEV_MODE header
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Normal auth: Use cookie-based auth with getUser()
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    let userId: string;
-
-    if (isDevMode && devModeUserId) {
-      userId = devModeUserId;
-    } else {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !user?.id) {
-        console.error('[Data Receipt GET] Auth error:', userError?.message);
-        return NextResponse.json(
-          {
-            error: '認証されていません。',
-            errorEn: 'Authentication required',
-          },
-          { status: 401 }
-        );
-      }
-      userId = user.id;
+    if (userError || !user?.id) {
+      console.error('[Data Receipt GET] Auth error:', userError?.message);
+      return NextResponse.json(
+        {
+          error: '認証されていません。',
+          errorEn: 'Authentication required',
+        },
+        { status: 401 }
+      );
     }
 
+    const userId = user.id;
     const { id: orderId } = await params;
 
-    // 2. Verify order belongs to user
-    const { data: order } = await supabase
+    // For admins, use service role client to bypass RLS
+    const adminClient = createServiceClient();
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const isAdmin = profile?.role && ADMIN_ROLES.includes(profile.role);
+
+    // Use appropriate client for data access
+    const dataClient = isAdmin ? adminClient : supabase;
+
+    // 2. Verify order exists
+    const { data: order } = await dataClient
       .from('orders')
       .select('id, user_id')
       .eq('id', orderId)
       .single();
 
-    if (!order || order.user_id !== userId) {
+    if (!order) {
+      return NextResponse.json(
+        {
+          error: '注文が見つかりません。',
+          errorEn: 'Order not found',
+        },
+        { status: 404 }
+      );
+    }
+
+    // 3. Check user permissions (owner or admin)
+    if (order.user_id !== userId && !isAdmin) {
       return NextResponse.json(
         {
           error: 'アクセス権限がありません。',
@@ -473,8 +555,8 @@ export async function GET(
       );
     }
 
-    // 3. Get files for this order from files table
-    const { data: files, error: filesError } = await supabase
+    // 4. Get files for this order from files table
+    const { data: files, error: filesError } = await dataClient
       .from('files')
       .select('*')
       .eq('order_id', orderId)
@@ -484,7 +566,7 @@ export async function GET(
       console.error('[Data Receipt Upload] Get files error:', filesError);
     }
 
-    // 4. Transform to expected format
+    // 5. Transform to expected format
     const transformedFiles = (files || []).map(file => ({
       id: file.id,
       file_name: file.original_filename,

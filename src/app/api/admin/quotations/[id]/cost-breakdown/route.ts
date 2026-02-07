@@ -22,11 +22,14 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Next.js 15: params is a Promise, need to await it
+    const { id: quotationId } = await params;
+
     // Verify authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -55,8 +58,6 @@ export async function GET(
     if (profileError || !profile || profile.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
-
-    const quotationId = params.id;
 
     // Get quotation details
     const { data: quotation, error: quotationError } = await supabase

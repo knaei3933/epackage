@@ -2,29 +2,30 @@
  * Admin Notifications Library
  *
  * 管理者通知システム
- * Supabase MCP経由のDB操作
+ * Direct Supabase client for DB operations
  *
  * @module lib/admin-notifications
  */
 
-import { executeSql } from './supabase-mcp'
+import { createServiceClient } from '@/lib/supabase'
 
 // ============================================================
 // Type Definitions
 // ============================================================
 
 export type AdminNotificationType =
-  | 'order'          // 新規注文
-  | 'quotation'      // 見積依頼
-  | 'sample'         // サンプル依頼
-  | 'registration'   // 会員登録依頼 (B2B)
-  | 'production'     // 生産完了
-  | 'shipment'       // 出荷完了
-  | 'contract'       // 契約署名依頼
-  | 'system'         // システムエラー
-  | 'data_receipt'   // データ受領
-  | 'ai_extraction'  // AI抽出完了
-  | 'korea_transfer' // 韓国チーム送信
+  | 'order'               // 新規注文
+  | 'quotation'           // 見積依頼
+  | 'sample'              // サンプル依頼
+  | 'registration'        // 会員登録依頼 (B2B)
+  | 'production'          // 生産完了
+  | 'shipment'            // 出荷完了
+  | 'contract'            // 契約署名依頼
+  | 'system'              // システムエラー
+  | 'data_receipt'        // データ受領
+  | 'ai_extraction'       // AI抽出完了
+  | 'korea_transfer'      // 韓国チーム送信
+  | 'modification'        // 修正承認関連
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
 
@@ -80,49 +81,35 @@ export async function createAdminNotification(
   params: CreateAdminNotificationParams
 ): Promise<AdminNotification | null> {
   try {
-    const result = await executeSql<AdminNotification>(
-      `
-      INSERT INTO admin_notifications (
-        type,
-        title,
-        message,
-        related_id,
-        related_type,
-        priority,
-        user_id,
-        action_url,
-        action_label,
-        metadata,
-        expires_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
-      )
-      RETURNING *
-      `,
-      [
-        params.type,
-        params.title,
-        params.message,
-        params.relatedId || null,
-        params.relatedType || null,
-        params.priority || 'normal',
-        params.userId || null,
-        params.actionUrl || null,
-        params.actionLabel || null,
-        JSON.stringify(params.metadata || {}),
-        params.expiresAt ? params.expiresAt.toISOString() : null
-      ]
-    )
+    const supabase = createServiceClient();
 
-    if (result.error) {
-      console.error('[createAdminNotification] Error:', result.error)
-      return null
+    const { data, error } = await supabase
+      .from('admin_notifications')
+      .insert({
+        type: params.type,
+        title: params.title,
+        message: params.message,
+        related_id: params.relatedId || null,
+        related_type: params.relatedType || null,
+        priority: params.priority || 'normal',
+        user_id: params.userId || null,
+        action_url: params.actionUrl || null,
+        action_label: params.actionLabel || null,
+        metadata: params.metadata || {},
+        expires_at: params.expiresAt ? params.expiresAt.toISOString() : null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[createAdminNotification] Error:', error);
+      return null;
     }
 
-    return result.data?.[0] || null
+    return data as AdminNotification;
   } catch (error) {
-    console.error('[createAdminNotification] Exception:', error)
-    return null
+    console.error('[createAdminNotification] Exception:', error);
+    return null;
   }
 }
 
@@ -643,6 +630,62 @@ export async function notifyKoreaDataTransfer(
       order_number: orderNumber,
       quotation_number: quotationNumber,
       korea_email: koreaEmail
+    }
+  })
+}
+
+/**
+ * 顧客が修正を承認した通知作成
+ */
+export async function notifyModificationApproved(
+  orderId: string,
+  orderNumber: string,
+  customerName: string
+): Promise<AdminNotification | null> {
+  return createAdminNotification({
+    type: 'modification',
+    title: '修正承認',
+    message: `${customerName} 様が注文 ${orderNumber} の修正内容を承認しました`,
+    relatedId: orderId,
+    relatedType: 'orders',
+    priority: 'high',
+    actionUrl: `/admin/orders/${orderId}`,
+    actionLabel: '注文を表示',
+    metadata: {
+      order_number: orderNumber,
+      customer_name: customerName,
+      action: 'approved'
+    }
+  })
+}
+
+/**
+ * 顧客が修正を拒否した通知作成
+ */
+export async function notifyModificationRejected(
+  orderId: string,
+  orderNumber: string,
+  customerName: string,
+  reason?: string
+): Promise<AdminNotification | null> {
+  const message = reason
+    ? `${customerName} 様が注文 ${orderNumber} の修正内容を拒否しました。理由: ${reason}`
+    : `${customerName} 様が注文 ${orderNumber} の修正内容を拒否しました`;
+
+  return createAdminNotification({
+    type: 'modification',
+    title: '修正拒否',
+    message,
+    relatedId: orderId,
+    relatedType: 'orders',
+    priority: 'high',
+    actionUrl: `/admin/orders/${orderId}`,
+    actionLabel: '注文を表示',
+    metadata: {
+      order_number: orderNumber,
+      customer_name: customerName,
+      action: 'rejected',
+      reason
     }
   })
 }

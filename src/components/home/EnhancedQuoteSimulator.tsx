@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Calculator,
   Package,
@@ -353,9 +353,53 @@ export function EnhancedQuoteSimulator() {
   }
 
   const onSubmitContact = async (data: QuoteFormData) => {
-    // Here you would send the data to your backend
-    console.log('Quote submission:', { ...data, ...formData, ...priceResult })
-    // Handle submission logic
+    try {
+      setIsCalculating(true)
+
+      // 見積もりデータをAPIに送信
+      const response = await fetch('/api/quotations/guest-save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: data.name,
+          customerEmail: data.email,
+          customerPhone: data.phone,
+          companyName: data.company,
+          projectDetails: data.projectDetails,
+          specifications: {
+            productType: formData.productType,
+            quantity: formData.quantity,
+            size: formData.size,
+            material: formData.material,
+            printing: formData.printing,
+            timeline: formData.timeline,
+          },
+          postProcessing: selectedPostProcessing,
+          pricing: {
+            unitPrice: priceResult?.unitPrice || 0,
+            totalPrice: priceResult?.totalPrice || 0,
+            totalCost: priceResult?.totalCost || 0,
+            setupCost: priceResult?.setupCost || 0,
+          },
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // 成功の場合、結果ステップに進む
+        console.log('見積もり保存成功:', result.quotation)
+      } else {
+        console.error('見積もり保存エラー:', result.error)
+      }
+    } catch (error) {
+      console.error('見積もり送信エラー:', error)
+    } finally {
+      setIsCalculating(false)
+    }
+
+    // 結果ステップに進む（既存のロジック）
+    setCurrentStep(5)
   }
 
   return (
@@ -498,6 +542,7 @@ export function EnhancedQuoteSimulator() {
                       {productTypes.map((option) => (
                         <button
                           key={option.value}
+                          data-testid={`product-type-${option.value}`}
                           onClick={() => handleInputChange('productType', option.value)}
                           className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                             formData.productType === option.value
@@ -521,6 +566,7 @@ export function EnhancedQuoteSimulator() {
                       {quantityOptions.map((option) => (
                         <button
                           key={option.value}
+                          data-testid={`quantity-${option.value}`}
                           onClick={() => handleInputChange('quantity', option.value)}
                           className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                             formData.quantity === option.value
@@ -547,6 +593,7 @@ export function EnhancedQuoteSimulator() {
                       {sizeOptions.map((option) => (
                         <button
                           key={option.value}
+                          data-testid={`size-${option.value}`}
                           onClick={() => handleInputChange('size', option.value)}
                           className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                             formData.size === option.value
@@ -564,6 +611,7 @@ export function EnhancedQuoteSimulator() {
                   {/* Navigation */}
                   <div className="flex justify-end pt-6">
                     <Button
+                      data-testid="next-to-step-2"
                       variant="primary"
                       onClick={nextStep}
                       disabled={!formData.productType || !formData.quantity || !formData.size}
@@ -601,6 +649,7 @@ export function EnhancedQuoteSimulator() {
                       {materialOptions.map((option) => (
                         <button
                           key={option.id}
+                          data-testid={`material-${option.id}`}
                           onClick={() => handleInputChange('material', option.id)}
                           className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                             formData.material === option.id
@@ -641,6 +690,7 @@ export function EnhancedQuoteSimulator() {
                       {printingOptions.map((option) => (
                         <button
                           key={option.id}
+                          data-testid={`printing-${option.id}`}
                           onClick={() => handleInputChange('printing', option.id)}
                           className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                             formData.printing === option.id
@@ -672,6 +722,7 @@ export function EnhancedQuoteSimulator() {
                     </label>
                     <div className="grid md:grid-cols-3 gap-4">
                       <button
+                        data-testid="timeline-urgent"
                         onClick={() => handleInputChange('timeline', 'urgent')}
                         className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                           formData.timeline === 'urgent'
@@ -683,6 +734,7 @@ export function EnhancedQuoteSimulator() {
                         <div className="text-sm text-gray-600 mt-1">1週間（+40%）</div>
                       </button>
                       <button
+                        data-testid="timeline-standard"
                         onClick={() => handleInputChange('timeline', 'standard')}
                         className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                           formData.timeline === 'standard'
@@ -694,6 +746,7 @@ export function EnhancedQuoteSimulator() {
                         <div className="text-sm text-gray-600 mt-1">2〜3週間（標準）</div>
                       </button>
                       <button
+                        data-testid="timeline-flexible"
                         onClick={() => handleInputChange('timeline', 'flexible')}
                         className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                           formData.timeline === 'flexible'
@@ -709,11 +762,11 @@ export function EnhancedQuoteSimulator() {
 
                   {/* Navigation */}
                   <div className="flex justify-between pt-6">
-                    <Button variant="outline" onClick={prevStep} className="px-8">
+                    <Button data-testid="prev-to-step-1" variant="outline" onClick={prevStep} className="px-8">
                       <ArrowLeft className="mr-2 w-4 h-4" />
                       戻る
                     </Button>
-                    <Button variant="primary" onClick={nextStep} className="px-8">
+                    <Button data-testid="next-to-step-3" variant="primary" onClick={nextStep} className="px-8">
                       次へ進む
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
@@ -736,11 +789,11 @@ export function EnhancedQuoteSimulator() {
 
               {/* Navigation */}
               <div className="flex justify-between pt-6">
-                <Button variant="outline" onClick={prevStep} className="px-8">
+                <Button data-testid="prev-to-step-2" variant="outline" onClick={prevStep} className="px-8">
                   <ArrowLeft className="mr-2 w-4 h-4" />
                   戻る
                 </Button>
-                <Button variant="primary" onClick={nextStep} className="px-8">
+                <Button data-testid="next-to-step-4" variant="primary" onClick={nextStep} className="px-8">
                   次へ進む
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
@@ -770,6 +823,7 @@ export function EnhancedQuoteSimulator() {
                         </label>
                         <input
                           {...register('name', { required: true })}
+                          data-testid="contact-name"
                           type="text"
                           placeholder="山田 太郎"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
@@ -784,6 +838,7 @@ export function EnhancedQuoteSimulator() {
                         </label>
                         <input
                           {...register('email', { required: true })}
+                          data-testid="contact-email"
                           type="email"
                           placeholder="taro.yamada@company.com"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
@@ -798,6 +853,7 @@ export function EnhancedQuoteSimulator() {
                         </label>
                         <input
                           {...register('phone', { required: true })}
+                          data-testid="contact-phone"
                           type="tel"
                           placeholder="03-1234-5678"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
@@ -812,6 +868,7 @@ export function EnhancedQuoteSimulator() {
                         </label>
                         <input
                           {...register('company')}
+                          data-testid="contact-company"
                           type="text"
                           placeholder="株式会社サンプル"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
@@ -825,6 +882,7 @@ export function EnhancedQuoteSimulator() {
                       </label>
                       <textarea
                         {...register('projectDetails')}
+                        data-testid="contact-project-details"
                         rows={4}
                         placeholder="製品の目的や特別なご要望など"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
@@ -834,6 +892,7 @@ export function EnhancedQuoteSimulator() {
                     <div className="flex items-center">
                       <input
                         {...register('consent', { required: true })}
+                        data-testid="contact-consent"
                         type="checkbox"
                         id="consent"
                         className="h-4 w-4 text-brixa-600 focus:ring-brixa-500 border-gray-300 rounded"
@@ -848,11 +907,12 @@ export function EnhancedQuoteSimulator() {
 
                     {/* Navigation */}
                     <div className="flex justify-between pt-6">
-                      <Button variant="outline" onClick={prevStep} className="px-8">
+                      <Button data-testid="prev-to-step-3" variant="outline" onClick={prevStep} className="px-8">
                         <ArrowLeft className="mr-2 w-4 h-4" />
                         戻る
                       </Button>
                       <Button
+                        data-testid="submit-quote"
                         variant="primary"
                         type="submit"
                         disabled={isSubmitting}
@@ -1030,13 +1090,13 @@ export function EnhancedQuoteSimulator() {
                     </Button>
                   </div>
                   <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center text-sm">
-                    <a href="tel:03-1234-5678" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
+                    <a href="tel:050-1793-6500" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
                       <Phone className="w-4 h-4" />
-                      <span>03-1234-5678</span>
+                      <span>050-1793-6500</span>
                     </a>
-                    <a href="mailto:info@epackage-lab.com" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
+                    <a href="mailto:info@package-lab.com" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
                       <Mail className="w-4 h-4" />
-                      <span>info@epackage-lab.com</span>
+                      <span>info@package-lab.com</span>
                     </a>
                   </div>
                 </Card>

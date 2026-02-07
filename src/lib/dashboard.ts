@@ -10,8 +10,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore is used here because Supabase type inference doesn't work correctly for chained query builders
 
-import { supabase, createSupabaseWithCookies, createServiceClient } from '@/lib/supabase';
+import { createSupabaseWithCookies, createServiceClient } from '@/lib/supabase';
 import { isDevMode } from '@/lib/dev-mode';
+import { unstable_cache } from 'next/cache';
 import type {
   Order,
   OrderStatus,
@@ -36,6 +37,70 @@ import type {
 } from '@/types/dashboard';
 
 // =====================================================
+// 統合ダッシュボード型定義
+// =====================================================
+
+/**
+ * 統合ダッシュボード統計型
+ * 会員・管理者共通の統計データ構造
+ */
+export interface UnifiedDashboardStats {
+  // 基本統計
+  totalOrders: number;
+  pendingOrders: number;
+  totalRevenue: number;
+  activeUsers: number;
+
+  // 注文関連
+  ordersByStatus?: Array<{ status: string; count: number }>;
+  recentOrders?: Order[];
+
+  // 見積関連
+  pendingQuotations?: number;
+  quotations?: {
+    total: number;
+    approved: number;
+    conversionRate: number;
+  };
+
+  // 生産関連
+  activeProduction?: number;
+  production?: {
+    avgDays: number;
+    completed: number;
+  };
+
+  // サンプル関連
+  samples?: {
+    total: number;
+    processing: number;
+  };
+
+  // 配送関連
+  todayShipments?: number;
+  shipments?: {
+    today: number;
+    inTransit: number;
+  };
+
+  // 契約関連
+  contracts?: {
+    pending: number;
+    signed: number;
+    total: number;
+  };
+
+  // お知らせ
+  announcements?: Announcement[];
+
+  // 通知
+  notifications?: NotificationStats[];
+
+  // 期間
+  period?: number;
+}
+
+// =====================================================
 // Helper Functions
 // =====================================================
 
@@ -44,9 +109,6 @@ import type {
 export async function createDashboardServerClient(cookieStore: any) {
   return createSupabaseWithCookies(cookieStore);
 }
-
-// Re-export supabase client for convenience
-export { supabase };
 
 /**
  * Custom error for authentication requirement
@@ -134,10 +196,8 @@ export async function getCurrentUser(): Promise<{
     }
   }
 
-  // Client-side: Supabase auth使用 (fallback)
-  if (!supabase) return null;
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  // Client-side auth removed - use API route /api/auth/session instead
+  return null;
 }
 
 /**
@@ -281,10 +341,8 @@ export async function getCurrentUserId(): Promise<string | null> {
     }
   }
 
-  // Client-side: Supabase auth使用 (fallback)
-  if (!supabase) return null;
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id || null;
+  // Client-side auth removed - use API route /api/auth/session instead
+  return null;
 }
 
 // =====================================================
@@ -810,12 +868,35 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 
   const serviceClient = createServiceClient();
 
-  // 注文情報を取得（order_itemsのみ含める）
+  // 注文情報を取得（order_items、delivery_addresses、billing_addressesを含める）
   const { data: orderData, error: orderError } = await serviceClient
     .from('orders')
     .select(`
       *,
-      order_items (*)
+      order_items (*),
+      delivery_addresses (
+        id,
+        name,
+        postal_code,
+        prefecture,
+        city,
+        address,
+        building,
+        phone,
+        contact_person
+      ),
+      billing_addresses (
+        id,
+        company_name,
+        postal_code,
+        prefecture,
+        city,
+        address,
+        building,
+        tax_number,
+        email,
+        phone
+      )
     `)
     .eq('id', orderId)
     .eq('user_id', userId)
@@ -831,6 +912,13 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 
   // Transform the order data to match TypeScript types
   const orderDataAny = orderData as any;
+
+  // itemsから小計と消費税を計算（データベースに値がない場合）
+  const calculatedSubtotal = (orderDataAny.order_items || []).reduce((sum: number, item: any) => {
+    return sum + (item.total_price || 0);
+  }, 0);
+  const calculatedTaxAmount = Math.round(calculatedSubtotal * 0.1);
+
   const order: any = {
     ...orderDataAny,
     orderNumber: orderDataAny.order_number,
@@ -844,51 +932,107 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     customer_name: orderDataAny.customer_name,
     customer_email: orderDataAny.customer_email,
     customer_phone: orderDataAny.customer_phone,
-    subtotal: orderDataAny.subtotal,
-    taxAmount: orderDataAny.tax_amount,
+    // データベースの値がない（null/undefined/0）場合は計算値を使用
+    subtotal: (orderDataAny.subtotal === null || orderDataAny.subtotal === undefined || orderDataAny.subtotal === 0) ? calculatedSubtotal : orderDataAny.subtotal,
+    taxAmount: (orderDataAny.tax_amount === null || orderDataAny.tax_amount === undefined || orderDataAny.tax_amount === 0) ? calculatedTaxAmount : orderDataAny.tax_amount,
   };
 
-  // 納品先住所を取得（存在する場合）
-  if (orderDataAny.delivery_address_id) {
-    const { data: deliveryAddress, error: deliveryError } = await serviceClient
-      .from('delivery_addresses')
-      .select('*')
-      .eq('id', orderDataAny.delivery_address_id)
+  // 納品先住所を取得（クエリ結果から）
+  if (orderDataAny.delivery_addresses) {
+    const da = orderDataAny.delivery_addresses;
+    order.deliveryAddress = {
+      id: da.id,
+      userId,
+      name: da.name,
+      postalCode: da.postal_code,
+      prefecture: da.prefecture,
+      city: da.city,
+      address: da.address,
+      building: da.building,
+      phone: da.phone,
+      contactPerson: da.contact_person,
+      isDefault: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  // 住所IDがない場合はプロフィールの住所情報を使用
+  else if (!order.deliveryAddress) {
+    const { data: profile } = await serviceClient
+      .from('profiles')
+      .select('postal_code, prefecture, city, street, building, kanji_last_name, kanji_first_name, company_name')
+      .eq('id', userId)
       .single();
 
-    if (!deliveryError && deliveryAddress) {
-      const deliveryAddressAny = deliveryAddress as any;
+    if (profile) {
+      const profileAny = profile as any;
+      const fullName = (profileAny.kanji_last_name && profileAny.kanji_first_name)
+        ? `${profileAny.kanji_last_name} ${profileAny.kanji_first_name}`
+        : profileAny.company_name || 'お客様';
+
       order.deliveryAddress = {
-        ...deliveryAddressAny,
-        userId: deliveryAddressAny.user_id,
-        postalCode: deliveryAddressAny.postal_code,
-        contactPerson: deliveryAddressAny.contact_person,
-        isDefault: deliveryAddressAny.is_default,
-        createdAt: deliveryAddressAny.created_at,
-        updatedAt: deliveryAddressAny.updated_at,
+        id: '', // プロフィール由来なので空文字列
+        userId,
+        name: fullName,
+        postalCode: profileAny.postal_code || '',
+        prefecture: profileAny.prefecture || '',
+        city: profileAny.city || '',
+        address: [profileAny.street, profileAny.building].filter(Boolean).join(''),
+        phone: '',
+        isDefault: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
     }
   }
 
-  // 請求先住所を取得（存在する場合）
-  if (orderDataAny.billing_address_id) {
-    const { data: billingAddress, error: billingError } = await serviceClient
-      .from('billing_addresses')
-      .select('*')
-      .eq('id', orderDataAny.billing_address_id)
+  // 請求先住所を取得（クエリ結果から）
+  if (orderDataAny.billing_addresses) {
+    const ba = orderDataAny.billing_addresses;
+    order.billingAddress = {
+      id: ba.id,
+      userId,
+      companyName: ba.company_name,
+      postalCode: ba.postal_code,
+      prefecture: ba.prefecture,
+      city: ba.city,
+      address: ba.address,
+      building: ba.building,
+      taxNumber: ba.tax_number,
+      email: ba.email,
+      phone: ba.phone,
+      isDefault: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  // 請求先住所IDがない場合はプロフィールの住所情報を使用
+  else if (!order.billingAddress) {
+    const { data: profile } = await serviceClient
+      .from('profiles')
+      .select('postal_code, prefecture, city, street, building, kanji_last_name, kanji_first_name, company_name, email')
+      .eq('id', userId)
       .single();
 
-    if (!billingError && billingAddress) {
-      const billingAddressAny = billingAddress as any;
+    if (profile) {
+      const profileAny = profile as any;
+      const companyName = profileAny.company_name ||
+        ((profileAny.kanji_last_name && profileAny.kanji_first_name)
+          ? `${profileAny.kanji_last_name} ${profileAny.kanji_first_name}`
+          : 'お客様');
+
       order.billingAddress = {
-        ...billingAddressAny,
-        userId: billingAddressAny.user_id,
-        companyName: billingAddressAny.company_name,
-        postalCode: billingAddressAny.postal_code,
-        taxNumber: billingAddressAny.tax_number,
-        isDefault: billingAddressAny.is_default,
-        createdAt: billingAddressAny.created_at,
-        updatedAt: billingAddressAny.updated_at,
+        id: '', // プロフィール由来なので空文字列
+        userId,
+        companyName,
+        postalCode: profileAny.postal_code || '',
+        prefecture: profileAny.prefecture || '',
+        city: profileAny.city || '',
+        address: [profileAny.street, profileAny.building].filter(Boolean).join(''),
+        email: profileAny.email || '',
+        isDefault: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
     }
   }
@@ -1212,15 +1356,13 @@ export async function createDeliveryAddress(
   if (address.isDefault) {
     await serviceClient
       .from('delivery_addresses')
-      // @ts-ignore - Supabase update type inference issue
-      .update({ is_default: false })
+      .update({ is_default: false } as never)
       .eq('user_id', userId)
       .eq('is_default', true);
   }
 
   const { data, error } = await serviceClient
     .from('delivery_addresses')
-    // @ts-ignore - Supabase insert type inference issue
     .insert({
       user_id: userId,
       name: address.name,
@@ -1232,7 +1374,7 @@ export async function createDeliveryAddress(
       phone: address.phone,
       contact_person: address.contactPerson,
       is_default: address.isDefault,
-    })
+    } as never)
     .select()
     .single();
 
@@ -1258,8 +1400,7 @@ export async function updateDeliveryAddress(
   if (updates.isDefault) {
     await serviceClient
       .from('delivery_addresses')
-      // @ts-ignore - Supabase update type inference issue
-      .update({ is_default: false })
+      .update({ is_default: false } as never)
       .eq('user_id', userId)
       .eq('is_default', true)
       .neq('id', id);
@@ -1267,7 +1408,6 @@ export async function updateDeliveryAddress(
 
   const { data, error } = await serviceClient
     .from('delivery_addresses')
-    // @ts-ignore - Supabase update type inference issue
     .update({
       name: updates.name,
       postal_code: updates.postalCode,
@@ -1278,7 +1418,7 @@ export async function updateDeliveryAddress(
       phone: updates.phone,
       contact_person: updates.contactPerson,
       is_default: updates.isDefault,
-    })
+    } as never)
     .eq('id', id)
     .eq('user_id', userId)
     .select()
@@ -1393,15 +1533,13 @@ export async function createBillingAddress(
   if (address.isDefault) {
     await serviceClient
       .from('billing_addresses')
-      // @ts-ignore - Supabase update type inference issue
-      .update({ is_default: false })
+      .update({ is_default: false } as never)
       .eq('user_id', userId)
       .eq('is_default', true);
   }
 
   const { data, error } = await serviceClient
     .from('billing_addresses')
-    // @ts-ignore - Supabase insert type inference issue
     .insert({
       user_id: userId,
       company_name: address.companyName,
@@ -1414,7 +1552,7 @@ export async function createBillingAddress(
       email: address.email,
       phone: address.phone,
       is_default: address.isDefault,
-    })
+    } as never)
     .select()
     .single();
 
@@ -1440,8 +1578,7 @@ export async function updateBillingAddress(
   if (updates.isDefault) {
     await serviceClient
       .from('billing_addresses')
-      // @ts-ignore - Supabase update type inference issue
-      .update({ is_default: false })
+      .update({ is_default: false } as never)
       .eq('user_id', userId)
       .eq('is_default', true)
       .neq('id', id);
@@ -1449,7 +1586,6 @@ export async function updateBillingAddress(
 
   const { data, error } = await serviceClient
     .from('billing_addresses')
-    // @ts-ignore - Supabase update type inference issue
     .update({
       company_name: updates.companyName,
       postal_code: updates.postalCode,
@@ -1461,7 +1597,7 @@ export async function updateBillingAddress(
       email: updates.email,
       phone: updates.phone,
       is_default: updates.isDefault,
-    })
+    } as never)
     .eq('id', id)
     .eq('user_id', userId)
     .select()
@@ -2781,5 +2917,327 @@ export async function getNotificationBadge(): Promise<NotificationBadge> {
     inquiries: inquiries || 0,
     orders: orders || 0,
     total,
+  };
+}
+
+// =====================================================
+// 統合ダッシュボード関数
+// =====================================================
+
+/**
+ * 統合ダッシュボード統計取得
+ * SSR/CSR両対応、DEV_MODE対応
+ */
+export async function getUnifiedDashboardStats(
+  userId: string | undefined,
+  userRole: 'ADMIN' | 'MEMBER',
+  period: number = 30
+): Promise<UnifiedDashboardStats> {
+  // ユーザーIDがない場合は空の統計を返す
+  if (!userId) {
+    return getEmptyUnifiedStats();
+  }
+
+  // DEV_MODE対応
+  if (isDevMode()) {
+    return getMockUnifiedDashboardStats(userId, userRole, period);
+  }
+
+  // 本番データフェッチ（キャッシュ付き）
+  const cacheKey = `dashboard_${userRole}_${userId}_${period}`;
+
+  return unstable_cache(
+    async () => {
+      if (userRole === 'ADMIN') {
+        return fetchAdminDashboardStats(userId, period);
+      } else {
+        return fetchMemberDashboardStats(userId, period);
+      }
+    },
+    [cacheKey],
+    { revalidate: 30 } // 30秒キャッシュ
+  )();
+}
+
+/**
+ * SWR用フェッチャー（Client Component）
+ */
+export const createDashboardFetcher = () => {
+  return async (url: string) => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // DEV_MODEヘッダー対応
+    if (typeof window !== 'undefined') {
+      const devUserId = localStorage.getItem('dev-mock-user-id');
+      if (devUserId) {
+        headers['x-dev-mode'] = 'true';
+        headers['x-user-id'] = devUserId;
+      }
+    }
+
+    const response = await fetch(url, {
+      credentials: 'include',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    return data;
+  };
+};
+
+/**
+ * 統一エラーハンドリングラッパー
+ */
+export function withDashboardErrorHandling<T>(
+  fn: () => Promise<T>,
+  fallback: T
+): Promise<T> {
+  return fn().catch((error) => {
+    console.error('[Dashboard] Error:', error);
+    return fallback;
+  });
+}
+
+/**
+ * DEV_MODEヘッダー生成
+ */
+export function getDevModeHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+
+  if (typeof window !== 'undefined') {
+    const devUserId = localStorage.getItem('dev-mock-user-id');
+    if (devUserId) {
+      headers['x-dev-mode'] = 'true';
+      headers['x-user-id'] = devUserId;
+    }
+  }
+
+  return headers;
+}
+
+/**
+ * 空の統合統計データを返す
+ */
+function getEmptyUnifiedStats(): UnifiedDashboardStats {
+  return {
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalRevenue: 0,
+    activeUsers: 0,
+    pendingQuotations: 0,
+    ordersByStatus: [],
+  };
+}
+
+/**
+ * DEV_MODE用モック統計データ生成
+ */
+function getMockUnifiedDashboardStats(
+  userId: string,
+  userRole: 'ADMIN' | 'MEMBER',
+  period: number
+): UnifiedDashboardStats {
+  const baseStats: UnifiedDashboardStats = {
+    totalOrders: Math.floor(Math.random() * 100) + 50,
+    pendingOrders: Math.floor(Math.random() * 20) + 5,
+    totalRevenue: Math.floor(Math.random() * 1000000) + 500000,
+    activeUsers: userRole === 'ADMIN' ? Math.floor(Math.random() * 50) + 10 : 0,
+    period,
+  };
+
+  if (userRole === 'ADMIN') {
+    return {
+      ...baseStats,
+      ordersByStatus: [
+        { status: 'PENDING', count: Math.floor(Math.random() * 10) + 1 },
+        { status: 'PRODUCTION', count: Math.floor(Math.random() * 20) + 5 },
+        { status: 'SHIPPED', count: Math.floor(Math.random() * 15) + 3 },
+      ],
+      pendingQuotations: Math.floor(Math.random() * 10) + 3,
+      quotations: {
+        total: Math.floor(Math.random() * 50) + 20,
+        approved: Math.floor(Math.random() * 30) + 10,
+        conversionRate: Math.floor(Math.random() * 30) + 50,
+      },
+      recentQuotations: [],
+      samples: {
+        total: Math.floor(Math.random() * 30) + 10,
+        processing: Math.floor(Math.random() * 10) + 2,
+      },
+      production: {
+        avgDays: Math.floor(Math.random() * 10) + 5,
+        completed: Math.floor(Math.random() * 100) + 50,
+      },
+      shipments: {
+        today: Math.floor(Math.random() * 20) + 5,
+        inTransit: Math.floor(Math.random() * 30) + 10,
+      },
+      activeProduction: Math.floor(Math.random() * 15) + 3,
+      todayShipments: Math.floor(Math.random() * 10) + 2,
+    };
+  } else {
+    return {
+      ...baseStats,
+      activeOrders: Math.floor(Math.random() * 10) + 1,
+      pendingQuotations: Math.floor(Math.random() * 5) + 1,
+      samples: {
+        total: Math.floor(Math.random() * 20) + 5,
+        processing: Math.floor(Math.random() * 5) + 1,
+      },
+      contracts: {
+        pending: Math.floor(Math.random() * 3) + 1,
+        signed: Math.floor(Math.random() * 5) + 1,
+        total: Math.floor(Math.random() * 10) + 2,
+      },
+    };
+  }
+}
+
+/**
+ * 管理者用ダッシュボード統計取得（本番）
+ */
+async function fetchAdminDashboardStats(
+  userId: string,
+  period: number
+): Promise<UnifiedDashboardStats> {
+  const serviceClient = createServiceClient();
+
+  // 期間計算
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - period);
+
+  // 並列クエリ - 見積統計を追加
+  const [
+    totalOrdersResult,
+    pendingOrdersResult,
+    totalRevenueResult,
+    activeUsersResult,
+    ordersByStatusResult,
+    totalQuotationsResult,
+    approvedQuotationsResult,
+    pendingQuotationsResult,
+    recentQuotationsResult,
+  ] = await Promise.all([
+    serviceClient.from('orders').select('*', { count: 'exact', head: true }),
+    serviceClient.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
+    serviceClient.from('orders').select('total_amount').gte('created_at', startDate.toISOString()),
+    serviceClient.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
+    serviceClient.from('orders').select('status').gte('created_at', startDate.toISOString()),
+    // 見積統計
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('quotation_status', 'APPROVED'),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('quotation_status', ['DRAFT', 'SUBMITTED', 'PENDING']),
+    // 最新見積もり
+    serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).limit(5),
+  ]);
+
+  // 売上計算
+  const totalRevenue = (totalRevenueResult.data || [])
+    .reduce((sum, order: any) => sum + (order.total_amount || 0), 0);
+
+  // ステータス別集計
+  const statusCounts: Record<string, number> = {};
+  (ordersByStatusResult.data || []).forEach((order: any) => {
+    const status = order.status || 'UNKNOWN';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+
+  const ordersByStatus = Object.entries(statusCounts).map(([status, count]) => ({
+    status,
+    count,
+  }));
+
+  // 見積統計計算
+  const totalQuotations = totalQuotationsResult.count || 0;
+  const approvedQuotations = approvedQuotationsResult.count || 0;
+  const pendingQuotationsCount = pendingQuotationsResult.count || 0;
+  const conversionRate = totalQuotations > 0 ? Math.round((approvedQuotations / totalQuotations) * 100) : 0;
+
+  return {
+    totalOrders: totalOrdersResult.count || 0,
+    pendingOrders: pendingOrdersResult.count || 0,
+    totalRevenue,
+    activeUsers: activeUsersResult.count || 0,
+    ordersByStatus,
+    period,
+    // 見積統計
+    pendingQuotations: pendingQuotationsCount,
+    quotations: {
+      total: totalQuotations,
+      approved: approvedQuotations,
+      conversionRate,
+    },
+    recentQuotations: recentQuotationsResult.data || [],
+  };
+}
+
+/**
+ * 会員用ダッシュボード統計取得（本番）
+ */
+async function fetchMemberDashboardStats(
+  userId: string,
+  period: number
+): Promise<UnifiedDashboardStats> {
+  const serviceClient = createServiceClient();
+
+  // 期間計算
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - period);
+
+  // 並列クエリ
+  const [
+    totalOrdersResult,
+    pendingOrdersResult,
+    pendingQuotationsResult,
+    totalSamplesResult,
+    pendingSamplesResult,
+  ] = await Promise.all([
+    serviceClient
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', startDate.toISOString()),
+    serviceClient
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['PENDING', 'PRODUCTION']),
+    serviceClient
+      .from('quotations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['draft', 'sent']),
+    serviceClient
+      .from('sample_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    serviceClient
+      .from('sample_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['received', 'processing']),
+  ]);
+
+  return {
+    totalOrders: totalOrdersResult.count || 0,
+    pendingOrders: pendingOrdersResult.count || 0,
+    totalRevenue: 0,
+    activeUsers: 0,
+    pendingQuotations: pendingQuotationsResult.count || 0,
+    samples: {
+      total: totalSamplesResult.count || 0,
+      processing: pendingSamplesResult.count || 0,
+    },
+    period,
   };
 }

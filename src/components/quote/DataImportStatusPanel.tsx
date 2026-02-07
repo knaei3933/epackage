@@ -13,11 +13,10 @@
 'use client';
 
 import { Card, Badge, Button } from '@/components/ui';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { CheckCircle2, Clock, AlertCircle, FileText, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // =====================================================
 // Types
@@ -86,40 +85,70 @@ interface DataImportStatusPanelProps {
 }
 
 export function DataImportStatusPanel({ quotationId, orderId }: DataImportStatusPanelProps) {
-  const queryClient = useQueryClient();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [paymentData, setPaymentData] = useState<PaymentConfirmation | null>(null);
+  const [productionDataResponse, setProductionDataResponse] = useState<DataImportStatusResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch payment confirmation status
-  const { data: paymentData, isLoading: paymentLoading } = useQuery({
-    queryKey: ['payment-confirmation', quotationId],
-    queryFn: async () => {
-      const response = await fetch(`/api/member/quotations/${quotationId}/confirm-payment`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch payment status');
+  useEffect(() => {
+    const fetchPaymentStatus = async () => {
+      try {
+        const response = await fetch(`/api/member/quotations/${quotationId}/confirm-payment`, {
+          credentials: 'include',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch payment status');
+        }
+        const data = await response.json();
+        setPaymentData(data.payment || null);
+      } catch (err) {
+        console.error('Failed to fetch payment status:', err);
+        setError('支払確認状況の取得に失敗しました');
+      } finally {
+        setIsLoading(false);
       }
-      return response.json();
-    },
-  });
+    };
+
+    fetchPaymentStatus();
+  }, [quotationId]);
 
   // Fetch production data status (if order exists)
-  const { data: productionDataResponse, isLoading: productionLoading } = useQuery({
-    queryKey: ['production-data', orderId],
-    queryFn: async () => {
-      if (!orderId) return null;
-      const response = await fetch(`/api/member/orders/${orderId}/production-data`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch production data');
-      }
-      return response.json();
-    },
-    enabled: !!orderId,
-  });
+  useEffect(() => {
+    if (!orderId) return;
 
-  const payment: PaymentConfirmation | null = paymentData?.payment || null;
+    const fetchProductionData = async () => {
+      try {
+        const response = await fetch(`/api/member/orders/${orderId}/production-data`, {
+          credentials: 'include',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch production data');
+        }
+        const data = await response.json();
+        setProductionDataResponse(data);
+      } catch (err) {
+        console.error('Failed to fetch production data:', err);
+      }
+    };
+
+    fetchProductionData();
+  }, [orderId]);
+
   const productionData: ProductionDataItem[] = productionDataResponse?.data || [];
   const requiredModifications = productionDataResponse?.requiredModifications || [];
 
-  const isLoading = paymentLoading || (orderId ? productionLoading : false);
+  const handlePaymentSuccess = () => {
+    setShowConfirmModal(false);
+    // Refetch payment status
+    fetch(`/api/member/quotations/${quotationId}/confirm-payment`, {
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => setPaymentData(data.payment || null))
+      .catch(err => console.error('Failed to refetch payment status:', err));
+  };
 
   if (isLoading) {
     return (
@@ -144,7 +173,7 @@ export function DataImportStatusPanel({ quotationId, orderId }: DataImportStatus
             <CheckCircle2 className="w-5 h-5" />
             支払確認状況
           </h2>
-          {payment ? (
+          {paymentData ? (
             <Badge variant="success" size="md">
               確認済み
             </Badge>
@@ -155,42 +184,44 @@ export function DataImportStatusPanel({ quotationId, orderId }: DataImportStatus
           )}
         </div>
 
-        {payment ? (
+        {paymentData ? (
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <dt className="text-text-muted">支払方法</dt>
-              <dd className="text-text-primary mt-1">{payment.payment_method}</dd>
+              <dd className="text-text-primary mt-1">{paymentData.payment_method}</dd>
             </div>
             <div>
               <dt className="text-text-muted">支払日</dt>
               <dd className="text-text-primary mt-1">
-                {new Date(payment.payment_date).toLocaleDateString('ja-JP')}
+                {paymentData.payment_date ? new Date(paymentData.payment_date).toLocaleDateString('ja-JP') : '-'}
               </dd>
             </div>
             <div>
               <dt className="text-text-muted">金額</dt>
               <dd className="text-text-primary mt-1 font-semibold">
-                {payment.amount.toLocaleString()}円
+                {(paymentData.amount || 0).toLocaleString()}円
               </dd>
             </div>
-            {payment.reference_number && (
+            {paymentData.reference_number && (
               <div>
                 <dt className="text-text-muted">照会番号</dt>
-                <dd className="text-text-primary mt-1">{payment.reference_number}</dd>
+                <dd className="text-text-primary mt-1">{paymentData.reference_number}</dd>
               </div>
             )}
-            {payment.notes && (
+            {paymentData.notes && (
               <div className="md:col-span-2">
                 <dt className="text-text-muted">備考</dt>
-                <dd className="text-text-primary mt-1">{payment.notes}</dd>
+                <dd className="text-text-primary mt-1">{paymentData.notes}</dd>
               </div>
             )}
             <div className="md:col-span-2">
               <dt className="text-text-muted">確認日時</dt>
               <dd className="text-text-primary mt-1">
-                {new Date(payment.confirmed_at).toLocaleString('ja-JP')}
+                {paymentData.confirmed_at ? new Date(paymentData.confirmed_at).toLocaleString('ja-JP') : '-'}
                 <span className="text-text-muted ml-2">
-                  ({formatDistanceToNow(new Date(payment.confirmed_at), { addSuffix: true, locale: ja })})
+                  {paymentData.confirmed_at && (
+                    <>({formatDistanceToNow(new Date(paymentData.confirmed_at), { addSuffix: true, locale: ja })})</>
+                  )}
                 </span>
               </dd>
             </div>
@@ -240,14 +271,14 @@ export function DataImportStatusPanel({ quotationId, orderId }: DataImportStatus
                         <p className="text-sm text-text-muted mt-1">{item.description}</p>
                       )}
                     </div>
-                    <Badge variant={VALIDATION_STATUS_LABELS[item.validation_status].variant} size="sm">
-                      {VALIDATION_STATUS_LABELS[item.validation_status].label}
+                    <Badge variant={VALIDATION_STATUS_LABELS[item.validation_status]?.variant || 'secondary'} size="sm">
+                      {VALIDATION_STATUS_LABELS[item.validation_status]?.label || item.validation_status}
                     </Badge>
                   </div>
 
                   <div className="flex items-center justify-between text-sm text-text-muted mt-3 pt-3 border-t border-border-secondary">
                     <span>
-                      受信日: {new Date(item.received_at).toLocaleDateString('ja-JP')}
+                      受信日: {item.received_at ? new Date(item.received_at).toLocaleDateString('ja-JP') : '-'}
                     </span>
                     <span>v{item.version}</span>
                   </div>
@@ -305,10 +336,7 @@ export function DataImportStatusPanel({ quotationId, orderId }: DataImportStatus
         <PaymentConfirmationModal
           quotationId={quotationId}
           onClose={() => setShowConfirmModal(false)}
-          onSuccess={() => {
-            setShowConfirmModal(false);
-            queryClient.invalidateQueries({ queryKey: ['payment-confirmation', quotationId] });
-          }}
+          onSuccess={handlePaymentSuccess}
         />
       )}
     </div>
@@ -326,7 +354,6 @@ interface PaymentConfirmationModalProps {
 }
 
 function PaymentConfirmationModal({ quotationId, onClose, onSuccess }: PaymentConfirmationModalProps) {
-  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     payment_method: 'bank_transfer' as const,
     payment_date: new Date().toISOString().split('T')[0],
@@ -336,35 +363,9 @@ function PaymentConfirmationModal({ quotationId, onClose, onSuccess }: PaymentCo
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const confirmPayment = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const response = await fetch(`/api/member/quotations/${quotationId}/confirm-payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          amount: parseFloat(data.amount),
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to confirm payment');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payment-confirmation', quotationId] });
-      onSuccess();
-    },
-    onError: (error: Error) => {
-      setErrors({ submit: error.message });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -382,7 +383,31 @@ function PaymentConfirmationModal({ quotationId, onClose, onSuccess }: PaymentCo
       return;
     }
 
-    confirmPayment.mutate(formData);
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(`/api/member/quotations/${quotationId}/confirm-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...formData,
+          amount: parseFloat(formData.amount),
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to confirm payment');
+      }
+
+      onSuccess();
+    } catch (error) {
+      setErrors({ submit: error instanceof Error ? error.message : '支払いの確認に失敗しました' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -481,7 +506,7 @@ function PaymentConfirmationModal({ quotationId, onClose, onSuccess }: PaymentCo
                 variant="secondary"
                 onClick={onClose}
                 className="flex-1"
-                disabled={confirmPayment.isPending}
+                disabled={isSubmitting}
               >
                 キャンセル
               </Button>
@@ -489,9 +514,9 @@ function PaymentConfirmationModal({ quotationId, onClose, onSuccess }: PaymentCo
                 type="submit"
                 variant="primary"
                 className="flex-1"
-                disabled={confirmPayment.isPending}
+                disabled={isSubmitting}
               >
-                {confirmPayment.isPending ? '送信中...' : '確認する'}
+                {isSubmitting ? '送信中...' : '確認する'}
               </Button>
             </div>
           </form>

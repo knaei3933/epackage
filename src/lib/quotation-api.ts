@@ -150,13 +150,28 @@ export interface ApiResponse<T> {
 
 /**
  * Create a new quotation
+ * @deprecated Use /api/member/quotations (POST) instead
  */
 export async function createQuotation(input: CreateQuotationInput): Promise<ApiResponse<Quotation>> {
   try {
-    const response = await fetch('/api/quotations/save', {
+    const response = await fetch('/api/member/quotations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+      credentials: 'include',
+      body: JSON.stringify({
+        customer_name: input.customerName || 'Customer',
+        customer_email: input.customerEmail || 'customer@example.com',
+        customer_phone: input.customerPhone || null,
+        notes: input.notes || null,
+        valid_until: input.validUntil || null,
+        status: input.status?.toUpperCase() || 'DRAFT',
+        items: input.items?.map(item => ({
+          product_name: item.productName,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          specifications: item.specifications || null,
+        })) || [],
+      }),
     });
 
     const data = await response.json();
@@ -235,13 +250,20 @@ export async function updateQuotation(
 
 /**
  * Submit a quotation for admin review
+ * @deprecated Update quotation status to 'SENT' via /api/member/quotations/[id] instead
  */
 export async function submitQuotation(input: SubmitQuotationInput): Promise<ApiResponse<Quotation>> {
   try {
-    const response = await fetch('/api/quotations/submit', {
-      method: 'POST',
+    const response = await fetch(`/api/member/quotations/${input.quotationId}`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+      credentials: 'include',
+      body: JSON.stringify({
+        status: 'SENT',
+        customer_name: input.customerInfo?.name,
+        customer_email: input.customerInfo?.email,
+        customer_phone: input.customerInfo?.phone || null,
+      }),
     });
 
     const data = await response.json();
@@ -328,17 +350,28 @@ export async function checkConversionEligibility(
 
 /**
  * Get all quotations for the current user
+ * @deprecated Use /api/member/quotations (GET) instead
  */
 export async function getQuotations(filters?: {
   status?: string;
+  limit?: number;
+  offset?: number;
 }): Promise<ApiResponse<Quotation[]>> {
   try {
     const queryParams = new URLSearchParams();
     if (filters?.status) {
       queryParams.append('status', filters.status);
     }
+    if (filters?.limit) {
+      queryParams.append('limit', filters.limit.toString());
+    }
+    if (filters?.offset) {
+      queryParams.append('offset', filters.offset.toString());
+    }
 
-    const response = await fetch(`/api/quotations/list?${queryParams.toString()}`);
+    const response = await fetch(`/api/member/quotations?${queryParams.toString()}`, {
+      credentials: 'include',
+    });
 
     const data = await response.json();
 

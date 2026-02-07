@@ -1,0 +1,9 @@
+[GET] http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7 => [404] Not Found
+[GET] http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7 => [404] Not Found
+[GET] http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7/cancellation => [200] OK
+[GET] http://localhost:3008/api/admin/users/54fd7b31-b805-43cf-b92e-898ddd066875/addresses => [200] OK
+[GET] http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7/data-receipt => [200] OK
+[GET] http://localhost:3008/api/member/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7/comments => [200] OK
+[GET] http://localhost:3008/api/auth/session => [200] OK
+[PUT] http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7/items => [200] OK
+[GET] http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7 => [404] Not Found

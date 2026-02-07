@@ -1,0 +1,2 @@
+Scenario,Status,Total Steps,Passed,Failed,Success Rate,Duration (ms),Start Time,End Time
+"admin/login-dashboard",FAILED,8,5,3,62.50,107024267,"2026-01-23T04:12:50.261Z","2026-01-24T09:56:34.528Z"

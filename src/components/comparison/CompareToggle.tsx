@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useComparison } from '@/contexts/ComparisonContext'
 import { motion, AnimatePresence } from 'framer-motion'
-
 export function CompareToggle() {
   const {
     state,

@@ -52,6 +52,7 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
           <input
             type="text"
             {...register('company')}
+            data-testid="customer-company-name"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
             placeholder="株式会社サンプル"
           />
@@ -69,6 +70,7 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
           <input
             type="tel"
             {...register('phone')}
+            data-testid="customer-phone-number"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
             placeholder="03-1234-5678"
           />
@@ -85,6 +87,7 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
           <input
             type="tel"
             {...register('fax')}
+            data-testid="customer-fax-number"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
             placeholder="03-1234-5678"
           />
@@ -102,6 +105,7 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
           <input
             type="email"
             {...register('email')}
+            data-testid="customer-email-address"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
             placeholder="example@company.com"
           />
@@ -118,6 +122,7 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
           <input
             type="text"
             {...register('postalCode')}
+            data-testid="customer-postal-code"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
             placeholder="100-0001"
           />
@@ -134,6 +139,7 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
           <input
             type="text"
             {...register('address')}
+            data-testid="customer-address"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
             placeholder="東京都〇〇区〇〇1-2-3"
           />

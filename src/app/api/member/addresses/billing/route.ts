@@ -35,19 +35,13 @@ const billingAddressSchema = z.object({
 // ============================================================
 
 /**
- * Get user ID from middleware headers (cookie-based auth or DEV_MODE header)
+ * Get user ID from middleware headers (cookie-based auth)
  */
 async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
   try {
     const { headers } = await import('next/headers');
     const headersList = await headers();
     const userId = headersList.get('x-user-id');
-
-    // Log DEV_MODE usage for debugging
-    const isDevMode = headersList.get('x-dev-mode') === 'true';
-    if (isDevMode && userId) {
-      console.log('[Billing Addresses API] DEV_MODE: Using x-user-id header:', userId);
-    }
 
     return userId;
   } catch (error) {
@@ -76,7 +70,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .from('billing_addresses')
       .select('*')
       .eq('user_id', userId)
+      // is_default = true인 항목이 먼저 오도록 정렬
       .order('is_default', { ascending: false })
+      // 그 다음 created_at 순으로 정렬 (최신순)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -87,9 +83,27 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Transform snake_case to camelCase for frontend
+    const transformedAddresses = (addresses || []).map((addr: any) => ({
+      id: addr.id,
+      userId: addr.user_id,
+      companyName: addr.company_name,
+      postalCode: addr.postal_code,
+      prefecture: addr.prefecture,
+      city: addr.city,
+      address: addr.address,
+      building: addr.building,
+      taxNumber: addr.tax_number,
+      email: addr.email,
+      phone: addr.phone,
+      isDefault: addr.is_default,
+      createdAt: addr.created_at,
+      updatedAt: addr.updated_at,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: addresses || [],
+      data: transformedAddresses,
     });
   } catch (error) {
     console.error('Billing addresses API error:', error);

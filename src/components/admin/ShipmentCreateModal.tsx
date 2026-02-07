@@ -26,7 +26,7 @@ interface ShipmentCreateModalProps {
     id: string;
     order_number: string;
     customer_name: string;
-    shipping_address: any;
+    delivery_address: any;  // API는 delivery_address를 반환
   };
   onCreateShipment: (data: any) => Promise<void>;
 }
@@ -45,6 +45,7 @@ export function ShipmentCreateModal({
     pickup_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     package_count: 1,
     weight_kg: '',
+    tracking_number: '', // 사용자 직접 입력
     customer_notes: '',
   });
 
@@ -101,10 +102,24 @@ export function ShipmentCreateModal({
             </div>
             <div className="flex items-start justify-between">
               <span className="text-sm text-gray-600">配送先</span>
-              <span className="text-sm text-right font-medium">
-                {order.shipping_address?.prefecture} {order.shipping_address?.city}{' '}
-                {order.shipping_address?.address}
-              </span>
+              <div className="text-sm text-right max-w-[70%]">
+                {order.delivery_address?.name && (
+                  <div className="font-medium">{order.delivery_address.name}</div>
+                )}
+                <div className="text-gray-700">
+                  〒{order.delivery_address?.postal_code}
+                </div>
+                <div className="text-gray-700">
+                  {order.delivery_address?.prefecture} {order.delivery_address?.city}
+                  {order.delivery_address?.address}
+                </div>
+                {order.delivery_address?.building && (
+                  <div className="text-gray-700">{order.delivery_address.building}</div>
+                )}
+                {order.delivery_address?.phone && (
+                  <div className="text-gray-600 text-xs mt-1">TEL: {order.delivery_address.phone}</div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -123,6 +138,23 @@ export function ShipmentCreateModal({
                 label: CARRIER_NAMES[carrier].ja,
               }))}
             />
+          </div>
+
+          {/* Tracking Number */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <Truck className="w-4 h-4" />
+              追跡番号 (운송장 번호)
+            </label>
+            <Input
+              type="text"
+              placeholder="例: 1234-5678-9012-3456 (선택 사항, 비워두시 자동 생성)"
+              value={formData.tracking_number}
+              onChange={(e) => setFormData({ ...formData, tracking_number: e.target.value })}
+            />
+            <p className="text-xs text-gray-500">
+              운송장 번호를 직접 입력하실 수 있습니다. 비워두시 시스템이 자동으로 생성합니다.
+            </p>
           </div>
 
           {/* Service Type */}

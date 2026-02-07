@@ -3,9 +3,12 @@
  *
  * Provides functions to fetch featured products and announcements
  * from Supabase for dynamic homepage rendering.
+ *
+ * fetch 캐싱 전략 적용 - unstable_cache 사용으로 DB 쿼리 최적화
  */
 
 import { createServiceClient } from './supabase'
+import { unstable_cache } from 'next/cache'
 import type { Database } from '@/types/database'
 
 // =====================================================
@@ -35,40 +38,63 @@ export type FeaturedProduct = Database['public']['Tables']['products']['Row']
  * Get featured products for homepage display
  * @param limit - Number of products to return (default: 6)
  * @returns Array of featured products sorted by sort_order
+ *
+ * @example
+ * ```ts
+ * // Server Component에서 사용
+ * import { getFeaturedProducts } from '@/lib/products'
+ *
+ * export default async function Page() {
+ *   const products = await getFeaturedProducts(6)
+ *   return <ProductGrid products={products} />
+ * }
+ * ```
  */
-export async function getFeaturedProducts(limit: number = 6): Promise<FeaturedProduct[]> {
-  try {
-    const supabase = createServiceClient()
+export const getFeaturedProducts = unstable_cache(
+  async (limit: number = 6): Promise<FeaturedProduct[]> => {
+    try {
+      const supabase = createServiceClient()
 
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-      .limit(limit)
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .limit(limit)
 
-    if (error) {
-      console.error('[getFeaturedProducts] Error fetching products:', error)
+      if (error) {
+        console.error('[getFeaturedProducts] Error fetching products:', error)
+        return []
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('[getFeaturedProducts] Unexpected error:', error)
       return []
     }
-
-    return data || []
-  } catch (error) {
-    console.error('[getFeaturedProducts] Unexpected error:', error)
-    return []
-  }
-}
+  },
+  ['featured-products'],
+  { revalidate: 300, tags: ['products:featured'] }
+)
 
 /**
  * Get products by category
  * @param category - Product category
  * @param limit - Number of products to return (default: 10)
  * @returns Array of products in the specified category
+ *
+ * @example
+ * ```ts
+ * // Server Component에서 사용
+ * import { getProductsByCategory } from '@/lib/products'
+ *
+ * export default async function Page({ params }: { params: { category: string } }) {
+ *   const products = await getProductsByCategory(params.category, 10)
+ *   return <CategoryPage products={products} />
+ * }
+ * ```
  */
-export async function getProductsByCategory(
-  category: string,
-  limit: number = 10
-): Promise<FeaturedProduct[]> {
+export async function getProductsByCategory(category: string, limit: number = 10): Promise<FeaturedProduct[]> {
   try {
     const supabase = createServiceClient()
 
@@ -100,17 +126,29 @@ export async function getProductsByCategory(
  * Get latest published announcements
  * @param limit - Number of announcements to return (default: 3)
  * @returns Array of published announcements sorted by published_at
+ *
+ * @example
+ * ```ts
+ * // Server Component에서 사용
+ * import { getLatestAnnouncements } from '@/lib/products'
+ *
+ * export default async function Page() {
+ *   const announcements = await getLatestAnnouncements(3)
+ *   return <AnnouncementBanner announcements={announcements} />
+ * }
+ * ```
  */
-export async function getLatestAnnouncements(limit: number = 3): Promise<Announcement[]> {
-  try {
-    const supabase = createServiceClient()
+export const getLatestAnnouncements = unstable_cache(
+  async (limit: number = 3): Promise<Announcement[]> => {
+    try {
+      const supabase = createServiceClient()
 
-    const { data, error } = await supabase
-      .from('announcements')
-      .select('*')
-      .eq('is_published', true)
-      .order('published_at', { ascending: false })
-      .limit(limit)
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('is_published', true)
+        .order('published_at', { ascending: false })
+        .limit(limit)
 
     if (error) {
       console.error('[getLatestAnnouncements] Error fetching announcements:', error)
@@ -129,7 +167,10 @@ export async function getLatestAnnouncements(limit: number = 3): Promise<Announc
     console.error('[getLatestAnnouncements] Unexpected error:', error)
     return []
   }
-}
+  },
+  ['announcements:latest'],
+  { revalidate: 300, tags: ['announcements'] }
+)
 
 /**
  * Get high-priority announcements

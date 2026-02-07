@@ -345,7 +345,7 @@ export default function TermsOfService() {
 
                     <h3 className="font-semibold text-text-primary mt-4">返金手続き：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>返金をご希望の場合、 kim@kanei-trade.co.jp までご連絡ください。</li>
+                      <li>返金をご希望の場合、 info@package-lab.com までご連絡ください。</li>
                       <li>返金処理には、ご連絡後10営業日程度かかる場合があります。</li>
                       <li>返金方法は、原則としてお支払いいただいた方法と同様の方法で行います。</li>
                     </ul>
@@ -411,9 +411,9 @@ export default function TermsOfService() {
                     </p>
                     <div className="bg-surface-secondary rounded-lg p-4 mt-4">
                       <p className="font-medium text-text-primary">金井貿易株式会社</p>
-                      <p>〒673-0846 兵庫県明石市上ノ丸2-11-21 レラフォール102</p>
-                      <p>電話：+81-80-6942-7235</p>
-                      <p>メール：kim@kanei-trade.co.jp</p>
+                      <p>兵庫県明石市上ノ丸2-11-21</p>
+                      <p>電話：050-1793-6500</p>
+                      <p>メール：info@package-lab.com</p>
                     </div>
                   </div>
                 </div>

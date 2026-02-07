@@ -190,6 +190,10 @@ export async function updateOrderDeliveryAddress(
 /**
  * 注文合計金額再計算
  * @param orderId 注文ID
+ *
+ * Note: Uses same rounding logic as quote simulator:
+ * - Subtotal and Total are rounded to nearest 10 yen
+ * - Tax is rounded to nearest yen
  */
 export async function recalculateOrderTotal(orderId: string): Promise<SqlResult> {
   return executeSql(
@@ -197,17 +201,20 @@ export async function recalculateOrderTotal(orderId: string): Promise<SqlResult>
     UPDATE orders o
     SET
       subtotal = (
-        SELECT COALESCE(SUM(total_price), 0)
+        -- Round to nearest 100 yen (same as quote simulator)
+        SELECT ROUND(COALESCE(SUM(total_price), 0) / 100) * 100
         FROM order_items
         WHERE order_id = o.id
       ),
       tax_amount = (
-        SELECT COALESCE(SUM(total_price), 0) * 0.1
+        -- Calculate tax from rounded subtotal and round to nearest yen
+        SELECT ROUND(ROUND(COALESCE(SUM(total_price), 0) / 100) * 100 * 0.1)
         FROM order_items
         WHERE order_id = o.id
       ),
       total_amount = (
-        SELECT COALESCE(SUM(total_price), 0) * 1.1
+        -- Round to nearest 100 yen (same as quote simulator)
+        SELECT ROUND((ROUND(COALESCE(SUM(total_price), 0) / 100) * 100 + ROUND(ROUND(COALESCE(SUM(total_price), 0) / 100) * 100 * 0.1)) / 100) * 100
         FROM order_items
         WHERE order_id = o.id
       ),

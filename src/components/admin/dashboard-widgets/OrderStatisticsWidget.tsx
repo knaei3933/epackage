@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { DashboardStatistics } from '@/types/admin';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
+import { ORDER_STATUS_LABELS } from '@/types/order-status';
 
 interface OrderStatisticsWidgetProps {
   statistics?: DashboardStatistics & {
@@ -60,19 +61,24 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
   })) || [];
 
   function getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      'PENDING': '受付待',
-      'QUOTATION': '見積中',
-      'DATA_RECEIVED': 'データ受領待',
-      'WORK_ORDER': '作業標準書作成中',
-      'CONTRACT_SENT': '契約書送付済',
-      'CONTRACT_SIGNED': '契約署名済',
-      'IN_PRODUCTION': '製造中',
-      'STOCK_IN': '入庫済',
-      'SHIPPED': '発送済',
-      'DELIVERED': '配達完了'
+    // 소문자를 대문자로 변환하여 ORDER_STATUS_LABELS 사용
+    const upperStatus = status.toUpperCase().replace(/-/g, '_') as keyof typeof ORDER_STATUS_LABELS;
+    if (upperStatus in ORDER_STATUS_LABELS) {
+      return ORDER_STATUS_LABELS[upperStatus].ja;
+    }
+    // 레거시 소문자 상태값에 대한 대응
+    const legacyLabels: Record<string, string> = {
+      'pending': '受付待',
+      'processing': '処理中',
+      'manufacturing': '製造中',
+      'ready': '発送待',
+      'shipped': '発送完了',
+      'delivered': '配達完了',
+      'cancelled': 'キャンセル',
+      'in_production': '製造中',
+      'stock_in': '入庫済'
     };
-    return labels[status] || status;
+    return legacyLabels[status] || status;
   }
 
   function formatCurrency(amount?: number | null): string {

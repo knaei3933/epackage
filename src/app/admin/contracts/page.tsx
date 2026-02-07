@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { ContractWorkflowList } from '@/components/admin/contract-workflow/ContractWorkflowList';
 import { ContractTimeline } from '@/components/admin/contract-workflow/ContractTimeline';
 import { ContractReminderModal } from '@/components/admin/contract-workflow/ContractReminderModal';
@@ -24,6 +24,7 @@ interface Contract {
 }
 
 export default function ContractWorkflowPage() {
+  const { supabase } = useSupabaseClient();
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -56,7 +57,7 @@ export default function ContractWorkflowPage() {
     return () => {
       if (supabase) supabase.removeChannel(channel);
     };
-  }, [mutate]);
+  }, [supabase, mutate]);
 
   // contractsが配列か確認 (エラー応答の場合に備え)
   const contractsArray = Array.isArray(contracts) ? contracts : [];

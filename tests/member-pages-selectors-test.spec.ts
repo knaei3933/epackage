@@ -551,8 +551,8 @@ test.describe('Member Settings - Selectors', () => {
     await page.waitForTimeout(1000);
 
     // Check for success or error message
-    const message = page.locator('.p-4.rounded-lg:has-text("設定を保存しました")')
-      .or(page.locator('.p-4.rounded-lg:has-text("エラーが発生しました")));
+    const message = page.locator(`.p-4.rounded-lg:has-text("設定を保存しました")`)
+      .or(page.locator(`.p-4.rounded-lg:has-text("エラーが発生しました")`));
 
     // Message should appear
     const count = await message.count();

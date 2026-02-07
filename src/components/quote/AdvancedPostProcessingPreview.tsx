@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import { motion, AnimatePresence, PanInfo } from 'framer-motion'
+import type { PanInfo } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings,
   Filter,

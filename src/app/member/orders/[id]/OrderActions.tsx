@@ -15,9 +15,10 @@ import { OrderManagementButtons } from '@/components/orders';
 
 interface OrderActionsProps {
   order: Order;
+  excludeModifyButton?: boolean;
 }
 
-export function OrderActions({ order }: OrderActionsProps) {
+export function OrderActions({ order, excludeModifyButton = false }: OrderActionsProps) {
   const router = useRouter();
 
   const handleOrderCancelled = () => {
@@ -42,6 +43,7 @@ export function OrderActions({ order }: OrderActionsProps) {
         order={order}
         showPDFDownload={true}
         showDetailView={false}
+        showModifyButton={!excludeModifyButton}
         onOrderCancelled={handleOrderCancelled}
         onOrderModified={handleOrderModified}
         onReordered={handleReordered}

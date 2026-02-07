@@ -215,6 +215,43 @@ export async function notifyDocumentReady(
 }
 
 /**
+ * Notify customer when admin requests modification approval
+ * Uses direct Supabase client insertion
+ */
+export async function notifyModificationRequested(
+  userId: string,
+  orderId: string,
+  orderNumber: string,
+  reason: string
+): Promise<void> {
+  const { createServiceClient } = await import('./supabase');
+  const supabase = createServiceClient();
+
+  const { data, error } = await supabase
+    .from('unified_notifications')
+    .insert({
+      recipient_id: userId,
+      recipient_type: 'member',
+      type: 'modification_requested',
+      title: '修正承認依頼',
+      message: `管理者が注文 ${orderNumber} の修正を依頼しました。理由: ${reason}`,
+      related_id: orderId,
+      related_type: 'orders',
+      priority: 'high',
+      action_url: `/member/orders/${orderId}`,
+      action_label: '修正内容を確認',
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('[notifyModificationRequested] Failed:', error);
+  } else {
+    console.log('[notifyModificationRequested] Created notification:', data?.id);
+  }
+}
+
+/**
  * Get unread notification count for user
  */
 export async function getUnreadCount(userId: string): Promise<number> {

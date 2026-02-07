@@ -8,47 +8,49 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { OrderSummaryCard } from '@/components/shared';
 import { PORTAL_ORDER_STATUS_LABELS } from '@/types/portal';
+import { createServiceClient } from '@/lib/supabase';
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
 
 async function getOrders(searchParams: { status?: string; search?: string }) {
-  const cookieStore = await cookies();
+  const supabase = createServiceClient();
 
-  const params = new URLSearchParams();
-  if (searchParams.status) params.set('status', searchParams.status);
-  if (searchParams.search) params.set('search', searchParams.search);
+  let query = supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/member/orders?${params}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; '),
-      },
-      cache: 'no-store',
-    }
-  );
+  // Apply status filter if specified
+  if (searchParams.status) {
+    query = query.eq('status', searchParams.status);
+  }
 
-  if (!response.ok) return null;
+  // Apply search filter if specified
+  if (searchParams.search) {
+    query = query.or(`order_number.ilike.%${searchParams.search}%,customer_name.ilike.%${searchParams.search}%`);
+  }
 
-  const result = await response.json();
-  return result.data;
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Orders fetch error:', error);
+    return null;
+  }
+
+  return { orders: data || [] };
 }
 
 export default async function CustomerOrdersPage({
   searchParams,
 }: {
-  searchParams: { status?: string; search?: string };
+  searchParams: Promise<{ status?: string; search?: string }>;
 }) {
-  const data = await getOrders(searchParams);
+  const params = await searchParams;
+  const data = await getOrders(params);
 
   const orders = data?.orders || [];
 
@@ -88,7 +90,7 @@ export default async function CustomerOrdersPage({
                 href="/admin/customers/orders"
                 className={cn(
                   'px-3 py-1.5 text-sm rounded-lg border transition-colors',
-                  !searchParams.status
+                  !params.status
                     ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 font-medium'
                     : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
                 )}
@@ -101,7 +103,7 @@ export default async function CustomerOrdersPage({
                   href={`/admin/customers/orders?status=${status}`}
                   className={cn(
                     'px-3 py-1.5 text-sm rounded-lg border transition-colors',
-                    searchParams.status === status
+                    params.status === status
                       ? `${info.color} border-current`
                       : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
                   )}
@@ -122,7 +124,7 @@ export default async function CustomerOrdersPage({
                 type="text"
                 name="search"
                 placeholder="注文番号またはお客様名"
-                defaultValue={searchParams.search}
+                defaultValue={params.search}
                 className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500"
               />
               <button
@@ -131,7 +133,7 @@ export default async function CustomerOrdersPage({
               >
                 検索
               </button>
-              {searchParams.search && (
+              {params.search && (
                 <Link
                   href="/admin/customers/orders"
                   className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"
@@ -160,7 +162,7 @@ export default async function CustomerOrdersPage({
             注文が見つかりません
           </h3>
           <p className="text-slate-600 dark:text-slate-400 mb-6">
-            {searchParams.status || searchParams.search
+            {params.status || params.search
               ? '検索条件に一致する注文がありません。'
               : 'まだ注文がありません。'}
           </p>
@@ -171,7 +173,7 @@ export default async function CustomerOrdersPage({
             >
               最初の見積を依頼する
             </Link>
-            {(searchParams.status || searchParams.search) && (
+            {(params.status || params.search) && (
               <Link
                 href="/admin/customers/orders"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"

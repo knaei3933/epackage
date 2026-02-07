@@ -97,15 +97,13 @@ export async function calculateOptimalSendTime(
  */
 async function getUserTimezone(userId: string): Promise<string> {
   try {
-    // @ts-ignore - Supabase type inference issue with JSON path
     const { data } = await supabase
       .from('notification_preferences')
       .select('quiet_hours')
       .eq('user_id', userId)
       .single()
 
-    // @ts-ignore - quiet_hours is a JSON column
-    return data?.quiet_hours?.timezone || 'Asia/Tokyo'
+    return ((data as { quiet_hours?: { timezone?: string } } | null)?.quiet_hours?.timezone) || 'Asia/Tokyo'
   } catch (error) {
     return 'Asia/Tokyo'
   }
@@ -116,17 +114,16 @@ async function getUserTimezone(userId: string): Promise<string> {
  */
 async function getQuietHours(userId: string): Promise<{ start: string; end: string }> {
   try {
-    // @ts-ignore - Supabase type inference issue with JSON column
     const { data } = await supabase
       .from('notification_preferences')
       .select('quiet_hours')
       .eq('user_id', userId)
       .single()
 
-    // @ts-ignore - quiet_hours is a JSON column
+    const quietHours = (data as { quiet_hours?: { start?: string; end?: string } } | null)?.quiet_hours
     return {
-      start: data?.quiet_hours?.start || '22:00',
-      end: data?.quiet_hours?.end || '08:00',
+      start: quietHours?.start || '22:00',
+      end: quietHours?.end || '08:00',
     }
   } catch (error) {
     return { start: '22:00', end: '08:00' }

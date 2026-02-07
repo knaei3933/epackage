@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
+;
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 

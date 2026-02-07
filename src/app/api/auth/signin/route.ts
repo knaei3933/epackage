@@ -136,12 +136,12 @@ async function handleSignInPost(request: NextRequest) {
         user: mockUser,
       });
 
-      // Set mock cookies
+      // Set mock cookies with 30-minute session
       response.cookies.set('sb-access-token', 'mock-access-token-' + Date.now(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 3600,
+        maxAge: 1800,  // ✅ 30分セッション維持
         path: '/',
       });
 
@@ -154,10 +154,10 @@ async function handleSignInPost(request: NextRequest) {
       });
 
       response.cookies.set('dev-mock-user-id', mockUserId, {
-        httpOnly: false,
+        httpOnly: true,  // ✅ httpOnly設定（JavaScriptアクセス禁止）
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 3600,
+        maxAge: 1800,  // ✅ 30分セッション維持
         path: '/',
       });
 
@@ -245,23 +245,69 @@ async function handleSignInPost(request: NextRequest) {
       },
     };
 
-    // Create the JSON response first
+    // Check if redirect URL is provided (from client)
+    const redirectUrl = request.nextUrl.searchParams.get('redirect') ||
+                       request.nextUrl.searchParams.get('callbackUrl') ||
+                       '/member/dashboard';
+
+    // Determine redirect based on user role
+    const userRole = (profile as any)?.role || 'MEMBER';
+    const finalRedirect = userRole.toLowerCase() === 'admin'
+      ? '/admin/dashboard'
+      : redirectUrl;
+
+    console.log('[Signin API] Redirecting to:', finalRedirect, '(role:', userRole, ')');
+
+    // Add redirectUrl to response data
+    // IMPORTANT: Return JSON response instead of redirect
+    // Let client-side handle navigation to avoid cookie timing issues
+    (responseData as any).redirectUrl = finalRedirect;
+
+    // Create the JSON response
     const finalResponse = NextResponse.json(responseData, {
       status: 200,
     });
 
     // Copy all cookies from initialResponse to the final response
     // @supabase/ssr sets cookies via the callback, which stores them in initialResponse.cookies
-    // Explicitly preserve all cookie attributes (domain, path, httpOnly, secure, sameSite, etc.)
+    // CRITICAL: Explicitly set all cookie attributes to ensure they are correct
     const cookies = initialResponse.cookies.getAll();
     console.log('[Signin API] Copying cookies:', cookies.map(c => c.name));
+    console.log('[Signin API] Cookie details:', cookies.map(c => ({
+      name: c.name,
+      valueLength: c.value?.length || 0,
+      valuePreview: c.value?.substring(0, 50),
+      httpOnly: c.httpOnly,
+      secure: c.secure,
+      sameSite: c.sameSite,
+      domain: c.domain,
+      path: c.path
+    })));
     cookies.forEach(cookie => {
-      const { name, value, ...options } = cookie;
-      finalResponse.cookies.set(name, value, options);
+      // Build cookie options with explicit values
+      const cookieOptions: any = {
+        httpOnly: true,  // Always enforce httpOnly for security
+        secure: process.env.NODE_ENV === 'production',  // HTTPS only in production
+        sameSite: 'lax',  // CSRF protection
+        path: '/',
+        maxAge: 1800,  // 30 minutes
+      };
+
+      // Only set domain in production (localhost rejects domain attribute)
+      if (process.env.NODE_ENV === 'production') {
+        cookieOptions.domain = '.epackage-lab.com';
+      }
+
+      // Preserve any additional options from the original cookie
+      if (cookie.maxAge) cookieOptions.maxAge = cookie.maxAge;
+      if (cookie.expires) cookieOptions.expires = cookie.expires;
+
+      finalResponse.cookies.set(cookie.name, cookie.value, cookieOptions);
     });
 
     console.log('[Signin API] Login successful, cookies set for:', data.user.email);
 
+    // Return the response with cookies (NOT a new NextResponse.json!)
     return finalResponse;
   } catch (error) {
     console.error('[Signin API] Error during signin:', error);

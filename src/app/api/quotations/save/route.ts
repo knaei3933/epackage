@@ -1,245 +1,300 @@
+/**
+ * Quotation Save API Route
+ *
+ * 見積作成API（見積もりシミュレーター用）
+ * POST /api/quotations/save - 新しい見積を作成
+ * - ログイン済みユーザー: ユーザー情報と紐付けて保存
+ * - ✅ quotation_itemsテーブルにもレコードを作成
+ * - ✅ エラーハンドリング改善
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase';
-import { createServerClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
-// ============================================================
-// Type Definitions
-// ============================================================
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-interface QuotationItemInput {
-  productName: string
-  quantity: number
-  unitPrice: number
-  specifications?: Record<string, unknown> | null
+if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
 }
 
-interface SaveQuotationRequestBody {
-  userId: string
-  quotationNumber: string
-  status?: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired'
-  totalAmount: number
-  validUntil?: string
-  notes?: string | null
-  items?: QuotationItemInput[]
-}
+const supabaseUrlTyped = supabaseUrl as string;
+const supabaseServiceKeyTyped = supabaseServiceKey as string;
+const supabaseAnonKeyTyped = supabaseAnonKey as string;
 
-// ============================================================
-// Type-safe Helper Functions
-// ============================================================
+// Service role client for RLS bypass
+const supabaseService = createClient(supabaseUrlTyped, supabaseServiceKeyTyped);
 
-/**
- * Type-safe insert helper for quotations table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
- */
-function insertQuotation(
-  supabaseClient: ReturnType<typeof createServiceClient>,
-  data: Database['public']['Tables']['quotations']['Insert']
-) {
-  return (supabaseClient as any)
-    .from('quotations')
-    .insert(data)
-    .select()
-    .single();
-}
+// Helper: Create Supabase client with cookie support
+async function createSupabaseClient() {
+  const cookieStore = await cookies();
 
-/**
- * Type-safe insert helper for quotation_items table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
- */
-function insertQuotationItems(
-  supabaseClient: ReturnType<typeof createServiceClient>,
-  items: Database['public']['Tables']['quotation_items']['Insert'][]
-) {
-  return (supabaseClient as any)
-    .from('quotation_items')
-    .insert(items);
-}
-
-/**
- * Type-safe delete helper for quotations table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
- */
-function deleteQuotation(
-  supabaseClient: ReturnType<typeof createServiceClient>,
-  quotationId: string
-) {
-  return (supabaseClient as any)
-    .from('quotations')
-    .delete()
-    .eq('id', quotationId);
-}
-
-/**
- * Type-safe select helper for quotations with items
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
- */
-function selectQuotationWithItems(
-  supabaseClient: ReturnType<typeof createServiceClient>,
-  quotationId: string
-) {
-  return (supabaseClient as any)
-    .from('quotations')
-    .select('*, quotation_items (*)')
-    .eq('id', quotationId)
-    .single();
-}
-
-/**
- * POST /api/quotations/save
- *
- * Save a quotation to the database with quotation items
- *
- * Request body:
- * {
- *   userId: string;
- *   quotationNumber: string;
- *   status: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired';
- *   totalAmount: number;
- *   validUntil: string; // ISO date
- *   notes: string | null;
- *   items: Array<{
- *     productName: string;
- *     quantity: number;
- *     unitPrice: number;
- *     specifications: Record<string, unknown>;
- *   }>;
- * }
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json() as SaveQuotationRequestBody;
-
-    // Validate required fields
-    if (!body.quotationNumber || body.totalAmount === undefined) {
-      return NextResponse.json(
-        { error: 'Missing required fields: quotationNumber, totalAmount' },
-        { status: 400 }
-      );
-    }
-
-    // Get authenticated user ID using SSR (same as member quotations API)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
-
-    // Create SSR client to read cookies
-    const response = NextResponse.json({ success: false });
-    const authClient = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+  return createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+    auth: {
+      storage: {
+        getItem: (key: string) => {
+          const cookie = cookieStore.get(key);
+          return cookie?.value ?? null;
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
+        setItem: (key: string, value: string) => {
+          cookieStore.set(key, value, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+          });
         },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
+        removeItem: (key: string) => {
+          cookieStore.delete(key);
         },
       },
-    });
+    },
+  });
+}
 
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
+// =====================================================
+// Type Definitions
+// =====================================================
 
-    if (authError || !user) {
+interface QuotationItemData {
+  id?: string;
+  productId?: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  specifications?: Record<string, unknown>;
+}
+
+interface SaveRequestBody {
+  quotationNumber?: string;
+  totalAmount?: number;
+  grandTotal?: number;
+  pricing?: {
+    totalPrice: number;
+  };
+  items?: QuotationItemData[];
+  specifications?: Record<string, unknown>;
+  postProcessing?: string[];
+  skuData?: Record<string, unknown>;
+}
+
+// POST: 新しい見積を作成
+// ✅ quotation_itemsテーブルにもレコードを作成
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createSupabaseClient();
+
+    // セッション確認
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    const isAuthenticated = !userError && user;
+
+    // ✅ 認証必須（DBのuser_id NOT NULL制約のため）
+    if (!isAuthenticated || !user) {
+      console.error('[API /quotations/save] User not authenticated');
       return NextResponse.json(
-        { error: '認証されていません。', errorEn: 'Authentication required' },
+        {
+          error: '見積を保存するにはログインが必要です。',
+          errorEn: 'Authentication required to save quotation',
+        },
         { status: 401 }
       );
     }
 
-    const userIdForDb = user.id;
+    const userId = user.id;
 
-    // Create service client for server-side operations (bypasses RLS)
-    const supabase = createServiceClient();
+    // プロフィールからユーザー情報取得
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, status, email, kanji_last_name, kanji_first_name')
+      .eq('id', userId)
+      .single();
 
-    // Start a transaction by inserting the quotation
-    const { data: quotation, error: quotationError } = await insertQuotation(supabase, {
-      user_id: userIdForDb,
-      company_id: null,
-      quotation_number: body.quotationNumber,
-      status: (body.status || 'draft') as Database['public']['Tables']['quotations']['Row']['status'],
-      total_amount: body.totalAmount,
-      valid_until: body.validUntil || null,
-      notes: body.notes || null,
-      // Required fields with defaults (will be updated later when customer info is available)
-      customer_name: 'TBD',
-      customer_email: 'tbd@example.com',
-      customer_phone: null,
-      subtotal_amount: body.totalAmount,
-      subtotal: body.totalAmount, // Alias for subtotal_amount
-      tax_amount: 0,
-      pdf_url: null,
-      admin_notes: null,
-      sales_rep: null,
-      estimated_delivery_date: null,
-      sent_at: null,
-      approved_at: null,
-      rejected_at: null,
+    if (profileError || !profile) {
+      console.error('[API /quotations/save] Profile fetch error:', profileError);
+      return NextResponse.json(
+        { error: 'ユーザープロフィールの取得に失敗しました。' },
+        { status: 404 }
+      );
+    }
+
+    if (profile.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { error: '有効なアカウントのみ見積を作成できます。' },
+        { status: 403 }
+      );
+    }
+
+    const customerName = profile.kanji_last_name && profile.kanji_first_name
+      ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+      : profile.email || '未登録';
+    const customerEmail = profile.email || '';
+
+    // リクエストボディをパース
+    const body: SaveRequestBody = await request.json();
+
+    // デバッグログ
+    console.log('[API /quotations/save] Request body:', JSON.stringify(body, null, 2));
+
+    // 見積番号生成
+    const quotationNumber = body.quotationNumber ||
+      `QT${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Date.now().toString(36).toUpperCase()}`;
+
+    // 価格データの決定
+    const totalAmount = body.totalAmount || body.pricing?.totalPrice || 0;
+    const grandTotal = body.grandTotal || totalAmount;
+    console.log('[API /quotations/save] totalAmount:', totalAmount, 'grandTotal:', grandTotal);
+
+    // itemsデータの準備
+    let itemsToSave: QuotationItemData[] = [];
+
+    if (body.items && Array.isArray(body.items) && body.items.length > 0) {
+      // ResultStepからのリクエスト（items形式）
+      itemsToSave = body.items;
+    } else {
+      // ホームページシミュレーターからのリクエスト（単一アイテム）
+      itemsToSave = [{
+        productName: 'カスタム製品',
+        quantity: 1,
+        unitPrice: grandTotal,
+        specifications: {
+          ...body.specifications,
+          postProcessing: body.postProcessing,
+          skuData: body.skuData,
+        },
+      }];
+    }
+
+    console.log('[API /quotations/save] Items to save:', itemsToSave.length);
+
+    // ユーザーのデフォルト住所を取得
+    const { data: defaultDelivery } = await supabaseService
+      .from('delivery_addresses')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_default', true)
+      .maybeSingle();
+
+    const { data: defaultBilling } = await supabaseService
+      .from('billing_addresses')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_default', true)
+      .maybeSingle();
+
+    const deliveryAddressId = defaultDelivery?.id || null;
+    const billingAddressId = defaultBilling?.id || null;
+
+    console.log('[API /quotations/save] Default addresses:', {
+      deliveryAddressId,
+      billingAddressId,
     });
 
-    if (quotationError) {
-      console.error('Error creating quotation:', quotationError);
+    // トランザクション処理: quotation + quotation_items
+    // 注: Supabaseはトランザクションを直接サポートしていないため、
+    // エラー時のロールバック処理を実装
+
+    let quotation: any;
+    let quotationItems: any[] = [];
+
+    try {
+      // 1. 見積を作成
+      const { data: quotationData, error: insertError } = await supabaseService
+        .from('quotations')
+        .insert({
+          user_id: userId,
+          quotation_number: quotationNumber,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          total_amount: grandTotal,
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          delivery_address_id: deliveryAddressId,
+          billing_address_id: billingAddressId,
+          notes: JSON.stringify({
+            items: itemsToSave,
+            quotationData: body,
+          }),
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('[API /quotations/save] Insert quotation error:', insertError);
+        throw new Error(`見積の作成に失敗しました: ${insertError.message}`);
+      }
+
+      quotation = quotationData;
+      console.log('[API /quotations/save] Quotation created:', quotation.id);
+
+      // 2. 見積アイテムを作成
+      const itemsToInsert = itemsToSave.map((item, index) => ({
+        quotation_id: quotation.id,
+        product_id: item.productId || null,
+        product_name: item.productName,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        specifications: item.specifications || null,
+      }));
+
+      const { data: itemsData, error: itemsError } = await supabaseService
+        .from('quotation_items')
+        .insert(itemsToInsert)
+        .select();
+
+      if (itemsError) {
+        console.error('[API /quotations/save] Insert quotation_items error:', itemsError);
+        // ロールバック: 見積を削除
+        await supabaseService.from('quotations').delete().eq('id', quotation.id);
+        throw new Error(`見積アイテムの作成に失敗しました: ${itemsError.message}`);
+      }
+
+      quotationItems = itemsData || [];
+      console.log('[API /quotations/save] Quotation items created:', quotationItems.length);
+
+    } catch (error: any) {
+      console.error('[API /quotations/save] Transaction error:', error);
       return NextResponse.json(
-        { error: 'Failed to create quotation' },
+        {
+          error: error.message || '見積作成中にエラーが発生しました。',
+          details: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+        },
         { status: 500 }
       );
     }
 
-    const quotationTyped = quotation as Database['public']['Tables']['quotations']['Row'];
-
-    // Insert quotation items if provided
-    if (body.items && Array.isArray(body.items) && body.items.length > 0) {
-      const itemsToInsert = body.items.map((item, index) => ({
-        quotation_id: quotationTyped.id,
-        product_id: null, // No product_id for custom quotes
-        product_name: item.productName,
-        quantity: item.quantity,
-        unit_price: item.unitPrice,
-        // total_price is a generated column (quantity * unit_price) - don't insert it
-        specifications: item.specifications || null,
-      }));
-
-      const { error: itemsError } = await insertQuotationItems(supabase, itemsToInsert);
-
-      if (itemsError) {
-        console.error('Error creating quotation items:', itemsError);
-        // Rollback: delete the quotation if items failed
-        await deleteQuotation(supabase, quotationTyped.id);
-        return NextResponse.json(
-          { error: 'Failed to create quotation items' },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Fetch the complete quotation with items
-    const { data: completeQuotation, error: fetchError } = await selectQuotationWithItems(supabase, quotationTyped.id);
-
-    if (fetchError) {
-      console.error('Error fetching complete quotation:', fetchError);
-    }
-
-    // Return the saved quotation
-    const responseQuotation = completeQuotation || quotationTyped;
     return NextResponse.json(
       {
         success: true,
-        quotation: responseQuotation,
-        message: 'Quotation saved successfully'
+        message: '見積を作成しました。',
+        quotation: {
+          ...quotation,
+          items: quotationItems,
+        },
       },
       { status: 201 }
     );
+  } catch (error) {
+    console.error('[API /quotations/save] Unexpected error:', error);
 
-  } catch (error: unknown) {
-    console.error('Error in POST /api/quotations/save:', error);
+    // JSONパースエラー等のハンドリング
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          error: '無効なリクエスト形式です。',
+          errorEn: 'Invalid request format',
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: '見積作成中にエラーが発生しました。',
+        errorEn: 'Failed to create quotation',
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+      },
       { status: 500 }
     );
   }

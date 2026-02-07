@@ -320,12 +320,12 @@ const JAPANESE_CONSTANTS = {
   DEFAULT_SUPPLIER: {
     name: 'EPACKAGE Lab',
     subBrand: 'by kanei-trade',
-    companyName: '井井貿易株式会社',
-    postalCode: '〒573-0846',
-    address: '大阪府枚方市上ノ里町11-21-102',
-    phone: 'TEL: 080-6942-7235',
-    email: 'info@epackage-lab.com',
-    description: 'スタンドアップパック印刷専門',
+    companyName: '金井貿易株式会社',
+    postalCode: '〒673-0846',
+    address: '兵庫県明石市上ノ丸2-11-21',
+    phone: 'TEL: 050-1793-6500',
+    email: 'info@package-lab.com',
+    description: 'オーダーメイドバッグ印刷専門',
     registrationNumber: '',
   },
 
@@ -1382,8 +1382,8 @@ function generateQuoteHTML(
         <div class="supplier-brand">EPACKAGE Lab</div>
         <div class="supplier-company">金井貿易株式会社</div>
         <div class="supplier-detail">〒673-0846</div>
-        <div class="supplier-detail">兵庫県明石市上ノ丸2-11-21-102</div>
-        <div class="supplier-detail">TEL：080-6942-7235</div>
+        <div class="supplier-detail">兵庫県明石市上ノ丸2-11-21</div>
+        <div class="supplier-detail">TEL：050-1793-6500</div>
       </div>
     </div>
   </div>

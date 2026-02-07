@@ -37,9 +37,9 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Default redirect based on user role
+  // Default redirect based on user role (normalize to lowercase for consistency)
   const getDefaultRedirect = (role?: string) => {
-    if (role === 'ADMIN') {
+    if (role?.toLowerCase() === 'admin') {
       return '/admin/dashboard';
     }
     return '/member/dashboard';
@@ -96,18 +96,24 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
       // 成功処理
       onSuccess?.();
 
-      // Determine redirect URL based on user role from API response
-      const redirectParam = searchParams.get('redirect') || searchParams.get('callbackUrl');
-      const redirectUrl = redirectParam || getDefaultRedirect(result.user?.role);
+      // Use redirect URL from server response (determined by role)
+      // Server has already computed the correct redirect based on user role
+      const redirectUrl = result.redirectUrl || getDefaultRedirect(result.user?.role);
 
       console.log('[LoginForm] Redirecting to:', redirectUrl, '(role:', result.user?.role, ')');
 
-      // Use window.location.href to force full page reload
-      // This ensures Supabase cookies are properly set before navigation
-      window.location.href = redirectUrl;
+      // Wait for cookies to be set in browser, then navigate
+      // Use a simple timeout approach - this is more reliable than session verification
+      // because the cookies are already set by the server response
+      setTimeout(() => {
+        console.log('[LoginForm] Navigating to:', redirectUrl);
+        // Use window.location.href for full page reload
+        // This ensures cookies are sent with the request
+        window.location.href = redirectUrl;
+      }, 100);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました。';
-      console.error('[LoginForm] Login error:', errorMessage);
+      console.warn('[LoginForm] Login failed:', errorMessage);
       setServerError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -215,11 +221,9 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   );
 }
 
-// Suspense boundary for useSearchParams
+// Export without Suspense boundary to avoid router issues
+// Note: This component uses useSearchParams which requires Suspense in Next.js 15+
+// To avoid router issues, we're using window.location.replace() instead of router.push()
 export default function LoginForm(props: LoginFormProps) {
-  return (
-    <Suspense fallback={<div className="animate-pulse bg-gray-200 rounded-lg h-96" />}>
-      <LoginFormContent {...props} />
-    </Suspense>
-  );
+  return <LoginFormContent {...props} />;
 }

@@ -139,9 +139,10 @@ export function MobilePostProcessingSelector({
     if (state.postProcessingOptions.includes(option.id)) {
       removePostProcessingOption(option.id)
     } else if (canAddPostProcessingOption()) {
-      addPostProcessingOption(option.id)
+      // Pass full config and current options for proper category exclusion validation
+      addPostProcessingOption(option.id, processingOptionsConfig, state.postProcessingOptions)
     }
-  }, [state.postProcessingOptions, canAddPostProcessingOption, addPostProcessingOption, removePostProcessingOption])
+  }, [state.postProcessingOptions, canAddPostProcessingOption, addPostProcessingOption, removePostProcessingOption, processingOptionsConfig])
 
   // Calculate processing impact
   const processingImpact = useMemo(() => {

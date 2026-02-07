@@ -41,39 +41,17 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Get authenticated user from session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    let userId: string;
-
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Dashboard API] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
-    } else {
-      // Normal auth: Use cookie-based auth
-      // Try to get user from middleware header first (more reliable)
-      const userIdFromMiddleware = request.headers.get('x-user-id');
-      const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
-
-      if (userIdFromMiddleware && isFromMiddleware) {
-        userId = userIdFromMiddleware;
-        console.log('[Dashboard API] Using user ID from middleware:', userId);
-      } else {
-        // Fallback to SSR client auth
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-          return NextResponse.json(
-            { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
-            { status: 401 }
-          );
-        }
-        userId = user.id;
-        console.log('[Dashboard API] Authenticated user:', userId);
-      }
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
     }
+
+    const userId = user.id;
 
     // Get customer profile
     const { data: profile } = await supabase

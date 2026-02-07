@@ -54,7 +54,6 @@ export interface FeatureSpecifications {
 export interface QuotePatternSpecification {
     id?: string
     patternName?: string
-    designName?: string
     skuCount: number
     quantity: number
     bag: BagSpecifications

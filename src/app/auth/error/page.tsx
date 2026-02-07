@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default async function AuthErrorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; message?: string }>;
 }) {
   // Next.js 16: searchParams is now a Promise
   const params = await searchParams;
@@ -25,7 +25,8 @@ export default async function AuthErrorPage({
   const errorMessages: Record<string, string> = {
     AccessDenied: 'このページにアクセスする権限がありません。',
     Configuration: 'サーバー設定エラーが発生しました。',
-    Default: '認証エラーが発生しました。',
+    verification_failed: params.message || 'メール認証に失敗しました。トークンの有効期限が切れているか、無効です。',
+    Default: params.message || '認証エラーが発生しました。',
   };
 
   const error = params.error || 'Default';

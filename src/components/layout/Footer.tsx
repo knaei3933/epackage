@@ -19,7 +19,6 @@ import {
   Users,
   FileText
 } from 'lucide-react'
-import { useTranslation } from '@/contexts/LanguageContext'
 import { cn } from '@/lib/utils'
 import { Container } from '@/components/ui/Container'
 import { Button } from '@/components/ui/Button'
@@ -45,7 +44,6 @@ export function Footer() {
   const [isSubscribing, setIsSubscribing] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const { tn } = useTranslation()
 
   // Enhanced social links with colors
   const socialLinks: SocialLink[] = [
@@ -237,15 +235,18 @@ export function Footer() {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-300">
                     <Mail className="h-4 w-4 text-brixa-500" />
-                    <span className="text-sm">info@epackage-lab.com</span>
+                    <span className="text-sm">info@package-lab.com</span>
                   </div>
                   <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-300">
                     <Phone className="h-4 w-4 text-brixa-500" />
-                    <span className="text-sm">+81-80-6942-7235</span>
+                    <span className="text-sm">050-1793-6500</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-300">
-                    <MapPin className="h-4 w-4 text-brixa-500" />
-                    <span className="text-sm">兵庫県明石市上ノ丸2-11-21-102</span>
+                  <div className="flex items-start space-x-3 text-slate-600 dark:text-slate-300">
+                    <MapPin className="h-4 w-4 text-brixa-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <div>本社：兵庫県明石市上ノ丸2-11-21</div>
+                      <div className="text-xs mt-1">ロジスティクス：兵庫県加古郡稲美町六分一486</div>
+                    </div>
                   </div>
                 </div>
 

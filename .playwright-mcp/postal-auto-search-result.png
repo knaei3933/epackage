@@ -1,0 +1,344 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "製品カタログ" [ref=e12] [cursor=pointer]:
+          - /url: /catalog
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19] [cursor=pointer]:
+          - /url: /archives
+        - button "お見積り" [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - generic [ref=e314]:
+          - link "ログイン - 会員認証ページへ移動" [ref=e315] [cursor=pointer]:
+            - /url: /auth/signin
+            - button "ログイン" [ref=e316]:
+              - generic [ref=e317]: ログイン
+          - link "会員登録" [ref=e318] [cursor=pointer]:
+            - /url: /auth/register
+            - button "会員登録" [ref=e319]:
+              - generic [ref=e320]: 会員登録
+        - link "お問い合わせ" [ref=e24] [cursor=pointer]:
+          - /url: /contact
+          - button "お問い合わせ" [ref=e25]:
+            - generic [ref=e26]: お問い合わせ
+  - navigation "Breadcrumb" [ref=e27]:
+    - link "ホーム" [ref=e29] [cursor=pointer]:
+      - /url: /
+      - img [ref=e30]
+      - generic [ref=e33]: ホーム
+    - generic [ref=e34]:
+      - generic [ref=e35]: /
+      - link "Auth" [ref=e36] [cursor=pointer]:
+        - /url: /auth
+        - generic [ref=e37]: Auth
+    - generic [ref=e38]:
+      - generic [ref=e39]: /
+      - generic [ref=e40]: Register
+  - main [ref=e41]:
+    - main [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - link "Epackage Lab" [ref=e45] [cursor=pointer]:
+            - /url: /
+            - heading "Epackage Lab" [level=1] [ref=e46]
+          - heading "会員登録" [level=2] [ref=e47]
+          - paragraph [ref=e48]: 18項目の会員情報を入力してください。
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - heading "認証情報" [level=2] [ref=e52]
+            - generic [ref=e53]:
+              - generic [ref=e54]: メールアドレス*
+              - textbox "メールアドレスrequired" [ref=e56]:
+                - /placeholder: example@company.com
+                - text: test.feb.2026@gmail.com
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - generic [ref=e59]: パスワード*
+                - generic [ref=e60]:
+                  - textbox "パスワードrequired" [ref=e61]:
+                    - /placeholder: ••••••••
+                    - text: Test1234!
+                  - button "👁️‍🗨️" [ref=e63] [cursor=pointer]
+              - generic [ref=e64]:
+                - generic [ref=e65]: パスワード確認*
+                - generic [ref=e66]:
+                  - textbox "パスワード確認required" [ref=e67]:
+                    - /placeholder: ••••••••
+                    - text: Test1234!
+                  - button "👁️‍🗨️" [ref=e69] [cursor=pointer]
+          - generic [ref=e70]:
+            - heading "氏名" [level=2] [ref=e71]
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - generic [ref=e74]: 氏名
+                - generic "required" [ref=e75]: "*"
+              - generic [ref=e76]:
+                - generic [ref=e77]:
+                  - generic [ref=e78]: 漢字
+                  - generic [ref=e79]: （例：山田 太郎）
+                - generic [ref=e80]:
+                  - generic [ref=e81]:
+                    - generic [ref=e82]: 姓
+                    - generic [ref=e83]:
+                      - textbox "山田" [ref=e85]: テスト
+                      - paragraph [ref=e87]: 漢字で入力してください
+                  - generic [ref=e88]:
+                    - generic [ref=e89]: 名
+                    - generic [ref=e90]:
+                      - textbox "太郎" [ref=e92]: ユーザー
+                      - paragraph [ref=e94]: 漢字で入力してください
+              - generic [ref=e95]:
+                - generic [ref=e96]:
+                  - generic [ref=e97]: ひらがな
+                  - generic [ref=e98]: （例：やまだ たろう）
+                - generic [ref=e99]:
+                  - generic [ref=e100]:
+                    - generic [ref=e101]: 姓
+                    - generic [ref=e102]:
+                      - textbox "やまだ" [ref=e104]: てすと
+                      - paragraph [ref=e106]: 全角ひらがなで入力してください（読み仮名）
+                  - generic [ref=e107]:
+                    - generic [ref=e108]: 名
+                    - generic [ref=e109]:
+                      - textbox "たろう" [ref=e111]: ゆーざー
+                      - paragraph [ref=e113]: 全角ひらがなで入力してください（読み仮名）
+          - generic [ref=e114]:
+            - heading "連絡先" [level=2] [ref=e115]
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e118]: 会社電話番号
+                - textbox "会社電話番号" [ref=e120]:
+                  - /placeholder: 03-1234-5678
+                  - text: 03-1234-5678
+              - generic [ref=e121]:
+                - generic [ref=e122]: 携帯電話
+                - textbox "携帯電話" [ref=e124]:
+                  - /placeholder: 090-1234-5678
+                  - text: 090-1234-5678
+          - generic [ref=e125]:
+            - heading "事業形態" [level=2] [ref=e126]
+            - generic [ref=e127]:
+              - generic [ref=e128] [cursor=pointer]:
+                - radio "個人" [checked] [ref=e129]
+                - generic [ref=e130]: 個人
+              - generic [ref=e131] [cursor=pointer]:
+                - radio "法人" [ref=e132]
+                - generic [ref=e133]: 法人
+          - generic [ref=e134]:
+            - heading "住所" [level=2] [ref=e135]
+            - generic [ref=e136]:
+              - generic [ref=e138]:
+                - generic [ref=e139]: 郵便番号
+                - textbox "郵便番号" [active] [ref=e141]:
+                  - /placeholder: 123-4567
+                  - text: "1000001"
+              - generic [ref=e142]:
+                - generic [ref=e143]:
+                  - generic [ref=e144]: 都道府県 *
+                  - combobox [ref=e145]:
+                    - option "選択"
+                    - option "北海道"
+                    - option "青森県"
+                    - option "岩手県"
+                    - option "宮城県"
+                    - option "秋田県"
+                    - option "山形県"
+                    - option "福島県"
+                    - option "茨城県"
+                    - option "栃木県"
+                    - option "群馬県"
+                    - option "埼玉県"
+                    - option "千葉県"
+                    - option "東京都" [selected]
+                    - option "神奈川県"
+                    - option "新潟県"
+                    - option "富山県"
+                    - option "石川県"
+                    - option "福井県"
+                    - option "山梨県"
+                    - option "長野県"
+                    - option "岐阜県"
+                    - option "静岡県"
+                    - option "愛知県"
+                    - option "三重県"
+                    - option "滋賀県"
+                    - option "京都府"
+                    - option "大阪府"
+                    - option "兵庫県"
+                    - option "奈良県"
+                    - option "和歌山県"
+                    - option "鳥取県"
+                    - option "島根県"
+                    - option "岡山県"
+                    - option "広島県"
+                    - option "山口県"
+                    - option "徳島県"
+                    - option "香川県"
+                    - option "愛媛県"
+                    - option "高知県"
+                    - option "福岡県"
+                    - option "佐賀県"
+                    - option "長崎県"
+                    - option "熊本県"
+                    - option "大分県"
+                    - option "宮崎県"
+                    - option "鹿児島県"
+                    - option "沖縄県"
+                - generic [ref=e147]:
+                  - generic [ref=e148]: 市区町村**
+                  - textbox "市区町村*required" [ref=e150]:
+                    - /placeholder: 加古郡稲美町六分一
+                    - text: 千代田区千代田
+                - generic [ref=e152]:
+                  - generic [ref=e153]: 番地
+                  - textbox "番地" [ref=e155]:
+                    - /placeholder: 1-2-3
+          - generic [ref=e156]:
+            - heading "商品種別" [level=2] [ref=e157]
+            - combobox [ref=e158]:
+              - option "化粧品"
+              - option "衣類"
+              - option "家電製品"
+              - option "台所用品"
+              - option "家具"
+              - option "その他" [selected]
+          - generic [ref=e159]:
+            - heading "知ったきっかけ" [level=2] [ref=e160]
+            - combobox [ref=e161]:
+              - option "選択" [selected]
+              - option "検索エンジン"
+              - option "SNS"
+              - option "紹介"
+              - option "展示会"
+              - option "広告"
+              - option "その他"
+          - generic [ref=e163] [cursor=pointer]:
+            - checkbox "プライバシーポリシーに同意します。" [ref=e164]
+            - generic [ref=e165]:
+              - link "プライバシーポリシー" [ref=e166]:
+                - /url: /privacy
+              - text: に同意します。
+          - generic [ref=e167]:
+            - button "会員登録" [ref=e168] [cursor=pointer]:
+              - generic [ref=e169]: 会員登録
+            - button "キャンセル" [ref=e170] [cursor=pointer]:
+              - generic [ref=e171]: キャンセル
+        - paragraph [ref=e173]:
+          - text: すでにアカウントをお持ちですか？
+          - link "ログイン" [ref=e174] [cursor=pointer]:
+            - /url: /auth/signin
+        - generic [ref=e175]:
+          - link "利用規約" [ref=e176] [cursor=pointer]:
+            - /url: /terms
+          - text: "|"
+          - link "プライバシーポリシー" [ref=e177] [cursor=pointer]:
+            - /url: /privacy
+  - button "ページ上部に移動" [ref=e322] [cursor=pointer]:
+    - img [ref=e323]
+  - contentinfo [ref=e178]:
+    - generic [ref=e181]:
+      - generic [ref=e182]:
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e185] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e187]
+              - generic [ref=e188]: Epackage Lab
+            - paragraph [ref=e189]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e190]:
+              - generic [ref=e191]:
+                - img [ref=e192]
+                - generic [ref=e195]: info@package-lab.com
+              - generic [ref=e196]:
+                - img [ref=e197]
+                - generic [ref=e199]: 050-1793-6500
+              - generic [ref=e200]:
+                - img [ref=e201]
+                - generic [ref=e204]:
+                  - generic [ref=e205]: 本社：兵庫県明石市上ノ丸2-11-21
+                  - generic [ref=e206]: ロジスティクス：兵庫県加古郡稲美町六分一486
+          - generic [ref=e207]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e208]
+            - generic [ref=e209]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e210] [cursor=pointer]:
+                - /url: /privacy
+                - generic [ref=e211]:
+                  - img [ref=e213]
+                  - generic [ref=e215]:
+                    - heading "個人情報保護方針" [level=4] [ref=e216]
+                    - paragraph [ref=e217]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e218] [cursor=pointer]:
+                - /url: /terms
+                - generic [ref=e219]:
+                  - img [ref=e221]
+                  - generic [ref=e224]:
+                    - heading "利用規約" [level=4] [ref=e225]
+                    - paragraph [ref=e226]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e227] [cursor=pointer]:
+                - /url: /legal
+                - generic [ref=e228]:
+                  - img [ref=e230]
+                  - generic [ref=e235]:
+                    - heading "特定商取引法" [level=4] [ref=e236]
+                    - paragraph [ref=e237]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e238] [cursor=pointer]:
+                - /url: /csr
+                - generic [ref=e239]:
+                  - img [ref=e241]
+                  - generic [ref=e243]:
+                    - heading "社会的責任" [level=4] [ref=e244]
+                    - paragraph [ref=e245]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - img [ref=e250]
+              - heading "最新情報をお届け" [level=3] [ref=e252]
+              - paragraph [ref=e253]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e254]:
+              - generic [ref=e256]:
+                - img [ref=e258]
+                - textbox "メールアドレスを入力" [ref=e261]
+              - button "購読する" [ref=e262] [cursor=pointer]:
+                - generic [ref=e263]:
+                  - img [ref=e264]
+                  - text: 購読する
+        - generic [ref=e267]:
+          - generic [ref=e268]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e269]
+            - paragraph [ref=e270]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e271]:
+            - link "Facebookでフォローする" [ref=e272] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e273]
+            - link "Twitterでフォローする" [ref=e276] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e277]
+            - link "LinkedInでフォローする" [ref=e280] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e281]
+            - link "Instagramでフォローする" [ref=e286] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e287]
+            - link "YouTubeでフォローする" [ref=e291] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e292]
+      - generic [ref=e298]:
+        - paragraph [ref=e300]: © 2026 Epackage Lab. 全著作権所有.
+        - generic [ref=e301]:
+          - link "個人情報保護方針" [ref=e302] [cursor=pointer]:
+            - /url: /privacy
+          - link "利用規約" [ref=e303] [cursor=pointer]:
+            - /url: /terms
+          - link "サイトマップ" [ref=e304] [cursor=pointer]:
+            - /url: /sitemap
+  - button "Open Next.js Dev Tools" [ref=e310] [cursor=pointer]:
+    - img [ref=e311]
+  - alert [ref=e321]

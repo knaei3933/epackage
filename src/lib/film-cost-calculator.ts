@@ -87,8 +87,11 @@ export interface FilmCostCalculationParams {
   // 배송비 계산용 무게 (실제 납품량 기준)
   deliveryWeight?: number; // kg (지정 시 실제 납품량 기준 배송비 계산)
 
+  // 후가공 옵션 (표면처리 비용 계산용)
+  postProcessingOptions?: string[]; // ['glossy', 'matte', ...]
+
   // 고객별 마크업 (선택적 - 최종 가격 계산 시에만 사용)
-  markupRate?: number; // 기본값 0.5 = 50%
+  markupRate?: number; // 기본값 0.2 = 20%
 }
 
 export interface FilmCostResult {
@@ -97,7 +100,8 @@ export interface FilmCostResult {
   printingCost: number; // 인쇄비
   laminationCost: number; // 라미네이트비
   slitterCost: number; // 슬리터비
-  totalCostKRW: number; // 총 원가 (원화: 재료+인쇄+라미+슬리터)
+  surfaceTreatmentCost: number; // 표면처리비 (glossy 등)
+  totalCostKRW: number; // 총 원가 (원화: 재료+인쇄+라미+슬리터+표면처리)
   deliveryCostKRW: number; // 배송비 (원화)
 
   // 엔화 환산
@@ -133,6 +137,10 @@ export interface FilmCostResult {
     slitter: {
       calculated: number;
       final: number;
+    };
+    surfaceTreatment: {
+      type: 'glossy' | 'matte' | 'none';
+      cost: number;
     };
   };
 }
@@ -181,6 +189,23 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     thickness: 7,
     density: 1.40,
     unitPrice: 3600
+  },
+  // KP_PE 재질용 추가
+  'KP': {
+    id: 'KP',
+    name: 'KP (Coated PP)',
+    nameJa: 'KP (コーティングPP)',
+    thickness: 12,
+    density: 0.91,
+    unitPrice: 2600
+  },
+  'PE': {
+    id: 'PE',
+    name: 'PE (Polyethylene)',
+    nameJa: 'PE (ポリエチレン)',
+    thickness: 60,
+    density: 0.92,
+    unitPrice: 2800
   }
 };
 
@@ -191,7 +216,11 @@ const KG_PER_ROLL = 30; // 1롤 = 30kg
 
 // 인쇄 단가 (원/m²)
 const PRINTING_COST_PER_M2 = 475;
-const MATTE_PRINTING_COST_PER_M = 20; // 원/m
+const MATTE_PRINTING_COST_PER_M = 40; // 원/m
+
+// 표면처리 추가비 (원/m)
+const MATTE_SURFACE_COST_PER_M = 40; // 매트 코팅 추가비 (원/m) - 실제 사용 값
+// 주의: 광택(glossy)은 추가 비용 없음
 
 // 라미네이트 단가 (원/m²)
 const LAMINATION_COST_PER_M2 = 75;
@@ -255,11 +284,14 @@ export class FilmCostCalculator {
       layers,
       width,
       length,
-      lossRate = dbSettings?.production_default_loss_rate ?? 0.4,
+      lossRate,
       hasPrinting = true,
       printingType = 'basic',
       materialWidth = 740
     } = params;
+
+    // params.lossRate를 우선 적용 (SKU 모드에서 이미 로스가 포함된 경우 0을 전달)
+    const effectiveLossRate = lossRate ?? dbSettings?.production_default_loss_rate ?? 0.4;
 
     // DB 설정값 또는 기본값
     const exchangeRate = dbSettings?.exchange_rate_krw_to_jpy ?? EXCHANGE_RATE;
@@ -267,8 +299,12 @@ export class FilmCostCalculator {
     const deliveryCostPerRoll = dbSettings?.delivery_cost_per_roll ?? DELIVERY_COST_PER_ROLL;
     const kgPerRoll = dbSettings?.delivery_kg_per_roll ?? KG_PER_ROLL;
 
-    // 로스 포함 미터수 계산
-    const lengthWithLoss = length * (1 + lossRate);
+    // DEBUG: 로스율 관련 로그 출력
+    console.log('[FilmCostCalculator DEBUG] lossRate:', lossRate, 'effectiveLossRate:', effectiveLossRate, 'length:', length);
+    console.log('[FilmCostCalculator DEBUG] lengthWithLoss calculation:', length, '*', '(1 +', effectiveLossRate, ') =', length * (1 + effectiveLossRate));
+
+    // 로스 포함 미터수 계산 (effectiveLossRate 사용)
+    const lengthWithLoss = length * (1 + effectiveLossRate);
 
     // 폭을 미터로 변환
     const widthM = materialWidth / 1000;
@@ -313,13 +349,23 @@ export class FilmCostCalculator {
     );
 
     // ========================================
+    // 4.5. 표면처리비 계산 (glossy 등)
+    // ========================================
+    const surfaceTreatmentBreakdown = this.calculateSurfaceTreatmentCost(
+      widthM,
+      lengthWithLoss,
+      params.postProcessingOptions
+    );
+
+    // ========================================
     // 5. 총 원가 계산 (원화)
     // ========================================
     const totalCostKRW =
       materialBreakdown.totalCost +
       printingBreakdown.total +
       laminationBreakdown.cost +
-      slitterBreakdown.final;
+      slitterBreakdown.final +
+      surfaceTreatmentBreakdown.cost;
 
     // ========================================
     // 6. 엔화 환산
@@ -373,6 +419,7 @@ export class FilmCostCalculator {
       printingCost: printingBreakdown.total,
       laminationCost: laminationBreakdown.cost,
       slitterCost: slitterBreakdown.final,
+      surfaceTreatmentCost: surfaceTreatmentBreakdown.cost,
       totalCostKRW,
       deliveryCostKRW,
       costJPY,
@@ -386,7 +433,8 @@ export class FilmCostCalculator {
         materials: materialBreakdown.materials,
         printing: printingBreakdown,
         lamination: laminationBreakdown,
-        slitter: slitterBreakdown
+        slitter: slitterBreakdown,
+        surfaceTreatment: surfaceTreatmentBreakdown
       }
     };
   }
@@ -437,8 +485,21 @@ export class FilmCostCalculator {
         unitPrice: dbSettings?.VMPET_unit_price ?? FILM_MATERIALS.VMPET.unitPrice,
         density: dbSettings?.VMPET_density ?? FILM_MATERIALS.VMPET.density,
         nameJa: FILM_MATERIALS.VMPET.nameJa
+      },
+      // KP_PE 재질용 추가
+      'KP': {
+        unitPrice: FILM_MATERIALS.KP.unitPrice,
+        density: FILM_MATERIALS.KP.density,
+        nameJa: FILM_MATERIALS.KP.nameJa
+      },
+      'PE': {
+        unitPrice: FILM_MATERIALS.PE.unitPrice,
+        density: FILM_MATERIALS.PE.density,
+        nameJa: FILM_MATERIALS.PE.nameJa
       }
     };
+
+    console.log('[calculateMaterialCost] INPUT:', { layers, widthM, lengthWithLoss });
 
     for (const layer of layers) {
       const material = filmMaterials[layer.materialId];
@@ -453,6 +514,18 @@ export class FilmCostCalculator {
       // 중량 계산 (kg)
       const weight = thicknessMm * widthM * lengthWithLoss * material.density;
 
+      console.log('[calculateMaterialCost] LAYER:', {
+        materialId: layer.materialId,
+        thickness: layer.thickness,
+        thicknessMm,
+        widthM,
+        lengthWithLoss,
+        density: material.density,
+        unitPrice: material.unitPrice,
+        cost,
+        weight
+      });
+
       materials.push({
         materialId: layer.materialId,
         name: material.nameJa,
@@ -463,6 +536,12 @@ export class FilmCostCalculator {
       totalCost += cost;
       totalWeight += weight;
     }
+
+    console.log('[calculateMaterialCost] RESULT:', {
+      totalCost,
+      totalWeight,
+      totalCostRounded: Math.round(totalCost)
+    });
 
     return {
       materials,
@@ -475,8 +554,8 @@ export class FilmCostCalculator {
    * 인쇄비 계산 (DB 설정값 사용)
    *
    * 매트 인쇄 추가비 계산 (요구사항):
-   * - 매트 인쇄 추가비(원) = 필름 폭(m) × 20원/m × 사용 미터수
-   * - 예: 590mm 폭 필름 500m 사용 = 0.59 × 20 × 500 = 5,900원
+   * - 매트 인쇄 추가비(원) = 필름 폭(m) × 40원/m × 사용 미터수
+   * - 예: 590mm 폭 필름 500m 사용 = 0.59 × 40 × 500 = 11,800원
    */
   private calculatePrintingCost(
     widthM: number,
@@ -495,16 +574,15 @@ export class FilmCostCalculator {
 
     // DB 설정값 또는 기본값
     const printingCostPerM2 = dbSettings?.printing_cost_per_m2 ?? PRINTING_COST_PER_M2;
-    const matteCostPerM = dbSettings?.matte_cost_per_m ?? MATTE_PRINTING_COST_PER_M;
 
     // 기본 인쇄비 = 1m × 미터수 × 인쇄 단가 (ガイド準拠: 1m固定)
     // docs/reports/tjfrP/계산가이드 기준: "항상 1m 폭으로 계산"
     const basic = 1 * lengthWithLoss * printingCostPerM2;
 
-    // 매트 인쇄 추가비 = 필름 폭(m) × 20원/m × 사용 미터수
-    // 요구사항: 매트 인쇄는 필름 폭에 비례하여 비용이 발생
+    // 매트 인쇄 추가비 계산 (요구사항 수정)
+    // 매트 인쇄 추가비(원) = 필름 폭(m) × 40원/m × 사용 미터수
     const matte = printingType === 'matte'
-      ? widthM * matteCostPerM * lengthWithLoss  // 폭(m) × 20원/m × 미터수
+      ? widthM * MATTE_PRINTING_COST_PER_M * lengthWithLoss  // 필름 폭(m) × 40원/m × 사용 미터수
       : 0;
 
     return {
@@ -561,6 +639,65 @@ export class FilmCostCalculator {
   }
 
   /**
+   * 표면처리비 계산 (glossy/matte 코팅 비용)
+   *
+   * 요구사항 (사용자 피드백 기반):
+   * - glossy/matte는 가격乘数(1.06, 1.04)가 아닌 추가 비용으로 계산
+   * - 표면처리비(원) = 필름 폭(m) × 단가(원/m) × 사용 미터수
+   *
+   * 예: 매트 인쇄 추가비 = 필름 폭(m) × 40원/m × 사용 미터수
+   * 예: 광택(glossy) 코팅 = 필름 폭(m) × 35원/m × 사용 미터수
+   */
+  private calculateSurfaceTreatmentCost(
+    widthM: number,
+    lengthWithLoss: number,
+    postProcessingOptions: string[] = []
+  ): {
+    type: 'glossy' | 'matte' | 'none';
+    cost: number;
+  } {
+    // デバッグログ: postProcessingOptionsの値を確認
+    console.log('[calculateSurfaceTreatmentCost] DEBUG:', {
+      widthM,
+      lengthWithLoss,
+      postProcessingOptions,
+      hasGlossy: postProcessingOptions.includes('glossy'),
+      hasMatte: postProcessingOptions.includes('matte')
+    });
+
+    // 후가공 옵션에서 표면처리 타입 확인
+    const hasGlossy = postProcessingOptions.includes('glossy');
+    const hasMatte = postProcessingOptions.includes('matte');
+
+    if (!hasGlossy && !hasMatte) {
+      console.log('[calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0');
+      return { type: 'none', cost: 0 };
+    }
+
+    // 표면처리 비용 계산: 필름 폭(m) × 단가(원/m) × 사용 미터수
+    // 주의: 광택(glossy)은 추가 비용 없음
+    // 매트(matte)만 코팅 추가비 적용
+    if (hasGlossy) {
+      console.log('[calculateSurfaceTreatmentCost] Glossy treatment - no additional cost');
+      return { type: 'glossy', cost: 0 };
+    }
+
+    if (hasMatte) {
+      const cost = widthM * MATTE_SURFACE_COST_PER_M * lengthWithLoss;
+      console.log('[calculateSurfaceTreatmentCost] Matte treatment cost calculated:', {
+        widthM,
+        MATTE_SURFACE_COST_PER_M,
+        lengthWithLoss,
+        cost,
+        roundedCost: Math.round(cost)
+      });
+      return { type: 'matte', cost: Math.round(cost) };
+    }
+
+    return { type: 'none', cost: 0 };
+  }
+
+  /**
    * 캐시 키 생성
    */
   private generateCacheKey(params: FilmCostCalculationParams): string {
@@ -568,35 +705,49 @@ export class FilmCostCalculator {
   }
 
   /**
-   * 파우치 가공비 계산 (미터당)
-   * 3방파우치, 스탠드파우치, 박스형파우치: 일단 400,000원 고정
+   * 파우치 가공비 계산 (고정비용 방식)
+   *
+   * [평방(3방) / 스탠드 후가공비]
+   * - 평방(3방): 200,000원 → 지퍼 있으면 250,000원 (+50,000원)
+   * - 스탠드: 250,000원 → 지퍼 있으면 280,000원 (+30,000원)
+   * - 박스형: 400,000원 (지퍼 미지원)
+   * - 기타: 300,000원
    *
    * @param quantity 파우치 수량
    * @param pouchType 파우치 타입
+   * @param hasZipper 지퍼 유무
    * @returns 파우치 가공비 (엔)
    */
   static calculatePouchProcessingCost(
     quantity: number,
-    pouchType: 'flat_3_side' | 'stand_up' | 'box' | 'other'
+    pouchType: 'flat_3_side' | 'stand_up' | 'box' | 'other',
+    hasZipper: boolean = false
   ): number {
-    // 파우치 가공비 (원화)
-    const POUCH_PROCESSING_COSTS = {
-      'flat_3_side': 400000, // 3방파우치
-      'stand_up': 400000, // 스탠드파우치
+    // 파우치 기본 가공비 (원화)
+    const BASE_POUCH_PROCESSING_COSTS = {
+      'flat_3_side': 200000, // 3방파우치 (평방)
+      'stand_up': 250000, // 스탠드파우치
       'box': 400000, // 박스형파우치
       'other': 300000 // 기타
     };
 
-    const costKRW = POUCH_PROCESSING_COSTS[pouchType] || POUCH_PROCESSING_COSTS['other'];
+    // 지퍼 추가 가공비 (원화)
+    const ZIPPER_ADDITIONAL_COSTS = {
+      'flat_3_side': 50000, // 평방 + 지퍼: +50,000원
+      'stand_up': 30000, // 스탠드 + 지퍼: +30,000원
+      'box': 0, // 박스형은 지퍼 미지원
+      'other': 0 // 기타
+    };
 
-    // 수량당 가공비 계산
-    const costPerUnitKRW = costKRW / quantity;
+    const baseCost = BASE_POUCH_PROCESSING_COSTS[pouchType] || BASE_POUCH_PROCESSING_COSTS['other'];
+    const zipperCost = hasZipper ? (ZIPPER_ADDITIONAL_COSTS[pouchType] || 0) : 0;
+    const totalCostKRW = baseCost + zipperCost;
 
     // 엔화 환산
-    const costPerUnitJPY = costPerUnitKRW * EXCHANGE_RATE;
+    const totalCostJPY = totalCostKRW * EXCHANGE_RATE;
 
-    // 전체 가공비
-    return costPerUnitJPY * quantity;
+    // 전체 가공비 (수량无关)
+    return totalCostJPY;
   }
 
   /**
@@ -606,7 +757,7 @@ export class FilmCostCalculator {
    * @param markupRate 마크업율 (기본값 0.5 = 50%)
    * @returns 마크업 적용 후 가격 (엔)
    */
-  static applyMarkup(baseCost: number, markupRate: number = 0.5): number {
+  static applyMarkup(baseCost: number, markupRate: number = 0.2): number {
     return baseCost * (1 + markupRate);
   }
 
@@ -617,14 +768,16 @@ export class FilmCostCalculator {
    * @param filmCost 필름 원가 결과
    * @param quantity 파우치 수량
    * @param pouchType 파우치 타입
-   * @param markupRate 마크업율 (기본값 0.5 = 50%)
+   * @param hasZipper 지퍼 유무
+   * @param markupRate 마크업율 (기본값 0.2 = 20%)
    * @returns 최종 가격 (엔)
    */
   static calculatePouchFinalPrice(
     filmCost: FilmCostResult,
     quantity: number,
     pouchType: 'flat_3_side' | 'stand_up' | 'box' | 'other',
-    markupRate: number = 0.5
+    hasZipper: boolean = false,
+    markupRate: number = 0.2
   ): {
     filmCostJPY: number;
     pouchProcessingCostJPY: number;
@@ -635,8 +788,8 @@ export class FilmCostCalculator {
     // 필름 원가 (미터당)
     const filmCostJPY = filmCost.costPerMeterJPY * quantity;
 
-    // 파우치 가공비
-    const pouchProcessingCostJPY = this.calculatePouchProcessingCost(quantity, pouchType);
+    // 파우치 가공비 (지퍼 유무 반영)
+    const pouchProcessingCostJPY = this.calculatePouchProcessingCost(quantity, pouchType, hasZipper);
 
     // 기본 원가 = 필름 원가 + 파우치 가공비
     const baseCostJPY = filmCostJPY + pouchProcessingCostJPY;

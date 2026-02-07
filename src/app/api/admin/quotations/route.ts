@@ -34,13 +34,29 @@ interface QuotationListQuery {
 }
 
 interface UpdateQuotationRequestBody {
-  status?: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  status?: 'QUOTATION_PENDING' | 'QUOTATION_APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED';
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string | null;
   notes?: string | null;
   admin_notes?: string | null;
   pdf_url?: string | null;
+}
+
+// ステータス値を正規化（10段階ワークフロー用UPPERCASE）
+function normalizeStatus(status: string): string {
+  if (!status) return 'QUOTATION_PENDING';
+  // Map legacy values to new 10-step workflow statuses
+  const legacyMap: Record<string, string> = {
+    'draft': 'QUOTATION_PENDING',
+    'sent': 'QUOTATION_PENDING',
+    'pending': 'QUOTATION_PENDING',
+    'approved': 'QUOTATION_APPROVED',
+    'rejected': 'REJECTED',
+    'expired': 'EXPIRED',
+    'converted': 'CONVERTED',
+  };
+  return legacyMap[status.toLowerCase()] || status.toUpperCase();
 }
 
 // ============================================================
@@ -69,42 +85,14 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'created_at';
     const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc';
 
-    // Build query with quotation_items
+    // Build query - simple select without quotation_items relation
     let query = supabase
       .from('quotations')
-      .select(`
-        id,
-        quotation_number,
-        status,
-        user_id,
-        customer_name,
-        customer_email,
-        customer_phone,
-        subtotal_amount,
-        tax_amount,
-        total_amount,
-        valid_until,
-        notes,
-        admin_notes,
-        pdf_url,
-        sent_at,
-        approved_at,
-        created_at,
-        updated_at,
-        quotation_items (
-          id,
-          product_id,
-          product_name,
-          quantity,
-          unit_price,
-          total_price,
-          specifications
-        )
-      `, { count: 'exact' });
+      .select('*', { count: 'exact' });
 
-    // Apply filters
+    // Apply filters - use normalized status for 10-step workflow
     if (status) {
-      query = query.eq('status', status.toUpperCase());
+      query = query.eq('status', normalizeStatus(status));
     }
     if (userId) {
       query = query.eq('user_id', userId);
@@ -173,11 +161,11 @@ export async function PATCH(request: NextRequest) {
     // Create service client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Update quotation
+    // Update quotation - use normalized status for 10-step workflow
     const { data: quotation, error } = await supabase
       .from('quotations')
       .update({
-        ...(body.status && { status: body.status }),
+        ...(body.status && { status: normalizeStatus(body.status) }),
         ...(body.customer_name && { customer_name: body.customer_name }),
         ...(body.customer_email && { customer_email: body.customer_email }),
         ...(body.customer_phone !== undefined && { customer_phone: body.customer_phone }),

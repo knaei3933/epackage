@@ -103,12 +103,14 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('PDF generation error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
 
     return NextResponse.json(
       {
         success: false,
         error: 'PDF生成エラー',
         details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
       } as PdfResponseBody,
       { status: 500 }
     );
@@ -201,9 +203,9 @@ export async function GET(request: NextRequest) {
               subBrand: 'by kanei-trade',
               companyName: '金井貿易株式会社',
               postalCode: '〒673-0846',
-              address: '兵庫県明石市上ノ丸2-11-21-102',
-              phone: 'TEL: 080-6942-7235',
-              email: 'info@epackage-lab.com',
+              address: '兵庫県明石市上ノ丸2-11-21',
+              phone: 'TEL: 050-1793-6500',
+              email: 'info@package-lab.com',
               description: 'オーダーメイドバッグ印刷専門',
             },
             paymentTerms: {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase-browser';
 import { Card, Badge, Button } from '@/components/ui';
 import { EntryRecordingButton } from '@/components/admin';
 
@@ -417,6 +417,7 @@ function InventoryAdjustmentModal({
               </label>
               <input
                 type="number"
+                data-testid="adjustment-quantity-input"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -432,6 +433,7 @@ function InventoryAdjustmentModal({
                 理由
               </label>
               <textarea
+                data-testid="adjustment-reason-textarea"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}

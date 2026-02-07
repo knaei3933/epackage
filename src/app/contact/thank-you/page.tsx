@@ -64,21 +64,21 @@ export default function ContactThankYouPage() {
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">メールでのお問い合わせ</h4>
                   <a
-                    href="mailto:info@epackage-lab.com"
+                    href="mailto:info@package-lab.com"
                     className="text-navy-700 hover:text-navy-600 flex items-center"
                   >
                     <Mail className="w-4 h-4 mr-2" />
-                    info@epackage-lab.com
+                    info@package-lab.com
                   </a>
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">お電話でのお問い合わせ</h4>
                   <a
-                    href="tel:03-1234-5678"
+                    href="tel:050-1793-6500"
                     className="text-navy-700 hover:text-navy-600 flex items-center"
                   >
                     <Phone className="w-4 h-4 mr-2" />
-                    03-1234-5678
+                    050-1793-6500
                   </a>
                 </div>
               </div>

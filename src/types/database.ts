@@ -72,6 +72,59 @@ export interface DeliveryDestination {
     isPrimary: boolean
 }
 
+// Product Content Types
+export interface ProductFAQ {
+    question_ja: string
+    question_en: string
+    answer_ja: string
+    answer_en: string
+    category?: string
+}
+
+export interface ProductDownload {
+    title_ja: string
+    title_en: string
+    url: string
+    type: 'catalog' | 'spec_sheet' | 'technical_guide'
+    size?: string
+}
+
+export interface ProductCertification {
+    name: string
+    issuer: string
+    image_url?: string
+    description?: string
+}
+
+export interface ProductTechnicalDiagram {
+    title: string
+    url: string
+    description?: string
+}
+
+export interface ProductReview {
+    id: string
+    client_name: string
+    rating: number
+    comment: string
+    date: string
+    industry?: string
+}
+
+export interface ProductCustomizationOption {
+    name: string
+    options: string[]
+    default?: string
+}
+
+export interface ProductPackagingInfo {
+    packaging_type: string
+    pallet_quantity?: number
+    carton_quantity?: number
+    dimensions?: string
+    weight?: string
+}
+
 export interface Product {
     id: string
     category: 'flat_3_side' | 'stand_up' | 'gusset' | 'box' | 'flat_with_zip' | 'special' | 'soft_pouch' | 'spout_pouch' | 'roll_film'
@@ -94,6 +147,16 @@ export interface Product {
     tags?: string[]
     applications?: string[]
     features?: string[]
+    // Phase 1: 基本拡張
+    faq?: ProductFAQ[]
+    downloads?: ProductDownload[]
+    related_case_studies?: string[] // Archive IDs
+    certifications?: ProductCertification[]
+    // Phase 2: 信頼性構築
+    technical_diagrams?: ProductTechnicalDiagram[]
+    reviews?: ProductReview[]
+    customization_options?: ProductCustomizationOption[]
+    packaging_info?: ProductPackagingInfo
 }
 
 export interface Quote {
@@ -170,7 +233,7 @@ export interface Quotation {
   user_id: string
   company_id: string | null
   quotation_number: string
-  status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
+  quotation_status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
   customer_name: string
   customer_email: string
   customer_phone: string | null
@@ -386,7 +449,7 @@ export type Database = {
                     user_id: string  // FK to profiles
                     company_id: string | null  // FK to companies
                     quotation_number: string  // QT-YYYY-NNNN format
-                    status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
+                    quotation_status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
                     customer_name: string  // Customer name snapshot
                     customer_email: string  // Customer email snapshot
                     customer_phone: string | null  // Customer phone snapshot

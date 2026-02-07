@@ -30,8 +30,8 @@ export interface SupplierInfo {
   description?: string         // オーダーメイドバッグ印刷専門
   companyName: string          // 金井貿易株式会社
   postalCode: string           // 〒673-0846
-  address: string              // 兵庫県明石市上ノ丸2-11-21-102
-  phone: string                // TEL: 080-6942-7235
+  address: string              // 兵庫県明石市上ノ丸2-11-21
+  phone: string                // TEL: 050-1793-6500
   email?: string               // 連絡先メール
 }
 
@@ -48,23 +48,38 @@ export interface PaymentTerms {
 }
 
 /**
- * Product specifications (13 items)
+ * Product specifications (13 items + surface treatment)
  */
 export interface ProductSpecifications {
   specNumber: string           // 仕様番号: L
-  pouchType: string            // 袋タイプ: スタンドパウチ
-  pouchTypeEn?: string         // Stand Pouch
+  pouchType: string            // 袋タイプ: スタンドパウチ / ロールフィルム
+  pouchTypeEn?: string         // Stand Pouch / Roll Film
+  productType?: string         // 製品タイプ: stand_pouch, roll_film, flat_pouch, etc.
   contents: string             // 内容物: 粉体
-  size: string                 // サイズ: 130×130×60 (mm)
+  size: string                 // サイズ: 130×130×60 (mm) / 幅: 356mm、ピッチ: 86mm (roll film)
   material: string             // 素材: PET12μ+AL7μ+PET12μ+LLDPE60
-  sealWidth: string            // シール幅: 5mm
-  fillDirection: string        // 封入方向: 上
-  notchShape: string           // ノッチ形状: V
-  notchPosition: string        // ノッチ位置: 指定位置
-  hangingHole: boolean         // 吊り下げ加工: なし
-  hangingPosition: string      // 吊り下げ位置: 指定位置
-  ziplockPosition: string      // チャック位置: 指定位置
-  cornerRadius: string         // 角加工: R5
+  surfaceFinish?: string       // 表面処理: 光沢仕上げ / マット仕上げ
+
+  // Pouch-only fields
+  sealWidth: string            // シール幅: 5mm (pouch only)
+  fillDirection: string        // 封入方向: 上 (pouch only)
+  notchShape: string           // ノッチ形状: V (pouch only)
+  notchPosition: string        // ノッチ位置: 指定位置 (pouch only)
+  hanging?: string             // 吊り下げ加工: あり/なし (pouch only, PDF用)
+  hangingHole: boolean         // 吊り下げ加工: なし (pouch only, OptionalProcessing用)
+  hangingPosition: string      // 吊り下げ位置: 指定位置/6mm/8mm (pouch only)
+  ziplockPosition: string      // チャック位置: 指定位置 (pouch only)
+  cornerRadius: string         // 角加工: R5 (pouch only)
+
+  // Roll film-only fields (ロールフィルム専用フィールド)
+  materialWidth?: number       // 原反幅/実幅: 356 (mm)
+  totalLength?: number         // 総長さ: 2000 (m)
+  rollCount?: number           // ロール数: 2
+  pitch?: number               // ピッチ: 86 (mm) - デザインの繰り返し周期
+  filmLayers?: Array<{         // フィルム構造
+    materialId: string
+    thickness: number
+  }>
 }
 
 /**
@@ -157,6 +172,9 @@ export interface QuotationData {
 
   // Optional processing
   options: OptionalProcessing
+
+  // Raw postProcessingOptions for detailed display
+  rawPostProcessingOptions?: string[]
 
   // Watermark
   watermark?: WatermarkInfo

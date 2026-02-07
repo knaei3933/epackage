@@ -1,0 +1,53 @@
+Total messages: 16 (Errors: 2, Warnings: 0)
+Returning 2 messages for level "error"
+
+Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectBoundary>
+      <RedirectErrorBoundary router={{...}}>
+        <InnerLayoutRouter url="/admin/ord..." tree={[...]} params={{id:"a554fa..."}} cacheNode={{rsc:<Fragment>, ...}} ...>
+          <SegmentViewNode type="page" pagePath="/02.Homepa...">
+            <SegmentTrieNode>
+            <AdminOrderDetailPage>
+              <OrderDetailContent>
+                <AdminOrderDetailClient orderId="a554fad1-6..." initialOrder={{id:"a554fa...", ...}} ...>
+                  <div className="min-h-scre...">
+                    <div className="max-w-7xl ...">
+                      <div>
+                      <CancellationRequestBanner>
+                      <OrderInfoAccordion>
+                      <div className="grid grid-...">
+                        <AdminOrderItemsEditor order={{id:"a554fa...", ...}} editable={true} ...>
+                          <_c className="p-6">
+                            <div ref={null} className="relative b...">
+                              <div className="flex items...">
+                                <h2>
++                               <div className="flex items-center gap-2">
+-                               <span className="text-sm text-text-muted">
+                              ...
+                        ...
+                      ...
+          ...
+        ...
+
+    at throwOnHydrationMismatch (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:3348:56)
+    at beginWork (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:6775:918)
+    at runWithFiberInDEV (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:965:74)
+    at performUnitOfWork (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:9562:97)
+    at workLoopConcurrentByScheduler (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:9558:58)
+    at renderRootConcurrent (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:9541:71)
+    at performWorkOnRoot (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:9068:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_react-dom_5b99bba6._.js:10230:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3008/_next/static/chunks/43a1a_next_dist_compiled_b09d2e10._.js:2647:64)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3008/api/admin/orders/a554fad1-6878-4e83-9f2c-bb9c46d8b7a7/items:0

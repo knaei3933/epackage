@@ -42,7 +42,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Authenticate user (support both cookie auth and DEV_MODE header)
+    // 1. Authenticate user using cookie-based auth
     const cookieStore = await cookies();
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -66,31 +66,20 @@ export async function GET(
       },
     });
 
-    // Check for DEV_MODE header from middleware
-    const devModeUserId = request.headers.get('x-user-id');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
+    // Get user from cookie-based auth
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    let userId: string;
-
-    if (isDevMode && devModeUserId) {
-      // DEV_MODE: Use header from middleware
-      console.log('[Production Data API] DEV_MODE: Using x-user-id header:', devModeUserId);
-      userId = devModeUserId;
-    } else {
-      // Normal auth: Use cookie-based auth
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !user?.id) {
-        return NextResponse.json(
-          {
-            error: '認証されていません。',
-            errorEn: 'Authentication required',
-          },
-          { status: 401 }
-        );
-      }
-      userId = user.id;
+    if (userError || !user?.id) {
+      return NextResponse.json(
+        {
+          error: '認証されていません。',
+          errorEn: 'Authentication required',
+        },
+        { status: 401 }
+      );
     }
+
+    const userId = user.id;
 
     const { id: orderId } = await params;
 

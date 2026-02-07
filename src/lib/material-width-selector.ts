@@ -72,10 +72,10 @@ export function determineMaterialWidth(productWidth: number): MaterialWidthType 
  */
 export function calculatePouchFilmWidth(
   pouchType: string,
-  dimensions: { width: number; height: number; depth?: number },
+  dimensions: { width: number; height: number; depth?: number; sideWidth?: number },
   columns: 1 | 2
 ): number {
-  const { width, height, depth = 0 } = dimensions;
+  const { width, height, depth = 0, sideWidth = 0 } = dimensions;
 
   switch (pouchType) {
     case 'flat_3_side':
@@ -88,12 +88,12 @@ export function calculatePouchFilmWidth(
       return columns === 1 ? (height * 2) + depth + 35 : (height * 4) + (depth * 2) + 40;
 
     case 'center_seal':
-      // 合掌袋: W × 2 + 余白
-      return columns === 1 ? (width * 2) + 22 : (width * 4) + 44;
+      // 合掌袋: W × 2 + 側面×2 + 余白
+      return columns === 1 ? (width * 2) + (sideWidth * 2) + 22 : (width * 4) + (sideWidth * 4) + 44;
 
     case 'box_pouch':
-      // ボックス型: (G + W) × 2 + 余白
-      return columns === 1 ? (depth + width) * 2 + 32 : ((depth + width) * 2 + 15) * 2 + 30;
+      // ボックス型: (G + W) × 2 + 側面×2 + 余白
+      return columns === 1 ? (depth + width) * 2 + (sideWidth * 2) + 32 : ((depth + width) * 2 + (sideWidth * 2) + 15) * 2 + 30;
 
     default:
       // デフォルトは三方袋
@@ -103,26 +103,21 @@ export function calculatePouchFilmWidth(
 
 /**
  * パウチ製品用の原反幅選定
+ * インク印刷幅（パウチ幅）に基づいて原反幅を選定
  *
  * @param pouchType パウチタイプ
  * @param dimensions パウチ寸法
  * @returns 選定された原反幅
+ *
+ * ルール：
+ * - 印刷幅（パウチ幅）が 570mm 以下 → 590mm原反を使用
+ * - 印刷幅（パウチ幅）が 570mm 超過 → 760mm原反を使用
  */
 export function determineMaterialWidthForPouch(
   pouchType: string,
   dimensions: { width: number; height: number; depth?: number }
 ): MaterialWidthType {
-  // まず2列で計算してみる
-  const filmWidth2Columns = calculatePouchFilmWidth(pouchType, dimensions, 2);
-
-  // 2列が740mm以下で可能なら2列採用（760mm原反）
-  if (filmWidth2Columns <= 740) {
-    return 760;
-  }
-
-  // 2列不可なら1列で計算
-  const filmWidth1Column = calculatePouchFilmWidth(pouchType, dimensions, 1);
-
-  // 1列幅に応じて原反選定
-  return determineMaterialWidth(filmWidth1Column);
+  // インク印刷幅（パウチ幅）に基づいて原反選定
+  // dimensions.width はパウチの幅（インク印刷幅）
+  return determineMaterialWidth(dimensions.width);
 }

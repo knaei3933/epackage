@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdminAuth, type AdminAuthResult } from './auth-helpers';
+import { verifyAdminAuth, verifyMemberAuth, type AdminAuthResult } from './auth-helpers';
 import type { UserRole, UserStatus } from '@/types/auth';
 
 // =====================================================
@@ -29,6 +29,8 @@ export interface AuthMiddlewareOptions {
   allowedRoles?: UserRole[];
   /** カスタムステータスチェック */
   allowedStatuses?: UserStatus[];
+  /** 会員向け認証を使用するか（MEMBER/ADMIN/KOREAN_MEMBER/PRODUCTIONを許可） */
+  useMemberAuth?: boolean;
 }
 
 /**
@@ -72,8 +74,10 @@ export type AuthMiddlewareResult = AdminAuthResult | NextResponse;
  */
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   return async (request: NextRequest): Promise<AuthMiddlewareResult> => {
-    // 基本認証チェック
-    const authResult = await verifyAdminAuth(request);
+    // 基本認証チェック - useMemberAuth オプションで切り替え
+    const authResult = options.useMemberAuth
+      ? await verifyMemberAuth(request)
+      : await verifyAdminAuth(request);
 
     if (!authResult) {
       return NextResponse.json(
@@ -248,7 +252,7 @@ export function withMemberAuth<T = any>(
   handler: (request: NextRequest, auth: AdminAuthResult) => Promise<NextResponse<T>>
 ): (request: NextRequest) => Promise<NextResponse> {
   return withAuth(handler, {
-    requireMember: true,
+    useMemberAuth: true,
     requireActive: true,
   });
 }
@@ -309,7 +313,7 @@ export function hasRole(auth: AdminAuthResult, roles: UserRole[]): boolean {
  * @returns 管理者の場合true
  */
 export function isAdmin(auth: AdminAuthResult): boolean {
-  return auth.role === 'ADMIN';
+  return auth.role?.toLowerCase() === 'admin';
 }
 
 /**
@@ -319,7 +323,7 @@ export function isAdmin(auth: AdminAuthResult): boolean {
  * @returns 会員の場合true
  */
 export function isMember(auth: AdminAuthResult): boolean {
-  return auth.role === 'MEMBER';
+  return auth.role?.toLowerCase() === 'member';
 }
 
 /**

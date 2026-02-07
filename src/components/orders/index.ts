@@ -13,5 +13,6 @@ export {
   OrderHistoryButtons,
 } from './OrderManagementButtons'
 export { OrderStatusTimeline } from './OrderStatusTimeline'
-export { OrderCommentsSection } from './OrderCommentsSection'
+export { OrderCommentsSection, OrderCommentsSectionWrapper } from './OrderCommentsSection'
 export { CustomerApprovalSection } from './CustomerApprovalSection'
+export { OrderStatusBadge, OrderStatusBadgeSmall, OrderStatusBadgeLarge } from './OrderStatusBadge'

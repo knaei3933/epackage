@@ -1,0 +1,21 @@
+Total messages: 203 (Errors: 2, Warnings: 0)
+Returning 2 messages for level "error"
+
+[ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ http://localhost:3000/api/comparison/save:0
+[ERROR] ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx:1088:5
+Parsing ecmascript source code failed
+  1086 |     </div>
+  1087 |
+> 1088 |     {/* Global Hover Popup using Portal */}
+       |     ^
+  1089 |     {hoveredOption?.option && hoveredOption.element && createPortal(
+  1090 |       <div className="fixed z-[9999] pointer-events-none">
+  1091 |         <div
+
+Expected ',', got '{'
+
+Import trace:
+  Client Component Browser:
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/components/quote/ImprovedQuotingWizard.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Client Component Browser]
+    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/quote-simulator/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:3127

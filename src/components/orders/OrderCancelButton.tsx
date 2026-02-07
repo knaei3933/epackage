@@ -1,23 +1,17 @@
-'use client'
-
 /**
  * OrderCancelButton Component
  *
  * 注文キャンセルボタンコンポーネント
- * - Supabase MCPを使用したDB操作
+ * - 管理者承認方式のキャンセルリクエスト
  * - ステータスチェック（キャンセル可能かどうか）
  * - 二重確認ダイアログ
- * - 管理者通知送信
  */
+
+'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import {
-  getOrderStatus,
-  cancelOrder,
-  createNotification,
-} from '@/lib/supabase-mcp'
 
 interface OrderCancelButtonProps {
   orderId: string
@@ -27,7 +21,7 @@ interface OrderCancelButtonProps {
 
 /**
  * キャンセル可能なステータス
- * PENDING, QUOTATION, DATA_RECEIVED, WORK_ORDER, CONTRACT_SENT のみキャンセル可能
+ * PENDING, QUOTATION, DATA_RECEIVED, WORK_ORDER, CONTRACT_SENT のみキャンセルリクエスト可能
  */
 const CANCELLABLE_STATUSES = [
   'PENDING',
@@ -38,99 +32,73 @@ const CANCELLABLE_STATUSES = [
 ]
 
 /**
- * 注文キャンセルボタン
- * Supabase MCPを使用して注文をキャンセル状態に更新
+ * 注文キャンセルリクエストボタン
+ * 管理者の承認が必要なキャンセルリクエストを送信
  */
 export function OrderCancelButton({
   orderId,
   currentStatus,
   onOrderCancelled,
 }: OrderCancelButtonProps) {
-  const [isCancelling, setIsCancelling] = useState(false)
+  const [isRequesting, setIsRequesting] = useState(false)
   const router = useRouter()
 
   /**
-   * 注文キャンセル処理
-   * ステータスチェック → キャンセル実行 → 管理者通知
+   * 注文キャンセルリクエスト処理
+   * ステータスチェック → キャンセルリクエスト送信 → 画面更新
    */
-  const handleCancel = async () => {
+  const handleRequestCancellation = async () => {
     // 二重確認
-    const confirmed = confirm(
-      '注文をキャンセルしますか？\n\n' +
-      'この操作は取り消せません。\n' +
-      'キャンセルする場合は「OK」を押してください。'
+    const reason = prompt(
+      'キャンセル理由を入力してください（任意）\n\n' +
+      'キャンセルリクエストを送信すると、管理者の承認が必要です。'
     )
 
-    if (!confirmed) return
+    // キャンセルまたは空入力の場合は処理を中止
+    if (reason === null) return
 
-    setIsCancelling(true)
+    setIsRequesting(true)
 
     try {
-      // 現在のステータスを確認（セキュリティチェック）
-      const orderResult = await getOrderStatus(orderId)
+      // キャンセルリクエストを送信
+      const response = await fetch(`/api/member/orders/${orderId}/request-cancellation`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason: reason || undefined,
+        }),
+      })
 
-      if (orderResult.error) {
-        throw new Error(`注文データの取得に失敗しました: ${orderResult.error.message}`)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'キャンセルリクエストの送信に失敗しました')
       }
 
-      if (!orderResult.data || orderResult.data.length === 0) {
-        throw new Error('注文が見つかりません')
-      }
-
-      const order = orderResult.data[0]
-      const dbStatus = order.status?.toUpperCase()
-
-      // キャンセル可能ステータスかどうか確認
-      if (!CANCELLABLE_STATUSES.includes(dbStatus)) {
-        throw new Error(
-          `現在のステータス（${dbStatus}）ではキャンセルできません。\n` +
-          `キャンセル可能なステータス: ${CANCELLABLE_STATUSES.join(', ')}`
-        )
-      }
-
-      // 注文をキャンセル状態に更新
-      const cancelResult = await cancelOrder(orderId)
-
-      if (cancelResult.error) {
-        throw new Error(`注文のキャンセルに失敗しました: ${cancelResult.error.message}`)
-      }
-
-      // 管理者通知を作成（notificationsテーブルが存在する場合）
-      try {
-        await createNotification(
-          'order_cancelled',
-          '注文キャンセル通知',
-          `注文 ${orderId} がキャンセルされました`,
-          orderId,
-          'admin'
-        )
-      } catch (notificationError) {
-        // 通知作成は失敗してもキャンセル自体は成功とみなす
-        console.warn('管理者通知の作成に失敗しました:', notificationError)
-      }
+      const { data } = await response.json()
 
       // 成功アラート表示
-      alert('注文をキャンセルしました')
+      alert('キャンセルリクエストを送信しました。\n管理者の承認をお待ちください。')
 
-      // コールバック実行
+      // 画面を更新
       if (onOrderCancelled) {
         onOrderCancelled()
       } else {
-        // デフォルト：注文一覧へリダイレクト
-        router.push('/member/orders')
-        router.refresh()
+        window.location.reload()
       }
 
     } catch (error: unknown) {
-      console.error('Cancel order error:', error)
+      console.error('Cancel request error:', error)
 
       const errorMessage = error instanceof Error
         ? error.message
-        : 'キャンセルに失敗しました'
+        : 'キャンセルリクエストの送信に失敗しました'
 
       alert(errorMessage)
     } finally {
-      setIsCancelling(false)
+      setIsRequesting(false)
     }
   }
 
@@ -145,10 +113,10 @@ export function OrderCancelButton({
   return (
     <Button
       variant="destructive"
-      onClick={handleCancel}
-      disabled={isCancelling}
+      onClick={handleRequestCancellation}
+      disabled={isRequesting}
     >
-      {isCancelling ? 'キャンセル中...' : '注文をキャンセル'}
+      {isRequesting ? 'リクエスト送信中...' : '注文をキャンセル'}
     </Button>
   )
 }

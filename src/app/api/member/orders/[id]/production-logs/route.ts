@@ -9,34 +9,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 
 /**
- * Helper: Get authenticated user with DEV_MODE support
+ * Helper: Get authenticated user
  */
 async function getAuthenticatedUser(request: NextRequest) {
-  // Check for DEV_MODE header from middleware (DEV_MODE has priority)
-  const devModeUserId = request.headers.get('x-user-id');
-  const isDevMode = request.headers.get('x-dev-mode') === 'true';
+  // Normal auth: Use cookie-based auth with createSupabaseSSRClient
+  const { client: supabase } = createSupabaseSSRClient(request);
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-  let userId: string;
-  let user: any;
-
-  if (isDevMode && devModeUserId) {
-    // DEV_MODE: Use header from middleware
-    console.log('[Production Logs] DEV_MODE: Using x-user-id header:', devModeUserId);
-    userId = devModeUserId;
-    user = { id: devModeUserId };
-  } else {
-    // Normal auth: Use cookie-based auth with createSupabaseSSRClient
-    const { client: supabase } = createSupabaseSSRClient(request);
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authUser) {
-      return null;
-    }
-
-    userId = authUser.id;
-    user = authUser;
-    console.log('[Production Logs] Authenticated user:', userId);
+  if (authError || !authUser) {
+    return null;
   }
+
+  const userId = authUser.id;
+  const user = authUser;
+  console.log('[Production Logs] Authenticated user:', userId);
 
   return { userId, user };
 }

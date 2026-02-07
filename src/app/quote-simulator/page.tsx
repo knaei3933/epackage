@@ -2,19 +2,77 @@
 
 import React from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { ArrowLeft, Calculator, FileText, Phone, Mail, Target, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Layout } from '@/components/layout/Layout'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
-import { ImprovedQuotingWizard } from '@/components/quote/ImprovedQuotingWizard'
 import { QuoteProvider } from '@/contexts/QuoteContext'
 import { MultiQuantityQuoteProvider } from '@/contexts/MultiQuantityQuoteContext'
 import { Card } from '@/components/ui/Card'
+import { HowToSchema } from '@/components/seo/StructuredData'
+
+// バンドル最適化: 重いコンポーネントを動的インポート
+const ImprovedQuotingWizard = dynamic(
+  () => import('@/components/quote/ImprovedQuotingWizard').then(mod => ({ default: mod.ImprovedQuotingWizard })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brixa-600 mb-4"></div>
+          <p className="text-gray-600">見積もりツールを読み込み中...</p>
+        </div>
+      </div>
+    ),
+    ssr: false
+  }
+)
+
+// 見積もり手順の構造化データ
+const quoteHowToData = {
+  name: '包装材の見積もり手順',
+  description: 'Epackage LabのAI見積もりツールで最適な包装ソリューションの見積もりを取得する方法',
+  supplies: [
+    'パッケージングの要件',
+    '希望するサイズと数量',
+    '予算の目安'
+  ],
+  steps: [
+    {
+      name: '製品を選択',
+      text: 'まず、パッケージングの製品タイプ（平袋、スタンドパウチ、ガゼット袋など）を選択します'
+    },
+    {
+      name: 'サイズと数量を入力',
+      text: '製品のサイズ（幅、高さ、マチ）と注文数量を入力します。複数の数量を比較して最適な経済性を確認できます'
+    },
+    {
+      name: '後加工を選択',
+      text: 'チャック、ジッパー、バルブなどの後加工オプションを選択します。オプションによって価格が変動します'
+    },
+    {
+      name: '価格を確認',
+      text: 'AIが即座に価格を計算し、数量による単価の違いを比較できます。最適な注文数量をご提案します'
+    },
+    {
+      name: '見積を保存または相談',
+      text: '見積結果を保存して後で確認するか、専門家に詳細相談を依頼できます'
+    }
+  ]
+}
 
 export default function QuoteSimulatorPage() {
   return (
-    <Layout showFooter={false}>
+    <>
+      {/* 構造化データ: 見積もり手順 */}
+      <HowToSchema
+        name={quoteHowToData.name}
+        description={quoteHowToData.description}
+        supplies={quoteHowToData.supplies}
+        steps={quoteHowToData.steps}
+      />
+      <Layout showFooter={false}>
       <div className="min-h-screen">
         {/* Page Title - Only show once */}
         <section className="py-8 bg-gradient-to-br from-navy-700 to-navy-900 border-b">
@@ -116,7 +174,7 @@ export default function QuoteSimulatorPage() {
                   </Card>
                 </Link>
 
-                <a href="tel:+81-80-6942-7235" className="group hover-glow">
+                <a href="tel:050-1793-6500" className="group hover-glow">
                   <Card className="quick-actions-card p-6 hover:border-purple-400 bg-white">
                     <div className="relative z-10">
                       <div className="flex items-start space-x-3 sm:space-x-4 mb-4">
@@ -140,7 +198,7 @@ export default function QuoteSimulatorPage() {
                       </div>
                       <div className="mt-3 text-center">
                         <div className="block bg-gradient-to-r from-purple-50 to-blue-50 text-sm text-gray-700 font-medium py-2.5 px-4 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors cursor-pointer">
-                          +81-80-6942-7235
+                          050-1793-6500
                         </div>
                       </div>
                     </div>
@@ -152,6 +210,7 @@ export default function QuoteSimulatorPage() {
         </section>
 
         </div>
-    </Layout>
+      </Layout>
+    </>
   )
 }

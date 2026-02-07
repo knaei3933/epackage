@@ -513,7 +513,7 @@ export function UnifiedQuoteSystem() {
         return {
           quantity,
           unitPrice: Math.round(adjustedFinalUnitPrice),
-          totalPrice: Math.round(totalPrice),
+          totalPrice: Math.ceil(totalPrice / 100) * 100, // 100円単位で切り上げ
           setupCost: Math.round(setupCost + additionalSetupCost),
           totalCost: Math.round(totalCost),
           discountRate: Math.round(discountRate * 100),
@@ -525,7 +525,7 @@ export function UnifiedQuoteSystem() {
       return {
         quantity,
         unitPrice: Math.round(finalUnitPrice),
-        totalPrice: Math.round(totalPrice),
+        totalPrice: Math.ceil(totalPrice / 100) * 100, // 100円単位で切り上げ
         setupCost: Math.round(setupCost),
         totalCost: Math.round(totalCost),
         discountRate: Math.round(discountRate * 100),
@@ -1194,13 +1194,13 @@ export function UnifiedQuoteSystem() {
                     </Button>
                   </div>
                   <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center text-sm">
-                    <a href="tel:+81-80-6942-7235" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
+                    <a href="tel:050-1793-6500" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
                       <Phone className="w-4 h-4" />
-                      <span>+81-80-6942-7235</span>
+                      <span>050-1793-6500</span>
                     </a>
-                    <a href="mailto:info@epackage-lab.com" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
+                    <a href="mailto:info@package-lab.com" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
                       <Mail className="w-4 h-4" />
-                      <span>info@epackage-lab.com</span>
+                      <span>info@package-lab.com</span>
                     </a>
                   </div>
                 </Card>
@@ -1319,7 +1319,7 @@ export function UnifiedQuoteSystem() {
                         {...register('phone')}
                         type="tel"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
-                        placeholder="+81-80-6942-7235"
+                        placeholder="050-1793-6500"
                       />
                       {errors.phone && (
                         <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>

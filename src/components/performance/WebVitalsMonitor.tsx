@@ -149,9 +149,10 @@ export function WebVitalsMonitor() {
     // Performance monitoring
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
-        if (entry.entryType === 'measure') {
-          console.log(`Performance: ${entry.name} = ${entry.duration}ms`);
-        }
+        // パフォーマンスログを一時的に抑制（デバッグ用）
+        // if (entry.entryType === 'measure') {
+        //   console.log(`Performance: ${entry.name} = ${entry.duration}ms`);
+        // }
       });
     });
 
@@ -181,13 +182,14 @@ export function WebVitalsMonitor() {
     }
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`📊 ${metric.name}:`, {
-        value: `${metric.value.toFixed(2)}${getMetricUnit(metric.name)}`,
-        rating: metric.rating,
-        delta: `${metric.delta.toFixed(2)}${getMetricUnit(metric.name)}`,
-      });
-    }
+    // パフォーマンスログを一時的に抑制（デバッグ用）
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log(`📊 ${metric.name}:`, {
+    //     value: `${metric.value.toFixed(2)}${getMetricUnit(metric.name)}`,
+    //     rating: metric.rating,
+    //     delta: `${metric.delta.toFixed(2)}${getMetricUnit(metric.name)}`,
+    //   });
+    // }
   };
 
   const getMetricUnit = (name: string): string => {

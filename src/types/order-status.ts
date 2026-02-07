@@ -22,34 +22,40 @@
 // =====================================================
 
 /**
- * B2B 10-Step Order Workflow Status
- * B2B 10段階注文ワークフローステータス
+ * Simplified 10-Step Order Workflow Status
+ * 簡素化10段階注文ワークフローステータス
  *
- * Complete workflow states from registration to delivery:
- * 1. PENDING - Registration/Authentication pending (登録待)
- * 2. QUOTATION - Quotation request/preparation (見積作成)
- * 3. DATA_RECEIVED - Data entry/AI extraction (データ入稿)
- * 4. WORK_ORDER - Work order/spec sheet creation (作業標準書作成)
- * 5. CONTRACT_SENT - Contract sent to customer (契約書送付)
- * 6. CONTRACT_SIGNED - Electronic signature completed (契約署名完了)
- * 7. PRODUCTION - Production in progress (製造中 - 9 sub-stages)
- * 8. STOCK_IN - Stock-in completed (入庫完了)
- * 9. SHIPPED - Shipment completed (出荷完了)
- * 10. DELIVERED - Delivery completed (配送完了)
- * + CANCELLED - Cancelled (キャンセル)
+ * Complete workflow states from quotation to delivery:
+ * 1. QUOTATION_PENDING - 견적 승인 대기 (견적 작성 완료, 관리자 승인 대기)
+ * 2. QUOTATION_APPROVED - 견적 승인 (관리자가 견적 승인)
+ * 3. DATA_UPLOAD_PENDING - 데이터 입고 대기 (견적→주문 변환 완료)
+ * 4. DATA_UPLOADED - 데이터 입고 완료 (고객이 데이터 업로드)
+ * 5. MODIFICATION_REQUESTED - 【新規】管理者修正要求 (管理者が注文内容を修正し、顧客の承認待ち)
+ * 6. MODIFICATION_APPROVED - 【新規】修正承認済 (顧客が管理者の修正内容を承認)
+ * 7. MODIFICATION_REJECTED - 【新規】修正拒否 (顧客が管理者の修正内容を拒否)
+ * 8. CORRECTION_IN_PROGRESS - 교정 작업중 (자동 전환)
+ * 9. CORRECTION_COMPLETED - 교정 완료 (디자이너 교정 데이터 업로드)
+ * 10. CUSTOMER_APPROVAL_PENDING - 고객 승인 대기 (디자인 확인 중)
+ * 11. PRODUCTION - 제조중 (고객 승인 후 제조 시작)
+ * 12. READY_TO_SHIP - 출하 예정 (관리자 출하 준비 완료)
+ * 13. SHIPPED - 출하 완료 (납품 완료)
+ * + CANCELLED - 취소
  */
 export type OrderStatus =
-  | 'PENDING'           // 登録待 - Registration pending
-  | 'QUOTATION'         // 見積 - Quotation in progress
-  | 'DATA_RECEIVED'     // データ入稿 - Data received/AI extraction
-  | 'WORK_ORDER'        // 作業標準書 - Work order creation
-  | 'CONTRACT_SENT'     // 契約書送付 - Contract sent
-  | 'CONTRACT_SIGNED'   // 契約署名完了 - Contract signed
-  | 'PRODUCTION'        // 製造中 - Production in progress
-  | 'STOCK_IN'          // 入庫完了 - Stock-in complete
-  | 'SHIPPED'           // 出荷完了 - Shipped
-  | 'DELIVERED'         // 配送完了 - Delivered
-  | 'CANCELLED';        // キャンセル - Cancelled
+  | 'QUOTATION_PENDING'        // 견적 승인 대기 - Draft quotation waiting approval
+  | 'QUOTATION_APPROVED'       // 견적 승인 - Quotation approved by admin
+  | 'DATA_UPLOAD_PENDING'      // 데이터 입고 대기 - Ready for data upload
+  | 'DATA_UPLOADED'            // 데이터 입고 완료 - Customer uploaded data
+  | 'MODIFICATION_REQUESTED'   // 【新規】管理者修正要求 - Admin requested modification, awaiting customer approval
+  | 'MODIFICATION_APPROVED'    // 【新規】修正承認済 - Customer approved admin's modification
+  | 'MODIFICATION_REJECTED'    // 【新規】修正拒否 - Customer rejected admin's modification
+  | 'CORRECTION_IN_PROGRESS'   // 교정 작업중 - Correction in progress
+  | 'CORRECTION_COMPLETED'     // 교정 완료 - Design correction uploaded
+  | 'CUSTOMER_APPROVAL_PENDING'// 고객 승인 대기 - Waiting for customer approval
+  | 'PRODUCTION'               // 제조중 - Production in progress
+  | 'READY_TO_SHIP'            // 출하 예정 - Ready to ship
+  | 'SHIPPED'                  // 출하 완료 - Shipped
+  | 'CANCELLED';               // 취소 - Cancelled
 
 /**
  * Legacy OrderStatus for backward compatibility
@@ -97,81 +103,102 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, {
   description: string;  // Detailed description
   category: 'initial' | 'active' | 'production' | 'final' | 'terminated';
 }> = {
-  PENDING: {
-    ja: '登録待',
-    ko: '등록 대기',
-    en: 'Registration Pending',
-    description: '企業会員登録・認証待ち',
+  QUOTATION_PENDING: {
+    ja: '見積承認待ち',
+    ko: '견적 승인 대기',
+    en: 'Quotation Pending',
+    description: '견적 작성 완료, 관리자 승인 대기',
     category: 'initial',
   },
-  QUOTATION: {
-    ja: '見積作成',
-    ko: '견적 작성',
-    en: 'Quotation',
-    description: '見積依頼・作成中',
+  QUOTATION_APPROVED: {
+    ja: '見積承認済',
+    ko: '견적 승인',
+    en: 'Quotation Approved',
+    description: '관리자가 견적 승인',
     category: 'active',
   },
-  DATA_RECEIVED: {
-    ja: 'データ入稿',
-    ko: '데이터 입고',
-    en: 'Data Received',
-    description: 'デザインデータ入荷・AI抽出',
+  DATA_UPLOAD_PENDING: {
+    ja: 'データ入稿待ち',
+    ko: '데이터 입고 대기',
+    en: 'Data Upload Pending',
+    description: '견적→주문 변환 완료, 데이터 업로드 대기',
     category: 'active',
   },
-  WORK_ORDER: {
-    ja: '作業標準書',
-    ko: '작업표준서',
-    en: 'Work Order',
-    description: '作業標準書・仕様書作成',
+  DATA_UPLOADED: {
+    ja: 'データ入稿完了',
+    ko: '데이터 입고 완료',
+    en: 'Data Uploaded',
+    description: '고객이 디자인 데이터 업로드',
     category: 'active',
   },
-  CONTRACT_SENT: {
-    ja: '契約書送付',
-    ko: '계약서 송부',
-    en: 'Contract Sent',
-    description: '契約書送付中',
+  MODIFICATION_REQUESTED: {
+    ja: '修正承認待ち',
+    ko: '수정 승인 대기',
+    en: 'Modification Approval Pending',
+    description: '管理者が注文内容を修正し、顧客の承認待ち',
     category: 'active',
   },
-  CONTRACT_SIGNED: {
-    ja: '契約署名完了',
-    ko: '계약서 서명 완료',
-    en: 'Contract Signed',
-    description: '電子署名完了',
+  MODIFICATION_APPROVED: {
+    ja: '修正承認済',
+    ko: '수정 승인 완료',
+    en: 'Modification Approved',
+    description: '顧客が管理者の修正内容を承認',
+    category: 'active',
+  },
+  MODIFICATION_REJECTED: {
+    ja: '修正拒否',
+    ko: '수정 거부',
+    en: 'Modification Rejected',
+    description: '顧客が管理者の修正内容を拒否',
+    category: 'active',
+  },
+  CORRECTION_IN_PROGRESS: {
+    ja: '校正作業中',
+    ko: '교정 작업중',
+    en: 'Correction In Progress',
+    description: '디자이너가 교정 작업 진행 중',
+    category: 'active',
+  },
+  CORRECTION_COMPLETED: {
+    ja: '校正完了',
+    ko: '교정 완료',
+    en: 'Correction Completed',
+    description: '디자이너가 교정 데이터 업로드 완료',
+    category: 'active',
+  },
+  CUSTOMER_APPROVAL_PENDING: {
+    ja: '顧客承認待ち',
+    ko: '고객 승인 대기',
+    en: 'Customer Approval Pending',
+    description: '교정된 디자인을 고객이 확인 중',
     category: 'active',
   },
   PRODUCTION: {
     ja: '製造中',
     ko: '생산 중',
     en: 'Production',
-    description: '製造工程中（9段階）',
+    description: '고객 승인 후 제조 시작',
     category: 'production',
   },
-  STOCK_IN: {
-    ja: '入庫完了',
-    ko: '입고 완료',
-    en: 'Stock In',
-    description: '製品入庫完了',
-    category: 'production',
+  READY_TO_SHIP: {
+    ja: '出荷予定',
+    ko: '출하 예정',
+    en: 'Ready to Ship',
+    description: '관리자가 출하 준비 완료',
+    category: 'final',
   },
   SHIPPED: {
     ja: '出荷完了',
     ko: '출하 완료',
     en: 'Shipped',
-    description: '出荷完了・配送中',
-    category: 'final',
-  },
-  DELIVERED: {
-    ja: '配送完了',
-    ko: '배송 완료',
-    en: 'Delivered',
-    description: 'お客様への配送完了',
+    description: '납품 완료',
     category: 'final',
   },
   CANCELLED: {
     ja: 'キャンセル',
-    ko: '취소됨',
+    ko: '취소',
     en: 'Cancelled',
-    description: '注文キャンセル',
+    description: '주문 취소',
     category: 'terminated',
   },
 } as const;
@@ -256,12 +283,12 @@ export const OrderStatusMapping = {
    */
   toUppercase: (status: OrderStatusLegacy): OrderStatus => {
     const mapping: Record<OrderStatusLegacy, OrderStatus> = {
-      pending: 'PENDING',
+      pending: 'QUOTATION_PENDING',
       processing: 'PRODUCTION',
       manufacturing: 'PRODUCTION',
-      ready: 'WORK_ORDER',
+      ready: 'READY_TO_SHIP',
       shipped: 'SHIPPED',
-      delivered: 'DELIVERED',
+      delivered: 'SHIPPED', // 10-step workflow ends at SHIPPED
       cancelled: 'CANCELLED',
     };
     return mapping[status];
@@ -273,16 +300,19 @@ export const OrderStatusMapping = {
    */
   toLowercase: (status: OrderStatus): OrderStatusLegacy => {
     const mapping: Partial<Record<OrderStatus, OrderStatusLegacy>> = {
-      PENDING: 'pending',
-      QUOTATION: 'processing',
-      DATA_RECEIVED: 'processing',
-      WORK_ORDER: 'ready',
-      CONTRACT_SENT: 'processing',
-      CONTRACT_SIGNED: 'processing',
+      QUOTATION_PENDING: 'pending',
+      QUOTATION_APPROVED: 'processing',
+      DATA_UPLOAD_PENDING: 'processing',
+      DATA_UPLOADED: 'processing',
+      MODIFICATION_REQUESTED: 'processing',
+      MODIFICATION_APPROVED: 'processing',
+      MODIFICATION_REJECTED: 'processing',
+      CORRECTION_IN_PROGRESS: 'processing',
+      CORRECTION_COMPLETED: 'processing',
+      CUSTOMER_APPROVAL_PENDING: 'processing',
       PRODUCTION: 'manufacturing',
-      STOCK_IN: 'ready',
+      READY_TO_SHIP: 'ready',
       SHIPPED: 'shipped',
-      DELIVERED: 'delivered',
       CANCELLED: 'cancelled',
     };
     return mapping[status] || 'pending';
@@ -292,18 +322,21 @@ export const OrderStatusMapping = {
    * Map database status to simplified UI status
    * Groups related statuses for display purposes
    */
-  toUIStatus: (status: OrderStatus): 'new' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'delivered' | 'cancelled' => {
-    const mapping: Partial<Record<OrderStatus, 'new' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'delivered' | 'cancelled'>> = {
-      PENDING: 'new',
-      QUOTATION: 'processing',
-      DATA_RECEIVED: 'processing',
-      WORK_ORDER: 'ready',
-      CONTRACT_SENT: 'processing',
-      CONTRACT_SIGNED: 'processing',
+  toUIStatus: (status: OrderStatus): 'new' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'cancelled' => {
+    const mapping: Partial<Record<OrderStatus, 'new' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'cancelled'>> = {
+      QUOTATION_PENDING: 'new',
+      QUOTATION_APPROVED: 'processing',
+      DATA_UPLOAD_PENDING: 'processing',
+      DATA_UPLOADED: 'processing',
+      MODIFICATION_REQUESTED: 'processing',
+      MODIFICATION_APPROVED: 'processing',
+      MODIFICATION_REJECTED: 'processing',
+      CORRECTION_IN_PROGRESS: 'processing',
+      CORRECTION_COMPLETED: 'processing',
+      CUSTOMER_APPROVAL_PENDING: 'processing',
       PRODUCTION: 'manufacturing',
-      STOCK_IN: 'ready',
+      READY_TO_SHIP: 'ready',
       SHIPPED: 'shipped',
-      DELIVERED: 'delivered',
       CANCELLED: 'cancelled',
     };
     return mapping[status] || 'new';
@@ -317,19 +350,33 @@ export const OrderStatusMapping = {
 /**
  * Valid status transitions
  * Defines allowed workflow progression paths
+ *
+ * 새로운 단순화 워크플로우:
+ * 1. 견적 승인 대기 → 견적 승인
+ * 2. 견적 승인 → 데이터 입고 대기
+ * 3. 데이터 입고 대기 → 데이터 입고 완료
+ * 4. 데이터 입고 완료 → 교정 작업중 (자동)
+ * 5. 교정 작업중 → 교정 완료
+ * 6. 교정 완료 → 고객 승인 대기
+ * 7. 고객 승인 대기 → 제조중
+ * 8. 제조중 → 출하 예정
+ * 9. 출하 예정 → 출하 완료
  */
 export const VALID_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  PENDING: ['QUOTATION', 'CANCELLED'],
-  QUOTATION: ['DATA_RECEIVED', 'CANCELLED'],
-  DATA_RECEIVED: ['WORK_ORDER', 'CANCELLED'],
-  WORK_ORDER: ['CONTRACT_SENT', 'CANCELLED'],
-  CONTRACT_SENT: ['CONTRACT_SIGNED', 'CANCELLED'],
-  CONTRACT_SIGNED: ['PRODUCTION', 'CANCELLED'],
-  PRODUCTION: ['STOCK_IN', 'CANCELLED'],
-  STOCK_IN: ['SHIPPED'],
-  SHIPPED: ['DELIVERED'],
-  DELIVERED: [], // Terminal state
-  CANCELLED: [], // Terminal state
+  QUOTATION_PENDING: ['QUOTATION_APPROVED', 'CANCELLED'],
+  QUOTATION_APPROVED: ['DATA_UPLOAD_PENDING', 'CANCELLED'],
+  DATA_UPLOAD_PENDING: ['DATA_UPLOADED', 'CANCELLED'],
+  DATA_UPLOADED: ['MODIFICATION_REQUESTED', 'CORRECTION_IN_PROGRESS', 'CANCELLED'],
+  MODIFICATION_REQUESTED: ['MODIFICATION_APPROVED', 'MODIFICATION_REJECTED'],
+  MODIFICATION_APPROVED: ['CORRECTION_IN_PROGRESS'],
+  MODIFICATION_REJECTED: ['MODIFICATION_REQUESTED'], // 再修正要求可能
+  CORRECTION_IN_PROGRESS: ['CORRECTION_COMPLETED', 'CANCELLED'],
+  CORRECTION_COMPLETED: ['CUSTOMER_APPROVAL_PENDING', 'CANCELLED'],
+  CUSTOMER_APPROVAL_PENDING: ['PRODUCTION', 'CANCELLED'],
+  PRODUCTION: ['READY_TO_SHIP', 'CANCELLED'],
+  READY_TO_SHIP: ['SHIPPED', 'CANCELLED'],
+  SHIPPED: [],  // Terminal state
+  CANCELLED: [],  // Terminal state
 } as const;
 
 /**
@@ -360,7 +407,7 @@ export function getNextStatuses(current: OrderStatus): OrderStatus[] {
  * @returns true if status is terminal (no further transitions)
  */
 export function isTerminalStatus(status: OrderStatus): boolean {
-  return status === 'DELIVERED' || status === 'CANCELLED';
+  return status === 'SHIPPED' || status === 'CANCELLED';
 }
 
 /**
@@ -378,12 +425,15 @@ export function isActiveStatus(status: OrderStatus): boolean {
 
 /**
  * Type guard: Check if value is valid OrderStatus
+ * 新しい10段階ワークフローステータスに対応
  */
 export function isOrderStatus(value: string): value is OrderStatus {
   const validStatuses: OrderStatus[] = [
-    'PENDING', 'QUOTATION', 'DATA_RECEIVED', 'WORK_ORDER',
-    'CONTRACT_SENT', 'CONTRACT_SIGNED', 'PRODUCTION', 'STOCK_IN',
-    'SHIPPED', 'DELIVERED', 'CANCELLED',
+    // 新しいワークフロー（修正承認フロー追加）
+    'QUOTATION_PENDING', 'QUOTATION_APPROVED', 'DATA_UPLOAD_PENDING', 'DATA_UPLOADED',
+    'MODIFICATION_REQUESTED', 'MODIFICATION_APPROVED', 'MODIFICATION_REJECTED',
+    'CORRECTION_IN_PROGRESS', 'CORRECTION_COMPLETED', 'CUSTOMER_APPROVAL_PENDING',
+    'PRODUCTION', 'READY_TO_SHIP', 'SHIPPED', 'CANCELLED',
   ];
   return validStatuses.includes(value as OrderStatus);
 }
@@ -415,28 +465,29 @@ export function isProductionSubStatus(value: string): value is ProductionSubStat
  * Type guard: Check if status is in production phase
  */
 export function isProductionStatus(status: OrderStatus): boolean {
-  return status === 'PRODUCTION' || status === 'STOCK_IN';
+  return status === 'PRODUCTION';
 }
 
 /**
  * Type guard: Check if status is in contract phase
  */
 export function isContractStatus(status: OrderStatus): boolean {
-  return status === 'CONTRACT_SENT' || status === 'CONTRACT_SIGNED';
+  // 10段階ワークフローには契約段階が存在しない
+  return false;
 }
 
 /**
  * Type guard: Check if status is in initial phase (before production)
  */
 export function isInitialPhase(status: OrderStatus): boolean {
-  return ['PENDING', 'QUOTATION', 'DATA_RECEIVED', 'WORK_ORDER'].includes(status);
+  return ['QUOTATION_PENDING', 'QUOTATION_APPROVED', 'DATA_UPLOAD_PENDING', 'DATA_UPLOADED', 'MODIFICATION_REQUESTED', 'MODIFICATION_APPROVED', 'MODIFICATION_REJECTED'].includes(status);
 }
 
 /**
  * Type guard: Check if status is in fulfillment phase (production onwards)
  */
 export function isFulfillmentPhase(status: OrderStatus): boolean {
-  return ['PRODUCTION', 'STOCK_IN', 'SHIPPED', 'DELIVERED'].includes(status);
+  return ['PRODUCTION', 'READY_TO_SHIP', 'SHIPPED'].includes(status);
 }
 
 // =====================================================
@@ -496,16 +547,19 @@ export function getProductionSubStatusLabel(
  */
 export function getStatusProgress(status: OrderStatus): number {
   const progressMap: Record<OrderStatus, number> = {
-    PENDING: 0,
-    QUOTATION: 10,
-    DATA_RECEIVED: 20,
-    WORK_ORDER: 30,
-    CONTRACT_SENT: 40,
-    CONTRACT_SIGNED: 50,
-    PRODUCTION: 70,
-    STOCK_IN: 85,
-    SHIPPED: 95,
-    DELIVERED: 100,
+    QUOTATION_PENDING: 0,
+    QUOTATION_APPROVED: 10,
+    DATA_UPLOAD_PENDING: 20,
+    DATA_UPLOADED: 30,
+    MODIFICATION_REQUESTED: 35,
+    MODIFICATION_APPROVED: 40,
+    MODIFICATION_REJECTED: 35,
+    CORRECTION_IN_PROGRESS: 50,
+    CORRECTION_COMPLETED: 60,
+    CUSTOMER_APPROVAL_PENDING: 70,
+    PRODUCTION: 85,
+    READY_TO_SHIP: 95,
+    SHIPPED: 100,
     CANCELLED: 0,
   };
   return progressMap[status];
@@ -567,6 +621,68 @@ const OrderStatusSystem = {
   getStatusProgress,
   getAllStatuses,
   getAllProductionSubStatuses,
+} as const;
+
+/**
+ * Legacy status labels for backward compatibility
+ * For database stored lowercase status values
+ */
+export const ORDER_STATUS_LABELS_LEGACY: Record<OrderStatusLegacy, {
+  ja: string;
+  ko: string;
+  en: string;
+  description: string;
+  category: 'initial' | 'active' | 'production' | 'final' | 'terminated';
+}> = {
+  pending: {
+    ja: '登録待',
+    ko: '등록 대기',
+    en: 'Registration Pending',
+    description: '企業会員登録・認証待ち',
+    category: 'initial',
+  },
+  processing: {
+    ja: '処理中',
+    ko: '처리 중',
+    en: 'Processing',
+    description: '見積・契約・製作処理中',
+    category: 'active',
+  },
+  manufacturing: {
+    ja: '製造中',
+    ko: '생산 중',
+    en: 'Manufacturing',
+    description: '製造工程中',
+    category: 'production',
+  },
+  ready: {
+    ja: '発送待',
+    ko: '발송 대기',
+    en: 'Ready for Shipment',
+    description: '発送準備完了',
+    category: 'production',
+  },
+  shipped: {
+    ja: '発送完了',
+    ko: '발송 완료',
+    en: 'Shipped',
+    description: '発送完了・配送中',
+    category: 'final',
+  },
+  delivered: {
+    ja: '配送完了',
+    ko: '배송 완료',
+    en: 'Delivered',
+    description: 'お客様への配送完了',
+    category: 'final',
+  },
+  cancelled: {
+    ja: 'キャンセル',
+    ko: '취소됨',
+    en: 'Cancelled',
+    description: '注文キャンセル',
+    category: 'terminated',
+  },
 } as const;
 
 export default OrderStatusSystem;

@@ -3,6 +3,7 @@
  *
  * 会員認証システムの型定義
  * - Zod スキーマ
+ * - Phone validation (at least one required)
  * - Prisma ベースの型
  * - API リクエスト/レスポンスの型
  */
@@ -67,11 +68,6 @@ export const registrationSchema = z
       .regex(/[0-9]/, 'パスワードには少なくとも1つの数字を含める必要があります。'),
     passwordConfirm: z.string().min(1, 'パスワード確認を入力してください。'),
 
-    // B2B 追加フィールド（法人のみ）
-    foundedYear: z.string().optional(),
-    capital: z.string().optional(),
-    representativeName: z.string().optional(),
-
     // 日本の氏名（漢字・ひらがな、姓・名別）
     kanjiLastName: z
       .string()
@@ -94,15 +90,15 @@ export const registrationSchema = z
       .max(50, '名は50文字以内で入力してください。')
       .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力可能です。'),
 
-    // 電話番号（オプションフィールド）
+    // 電話番号（少なくとも1つは必須）
     corporatePhone: z.union([
       z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
-    ]).optional(),
+    ]),
     personalPhone: z.union([
       z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
-    ]).optional(),
+    ]),
 
     // 事業者種別
     businessType: z.nativeEnum(BusinessType, {
@@ -142,14 +138,20 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
 
-    // 住所情報（オプションフィールド）
-    postalCode: z.union([
-      z.string().regex(/^\d{3}-?\d{4}$/, '有効な郵便番号の形式ではありません。（例：123-4567）'),
+    // 住所情報（必須フィールド）
+    postalCode: z.string()
+      .regex(/^\d{3}-?\d{4}$/, '有効な郵便番号を入力してください。（例：123-4567）')
+      .optional(),
+    prefecture: z.string()
+      .min(1, '都道府県を選択してください。')
+      .optional(),
+    city: z.string()
+      .min(1, '市区町村を入力してください。')
+      .optional(),
+    street: z.union([
+      z.string().min(1, '番地を入力してください。'),
       z.literal('')
     ]).optional(),
-    prefecture: z.union([z.string(), z.literal('')]).optional(),
-    city: z.union([z.string(), z.literal('')]).optional(),
-    street: z.union([z.string(), z.literal('')]).optional(),
 
     // 個人情報の収集および利用への同意
     privacyConsent: z.literal(true, {
@@ -175,15 +177,14 @@ export const registrationSchema = z
   )
   .refine(
     (data) => {
-      // 法人事業者の場合はB2B追加フィールド必須
-      if (data.businessType === BusinessType.CORPORATION) {
-        return !!data.foundedYear && !!data.capital && !!data.representativeName;
-      }
-      return true;
+      // 少なくとも1つの電話番号が必須
+      const hasCorporate = data.corporatePhone && data.corporatePhone !== '';
+      const hasPersonal = data.personalPhone && data.personalPhone !== '';
+      return hasCorporate || hasPersonal;
     },
     {
-      message: '法人事業者は設立年、資本金、代表者名を入力する必要があります。',
-      path: ['foundedYear'],
+      message: '会社電話番号または携帯電話の少なくとも1つを入力してください。',
+      path: ['personalPhone'],
     }
   );
 

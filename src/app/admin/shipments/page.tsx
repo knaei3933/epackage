@@ -12,7 +12,9 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { ShipmentCard } from '@/components/admin/ShipmentCard';
 import { ShipmentCreateModal } from '@/components/admin/ShipmentCreateModal';
+import { ShipmentEditModal } from '@/components/admin/ShipmentEditModal';
 import { TrackingTimeline } from '@/components/admin/TrackingTimeline';
+import { Edit3 } from 'lucide-react';
 import {
   Shipment,
   ShipmentStatus,
@@ -53,6 +55,9 @@ export default function ShipmentsPage() {
   // Detail modal state
   const [selectedShipment, setSelectedShipment] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -192,6 +197,35 @@ export default function ShipmentsPage() {
       }
     } catch (error) {
       console.error('Failed to fetch shipment details:', error);
+    }
+  };
+
+  // Update shipment
+  const updateShipment = async (shipmentId: string, data: any) => {
+    try {
+      const response = await fetch(`/api/shipments/${shipmentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to update shipment');
+      }
+
+      // Refresh shipments list and shipment details
+      await fetchShipments();
+
+      // Update selected shipment with new data
+      if (selectedShipment?.id === shipmentId) {
+        setSelectedShipment(result.shipment);
+      }
+
+      return result;
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -340,17 +374,121 @@ export default function ShipmentsPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {shipments.map((shipment) => (
-                    <ShipmentCard
-                      key={shipment.id}
-                      shipment={shipment}
-                      onRefreshTracking={refreshTracking}
-                      onViewDetails={fetchShipmentDetails}
-                      onDownloadLabel={downloadLabel}
-                      isRefreshing={refreshingId === shipment.id}
-                    />
-                  ))}
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            配送番号
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            注文番号
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            お客様名
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            配送業者
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            追跡番号
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            集荷予定
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            配達予定
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            配送先
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                            ステータス
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase">
+                            アクション
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {shipments.map((shipment) => (
+                          <tr key={shipment.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm font-medium">{shipment.shipment_number}</td>
+                            <td className="px-4 py-3 text-sm font-mono">{shipment.order?.order_number || '-'}</td>
+                            <td className="px-4 py-3 text-sm">{shipment.order?.customer_name || '-'}</td>
+                            <td className="px-4 py-3 text-sm">
+                              {CARRIER_NAMES[shipment.carrier as CarrierType]?.ja || shipment.carrier || '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              {shipment.tracking_number ? (
+                                <a
+                                  href={shipment.tracking_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-mono text-blue-600 hover:underline"
+                                >
+                                  {shipment.tracking_number}
+                                </a>
+                              ) : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {shipment.pickup_date ? new Date(shipment.pickup_date).toLocaleDateString('ja-JP') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {shipment.estimated_delivery_date ? new Date(shipment.estimated_delivery_date).toLocaleDateString('ja-JP') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                              {shipment.order?.delivery_address ?
+                                `${shipment.order.delivery_address.prefecture} ${shipment.order.delivery_address.city}`
+                                : '-'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                shipment.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                shipment.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                                shipment.status === 'in_transit' ? 'bg-purple-100 text-purple-800' :
+                                shipment.status === 'out_for_delivery' ? 'bg-yellow-100 text-yellow-800' :
+                                shipment.status === 'pending' ? 'bg-gray-100 text-gray-800' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {SHIPMENT_STATUS_NAMES[shipment.status as ShipmentStatus]?.ja || shipment.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => refreshTracking(shipment.id)}
+                                  disabled={refreshingId === shipment.id}
+                                  title="追跡更新"
+                                >
+                                  <RefreshCw className={`w-3 h-3 ${refreshingId === shipment.id ? 'animate-spin' : ''}`} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => fetchShipmentDetails(shipment.id)}
+                                  title="詳細"
+                                >
+                                  詳細
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => downloadLabel(shipment.id)}
+                                  title="ラベル"
+                                >
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Pagination */}
@@ -395,7 +533,7 @@ export default function ShipmentsPage() {
                 <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-600">配送準備が完了した注文はありません</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  生産ステータスが「最終検査」または「完了」の注文が表示されます
+                  注文ステータスが「製造中(PRODUCTION)」の注文が表示されます
                 </p>
               </div>
             ) : (
@@ -430,11 +568,11 @@ export default function ShipmentsPage() {
                           <td className="px-4 py-3 text-sm font-medium">{order.order_number}</td>
                           <td className="px-4 py-3 text-sm">{order.customer_name}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">
-                            {order.shipping_address?.prefecture} {order.shipping_address?.city}
+                            {order.delivery_address?.prefecture} {order.delivery_address?.city}
                           </td>
                           <td className="px-4 py-3">
                             <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                              {order.production_status === 'completed' ? '完了' : '最終検査'}
+                              {order.status === 'READY_TO_SHIP' ? '出荷予定' : '製造中'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
@@ -483,15 +621,28 @@ export default function ShipmentsPage() {
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">配送詳細</h2>
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedShipment(null);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setShowEditModal(true);
+                  }}
+                >
+                  <Edit3 className="w-3 h-3 mr-1" />
+                  編集
+                </Button>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setSelectedShipment(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-6">
@@ -527,6 +678,21 @@ export default function ShipmentsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Shipment Edit Modal */}
+      {showEditModal && selectedShipment && (
+        <ShipmentEditModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+          }}
+          shipment={selectedShipment}
+          onUpdateShipment={async (id, data) => {
+            await updateShipment(id, data);
+            setShowEditModal(false);
+          }}
+        />
       )}
     </div>
   );

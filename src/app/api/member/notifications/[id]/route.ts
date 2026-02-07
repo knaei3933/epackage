@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 
 export async function DELETE(
   request: NextRequest,
@@ -15,6 +15,7 @@ export async function DELETE(
   try {
     const user = await requireAuth();
     const notificationId = params.id;
+    const supabase = getServerClient();
 
     // Delete notification
     const { error } = await supabase

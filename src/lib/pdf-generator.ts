@@ -81,6 +81,15 @@ export interface QuoteData {
     hangingPosition?: string;
     zipperPosition?: string;
     cornerR?: string;
+    // スパウトパウチ用
+    spoutPosition?: string;
+    // ロールフィルム用
+    rollFilmSpecs?: {
+      materialWidth?: number;
+      pitch?: number;  // デザインの繰り返し周期（ピッチ）
+      totalLength?: number;
+      rollCount?: number;
+    };
   };
 
   // Optional processing (for Excel template format)
@@ -89,10 +98,14 @@ export interface QuoteData {
     zipper?: boolean;
     notch?: boolean;
     hangingHole?: boolean;
+    hangHoleSize?: '6mm' | '8mm';
     cornerProcessing?: boolean;
     gasValve?: boolean;
     easyCut?: boolean;
     dieCut?: boolean;
+    surfaceFinish?: '光沢' | 'マット';
+    zipperPositionSpecified?: boolean;
+    openingPosition?: '上端' | '下端';
   };
 
   // Terms and conditions
@@ -116,8 +129,6 @@ export interface QuoteData {
     items: Array<{
       /** SKU番号 / SKU number */
       skuNumber: number;
-      /** デザイン名 / Design name */
-      designName?: string;
       /** 数量 / Quantity */
       quantity: number;
       /** 単価 / Unit price */
@@ -189,8 +200,6 @@ export interface QuoteItem {
   skuBreakdown?: Array<{
     /** SKU番号 / SKU number */
     skuNumber: number;
-    /** デザイン名 / Design name */
-    designName?: string;
     /** 数量 / Quantity */
     quantity: number;
   }>;
@@ -359,9 +368,9 @@ const JAPANESE_CONSTANTS = {
     subBrand: 'by kanei-trade',
     companyName: '金井貿易株式会社',
     postalCode: '〒673-0846',
-    address: '兵庫県明石市上ノ丸2-11-21-102',
-    phone: 'TEL：080-6942-7235',
-    email: 'info@epackage-lab.com',
+    address: '兵庫県明石市上ノ丸2-11-21',
+    phone: 'TEL：050-1793-6500',
+    email: 'info@package-lab.com',
     description: 'オーダーメイドバッグ印刷専門',
     registrationNumber: '',
   },
@@ -899,18 +908,22 @@ export async function generateQuotePDF(
 
       doc.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
 
-      // Generate PDF buffer (browser-compatible)
-      // doc.output() returns Uint8Array in browser environment
-      const pdfArrayBuffer = doc.output('arraybuffer');
-      const pdfUint8Array = new Uint8Array(pdfArrayBuffer);
-
       // Determine filename
       const filename = options.filename || `${data.quoteNumber}.pdf`;
+
+      // For compatibility, also generate buffer for return value
+      let pdfUint8Array: Uint8Array;
+      try {
+        pdfUint8Array = new Uint8Array(doc.output('arraybuffer'));
+      } catch (e) {
+        console.warn('[PDF Generator] Could not generate buffer for return value:', e);
+        pdfUint8Array = new Uint8Array(0);
+      }
 
       // Return based on options
       if (options.returnBase64) {
         // Convert Uint8Array to base64 (browser-compatible)
-        const binaryString = Array.from(pdfUint8Array, byte => String.fromCharCode(byte)).join('');
+        const binaryString = ArrayFrom(pdfUint8Array, byte => String.fromCharCode(byte)).join('');
         const base64 = btoa(binaryString);
         return {
           success: true,
@@ -986,12 +999,36 @@ function generateQuoteHTML(
   data: QuoteData,
   totals: { subtotal: number; tax: number; total: number }
 ): string {
+  // 翻訳テンプレートの設定
+  const templates = JAPANESE_CONSTANTS.QUOTE_TEMPLATES;
+  const t = templates.ja; // 日本語テンプレートを使用
+
   const specs = data.specifications || {};
-  const processing = data.optionalProcessing || {};
+  let processing = data.optionalProcessing || {};
+
+  // デバッグ: optionalProcessing の内容を確認
+  console.log('[PDF HTML Generator] data.optionalProcessing:', data.optionalProcessing);
+  console.log('[PDF HTML Generator] processing before:', processing);
+
+  // ロールフィルム・スパウトパウチの場合、surfaceFinishがない場合はデフォルトで'光沢'を設定
+  // ただし、既にmatteが選択されている場合はmatteを優先
+  const isRollFilmOrSpout = specs.bagType === 'ロールフィルム' || specs.bagType === 'スパウトパウチ' ||
+                          (specs as any).productType === 'roll_film' || (specs as any).productType === 'spout_pouch';
+  if (isRollFilmOrSpout && !processing.surfaceFinish) {
+    processing = { ...processing, surfaceFinish: '光沢' };
+    console.log('[PDF HTML Generator] Set default surfaceFinish to 光沢 for roll_film/spout_pouch (no user selection)');
+  }
+
   const supplier = data.supplierInfo || JAPANESE_CONSTANTS.DEFAULT_SUPPLIER;
 
-  console.log('[PDF HTML Generator] specs:', specs);
-  console.log('[PDF HTML Generator] processing:', processing);
+  console.log('[PDF HTML Generator] specs FULL:', JSON.stringify(specs, null, 2));
+  console.log('[PDF HTML Generator] specs.notchShape:', specs.notchShape);
+  console.log('[PDF HTML Generator] specs.hanging:', specs.hanging);
+  console.log('[PDF HTML Generator] specs.hangingPosition:', specs.hangingPosition);
+  console.log('[PDF HTML Generator] specs.cornerR:', specs.cornerR);
+  console.log('[PDF HTML Generator] specs.machiPrinting:', specs.machiPrinting, 'type:', typeof specs.machiPrinting, 'truthy:', !!specs.machiPrinting);
+  console.log('[PDF HTML Generator] processing after:', processing);
+  console.log('[PDF HTML Generator] processing.surfaceFinish:', processing.surfaceFinish);
 
   // Format currency
   const formatYen = (amount: number) => `¥${amount.toLocaleString('ja-JP')}`;
@@ -1033,7 +1070,10 @@ function generateQuoteHTML(
 
   const remarks = data.remarks || defaultRemarks;
 
-  return `
+  // DEBUG: Verify template generation started
+  console.log('[PDF HTML Generator] === TEMPLATE GENERATION START ===');
+
+  const html = `
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1244,6 +1284,12 @@ function generateQuoteHTML(
 
     /* 50% width for equal columns */
     .column-half {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 100% width for full width columns */
+    .column-full {
       flex: 1;
       min-width: 0;
     }
@@ -1644,9 +1690,46 @@ function generateQuoteHTML(
           <td>${specs.thicknessType || '指定なし'}</td>
         </tr>
         <tr>
+          <td class="spec-label">表面処理</td>
+          <td>${processing.surfaceFinish || '指定なし'}</td>
+        </tr>
+        ${specs.rollFilmSpecs || specs.bagType === 'ロールフィルム' ? `
+        <tr>
+          <td class="spec-label">シール幅</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">封入方向</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">ノッチ形状</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">ノッチ位置</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">吊り下げ加工</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">吊り下げ位置</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">チャック位置</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td class="spec-label">角加工</td>
+          <td>-</td>
+        </tr>` : `
+        <tr>
           <td class="spec-label">シール幅</td>
           <td>${specs.sealWidth || '指定なし'}</td>
-        </tr>
+        </tr>${(specs.machiPrinting && specs.machiPrinting !== 'なし') ? `<tr><td class="spec-label">マチ印刷</td><td>${specs.machiPrinting}</td></tr>` : ''}
         <tr>
           <td class="spec-label">封入方向</td>
           <td>${specs.sealDirection || '指定なし'}</td>
@@ -1674,7 +1757,29 @@ function generateQuoteHTML(
         <tr>
           <td class="spec-label">角加工</td>
           <td>${specs.cornerR || '-'}</td>
+        </tr>`}
+        ${specs.spoutPosition ? `
+        <tr>
+          <td class="spec-label">スパウト位置</td>
+          <td>${specs.spoutPosition}</td>
+        </tr>` : ''}
+        ${specs.rollFilmSpecs ? `
+        <tr>
+          <td class="spec-label">原反幅</td>
+          <td>${specs.rollFilmSpecs.materialWidth ? `${specs.rollFilmSpecs.materialWidth}mm` : '-'}</td>
         </tr>
+        <tr>
+          <td class="spec-label">ピッチ</td>
+          <td>${specs.rollFilmSpecs.pitch ? `${specs.rollFilmSpecs.pitch}mm` : '-'}</td>
+        </tr>
+        <tr>
+          <td class="spec-label">総長さ</td>
+          <td>${specs.rollFilmSpecs.totalLength ? `${specs.rollFilmSpecs.totalLength.toLocaleString('ja-JP')}m` : '-'}</td>
+        </tr>
+        <tr>
+          <td class="spec-label">ロール数</td>
+          <td>${specs.rollFilmSpecs.rollCount ? `${specs.rollFilmSpecs.rollCount}本` : '-'}</td>
+        </tr>` : ''}
       </table>
     </div>
 
@@ -1697,7 +1802,7 @@ function generateQuoteHTML(
             ? data.skuData!.items.map((sku, index) => `
               <tr>
                 <td class="col-no">${index + 1}</td>
-                <td class="col-sku">SKU ${sku.skuNumber}${sku.designName ? `<br><span style="font-size: 7pt;">${sku.designName}</span>` : ''}</td>
+                <td class="col-sku">SKU ${sku.skuNumber}</td>
                 <td class="col-qty">${sku.quantity.toLocaleString('ja-JP')}</td>
                 <td class="col-unit">${formatYen(sku.unitPrice)}</td>
                 <td class="col-disc">¥0</td>
@@ -1726,81 +1831,41 @@ function generateQuoteHTML(
     </div>
   </div>
 
-  ${hasSKUData ? `
-  <!-- SKU Summary Section -->
-  <div class="section" style="margin-top: 3mm;">
-    <div style="border: 1px solid #000; padding: 3mm; background-color: #f8f9fa;">
-      <div style="font-size: 10pt; font-weight: bold; margin-bottom: 2mm; border-bottom: 1px solid #000; padding-bottom: 1mm;">
-        SKU構成: ${data.skuData!.count}種類
-      </div>
-      ${data.skuData!.items.map(sku => `
-        <div style="display: flex; justify-content: space-between; padding: 1.5mm 0; border-bottom: 1px solid #ddd; font-size: 9pt;">
-          <span style="font-weight: 500;">SKU ${sku.skuNumber}${sku.designName ? `: ${sku.designName}` : ''}</span>
-          <span>${sku.quantity.toLocaleString('ja-JP')}個 × ${formatYen(sku.unitPrice)} = ${formatYen(sku.totalPrice)}</span>
-        </div>
-      `).join('')}
-      <div style="display: flex; justify-content: space-between; padding: 2mm 0 0 0; margin-top: 1mm; border-top: 1px solid #000; font-weight: bold; font-size: 10pt;">
-        <span>総数量</span>
-        <span>${totalQuantity.toLocaleString('ja-JP')}個</span>
-      </div>
-    </div>
-  </div>
-  ` : ''}
-
-  <!-- Row 2: Processing (35%) + Remarks (65%) -->
+  <!-- Row 2: Remarks (100%) -->
   <div class="two-column-row">
-    <!-- Left: Processing Table -->
-    <div class="column-35">
-      <div class="section-title">オプション加工</div>
-      <table class="processing-table">
-        <thead>
-          <tr>
-            <td class="th">加工内容</td>
-            <td class="th">有無</td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="processing-label">チャック</td>
-            <td class="processing-value">${processing.zipper ? '〇' : '-'}</td>
-          </tr>
-          <tr>
-            <td class="processing-label">ノッチ</td>
-            <td class="processing-value">${processing.notch ? '〇' : '-'}</td>
-          </tr>
-          <tr>
-            <td class="processing-label">吊り下げ穴</td>
-            <td class="processing-value">${processing.hangingHole ? '〇' : '-'}</td>
-          </tr>
-          <tr>
-            <td class="processing-label">角加工</td>
-            <td class="processing-value">${processing.cornerProcessing ? '〇' : '-'}</td>
-          </tr>
-          <tr>
-            <td class="processing-label">ガス抜きバルブ</td>
-            <td class="processing-value">${processing.gasValve ? '〇' : '-'}</td>
-          </tr>
-          <tr>
-            <td class="processing-label">Easy Cut</td>
-            <td class="processing-value">${processing.easyCut ? '〇' : '-'}</td>
-          </tr>
-          <tr>
-            <td class="processing-label">型抜き</td>
-            <td class="processing-value">${processing.dieCut ? '〇' : '-'}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Right: Remarks (wide) -->
-    <div class="column-65">
+    <div class="column-full">
       <div class="section-title">備考</div>
       <div class="remarks-content">${remarks}</div>
     </div>
   </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <!-- フッターテキスト削除 -->
+  </div>
 </body>
 </html>
   `.trim();
+
+  // DEBUG: Verify we reached this point
+  console.log('[PDF HTML Generator] === VERIFICATION CODE START ===');
+
+  // DEBUG: Verify machi printing is in the generated HTML
+  const hasMachiPrintingRow = html.includes('マチ印刷');
+  console.log('[PDF HTML Generator] machiPrinting value:', specs.machiPrinting, 'type:', typeof specs.machiPrinting);
+  console.log('[PDF HTML Generator] Machi printing row in HTML:', hasMachiPrintingRow);
+  if (!hasMachiPrintingRow && specs.machiPrinting && specs.machiPrinting !== 'なし') {
+    console.error('[PDF HTML Generator] ERROR: machiPrinting is truthy but not in HTML!');
+    // Log the specifications table section for debugging
+    const specsTableStart = html.indexOf('<table class="spec-table">');
+    const specsTableEnd = html.indexOf('</table>', specsTableStart) + '</table>'.length;
+    if (specsTableStart >= 0 && specsTableEnd > specsTableStart) {
+      const specsTable = html.substring(specsTableStart, specsTableEnd);
+      console.log('[PDF HTML Generator] Specifications table HTML:', specsTable);
+    }
+  }
+
+  return html;
 }
 
 // ============================================================
@@ -2264,10 +2329,30 @@ function generateInvoiceHTML(
 
   <!-- Footer -->
   <div class="footer">
-    <p>この請求書はコンピュータで作成されたため署名・押印は不要です。</p>
+    <!-- フッターテキスト削除 -->
   </div>
 </body>
 </html>
   `.trim();
+
+  // DEBUG: Verify we reached this point
+  console.log('[PDF HTML Generator] === VERIFICATION CODE START ===');
+
+  // DEBUG: Verify machi printing is in the generated HTML
+  const hasMachiPrintingRow = html.includes('マチ印刷');
+  console.log('[PDF HTML Generator] machiPrinting value:', specs.machiPrinting, 'type:', typeof specs.machiPrinting);
+  console.log('[PDF HTML Generator] Machi printing row in HTML:', hasMachiPrintingRow);
+  if (!hasMachiPrintingRow && specs.machiPrinting && specs.machiPrinting !== 'なし') {
+    console.error('[PDF HTML Generator] ERROR: machiPrinting is truthy but not in HTML!');
+    // Log the specifications table section for debugging
+    const specsTableStart = html.indexOf('<table class="spec-table">');
+    const specsTableEnd = html.indexOf('</table>', specsTableStart) + '</table>'.length;
+    if (specsTableStart >= 0 && specsTableEnd > specsTableStart) {
+      const specsTable = html.substring(specsTableStart, specsTableEnd);
+      console.log('[PDF HTML Generator] Specifications table HTML:', specsTable);
+    }
+  }
+
+  return html;
 }
 

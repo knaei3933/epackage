@@ -119,7 +119,8 @@ export type NotificationType =
   | 'quote_ready'
   | 'production_update'
   | 'document_ready'
-  | 'delivery_scheduled';
+  | 'delivery_scheduled'
+  | 'modification_requested';
 
 export interface CustomerNotification {
   id: string;
@@ -501,6 +502,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, { ja: string; ic
   production_update: { ja: '製造更新', icon: 'cog' },
   document_ready: { ja: 'ドキュメント準備完了', icon: 'file' },
   delivery_scheduled: { ja: '配達予定', icon: 'calendar' },
+  modification_requested: { ja: '修正承認待ち', icon: 'alert-circle' },
 };
 
 // =====================================================

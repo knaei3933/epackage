@@ -1,4 +1,5 @@
-export type Language = 'ja' | 'en'
+// Japanese-only configuration - Language support removed
+export type Language = 'ja'
 
 export interface TranslationKeys {
   // Navigation
@@ -158,41 +159,28 @@ export type TranslationKey = keyof TranslationKeys
 
 export const defaultLanguage: Language = 'ja'
 
-export const supportedLanguages: Language[] = ['ja', 'en'] // Remove Korean support
+export const supportedLanguages: Language[] = ['ja']
 
 export const languageNames: Record<Language, string> = {
   ja: '日本語',
-  en: 'English',
 }
 
-// Language detection utilities
+// Language detection utilities - Japanese only
 export const getBrowserLanguage = (): Language => {
-  if (typeof window === 'undefined') return defaultLanguage
-
-  // Always prioritize Japanese for this market-specific application
-  const browserLang = navigator.language.toLowerCase()
-
-  if (browserLang.startsWith('ja')) return 'ja'
-  if (browserLang.startsWith('en')) return 'en'
-
-  return defaultLanguage // Japanese for all other languages
+  return 'ja'
 }
 
 export const getStoredLanguage = (): Language => {
-  if (typeof window === 'undefined') return defaultLanguage
+  if (typeof window === 'undefined') return 'ja'
 
   try {
     const stored = localStorage.getItem('epackage-language')
-    // If Korean is stored, force it to Japanese
-    if (stored === 'ko') return 'ja'
-    if (stored && supportedLanguages.includes(stored as Language)) {
-      return stored as Language
-    }
+    if (stored === 'ja') return 'ja'
   } catch (error) {
     console.warn('Failed to get stored language:', error)
   }
 
-  return defaultLanguage
+  return 'ja'
 }
 
 export const storeLanguage = (language: Language): void => {

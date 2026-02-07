@@ -7,8 +7,7 @@
  * @server
  */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { getServerClient } from '@/lib/supabase'
 import type { Quotation, Order, QuotationItem, OrderItem, Database, Address } from '@/types/database'
 
 // ============================================================
@@ -44,7 +43,7 @@ export function isAddress(value: unknown): value is Address {
 export async function getQuotationById(
   id: string
 ): Promise<Quotation | null> {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = getServerClient()
 
   const { data, error } = await supabase
     .from('quotations')
@@ -99,7 +98,7 @@ export async function getQuotationsForUser(options: {
   limit?: number
 }): Promise<{ quotations: Quotation[]; total: number }> {
   const { userId, status, page = 1, limit = 10 } = options
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = getServerClient()
 
   let query = supabase
     .from('quotations')
@@ -135,7 +134,7 @@ export async function getQuotationsForUser(options: {
  * Get order by ID with items
  */
 export async function getOrderById(id: string): Promise<Order | null> {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = getServerClient()
 
   const { data, error } = await supabase
     .from('orders')
@@ -197,7 +196,7 @@ export async function getOrdersForUser(options: {
   limit?: number
 }): Promise<{ orders: Order[]; total: number }> {
   const { userId, status, page = 1, limit = 10 } = options
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = getServerClient()
 
   let query = supabase
     .from('orders')
@@ -234,7 +233,7 @@ export async function getOrdersByStatus(options: {
   limit?: number
 }): Promise<{ orders: Order[]; total: number }> {
   const { status, page = 1, limit = 10 } = options
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = getServerClient()
 
   const from = (page - 1) * limit
   const to = from + limit - 1

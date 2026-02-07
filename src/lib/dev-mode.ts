@@ -41,98 +41,19 @@ const DEV_MOCK_USER_ID_COOKIE = 'dev_mock_user_id';
 // =====================================================
 
 /**
- * SECURE: Server-side only environment variable for development mode
- * Uses ENABLE_DEV_MOCK_AUTH (without NEXT_PUBLIC_ prefix) to prevent client exposure
- *
- * SECURITY: This prevents accidental dev mode activation in production
- * ENHANCED: Now includes environment validation to block production activation
+ * DEVELOPMENT MODE IS PERMANENTLY DISABLED
+ * Dev Mode is no longer supported - always returns false
  */
-const SECURE_DEV_MODE_ENABLED =
-  process.env.NODE_ENV === 'development' &&
-  process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+const SECURE_DEV_MODE_ENABLED = false;
 
 /**
- * Production safety check - validates environment configuration
+ * DEVELOPMENT MODE IS PERMANENTLY DISABLED.
+ * This function always returns false.
  *
- * SECURITY: Enhanced validation that actually throws in production builds
- * when dev mode is attempted to be enabled
- */
-if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
-  // Server-side: CRITICAL ERROR in production
-  if (typeof window === 'undefined') {
-    // Import dynamically to avoid circular dependency
-    try {
-      // Direct check here for immediate safety
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const isProductionEnv =
-        appUrl.includes('prod') ||
-        appUrl.includes('production') ||
-        (!appUrl.includes('localhost') && !appUrl.includes('127.0.0.1'));
-
-      if (isProductionEnv) {
-        throw new Error(
-          'CRITICAL SECURITY ERROR: Dev mode (ENABLE_DEV_MOCK_AUTH) is enabled in PRODUCTION environment.\n' +
-          'This is a security vulnerability. Immediately disable ENABLE_DEV_MOCK_AUTH.\n' +
-          `Current NODE_ENV: ${process.env.NODE_ENV}\n` +
-          `Current APP_URL: ${appUrl}`
-        );
-      }
-    } catch (error) {
-      // Re-throw security errors
-      if (error instanceof Error && error.message.includes('CRITICAL')) {
-        throw error;
-      }
-    }
-  }
-}
-
-/**
- * Production safety check - warns if dev mode is enabled in production build
- *
- * SECURITY: This check warns during build but allows local development builds
- * Actual production safety is enforced at runtime via isDevMode() checks
- */
-if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
-  // Only warn, don't throw - this allows local dev builds with production mode
-  if (typeof window === 'undefined') {
-    // Server-side build: warn but don't fail (allows next build)
-    console.warn(
-      '⚠️ WARNING: Dev mode (ENABLE_DEV_MOCK_AUTH) is enabled during PRODUCTION build.\n' +
-      'This is fine for local development testing, but should NOT be deployed to actual production.\n' +
-      'Make sure ENABLE_DEV_MOCK_AUTH is NOT set in your production environment.'
-    );
-  }
-}
-
-/**
- * Checks if the application is running in SECURE development mode
- *
- * Development mode is ONLY enabled when:
- * 1. NODE_ENV === 'development'
- * 2. ENABLE_DEV_MOCK_AUTH === 'true' (server-side env var, not client-exposed)
- *
- * SECURITY: This prevents:
- * - Client-side manipulation of dev mode
- * - Accidental dev mode activation in production
- * - Information leakage through client-side env vars
- *
- * @returns {boolean} True if SECURE development mode is active
- *
- * @example
- * ```typescript
- * if (isDevMode()) {
- *   console.log('Secure development mode detected');
- * }
- * ```
+ * @returns {boolean} Always returns false (Dev Mode disabled)
  */
 export function isDevMode(): boolean {
-  // Server-side: check secure env var
-  if (typeof window === 'undefined') {
-    return SECURE_DEV_MODE_ENABLED;
-  }
-
-  // Client-side: NEVER enable dev mode (security)
-  // Dev mode is only for server-side API routes, not client components
+  // Dev Mode is permanently disabled
   return false;
 }
 
@@ -578,12 +499,11 @@ export function devOnly(callback: () => void): void {
 // =====================================================
 
 /**
- * SECURE: Development mode constant
- * Uses server-side only environment variable
+ * DEVELOPMENT MODE IS PERMANENTLY DISABLED
  *
- * @deprecated Use isDevMode() function instead for better consistency
+ * @deprecated Dev Mode is no longer supported
  */
-export const DEV_MODE = SECURE_DEV_MODE_ENABLED;
+export const DEV_MODE = false;
 
 // =====================================================
 // Mock Data Generators for Business Entities
@@ -979,3 +899,158 @@ export function getMockUserProfiles(count: number = 5): Profile[] {
 
   return profiles;
 }
+
+// =====================================================
+// 統合システム用DEV_MODE拡張
+// =====================================================
+
+/**
+ * ダッシュボード用DEV_MODEチェック
+ */
+export function isDashboardDevMode(): boolean {
+  return isDevMode();
+}
+
+/**
+ * DEV_MODE用統合通知モックデータ生成
+ */
+export function createMockUnifiedNotification(type: string): Notification {
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+
+  return {
+    id: `mock-notif-${Date.now()}`,
+    recipient_id: 'dev-mock-user',
+    recipient_type: 'member',
+    type,
+    title: 'お知らせ',
+    message: `テスト通知\n${dateStr}\nこれはテスト通知です。\nこの通知は、あなたの製品に最適なパッケージソリューション`,
+    priority: 'normal' as const,
+    metadata: {},
+    is_read: false,
+    created_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * DEV_MODE用統合ダッシュボード統計データ生成
+ */
+export function createMockDashboardStats(
+  userRole: 'ADMIN' | 'MEMBER',
+  period: number
+): UnifiedDashboardStats {
+  if (userRole === 'ADMIN') {
+    return {
+      totalOrders: Math.floor(Math.random() * 100) + 50,
+      pendingOrders: Math.floor(Math.random() * 20) + 5,
+      totalRevenue: Math.floor(Math.random() * 1000000) + 500000,
+      activeUsers: Math.floor(Math.random() * 50) + 10,
+      period,
+      ordersByStatus: [
+        { status: 'PENDING', count: Math.floor(Math.random() * 10) + 1 },
+        { status: 'PRODUCTION', count: Math.floor(Math.random() * 20) + 5 },
+        { status: 'SHIPPED', count: Math.floor(Math.random() * 15) + 3 },
+      ],
+      quotations: {
+        total: Math.floor(Math.random() * 50) + 20,
+        approved: Math.floor(Math.random() * 30) + 10,
+        conversionRate: Math.floor(Math.random() * 30) + 50,
+      },
+      samples: {
+        total: Math.floor(Math.random() * 30) + 10,
+        processing: Math.floor(Math.random() * 10) + 2,
+      },
+      production: {
+        avgDays: Math.floor(Math.random() * 10) + 5,
+        completed: Math.floor(Math.random() * 100) + 50,
+      },
+      shipments: {
+        today: Math.floor(Math.random() * 20) + 5,
+        inTransit: Math.floor(Math.random() * 30) + 10,
+      },
+      activeProduction: Math.floor(Math.random() * 15) + 3,
+      todayShipments: Math.floor(Math.random() * 10) + 2,
+    };
+  } else {
+    return {
+      totalOrders: Math.floor(Math.random() * 10) + 1,
+      pendingOrders: Math.floor(Math.random() * 5) + 1,
+      totalRevenue: 0,
+      activeUsers: 0,
+      period,
+      pendingQuotations: Math.floor(Math.random() * 5) + 1,
+      samples: {
+        total: Math.floor(Math.random() * 20) + 5,
+        processing: Math.floor(Math.random() * 5) + 1,
+      },
+      contracts: {
+        pending: Math.floor(Math.random() * 3) + 1,
+        signed: Math.floor(Math.random() * 5) + 1,
+        total: Math.floor(Math.random() * 10) + 2,
+      },
+    };
+  }
+}
+
+/**
+ * 統合通知用の型定義
+ */
+export interface Notification {
+  id: string;
+  recipient_id: string;
+  recipient_type: 'member' | 'admin';
+  type: string;
+  title: string;
+  message: string;
+  related_id?: string;
+  related_type?: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  metadata: Record<string, any>;
+  is_read: boolean;
+  read_at?: string;
+  action_url?: string;
+  action_label?: string;
+  expires_at?: string;
+  created_at: string;
+}
+
+/**
+ * 統合ダッシュボード統計型定義
+ */
+export interface UnifiedDashboardStats {
+  totalOrders: number;
+  pendingOrders: number;
+  totalRevenue: number;
+  activeUsers: number;
+  period?: number;
+  ordersByStatus?: Array<{ status: string; count: number }>;
+  recentOrders?: any[];
+  pendingQuotations?: number;
+  quotations?: {
+    total: number;
+    approved: number;
+    conversionRate: number;
+  };
+  samples?: {
+    total: number;
+    processing: number;
+  };
+  activeProduction?: number;
+  production?: {
+    avgDays: number;
+    completed: number;
+  };
+  todayShipments?: number;
+  shipments?: {
+    today: number;
+    inTransit: number;
+  };
+  contracts?: {
+    pending: number;
+    signed: number;
+    total: number;
+  };
+  announcements?: any[];
+  notifications?: Notification[];
+}
+

@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase-browser';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 

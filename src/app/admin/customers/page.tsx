@@ -13,38 +13,28 @@
  */
 
 import React from 'react';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { OrderSummaryCard } from '@/components/shared';
 import { formatDate } from '@/types/portal';
 import { cn } from '@/lib/utils';
+import { createServiceClient } from '@/lib/supabase';
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
 
 async function getDashboardData() {
-  const cookieStore = await cookies();
+  // Use service client for admin pages (bypasses RLS)
+  const supabase = createServiceClient();
 
-  // Fetch dashboard data from API (authentication is handled by the API)
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/member/dashboard`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        // Forward auth cookie
-        Cookie: cookieStore
-          .getAll()
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; '),
-      },
-      cache: 'no-store',
-    }
-  );
+  // Fetch orders for statistics
+  const { data: orders, error: ordersError } = await supabase
+    .from('orders')
+    .select('id, order_number, status, total_amount, estimated_delivery_date, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Dashboard API error:', response.status, errorText);
-    // Return empty dashboard data instead of null to allow page to render with empty state
+  if (ordersError) {
+    console.error('Orders fetch error:', ordersError);
     return {
       stats: {
         total_orders: 0,
@@ -58,8 +48,38 @@ async function getDashboardData() {
     };
   }
 
-  const result = await response.json();
-  return result.data;
+  // Calculate stats
+  const stats = {
+    total_orders: orders?.length || 0,
+    pending_orders: orders?.filter(o => o.status === 'PENDING').length || 0,
+    in_production_orders: orders?.filter(o => o.status === 'PRODUCTION' || o.status === 'PROCESSING').length || 0,
+    shipped_orders: orders?.filter(o => o.status === 'SHIPPED' || o.status === 'DELIVERED').length || 0,
+    unread_notifications: 0, // TODO: Fetch from notifications table
+  };
+
+  // Get recent orders
+  const recent_orders = orders?.slice(0, 6) || [];
+
+  // Get upcoming deliveries (orders with estimated_delivery_date in future)
+  const now = new Date();
+  const upcoming_deliveries = orders
+    ?.filter(o => o.estimated_delivery_date && new Date(o.estimated_delivery_date) > now)
+    .map(o => ({
+      order_id: o.id,
+      order_number: o.order_number,
+      estimated_delivery_date: o.estimated_delivery_date,
+      days_until_delivery: Math.ceil(
+        (new Date(o.estimated_delivery_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      ),
+    }))
+    .sort((a, b) => a.days_until_delivery - b.days_until_delivery)
+    .slice(0, 5) || [];
+
+  return {
+    stats,
+    recent_orders,
+    upcoming_deliveries,
+  };
 }
 
 export default async function CustomerPortalDashboardPage() {

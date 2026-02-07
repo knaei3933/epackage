@@ -28,6 +28,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+// Ensure server-side only execution
+if (typeof window !== 'undefined') {
+  throw new Error('[createAuthenticatedServiceClient] This module can only be used on the server side');
+}
+
 export interface ServiceRoleContext {
   operation: string;
   userId?: string;

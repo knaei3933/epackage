@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { supabase } from '@/lib/supabase';
+import { getServerClient } from '@/lib/supabase';
 
 export async function PATCH(
   request: NextRequest,
@@ -15,6 +15,7 @@ export async function PATCH(
   try {
     const user = await requireAuth();
     const notificationId = params.id;
+    const supabase = getServerClient();
 
     // Update notification as read
     const { error } = await supabase

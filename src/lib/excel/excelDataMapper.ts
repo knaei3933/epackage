@@ -98,9 +98,9 @@ export const DEFAULT_SUPPLIER: SupplierInfo = {
   description: 'オーダーメイドバッグ印刷専門',
   companyName: '金井貿易株式会社',
   postalCode: '〒673-0846',
-  address: '兵庫県明石市上ノ丸2-11-21-102',
-  phone: 'TEL: 080-6942-7235',
-  email: 'info@epackage-lab.com'
+  address: '兵庫県明石市上ノ丸2-11-21',
+  phone: 'TEL: 050-1793-6500',
+  email: 'info@package-lab.com'
 }
 
 /**
@@ -175,6 +175,12 @@ export async function mapDatabaseQuotationToExcel(
   // Extract processing options
   const options = extractProcessingOptions(dbQuotationItems)
 
+  // Get raw postProcessingOptions for detailed display
+  const specs = typeof firstItem?.specifications === 'string'
+    ? JSON.parse(firstItem.specifications)
+    : firstItem?.specifications || {}
+  const rawPostProcessingOptions = specs.postProcessingOptions || specs.postProcessing || []
+
   return {
     metadata: {
       quotationNumber: dbQuotation.quotation_number,
@@ -192,6 +198,7 @@ export async function mapDatabaseQuotationToExcel(
     orders,
     orderSummary,
     options,
+    rawPostProcessingOptions,
     watermark: {
       text: '申101入',
       position: 'center',
@@ -209,32 +216,230 @@ export async function mapDatabaseQuotationToExcel(
 
 /**
  * Extract product specifications from JSON
+ * Handles both pouch types (stand_pouch, flat_pouch, gusset, gassho) and roll_film
+ * For roll_film: pouch-only fields are set to null/empty
  */
 function extractProductSpecifications(
   specsJson: unknown
 ): ProductSpecifications {
   const specs = typeof specsJson === 'string' ? JSON.parse(specsJson) : specsJson || {}
 
-  return {
+  // Determine product type: roll_film or pouch type
+  // Roll film can be identified by:
+  // 1. Explicit productType/bagType = 'roll_film' or 'ロールフィルム'
+  // 2. Dimensions containing both "幅" and "ピッチ" (width and pitch)
+  // 3. Dimensions with "mm" but no "×" (roll film format vs pouch format like "130×130")
+  const productType = specs.bagType || specs.productType || 'stand_pouch'
+  const dimensions = specs.dimensions || specs.size || ''
+
+  const isRollFilm =
+    productType === 'roll_film' ||
+    productType === 'ロールフィルム' ||
+    (dimensions.includes('幅') && dimensions.includes('ピッチ')) ||
+    (dimensions.includes('mm') && !dimensions.includes('×'))
+
+  // Debug logging for roll film detection
+  if (isRollFilm) {
+    console.log('[extractProductSpecifications] Detected roll_film product')
+    console.log('  - productType:', productType)
+    console.log('  - dimensions:', dimensions)
+  }
+
+  // Extract surface finish from postProcessing options
+  // Check both field names: postProcessing and postProcessingOptions
+  const postProcessing = specs.postProcessing || specs.postProcessingOptions || []
+  const finishOption = postProcessing.find((opt: string) => opt === 'glossy' || opt === 'matte')
+  const surfaceFinish = finishOption === 'glossy' ? '光沢仕上げ' : finishOption === 'matte' ? 'マット仕上げ' : '光沢仕上げ'
+
+  // Debug logging for surface finish
+  if (finishOption) {
+    console.log('[extractProductSpecifications] Surface finish:', finishOption, '->', surfaceFinish)
+  }
+
+  // 製品カテゴリーと内容物タイプの日本語ラベルマッピング
+  const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+    'food': '食品',
+    'health_supplement': '健康食品',
+    'cosmetic': '化粧品',
+    'quasi_drug': '医薬部外品',
+    'drug': '医薬品',
+    'other': 'その他'
+  }
+
+  const CONTENTS_TYPE_LABELS: Record<string, string> = {
+    'solid': '固体',
+    'powder': '粉体',
+    'liquid': '液体'
+  }
+
+  // 主成分の日本語ラベルマッピング
+  const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+    'general_neutral': '一般/中性',
+    'oil_surfactant': 'オイル/界面活性剤',
+    'acidic_salty': '酸性/塩分',
+    'volatile_fragrance': '揮発性/香料',
+    'other': 'その他'
+  }
+
+  // 流通環境の日本語ラベルマッピング
+  const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+    'general_roomTemp': '一般/常温',
+    'light_oxygen_sensitive': '光/酸素敏感',
+    'refrigerated': '冷凍保管',
+    'high_temp_sterilized': '高温殺菌',
+    'other': 'その他'
+  }
+
+  // contentsフィールドを生成: 4つのフィールド（productCategory, contentsType, mainIngredient, distributionEnvironment）から
+  // 優先順位: specs.contents (既存データ) > 4つのフィールドを組み合わせ
+  let contents = specs.contents || ''
+  if (!contents) {
+    const categoryLabel = PRODUCT_CATEGORY_LABELS[specs.productCategory || ''] || ''
+    const typeLabel = CONTENTS_TYPE_LABELS[specs.contentsType || ''] || ''
+    const ingredientLabel = MAIN_INGREDIENT_LABELS[specs.mainIngredient || ''] || ''
+    const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[specs.distributionEnvironment || ''] || ''
+
+    // 4つのフィールドすべてがある場合は「 / 」で結合
+    if (categoryLabel && typeLabel && ingredientLabel && environmentLabel) {
+      contents = `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
+    } else if (categoryLabel && typeLabel) {
+      // 後方互換性: productCategoryとcontentsTypeのみの場合
+      contents = `${categoryLabel}（${typeLabel}）`
+    } else if (categoryLabel) {
+      contents = categoryLabel
+    } else if (typeLabel) {
+      contents = typeLabel
+    }
+  }
+
+  // Base specifications that apply to all product types
+  const baseSpecs: ProductSpecifications = {
     specNumber: specs.specNumber || 'L',
-    pouchType: specs.pouchType || 'スタンドパウチ',
-    pouchTypeEn: specs.pouchTypeEn || 'Stand Pouch',
-    contents: specs.contents || '',
-    size: specs.size || '',
+    pouchType: isRollFilm ? 'ロールフィルム' : (specs.pouchType || 'スタンドパウチ'),
+    pouchTypeEn: isRollFilm ? 'Roll Film' : (specs.pouchTypeEn || 'Stand Pouch'),
+    productType: isRollFilm ? 'roll_film' : productType,
+    contents,
+    size: specs.size || specs.dimensions || '',
     material: specs.material || '',
+    surfaceFinish: surfaceFinish
+  }
+
+  // For roll_film: pouch-only fields should be null/empty
+  // Extract roll film specific fields from specs
+  if (isRollFilm) {
+    console.log('[extractProductSpecifications] Returning roll_film specs with productType:', baseSpecs.productType)
+    console.log('  - materialWidth:', specs.materialWidth)
+    console.log('  - totalLength:', specs.totalLength)
+    console.log('  - rollCount:', specs.rollCount)
+    console.log('  - pitch:', specs.pitch)
+
+    return {
+      ...baseSpecs,
+      // Pouch-only fields set to empty
+      sealWidth: '',
+      fillDirection: '',
+      notchShape: '',
+      notchPosition: '',
+      hangingHole: false,
+      hangingPosition: '',
+      ziplockPosition: '',
+      cornerRadius: '',
+      // Roll film specific fields
+      materialWidth: specs.materialWidth,
+      totalLength: specs.totalLength,
+      rollCount: specs.rollCount,
+      pitch: specs.pitch,
+      filmLayers: specs.filmLayers
+    }
+  }
+
+  // For pouch types: include all pouch-specific fields
+  // Extract notch shape and hanging hole info from postProcessingOptions
+  // Support both field names: postProcessing (old) and postProcessingOptions (new)
+  // postProcessing variable is already declared above (line 250)
+
+  console.log('[extractProductSpecifications] specs.postProcessing:', specs.postProcessing)
+  console.log('[extractProductSpecifications] specs.postProcessingOptions:', specs.postProcessingOptions)
+  console.log('[extractProductSpecifications] Combined postProcessing:', postProcessing)
+
+  // Extract values from postProcessing options
+  let notchShape = ''
+  let hanging = 'なし'  // PDF用: "あり" or "なし"
+  let hangingHole = false  // OptionalProcessing用: boolean
+  let hangingPosition = ''
+
+  // Extract notch from postProcessing
+  for (const option of postProcessing) {
+    if (option === 'notch-yes') {
+      notchShape = 'Vノッチ'
+      break
+    } else if (option === 'notch-straight') {
+      notchShape = '直線ノッチ'
+      break
+    } else if (option === 'notch-no') {
+      notchShape = 'ノッチなし'
+      break
+    }
+  }
+
+  // Extract hanging hole from postProcessing
+  for (const option of postProcessing) {
+    if (option === 'hang-hole-6mm') {
+      hanging = 'あり'
+      hangingHole = true
+      hangingPosition = '6mm'
+      console.log('[extractProductSpecifications] Found hang-hole-6mm in postProcessing')
+      break
+    } else if (option === 'hang-hole-8mm') {
+      hanging = 'あり'
+      hangingHole = true
+      hangingPosition = '8mm'
+      console.log('[extractProductSpecifications] Found hang-hole-8mm in postProcessing')
+      break
+    } else if (option === 'hang-hole-no') {
+      hanging = 'なし'
+      hangingHole = false
+      hangingPosition = ''
+      console.log('[extractProductSpecifications] Found hang-hole-no in postProcessing')
+      break
+    }
+  }
+
+  console.log('[extractProductSpecifications] Pouch specs - notchShape:', notchShape, 'hanging:', hanging, 'hangingPosition:', hangingPosition)
+
+  // Extract corner radius from postProcessing
+  let cornerRadius = '';
+  for (const option of postProcessing) {
+    if (option === 'corner-round') {
+      cornerRadius = 'R5';
+      break;
+    } else if (option === 'corner-square') {
+      cornerRadius = 'R0';
+      break;
+    }
+  }
+  console.log('[extractProductSpecifications] Extracted cornerRadius from postProcessing:', cornerRadius);
+
+  return {
+    ...baseSpecs,
     sealWidth: specs.sealWidth || '',
     fillDirection: specs.fillDirection || '上',
-    notchShape: specs.notchShape || '',
-    notchPosition: specs.notchPosition || '指定位置',
-    hangingHole: specs.hangingHole || false,
-    hangingPosition: specs.hangingPosition || '指定位置',
+    notchShape,
+    notchPosition: (specs.notchPosition || (notchShape ? '指定位置' : '')),
+    hanging,  // PDF用: "あり" or "なし"
+    hangingHole,  // OptionalProcessing用: boolean
+    hangingPosition,  // PDF用: "6mm", "8mm", or empty
     ziplockPosition: specs.ziplockPosition || '指定位置',
-    cornerRadius: specs.cornerRadius || ''
+    cornerRadius  // postProcessingOptionsから抽出した値を使用
   }
 }
 
 /**
  * Extract processing options from quotation items
+ * Maps postProcessingOptions array to OptionalProcessing format
+ * postProcessingOptions contains IDs like: 'zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', etc.
+ *
+ * Note: Database field can be either 'postProcessing' or 'postProcessingOptions'
  */
 function extractProcessingOptions(
   items: Database['public']['Tables']['quotation_items']['Row'][]
@@ -257,10 +462,61 @@ function extractProcessingOptions(
     ? JSON.parse(firstItem.specifications)
     : firstItem.specifications
 
-  // Extract processing option IDs
-  const processingOptions = specs.processingOptions || []
+  // Extract postProcessingOptions array (check both field names for compatibility)
+  // Database may use 'postProcessingOptions' or 'postProcessing'
+  const postProcessingOptions = specs.postProcessingOptions || specs.postProcessing || []
 
-  return mapProcessingOptionsToExcel(processingOptions)
+  // Debug logging
+  console.log('[extractProcessingOptions] postProcessingOptions:', JSON.stringify(postProcessingOptions))
+
+  // Map postProcessingOptions IDs to OptionalProcessing
+  const result: OptionalProcessing = {
+    ziplock: false,
+    notch: false,
+    hangingHole: false,
+    cornerRound: false,
+    gasVent: false,
+    easyCut: false,
+    embossing: false
+  }
+
+  // Check each option in postProcessingOptions array
+  // Only set to true if the option is explicitly selected (e.g., 'zipper-yes', 'notch-yes')
+  // Options ending with '-no' should remain false (default)
+  console.log('[extractProcessingOptions] Processing all options:', postProcessingOptions)
+
+  for (const optionId of postProcessingOptions) {
+    console.log('[extractProcessingOptions] Processing option:', optionId)
+
+    if (optionId === 'zipper-yes') {
+      result.ziplock = true
+      console.log('[extractProcessingOptions] -> ziplock = true')
+    } else if (optionId === 'notch-yes' || optionId === 'notch-straight') {
+      // Vノッチ or 直線ノッチ
+      result.notch = true
+      console.log('[extractProcessingOptions] -> notch = true (option:', optionId, ')')
+    } else if (optionId === 'hang-hole-6mm' || optionId === 'hang-hole-8mm') {
+      // hang-hole-6mm or hang-hole-8mm means hanging hole exists
+      result.hangingHole = true
+      console.log('[extractProcessingOptions] -> hangingHole = true (option:', optionId, ')')
+    } else if (optionId === 'corner-round') {
+      result.cornerRound = true
+      console.log('[extractProcessingOptions] -> cornerRound = true')
+    } else if (optionId === 'valve-yes') {
+      // valve-yes means gas valve exists
+      result.gasVent = true
+      console.log('[extractProcessingOptions] -> gasVent = true')
+    } else if (optionId === 'tear-notch') {
+      result.easyCut = true
+      console.log('[extractProcessingOptions] -> easyCut = true')
+    } else if (optionId === 'die-cut-window') {
+      result.embossing = true
+      console.log('[extractProcessingOptions] -> embossing = true')
+    }
+  }
+
+  console.log('[extractProcessingOptions] Final result:', JSON.stringify(result))
+  return result
 }
 
 /**
@@ -387,71 +643,112 @@ export function generateCellMappings(
   })
 
   // Product specifications
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.SPEC_NUMBER,
-    value: `仕様番号: ${data.specifications.specNumber}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.POUCH_TYPE,
-    value: `袋タイプ: ${data.specifications.pouchType}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.CONTENTS,
-    value: `内容物: ${data.specifications.contents}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.SIZE,
-    value: `サイズ: ${data.specifications.size}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.MATERIAL,
-    value: `素材: ${data.specifications.material}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.SEAL_WIDTH,
-    value: `シール幅: ${data.specifications.sealWidth}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.FILL_DIRECTION,
-    value: `封入方向: ${data.specifications.fillDirection}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.NOTCH_SHAPE,
-    value: `ノッチ形状: ${data.specifications.notchShape}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.NOTCH_POSITION,
-    value: `ノッチ位置: ${data.specifications.notchPosition}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.HANGING_HOLE,
-    value: `吊り下げ加工: ${data.specifications.hangingHole ? 'あり' : 'なし'}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.HANGING_POSITION,
-    value: `吊り下げ位置: ${data.specifications.hangingPosition}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.ZIPLOCK_POSITION,
-    value: `チャック位置: ${data.specifications.ziplockPosition}`
-  })
-  mappings.push({
-    sheet,
-    cell: QUOTATION_CELL_LOCATIONS.CORNER_RADIUS,
-    value: `角加工: ${data.specifications.cornerRadius}`
-  })
+  // Only add mappings for fields that have values (skip empty strings)
+  // This prevents pouch-only fields from showing for roll film products
+  if (data.specifications.specNumber) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.SPEC_NUMBER,
+      value: `仕様番号: ${data.specifications.specNumber}`
+    })
+  }
+
+  if (data.specifications.pouchType) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.POUCH_TYPE,
+      value: `袋タイプ: ${data.specifications.pouchType}`
+    })
+  }
+
+  if (data.specifications.contents) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.CONTENTS,
+      value: `内容物: ${data.specifications.contents}`
+    })
+  }
+
+  if (data.specifications.size) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.SIZE,
+      value: `サイズ: ${data.specifications.size}`
+    })
+  }
+
+  if (data.specifications.material) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.MATERIAL,
+      value: `素材: ${data.specifications.material}`
+    })
+  }
+
+  // Pouch-only fields (should be empty for roll film)
+  if (data.specifications.sealWidth) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.SEAL_WIDTH,
+      value: `シール幅: ${data.specifications.sealWidth}`
+    })
+  }
+
+  if (data.specifications.fillDirection) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.FILL_DIRECTION,
+      value: `封入方向: ${data.specifications.fillDirection}`
+    })
+  }
+
+  if (data.specifications.notchShape) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.NOTCH_SHAPE,
+      value: `ノッチ形状: ${data.specifications.notchShape}`
+    })
+  }
+
+  if (data.specifications.notchPosition) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.NOTCH_POSITION,
+      value: `ノッチ位置: ${data.specifications.notchPosition}`
+    })
+  }
+
+  if (data.specifications.hangingHole !== undefined && data.specifications.hangingHole !== null) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.HANGING_HOLE,
+      value: `吊り下げ加工: ${data.specifications.hangingHole ? 'あり' : 'なし'}`
+    })
+  }
+
+  if (data.specifications.hangingPosition) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.HANGING_POSITION,
+      value: `吊り下げ位置: ${data.specifications.hangingPosition}`
+    })
+  }
+
+  if (data.specifications.ziplockPosition) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.ZIPLOCK_POSITION,
+      value: `チャック位置: ${data.specifications.ziplockPosition}`
+    })
+  }
+
+  if (data.specifications.cornerRadius) {
+    mappings.push({
+      sheet,
+      cell: QUOTATION_CELL_LOCATIONS.CORNER_RADIUS,
+      value: `角加工: ${data.specifications.cornerRadius}`
+    })
+  }
 
   // Order table data
   const startRow = parseInt(QUOTATION_CELL_LOCATIONS.ORDER_DATA_START.match(/\d+/)?.[0] || '15')
@@ -513,7 +810,7 @@ export function generateCellMappings(
   })
 
   // Processing options
-  const optionsForDisplay = formatProcessingOptionsForDisplay(data.options)
+  const optionsForDisplay = formatProcessingOptionsForDisplay(data.options, data.rawPostProcessingOptions)
   const optionStartRow = parseInt(QUOTATION_CELL_LOCATIONS.OPTIONS_DATA_START.match(/\d+/)?.[0] || '33')
   optionsForDisplay.forEach((option, index) => {
     const row = optionStartRow + index
