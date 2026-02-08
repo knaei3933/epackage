@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import MultiQuantityComparisonTable from '../MultiQuantityComparisonTable'
+import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable'
 import type { QuantityComparison } from '@/types/multi-quantity'
 
 // Extend Jest matchers

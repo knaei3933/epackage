@@ -5,7 +5,7 @@
  */
 
 import { render, screen, waitFor } from '@testing-library/react';
-import { BankInfoCard } from '../BankInfoCard';
+import { BankInfoCard } from '../shared/BankInfoCard';
 
 // Mock fetch
 global.fetch = jest.fn();

@@ -1,9 +1,9 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { EnhancedPostProcessingPreview } from '../EnhancedPostProcessingPreview'
-import { BeforeAfterPreview } from '../BeforeAfterPreview'
-import { ProcessingPreviewTrigger } from '../ProcessingPreviewTrigger'
+import { EnhancedPostProcessingPreview } from '../previews/EnhancedPostProcessingPreview'
+import { BeforeAfterPreview } from '../previews/BeforeAfterPreview'
+import { ProcessingPreviewTrigger } from '../previews/ProcessingPreviewTrigger'
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({

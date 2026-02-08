@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import QuantityEfficiencyChart from '../QuantityEfficiencyChart'
+import QuantityEfficiencyChart from '../shared/QuantityEfficiencyChart'
 import type { QuantityComparison } from '@/types/multi-quantity'
 
 // Extend Jest matchers

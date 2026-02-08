@@ -14,16 +14,16 @@ import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
 import { generateQuotePDF, QuoteData } from '@/lib/pdf-generator';
 import { safeMap } from '@/lib/array-helpers';
-import MultiQuantityComparisonTable from '../MultiQuantityComparisonTable';
-import { ParallelProductionOptions } from '..';
+import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
+import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
 import { RefreshCw, Download } from 'lucide-react';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
-import CostBreakdownPanel from '../CostBreakdownPanel';
+import CostBreakdownPanel from '../shared/CostBreakdownPanel';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
-import type { ParallelProductionOption } from '..';
+import type { ParallelProductionOption } from '../shared';
 
 interface ResultStepProps {
   result: UnifiedQuoteResult;

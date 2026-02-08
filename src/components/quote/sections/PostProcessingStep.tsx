@@ -8,7 +8,7 @@
 import React from 'react';
 import { Settings, Check, AlertCircle, Info } from 'lucide-react';
 import { useQuote, useQuoteState, createStepSummary, getPostProcessingLimitStatusForState } from '@/contexts/QuoteContext';
-import { getDefaultPostProcessingOptions, calculatePostProcessingMultiplier } from '../processingConfig';
+import { getDefaultPostProcessingOptions, calculatePostProcessingMultiplier } from '../shared/processingConfig';
 
 export interface PostProcessingOption {
   id: string;
