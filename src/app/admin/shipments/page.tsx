@@ -61,7 +61,7 @@ export default function ShipmentsPage() {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
 
   // Fetch shipments

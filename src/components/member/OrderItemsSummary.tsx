@@ -12,9 +12,9 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { ChevronDown, ChevronUp, Package, Building2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Package, Building2, Tag, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Order } from '@/types/dashboard';
+import type { Order, AppliedCoupon } from '@/types/dashboard';
 
 // =====================================================
 // Types
@@ -23,6 +23,7 @@ import type { Order } from '@/types/dashboard';
 interface OrderItemsSummaryProps {
   order: Order;
   quotationId?: string;
+  onCouponApplied?: (updatedOrder: Order) => void;
 }
 
 interface BankInfo {
@@ -270,9 +271,16 @@ function OrderItemRow({ item }: OrderItemRowProps) {
 // Main Component
 // =====================================================
 
-export function OrderItemsSummary({ order, quotationId }: OrderItemsSummaryProps) {
+export function OrderItemsSummary({ order, quotationId, onCouponApplied }: OrderItemsSummaryProps) {
   // 은행 정보 상태
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
+
+  // クーポン関連の状態
+  const [couponCode, setCouponCode] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
 
   // 은행 정보 가져오기
   useEffect(() => {
@@ -299,10 +307,70 @@ export function OrderItemsSummary({ order, quotationId }: OrderItemsSummaryProps
     fetchBankInfo();
   }, [quotationId]);
 
+  // 既に適用されたクーポンがある場合は表示
+  useEffect(() => {
+    if (order.appliedCoupon) {
+      setAppliedCoupon(order.appliedCoupon);
+      setDiscountAmount(order.discountAmount || 0);
+    }
+  }, [order]);
+
+  // クーポン適用ハンドラー
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('クーポンコードを入力してください');
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+
+    try {
+      const response = await fetch(`/api/member/orders/${order.id}/apply-coupon`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ couponCode: couponCode.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAppliedCoupon(data.coupon);
+        setDiscountAmount(data.discountAmount);
+        setCouponCode('');
+
+        // 親コンポーネントに更新を通知
+        if (onCouponApplied) {
+          const updatedOrder = {
+            ...order,
+            couponId: data.coupon.id,
+            discountAmount: data.discountAmount,
+            discountType: data.coupon.type,
+            appliedCoupon: data.coupon,
+            totalAmount: data.discountedTotal,
+          };
+          onCouponApplied(updatedOrder);
+        }
+      } else {
+        setCouponError(data.error || 'クーポンの適用に失敗しました');
+      }
+    } catch (err) {
+      console.error('Error applying coupon:', err);
+      setCouponError('エラーが発生しました。もう一度お試しください');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
   // camelCaseとsnake_caseの両方に対応
   const subtotal = getOrderValue(order, 'subtotal', 'subtotal');
   const taxAmount = getOrderValue(order, 'taxAmount', 'tax_amount');
   const totalAmount = getOrderValue(order, 'totalAmount', 'total_amount');
+  const originalTotal = subtotal ? subtotal + (taxAmount || 0) : totalAmount;
+  const finalTotal = discountAmount > 0 ? originalTotal - discountAmount : totalAmount;
 
   return (
     <Card className="p-6">
@@ -341,13 +409,100 @@ export function OrderItemsSummary({ order, quotationId }: OrderItemsSummaryProps
             </span>
           </div>
         )}
+        {discountAmount > 0 && (
+          <div className="flex items-center justify-between text-sm text-green-600">
+            <span className="flex items-center gap-1">
+              <Tag className="w-4 h-4" />
+              クーポン割引
+            </span>
+            <span className="font-medium">
+              -{formatNumber(discountAmount)}円
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between text-lg font-semibold pt-2 border-t border-border-secondary">
           <span className="text-text-primary">合計</span>
           <span className="text-text-primary">
-            {formatNumber(totalAmount)}円
+            {formatNumber(finalTotal)}円
           </span>
         </div>
       </div>
+
+      {/* クーポンセクション */}
+      {!appliedCoupon && ['PENDING', 'QUOTATION', 'DATA_RECEIVED'].includes(order.status) && (
+        <div className="mt-4 pt-4 border-t border-border-secondary">
+          <div className="flex items-center gap-2 mb-3">
+            <Tag className="w-4 h-4 text-text-muted" />
+            <h3 className="text-sm font-semibold text-text-primary">クーポンコード</h3>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => {
+                setCouponCode(e.target.value.toUpperCase());
+                setCouponError(null);
+              }}
+              placeholder="クーポンコードを入力"
+              className={cn(
+                "flex-1 px-3 py-2 text-sm border rounded-md",
+                "focus:outline-none focus:ring-2 focus:ring-primary",
+                couponError && "border-red-500"
+              )}
+              disabled={isApplyingCoupon}
+            />
+            <button
+              onClick={handleApplyCoupon}
+              disabled={isApplyingCoupon || !couponCode.trim()}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md",
+                "bg-primary text-white",
+                "hover:bg-primary/90",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                "transition-colors"
+              )}
+            >
+              {isApplyingCoupon ? '適用中...' : '適用'}
+            </button>
+          </div>
+          {couponError && (
+            <p className="mt-2 text-sm text-red-600">{couponError}</p>
+          )}
+        </div>
+      )}
+
+      {/* 適用済みクーポン表示 */}
+      {appliedCoupon && (
+        <div className="mt-4 pt-4 border-t border-border-secondary">
+          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-900">
+                  {appliedCoupon.name}
+                </p>
+                <p className="text-xs text-green-700">
+                  {appliedCoupon.type === 'percentage'
+                    ? `${appliedCoupon.value}%割引`
+                    : appliedCoupon.type === 'fixed_amount'
+                    ? `${formatNumber(appliedCoupon.value)}円引き`
+                    : '送料無料'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setAppliedCoupon(null);
+                setDiscountAmount(0);
+              }}
+              className="p-1 text-green-600 hover:bg-green-100 rounded"
+              title="クーポンを削除"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 振込先銀行口座 - コンパクト版 */}
       {bankInfo && (

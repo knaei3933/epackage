@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { User, LogOut, Settings, FileText, ChevronDown } from 'lucide-react'
+import { User, LogOut, Settings, FileText, ChevronDown, Shield } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 
@@ -34,14 +34,29 @@ export function UserMenu() {
     ? `${user.kanjiLastName || profile?.kanji_last_name || ''} ${user.kanjiFirstName || profile?.kanji_first_name || ''}`.trim()
     : user.email?.charAt(0).toUpperCase() || 'U';
 
-  const menuItems = [
-    { icon: User, label: 'マイページ', href: '/member/dashboard' },
+  // Determine menu items based on user role
+  const isAdmin = profile?.role === 'ADMIN'
+
+  const baseMenuItems = [
     { icon: User, label: 'プロフィール', href: '/member/profile' },
     { icon: FileText, label: '見積もり履歴', href: '/member/quotations' },
     { icon: Settings, label: '設定', href: '/member/settings' },
     { divider: true },
     { icon: LogOut, label: 'ログアウト', onClick: signOut },
   ]
+
+  const adminMenuItems = [
+    { icon: Shield, label: '管理者マイページ', href: '/admin/dashboard' },
+    { icon: User, label: 'メンバーマイページ', href: '/member/dashboard' },
+    ...baseMenuItems,
+  ]
+
+  const memberMenuItems = [
+    { icon: User, label: 'マイページ', href: '/member/dashboard' },
+    ...baseMenuItems,
+  ]
+
+  const menuItems = isAdmin ? adminMenuItems : memberMenuItems
 
   return (
     <div ref={menuRef} className="relative">

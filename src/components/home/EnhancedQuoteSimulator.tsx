@@ -31,7 +31,8 @@ import {
   X,
   Send,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Tag
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -39,8 +40,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { CurrencyBadge } from '@/components/ui/Badge'
-import { PostProcessingPreview } from '@/components/quote/PostProcessingPreview'
-import { DataTemplateGuide } from '@/components/quote/DataTemplateGuide'
+import { PostProcessingPreview } from '@/components/quote/previews/PostProcessingPreview'
+import { DataTemplateGuide } from '@/components/quote/shared/DataTemplateGuide'
 import Link from 'next/link'
 
 // Form validation schema
@@ -54,6 +55,15 @@ const quoteSchema = z.object({
 })
 
 type QuoteFormData = z.infer<typeof quoteSchema>
+
+interface AppliedCoupon {
+  code: string
+  name: string
+  nameJa: string | null
+  type: 'percentage' | 'fixed_amount' | 'free_shipping'
+  value: number
+  discountAmount: number
+}
 
 interface EnhancedPriceResult {
   unitPrice: number
@@ -74,6 +84,11 @@ interface EnhancedPriceResult {
   }
   recommendations: string[]
   postProcessingOptions: string[]
+  appliedCoupon: AppliedCoupon | null
+  subtotal: number
+  discountAmount: number
+  taxAmount: number
+  finalTotal: number
 }
 
 interface MaterialOption {
@@ -219,6 +234,12 @@ export function EnhancedQuoteSimulator() {
   const [selectedPostProcessing, setSelectedPostProcessing] = useState<string[]>([])
   const [postProcessingMultiplier, setPostProcessingMultiplier] = useState(1.0)
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null)
+  const [couponError, setCouponError] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+
   // React Hook Form for contact info
   const {
     register,
@@ -236,6 +257,42 @@ export function EnhancedQuoteSimulator() {
       consent: false
     }
   })
+
+  // Update price when coupon is applied
+  useEffect(() => {
+    if (priceResult && appliedCoupon) {
+      const TAX_RATE = 0.1 // 10% Japanese consumption tax
+      const discountAmount = appliedCoupon.discountAmount
+      const subtotal = priceResult.totalCost
+      const discountedSubtotal = subtotal - discountAmount
+      const taxAmount = discountedSubtotal * TAX_RATE
+      const finalTotal = discountedSubtotal + taxAmount
+
+      setPriceResult(prev => prev ? {
+        ...prev,
+        appliedCoupon,
+        subtotal,
+        discountAmount,
+        taxAmount: Math.round(taxAmount),
+        finalTotal: Math.round(finalTotal)
+      } : null)
+    } else if (priceResult && !appliedCoupon) {
+      // Reset to original pricing when coupon is removed
+      const TAX_RATE = 0.1
+      const subtotal = priceResult.totalCost
+      const taxAmount = subtotal * TAX_RATE
+      const finalTotal = subtotal + taxAmount
+
+      setPriceResult(prev => prev ? {
+        ...prev,
+        appliedCoupon: null,
+        subtotal,
+        discountAmount: 0,
+        taxAmount: Math.round(taxAmount),
+        finalTotal: Math.round(finalTotal)
+      } : null)
+    }
+  }, [appliedCoupon])
 
   const calculateEnhancedPrice = async () => {
     setIsCalculating(true)
@@ -312,7 +369,12 @@ export function EnhancedQuoteSimulator() {
         efficiency: efficiency + Math.round(savingsRate * 0.2)
       },
       recommendations,
-      postProcessingOptions: selectedPostProcessing
+      postProcessingOptions: selectedPostProcessing,
+      appliedCoupon: null,
+      subtotal: Math.round(totalCost),
+      discountAmount: 0,
+      taxAmount: 0,
+      finalTotal: Math.round(totalCost)
     }
 
     setPriceResult(result)
@@ -348,8 +410,67 @@ export function EnhancedQuoteSimulator() {
     setPriceResult(null)
     setSelectedPostProcessing([])
     setPostProcessingMultiplier(1.0)
+    setCouponCode('')
+    setAppliedCoupon(null)
+    setCouponError('')
     setCurrentStep(1)
     resetForm()
+  }
+
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('クーポンコードを入力してください')
+      return
+    }
+
+    if (!priceResult) {
+      setCouponError('先に見積もりを計算してください')
+      return
+    }
+
+    setCouponLoading(true)
+    setCouponError('')
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          orderAmount: priceResult.totalCost
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success && result.valid) {
+        const coupon: AppliedCoupon = {
+          code: result.data.code,
+          name: result.data.name,
+          nameJa: result.data.nameJa,
+          type: result.data.type,
+          value: result.data.value,
+          discountAmount: result.data.discountAmount
+        }
+        setAppliedCoupon(coupon)
+        setCouponError('')
+      } else {
+        setCouponError(result.error || 'クーポンの適用に失敗しました')
+        setAppliedCoupon(null)
+      }
+    } catch (error) {
+      console.error('Coupon validation error:', error)
+      setCouponError('クーポン検証中にエラーが発生しました')
+      setAppliedCoupon(null)
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
   }
 
   const onSubmitContact = async (data: QuoteFormData) => {
@@ -380,7 +501,19 @@ export function EnhancedQuoteSimulator() {
             totalPrice: priceResult?.totalPrice || 0,
             totalCost: priceResult?.totalCost || 0,
             setupCost: priceResult?.setupCost || 0,
+            subtotal: priceResult?.subtotal || priceResult?.totalCost || 0,
+            discountAmount: priceResult?.discountAmount || 0,
+            taxAmount: priceResult?.taxAmount || 0,
+            finalTotal: priceResult?.finalTotal || priceResult?.totalCost || 0,
           },
+          appliedCoupon: appliedCoupon ? {
+            code: appliedCoupon.code,
+            name: appliedCoupon.name,
+            nameJa: appliedCoupon.nameJa,
+            type: appliedCoupon.type,
+            value: appliedCoupon.value,
+            discountAmount: appliedCoupon.discountAmount,
+          } : null,
         }),
       })
 
@@ -948,17 +1081,83 @@ export function EnhancedQuoteSimulator() {
                   </CardHeader>
 
                   <CardContent>
+                    {/* Coupon Input Section */}
+                    {!appliedCoupon && (
+                      <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <Tag className="w-5 h-5 text-brixa-600 mr-2" />
+                          クーポンコード
+                        </h3>
+                        <div className="flex gap-3">
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            placeholder="クーポンコードを入力（例: WELCOME5）"
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                            data-testid="coupon-code-input"
+                            onKeyPress={(e) => e.key === 'Enter' && validateCoupon()}
+                            disabled={couponLoading}
+                          />
+                          <button
+                            onClick={validateCoupon}
+                            disabled={couponLoading || !couponCode.trim()}
+                            className="px-6 py-3 bg-brixa-600 text-white rounded-lg hover:bg-brixa-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            data-testid="apply-coupon-button"
+                          >
+                            {couponLoading ? '適用中...' : '適用'}
+                          </button>
+                        </div>
+                        {couponError && (
+                          <p className="text-red-500 text-sm mt-2 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {couponError}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Applied Coupon Display */}
+                    {appliedCoupon && (
+                      <div className="mb-8 p-6 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {appliedCoupon.nameJa || appliedCoupon.name}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {appliedCoupon.type === 'percentage' && `${appliedCoupon.value}%割引`}
+                                {appliedCoupon.type === 'fixed_amount' && `¥${appliedCoupon.value.toLocaleString()}割引`}
+                                {appliedCoupon.type === 'free_shipping' && '送料無料'}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={removeCoupon}
+                            className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            data-testid="remove-coupon-button"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Price Summary */}
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
-                      <Card className="p-6 bg-white border-gray-200">
+                      <Card className={`p-6 bg-white border-gray-200 ${appliedCoupon ? 'border-green-300' : ''}`}>
                         <div className="text-center">
                           <CurrencyBadge
-                            amount={priceResult.totalCost}
+                            amount={priceResult.finalTotal || priceResult.totalCost}
                             currency="JPY"
                             size="lg"
                             className="justify-center mb-2"
                           />
-                          <p className="text-sm text-gray-600">総費用（税別）</p>
+                          <p className="text-sm text-gray-600">
+                            {appliedCoupon ? '割引後合計（税込）' : '総費用（税別）'}
+                          </p>
                         </div>
                       </Card>
                       <Card className="p-6 bg-white border-gray-200">
@@ -969,13 +1168,17 @@ export function EnhancedQuoteSimulator() {
                           <p className="text-sm text-gray-600">単価（1枚あたり）</p>
                         </div>
                       </Card>
-                      <Card className="p-6 bg-white border-gray-200">
+                      <Card className={`p-6 bg-white border-gray-200 ${appliedCoupon ? 'border-green-300' : ''}`}>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600 mb-2">
-                            ¥{priceResult.savings.toLocaleString()}
+                          <div className={`text-2xl font-bold ${appliedCoupon ? 'text-green-600' : 'text-gray-900'} mb-2`}>
+                            ¥{(appliedCoupon ? priceResult.discountAmount : priceResult.savings).toLocaleString()}
                           </div>
-                          <p className="text-sm text-gray-600">節約額</p>
-                          <p className="text-xs text-green-600">({priceResult.savingsRate}%)</p>
+                          <p className="text-sm text-gray-600">
+                            {appliedCoupon ? 'クーポン割引額' : '節約額'}
+                          </p>
+                          {!appliedCoupon && (
+                            <p className="text-xs text-green-600">({priceResult.savingsRate}%)</p>
+                          )}
                         </div>
                       </Card>
                       <Card className="p-6 bg-white border-gray-200">
@@ -987,6 +1190,35 @@ export function EnhancedQuoteSimulator() {
                         </div>
                       </Card>
                     </div>
+
+                    {/* Detailed Price Breakdown (when coupon applied) */}
+                    {appliedCoupon && (
+                      <div className="mb-8 p-6 bg-white rounded-lg border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">料金内訳</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-gray-600">小計</span>
+                            <span className="font-semibold">¥{priceResult.subtotal.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-gray-600">クーポン割引</span>
+                            <span className="font-semibold text-green-600">
+                              -¥{priceResult.discountAmount.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-gray-600">消費税（10%）</span>
+                            <span className="font-semibold">¥{priceResult.taxAmount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 text-lg">
+                            <span className="font-semibold text-gray-900">合計</span>
+                            <span className="font-bold text-brixa-600">
+                              ¥{priceResult.finalTotal.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* ROI Analysis */}
                     <div className="bg-white p-6 rounded-lg border border-gray-200 mb-8">

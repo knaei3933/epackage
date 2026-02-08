@@ -93,7 +93,7 @@ const designStandards = [
   },
   {
     category: 'カラーモファイル',
-    items: ['CMYKカラープロファイル', 'DICカラー対応', 'スポットカラー', '透明度設定'],
+    items: ['CMYKカラープロファイル', 'PANTONEカラー対応', 'スポットカラー', '透明度設定'],
     icon: BookOpen,
   },
   {

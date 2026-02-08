@@ -44,7 +44,7 @@ export default function ImageGuide() {
       'Adobe Illustrator',
       'Adobe Photoshop',
       '画像データ',
-      'DICカラーガイド'
+      'PANTONEカラーガイド'
     ],
     steps: [
       {

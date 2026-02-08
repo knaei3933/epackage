@@ -18,7 +18,6 @@ import { Download } from 'lucide-react';
 import type { Quotation, QuotationStatus } from '@/types/dashboard';
 import { supabase } from '@/lib/supabase-browser';
 import { translateBagType, translateMaterialType } from '@/constants/enToJa';
-import Link from 'next/link';
 import { Eye, Trash2, FileText } from 'lucide-react';
 import { safeMap } from '@/lib/array-helpers';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
@@ -770,12 +769,16 @@ export default function QuotationsClient({ initialData, initialStatus, currentPa
                             {/* 注文済み인 경우: 注文詳細 링크 표시, 未注文인 경우: 미표시 */}
                             {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
                               item.orderId ? (
-                                <Link
+                                <a
                                   href={`/member/orders/${item.orderId}`}
-                                  className="text-xs text-primary hover:underline"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    window.location.href = `/member/orders/${item.orderId}`;
+                                  }}
+                                  className="text-xs text-primary hover:underline cursor-pointer"
                                 >
                                   注文を確認
-                                </Link>
+                                </a>
                               ) : (
                                 <span className="text-xs text-text-muted">注文詳細で確認</span>
                               )
@@ -831,12 +834,19 @@ export default function QuotationsClient({ initialData, initialStatus, currentPa
                   </div>
                   <div className="flex flex-col gap-2.5">
                     {/* View Detail Button - Always visible */}
-                    <Link href={`/member/quotations/${quotation.id}`} className="block">
+                    <a
+                      href={`/member/quotations/${quotation.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = `/member/quotations/${quotation.id}`;
+                      }}
+                      className="block"
+                    >
                       <Button variant="secondary" size="sm" className="w-full group/btn">
                         <Eye className="w-4 h-4 mr-1.5 transition-transform group-hover/btn:scale-110" />
                         詳細を見る
                       </Button>
-                    </Link>
+                    </a>
 
                     {/* PDF Download Button - Always visible */}
                     <Button

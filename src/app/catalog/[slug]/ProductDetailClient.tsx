@@ -208,8 +208,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="p-4 text-center">
                     <Users className="w-8 h-8 text-navy-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">最低注文数量</p>
-                    <p className="text-lg font-bold text-gray-900">{product.min_order_quantity.toLocaleString()}個</p>
+                    <p className="text-sm text-gray-600">最小注文数</p>
+                    <p className="text-lg font-bold text-gray-900">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</p>
                   </Card>
                   <Card className="p-4 text-center">
                     <Clock className="w-8 h-8 text-brixa-600 mx-auto mb-2" />
@@ -410,9 +410,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                       </p>
                     </div>
                     <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-2">最低注文数</p>
+                      <p className="text-sm text-gray-600 mb-2">最小注文数</p>
                       <p className="text-2xl font-bold text-green-600">
-                        {product.min_order_quantity.toLocaleString()}個
+                        {product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}
                       </p>
                     </div>
                   </div>

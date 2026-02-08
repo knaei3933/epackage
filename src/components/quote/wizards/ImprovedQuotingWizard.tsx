@@ -1840,7 +1840,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
 
       // Prepare quotation data for saving
       // Prepare quotation data in the format expected by /api/member/quotations
-      const quotationData = {
+      const quotationData: any = {
         customer_name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
           ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
           : user.email?.split('@')[0] || 'Customer',
@@ -1858,6 +1858,16 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             : state.quantity,
           unitPrice: result.unitPrice,
           totalPrice: result.totalPrice,
+          appliedCoupon: appliedCoupon || null,
+        }),
+        // クーポン情報
+        ...(appliedCoupon && {
+          appliedCoupon: {
+            couponId: appliedCoupon.code, // API側でcouponテーブルからIDを取得
+            type: appliedCoupon.type,
+          },
+          discountAmount: appliedCoupon.discountAmount,
+          adjustedTotal: adjustedPrice,
         }),
         valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'draft',
@@ -2000,7 +2010,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
 
         // Prepare and save quotation first
         // Prepare quotation data in the format expected by /api/member/quotations
-        const quotationData = {
+        const quotationData: any = {
           customer_name: user.user_metadata?.kanji_last_name && user.user_metadata?.kanji_first_name
             ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
             : user.email?.split('@')[0] || 'Customer',
@@ -2018,6 +2028,16 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
               : state.quantity,
             unitPrice: result.unitPrice,
             totalPrice: result.totalPrice,
+            appliedCoupon: appliedCoupon || null,
+          }),
+          // クーポン情報
+          ...(appliedCoupon && {
+            appliedCoupon: {
+              couponId: appliedCoupon.code,
+              type: appliedCoupon.type,
+            },
+            discountAmount: appliedCoupon.discountAmount,
+            adjustedTotal: adjustedPrice,
           }),
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           status: 'draft',
@@ -2365,7 +2385,18 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             ? (state.skuQuantities.length === 1 ? state.skuQuantities[0] : state.skuQuantities.reduce((sum, qty) => sum + qty, 0))
             : state.quantity,
           unitPrice: result.unitPrice,
-          totalPrice: result.totalPrice,
+          totalPrice: adjustedPrice || result.totalPrice,  // クーポン適用後の価格を使用
+          originalPrice: result.totalPrice,  // 元の価格を保存
+          ...(appliedCoupon && {
+            appliedCoupon: {
+              code: appliedCoupon.code,
+              name: appliedCoupon.name,
+              nameJa: appliedCoupon.nameJa,
+              type: appliedCoupon.type,
+              value: appliedCoupon.value,
+              discountAmount: appliedCoupon.discountAmount
+            }
+          })
         }),
         valid_until: expiryDate.toISOString(),
         status: 'draft',
@@ -2610,8 +2641,36 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       // Call API to save quotation FIRST (before PDF generation)
       // This gives us the formal quoteNumber (QT20260206-XXXX)
       console.log('[handleDownloadPDF] Saving quotation to database first...');
-      const response = await fetch('/api/member/quotations', {
-        method: 'POST',
+
+      // Check if we have an existing quotation to update
+      const existingQuotationId = savedQuotationId;
+      let savedQuotation = null;
+      let existingRemarks = null;
+
+      if (existingQuotationId) {
+        // Fetch existing quotation to get current remarks
+        try {
+          const getResponse = await fetch(`/api/member/quotations/${existingQuotationId}`, {
+            credentials: 'include',
+          });
+          if (getResponse.ok) {
+            const getData = await getResponse.json();
+            existingRemarks = getData.quotation?.remarks || null;
+            console.log('[handleDownloadPDF] Found existing remarks:', existingRemarks);
+          }
+        } catch (e) {
+          console.warn('[handleDownloadPDF] Failed to fetch existing quotation:', e);
+        }
+      }
+
+      // Use PUT to update existing quotation, or POST to create new one
+      const apiUrl = existingQuotationId
+        ? `/api/member/quotations/${existingQuotationId}`
+        : '/api/member/quotations';
+      const method = existingQuotationId ? 'PUT' : 'POST';
+
+      const response = await fetch(apiUrl, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -2619,7 +2678,6 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         body: JSON.stringify(quotationData),
       });
 
-      let savedQuotation = null;
       let formalQuoteNumber = `QT-${Date.now()}`; // Fallback if save fails
 
       if (response.ok) {
@@ -2793,7 +2851,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         phone: user?.corporatePhone || user?.personalPhone || '',
         email: user?.email || '',
 
-        // Quote items
+        // Quote items (original items only - coupon applied separately via appliedCoupon field)
         items: quoteItems,
 
         // Specifications for PDF template
@@ -2821,6 +2879,38 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         deliveryDate: 'デザイン確定後、約 3〜4 週間',
         deliveryLocation: state.deliveryLocation === 'international' ? '日本国内指定場所' : '国内指定場所',
         validityPeriod: '発行日より 30 日間',
+
+        // Coupon information
+        ...(appliedCoupon && {
+          appliedCoupon: {
+            code: appliedCoupon.code,
+            name: appliedCoupon.name,
+            nameJa: appliedCoupon.nameJa,
+            type: appliedCoupon.type,
+            value: appliedCoupon.value,
+            discountAmount: appliedCoupon.discountAmount,
+          },
+          discountAmount: appliedCoupon.discountAmount,
+          adjustedTotal: adjustedPrice || result.totalPrice,
+        }),
+
+        // Remarks - use existing remarks if available, otherwise use default
+        // Add coupon info if applied
+        remarks: existingRemarks || `※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10%程度の過不足が生じる場合がございます。
+数量の完全保証はいたしかねますので、あらかじめご了承ください。
+※不足分につきましては、実際に納品した数量に基づきご請求いたします。
+前払いにてお支払いいただいた場合は、差額分を返金いたします。
+※原材料価格の変動等により、見積有効期限経過後は価格が変更となる場合がございます。
+再見積の際は、あらかじめご了承くださいますようお願いいたします。
+※本見積金額には郵送費を含んでおります。
+※お客様によるご確認の遅れ、その他やむを得ない事情により、納期が前後する場合がございます。
+※年末年始等の長期休暇期間を挟む場合、通常より納期が延びる可能性がございます。
+※天候不良、事故、交通事情等の影響により、やむを得ず納期が遅延する場合がございますので、あらかじめご了承ください。${appliedCoupon ? `
+
+---
+クーポンコード: ${appliedCoupon.code}
+${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : appliedCoupon.type === 'fixed_amount' ? `¥${appliedCoupon.value.toLocaleString()}` : '無料配送'}割引適用（-${appliedCoupon.discountAmount.toLocaleString()}円）
+合計: ¥${(adjustedPrice || result.totalPrice).toLocaleString()}` : ''}`,
       };
 
       // Generate PDF directly in browser (client-side)
@@ -2955,40 +3045,31 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         throw new Error(errorData.error || 'クーポン検証に失敗しました。');
       }
 
-      const data = await response.json();
+      const apiResponse = await response.json();
 
-      if (!data.valid) {
-        setCouponError(data.message || '無効なクーポンです。');
+      // APIレスポンス構造: { success: true, valid: true, data: { ... } }
+      if (!apiResponse.valid || !apiResponse.success) {
+        setCouponError(apiResponse.error || '無効なクーポンです。');
         return;
       }
 
-      // クーポン割引計算
-      const orderAmount = result.totalPrice;
-      let discountAmount = 0;
+      const couponData = apiResponse.data;
 
-      if (data.coupon.type === 'percentage') {
-        discountAmount = Math.round(orderAmount * (data.coupon.value / 100));
-        // 最大割引金額適用
-        if (data.coupon.maximum_discount_amount) {
-          discountAmount = Math.min(discountAmount, data.coupon.maximum_discount_amount);
-        }
-      } else if (data.coupon.type === 'fixed_amount') {
-        discountAmount = data.coupon.value;
-      } else if (data.coupon.type === 'free_shipping') {
-        discountAmount = result.breakdown.delivery;
-      }
+      // クーポン割引計算（APIから返されたdiscountAmountを使用）
+      const orderAmount = result.totalPrice;
+      const discountAmount = couponData.discountAmount;
 
       // 適用された価格計算
-      const newPrice = Math.max(0, orderAmount - discountAmount);
+      const newPrice = Math.max(0, couponData.finalAmount);
       setAdjustedPrice(newPrice);
 
       // クーポン情報保存
       setAppliedCoupon({
-        code: data.coupon.code,
-        name: data.coupon.name,
-        nameJa: data.coupon.name_ja || data.coupon.name,
-        type: data.coupon.type,
-        value: data.coupon.value,
+        code: couponData.code,
+        name: couponData.name,
+        nameJa: couponData.nameJa,
+        type: couponData.type,
+        value: couponData.value,
         discountAmount
       });
 

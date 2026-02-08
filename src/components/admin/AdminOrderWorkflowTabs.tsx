@@ -149,7 +149,7 @@ export function AdminOrderWorkflowTabs({
 
           {/* コメントセクションも表示 */}
           <Card className="p-6">
-            <OrderCommentsSectionWrapper orderId={orderId} fetchFn={adminFetch} />
+            <OrderCommentsSectionWrapper orderId={orderId} fetchFn={adminFetch} isAdmin={true} />
           </Card>
         </TabsContent>
       </Tabs>

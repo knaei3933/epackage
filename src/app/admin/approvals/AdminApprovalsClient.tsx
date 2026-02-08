@@ -121,17 +121,24 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
   // Fetch pending members on mount
   useEffect(() => {
     const fetchPendingMembers = async () => {
       try {
-        const response = await fetch('/api/admin/approve-member', {
+        const url = new URL('/api/admin/approve-member', window.location.origin);
+        url.searchParams.set('page', page.toString());
+        url.searchParams.set('page_size', pageSize.toString());
+        const response = await fetch(url.toString(), {
           credentials: 'include',
         });
         const data: FetchPendingMembersResponse = await response.json();
         if (data.success) {
           setPendingMembers(data.data || []);
+          setTotal(data.pagination?.total || 0);
         }
       } catch (error) {
         console.error('Failed to fetch pending members:', error);
@@ -140,7 +147,7 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
       }
     };
     fetchPendingMembers();
-  }, []);
+  }, [page]);
 
   // ============================================================
   // Action Handlers
@@ -256,7 +263,7 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
               会員承認待ち
             </h1>
             <p className="text-gray-500 mt-1">
-              {pendingMembers.length}件の承認待ちがあります
+              {total}件の承認待ちがあります
             </p>
           </div>
         </div>
@@ -484,6 +491,29 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {total > pageSize && (
+          <div className="flex justify-center items-center gap-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              前へ
+            </button>
+            <span className="text-sm text-gray-600">
+              {page} / {Math.ceil(total / pageSize)} ページ (全{total}件)
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
+              disabled={page >= Math.ceil(total / pageSize)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              次へ
+            </button>
           </div>
         )}
 

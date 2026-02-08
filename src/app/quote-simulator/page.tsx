@@ -15,7 +15,7 @@ import { HowToSchema } from '@/components/seo/StructuredData'
 
 // バンドル最適化: 重いコンポーネントを動的インポート
 const ImprovedQuotingWizard = dynamic(
-  () => import('@/components/quote/ImprovedQuotingWizard').then(mod => ({ default: mod.ImprovedQuotingWizard })),
+  () => import('@/components/quote/wizards/ImprovedQuotingWizard').then(mod => ({ default: mod.ImprovedQuotingWizard })),
   {
     loading: () => (
       <div className="flex items-center justify-center min-h-[400px]">

@@ -13,7 +13,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Badge, Button } from '@/components/ui';
 import { DetailedCostBreakdown } from '@/components/admin/quotation/DetailedCostBreakdown';
 import { adminFetch } from '@/lib/auth-client';
-import { Download } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
+import { EmailComposer } from '@/components/admin/EmailComposer';
+import type { Recipient } from '@/components/admin/EmailComposer';
 
 interface AuthContext {
   userId: string;
@@ -64,6 +66,12 @@ interface Quotation {
   items?: QuotationItem[];
   items_count?: number;
   pdf_url?: string | null;
+  // User profile information
+  company_name?: string;
+  corporate_phone?: string;
+  personal_phone?: string;
+  kanji_last_name?: string;
+  kanji_first_name?: string;
 }
 
 interface AdminQuotationsClientProps {
@@ -106,11 +114,16 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>(initialStatus);
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [emailComposerOpen, setEmailComposerOpen] = useState(false);
+  const [selectedCustomersForEmail, setSelectedCustomersForEmail] = useState<Recipient[]>([]);
 
   // Fetch quotations
   useEffect(() => {
     fetchQuotations();
-  }, [filterStatus]);
+  }, [filterStatus, page]);
 
   const fetchQuotations = async () => {
     setLoading(true);
@@ -119,6 +132,8 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
       if (filterStatus !== 'all') {
         url.searchParams.set('status', filterStatus);
       }
+      url.searchParams.set('page', page.toString());
+      url.searchParams.set('page_size', pageSize.toString());
 
       const response = await fetch(url.toString(), {
         credentials: 'include',
@@ -136,6 +151,7 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
           status: normalizeStatus(q.status),
         }));
         setQuotations(normalizedQuotations);
+        setTotal(result.pagination?.total || 0);
       } else {
         throw new Error(result.error || 'Failed to fetch quotations');
       }
@@ -150,6 +166,7 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
   // ステータスフィルター変更 - URLパラメータを更新
   const handleStatusChange = (newStatus: string) => {
     setFilterStatus(newStatus);
+    setPage(1); // Reset to page 1 when status changes
     const params = new URLSearchParams(searchParams.toString());
     if (newStatus === 'all') {
       params.delete('status');
@@ -203,8 +220,25 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
     }
   };
 
+  // Handle send email
+  const handleSendEmail = (quotation: Quotation) => {
+    if (!quotation.customer_email) {
+      alert('顧客のメールアドレスが登録されていません。');
+      return;
+    }
+
+    const recipient: Recipient = {
+      id: quotation.id,
+      email: quotation.customer_email,
+      name: quotation.company_name || quotation.customer_name,
+    };
+
+    setSelectedCustomersForEmail([recipient]);
+    setEmailComposerOpen(true);
+  };
+
   const stats = {
-    total: quotations.length,
+    total: total,
     draft: quotations.filter(q => q.status === 'DRAFT').length,
     sent: quotations.filter(q => q.status === 'SENT').length,
     approved: quotations.filter(q => q.status === 'APPROVED').length,
@@ -288,27 +322,46 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
                   quotations.map((quotation) => (
                     <div
                       key={quotation.id}
-                      onClick={() => setSelectedQuotation(quotation)}
-                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => setSelectedQuotation(quotation)}
+                        >
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-gray-900">{quotation.quotation_number}</p>
                             <Badge variant={STATUS_LABELS[quotation.status]?.variant || 'default'}>
                               {STATUS_LABELS[quotation.status]?.label || quotation.status}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">{quotation.customer_name}</p>
+                          <p className="text-sm text-gray-600 mt-1">{quotation.company_name || quotation.customer_name}</p>
                           <p className="text-xs text-gray-500 mt-1">{quotation.customer_email}</p>
+                          {(quotation.corporate_phone || quotation.personal_phone) && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              電話: {quotation.corporate_phone || quotation.personal_phone}
+                            </p>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-gray-900">
-                            ¥{quotation.subtotal_amount?.toLocaleString() || quotation.total_amount?.toLocaleString() || '0'}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(quotation.created_at).toLocaleDateString('ja-JP')}
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <p className="text-lg font-semibold text-gray-900">
+                              ¥{quotation.subtotal_amount?.toLocaleString() || quotation.total_amount?.toLocaleString() || '0'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(quotation.created_at).toLocaleDateString('ja-JP')}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSendEmail(quotation);
+                            }}
+                            className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"
+                            title="メール送信"
+                          >
+                            <Mail className="w-5 h-5" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -334,7 +387,41 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
             )}
           </div>
         </div>
+
+        {/* Pagination */}
+        {total > pageSize && (
+          <div className="flex justify-center items-center gap-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              前へ
+            </button>
+            <span className="text-sm text-gray-600">
+              {page} / {Math.ceil(total / pageSize)} ページ (全{total}件)
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
+              disabled={page >= Math.ceil(total / pageSize)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              次へ
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Email Composer */}
+      <EmailComposer
+        open={emailComposerOpen}
+        onOpenChange={setEmailComposerOpen}
+        recipients={selectedCustomersForEmail}
+        onSuccess={() => {
+          setEmailComposerOpen(false);
+          setSelectedCustomersForEmail([]);
+        }}
+      />
     </div>
   );
 }
@@ -525,13 +612,27 @@ function QuotationDetailPanel({
 
           {/* 顧客情報 */}
           <div>
-            <p className="text-xs text-gray-500">顧客名</p>
-            <p className="font-medium text-gray-900">{displayQuotation.customer_name}</p>
+            <p className="text-xs text-gray-500">会社名</p>
+            <p className="font-medium text-gray-900">{displayQuotation.company_name || displayQuotation.customer_name}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">担当者</p>
+            <p className="font-medium text-gray-900 text-sm">
+              {displayQuotation.kanji_last_name && displayQuotation.kanji_first_name
+                ? `${displayQuotation.kanji_last_name} ${displayQuotation.kanji_first_name}`
+                : displayQuotation.customer_name}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500">メールアドレス</p>
             <p className="font-medium text-gray-900 text-sm">{displayQuotation.customer_email}</p>
           </div>
+          {(displayQuotation.corporate_phone || displayQuotation.personal_phone) && (
+            <div>
+              <p className="text-xs text-gray-500">電話番号</p>
+              <p className="font-medium text-gray-900 text-sm">{displayQuotation.corporate_phone || displayQuotation.personal_phone}</p>
+            </div>
+          )}
 
           {/* 管理者メモ */}
           {displayQuotation.admin_notes && (

@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       recipientType = 'admin';
     }
 
-    const service = createNotificationService();
+    const service = await createNotificationService();
     const notifications = await service.getNotifications({
       recipientId: userId || 'dev-mock-user',
       recipientType,
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const service = createNotificationService();
+    const service = await createNotificationService();
     const notificationId = await service.createNotification(body);
 
     return NextResponse.json({ id: notificationId }, { status: 201 });

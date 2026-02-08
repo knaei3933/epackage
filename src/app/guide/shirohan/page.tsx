@@ -43,7 +43,7 @@ export default function ShirohanGuide() {
     supplies: [
       '印刷データ',
       '素材見本',
-      'DICカラーガイド',
+      'PANTONEカラーガイド',
       '仕様書'
     ],
     steps: [

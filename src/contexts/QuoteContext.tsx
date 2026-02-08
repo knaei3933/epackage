@@ -14,13 +14,13 @@ import {
   validatePostProcessingSelection,
   type PostProcessingLimitState,
   type PostProcessingValidationError
-} from '@/components/quote/postProcessingLimits';
-import type { ProcessingOptionConfig } from '@/components/quote/processingConfig';
+} from '@/components/quote/shared/postProcessingLimits';
+import type { ProcessingOptionConfig } from '@/components/quote/shared/processingConfig';
 import {
   processingOptionsConfig,
   getDefaultPostProcessingOptions,
   validateCategorySelection
-} from '@/components/quote/processingConfig';
+} from '@/components/quote/shared/processingConfig';
 import { getAvailableGussetSizes, getDefaultGussetSize, validateWidthStep } from '@/lib/gusset-data';
 
 // Quote state interface

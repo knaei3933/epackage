@@ -8,7 +8,6 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   Card,
   Button,
@@ -306,11 +305,17 @@ export default function MemberContractsPage() {
                 すべての契約書を表示・管理できます
               </p>
             </div>
-            <Link href="/member/dashboard">
+            <a
+              href="/member/dashboard"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = '/member/dashboard';
+              }}
+            >
               <Button variant="outline" size="sm">
                 ダッシュボードへ戻る
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </div>

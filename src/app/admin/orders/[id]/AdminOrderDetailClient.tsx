@@ -18,9 +18,10 @@ import { AdminOrderWorkflowTabs } from '@/components/admin/AdminOrderWorkflowTab
 import { OrderStatusBadge, OrderStatusTimeline } from '@/components/orders';
 import { OrderInfoAccordion, OrderItemsSummary, OrderAddressInfo } from '@/components/member';
 import { AdminOrderItemsEditor } from '@/components/admin/AdminOrderItemsEditor';
+import { EmailComposer, type Recipient } from '@/components/admin/EmailComposer';
 import { adminFetch } from '@/lib/auth-client';
 import type { Order as DashboardOrder } from '@/types/dashboard';
-import { Package, User, Calendar, MapPin, CreditCard, FileText, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Package, User, Calendar, MapPin, CreditCard, FileText, AlertCircle, CheckCircle, XCircle, Mail } from 'lucide-react';
 
 interface OrderItem {
   id: string;
@@ -57,6 +58,8 @@ interface Order {
   shipped_at?: string;
   delivered_at?: string;
   items?: OrderItem[];
+  manual_discount_percentage?: number;
+  manual_discount_amount?: number;
 }
 
 interface AdminOrderDetailClientProps {
@@ -133,6 +136,9 @@ function mapAdminOrderToDashboardOrder(adminOrder: Order): DashboardOrder {
     requested_delivery_date: adminOrder.requested_delivery_date,
     estimated_delivery_date: adminOrder.estimated_delivery_date,
     delivery_notes: adminOrder.delivery_notes,
+    // 수동 할인 필드
+    manualDiscountPercentage: adminOrder.manual_discount_percentage,
+    manualDiscountAmount: adminOrder.manual_discount_amount,
   };
 }
 
@@ -202,6 +208,10 @@ export default function AdminOrderDetailClient({
 
   // 商品明細更新後に注文データを再取得
   const [currentOrder, setCurrentOrder] = useState(initialOrder);
+
+  // Email composer state
+  const [emailComposerOpen, setEmailComposerOpen] = useState(false);
+  const [selectedCustomersForEmail, setSelectedCustomersForEmail] = useState<Recipient[]>([]);
 
   const handleAdminNotesChange = (notes: string) => {
     setAdminNotes(notes);
@@ -276,6 +286,23 @@ export default function AdminOrderDetailClient({
     setTimeout(() => setKoreaMessage(null), 5000);
   };
 
+  // Handle sending email to customer
+  const handleSendEmail = () => {
+    if (!order?.customer_email) {
+      alert('顧客メールアドレスが見つかりません');
+      return;
+    }
+
+    const recipient: Recipient = {
+      id: order.user_id,
+      email: order.customer_email,
+      name: order.customer_name,
+    };
+
+    setSelectedCustomersForEmail([recipient]);
+    setEmailComposerOpen(true);
+  };
+
   const order = currentOrder;
 
   if (!order) {
@@ -308,7 +335,17 @@ export default function AdminOrderDetailClient({
                 注文ID: {order.id}
               </p>
             </div>
-            <OrderStatusBadge status={order.status} locale="ja" />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSendEmail}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
+                title="顧客にメールを送信"
+              >
+                <Mail className="w-4 h-4" />
+                メール送信
+              </button>
+              <OrderStatusBadge status={order.status} locale="ja" />
+            </div>
           </div>
         </div>
 
@@ -356,6 +393,18 @@ export default function AdminOrderDetailClient({
           onSendToKorea={handleSendToKorea}
           sendingToKorea={sendingToKorea}
           koreaMessage={koreaMessage}
+        />
+
+        {/* Email Composer Modal */}
+        <EmailComposer
+          open={emailComposerOpen}
+          onOpenChange={setEmailComposerOpen}
+          recipients={selectedCustomersForEmail}
+          defaultSubject={`【Epackage Lab】注文 ${order.order_number} について`}
+          onSuccess={() => {
+            // Optional: Refresh order data or show success message
+            console.log('Email sent successfully');
+          }}
         />
       </div>
     </div>

@@ -20,12 +20,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 // 許可されたオリジンリスト (本番環境では実際のドメインで設定)
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3004', // Dev server might use port 3004
   'http://localhost:3005', // Dev server might use port 3005
   // 本番環境で実際のドメイン追加
-  // ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
+  ...(process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || []),
 ];
 
 // CSRF検証が必要なAPIパス
@@ -47,6 +48,7 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/member', // Member API - handles its own auth via SSR
   '/api/comparison', // Comparison API - handles client-side data
   '/api/registry', // Postal code search API - public endpoint
+  '/api/coupons', // Coupon validation API - public endpoint
 ];
 
 // =====================================================
@@ -121,28 +123,28 @@ function createMiddlewareClient(request: NextRequest) {
         return cookie?.value;
       },
       set(name: string, value: string, options: any) {
+        // ✅ Use consistent maxAge across all cookie setters (24 hours for consistency with SSR client)
+        const cookieOptions = {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 86400,  // ✅ 24時間セッション維持 (SSR clientと一致)
+          ...options,
+        };
+
         // ✅ requestとresponseの両方にクッキーを設定
         request.cookies.set({
           name,
           value,
-          httpOnly: true,   // ✅ httpOnly設定
-          secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS時のみ
-          sameSite: 'lax',   // ✅ CSRF対策
-          path: '/',         // ✅ 全パスで有効
-          maxAge: 1800,      // ✅ 30分セッション維持
-          ...options,
+          ...cookieOptions,
         });
 
         // ✅ responseにも設定（重要：クライアントに送信されるため）
         response.cookies.set({
           name,
           value,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 1800,  // ✅ 30分セッション維持
-          ...options,
+          ...cookieOptions,
         });
       },
       remove(name: string, options: any) {
@@ -353,11 +355,61 @@ export async function middleware(request: NextRequest) {
   // =====================================================
   // These routes handle their own authentication and must bypass ALL middleware logic
   // Check this BEFORE any other logic to prevent redirect loops
+  // EXCEPTION: /api/auth/session needs headers for client-side auth
   if (pathname.startsWith('/api/auth')) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Middleware] EARLY EXEMPTION for /api/auth route:', pathname);
+      console.log('[Middleware] Processing /api/auth route:', pathname);
     }
-    return addSecurityHeaders(NextResponse.next());
+
+    const response = NextResponse.next();
+
+    // /api/auth/session needs auth headers for client-side AuthContext
+    // But we should not redirect or block - just add headers if available
+    if (pathname === '/api/auth/session') {
+      // DEV_MODE: Check for mock user cookie first
+      if (isDevMode) {
+        const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+
+        if (devMockUserId) {
+          console.log('[Middleware] DEV_MODE: Setting headers for /api/auth/session:', devMockUserId);
+          response.headers.set('x-dev-mode', 'true');
+          response.headers.set('x-user-id', devMockUserId);
+          response.headers.set('x-user-role', 'MEMBER');
+          response.headers.set('x-user-status', 'ACTIVE');
+
+          return addSecurityHeaders(response);
+        }
+      }
+
+      // Normal auth: extract user info and add to headers for the API to use
+      // Use getSession() for automatic token refresh
+      const { supabase, response: authResponse } = createMiddlewareClient(request);
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      const user = session?.user || null;
+      const error = sessionError;
+
+      if (user && !error) {
+        // Get user profile for role and status
+        const profile = await getUserProfile(supabase, user.id);
+        authResponse.headers.set('x-user-id', user.id);
+        authResponse.headers.set('x-user-role', profile?.role || 'MEMBER');
+        authResponse.headers.set('x-user-status', profile?.status || 'ACTIVE');
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] Added auth headers for /api/auth/session:', user.id, profile?.role, profile?.status);
+        }
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] No auth for /api/auth/session - will return null session');
+        }
+      }
+
+      return addSecurityHeaders(authResponse);
+    }
+
+    // Other /api/auth routes (signin, signout, etc.) pass through without headers
+    return addSecurityHeaders(response);
   }
 
   // /api/admin routes handle their own authentication in each route
@@ -385,8 +437,12 @@ export async function middleware(request: NextRequest) {
     }
 
     // Normal auth: extract user info and add to headers for the API route to use
+    // Use getSession() for automatic token refresh
     const { supabase, response: authResponse } = createMiddlewareClient(request);
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    const user = session?.user || null;
+    const error = sessionError;
 
     if (user && !error) {
       // Get user profile for role and status
@@ -456,8 +512,12 @@ export async function middleware(request: NextRequest) {
     }
 
     // Normal auth: extract user info and add to headers for the API route to use
+    // Use getSession() for automatic token refresh
     const { supabase, response: authResponse } = createMiddlewareClient(request);
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    const user = session?.user || null;
+    const error = sessionError;
 
     if (user && !error) {
       // Get user profile for role and status
@@ -584,18 +644,28 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
-  // Check authentication (SECURE: using getUser() instead of getSession())
+  // Check authentication (SECURE: using getSession() for automatic token refresh)
+  // getSession() automatically refreshes the access token using the refresh token if needed
   const { supabase, response: authResponse } = createMiddlewareClient(request);
   const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  // Extract user from session (session may be null if not authenticated or tokens expired)
+  const user = session?.user || null;
+  const error = sessionError;
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
     console.log('[Middleware] Path:', pathname);
+    console.log('[Middleware] Session found:', !!session);
     console.log('[Middleware] User found:', !!user);
-    console.log('[Middleware] User error:', error?.message);
+    console.log('[Middleware] Session error:', error?.message);
+    if (session) {
+      console.log('[Middleware] Session expires at:', new Date(session.expires_at! * 1000).toISOString());
+      console.log('[Middleware] Access token expires in:', Math.floor((session.expires_at! * 1000 - Date.now()) / 1000 / 60), 'minutes');
+    }
     if (user) {
       console.log('[Middleware] User email:', user.email);
     }
@@ -673,14 +743,30 @@ export async function middleware(request: NextRequest) {
   }
 
   // Member routes - require ACTIVE status
+  // Note: ADMIN users can also access member pages
   const isMemberRoute = PROTECTED_ROUTES.member.some((route) =>
     pathname.startsWith(route)
   );
+
+  // Debug logging for member routes
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Middleware] isMemberRoute:', isMemberRoute);
+    console.log('[Middleware] normalizedRole:', normalizedRole);
+    console.log('[Middleware] profile.status:', profile.status);
+  }
+
   if (isMemberRoute) {
-    if (profile.status !== 'ACTIVE') {
+    // Allow ADMIN users and ACTIVE MEMBER users to access member pages
+    if (normalizedRole !== 'admin' && profile.status !== 'ACTIVE') {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] Member route access denied - redirecting to signin');
+      }
       return addSecurityHeaders(
-        NextResponse.redirect(new URL('/auth/pending', request.url))
+        NextResponse.redirect(new URL('/auth/signin', request.url))
       );
+    }
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] Member route access GRANTED');
     }
   }
 
@@ -689,6 +775,14 @@ export async function middleware(request: NextRequest) {
   authResponse.headers.set('x-user-id', user.id);
   authResponse.headers.set('x-user-role', profile.role);
   authResponse.headers.set('x-user-status', profile.status);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Middleware] Setting headers:', {
+      'x-user-id': user.id,
+      'x-user-role': profile.role,
+      'x-user-status': profile.status,
+    });
+  }
 
   return addSecurityHeaders(authResponse);
 }

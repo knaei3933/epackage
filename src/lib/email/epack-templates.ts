@@ -1,7 +1,7 @@
 /**
  * Epackage Lab Email Templates
  *
- * イーパックラボ 専用メールテンプレート
+ * Epackage Lab 専用メールテンプレート
  * 日本語ビジネスマナーに準拠したB2Bメールテンプレート
  *
  * @module lib/email/epack-templates
@@ -46,7 +46,7 @@ const BANK_INFO = `
 const FOOTER = (year: number = new Date().getFullYear()) => `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-イーパックラボ (EPackage Lab)
+Epackage Lab (EPackage Lab)
 〒000-0000
 東京都〇〇区〇〇1-2-3
 TEL: XX-XXXX-XXXX
@@ -100,7 +100,7 @@ const createBaseHtml = (content: string, headerColor: string = 'linear-gradient(
   <div class="container">
     ${content}
     <div class="footer">
-      <p style="margin: 5px 0;"><strong>イーパックラボ (EPackage Lab)</strong></p>
+      <p style="margin: 5px 0;"><strong>Epackage Lab (EPackage Lab)</strong></p>
       <p style="margin: 5px 0;">Email: support@epackage-lab.com</p>
       <p style="margin: 5px 0;">URL: https://epackage-lab.com</p>
       <p style="margin: 15px 0 5px 0;">本メールはシステムにより自動送信されています。</p>
@@ -116,7 +116,7 @@ const createBaseHtml = (content: string, headerColor: string = 'linear-gradient(
 
 export const quoteReadyEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】見積書が完成いたしました (${data.quotation_number})`
+    return `【Epackage Lab】見積書が完成いたしました (${data.quotation_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -124,7 +124,7 @@ export const quoteReadyEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご依頼いただきました見積書の作成が完了いたしました。
 つきましては、下記の通りご案内申し上げます。
@@ -160,7 +160,7 @@ ${FOOTER}
       ${createHeader('見積書が完成いたしました')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご依頼いただきました見積書の作成が完了いたしました。<br>つきましては、下記の通りご案内申し上げます。</p>
 
         ${createInfoBox('見積案内', [
@@ -192,7 +192,7 @@ ${FOOTER}
 
 export const quoteApprovedEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】見積を承認いたしました (${data.quotation_number})`
+    return `【Epackage Lab】見積を承認いたしました (${data.quotation_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -200,7 +200,7 @@ export const quoteApprovedEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご提出いただきました見積書の承認が完了いたしましたことを
 ご通知申し上げます。
@@ -219,6 +219,10 @@ ${data.customer_name} 様
 
 今後の進捗については、順次ご案内させていただきます。
 
+見積詳細は以下のURLよりご確認いただけます。
+
+${data.view_url}
+
 何卒よろしくお願い申し上げます。
 
 ${FOOTER}
@@ -230,7 +234,7 @@ ${FOOTER}
       ${createHeader('見積を承認いたしました', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご提出いただきました見積書の承認が完了いたしましたことを<br>ご通知申し上げます。</p>
 
         ${createInfoBox('見積承認完了', [
@@ -238,6 +242,8 @@ ${FOOTER}
           { label: '承認日時', value: new Date().toLocaleString('ja-JP') },
           { label: '見積金額', value: `¥${Number(data.total_amount || 0).toLocaleString('ja-JP')}（税込）`, highlight: true },
         ])}
+
+        ${createButton('見積を確認する', data.view_url, 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
 
         <div class="success">
           <strong>✅ 製造開始のご案内</strong><br>
@@ -258,7 +264,7 @@ ${FOOTER}
 
 export const dataUploadRequestEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】データ入稿のお願い (${data.order_number})`
+    return `【Epackage Lab】データ入稿のお願い (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -266,7 +272,7 @@ export const dataUploadRequestEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご注文いただきました商品の製造を開始するにあたり、
 印刷用データのご入稿をお願い申し上げます。
@@ -306,7 +312,7 @@ ${FOOTER}
       ${createHeader('データ入稿のお願い', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご注文いただきました商品の製造を開始するにあたり、<br>印刷用データのご入稿をお願い申し上げます。</p>
 
         ${createInfoBox('入稿データのお願い', [
@@ -342,7 +348,7 @@ ${FOOTER}
 
 export const dataReceivedEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】データを受領いたしました (${data.order_number})`
+    return `【Epackage Lab】データを受領いたしました (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -350,7 +356,7 @@ export const dataReceivedEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご入稿いただきましたデータを受領いたしましたことを
 ご報告申し上げます。
@@ -381,7 +387,7 @@ ${FOOTER}
       ${createHeader('データを受領いたしました', 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご入稿いただきましたデータを受領いたしましたことを<br>ご報告申し上げます。</p>
 
         ${createInfoBox('データ受領確認', [
@@ -410,7 +416,7 @@ ${FOOTER}
 
 export const modificationRequestEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】データ修正のお願い (${data.order_number})`
+    return `【Epackage Lab】データ修正のお願い (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -418,7 +424,7 @@ export const modificationRequestEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご入稿いただきましたデータを確認いたしましたところ、
 一部修正が必要な箇所がございました。
@@ -452,7 +458,7 @@ ${FOOTER}
       ${createHeader('データ修正のお願い', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご入稿いただきましたデータを確認いたしましたところ、<br>一部修正が必要な箇所がございました。</p>
         <p>つきましては、お手数ですが修正をお願い申し上げます。</p>
 
@@ -480,7 +486,7 @@ ${FOOTER}
 
 export const modificationApprovedEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】修正内容を承認いたしました (${data.order_number})`
+    return `【Epackage Lab】修正内容を承認いたしました (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -488,7 +494,7 @@ export const modificationApprovedEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご提出いただきました修正データの確認が完了し、
 承認いたしましたことをご通知申し上げます。
@@ -515,7 +521,7 @@ ${FOOTER}
       ${createHeader('修正内容を承認いたしました', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご提出いただきました修正データの確認が完了し、<br>承認いたしましたことをご通知申し上げます。</p>
 
         ${createInfoBox('修正承認完了', [
@@ -541,7 +547,7 @@ ${FOOTER}
 
 export const modificationRejectedEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】修正却下のご連絡 (${data.order_number})`
+    return `【Epackage Lab】修正却下のご連絡 (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -549,7 +555,7 @@ export const modificationRejectedEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご提案いたしました修正内容について、
 お客様より却下の申し入れがございましたことをお伝えいたします。
@@ -578,7 +584,7 @@ ${FOOTER}
       ${createHeader('修正却下のご連絡', 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご提案いたしました修正内容について、<br>お客様より却下の申し入れがございましたことをお伝えいたします。</p>
 
         ${createInfoBox('修正却下確認', [
@@ -606,7 +612,7 @@ ${FOOTER}
 
 export const correctionReadyEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】校正完了のご案内 (${data.order_number})`
+    return `【Epackage Lab】校正完了のご案内 (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -614,7 +620,7 @@ export const correctionReadyEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、校正作業が完了いたしましたのでご案内申し上げます。
 
@@ -645,7 +651,7 @@ ${FOOTER}
       ${createHeader('校正完了のご案内', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、校正作業が完了いたしましたのでご案内申し上げます。</p>
 
         ${createInfoBox('校正完了', [
@@ -674,7 +680,7 @@ ${FOOTER}
 
 export const approvalRequestEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】承認のお願い (${data.order_number})`
+    return `【Epackage Lab】承認のお願い (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -682,7 +688,7 @@ export const approvalRequestEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、校正データが完成いたしましたので、
 ご承認をお願い申し上げます。
@@ -715,7 +721,7 @@ ${FOOTER}
       ${createHeader('承認のお願い', 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、校正データが完成いたしましたので、<br>ご承認をお願い申し上げます。</p>
 
         ${createInfoBox('承認依頼', [
@@ -744,7 +750,7 @@ ${FOOTER}
 
 export const productionStartedEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】製造を開始いたしました (${data.order_number})`
+    return `【Epackage Lab】製造を開始いたしました (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -752,7 +758,7 @@ export const productionStartedEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご注文いただきました商品の製造を開始いたしましたので
 ご案内申し上げます。
@@ -782,7 +788,7 @@ ${FOOTER}
       ${createHeader('製造を開始いたしました', 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご注文いただきました商品の製造を開始いたしましたので<br>ご案内申し上げます。</p>
 
         ${createInfoBox('製造開始', [
@@ -811,7 +817,7 @@ ${FOOTER}
 
 export const readyToShipEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】出荷準備が完了いたしました (${data.order_number})`
+    return `【Epackage Lab】出荷準備が完了いたしました (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -819,7 +825,7 @@ export const readyToShipEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご注文いただきました商品の出荷準備が完了いたしましたので
 ご案内申し上げます。
@@ -849,7 +855,7 @@ ${FOOTER}
       ${createHeader('出荷準備が完了いたしました', 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご注文いただきました商品の出荷準備が完了いたしましたので<br>ご案内申し上げます。</p>
 
         ${createInfoBox('出荷準備完了', [
@@ -878,7 +884,7 @@ ${FOOTER}
 
 export const shippedEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】商品を発送いたしました (${data.order_number})`
+    return `【Epackage Lab】商品を発送いたしました (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -891,7 +897,7 @@ export const shippedEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご注文いただきました商品を発送いたしましたので
 ご案内申し上げます。
@@ -944,7 +950,7 @@ ${FOOTER}
       ${createHeader('商品を発送いたしました 🎉', 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご注文いただきました商品を発送いたしましたので<br>ご案内申し上げます。</p>
 
         <div style="background: #ecfeff; border: 2px dashed #06b6d4; padding: 20px; border-radius: 6px; margin: 20px 0; text-align: center;">
@@ -991,7 +997,7 @@ ${FOOTER}
 
 export const orderCancelledEmail = {
   subject: (data: EpackEmailData): string => {
-    return `【イーパックラボ】注文をキャンセルいたしました (${data.order_number})`
+    return `【Epackage Lab】注文をキャンセルいたしました (${data.order_number})`
   },
 
   plainText: (data: EpackEmailData): string => {
@@ -999,7 +1005,7 @@ export const orderCancelledEmail = {
 ${data.customer_name} 様
 
 平素より格別のご愛顧を賜り、厚く御礼申し上げます。
-イーパックラボでございます。
+Epackage Labでございます。
 
 この度、ご注文いただきました注文をキャンセルいたしましたので
 ご案内申し上げます。
@@ -1022,7 +1028,7 @@ ${data.refund_amount ? `
 ${BANK_INFO}
 ` : ''}
 
-今後とも、イーパックラボをよろしくお願い申し上げます。
+今後とも、Epackage Labをよろしくお願い申し上げます。
 
 ${FOOTER}
 `.trim()
@@ -1058,7 +1064,7 @@ ${FOOTER}
       ${createHeader('注文をキャンセルいたしました', 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)')}
       <div class="content">
         <p style="margin-top: 0;">${data.customer_name} 様</p>
-        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>イーパックラボでございます。</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
         <p>この度、ご注文いただきました注文をキャンセルいたしましたので<br>ご案内申し上げます。</p>
 
         ${createInfoBox('キャンセル完了', [
@@ -1069,7 +1075,7 @@ ${FOOTER}
 
         ${refundSection}
 
-        <p style="margin-bottom: 0;">今後とも、イーパックラボをよろしくお願い申し上げます。</p>
+        <p style="margin-bottom: 0;">今後とも、Epackage Labをよろしくお願い申し上げます。</p>
       </div>
     `
     return createBaseHtml(content, 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)')

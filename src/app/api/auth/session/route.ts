@@ -27,12 +27,66 @@ export async function GET(request: NextRequest) {
     }
 
     // =====================================================
-    // DEV MODE: Mock session for testing (SECURE: server-side only)
+    // PRIORITY 1: Check middleware headers (most reliable)
     // =====================================================
-    const isDevMode = process.env.NODE_ENV === 'development' &&
-                      process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+    // Middleware has already validated the session and set these headers
+    // This is more reliable than getSession() because middleware handles token refresh
+    const userIdFromHeader = request.headers.get('x-user-id');
+    const userRoleFromHeader = request.headers.get('x-user-role');
+    const userStatusFromHeader = request.headers.get('x-user-status');
+    const isDevMode = request.headers.get('x-dev-mode') === 'true';
 
-    if (isDevMode) {
+    if (userIdFromHeader) {
+      console.log('[Session API] Using middleware headers for user:', userIdFromHeader);
+
+      // Fetch complete profile from database
+      const serviceClient = createServiceClient();
+      const { data: profile, error: profileError } = await serviceClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userIdFromHeader)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('[Session API] Profile fetch error from headers:', profileError);
+      }
+
+      // Construct session object from header data
+      return NextResponse.json({
+        session: {
+          user: {
+            id: userIdFromHeader,
+            email: profile?.email || 'user@epackage-lab.com',
+            user_metadata: {
+              name_kanji: profile?.kanji_last_name && profile?.kanji_first_name
+                ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+                : 'ユーザー',
+              name_kana: profile?.kana_last_name && profile?.kana_first_name
+                ? `${profile.kana_last_name} ${profile.kana_first_name}`
+                : 'ユーザー',
+            },
+          },
+          access_token: 'middleware-managed', // Session managed by middleware
+          expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
+          expires_in: 1800,
+          token_type: 'bearer',
+        },
+        profile: profile || {
+          id: userIdFromHeader,
+          email: 'user@epackage-lab.com',
+          role: userRoleFromHeader || 'MEMBER',
+          status: userStatusFromHeader || 'ACTIVE',
+        },
+      });
+    }
+
+    // =====================================================
+    // PRIORITY 2: DEV MODE: Mock session for testing (SECURE: server-side only)
+    // =====================================================
+    const isDevModeEnv = process.env.NODE_ENV === 'development' &&
+                         process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+
+    if (isDevModeEnv) {
       const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
 
       if (devMockUserId) {
@@ -52,26 +106,50 @@ export async function GET(request: NextRequest) {
           profile: {
             id: devMockUserId,
             email: 'test@epackage-lab.com',
-            name_kanji: 'テスト',
-            name_kana: 'テスト',
+            kanji_last_name: 'テスト',
+            kanji_first_name: 'ユーザー',
+            kana_last_name: 'テスト',
+            kana_first_name: 'ユーザー',
+            corporate_phone: '03-1234-5678',
+            personal_phone: '090-1234-5678',
+            business_type: 'CORPORATION',
+            company_name: 'テスト会社',
+            legal_entity_number: '1234567890123',
+            position: '担当者',
+            department: '営業',
+            company_url: 'https://example.com',
+            product_category: 'OTHER',
+            acquisition_channel: 'web_search',
+            postal_code: '123-4567',
+            prefecture: '東京都',
+            city: '渋谷区',
+            street: '1-2-3',
             role: devMockUserId.includes('admin') ? 'ADMIN' : 'MEMBER',
             status: 'ACTIVE',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_login_at: new Date().toISOString(),
           },
         });
       }
     }
 
     // =====================================================
-    // PRODUCTION: Get real session from Supabase
+    // PRIORITY 3: PRODUCTION: Get real session from Supabase
     // =====================================================
 
     // Create SSR client that can read cookies
     const { client: supabase } = createSupabaseSSRClient(request);
 
-    // Debug: Log available cookies
+    // Debug: Log available cookies and headers
     if (process.env.NODE_ENV === 'development') {
       const allCookies = request.cookies.getAll();
       console.log('[Session API] All cookies:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
+      console.log('[Session API] Headers:', {
+        'x-user-id': request.headers.get('x-user-id'),
+        'x-user-role': request.headers.get('x-user-role'),
+        'x-user-status': request.headers.get('x-user-status'),
+      });
     }
 
     // Get current session (includes access_token)

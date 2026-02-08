@@ -14,8 +14,8 @@ import { epackEmailTemplates, type EpackEmailData, type EpackTemplateId } from '
 // Configuration
 // ============================================================
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'info@epackage-lab.com'
-const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL || 'info@epackage-lab.com'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'info@package-lab.com'
+const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL || 'info@package-lab.com'
 const COMPANY_NAME = 'イーパックラボ'
 const COMPANY_NAME_EN = 'EPackage Lab'
 
@@ -49,6 +49,12 @@ function createXServerTransporter() {
     },
     tls: {
       rejectUnauthorized: false
+    },
+    // Spam対策のためのヘッダー設定
+    headers: {
+      'X-Priority': '3',
+      'X-Mailer': 'EPackage Lab Mailer',
+      'X-Auto-Response-Suppress': 'All',
     }
   })
 }
@@ -132,7 +138,7 @@ export async function sendEpackEmail(
     const plainText = template.plainText(data)
     const html = template.html(data)
 
-    // nodemailerメッセージの作成
+    // nodemailerメッセージの作成 - Spam対策のためのヘッダー設定
     const msg = {
       from: `${COMPANY_NAME_EN} <${FROM_EMAIL}>`,
       to: data.customer_email,
@@ -140,12 +146,29 @@ export async function sendEpackEmail(
       subject,
       text: plainText,
       html,
-      attachments: attachments?.map(att => ({
-        filename: att.filename,
-        content: att.content,
-        type: att.type,
-        disposition: att.disposition || 'attachment',
-      })),
+      headers: {
+        'X-Priority': '3',
+        'X-Mailer': 'EPackage Lab Mailer',
+        'X-Auto-Response-Suppress': 'All',
+      },
+      attachments: attachments?.map(att => {
+        // PDFファイルの場合、特別な処理を行う
+        const isPdf = att.type === 'application/pdf' || att.filename.toLowerCase().endsWith('.pdf')
+
+        return {
+          filename: att.filename,
+          content: att.content,
+          contentType: att.type,
+          contentDisposition: att.disposition || 'attachment',
+          // PDFの場合、追加のヘッダーを設定
+          ...(isPdf && {
+            headers: {
+              'Content-Transfer-Encoding': 'base64',
+              'X-Attachment-Id': `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            }
+          })
+        }
+      }),
     }
 
     // メール送信
@@ -231,12 +254,29 @@ export async function sendEpackEmailBatch(
         subject,
         text: plainText,
         html,
-        attachments: attachments?.map(att => ({
-          filename: att.filename,
-          content: att.content,
-          type: att.type,
-          disposition: att.disposition || 'attachment',
-        })),
+        headers: {
+          'X-Priority': '3',
+          'X-Mailer': 'EPackage Lab Mailer',
+          'X-Auto-Response-Suppress': 'All',
+        },
+        attachments: attachments?.map(att => {
+          // PDFファイルの場合、特別な処理を行う
+          const isPdf = att.type === 'application/pdf' || att.filename.toLowerCase().endsWith('.pdf')
+
+          return {
+            filename: att.filename,
+            content: att.content,
+            contentType: att.type,
+            contentDisposition: att.disposition || 'attachment',
+            // PDFの場合、追加のヘッダーを設定
+            ...(isPdf && {
+              headers: {
+                'Content-Transfer-Encoding': 'base64',
+                'X-Attachment-Id': `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              }
+            })
+          }
+        }),
       }
 
       const info = await transporter.sendMail(msg)
@@ -255,6 +295,169 @@ export async function sendEpackEmailBatch(
   })
 
   return await Promise.all(sendPromises)
+}
+
+/**
+ * カスタムメール送信（管理者用）
+ *
+ * カスタムHTML/テキストメールを送信します
+ * テンプレートを使用せず、直接コンテンツを指定可能
+ *
+ * @param to - 宛先（メールアドレス文字列、配列、またはオブジェクト配列）
+ * @param subject - 件名
+ * @param content - コンテンツ（html または text）
+ * @param attachments - 添付ファイル（オプション）
+ * @param cc - CC宛先（オプション）
+ * @param from - 送信元アドレス（オプション、デフォルトはFROM_EMAIL）
+ */
+export async function sendCustomEmail(
+  to: string | Array<{ email: string; name?: string }>,
+  subject: string,
+  content: { html?: string; text?: string },
+  attachments?: EpackAttachment[],
+  cc?: Array<{ email: string; name?: string }>,
+  from?: string
+): Promise<EpackSendResult> {
+  // 受信者を標準化
+  let recipients: Array<{ email: string; name?: string }>
+  if (typeof to === 'string') {
+    recipients = [{ email: to }]
+  } else if (Array.isArray(to)) {
+    recipients = to
+  } else {
+    recipients = [{ email: String(to) }]
+  }
+
+  // バリデーション: 少なくともHTMLまたはテキストが必要
+  if (!content.html && !content.text) {
+    return {
+      success: false,
+      error: 'HTMLまたはテキストコンテンツのいずれかを指定してください。',
+      errorCode: 'NO_CONTENT',
+    }
+  }
+
+  // 件名バリデーション
+  if (!subject || subject.trim().length === 0) {
+    return {
+      success: false,
+      error: '件名を指定してください。',
+      errorCode: 'NO_SUBJECT',
+    }
+  }
+
+  // Consoleモード（Fallback）
+  if (transportType === 'console' || !transporter) {
+    console.log('[EpackMailer] Console mode - Custom email:')
+    console.log('='.repeat(60))
+    console.log(`To: ${recipients.map(r => r.email).join(', ')}`)
+    if (cc) console.log(`CC: ${cc.map(r => r.email).join(', ')}`)
+    console.log(`Subject: ${subject}`)
+    if (content.html) console.log('HTML:', content.html.substring(0, 200) + '...')
+    if (content.text) console.log('Text:', content.text.substring(0, 200) + '...')
+    console.log(`Attachments: ${attachments?.length || 0}`)
+    console.log('='.repeat(60))
+    return {
+      success: true,
+      messageId: `console-${Date.now()}`,
+    }
+  }
+
+  // 複数宛先の場合は個別送信
+  const results = await Promise.all(
+    recipients.map(async (recipient) => {
+      try {
+        // nodemailerメッセージの作成
+        const fromAddress = from || FROM_EMAIL
+        const msg: nodemailer.SendMailOptions = {
+          from: fromAddress,
+          to: recipient.name ? `${recipient.name} <${recipient.email}>` : recipient.email,
+          replyTo: REPLY_TO_EMAIL,
+          subject,
+          // Spam対策のためのヘッダー設定
+          headers: {
+            'X-Priority': '3',
+            'X-Mailer': 'EPackage Lab Mailer',
+            'X-Auto-Response-Suppress': 'All',
+            'Precedence': 'bulk',
+            'List-Unsubscribe': `<mailto:${FROM_EMAIL}?subject=unsubscribe>`,
+          }
+        }
+
+        // CC recipients
+        if (cc && cc.length > 0) {
+          msg.cc = cc.map(c => c.name ? `${c.name} <${c.email}>` : c.email).join(', ')
+        }
+
+        // HTMLまたはテキストを設定
+        if (content.html) {
+          msg.html = content.html
+        }
+        if (content.text) {
+          msg.text = content.text
+        }
+
+        // 添付ファイル - Spam対策のための適切なMIME設定
+        if (attachments && attachments.length > 0) {
+          msg.attachments = attachments.map(att => {
+            // PDFファイルの場合、特別な処理を行う
+            const isPdf = att.type === 'application/pdf' || att.filename.toLowerCase().endsWith('.pdf')
+
+            return {
+              filename: att.filename,
+              content: Buffer.from(att.content, 'base64'),
+              contentType: att.type || 'application/octet-stream',
+              contentDisposition: att.disposition || 'attachment',
+              // PDFの場合、追加のヘッダーを設定
+              ...(isPdf && {
+                headers: {
+                  'Content-Transfer-Encoding': 'base64',
+                  'X-Attachment-Id': `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                }
+              })
+            }
+          })
+        }
+
+        // メール送信
+        const info = await transporter.sendMail(msg)
+
+        console.log('[EpackMailer] Custom email sent successfully:', {
+          to: recipient.email,
+          cc: cc?.map(c => c.email).join(', '),
+          subject,
+          messageId: info.messageId,
+        })
+
+        return {
+          success: true,
+          messageId: info.messageId,
+        }
+      } catch (error: any) {
+        console.error(`[EpackMailer] Custom email send error for ${recipient.email}:`, {
+          message: error.message,
+          code: error.code,
+        })
+
+        return {
+          success: false,
+          error: error.message || 'Unknown error',
+          errorCode: error.code || 'SEND_ERROR',
+        }
+      }
+    })
+  )
+
+  // すべて成功した場合は成功、それ以外は失敗
+  const allSuccess = results.every(r => r.success)
+  const firstMessageId = results.find(r => r.messageId)?.messageId
+
+  return {
+    success: allSuccess,
+    messageId: allSuccess ? firstMessageId : undefined,
+    error: allSuccess ? undefined : results.find(r => !r.success)?.error,
+    errorCode: allSuccess ? undefined : results.find(r => !r.success)?.errorCode,
+  }
 }
 
 /**
@@ -468,12 +671,249 @@ export async function sendKoreaCorrectionRequestEmail(data: EpackEmailData): Pro
 }
 
 // ============================================================
+// Contact Form Email Functions
+// ============================================================
+
+/**
+ * コンタクトフォームメール送信
+ *
+ * お問い合わせフォームからの送信を処理し、
+ * 顧客と管理者にメールを送信します
+ */
+export interface ContactFormData {
+  name: string
+  email: string
+  company?: string
+  inquiryType: string
+  subject?: string
+  message: string
+  urgency?: string
+  preferredContact?: string
+  requestId: string
+}
+
+export interface ContactEmailResult {
+  success: boolean
+  errors?: Array<{ to: string; error: string }>
+  customerEmail?: EpackSendResult
+  adminEmail?: EpackSendResult
+}
+
+export async function sendContactEmail(data: ContactFormData): Promise<ContactEmailResult> {
+  const ADMIN_EMAIL = 'info@package-lab.com'
+  const errors: Array<{ to: string; error: string }> = []
+
+  // 顧客への自動返信メール
+  const customerSubject = `【お問い合わせ受付完了】${data.requestId}`
+  const customerHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; }
+        .footer { background: #f0f0f0; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 8px 8px; }
+        .info-box { background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #667eea; }
+        h1 { margin: 0; font-size: 24px; }
+        h2 { color: #333; font-size: 18px; margin-top: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>お問い合わせありがとうございます</h1>
+        </div>
+        <div class="content">
+          <p>${data.name} 様</p>
+          <p>この度は、Epackage Labにお問い合わせいただき、誠にありがとうございます。</p>
+
+          <div class="info-box">
+            <h2>お問い合わせ内容</h2>
+            <p><strong>お問い合わせ番号:</strong> ${data.requestId}</p>
+            <p><strong>種類:</strong> ${data.inquiryType}</p>
+            ${data.subject ? `<p><strong>件名:</strong> ${data.subject}</p>` : ''}
+            <p><strong>お問い合わせ内容:</strong></p>
+            <p style="white-space: pre-wrap;">${data.message}</p>
+          </div>
+
+          <p>担当者より折り返しごご連絡させていただきます。</p>
+          <p>通常、1-2営業日以内にご返信いたします。</p>
+        </div>
+        <div class="footer">
+          <p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
+          <p>Epackage Lab (EPackage Lab)</p>
+          <p>〒000-0000</p>
+          <p>メール: info@package-lab.com</p>
+          <p>URL: https://epackage-lab.com</p>
+          <p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  const customerText = `
+お問い合わせありがとうございます
+====================================
+
+${data.name} 様
+
+この度は、Epackage Labにお問い合わせいただき、誠にありがとうございます。
+
+お問い合わせ番号: ${data.requestId}
+種類: ${data.inquiryType}
+${data.subject ? `件名: ${data.subject}` : ''}
+
+お問い合わせ内容:
+${data.message}
+
+担当者より折り返しごご連絡させていただきます。
+通常、1-2営業日以内にご返信いたします。
+
+====================================
+Epackage Lab (EPackage Lab)
+メール: info@package-lab.com
+URL: https://epackage-lab.com
+====================================
+  `
+
+  // 管理者への通知メール
+  const adminSubject = `【お問い合わせ】${data.inquiryType}: ${data.requestId}`
+  const urgencyLabelMap: Record<string, string> = {
+    'low': '低',
+    'normal': '普通',
+    'high': '高',
+    'urgent': '至急'
+  }
+  const urgencyLabel = data.urgency ? (urgencyLabelMap[data.urgency] || '普通') : '普通';
+
+  // 事前に緊急度行のclassを計算
+  const urgencyRowClass = (data.urgency === 'urgent' || data.urgency === 'high') ? 'urgent-high' : ''
+  const urgencyRow = data.urgency ? `<tr class="${urgencyRowClass}"><th>緊急度</th><td>${urgencyLabel}</td></tr>` : ''
+  const preferredContactRow = data.preferredContact ? `<tr><th>希望連絡方法</th><td>${data.preferredContact}</td></tr>` : ''
+  const subjectRow = data.subject ? `<tr><th>件名</th><td>${data.subject}</td></tr>` : ''
+
+  const adminHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background: #fff; padding: 20px; border: 1px solid #e0e0e0; border-top: none; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .info-table th { background: #f5f5f5; padding: 10px; text-align: left; border: 1px solid #ddd; }
+        .info-table td { padding: 10px; border: 1px solid #ddd; }
+        .urgent-high { background: #ffebee; color: #c62828; }
+        .message-box { background: #f9f9f9; padding: 15px; border-radius: 4px; white-space: pre-wrap; }
+        .footer { background: #f0f0f0; padding: 15px; font-size: 11px; color: #666; text-align: center; border-radius: 0 0 8px 8px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2 style="margin: 0;">【新規お問い合わせ】${data.inquiryType}</h2>
+        </div>
+        <div class="content">
+          <table class="info-table">
+            <tr><th>お問い合わせ番号</th><td>${data.requestId}</td></tr>
+            <tr><th>お名前</th><td>${data.name}</td></tr>
+            <tr><th>会社名</th><td>${data.company || '-'}</td></tr>
+            <tr><th>メールアドレス</th><td>${data.email}</td></tr>
+            <tr><th>お問い合わせ種類</th><td>${data.inquiryType}</td></tr>
+            ${urgencyRow}
+            ${preferredContactRow}
+            ${subjectRow}
+          </table>
+
+          <h3 style="margin-top: 20px;">お問い合わせ内容:</h3>
+          <div class="message-box">${data.message}</div>
+        </div>
+        <div class="footer">
+          ${new Date().toLocaleString('ja-JP')}
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  const adminText = `
+【新規お問い合わせ】${data.inquiryType}
+====================================
+
+お問い合わせ番号: ${data.requestId}
+お名前: ${data.name}
+会社名: ${data.company || '-'}
+メールアドレス: ${data.email}
+お問い合わせ種類: ${data.inquiryType}
+${data.urgency ? `緊急度: ${urgencyLabel}` : ''}
+${data.preferredContact ? `希望連絡方法: ${data.preferredContact}` : ''}
+${data.subject ? `件名: ${data.subject}` : ''}
+
+お問い合わせ内容:
+${data.message}
+
+====================================
+${new Date().toLocaleString('ja-JP')}
+  `
+
+  try {
+    // 顧客へメール送信
+    const customerResult = await sendCustomEmail(
+      data.email,
+      customerSubject,
+      { html: customerHtml, text: customerText }
+    )
+
+    if (!customerResult.success) {
+      errors.push({ to: data.email, error: customerResult.error || '送信失敗' })
+    }
+
+    // 管理者へメール送信（送信元は顧客のメールアドレス）
+    const adminResult = await sendCustomEmail(
+      ADMIN_EMAIL,
+      adminSubject,
+      { html: adminHtml, text: adminText },
+      undefined, // attachments
+      undefined, // cc
+      data.email // from: 顧客のメールアドレス
+    )
+
+    if (!adminResult.success) {
+      errors.push({ to: ADMIN_EMAIL, error: adminResult.error || '送信失敗' })
+    }
+
+    // 両方成功であれば成功とみなす
+    const success = customerResult.success && adminResult.success
+
+    return {
+      success,
+      errors: errors.length > 0 ? errors : undefined,
+      customerEmail: customerResult,
+      adminEmail: adminResult
+    }
+  } catch (error: any) {
+    console.error('[Contact Email] Error:', error)
+    return {
+      success: false,
+      errors: [{ to: 'unknown', error: error.message || '不明なエラー' }]
+    }
+  }
+}
+
+// ============================================================
 // Export All Functions
 // ============================================================
 
 export const epackMailer = {
   send: sendEpackEmail,
   sendBatch: sendEpackEmailBatch,
+  sendCustom: sendCustomEmail,
   sendTest: sendEpackTestEmail,
 
   // Template-specific functions
@@ -491,6 +931,9 @@ export const epackMailer = {
   shipped: sendShippedEmail,
   orderCancelled: sendOrderCancelledEmail,
   koreaCorrectionRequest: sendKoreaCorrectionRequestEmail,
+
+  // Contact form
+  sendContact: sendContactEmail,
 
   // Utilities
   isValidEmail: isValidEpackEmail,

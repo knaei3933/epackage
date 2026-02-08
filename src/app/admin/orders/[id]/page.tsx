@@ -52,6 +52,8 @@ interface Order {
   shipped_at?: string;
   delivered_at?: string;
   items?: OrderItem[];
+  manual_discount_percentage?: number;
+  manual_discount_amount?: number;
 }
 
 interface StatusHistory {

@@ -52,7 +52,59 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
   const isDevModeEnabled = process.env.NODE_ENV === 'development' &&
                            process.env.ENABLE_DEV_MOCK_AUTH === 'true';
   const devModeHeader = request.headers.get('x-dev-mode');
+  const devAdminUserId = process.env.DEV_ADMIN_USER_ID;
 
+  // If dev mode is enabled and DEV_ADMIN_USER_ID is set, use it automatically
+  if (isDevModeEnabled && devAdminUserId) {
+    // Check for explicit dev mode header first
+    const headerUserId = request.headers.get('x-user-id');
+    const userIdToUse = headerUserId || devAdminUserId;
+
+    console.log('[verifyAdminAuth] DEV MODE: Using mock authentication for user:', userIdToUse);
+
+    // Verify the dev user exists in profiles table
+    try {
+      const serviceClient = createServiceClient();
+      const { data: profile, error } = await serviceClient
+        .from('profiles')
+        .select('role, status')
+        .eq('id', userIdToUse)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[verifyAdminAuth] DEV MODE: Database error:', error);
+        return null;
+      }
+
+      if (!profile) {
+        console.warn('[verifyAdminAuth] DEV MODE: User not found in database:', userIdToUse);
+        return null;
+      }
+
+      const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
+
+      if (typedProfile.role !== 'ADMIN' || typedProfile.status !== 'ACTIVE') {
+        console.warn('[verifyAdminAuth] DEV MODE: User not admin or not active:', {
+          userId: userIdToUse,
+          role: typedProfile.role,
+          status: typedProfile.status,
+        });
+        return null;
+      }
+
+      return {
+        userId: userIdToUse,
+        role: typedProfile.role,
+        status: typedProfile.status,
+        isDevMode: true,
+      };
+    } catch (error) {
+      console.error('[verifyAdminAuth] DEV MODE: Error verifying user:', error);
+      return null;
+    }
+  }
+
+  // Legacy dev mode support with explicit headers (for backward compatibility)
   if (isDevModeEnabled && devModeHeader === 'true') {
     const devUserId = request.headers.get('x-user-id');
     if (devUserId) {

@@ -26,7 +26,6 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
     ordersByStatus: [],
     monthlyRevenue: [],
     pendingQuotations: 0,
-    activeProduction: 0,
     todayShipments: 0,
     totalOrders: 0,
     totalRevenue: 0
@@ -121,42 +120,77 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
         </Card>
       )}
 
-      {/* 進行中の生産ジョブ */}
-      {error ? <ErrorCard title="生産ジョブ" /> : (
+      {/* 本日出荷 */}
+      {error ? <ErrorCard title="本日出荷" /> : (
         <Card className="p-6">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-600">生産ジョブ</span>
-            <span className="text-3xl font-bold text-blue-600 mt-2">{stats.activeProduction}</span>
-            <span className="text-xs text-gray-500 mt-1">進行中</span>
+            <span className="text-sm font-medium text-gray-600">本日出荷</span>
+            <span className="text-3xl font-bold text-green-600 mt-2">{stats.todayShipments}</span>
+            <span className="text-xs text-gray-500 mt-1">完了した注文</span>
           </div>
         </Card>
       )}
 
-      {/* ステータス別注文チャート */}
+      {/* ステータス別注文 - チャートと詳細リスト */}
       {statusChartData.length > 0 && (
-        <Card className="p-6 md:col-span-2">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">ステータス別注文</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={statusChartData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
+        <>
+          {/* チャート */}
+          <Card className="p-6 md:col-span-2">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">ステータス別注文</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={statusChartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ label, percent }) => `${label} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="label"
+                >
+                  {statusChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+
+          {/* ステータス別詳細リスト */}
+          <Card className="p-6 md:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">ステータス別内訳</h3>
+              <Link
+                href="/admin/orders"
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
-                {statusChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
+                すべて見る →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {statusChartData.map((item, index) => (
+                <Link
+                  key={item.name}
+                  href={`/admin/orders?status=${item.name}`}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm font-medium text-gray-900">{item.label}</span>
+                  </div>
+                  <span className="text-lg font-bold text-gray-900">{item.value}件</span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        </>
       )}
 
       {/* 月別売上チャート */}

@@ -11,12 +11,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Bell, ChevronDown, LogOut, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { User as AuthUser } from '@/types/auth';
 import type { NotificationBadge } from '@/types/dashboard';
+import { motion } from 'framer-motion';
 
 // =====================================================
 // Props
@@ -34,7 +34,15 @@ export interface DashboardHeaderProps {
 export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [prevNotificationCount, setPrevNotificationCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Track notification count changes for animation
+  useEffect(() => {
+    if (notifications.total !== prevNotificationCount) {
+      setPrevNotificationCount(notifications.total);
+    }
+  }, [notifications.total, prevNotificationCount]);
 
   // ドロップダウン外クリックで閉じる
   useEffect(() => {
@@ -81,45 +89,78 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
     <header className="sticky top-0 z-30 h-[58px] bg-white border-b border-border-secondary px-4 md:px-6 flex items-center justify-between">
       {/* 左側: ロゴ・タイトル */}
       <div className="flex items-center gap-4">
-        <Link href="/member/dashboard" className="flex items-center gap-2">
+        <a
+          href="/member/dashboard"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/member/dashboard';
+          }}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <h1 className="text-lg font-bold text-text-primary">
             Epackage Lab
           </h1>
           <span className="text-sm text-text-muted hidden sm:inline">
             マイページ
           </span>
-        </Link>
+        </a>
       </div>
 
       {/* 右側: 通知・クイックアクション・ユーザー */}
       <div className="flex items-center gap-3 md:gap-4">
         {/* クイックアクションボタン */}
         <div className="hidden md:flex items-center gap-2">
-          <Link href="/quote-simulator">
+          <a
+            href="/quote-simulator"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = '/quote-simulator';
+            }}
+          >
             <Button variant="primary" size="sm">
               スマート見積
             </Button>
-          </Link>
-          <Link href="/contact">
+          </a>
+          <a
+            href="/contact"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = '/contact';
+            }}
+          >
             <Button variant="secondary" size="sm">
               お問い合わせ
             </Button>
-          </Link>
+          </a>
         </div>
 
         {/* 通知ベル */}
-        <Link
+        <a
           href="/member/dashboard#notifications"
-          className="relative p-2 text-text-secondary hover:text-text-primary transition-colors"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/member/dashboard#notifications';
+          }}
+          className="relative p-2 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           aria-label="通知"
         >
-          <Bell className="w-5 h-5" />
+          <motion.div
+            whileHover={{ rotate: [0, -15, 15, -15, 0], transition: { duration: 0.5 } }}
+          >
+            <Bell className="w-5 h-5" />
+          </motion.div>
           {notifications.total > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+            <motion.span
+              key={notifications.total}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              whileHover={{ scale: 1.1 }}
+              className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
+            >
               {notifications.total > 9 ? '9+' : notifications.total}
-            </span>
+            </motion.span>
           )}
-        </Link>
+        </a>
 
         {/* ユーザードロップダウン */}
         <div className="relative" ref={dropdownRef}>
@@ -155,22 +196,30 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
 
               {/* メニューアイテム */}
               <div className="py-1">
-                <Link
+                <a
                   href="/member/edit"
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors"
-                  onClick={() => setIsDropdownOpen(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsDropdownOpen(false);
+                    window.location.href = '/member/edit';
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
                 >
                   <User className="w-4 h-4" />
                   会員情報編集
-                </Link>
-                <Link
+                </a>
+                <a
                   href="/member/settings"
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors"
-                  onClick={() => setIsDropdownOpen(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsDropdownOpen(false);
+                    window.location.href = '/member/settings';
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
                 >
                   <Settings className="w-4 h-4" />
                   設定
-                </Link>
+                </a>
               </div>
 
               {/* ログアウト */}

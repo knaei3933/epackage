@@ -27,21 +27,14 @@ export function UnifiedDashboardClient({
   const [period, setPeriod] = useState(30);
 
   // SWRで統計データを自動更新
+  // Include userId as query param for client-side auth fallback
   const { data: stats, error, isValidating, mutate } = useSWR<UnifiedDashboardStats>(
-    `/api/member/dashboard/unified-stats?period=${period}`,
+    `/api/member/dashboard/unified-stats?period=${period}&userId=${userId}`,
     async (url) => {
+      // Cookie-based authentication (primary) with userId fallback
+      // The API will authenticate via cookies server-side, with userId as fallback
       const response = await fetch(url, {
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          // DEV_MODEヘッダー対応
-          ...(typeof window !== 'undefined' && localStorage.getItem('dev-mock-user-id')
-            ? {
-                'x-dev-mode': 'true',
-                'x-user-id': localStorage.getItem('dev-mock-user-id')!,
-              }
-            : {}),
-        },
       });
 
       if (!response.ok) {

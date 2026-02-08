@@ -81,3 +81,19 @@ node_modules/.next.env.local
 .env.local
 nul
 *.pdf
+
+# OMC (oh-my-claudecode) state files
+.omc/
+.omc-notepad.md
+
+# Playwright MCP test artifacts
+.playwright-mcp/
+
+# Test screenshots and reports
+*.png
+check-*.js
+test-*.js
+update-*.js
+*_TEST_REPORT.md
+*_QA_REPORT.md
+*_INTEGRATION_TEST_REPORT.md

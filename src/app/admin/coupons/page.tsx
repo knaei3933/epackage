@@ -31,19 +31,23 @@ export default function AdminCouponsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     loadCoupons();
-  }, []);
+  }, [page]);
 
   const loadCoupons = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/coupons');
+      const response = await fetch(`/api/admin/coupons?page=${page}&page_size=${pageSize}`);
       const result = await response.json();
 
       if (result.success) {
         setCoupons(result.data);
+        setTotal(result.pagination?.total || 0);
       }
     } catch (error) {
       console.error('Failed to load coupons:', error);
@@ -152,107 +156,132 @@ export default function AdminCouponsPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      코드
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      이름
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      타입
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      값
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      상태
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      사용
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      작업
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {coupons.map((coupon) => (
-                    <tr key={coupon.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Tag className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm font-mono font-medium text-gray-900">
-                            {coupon.code}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {coupon.nameJa || coupon.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {coupon.type === 'percentage' && '퍼센트 (%)'}
-                        {coupon.type === 'fixed_amount' && '고정 금액 (엔)'}
-                        {coupon.type === 'free_shipping' && '무료 배송'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {coupon.type === 'percentage' && `${coupon.value}%`}
-                        {coupon.type === 'fixed_amount' && `${coupon.value.toLocaleString()}엔`}
-                        {coupon.type === 'free_shipping' && '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          coupon.status === 'active' ? 'bg-green-100 text-green-800' :
-                          coupon.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                          coupon.status === 'expired' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {coupon.status === 'active' && '활성'}
-                          {coupon.status === 'inactive' && '비활성'}
-                          {coupon.status === 'expired' && '만료'}
-                          {coupon.status === 'scheduled' && '예약'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {coupon.currentUses} / {coupon.maxUses || '∞'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingCoupon(coupon);
-                              setShowForm(true);
-                            }}
-                            className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
-                            title="편집"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(coupon.id)}
-                            className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
-                            title="삭제"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
+          <>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        코드
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        이름
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        타입
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        값
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        상태
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        사용
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        작업
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {coupons.map((coupon) => (
+                      <tr key={coupon.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Tag className="h-4 w-4 text-gray-400 mr-2" />
+                            <span className="text-sm font-mono font-medium text-gray-900">
+                              {coupon.code}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {coupon.nameJa || coupon.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {coupon.type === 'percentage' && '퍼센트 (%)'}
+                          {coupon.type === 'fixed_amount' && '고정 금액 (엔)'}
+                          {coupon.type === 'free_shipping' && '무료 배송'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {coupon.type === 'percentage' && `${coupon.value}%`}
+                          {coupon.type === 'fixed_amount' && `${coupon.value.toLocaleString()}엔`}
+                          {coupon.type === 'free_shipping' && '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            coupon.status === 'active' ? 'bg-green-100 text-green-800' :
+                            coupon.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                            coupon.status === 'expired' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {coupon.status === 'active' && '활성'}
+                            {coupon.status === 'inactive' && '비활성'}
+                            {coupon.status === 'expired' && '만료'}
+                            {coupon.status === 'scheduled' && '예약'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {coupon.currentUses} / {coupon.maxUses || '∞'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingCoupon(coupon);
+                                setShowForm(true);
+                              }}
+                              className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                              title="편집"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(coupon.id)}
+                              className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
+                              title="삭제"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {coupons.length === 0 && !loading && (
+                <div className="text-center py-12 text-gray-500">
+                  쿠폰이 없습니다.
+                </div>
+              )}
             </div>
 
-            {coupons.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                쿠폰이 없습니다.
+            {/* Pagination */}
+            {total > pageSize && (
+              <div className="mt-6 flex justify-center items-center gap-4">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  前へ
+                </button>
+                <span className="text-sm text-gray-600">
+                  {page} / {Math.ceil(total / pageSize)} ページ (全{total}件)
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
+                  disabled={page >= Math.ceil(total / pageSize)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  次へ
+                </button>
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

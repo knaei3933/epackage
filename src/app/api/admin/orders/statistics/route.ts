@@ -72,13 +72,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select('*', { count: 'exact', head: true })
       .eq('status', 'PENDING');
 
-    // 5. 進行中の生産ジョブ（IN_PRODUCTION, STOCK_IN）
-    const { count: activeProduction } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .in('status', ['IN_PRODUCTION', 'STOCK_IN']);
-
-    // 6. 本日発送数（ステータスがSHIPPEDで、shipped_atが今日）
+    // 5. 本日発送数（ステータスがSHIPPEDで、shipped_atが今日）
     const today = new Date().toISOString().split('T')[0];
     const { count: todayShipments } = await supabase
       .from('orders')
@@ -91,7 +85,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ordersByStatus: ordersByStatusFormatted,
       monthlyRevenue: monthlyRevenueData,
       pendingQuotations: pendingQuotations || 0,
-      activeProduction: activeProduction || 0,
       todayShipments: todayShipments || 0,
       totalOrders,
       totalRevenue

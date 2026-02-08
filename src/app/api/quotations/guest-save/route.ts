@@ -22,6 +22,12 @@ const supabaseServiceKeyTyped = supabaseServiceKey as string;
 // Service role client for RLS bypass
 const supabase = createClient(supabaseUrlTyped, supabaseServiceKeyTyped);
 
+// クーポン情報の型定義
+interface AppliedCoupon {
+  couponId?: string;
+  type?: string;
+}
+
 // 見積もりデータスキーマ（ゲストユーザー用）
 const guestQuotationSchema = z.object({
   customerName: z.string().min(1, 'お名前を入力してください'),
@@ -44,6 +50,12 @@ const guestQuotationSchema = z.object({
     setupCost: z.number(),
   }),
   projectDetails: z.string().optional(),
+  appliedCoupon: z.object({
+    couponId: z.string().optional(),
+    type: z.string().optional(),
+  }).optional(),
+  discountAmount: z.number().optional(),
+  adjustedTotal: z.number().optional(),
 });
 
 // POST: 新しい見積を作成（ゲスト用）
@@ -65,22 +77,37 @@ export async function POST(request: NextRequest) {
     const tax = Math.floor(totalCost * 0.1); // 10%消費税
     const grandTotal = totalCost + tax;
 
+    // クーポン情報の適用
+    // adjustedTotalがあればそれを使用、なければ元のgrandTotalを使用
+    const finalTotal = validatedData.adjustedTotal || grandTotal;
+    const discountAmount = validatedData.discountAmount || 0;
+
     // ゲストユーザー用ダミーID
     // 注: 本番環境ではゲスト用システムユーザーを事前に作成してください
     // E2Eテスト用: member@test.com のIDを使用
     const guestUserId = '3b67b1c5-5f88-40d8-998a-436f0f81fac0';
+
+    // 会社名があれば会社名を優先、なければお名前
+    const customerName = validatedData.companyName || validatedData.customerName;
+
+    // クーポン情報がある場合、coupon_idとdiscount_typeを設定
+    const couponId = validatedData.appliedCoupon?.couponId || null;
+    const discountType = validatedData.appliedCoupon?.type || null;
 
     const { data: quotation, error: insertError } = await supabase
       .from('quotations')
       .insert({
         user_id: guestUserId,
         quotation_number: quotationNumber,
-        customer_name: validatedData.customerName,
+        customer_name: customerName,
         customer_email: validatedData.customerEmail,
         customer_phone: validatedData.customerPhone || null,
         subtotal_amount: totalCost,
         tax_amount: tax,
-        total_amount: grandTotal,
+        total_amount: finalTotal,
+        coupon_id: couponId,
+        discount_amount: discountAmount > 0 ? discountAmount : null,
+        discount_type: discountType,
         valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         notes: JSON.stringify({
           specifications: validatedData.specifications,
@@ -88,6 +115,7 @@ export async function POST(request: NextRequest) {
           pricing: validatedData.pricing,
           projectDetails: validatedData.projectDetails || '',
           companyName: validatedData.companyName || '',
+          appliedCoupon: validatedData.appliedCoupon || null,
         }),
       })
       .select()

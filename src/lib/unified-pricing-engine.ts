@@ -11,7 +11,7 @@ import type {
   SKUCostBreakdown
 } from './pouch-cost-calculator'
 import { determineMaterialWidth } from './material-width-selector'
-import { processingOptionsConfig, type ProcessingOptionConfig } from '../components/quote/processingConfig'
+import { processingOptionsConfig, type ProcessingOptionConfig } from '../components/quote/shared/processingConfig'
 
 // ========================================
 // ヘルパー関数
@@ -685,7 +685,7 @@ export class UnifiedPricingEngine {
     this.validateParams(params)
 
     // 1. 素材費計算（初期値）
-    let materialCost = this.calculateMaterialCost(
+    let materialCost = await this.calculateMaterialCost(
       materialId,
       width,
       height,
@@ -725,7 +725,7 @@ export class UnifiedPricingEngine {
       })
     } else {
       // パウチ製品：既存のcalculatePouchProcessingCostを使用
-      processingCost = this.calculatePouchProcessingCost(
+      processingCost = await this.calculatePouchProcessingCost(
         bagTypeId,
         width,
         quantity,
@@ -789,11 +789,23 @@ export class UnifiedPricingEngine {
     // 各レイヤーの材料費計算（ウォン）
     let materialCostKRW = 0;
     for (const layer of adjustedLayers) {
-      const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
-      if (materialInfo) {
+      // DB設定から素材価格と密度を取得、ない場合は定数を使用
+      const defaultMaterialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+      const unitPrice = await this.getSetting(
+        'film_material',
+        `${layer.materialId}_unit_price`,
+        defaultMaterialInfo?.unitPrice || 0
+      );
+      const density = await this.getSetting(
+        'film_material',
+        `${layer.materialId}_density`,
+        defaultMaterialInfo?.density || 1.0
+      );
+
+      if (unitPrice > 0) {
         const thicknessMm = layer.thickness / 1000;
-        const weight = thicknessMm * widthM * totalUsedMeters * materialInfo.density;
-        const cost = weight * materialInfo.unitPrice;
+        const weight = thicknessMm * widthM * totalUsedMeters * density;
+        const cost = weight * unitPrice;
         materialCostKRW += cost;
       }
     }
@@ -816,7 +828,7 @@ export class UnifiedPricingEngine {
     // 3. 印刷費計算
     // ロールフィルムの場合は、メートル数とフィルム幅を使用
     // パウチの場合は、使用メートル数を使用（ドキュメント仕様準拠）
-    const printingCost = this.calculatePrintingCost(
+    const printingCost = await this.calculatePrintingCost(
       printingType,
       printingColors,
       quantity,
@@ -929,7 +941,7 @@ export class UnifiedPricingEngine {
       };
     }
 
-    const deliveryCost = this.calculateDeliveryCost(
+    const deliveryCost = await this.calculateDeliveryCost(
       deliveryLocation,
       quantity,
       width,
@@ -942,7 +954,7 @@ export class UnifiedPricingEngine {
       // パウチ製品用パラメータ
       bagTypeId !== 'roll_film' ? {
         filmLayers: adjustedPouchLayers,
-        materialWidth: materialWidth
+        materialWidth: materialWidth as 590 | 760
       } : undefined
     )
 
@@ -1130,7 +1142,7 @@ export class UnifiedPricingEngine {
     // ========================================
     // 2. 파우치 가공비 계산
     // ========================================
-    const pouchProcessingCost = this.calculatePouchProcessingCost(
+    const pouchProcessingCost = await this.calculatePouchProcessingCost(
       bagTypeId,
       width,
       quantity,
@@ -1521,12 +1533,12 @@ export class UnifiedPricingEngine {
    * @param postProcessingOptions 후가공 옵션 (지퍼 등)
    * @returns 파우치 가공비 (엔)
    */
-  private calculatePouchProcessingCost(
+  private async calculatePouchProcessingCost(
     bagTypeId: string,
     width: number,
     quantity: number,
     postProcessingOptions?: string[]
-  ): number {
+  ): Promise<number> {
     // 기본 파우치 타입 결정
     let basePouchType: 'flat_3_side' | 'stand_up' | 't_shape' | 'm_shape' | 'box' | 'other' = 'other'
 
@@ -1547,15 +1559,26 @@ export class UnifiedPricingEngine {
     const finalPouchType = basePouchType
     const hasZipper = postProcessingOptions?.includes('zipper-yes')
 
-    // 파우치 가공비 계산식 (고정비용 방식)
-    const costConfig = CONSTANTS.POUCH_PROCESSING_COSTS[finalPouchType] || CONSTANTS.POUCH_PROCESSING_COSTS.other
+    // DB設定からパウチ加工費を取得
+    const defaultCostConfig = CONSTANTS.POUCH_PROCESSING_COSTS[finalPouchType] || CONSTANTS.POUCH_PROCESSING_COSTS.other
+    const minimumPrice = await this.getSetting(
+      'pouch_processing',
+      `${finalPouchType}_minimum_price`,
+      defaultCostConfig.minimumPrice
+    )
 
     // 기본 가공비 (원화) - coefficient 방식 대신 고정비용 사용
-    let baseCostKRW = costConfig.minimumPrice
+    let baseCostKRW = minimumPrice
 
     // 지퍼가 있는 경우 추가비용 적용
     if (hasZipper) {
-      const surcharge = CONSTANTS.ZIPPER_SURCHARGE[finalPouchType as keyof typeof CONSTANTS.ZIPPER_SURCHARGE] || 0
+      // DB設定からジッパー追加料金を取得
+      const defaultSurcharge = CONSTANTS.ZIPPER_SURCHARGE[finalPouchType as keyof typeof CONSTANTS.ZIPPER_SURCHARGE] || 0
+      const surcharge = await this.getSetting(
+        'pouch_processing',
+        `${finalPouchType}_zipper_surcharge`,
+        defaultSurcharge
+      )
       baseCostKRW += surcharge
     }
 
@@ -1564,8 +1587,12 @@ export class UnifiedPricingEngine {
       basePouchType,
       hasZipper,
       finalPouchType,
-      baseMinimumPrice: costConfig.minimumPrice,
-      zipperSurcharge: hasZipper ? CONSTANTS.ZIPPER_SURCHARGE[finalPouchType as keyof typeof CONSTANTS.ZIPPER_SURCHARGE] : 0,
+      baseMinimumPrice: minimumPrice,
+      zipperSurcharge: hasZipper ? await this.getSetting(
+        'pouch_processing',
+        `${finalPouchType}_zipper_surcharge`,
+        CONSTANTS.ZIPPER_SURCHARGE[finalPouchType as keyof typeof CONSTANTS.ZIPPER_SURCHARGE] || 0
+      ) : 0,
       finalCostKRW: baseCostKRW
     })
 
@@ -1624,7 +1651,7 @@ export class UnifiedPricingEngine {
   /**
    * 素材費計算
    */
-  private calculateMaterialCost(
+  private async calculateMaterialCost(
     materialId: string,
     width: number,
     height: number,
@@ -1632,8 +1659,13 @@ export class UnifiedPricingEngine {
     bagTypeId: string,
     thicknessSelection?: string,
     thicknessMultiplier: number = 1.0
-  ): number {
-    const materialCostPerKg = (CONSTANTS.MATERIAL_COSTS as any)[materialId] || CONSTANTS.MATERIAL_COSTS.PET
+  ): Promise<number> {
+    // DB設定から素材単価を取得、ない場合は定数を使用
+    const materialCostPerKg = await this.getSetting(
+      'material_cost',
+      materialId,
+      (CONSTANTS.MATERIAL_COSTS as any)[materialId] || CONSTANTS.MATERIAL_COSTS.PET
+    )
 
     // 面積計算 (mm² → m²)
     const areaMm2 = width * height
@@ -1656,7 +1688,7 @@ export class UnifiedPricingEngine {
   /**
    * 加工費計算
    */
-  private calculateProcessingCost(
+  private async calculateProcessingCost(
     bagTypeId: string,
     quantity: number,
     isUVPrinting: boolean = false,
@@ -1665,7 +1697,7 @@ export class UnifiedPricingEngine {
       filmLayers?: FilmStructureLayer[]
       thicknessSelection?: string
     }
-  ): number {
+  ): Promise<number> {
     // ロールフィルムはM単位で計算（quantityは長さmとして扱う）
     if (bagTypeId === 'roll_film') {
       const lengthInMeters = quantity; // quantityを長さ(m)として解釈
@@ -1738,12 +1770,24 @@ export class UnifiedPricingEngine {
       // 各レイヤーの材料費計算（ウォン）
       let materialCostKRW = 0;
       for (const layer of adjustedLayers) {
-        const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
-        if (materialInfo) {
-          // 厚み(mm) × 幅(m) × 総長さ(m + 로스) × 比重 × 単価(ウォン/kg)
+        // DB設定から素材価格と密度を取得、ない場合は定数を使用
+        const defaultMaterialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+        const unitPrice = await this.getSetting(
+          'film_material',
+          `${layer.materialId}_unit_price`,
+          defaultMaterialInfo?.unitPrice || 0
+        );
+        const density = await this.getSetting(
+          'film_material',
+          `${layer.materialId}_density`,
+          defaultMaterialInfo?.density || 1.0
+        );
+
+        if (unitPrice > 0) {
+          // 厚み(mm) × 幅(m) × 総長さ(m + ロス) × 比重 × 単価(ウォン/kg)
           const thicknessMm = layer.thickness / 1000; // μm→mm変換
-          const weight = thicknessMm * widthM * totalMeters * materialInfo.density; // kg
-          const cost = weight * materialInfo.unitPrice; // ウォン
+          const weight = thicknessMm * widthM * totalMeters * density; // kg
+          const cost = weight * unitPrice; // ウォン
           materialCostKRW += cost;
         }
       }
@@ -1757,12 +1801,23 @@ export class UnifiedPricingEngine {
         lengthInMeters,
         totalMeters,
         lossMeters: 400,
-        breakdown: adjustedLayers.map(layer => {
-          const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
-          if (materialInfo) {
+        breakdown: await Promise.all(adjustedLayers.map(async (layer) => {
+          // DB設定から素材価格と密度を取得（console.log用）
+          const defaultMaterialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+          const unitPrice = await this.getSetting(
+            'film_material',
+            `${layer.materialId}_unit_price`,
+            defaultMaterialInfo?.unitPrice || 0
+          );
+          const density = await this.getSetting(
+            'film_material',
+            `${layer.materialId}_density`,
+            defaultMaterialInfo?.density || 1.0
+          );
+          if (unitPrice > 0) {
             const thicknessMm = layer.thickness / 1000;
-            const weight = thicknessMm * widthM * totalMeters * materialInfo.density;
-            const cost = weight * materialInfo.unitPrice;
+            const weight = thicknessMm * widthM * totalMeters * density;
+            const cost = weight * unitPrice;
             return {
               materialId: layer.materialId,
               thickness: layer.thickness,
@@ -1772,7 +1827,7 @@ export class UnifiedPricingEngine {
             };
           }
           return null;
-        }).filter(Boolean)
+        })).then(results => results.filter(Boolean))
       });
 
       // 総原価 = 材料費 + ラミネート費 + スリッター費
@@ -1792,7 +1847,12 @@ export class UnifiedPricingEngine {
       return processingCostOnlyJPY;
     }
 
-    const baseCost = (CONSTANTS.PROCESSING_COSTS as any)[bagTypeId] || CONSTANTS.PROCESSING_COSTS['flat-pouch']
+    // DB設定から加工費を取得、ない場合は定数を使用
+    const baseCost = await this.getSetting(
+      'processing_cost',
+      bagTypeId,
+      (CONSTANTS.PROCESSING_COSTS as any)[bagTypeId] || CONSTANTS.PROCESSING_COSTS['flat-pouch']
+    )
     const isFlat = bagTypeId.toLowerCase().includes('flat') || bagTypeId.toLowerCase().includes('3_side')
 
     // UV印刷時加工費調整
@@ -1808,7 +1868,7 @@ export class UnifiedPricingEngine {
    * ドキュメント仕様: 印刷費は常に1mで計算（フィルム幅と無関係）
    * 印刷費用(ウォン) = 1m × 使用メートル数 × 475ウォン/m²
    */
-  private calculatePrintingCost(
+  private async calculatePrintingCost(
     printingType: 'digital' | 'gravure',
     colors: number,
     quantity: number,
@@ -1819,12 +1879,24 @@ export class UnifiedPricingEngine {
       filmWidthM?: number        // フィルム幅
     },
     pouchMeters?: number  // パウチの使用メートル数（ロス込み）
-  ): number {
+  ): Promise<number> {
+    // DB設定からUV印刷固定費を取得
+    const uvPrintingFixedCost = await this.getSetting(
+      'printing',
+      'uv_fixed_cost',
+      CONSTANTS.UV_PRINTING_FIXED_COST
+    )
     if (isUVPrinting) {
-      return CONSTANTS.UV_PRINTING_FIXED_COST
+      return uvPrintingFixedCost
     }
 
-    const printingConfig = CONSTANTS.PRINTING_COSTS[printingType]
+    // DB設定から印刷設定を取得
+    const defaultConfig = CONSTANTS.PRINTING_COSTS[printingType]
+    const printingConfig = {
+      setupFee: await this.getSetting('printing', `${printingType}_setup_fee`, defaultConfig.setupFee),
+      perColorPerMeter: await this.getSetting('printing', `${printingType}_per_color_per_meter`, defaultConfig.perColorPerMeter),
+      minCharge: await this.getSetting('printing', `${printingType}_min_charge`, defaultConfig.minCharge)
+    }
     const colorMultiplier = doubleSided ? 2 : 1
 
     // ロールフィルムの場合：メートル数とフィルム幅を使用
@@ -1837,7 +1909,13 @@ export class UnifiedPricingEngine {
       // ロールフィルム印刷費は幅無関係、常に475元/mで計算
       // ドキュメント基準：docs/reports/calcultae/04-미터수_및_원가_계산.md
       // パウチ製品の印刷費計算（1777-1794行目）には影響なし（分岐が分かれているため）
-      const printingCostKRW = totalMeters * CONSTANTS.ROLL_FILM_PRINTING_COST_PER_M;
+      // DB設定からロールフィルム印刷費を取得
+      const rollFilmPrintingCostPerM = await this.getSetting(
+        'printing',
+        'roll_film_cost_per_m',
+        CONSTANTS.ROLL_FILM_PRINTING_COST_PER_M
+      )
+      const printingCostKRW = totalMeters * rollFilmPrintingCostPerM;
       const totalCostKRW = Math.max(printingCostKRW, printingConfig.minCharge);
 
       // 円換算（×0.12）
@@ -1848,7 +1926,7 @@ export class UnifiedPricingEngine {
         lengthInMeters: rollFilmParams.lengthInMeters,
         totalMeters,
         lossMeters: 400,
-        perColorPerMeter: CONSTANTS.ROLL_FILM_PRINTING_COST_PER_M, // 475固定
+        perColorPerMeter: rollFilmPrintingCostPerM, // DB設定から取得
         note: 'ロールフィルム印刷費は幅無関係、常に475元/m',
         printingCostKRW,
         totalCostKRW,
@@ -1935,7 +2013,7 @@ export class UnifiedPricingEngine {
    * @param bagTypeId Bag type (roll_film uses per-roll shipping)
    * @param rollCount Number of rolls (for roll_film shipping cost)
    */
-  private calculateDeliveryCost(
+  private async calculateDeliveryCost(
     deliveryLocation: 'domestic' | 'international',
     quantity: number,
     width: number,
@@ -1954,7 +2032,7 @@ export class UnifiedPricingEngine {
       filmLayers?: Array<{ materialId: string; thickness: number }>;
       materialWidth?: 590 | 760;
     }
-  ): number {
+  ): Promise<number> {
     const DELIVERY_COST_PER_ROLL = 16800 // 롤당 배송비 (엔)
 
     // Roll film: 重さ基づき配送料計算（26kgごとの包装区切り、15%加算）
@@ -1969,14 +2047,19 @@ export class UnifiedPricingEngine {
       let deliveryWeightKg = 0;
       if (rollFilmParams.layers && rollFilmParams.layers.length > 0) {
         for (const layer of rollFilmParams.layers) {
-          const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
-          if (materialInfo) {
-            // 重量(kg) = 厚さ(mm) × 幅(m) × 長さ(m) × 比重
-            // 配送料は納品数量（deliveryMeters）で計算
-            const thicknessMm = layer.thickness / 1000; // μm→mm変換
-            const weight = thicknessMm * filmWidthM * deliveryMeters * materialInfo.density;
-            deliveryWeightKg += weight;
-          }
+          // DB設定から素材密度を取得、ない場合は定数を使用
+          const defaultMaterialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+          const density = await this.getSetting(
+            'film_material',
+            `${layer.materialId}_density`,
+            defaultMaterialInfo?.density || 1.0
+          );
+
+          // 重量(kg) = 厚さ(mm) × 幅(m) × 長さ(m) × 比重
+          // 配送料は納品数量（deliveryMeters）で計算
+          const thicknessMm = layer.thickness / 1000; // μm→mm変換
+          const weight = thicknessMm * filmWidthM * deliveryMeters * density;
+          deliveryWeightKg += weight;
         }
       } else {
         // レイヤー情報がない場合、簡易計算（総厚さ100μmとして）
@@ -2011,13 +2094,18 @@ export class UnifiedPricingEngine {
       let totalWeightPerM2 = 0; // m²あたりの重量（kg）
 
       for (const layer of pouchParams.filmLayers) {
-        const materialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
-        if (materialInfo) {
-          const thicknessMm = layer.thickness / 1000; // μm→mm変換
-          totalThicknessMm += thicknessMm;
-          // 重量(kg/m²) = 厚さ(mm) × 比重
-          totalWeightPerM2 += thicknessMm * materialInfo.density;
-        }
+        // DB設定から素材密度を取得、ない場合は定数を使用
+        const defaultMaterialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
+        const density = await this.getSetting(
+          'film_material',
+          `${layer.materialId}_density`,
+          defaultMaterialInfo?.density || 1.0
+        );
+
+        const thicknessMm = layer.thickness / 1000; // μm→mm変換
+        totalThicknessMm += thicknessMm;
+        // 重量(kg/m²) = 厚さ(mm) × 比重
+        totalWeightPerM2 += thicknessMm * density;
       }
 
       // 1個あたりの重量（kg）
@@ -2050,7 +2138,13 @@ export class UnifiedPricingEngine {
     }
 
     // パウチ製品でフィルム構造情報がない場合、簡易計算（従来方法）
-    const deliveryConfig = CONSTANTS.DELIVERY_COSTS[deliveryLocation]
+    // DB設定から配送料設定を取得
+    const defaultDeliveryConfig = CONSTANTS.DELIVERY_COSTS[deliveryLocation]
+    const deliveryConfig = {
+      base: await this.getSetting('delivery', `${deliveryLocation}_base`, defaultDeliveryConfig.base),
+      perKg: await this.getSetting('delivery', `${deliveryLocation}_per_kg`, defaultDeliveryConfig.perKg),
+      freeThreshold: await this.getSetting('delivery', `${deliveryLocation}_free_threshold`, defaultDeliveryConfig.freeThreshold)
+    }
 
     // 想定重量計算
     const areaMm2 = width * height
@@ -2306,6 +2400,16 @@ export class UnifiedPricingEngine {
   }
 
   /**
+   * 設定キャッシュをクリア
+   * Clear the settings cache to force reload from database
+   */
+  public clearSettingsCache(): void {
+    this.settingsCache.clear()
+    this.settingsCacheExpiry = 0
+    console.log('[UnifiedPricingEngine] Settings cache cleared')
+  }
+
+  /**
    * キャッシュサイズ取得
    */
   public getCacheSize(): number {
@@ -2319,7 +2423,7 @@ export class UnifiedPricingEngine {
   public clearCacheForQuantity(quantity: number): void {
     const keysToDelete: string[] = []
 
-    for (const [key] of this.cache.keys()) {
+    for (const key of Array.from(this.cache.keys())) {
       // キャッシュキーに数量が含まれる場合削除
       if (key.includes(`quantity:${quantity}`)) {
         keysToDelete.push(key)

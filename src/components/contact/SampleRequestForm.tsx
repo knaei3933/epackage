@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Package, Send, CheckCircle, RotateCcw } from 'lucide-react'
 import { useEffect } from 'react'
+import { supabase } from '@/lib/supabase-browser'
 import type { PouchSampleRequestFormData } from './SampleRequestForm.schema'
 import { pouchSampleRequestSchema } from './SampleRequestForm.schema'
 import { useSampleRequestSubmit } from './useSampleRequestForm'
@@ -82,17 +83,58 @@ export default function PouchSampleRequestForm() {
 
   // Restore draft on mount if available
   useEffect(() => {
-    if (hasDraft) {
-      const restored = restoreDraft()
-      if (restored) {
-        // Populate form with restored data
-        Object.entries(restored).forEach(([key, value]) => {
-          if (key !== 'timestamp') {
-            setValue(key as any, value as any)
+    const initializeForm = async () => {
+      // Priority 1: Restore draft if available
+      if (hasDraft) {
+        const restored = restoreDraft()
+        if (restored) {
+          // Populate form with restored data
+          Object.entries(restored).forEach(([key, value]) => {
+            if (key !== 'timestamp') {
+              setValue(key as any, value as any)
+            }
+          })
+          return
+        }
+      }
+
+      // Priority 2: Auto-fill member information if logged in and no draft
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          if (profile) {
+            // Auto-fill member information
+            setValue('kanjiLastName', profile.kanji_last_name || '')
+            setValue('kanjiFirstName', profile.kanji_first_name || '')
+            setValue('kanaLastName', profile.kana_last_name || '')
+            setValue('kanaFirstName', profile.kana_first_name || '')
+            setValue('company', profile.company_name || '')
+            setValue('email', profile.email || session.user.email || '')
+            // Use corporate_phone first, fallback to personal_phone
+            setValue('phone', profile.corporate_phone || profile.personal_phone || '')
+            setValue('postalCode', profile.postal_code || '')
+            // Combine address fields
+            const addressParts = [
+              profile.prefecture,
+              profile.city,
+              profile.street,
+              profile.building
+            ].filter(Boolean)
+            setValue('address', addressParts.join(''))
           }
-        })
+        }
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error)
       }
     }
+
+    initializeForm()
   }, [hasDraft, restoreDraft, setValue])
 
   // Watch form changes and schedule auto-save

@@ -55,7 +55,7 @@ export interface JapaneseName {
 
 export const registrationSchema = z
   .object({
-    // 認証情報
+    // 認証情報（必須）
     email: z
       .string()
       .min(1, 'メールアドレスを入力してください。')
@@ -68,42 +68,36 @@ export const registrationSchema = z
       .regex(/[0-9]/, 'パスワードには少なくとも1つの数字を含める必要があります。'),
     passwordConfirm: z.string().min(1, 'パスワード確認を入力してください。'),
 
-    // 日本の氏名（漢字・ひらがな、姓・名別）
-    kanjiLastName: z
-      .string()
-      .min(1, '姓（漢字）を入力してください。')
-      .max(50, '姓は50文字以内で入力してください。')
-      .regex(/^[\u4E00-\u9FFF\s]+$/, '漢字のみ入力可能です。'),
-    kanjiFirstName: z
-      .string()
-      .min(1, '名（漢字）を入力してください。')
-      .max(50, '名は50文字以内で入力してください。')
-      .regex(/^[\u4E00-\u9FFF\s]+$/, '漢字のみ入力可能です。'),
-    kanaLastName: z
-      .string()
-      .min(1, '姓（ひらがな）を入力してください。')
-      .max(50, '姓は50文字以内で入力してください。')
-      .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力可能です。'),
-    kanaFirstName: z
-      .string()
-      .min(1, '名（ひらがな）を入力してください。')
-      .max(50, '名は50文字以内で入力してください。')
-      .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力可能です。'),
+    // 日本の氏名（漢字・ひらがな、姓・名別）- オプション化
+    kanjiLastName: z.union([
+      z.string().max(50, '姓は50文字以内で入力してください。'),
+      z.literal('')
+    ]).optional(),
+    kanjiFirstName: z.union([
+      z.string().max(50, '名は50文字以内で入力してください。'),
+      z.literal('')
+    ]).optional(),
+    kanaLastName: z.union([
+      z.string().max(50, '姓は50文字以内で入力してください。'),
+      z.literal('')
+    ]).optional(),
+    kanaFirstName: z.union([
+      z.string().max(50, '名は50文字以内で入力してください。'),
+      z.literal('')
+    ]).optional(),
 
-    // 電話番号（少なくとも1つは必須）
+    // 電話番号 - オプション化
     corporatePhone: z.union([
       z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
-    ]),
+    ]).optional(),
     personalPhone: z.union([
       z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
-    ]),
+    ]).optional(),
 
-    // 事業者種別
-    businessType: z.nativeEnum(BusinessType, {
-      errorMap: () => ({ message: '業種を選択してください。' }),
-    }),
+    // 事業者種別 - オプション化
+    businessType: z.nativeEnum(BusinessType).optional(),
 
     // 会社情報（オプションフィールド）
     companyName: z.union([
@@ -127,10 +121,8 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
 
-    // 製品カテゴリー
-    productCategory: z.nativeEnum(ProductCategory, {
-      errorMap: () => ({ message: '製品カテゴリーを選択してください。' }),
-    }),
+    // 製品カテゴリー - オプション化
+    productCategory: z.nativeEnum(ProductCategory).optional(),
 
     // 流入経路（オプションフィールド）
     acquisitionChannel: z.union([
@@ -138,22 +130,25 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
 
-    // 住所情報（必須フィールド）
-    postalCode: z.string()
-      .regex(/^\d{3}-?\d{4}$/, '有効な郵便番号を入力してください。（例：123-4567）')
-      .optional(),
-    prefecture: z.string()
-      .min(1, '都道府県を選択してください。')
-      .optional(),
-    city: z.string()
-      .min(1, '市区町村を入力してください。')
-      .optional(),
+    // 住所情報 - オプション化
+    postalCode: z.union([
+      z.string().regex(/^\d{3}-?\d{4}$/, '有効な郵便番号を入力してください。（例：123-4567）'),
+      z.literal('')
+    ]).optional(),
+    prefecture: z.union([
+      z.string(),
+      z.literal('')
+    ]).optional(),
+    city: z.union([
+      z.string(),
+      z.literal('')
+    ]).optional(),
     street: z.union([
-      z.string().min(1, '番地を入力してください。'),
+      z.string(),
       z.literal('')
     ]).optional(),
 
-    // 個人情報の収集および利用への同意
+    // 個人情報の収集および利用への同意（必須）
     privacyConsent: z.literal(true, {
       errorMap: () => ({ message: '個人情報の収集および利用に同意してください。' }),
     }),
@@ -161,32 +156,7 @@ export const registrationSchema = z
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'パスワードが一致しません。',
     path: ['passwordConfirm'],
-  })
-  .refine(
-    (data) => {
-      // 法人事業者の場合は法人番号必須
-      if (data.businessType === BusinessType.CORPORATION) {
-        return !!data.legalEntityNumber && data.legalEntityNumber.length === 13;
-      }
-      return true;
-    },
-    {
-      message: '法人事業者は法人番号を入力する必要があります。',
-      path: ['legalEntityNumber'],
-    }
-  )
-  .refine(
-    (data) => {
-      // 少なくとも1つの電話番号が必須
-      const hasCorporate = data.corporatePhone && data.corporatePhone !== '';
-      const hasPersonal = data.personalPhone && data.personalPhone !== '';
-      return hasCorporate || hasPersonal;
-    },
-    {
-      message: '会社電話番号または携帯電話の少なくとも1つを入力してください。',
-      path: ['personalPhone'],
-    }
-  );
+  });
 
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
 

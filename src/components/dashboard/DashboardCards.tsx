@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Dashboard Card Components
  *
@@ -8,7 +10,6 @@
  */
 
 import { Card } from '@/components/ui';
-import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Order, Quotation, DashboardSampleRequest, Inquiry, Announcement } from '@/types/dashboard';
@@ -65,7 +66,14 @@ export function DashboardStatsCard({
   const classes = colorClasses[color];
 
   return (
-    <Link href={href}>
+    <a
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        window.location.href = href;
+      }}
+      className="block cursor-pointer"
+    >
       <Card className={`p-4 ${classes.bg} ${classes.border} border hover:shadow-md transition-shadow`}>
         <div className="flex items-center justify-between">
           <div>
@@ -80,7 +88,7 @@ export function DashboardStatsCard({
           <span className="text-2xl">{icon}</span>
         </div>
       </Card>
-    </Link>
+    </a>
   );
 }
 
@@ -110,9 +118,16 @@ export function AnnouncementCard({ announcements }: AnnouncementCardProps) {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary">お知らせ</h2>
-        <Link href="/member/announcements" className="text-sm text-primary hover:underline">
+        <a
+          href="/member/announcements"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/member/announcements';
+          }}
+          className="text-sm text-primary hover:underline cursor-pointer"
+        >
           すべて見る
-        </Link>
+        </a>
       </div>
       <div className="space-y-3">
         {announcements.map((announcement) => (
@@ -193,9 +208,16 @@ export function RecentOrdersCard({ orders }: RecentOrdersCardProps) {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary">新規注文</h2>
-        <Link href="/member/orders/new" className="text-sm text-primary hover:underline">
+        <a
+          href="/member/orders/new"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/member/orders/new';
+          }}
+          className="text-sm text-primary hover:underline cursor-pointer"
+        >
           すべて見る
-        </Link>
+        </a>
       </div>
       <div className="space-y-3">
         {orders.map((order) => (
@@ -260,9 +282,16 @@ export function RecentQuotationsCard({ quotations }: RecentQuotationsCardProps) 
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary">見積依頼</h2>
-        <Link href="/member/quotations" className="text-sm text-primary hover:underline">
+        <a
+          href="/member/quotations"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/member/quotations';
+          }}
+          className="text-sm text-primary hover:underline cursor-pointer"
+        >
           すべて見る
-        </Link>
+        </a>
       </div>
       <div className="space-y-3">
         {quotations.map((quotation) => (
@@ -327,9 +356,16 @@ export function RecentSamplesCard({ samples }: RecentSamplesCardProps) {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary">サンプル依頼</h2>
-        <Link href="/member/samples" className="text-sm text-primary hover:underline">
+        <a
+          href="/member/samples"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/member/samples';
+          }}
+          className="text-sm text-primary hover:underline cursor-pointer"
+        >
           すべて見る
-        </Link>
+        </a>
       </div>
       <div className="space-y-3">
         {samples.map((sample) => (

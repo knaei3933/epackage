@@ -661,8 +661,6 @@ export const getProcessingOptionsByCompatibility = (productType: string): Proces
   )
 }
 
-export const getProcessingCategories = PROCESSING_CATEGORIES
-
 export const PROCESSING_CATEGORIES = [
   {
     id: 'opening-sealing',
@@ -870,3 +868,8 @@ export const calculateProcessingImpact = (selectedOptions: string[]) => {
     minimumQuantity: minQuantity || 500
   }
 }
+
+/**
+ * 後加工カテゴリ一覧を取得
+ */
+export const getProcessingCategories = PROCESSING_CATEGORIES

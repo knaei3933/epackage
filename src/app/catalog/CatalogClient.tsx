@@ -519,8 +519,8 @@ function ProductCard({ product, index, onSelect }: {
           {/* Specs */}
           <div className="text-sm text-gray-600 mb-4 space-y-1">
             <div className="flex justify-between">
-              <span>最低注文数量:</span>
-              <span className="font-medium">{product.min_order_quantity.toLocaleString()}個</span>
+              <span>最小注文数:</span>
+              <span className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</span>
             </div>
             <div className="flex justify-between">
               <span>納期:</span>
@@ -650,8 +650,8 @@ function ProductDetailModal({ product, onClose }: {
                   <h3 className="font-semibold text-gray-900 mb-3">基本仕様</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">最低注文数量:</span>
-                      <span className="font-medium">{product.min_order_quantity.toLocaleString()}個</span>
+                      <span className="text-gray-600">最小注文数:</span>
+                      <span className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">納期:</span>

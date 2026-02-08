@@ -195,13 +195,7 @@ export default function OrdersPage() {
     sortOrder: 'desc',
   });
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      console.log('[OrdersPage] User not authenticated, redirecting to login');
-      router.push('/auth/signin?redirect=/member/orders');
-    }
-  }, [authLoading, user, router]);
+  // Authentication is handled by middleware - no client-side redirect needed
 
   // Update URL when tab changes
   useEffect(() => {

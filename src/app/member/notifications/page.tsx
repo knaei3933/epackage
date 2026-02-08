@@ -12,10 +12,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, Button, Badge, PageLoadingState } from '@/components/ui';
+import { Card, Button, Badge, PageLoadingState, MotionWrapper } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Bell, Trash2, Check, CheckCheck, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // =====================================================
 // Types
@@ -62,6 +63,56 @@ const NOTIFICATION_TYPE_ICONS: Record<string, string> = {
   shipment: '🚚',
   payment: '💳',
   system: '⚙️',
+};
+
+// =====================================================
+// Animation Variants
+// =====================================================
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: {
+    opacity: 0,
+    x: -20,
+    scale: 0.95
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      damping: 20,
+      stiffness: 300,
+    }
+  },
+  exit: {
+    opacity: 0,
+    x: 20,
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+    }
+  },
+};
+
+const readExitVariants = {
+  exit: {
+    opacity: 0.4,
+    scale: 0.98,
+    transition: {
+      duration: 0.3,
+    }
+  },
 };
 
 // =====================================================
@@ -294,98 +345,130 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       {filteredNotifications.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Bell className="w-16 h-16 mx-auto text-text-muted mb-4" />
-          <p className="text-text-muted mb-2">
-            {notifications.length === 0
-              ? '通知がありません'
-              : '選択したフィルターに一致する通知がありません'}
-          </p>
-          {selectedFilter !== 'all' && (
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => setSelectedFilter('all')}
+        <MotionWrapper>
+          <Card className="p-12 text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", duration: 0.5 }}
             >
-              すべての通知を表示
-            </Button>
-          )}
-        </Card>
+              <Bell className="w-16 h-16 mx-auto text-text-muted mb-4" />
+            </motion.div>
+            <p className="text-text-muted mb-2">
+              {notifications.length === 0
+                ? '通知がありません'
+                : '選択したフィルターに一致する通知がありません'}
+            </p>
+            {selectedFilter !== 'all' && (
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => setSelectedFilter('all')}
+              >
+                すべての通知を表示
+              </Button>
+            )}
+          </Card>
+        </MotionWrapper>
       ) : (
-        <div className="space-y-3">
-          {filteredNotifications.map((notification) => (
-            <Card
-              key={notification.id}
-              className={`p-4 hover:shadow-sm transition-all cursor-pointer ${
-                !notification.is_read
-                  ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500'
-                  : ''
-              }`}
-              onClick={() => handleNotificationClick(notification)}
-            >
-              <div className="flex items-start gap-4">
-                {/* Icon */}
-                <div className="text-2xl">
-                  {NOTIFICATION_TYPE_ICONS[notification.type] || '🔔'}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-medium ${!notification.is_read ? 'text-text-primary' : 'text-text-muted'}`}>
-                      {notification.title}
-                    </h3>
-                    {!notification.is_read && (
-                      <Badge variant="info" size="sm">新着</Badge>
-                    )}
-                    <Badge variant="secondary" size="sm">
-                      {NOTIFICATION_TYPE_LABELS[notification.type]}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-text-muted mb-2 line-clamp-2">
-                    {notification.message}
-                  </p>
-                  <div className="flex items-center gap-3 text-xs text-text-muted">
-                    <span>
-                      {formatDistanceToNow(new Date(notification.created_at), {
-                        addSuffix: true,
-                        locale: ja,
-                      })}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  {!notification.is_read && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMarkAsRead(notification.id);
-                      }}
-                      title="既読にする"
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-3"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredNotifications.map((notification) => (
+              <motion.div
+                key={notification.id}
+                variants={itemVariants}
+                layout
+                exit={itemVariants.exit}
+                whileHover={{ scale: 1.01, x: 4 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                <Card
+                  className={`p-4 hover:shadow-sm transition-all cursor-pointer ${
+                    !notification.is_read
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500'
+                      : ''
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Icon */}
+                    <motion.div
+                      className="text-2xl"
+                      whileHover={{ rotate: [0, -10, 10, -10, 0], transition: { duration: 0.5 } }}
                     >
-                      <Check className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteNotification(notification.id);
-                    }}
-                    title="削除"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+                      {NOTIFICATION_TYPE_ICONS[notification.type] || '🔔'}
+                    </motion.div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className={`font-medium ${!notification.is_read ? 'text-text-primary' : 'text-text-muted'}`}>
+                          {notification.title}
+                        </h3>
+                        {!notification.is_read && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0 }}
+                          >
+                            <Badge variant="info" size="sm">新着</Badge>
+                          </motion.div>
+                        )}
+                        <Badge variant="secondary" size="sm">
+                          {NOTIFICATION_TYPE_LABELS[notification.type]}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-text-muted mb-2 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-text-muted">
+                        <span>
+                          {formatDistanceToNow(new Date(notification.created_at), {
+                            addSuffix: true,
+                            locale: ja,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      {!notification.is_read && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsRead(notification.id);
+                          }}
+                          title="既読にする"
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNotification(notification.id);
+                        }}
+                        title="削除"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {/* Summary */}

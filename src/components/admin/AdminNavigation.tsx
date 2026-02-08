@@ -27,7 +27,7 @@ const navigation = [
   { name: '配送管理', href: '/admin/shipments', icon: Truck },
   { name: '契約管理', href: '/admin/contracts', icon: FileText },
   { name: '会員承認', href: '/admin/approvals', icon: UserCheck },
-  { name: '在庫管理', href: '/admin/inventory', icon: Boxes },
+  { name: '顧客管理', href: '/admin/customers/management', icon: Users },
   { name: 'お知らせ管理', href: '/admin/notifications', icon: Bell },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },
   { name: 'システム設定', href: '/admin/settings', icon: DollarSign },

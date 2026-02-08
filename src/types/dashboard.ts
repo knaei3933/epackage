@@ -67,6 +67,18 @@ export interface User {
 // Order Types
 // =====================================================
 
+export type DiscountType = 'percentage' | 'fixed_amount' | 'free_shipping';
+
+export interface AppliedCoupon {
+  id: string;
+  code: string;
+  name: string;
+  nameJa?: string;
+  type: DiscountType;
+  value: number;
+  discountAmount: number;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -85,6 +97,15 @@ export interface Order {
   customer_phone?: string;
   subtotal?: number;
   taxAmount?: number;
+  // Coupon-related fields
+  couponId?: string;
+  discountAmount?: number;
+  discountType?: DiscountType;
+  appliedCoupon?: AppliedCoupon;
+  quotation_id?: string;
+  // Manual discount fields (admin)
+  manualDiscountPercentage?: number;
+  manualDiscountAmount?: number;
 }
 
 export interface OrderItem {

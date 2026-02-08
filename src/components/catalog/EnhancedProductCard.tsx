@@ -57,8 +57,8 @@ export function EnhancedProductCard({
     },
     {
       icon: Package,
-      text: `${product.min_order_quantity.toLocaleString()}個`,
-      label: '最低注文',
+      text: `${product.min_order_quantity.toLocaleString()}${product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}`,
+      label: '最小注文数',
       color: 'green'
     },
     {
@@ -332,8 +332,8 @@ export function EnhancedProductCard({
                 <p className="text-gray-600">{product.description_ja}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-gray-500">最低注文:</span>
-                    <p className="font-medium">{product.min_order_quantity.toLocaleString()}個</p>
+                    <span className="text-gray-500">最小注文数:</span>
+                    <p className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">納期:</span>

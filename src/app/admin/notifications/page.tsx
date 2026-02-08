@@ -38,6 +38,9 @@ export default function AdminNotificationsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(10)
+  const [total, setTotal] = useState(0)
   const [formData, setFormData] = useState<NotificationFormData>({
     title: '',
     message: '',
@@ -51,10 +54,11 @@ export default function AdminNotificationsPage() {
   const fetchNotifications = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/admin/notifications?limit=50')
+      const response = await fetch(`/api/admin/notifications?limit=${pageSize}&page=${page}`)
       const result = await response.json()
       if (result.success) {
         setNotifications(result.data.notifications || [])
+        setTotal(result.data.pagination?.total || 0)
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
@@ -65,7 +69,7 @@ export default function AdminNotificationsPage() {
 
   useEffect(() => {
     fetchNotifications()
-  }, [])
+  }, [page])
 
   // 通知を作成
   const handleCreate = async () => {
@@ -462,6 +466,29 @@ export default function AdminNotificationsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {total > pageSize && (
+          <div className="mt-6 flex justify-center items-center gap-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              前へ
+            </button>
+            <span className="text-sm text-gray-600">
+              {page} / {Math.ceil(total / pageSize)} ページ (全{total}件)
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
+              disabled={page >= Math.ceil(total / pageSize)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              次へ
+            </button>
           </div>
         )}
       </div>

@@ -11,10 +11,17 @@ export interface DashboardStatistics {
     amount: number;
   }>;
   pendingQuotations: number;
-  activeProduction: number;
   todayShipments: number;
   totalOrders: number;
   totalRevenue: number;
+  recentQuotations?: Array<{
+    quotation_number: string;
+    customer_name: string;
+    customer_email: string;
+    status: string;
+    total_amount: number;
+    created_at: string;
+  }>;
 
   // 追加統計（Enhanced Statistics）
   orders?: {

@@ -377,6 +377,8 @@ export type Database = {
                     delivery_address_id: string | null  // FK to delivery_addresses
                     billing_address_id: string | null  // FK to billing_addresses
                     quotation_id: string | null  // FK to quotations
+                    manual_discount_percentage: number  // Manual discount percentage (0-100) applied by admin
+                    manual_discount_amount: number  // Calculated manual discount amount
                 }
                 Insert: Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>>
@@ -460,6 +462,10 @@ export type Database = {
                     notes: string | null  // Customer-visible notes
                     pdf_url: string | null  // Generated PDF URL
                     admin_notes: string | null  // Internal admin notes
+                    // クーポン関連フィールド (Coupon fields)
+                    coupon_id: string | null  // FK to coupons
+                    discount_amount: number  // 割引額
+                    discount_type: 'percentage' | 'fixed_amount' | 'free_shipping' | null  // 割引タイプ
                     created_at: string
                     updated_at: string
                     sent_at: string | null

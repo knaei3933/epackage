@@ -62,9 +62,9 @@ export interface UnifiedDashboardStats {
     approved: number;
     conversionRate: number;
   };
+  recentQuotations?: Quotation[];
 
   // 生産関連
-  activeProduction?: number;
   production?: {
     avgDays: number;
     completed: number;
@@ -82,6 +82,12 @@ export interface UnifiedDashboardStats {
     today: number;
     inTransit: number;
   };
+
+  // 月別売上
+  monthlyRevenue?: Array<{ month: string; revenue: number }>;
+
+  // アクティブ顧客数 (activeUsersのエイリアス)
+  activeCustomers?: number;
 
   // 契約関連
   contracts?: {
@@ -166,7 +172,12 @@ export async function getCurrentUser(): Promise<{
       const { headers } = await import('next/headers');
       const headersList = await headers();
 
+      // Debug: Log all available headers
+      console.log('[getCurrentUser] Available headers:', Array.from(headersList.entries()));
+
       const userId = headersList.get('x-user-id');
+      console.log('[getCurrentUser] x-user-id from headers:', userId);
+
       if (userId) {
         // Server-sideではservice clientを使用してprofileを取得
         // (クッキー変更なしで読み取りのみなので安全)
@@ -191,6 +202,64 @@ export async function getCurrentUser(): Promise<{
           },
         };
       }
+
+      // =====================================================
+      // FALLBACK: Cookie-based auth for client-side navigation
+      // =====================================================
+      // When navigating client-side (clicking links), middleware doesn't run
+      // and headers are not set. Fall back to cookie-based auth.
+      console.log('[getCurrentUser] No x-user-id header, falling back to cookie auth');
+      const { createServerClient } = await import('@supabase/ssr');
+      const { cookies } = await import('next/headers');
+
+      const cookieStore = await cookies();
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value;
+            },
+          },
+        }
+      );
+
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('[getCurrentUser] Cookie auth error:', error);
+        return null;
+      }
+
+      if (!user) {
+        console.log('[getCurrentUser] No user from cookie auth');
+        return null;
+      }
+
+      console.log('[getCurrentUser] Got user from cookie auth:', user.id);
+
+      // Get user profile from service client
+      const serviceClient = createServiceClient();
+      const { data: profile } = await serviceClient
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const profileAny = profile as any;
+
+      return {
+        id: user.id,
+        email: user.email,
+        user_metadata: {
+          kanji_last_name: profileAny && profileAny.kanji_last_name ? profileAny.kanji_last_name : '',
+          kanji_first_name: profileAny && profileAny.kanji_first_name ? profileAny.kanji_first_name : '',
+          name_kanji: profileAny && profileAny.kanji_last_name ? profileAny.kanji_last_name : '',
+          name_kana: profileAny && profileAny.kana_last_name ? profileAny.kana_last_name : '',
+        },
+      };
     } catch (e) {
       console.error('[getCurrentUser] Server-side auth error:', e);
     }
@@ -203,6 +272,9 @@ export async function getCurrentUser(): Promise<{
 /**
  * 認証を要求しユーザー情報を返す
  * 認証されていない場合AuthRequiredErrorをthrowします
+ *
+ * 重要：クライアントサイドナビゲーション（Link コンポーネント）の場合、
+ * ミドルウェアが再実行されないため、直接 Supabase クッキーをチェックします
  */
 export async function requireAuth(): Promise<{
   id: string;
@@ -214,11 +286,73 @@ export async function requireAuth(): Promise<{
     name_kana?: string;
   };
 }> {
-  const user = await getCurrentUser();
-  if (!user) {
-    throw new AuthRequiredError();
+  // ============================================================
+  // METHOD 1: Try direct cookie auth FIRST (always works)
+  // ============================================================
+  // This is the most reliable method for all navigation types
+  try {
+    const { createServerClient } = await import('@supabase/ssr');
+    const { cookies } = await import('next/headers');
+
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (user && !error) {
+      console.log('[requireAuth] Got user from cookie auth:', user.id);
+
+      // Fetch profile data
+      const serviceClient = createServiceClient();
+      const { data: profile } = await serviceClient
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const profileAny = profile as any;
+
+      return {
+        id: user.id,
+        email: user.email,
+        user_metadata: {
+          kanji_last_name: profileAny?.kanji_last_name || user.user_metadata?.kanji_last_name || '',
+          kanji_first_name: profileAny?.kanji_first_name || user.user_metadata?.kanji_first_name || '',
+          name_kanji: profileAny?.kanji_last_name || user.user_metadata?.name_kanji || '',
+          name_kana: profileAny?.kana_last_name || user.user_metadata?.name_kana || '',
+        },
+      };
+    }
+  } catch (error) {
+    console.error('[requireAuth] Cookie auth failed:', error);
   }
-  return user;
+
+  // ============================================================
+  // METHOD 2: Fall back to header-based auth (set by middleware)
+  // ============================================================
+  console.log('[requireAuth] No user from cookie auth, trying getCurrentUser');
+  const user = await getCurrentUser();
+  if (user) {
+    console.log('[requireAuth] User found via getCurrentUser:', user.id);
+    return user;
+  }
+
+  // ============================================================
+  // METHOD 3: No auth found - throw error
+  // ============================================================
+  console.log('[requireAuth] No authentication found, throwing AuthRequiredError');
+  throw new AuthRequiredError();
 }
 
 /**
@@ -331,17 +465,75 @@ export async function getCurrentUserId(): Promise<string | null> {
       const { headers } = await import('next/headers');
       const headersList = await headers();
 
+      // Debug: Log all available headers
+      console.log('[getCurrentUserId] PRODUCTION: All available headers:', Array.from(headersList.keys()));
+
       const userId = headersList.get('x-user-id');
       if (userId) {
-        console.log('[getCurrentUserId] Server-side: Found user ID from headers:', userId);
+        console.log('[getCurrentUserId] PRODUCTION: Server-side: Found user ID from headers:', userId);
         return userId;
+      } else {
+        console.log('[getCurrentUserId] PRODUCTION: x-user-id header not found in headers list');
       }
     } catch (e) {
-      console.error('[getCurrentUserId] Server-side error:', e);
+      console.error('[getCurrentUserId] PRODUCTION: Server-side error reading headers:', e);
+      // Retry with synchronous headers() call in case of async context issues
+      try {
+        const { headers: headersSync } = await import('next/headers');
+        const headersList = headersSync();
+        const userId = headersList.get('x-user-id');
+        if (userId) {
+          console.log('[getCurrentUserId] PRODUCTION: Found user ID on retry (sync):', userId);
+          return userId;
+        }
+      } catch (retryError) {
+        console.error('[getCurrentUserId] PRODUCTION: Retry also failed:', retryError);
+      }
+    }
+
+    // =====================================================
+    // FALLBACK: Cookie-based auth for client-side navigation
+    // =====================================================
+    console.log('[getCurrentUserId] PRODUCTION: No x-user-id header, falling back to cookie auth');
+    try {
+      const { createServerClient } = await import('@supabase/ssr');
+      const { cookies } = await import('next/headers');
+
+      const cookieStore = await cookies();
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value;
+            },
+          },
+        }
+      );
+
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('[getCurrentUserId] PRODUCTION: Cookie auth error:', error);
+        return null;
+      }
+
+      if (!user) {
+        console.log('[getCurrentUserId] PRODUCTION: No user from cookie auth');
+        return null;
+      }
+
+      console.log('[getCurrentUserId] PRODUCTION: Got user ID from cookie auth:', user.id);
+      return user.id;
+    } catch (e) {
+      console.error('[getCurrentUserId] PRODUCTION: Cookie fallback error:', e);
     }
   }
 
   // Client-side auth removed - use API route /api/auth/session instead
+  console.log('[getCurrentUserId] PRODUCTION: No user ID found, returning null');
   return null;
 }
 
@@ -3056,6 +3248,18 @@ function getMockUnifiedDashboardStats(
   };
 
   if (userRole === 'ADMIN') {
+    // Generate mock monthly revenue data
+    const mockMonthlyRevenue: Array<{ month: string; revenue: number }> = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      mockMonthlyRevenue.push({
+        month: monthKey,
+        revenue: Math.floor(Math.random() * 500000) + 200000,
+      });
+    }
+
     return {
       ...baseStats,
       ordersByStatus: [
@@ -3082,13 +3286,13 @@ function getMockUnifiedDashboardStats(
         today: Math.floor(Math.random() * 20) + 5,
         inTransit: Math.floor(Math.random() * 30) + 10,
       },
-      activeProduction: Math.floor(Math.random() * 15) + 3,
       todayShipments: Math.floor(Math.random() * 10) + 2,
+      monthlyRevenue: mockMonthlyRevenue,
+      activeCustomers: baseStats.activeUsers,
     };
   } else {
     return {
       ...baseStats,
-      activeOrders: Math.floor(Math.random() * 10) + 1,
       pendingQuotations: Math.floor(Math.random() * 5) + 1,
       samples: {
         total: Math.floor(Math.random() * 20) + 5,
@@ -3116,7 +3320,11 @@ async function fetchAdminDashboardStats(
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - period);
 
-  // 並列クエリ - 見積統計を追加
+  // 今日の開始時刻
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  // 並列クエリ - すべての統計データを取得
   const [
     totalOrdersResult,
     pendingOrdersResult,
@@ -3127,6 +3335,17 @@ async function fetchAdminDashboardStats(
     approvedQuotationsResult,
     pendingQuotationsResult,
     recentQuotationsResult,
+    // 月別売上
+    monthlyRevenueResult,
+    // 本日出荷
+    todayShipmentsResult,
+    // 輸送中注文
+    inTransitShipmentsResult,
+    // サンプル統計
+    totalSamplesResult,
+    processingSamplesResult,
+    // 生産完了注文（製造期間計算用）
+    completedProductionOrdersResult,
   ] = await Promise.all([
     serviceClient.from('orders').select('*', { count: 'exact', head: true }),
     serviceClient.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
@@ -3139,6 +3358,39 @@ async function fetchAdminDashboardStats(
     serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('quotation_status', ['DRAFT', 'SUBMITTED', 'PENDING']),
     // 最新見積もり
     serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).limit(5),
+    // 月別売上 (過去12ヶ月)
+    serviceClient
+      .from('orders')
+      .select('created_at, total_amount')
+      .eq('status', 'SHIPPED')
+      .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()),
+    // 本日出荷
+    serviceClient
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'SHIPPED')
+      .gte('shipped_at', todayStart.toISOString()),
+    // 輸送中
+    serviceClient
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['SHIPPED']),
+    // サンプル統計
+    serviceClient
+      .from('sample_requests')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startDate.toISOString()),
+    serviceClient
+      .from('sample_requests')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['received', 'processing'])
+      .gte('created_at', startDate.toISOString()),
+    // 生産完了注文（製造期間計算用）
+    serviceClient
+      .from('orders')
+      .select('created_at, updated_at')
+      .eq('status', 'SHIPPED')
+      .gte('created_at', startDate.toISOString()),
   ]);
 
   // 売上計算
@@ -3163,11 +3415,46 @@ async function fetchAdminDashboardStats(
   const pendingQuotationsCount = pendingQuotationsResult.count || 0;
   const conversionRate = totalQuotations > 0 ? Math.round((approvedQuotations / totalQuotations) * 100) : 0;
 
+  // 月別売上データ集計
+  const monthlyRevenueMap: Record<string, number> = {};
+  (monthlyRevenueResult.data || []).forEach((order: any) => {
+    const date = new Date(order.created_at);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthlyRevenueMap[monthKey] = (monthlyRevenueMap[monthKey] || 0) + (order.total_amount || 0);
+  });
+
+  const monthlyRevenue = Object.entries(monthlyRevenueMap)
+    .map(([month, revenue]) => ({ month, revenue }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  // 本日と輸送中の荷物数
+  const todayShipments = todayShipmentsResult.count || 0;
+  const inTransitShipments = inTransitShipmentsResult.count || 0;
+
+  // サンプル統計
+  const totalSamples = totalSamplesResult.count || 0;
+  const processingSamples = processingSamplesResult.count || 0;
+
+  // 製造期間計算
+  const completedOrders = completedProductionOrdersResult.data || [];
+  let totalProductionDays = 0;
+  completedOrders.forEach((order: any) => {
+    const created = new Date(order.created_at);
+    const updated = new Date(order.updated_at);
+    const days = Math.floor((updated.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    totalProductionDays += days;
+  });
+  const avgProductionDays = completedOrders.length > 0 ? Math.round(totalProductionDays / completedOrders.length) : 0;
+
+  // アクティブ顧客数
+  const activeCustomers = activeUsersResult.count || 0;
+
   return {
     totalOrders: totalOrdersResult.count || 0,
     pendingOrders: pendingOrdersResult.count || 0,
     totalRevenue,
     activeUsers: activeUsersResult.count || 0,
+    activeCustomers,
     ordersByStatus,
     period,
     // 見積統計
@@ -3178,6 +3465,24 @@ async function fetchAdminDashboardStats(
       conversionRate,
     },
     recentQuotations: recentQuotationsResult.data || [],
+    // 月別売上
+    monthlyRevenue,
+    // 配送統計
+    todayShipments,
+    shipments: {
+      today: todayShipments,
+      inTransit: inTransitShipments,
+    },
+    // サンプル統計
+    samples: {
+      total: totalSamples,
+      processing: processingSamples,
+    },
+    // 製造統計
+    production: {
+      avgDays: avgProductionDays,
+      completed: completedOrders.length,
+    },
   };
 }
 

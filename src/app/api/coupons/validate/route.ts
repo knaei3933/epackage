@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerClient } from '@/lib/supabase';
+import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 
 /**
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const supabase = getServerClient();
+    const supabase = createServiceClient();
 
     // Find coupon by code
     const { data: coupon, error } = await supabase

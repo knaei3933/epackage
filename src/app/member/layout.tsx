@@ -19,6 +19,7 @@ import { menuItems } from '@/components/dashboard/menuItems';
 import { Loader2 } from 'lucide-react';
 import { ErrorBoundaryWrapper } from '@/components/error/ErrorBoundary';
 import type { NotificationBadge } from '@/types/dashboard';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // =====================================================
 // Layout Component
@@ -39,6 +40,9 @@ export default function MemberLayout({
     setIsMounted(true);
   }, []);
 
+  // 通知フックで未読カウントを取得（30秒間隔で自動更新）
+  const { unreadCount } = useNotifications({ refreshInterval: 30000 });
+
   // ローディング状態（最優先）
   // Only show loading after mount to prevent hydration mismatch
   if (isMounted && isLoading) {
@@ -56,13 +60,13 @@ export default function MemberLayout({
   // The dashboard page uses requireAuth() which redirects to signin if not authenticated
   // This prevents race conditions between AuthContext initialization and page navigation
 
-  // 空の通知バッジ（各ページで個別に取得）
+  // 通知バッジ（useNotificationsフックから未読カウントを取得）
   const notifications: NotificationBadge = {
     quotations: 0,
     samples: 0,
     inquiries: 0,
     orders: 0,
-    total: 0,
+    total: unreadCount,
   };
 
   // Don't render header if user is not available yet (SSR/hydration safety)

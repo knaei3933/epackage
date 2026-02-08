@@ -3,7 +3,7 @@
  * Maps database processing options to Excel quotation format
  */
 
-import { ProcessingOptionConfig } from '@/components/quote/processingConfig'
+import { ProcessingOptionConfig } from '@/components/quote/shared/processingConfig'
 import { OptionalProcessing, ProcessingOptionMapping } from './excelQuotationTypes'
 
 // ============================================================

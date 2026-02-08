@@ -21,7 +21,7 @@ import {
   MessageSquare
 } from 'lucide-react'
 import Link from 'next/link'
-import { PostProcessingPreview } from '@/components/quote/PostProcessingPreview'
+import { PostProcessingPreview } from '@/components/quote/previews/PostProcessingPreview'
 
 interface QuoteFormData {
   productType: string

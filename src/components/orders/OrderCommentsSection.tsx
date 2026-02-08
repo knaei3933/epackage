@@ -49,6 +49,7 @@ interface OrderCommentsSectionProps {
   fetchFn?: typeof fetch; // Optional custom fetch function (e.g., adminFetch)
   compact?: boolean; // コンパクトモード（デフォルト: false）
   maxHeight?: string; // 最大高さ（スクロール用）
+  isAdmin?: boolean; // 管理者モードかどうか（メール通知機能の有効化）
 }
 
 // ============================================================
@@ -61,7 +62,7 @@ const DELETE_TIME_LIMIT_HOURS = 24; // 削除可能時間（時間）
 // Component
 // ============================================================
 
-export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, compact = false, maxHeight = '300px' }: OrderCommentsSectionProps) {
+export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, compact = false, maxHeight = '300px', isAdmin = false }: OrderCommentsSectionProps) {
   const [comments, setComments] = useState<OrderComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -107,13 +108,27 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
       setSubmitting(true);
       setError(null);
 
-      const response = await fetchFn(`/api/member/orders/${orderId}/comments`, {
+      // 管理者モードの場合、専用のAPIエンドポイントを使用（メール通知付き）
+      const apiUrl = isAdmin
+        ? `/api/admin/orders/${orderId}/comments`
+        : `/api/member/orders/${orderId}/comments`;
+
+      // 管理者の場合、顧客通知を有効化
+      const requestBody = isAdmin
+        ? {
+            content: newComment.trim(),
+            comment_type: 'general',
+            notify_customer: true, // 顧客にメール通知を送信
+          }
+        : {
+            content: newComment.trim(),
+            comment_type: 'general',
+          };
+
+      const response = await fetchFn(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: newComment.trim(),
-          comment_type: 'general',
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const result = await response.json();
@@ -121,6 +136,12 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
       if (result.success) {
         setNewComment('');
         await loadComments(); // Reload comments
+
+        // 管理者モードでメール通知が送信された場合、通知を表示
+        if (isAdmin && result.emailSent) {
+          // 成功通知は表示しない（煩わしいため）
+          console.log('[OrderCommentsSection] Email notification sent');
+        }
       } else {
         setError(result.error || 'コメントの投稿に失敗しました。');
       }
@@ -130,7 +151,7 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
     } finally {
       setSubmitting(false);
     }
-  }, [newComment, orderId, loadComments]);
+  }, [newComment, orderId, loadComments, isAdmin, fetchFn]);
 
   // Delete comment - memoized with useCallback
   const handleDeleteComment = useCallback(async (commentId: string) => {
@@ -395,9 +416,10 @@ interface OrderCommentsSectionWrapperProps {
   fetchFn?: typeof fetch; // Optional custom fetch function (e.g., adminFetch)
   compact?: boolean; // コンパクトモード
   maxHeight?: string; // 最大高さ
+  isAdmin?: boolean; // 管理者モードかどうか
 }
 
-export function OrderCommentsSectionWrapper({ orderId, fetchFn, compact, maxHeight }: OrderCommentsSectionWrapperProps) {
+export function OrderCommentsSectionWrapper({ orderId, fetchFn, compact, maxHeight, isAdmin }: OrderCommentsSectionWrapperProps) {
   // Try to use AuthContext, but handle case where it's not available (admin pages)
   let currentUserId: string | undefined = undefined;
 
@@ -409,6 +431,6 @@ export function OrderCommentsSectionWrapper({ orderId, fetchFn, compact, maxHeig
     console.debug('[OrderCommentsSectionWrapper] AuthProvider not available, running without auth context');
   }
 
-  return <OrderCommentsSection orderId={orderId} currentUserId={currentUserId} fetchFn={fetchFn} compact={compact} maxHeight={maxHeight} />;
+  return <OrderCommentsSection orderId={orderId} currentUserId={currentUserId} fetchFn={fetchFn} compact={compact} maxHeight={maxHeight} isAdmin={isAdmin} />;
 }
 

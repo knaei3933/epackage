@@ -13,11 +13,12 @@
 
 import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/Card';
-import { ChevronDown, ChevronUp, Package, Edit2, Save, X, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Package, Edit2, Save, X, Check, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
-import { processingOptionsConfig, PROCESSING_CATEGORIES } from '@/components/quote/processingConfig';
+import { processingOptionsConfig, PROCESSING_CATEGORIES } from '@/components/quote/shared/processingConfig';
+import { adminFetch } from '@/lib/auth-client';
 
 // =====================================================
 // Types
@@ -559,9 +560,19 @@ export function AdminOrderItemsEditor({ order, editable = false, onUpdate }: Adm
   // 編集中のアイテムデータを管理
   const [editingItems, setEditingItems] = useState<{ [key: string]: any }>({});
 
+  // 手動割引関連の状態
+  const [discountPercentage, setDiscountPercentage] = useState(
+    order.manualDiscountPercentage || 0
+  );
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+  const [discountMessage, setDiscountMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   // 編集可能チェック
   const canEdit = editable && EDITABLE_STATUSES.includes(order.status);
 
+  // 小計（元の小計 + 手動割引額 = 割引前の小計）
+  const baseSubtotal = (order.subtotal || 0) + (order.manualDiscountAmount || 0);
+  const manualDiscountAmount = order.manualDiscountAmount || 0;
   const subtotal = order.subtotal || 0;
   const taxAmount = order.taxAmount || 0;
   const totalAmount = order.totalAmount || 0;
@@ -639,6 +650,78 @@ export function AdminOrderItemsEditor({ order, editable = false, onUpdate }: Adm
     }
 
     setTimeout(() => setSaveMessage(null), 3000);
+  };
+
+  // 手動割引適用ハンドラー
+  const handleApplyDiscount = async () => {
+    if (discountPercentage < 0 || discountPercentage > 100) {
+      setDiscountMessage({ type: 'error', text: '割引率は0〜100の間で指定してください' });
+      setTimeout(() => setDiscountMessage(null), 3000);
+      return;
+    }
+
+    setIsApplyingDiscount(true);
+    setDiscountMessage(null);
+
+    try {
+      const response = await adminFetch(`/api/admin/orders/${order.id}/apply-discount`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discountPercentage }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setDiscountMessage({ type: 'success', text: result.message || '割引を適用しました' });
+        // 注文データを更新
+        setTimeout(() => {
+          setDiscountMessage(null);
+          onUpdate?.();
+        }, 1500);
+      } else {
+        setDiscountMessage({ type: 'error', text: result.error || '割引の適用に失敗しました' });
+      }
+    } catch (error) {
+      console.error('Failed to apply discount:', error);
+      setDiscountMessage({ type: 'error', text: '割引の適用に失敗しました' });
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+
+    setTimeout(() => setDiscountMessage(null), 3000);
+  };
+
+  // 手動割引クリアハンドラー
+  const handleClearDiscount = async () => {
+    setIsApplyingDiscount(true);
+    setDiscountMessage(null);
+
+    try {
+      const response = await adminFetch(`/api/admin/orders/${order.id}/apply-discount`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setDiscountPercentage(0);
+        setDiscountMessage({ type: 'success', text: '手動割引をクリアしました' });
+        setTimeout(() => {
+          setDiscountMessage(null);
+          onUpdate?.();
+        }, 1500);
+      } else {
+        setDiscountMessage({ type: 'error', text: result.error || 'クリアに失敗しました' });
+      }
+    } catch (error) {
+      console.error('Failed to clear discount:', error);
+      setDiscountMessage({ type: 'error', text: 'クリアに失敗しました' });
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+
+    setTimeout(() => setDiscountMessage(null), 3000);
   };
 
   return (
@@ -729,6 +812,91 @@ export function AdminOrderItemsEditor({ order, editable = false, onUpdate }: Adm
       <div className="space-y-2 pt-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-muted">小計</span>
+          <span className="text-text-primary">
+            {formatNumber(baseSubtotal)}円
+          </span>
+        </div>
+
+        {/* 手動割引セクション */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-blue-900">手動割引</span>
+            {manualDiscountAmount > 0 && (
+              <span className="text-sm text-blue-700">
+                -{formatNumber(manualDiscountAmount)}円
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 flex-1">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={discountPercentage}
+                onChange={(e) => setDiscountPercentage(parseFloat(e.target.value) || 0)}
+                disabled={isApplyingDiscount}
+                className="w-20 px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="0"
+              />
+              <span className="text-sm text-blue-700">%</span>
+              <Percent className="w-4 h-4 text-blue-500" />
+            </div>
+
+            <div className="flex items-center gap-1">
+              {discountPercentage > 0 || manualDiscountAmount > 0 ? (
+                <>
+                  <button
+                    onClick={handleApplyDiscount}
+                    disabled={isApplyingDiscount || discountPercentage === (order.manualDiscountPercentage || 0)}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isApplyingDiscount ? '適用中...' : '適用'}
+                  </button>
+                  <button
+                    onClick={handleClearDiscount}
+                    disabled={isApplyingDiscount}
+                    className="px-3 py-1 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    クリア
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleApplyDiscount}
+                  disabled={isApplyingDiscount || discountPercentage === 0}
+                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isApplyingDiscount ? '適用中...' : '適用'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 割引メッセージ */}
+          {discountMessage && (
+            <div className={cn(
+              "text-xs p-2 rounded",
+              discountMessage.type === 'success'
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            )}>
+              {discountMessage.text}
+            </div>
+          )}
+
+          {/* 現在の割引表示 */}
+          {order.manualDiscountPercentage > 0 && (
+            <div className="text-xs text-blue-600">
+              現在の割引: {order.manualDiscountPercentage}% (-{formatNumber(order.manualDiscountAmount)}円)
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-muted">小計（割引後）</span>
           <span className="text-text-primary">
             {formatNumber(subtotal)}円
           </span>

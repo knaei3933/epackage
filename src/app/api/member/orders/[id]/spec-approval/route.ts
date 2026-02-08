@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendTemplatedEmail } from '@/lib/email';
+import { orderStatusEmails } from '@/lib/email/order-status-emails';
 import type { OrderStatus } from '@/types/order-status';
 
 // =====================================================
@@ -84,7 +85,7 @@ export async function POST(
     // 2. Verify order exists and belongs to user
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, user_id, order_number, customer_name, status')
+      .select('id, user_id, order_number, customer_name, customer_email, product_name, status, estimated_completion_date')
       .eq('id', orderId)
       .single();
 
@@ -231,7 +232,45 @@ export async function POST(
       // 履歴記録の失敗は処理を続行
     }
 
-    // 9. For rejection, notify Korea designer
+    // 9. Send production start notification for approval
+    if (action === 'approve') {
+      try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+        // 顧客メールアドレスを取得（fallback で user.email も試行）
+        let customerEmail = order.customer_email;
+        if (!customerEmail) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('email')
+            .eq('id', user.id)
+            .single();
+          customerEmail = userData?.email;
+        }
+
+        if (customerEmail) {
+          // 納期の計算（デフォルトは製造開始から2〜3週間後）
+          const estimatedCompletion = order.estimated_completion_date ||
+            new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+          await orderStatusEmails.notifyProductionStarted({
+            orderId: order.id,
+            orderNumber: order.order_number,
+            customerEmail,
+            customerName: order.customer_name || 'お客様',
+            productName: order.product_name,
+            viewUrl: `${appUrl}/member/orders/${orderId}`,
+          }, estimatedCompletion);
+
+          console.log('[Spec Approval] Production start notification sent to customer');
+        }
+      } catch (emailError) {
+        console.error('[Spec Approval] Production start notification error:', emailError);
+        // メール送信失敗時も処理は完了させる
+      }
+    }
+
+    // 10. For rejection, notify Korea designer
     if (action === 'reject') {
       try {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

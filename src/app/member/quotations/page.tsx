@@ -7,6 +7,7 @@
  */
 
 import { redirect } from 'next/navigation';
+import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { fetchQuotationsServerSide } from './loader';
 import QuotationsClient from './QuotationsClient';
 
@@ -17,6 +18,17 @@ interface PageProps {
 const ITEMS_PER_PAGE = 5;
 
 export default async function QuotationsPage({ searchParams }: PageProps) {
+  // Check authentication first
+  let user;
+  try {
+    user = await requireAuth();
+  } catch (error) {
+    if (error instanceof AuthRequiredError) {
+      redirect('/auth/signin?redirect=/member/quotations');
+    }
+    throw error;
+  }
+
   // Get query parameters
   const params = await searchParams;
   const status = params.status || 'all';
@@ -24,13 +36,8 @@ export default async function QuotationsPage({ searchParams }: PageProps) {
   const currentPage = parseInt(pageParam, 10);
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  // Fetch quotations on server side (no browser fetch = no redirect loop)
+  // Fetch quotations on server side
   const data = await fetchQuotationsServerSide(status, ITEMS_PER_PAGE, offset);
-
-  // Redirect to login if no data (likely not authenticated)
-  if (data.quotations.length === 0 && data.pagination.total === 0) {
-    // User might not be authenticated, let client handle redirect
-  }
 
   // Calculate total pages
   const totalPages = Math.ceil(data.pagination.total / ITEMS_PER_PAGE);

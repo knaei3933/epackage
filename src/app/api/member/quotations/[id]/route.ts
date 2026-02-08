@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -28,30 +27,16 @@ export async function GET(
     const params = await context.params;
     const quotationId = params.id;
 
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-
-    // Normal auth: Use cookie-based auth with getUser()
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user?.id) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const userId = user.id;
+    const { id: userId, supabase } = authUser;
 
     // Fetch quotation with items
     const { data: quotation, error } = await supabase
@@ -71,6 +56,7 @@ export async function GET(
         sent_at,
         status,
         user_id,
+        remarks,
         quotation_items (
           id,
           product_id,
@@ -125,6 +111,7 @@ export async function GET(
       sentAt: quotation.sent_at,
       status: quotation.status,
       userId: quotation.user_id,
+      remarks: quotation.remarks,
       items: (quotation.quotation_items || []).map((item: any) => ({
         id: item.id,
         productId: item.product_id,
@@ -164,30 +151,16 @@ export async function DELETE(
     const params = await context.params;
     const quotationId = params.id;
 
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-
-    // Normal auth: Use cookie-based auth with getUser()
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user?.id) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。' },
         { status: 401 }
       );
     }
 
-    const userId = user.id;
+    const { id: userId, supabase } = authUser;
 
     // Check quotation exists and belongs to user
     const { data: quotation, error: fetchError } = await supabase

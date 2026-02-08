@@ -10,9 +10,8 @@
  * - Order summary by status
  */
 
-import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 
 interface DashboardData {
   recent_orders: unknown[];
@@ -28,30 +27,16 @@ interface OrderSummaryItem {
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-
-    // Get authenticated user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
         { status: 401 }
       );
     }
 
-    const userId = user.id;
+    const { id: userId, supabase } = authUser;
 
     // Get customer profile
     const { data: profile } = await supabase

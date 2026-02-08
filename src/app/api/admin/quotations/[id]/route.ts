@@ -42,11 +42,19 @@ export async function GET(
       return NextResponse.json({ error: '見積が見つかりません。' }, { status: 404 });
     }
 
+    // Fetch user profile
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('id, company_name, kanji_last_name, kanji_first_name, corporate_phone, personal_phone')
+      .eq('id', quotation.user_id)
+      .single();
+
     console.log('[Quotation Detail API] quotation keys:', Object.keys(quotation));
     console.log('[Quotation Detail API] has specifications?', !!quotation.specifications);
     console.log('[Quotation Detail API] has saved_specifications?', !!quotation.saved_specifications);
     console.log('[Quotation Detail API] has items_data?', !!quotation.items_data);
     console.log('[Quotation Detail API] specifications:', quotation.specifications);
+    console.log('[Quotation Detail API] userProfile:', userProfile);
 
     console.log('[Quotation Detail API] Fetching items for quotation_id:', quotationId);
 
@@ -65,9 +73,25 @@ export async function GET(
       breakdown: calculateBreakdown(item),
     }));
 
+    // Merge quotation with profile data
+    const quotationWithProfile = {
+      ...quotation,
+      items: itemsWithBreakdown,
+      company_name: userProfile?.company_name || null,
+      kanji_last_name: userProfile?.kanji_last_name || null,
+      kanji_first_name: userProfile?.kanji_first_name || null,
+      corporate_phone: userProfile?.corporate_phone || null,
+      personal_phone: userProfile?.personal_phone || null,
+    };
+
+    console.log('[Quotation Detail API] quotationWithProfile keys:', Object.keys(quotationWithProfile));
+    console.log('[Quotation Detail API] corporate_phone:', quotationWithProfile.corporate_phone);
+    console.log('[Quotation Detail API] personal_phone:', quotationWithProfile.personal_phone);
+    console.log('[Quotation Detail API] userProfile keys:', userProfile ? Object.keys(userProfile) : 'null');
+
     return NextResponse.json({
       success: true,
-      quotation: { ...quotation, items: itemsWithBreakdown },
+      quotation: quotationWithProfile,
     });
   } catch (error) {
     console.error('[Quotation Detail API] Error:', error);

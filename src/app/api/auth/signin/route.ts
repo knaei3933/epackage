@@ -136,12 +136,12 @@ async function handleSignInPost(request: NextRequest) {
         user: mockUser,
       });
 
-      // Set mock cookies with 30-minute session
+      // Set mock cookies with 24-hour session (matching production)
       response.cookies.set('sb-access-token', 'mock-access-token-' + Date.now(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 1800,  // ✅ 30分セッション維持
+        maxAge: 86400,  // ✅ 24時間セッション維持
         path: '/',
       });
 
@@ -149,7 +149,7 @@ async function handleSignInPost(request: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 2592000,
+        maxAge: 2592000,  // 30日
         path: '/',
       });
 
@@ -157,7 +157,7 @@ async function handleSignInPost(request: NextRequest) {
         httpOnly: true,  // ✅ httpOnly設定（JavaScriptアクセス禁止）
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 1800,  // ✅ 30分セッション維持
+        maxAge: 86400,  // ✅ 24時間セッション維持
         path: '/',
       });
 
@@ -263,51 +263,65 @@ async function handleSignInPost(request: NextRequest) {
     // Let client-side handle navigation to avoid cookie timing issues
     (responseData as any).redirectUrl = finalRedirect;
 
-    // Create the JSON response
+    // =====================================================
+    // CRITICAL FIX: Copy all cookies from initialResponse to JSON response
+    // =====================================================
+    // @supabase/ssr signInWithPassword() sets cookies via the callback
+    // These cookies are stored in initialResponse.cookies
+    // We MUST copy them to finalResponse to maintain session
+    //
+    // IMPORTANT: Supabase uses project-specific cookie names like:
+    // - sb-<project-ref>-auth-token
+    // - sb-<project-ref>-auth-token.0, .1, .2, etc.
+
+    const cookies = initialResponse.cookies.getAll();
+    console.log('[Signin API] Cookies from initialResponse:', cookies.length, cookies.map(c => c.name));
+
+    // Create JSON response
     const finalResponse = NextResponse.json(responseData, {
       status: 200,
     });
 
-    // Copy all cookies from initialResponse to the final response
-    // @supabase/ssr sets cookies via the callback, which stores them in initialResponse.cookies
-    // CRITICAL: Explicitly set all cookie attributes to ensure they are correct
-    const cookies = initialResponse.cookies.getAll();
-    console.log('[Signin API] Copying cookies:', cookies.map(c => c.name));
-    console.log('[Signin API] Cookie details:', cookies.map(c => ({
-      name: c.name,
-      valueLength: c.value?.length || 0,
-      valuePreview: c.value?.substring(0, 50),
-      httpOnly: c.httpOnly,
-      secure: c.secure,
-      sameSite: c.sameSite,
-      domain: c.domain,
-      path: c.path
-    })));
+    // CRITICAL: Copy ALL cookies from initialResponse to finalResponse
+    // This preserves the auth tokens set by @supabase/ssr
+    let copiedCount = 0;
     cookies.forEach(cookie => {
-      // Build cookie options with explicit values
-      const cookieOptions: any = {
-        httpOnly: true,  // Always enforce httpOnly for security
-        secure: process.env.NODE_ENV === 'production',  // HTTPS only in production
-        sameSite: 'lax',  // CSRF protection
-        path: '/',
-        maxAge: 1800,  // 30 minutes
-      };
+      if (cookie.name && cookie.value) {
+        const cookieOptions: any = {
+          httpOnly: cookie.httpOnly ?? true,
+          secure: cookie.secure ?? (process.env.NODE_ENV === 'production'),
+          sameSite: cookie.sameSite ?? 'lax',
+          path: cookie.path ?? '/',
+        };
 
-      // Only set domain in production (localhost rejects domain attribute)
-      if (process.env.NODE_ENV === 'production') {
-        cookieOptions.domain = '.epackage-lab.com';
+        // Preserve maxAge if set
+        if (cookie.maxAge) {
+          cookieOptions.maxAge = cookie.maxAge;
+        } else {
+          cookieOptions.maxAge = 86400; // Default: 24 hours
+        }
+
+        // Preserve expires if set
+        if (cookie.expires) {
+          cookieOptions.expires = cookie.expires;
+        }
+
+        // Preserve domain if set (but don't set domain for localhost)
+        if (cookie.domain) {
+          cookieOptions.domain = cookie.domain;
+        } else if (process.env.NODE_ENV === 'production') {
+          cookieOptions.domain = '.epackage-lab.com';
+        }
+
+        finalResponse.cookies.set(cookie.name, cookie.value, cookieOptions);
+        copiedCount++;
       }
-
-      // Preserve any additional options from the original cookie
-      if (cookie.maxAge) cookieOptions.maxAge = cookie.maxAge;
-      if (cookie.expires) cookieOptions.expires = cookie.expires;
-
-      finalResponse.cookies.set(cookie.name, cookie.value, cookieOptions);
     });
 
+    console.log('[Signin API] Copied', copiedCount, 'cookies to finalResponse');
     console.log('[Signin API] Login successful, cookies set for:', data.user.email);
 
-    // Return the response with cookies (NOT a new NextResponse.json!)
+    // Return the response with cookies
     return finalResponse;
   } catch (error) {
     console.error('[Signin API] Error during signin:', error);

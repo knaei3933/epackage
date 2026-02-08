@@ -1,8 +1,8 @@
 // Performance test suite for multi-quantity components
 
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
-import MultiQuantityComparisonTable from '@/components/quote/MultiQuantityComparisonTable';
-import QuantityEfficiencyChart from '@/components/quote/QuantityEfficiencyChart';
+import MultiQuantityComparisonTable from '@/components/quote/shared/MultiQuantityComparisonTable';
+import QuantityEfficiencyChart from '@/components/quote/shared/QuantityEfficiencyChart';
 import { useMultiQuantityQuote, MultiQuantityQuoteProvider } from '@/contexts/MultiQuantityQuoteContext';
 
 // Mock data for testing

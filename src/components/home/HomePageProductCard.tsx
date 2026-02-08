@@ -91,9 +91,9 @@ export function HomePageProductCard({ product, delay }: HomePageProductCardProps
 
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">最低注文数</span>
+              <span className="text-gray-500">最小注文数</span>
               <span className="font-medium text-gray-900">
-                {product.min_order_quantity.toLocaleString()}枚
+                {product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}
               </span>
             </div>
 

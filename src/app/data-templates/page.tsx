@@ -15,7 +15,7 @@ import {
   HelpCircle
 } from 'lucide-react'
 import Link from 'next/link'
-import { DataTemplateGuide } from '@/components/quote/DataTemplateGuide'
+import { DataTemplateGuide } from '@/components/quote/shared/DataTemplateGuide'
 
 export const metadata: Metadata = {
   title: 'デザインテンプレート | Epackage Lab - プロ仕様の包装材デザイン',

@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Menu, X } from 'lucide-react';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
@@ -77,18 +76,22 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 
   return (
     <div className="w-full">
-      <Link
+      <a
         href={hasSubMenu ? '#' : item.href}
         onClick={(e) => {
           if (hasSubMenu) {
             e.preventDefault();
             setIsSubmenuOpen(!isSubmenuOpen);
-          } else if (onItemClick) {
-            onItemClick();
+          } else {
+            e.preventDefault();
+            window.location.href = item.href;
+            if (onItemClick) {
+              onItemClick();
+            }
           }
         }}
         className={`
-          w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out
+          w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out cursor-pointer
           ${isActive || isSubActive
             ? 'bg-[#007AFF] text-white font-medium shadow-sm'
             : 'hover:bg-gray-100 text-gray-700'
@@ -126,7 +129,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
             )}
           </>
         )}
-      </Link>
+      </a>
 
       {/* サブメニュー - スライドアニメーション付き */}
       {hasSubMenu && (
@@ -143,12 +146,16 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
               const isSubItemActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/');
 
               return (
-                <Link
+                <a
                   key={subItem.id}
                   href={subItem.href}
-                  onClick={onItemClick}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = subItem.href;
+                    if (onItemClick) onItemClick();
+                  }}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer
                     ${isSubItemActive
                       ? 'bg-[#007AFF]/10 text-[#007AFF] font-medium border-l-2 border-[#007AFF]'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -164,7 +171,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
                       {subItem.badge > 99 ? '99+' : subItem.badge}
                     </span>
                   )}
-                </Link>
+                </a>
               );
             })}
           </div>
@@ -378,17 +385,21 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
             {/* フッター: ログアウト */}
             <div className="p-4 border-t border-gray-200">
-              <Link
+              <a
                 href="/auth/logout"
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsMobileMenuOpen(false);
+                  window.location.href = '/auth/logout';
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50 cursor-pointer"
                 aria-label="ログアウト"
               >
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 <span className="text-sm font-medium">ログアウト</span>
-              </Link>
+              </a>
             </div>
           </nav>
         </>
@@ -452,16 +463,20 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
         {/* フッター: ログアウト */}
         <div className="p-4 border-t border-gray-200">
-          <Link
+          <a
             href="/auth/logout"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = '/auth/logout';
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
             aria-label="ログアウト"
           >
             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             {!isCollapsed && <span className="text-sm font-medium">ログアウト</span>}
-          </Link>
+          </a>
         </div>
       </nav>
     </>

@@ -46,11 +46,14 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
   const [loading, setLoading] = useState(false); // 初期データがあるのでロード中ではない
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
   // 注文リスト取得
   useEffect(() => {
     fetchOrders();
-  }, [selectedStatus]);
+  }, [selectedStatus, page]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -61,6 +64,8 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
       if (selectedStatus !== 'all') {
         params.set('status', selectedStatus);
       }
+      params.set('page', page.toString());
+      params.set('page_size', pageSize.toString());
 
       console.log('[AdminOrdersClient] Fetching orders from:', `/api/admin/orders?${params}`);
       const response = await adminFetch(`/api/admin/orders?${params}`);
@@ -73,9 +78,10 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
         throw new Error('注文リスト取得失敗');
       }
 
-      const { data } = await response.json();
-      console.log('[AdminOrdersClient] Received orders:', data?.length || 0);
-      setOrders(data || []);
+      const result = await response.json();
+      console.log('[AdminOrdersClient] Received orders:', result.data?.length || 0);
+      setOrders(result.data || []);
+      setTotal(result.pagination?.total || 0);
     } catch (error) {
       console.error('注文リスト取得失敗:', error);
     } finally {
@@ -86,6 +92,7 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
   // ステータスフィルター変更 - URLパラメータを更新
   const handleStatusChange = (newStatus: string) => {
     setSelectedStatus(newStatus);
+    setPage(1); // Reset to page 1 when status changes
     const params = new URLSearchParams(searchParams.toString());
     if (newStatus === 'all') {
       params.delete('status');
@@ -210,7 +217,7 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
             )}
           </div>
           <div className="text-sm text-gray-500">
-            総件数: {orders.length}
+            総件数: {total}
           </div>
         </div>
 
@@ -353,6 +360,29 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {total > pageSize && (
+          <div className="mt-6 flex justify-center items-center gap-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              前へ
+            </button>
+            <span className="text-sm text-gray-600">
+              {page} / {Math.ceil(total / pageSize)} ページ (全{total}件)
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
+              disabled={page >= Math.ceil(total / pageSize)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              次へ
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

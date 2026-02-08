@@ -20,7 +20,6 @@ import {
   ProductCategory,
   type User,
 } from '@/types/auth';
-import Link from 'next/link';
 
 // =====================================================
 // Constants
@@ -107,14 +106,20 @@ export default function ProfilePage() {
               会員情報を確認できます。
             </p>
           </div>
-          <Link href="/member/edit">
+          <a
+            href="/member/edit"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = '/member/edit';
+            }}
+          >
             <Button
               type="button"
               variant="primary"
             >
               編集
             </Button>
-          </Link>
+          </a>
         </div>
 
         {/* Profile Overview Card */}
@@ -210,9 +215,16 @@ export default function ProfilePage() {
 
             <p className="text-sm text-text-muted mt-2">
               ※ これらの情報を変更する場合は、
-              <Link href="/contact" className="text-brixa-500 hover:underline ml-1">
+              <a
+                href="/contact"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/contact';
+                }}
+                className="text-brixa-500 hover:underline ml-1 cursor-pointer"
+              >
                 お問い合わせ
-              </Link>
+              </a>
               からご連絡ください。
             </p>
           </div>
@@ -226,12 +238,18 @@ export default function ProfilePage() {
             <h2 className="text-lg font-semibold text-text-primary">
               連絡先（編集可能）
             </h2>
-            <Link href="/member/edit">
+            <a
+              href="/member/edit"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = '/member/edit';
+              }}
+            >
               <Button variant="outline" size="sm">
                 <Pencil className="w-3 h-3 mr-1" />
                 編集
               </Button>
-            </Link>
+            </a>
           </div>
 
           <div className="space-y-4">
@@ -344,9 +362,16 @@ export default function ProfilePage() {
 
             <p className="text-sm text-text-muted mt-2">
               ※ 住所を変更する場合は、
-              <Link href="/contact" className="text-primary hover:underline ml-1">
+              <a
+                href="/contact"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/contact';
+                }}
+                className="text-primary hover:underline ml-1 cursor-pointer"
+              >
                 お問い合わせ
-              </Link>
+              </a>
               からご連絡ください。
             </p>
           </div>

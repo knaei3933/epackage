@@ -153,6 +153,27 @@ export interface QuoteData {
     accountHolder: string;
   };
 
+  // Coupon information
+  /** 適用されたクーポン / Applied coupon */
+  appliedCoupon?: {
+    /** クーポンコード / Coupon code */
+    code: string;
+    /** クーポン名（英語）/ Coupon name (English) */
+    name: string;
+    /** クーポン名（日本語）/ Coupon name (Japanese) */
+    nameJa: string;
+    /** クーポンタイプ / Coupon type */
+    type: 'percentage' | 'fixed';
+    /** クーポン値 / Coupon value */
+    value: number;
+    /** 割引額 / Discount amount */
+    discountAmount: number;
+  };
+  /** 割引額 / Discount amount */
+  discountAmount?: number;
+  /** 調整後合計 / Adjusted total */
+  adjustedTotal?: number;
+
   // Supplier information (optional, will use defaults if not provided)
   supplierInfo?: {
     /** 会社名 / Company name */
@@ -280,6 +301,27 @@ export interface InvoiceData {
     /** 担当者名 / Contact person */
     contactPerson?: string;
   };
+
+  // Coupon information
+  /** 適用されたクーポン / Applied coupon */
+  appliedCoupon?: {
+    /** クーポンコード / Coupon code */
+    code: string;
+    /** クーポン名（英語）/ Coupon name (English) */
+    name: string;
+    /** クーポン名（日本語）/ Coupon name (Japanese) */
+    nameJa: string;
+    /** クーポンタイプ / Coupon type */
+    type: 'percentage' | 'fixed';
+    /** クーポン値 / Coupon value */
+    value: number;
+    /** 割引額 / Discount amount */
+    discountAmount: number;
+  };
+  /** 割引額 / Discount amount */
+  discountAmount?: number;
+  /** 調整後合計 / Adjusted total */
+  adjustedTotal?: number;
 
   /** 備考 / Remarks */
   remarks?: string;
@@ -1486,6 +1528,33 @@ function generateQuoteHTML(
       font-weight: bold;
     }
 
+    /* Coupon banner styles */
+    .coupon-banner {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 4px;
+      padding: 2mm 3mm;
+      margin-bottom: 3mm;
+      text-align: center;
+    }
+
+    .coupon-banner-title {
+      font-weight: bold;
+      font-size: 10pt;
+      color: #856404;
+      margin-bottom: 1mm;
+    }
+
+    .coupon-banner-detail {
+      font-size: 9pt;
+      color: #856404;
+    }
+
+    .order-table .discount-amount {
+      color: #28a745;
+      font-weight: bold;
+    }
+
     /* Optional processing table - html2canvas workaround */
     .processing-table {
       width: 100%;
@@ -1603,7 +1672,7 @@ function generateQuoteHTML(
         <div class="info-box info-box-customer">
           <div class="info-box-title">【お客様情報】</div>
           ${(data.postalCode || data.address) ? `<div class="customer-detail">${data.postalCode || ''}${data.postalCode && data.address ? ' ' : ''}${data.address || ''}</div>` : ''}
-          ${data.customerName ? `<div class="customer-name">${data.customerName} 御中</div>` : ''}
+          ${(data.companyName || data.customerName) ? `<div class="customer-name">${data.companyName || data.customerName} 御中</div>` : ''}
           ${data.contactPerson ? `<div class="customer-detail">担当: ${data.contactPerson}</div>` : ''}
         </div>
       </div>
@@ -1820,16 +1889,57 @@ function generateQuoteHTML(
               </tr>
             `).join('')}
           <tr class="summary-row">
+            <td colspan="2">小計</td>
+            <td class="col-qty">${totalQuantity.toLocaleString('ja-JP')}</td>
+            <td class="col-unit">-</td>
+            <td class="col-disc">¥0</td>
+            <td class="col-total">${formatYen(totalAmount)}</td>
+          </tr>
+          ${data.appliedCoupon ? `
+          <tr class="summary-row">
+            <td colspan="2">クーポン割引</td>
+            <td class="col-qty">-</td>
+            <td class="col-unit">-</td>
+            <td class="col-disc discount-amount">-${formatYen(data.appliedCoupon.discountAmount)}</td>
+            <td class="col-total discount-amount">-${formatYen(data.appliedCoupon.discountAmount)}</td>
+          </tr>
+          ` : ''}
+          ${data.adjustedTotal !== undefined && data.adjustedTotal !== totalAmount ? `
+          <tr class="summary-row" style="background: #e8f5e9; color: #2e7d32;">
+            <td colspan="2"><strong>合計（割引後）</strong></td>
+            <td class="col-qty">${totalQuantity.toLocaleString('ja-JP')}</td>
+            <td class="col-unit">-</td>
+            <td class="col-disc">-</td>
+            <td class="col-total"><strong>${formatYen(data.adjustedTotal)}</strong></td>
+          </tr>
+          ` : `
+          <tr class="summary-row">
             <td colspan="2">合計</td>
             <td class="col-qty">${totalQuantity.toLocaleString('ja-JP')}</td>
             <td class="col-unit">-</td>
             <td class="col-disc">¥0</td>
             <td class="col-total">${formatYen(totalAmount)}</td>
           </tr>
+          `}
         </tbody>
       </table>
     </div>
   </div>
+
+  ${data.appliedCoupon ? `
+  <!-- Coupon Banner -->
+  <div class="two-column-row">
+    <div class="column-full">
+      <div class="coupon-banner">
+        <div class="coupon-banner-title">クーポン適用</div>
+        <div class="coupon-banner-detail">
+          ${data.appliedCoupon.nameJa || data.appliedCoupon.name} (${data.appliedCoupon.code}) -
+          ${data.appliedCoupon.type === 'percentage' ? `${data.appliedCoupon.value}%OFF` : `${formatYen(data.appliedCoupon.value)}OFF`}
+        </div>
+      </div>
+    </div>
+  </div>
+  ` : ''}
 
   <!-- Row 2: Remarks (100%) -->
   <div class="two-column-row">
@@ -2171,6 +2281,38 @@ function generateInvoiceHTML(
       font-size: 12pt;
     }
 
+    .coupon-banner {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 4px;
+      padding: 3mm;
+      margin-bottom: 8mm;
+      text-align: center;
+    }
+
+    .coupon-banner-title {
+      font-weight: bold;
+      font-size: 11pt;
+      color: #856404;
+      margin-bottom: 1mm;
+    }
+
+    .coupon-banner-detail {
+      font-size: 10pt;
+      color: #856404;
+    }
+
+    .totals-table .discount-row {
+      color: #28a745;
+    }
+
+    .totals-table .adjusted-total-row {
+      background: #e8f5e9;
+      font-weight: bold;
+      font-size: 12pt;
+      color: #2e7d32;
+    }
+
     .payment-section {
       border: 1px solid #ccc;
       padding: 3mm;
@@ -2282,6 +2424,16 @@ function generateInvoiceHTML(
   </table>
 
   <!-- Totals Section -->
+  ${data.appliedCoupon ? `
+  <!-- Coupon Banner -->
+  <div class="coupon-banner" style="margin-bottom: 5mm;">
+    <div class="coupon-banner-title">クーポン適用</div>
+    <div class="coupon-banner-detail">
+      ${data.appliedCoupon.nameJa || data.appliedCoupon.name} (${data.appliedCoupon.code}) -
+      ${data.appliedCoupon.type === 'percentage' ? `${data.appliedCoupon.value}%OFF` : `${formatYen(data.appliedCoupon.value)}OFF`}
+    </div>
+  </div>
+  ` : ''}
   <div class="totals-section">
     <table class="totals-table">
       <tr>
@@ -2292,9 +2444,15 @@ function generateInvoiceHTML(
         <td>${t.tax} (10%)</td>
         <td style="text-align: right">${formatYen(totals.tax)}</td>
       </tr>
-      <tr class="total-row">
-        <td>${t.total}</td>
-        <td style="text-align: right">${formatYen(totals.total)}</td>
+      ${data.appliedCoupon ? `
+      <tr class="discount-row">
+        <td>クーポン割引</td>
+        <td style="text-align: right">-${formatYen(data.appliedCoupon.discountAmount)}</td>
+      </tr>
+      ` : ''}
+      <tr class="${data.adjustedTotal !== undefined && data.adjustedTotal !== totals.total ? 'adjusted-total-row' : 'total-row'}">
+        <td>${data.adjustedTotal !== undefined && data.adjustedTotal !== totals.total ? '合計（割引後）' : t.total}</td>
+        <td style="text-align: right">${formatYen(data.adjustedTotal !== undefined ? data.adjustedTotal : totals.total)}</td>
       </tr>
     </table>
   </div>

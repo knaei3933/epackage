@@ -14,8 +14,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { createServiceClient } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 
 // Initialize performance monitor
@@ -70,25 +70,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /**
- * Helper: Get authenticated user from middleware headers
- *
- * IMPORTANT: Get x-user-id from middleware.
- * The middleware handles authentication and sets the header.
- */
-async function getAuthenticatedUser(request: NextRequest) {
-  // Get x-user-id header from middleware (already authenticated)
-  const userId = request.headers.get('x-user-id');
-
-  if (userId) {
-    console.log('[Quotations API] Using x-user-id from middleware:', userId);
-    return { userId, user: { id: userId } };
-  }
-
-  console.error('[Quotations API] No authentication found');
-  return null;
-}
-
-/**
  * POST /api/member/quotations
  * Create a new quotation with items
  *
@@ -121,16 +102,16 @@ async function getAuthenticatedUser(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   try {
-    // Get authenticated user
-    const authResult = await getAuthenticatedUser(request);
-    if (!authResult) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const { userId, user } = authResult;
+    const { id: userId } = authUser;
 
     // Create service client for database operations
     const serviceClient = createServiceClient();
@@ -204,6 +185,27 @@ export async function POST(request: NextRequest) {
     // Default to QUOTATION_PENDING for new quotations (step 1: 検討承認待ち)
     const status = body.status ? body.status.toUpperCase() : 'QUOTATION_PENDING';
 
+    // クーポン処理：クーポンコードからcoupon_idを取得
+    let couponId = null;
+    let discountAmount = (body as any).discountAmount || 0;
+    let discountType = (body as any).appliedCoupon?.type || null;
+    let finalTotalAmount = totalAmount;
+
+    if ((body as any).appliedCoupon?.couponId) {
+      const couponCode = (body as any).appliedCoupon.couponId;
+      const { data: coupon } = await serviceClient
+        .from('coupons')
+        .select('id')
+        .eq('code', couponCode.toUpperCase())
+        .single();
+
+      if (coupon) {
+        couponId = coupon.id;
+        // adjustedTotalがあれば使用、なければ計算したtotalAmountを使用
+        finalTotalAmount = (body as any).adjustedTotal || totalAmount;
+      }
+    }
+
     // Insert quotation
     const { data: quotation, error: quotationError } = await serviceClient
       .from('quotations')
@@ -215,7 +217,10 @@ export async function POST(request: NextRequest) {
         customer_phone: body.customer_phone || null,
         subtotal_amount: roundedSubtotalAmount,
         tax_amount: roundedTaxAmount,
-        total_amount: totalAmount,
+        total_amount: finalTotalAmount, // クーポン適用後の金額を使用
+        coupon_id: couponId,
+        discount_amount: discountAmount > 0 ? discountAmount : null,
+        discount_type: discountType,
         notes: body.notes || null,
         valid_until: body.valid_until || null,
         status,
@@ -343,16 +348,16 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   try {
-    // Get authenticated user
-    const authResult = await getAuthenticatedUser(request);
-    if (!authResult) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const { userId } = authResult;
+    const { id: userId } = authUser;
 
     // Create service client for database operations
     const serviceClient = createServiceClient();

@@ -466,9 +466,9 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             pricing_formula: {
                 base_cost: 28000,
                 per_unit_cost: 16,
-                min_quantity: 800
+                min_quantity: 10000
             },
-            min_order_quantity: 800,
+            min_order_quantity: 10000,
             lead_time_days: 30,
             sort_order: 3,
             is_active: true,
@@ -519,9 +519,9 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             pricing_formula: {
                 base_cost: 30000,
                 per_unit_cost: 18,
-                min_quantity: 1000
+                min_quantity: 5000
             },
-            min_order_quantity: 1000,
+            min_order_quantity: 5000,
             lead_time_days: 30,
             sort_order: 4,
             is_active: true,
@@ -580,10 +580,10 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             pricing_formula: {
                 base_cost: 5000,
                 per_unit_cost: 5,
-                min_quantity: 1000,
+                min_quantity: 500,
                 unit_type: 'meter'
             },
-            min_order_quantity: 1000,
+            min_order_quantity: 500,
             lead_time_days: 30,
             sort_order: 5,
             is_active: true,

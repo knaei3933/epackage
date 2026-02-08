@@ -139,6 +139,15 @@ export async function PUT(
       );
     }
 
+    // Clear the settings cache to force reload
+    try {
+      const { unifiedPricingEngine } = await import('@/lib/unified-pricing-engine');
+      unifiedPricingEngine.clearSettingsCache();
+    } catch (cacheError) {
+      // Log error but don't fail the request
+      console.error('Failed to clear settings cache:', cacheError);
+    }
+
     return NextResponse.json({
       success: true,
       data: {

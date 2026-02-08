@@ -11,10 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 import type { Database } from '@/types/database';
-import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 
 // Initialize performance monitor
@@ -33,86 +31,21 @@ type OrderWithRelations = Database['public']['Tables']['orders']['Row'] & {
 };
 
 /**
- * Helper: Get authenticated user
- */
-async function getAuthenticatedUser(request: NextRequest) {
-  // Normal auth: Use cookie-based auth
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  let userId: string;
-  let user: any;
-  let supabase: any;
-
-  // Try to get user from middleware header first (more reliable)
-  const userIdFromMiddleware = request.headers.get('x-user-id');
-  const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
-
-  if (userIdFromMiddleware && isFromMiddleware) {
-    userId = userIdFromMiddleware;
-    console.log('[Orders API] Using user ID from middleware:', userId);
-    const response = NextResponse.json({ success: false });
-    supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
-        },
-      },
-    });
-    user = { id: userId };
-  } else {
-    // Fallback to SSR client auth
-    const response = NextResponse.json({ success: false });
-    supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
-        },
-      },
-    });
-
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authUser) {
-      console.error('[Orders API] Auth error:', authError);
-      return null;
-    }
-    userId = authUser.id;
-    user = authUser;
-    console.log('[Orders API] Authenticated user:', userId);
-  }
-
-  return { userId, user, supabase };
-}
-
-/**
  * GET /api/member/orders - List orders with filtering
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   try {
-    // Get authenticated user
-    const authResult = await getAuthenticatedUser(request);
-    if (!authResult) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていないリクエストです。' },
         { status: 401 }
       );
     }
 
-    const { userId, supabase } = authResult;
+    const { id: userId, supabase } = authUser;
 
     // Get user's role
     const { data: profile } = await supabase
@@ -257,16 +190,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   try {
-    // Get authenticated user
-    const authResult = await getAuthenticatedUser(request);
-    if (!authResult) {
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていないリクエストです。' },
         { status: 401 }
       );
     }
 
-    const { userId, supabase } = authResult;
+    const { id: userId, supabase } = authUser;
 
     // Check if user is admin or operator
     const { data: profile } = await supabase

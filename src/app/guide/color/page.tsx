@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
   description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
   keywords: [
-    'カラー', '特色印刷', 'CMYK', 'カラーマッチング', 'DICカラーガイド', 'パッケージ印刷色', '色指定',
+    'カラー', '特色印刷', 'CMYK', 'カラーマッチング', 'PANTONEカラーガイド', 'パッケージ印刷色', '色指定',
     // 롱테일 키워드 추가
-    'DICカラーガイド 使い方', '特色印刷 費用', 'DIC色指定', 'パッケージ ブランドカラー 再現',
-    '特色とCMYK 違い', '印刷色合わせ 方法', 'パッケージ印刷 色合わせ', 'DIC色番号 指定',
+    'PANTONEカラーガイド 使い方', '特色印刷 費用', 'PANTONE色指定', 'パッケージ ブランドカラー 再現',
+    '特色とCMYK 違い', '印刷色合わせ 方法', 'パッケージ印刷 色合わせ', 'PANTONE色番号 指定',
     'CMYK 特色 混合印刷', 'ブランドカラー 印刷 再現'
   ],
   openGraph: {
@@ -48,7 +48,7 @@ export default function ColorGuide() {
     description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
     image: 'https://epackage-lab.com/images/guide/color-howto.jpg',
     supplies: [
-      'DICカラーガイド',
+      'PANTONEカラーガイド',
       'デザインデータ',
       'カラープルーフ',
       '特色見本'
@@ -59,8 +59,8 @@ export default function ColorGuide() {
         text: 'CMYKカラーまたは特色印刷のどちらかを選択します。写真やグラデーションにはCMYK、ブランドカラーの正確な再現には特色印刷が適しています。'
       },
       {
-        name: 'DICカラーガイドで色を選択',
-        text: 'DICカラーガイドを使用して色番号を指定します。日本国内で最も広く使用されているカラーシステムで、再現性が高いのが特徴です。'
+        name: 'PANTONEカラーガイドで色を選択',
+        text: 'PANTONEカラーガイドを使用して色番号を指定します。世界標準のカラーシステムで、再現性が高いのが特徴です。'
       },
       {
         name: 'CMYK値を設定',
@@ -144,7 +144,7 @@ export default function ColorGuide() {
                 <div>
                   <strong>特定の色を単独で使用</strong>
                   <p className="text-sm text-text-secondary mt-1">
-                    DIC、PANTONEなどの指定色を直接印刷します
+                    PANTONEなどの指定色を直接印刷します
                   </p>
                 </div>
               </li>
@@ -178,20 +178,20 @@ export default function ColorGuide() {
         <div className="space-y-6">
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
-              1. DICカラーガイドでの指定
+              1. PANTONEカラーガイドでの指定
             </h3>
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <p className="text-sm text-text-secondary mb-2">
-                推奨: DICカラーガイドを使用した色指定
+                推奨: PANTONEカラーガイドを使用した色指定
               </p>
               <ul className="text-sm space-y-1 text-text-primary">
-                <li>• DIC 123 (レッド系)</li>
-                <li>• DIC 256 (ブルー系)</li>
-                <li>• DIC 358 (グリーン系)</li>
+                <li>• PANTONE 123 C (レッド系)</li>
+                <li>• PANTONE 256 C (ブルー系)</li>
+                <li>• PANTONE 358 C (グリーン系)</li>
               </ul>
             </div>
             <p className="text-text-secondary">
-              DICカラーガイドは日本国内で最も広く使用されているカラーシステムです。
+              PANTONEカラーガイドは世界標準のカラーシステムです。
               プリンターとの色合わせが容易で、再現性が高いのが特徴です。
             </p>
           </Card>

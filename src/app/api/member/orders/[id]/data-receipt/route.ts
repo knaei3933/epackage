@@ -16,6 +16,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
+import { notifyDataReceived as notifyDataReceivedEmail } from '@/lib/email/order-status-emails';
 
 // =====================================================
 // Environment Variables
@@ -371,6 +372,7 @@ export async function POST(
         .single();
 
       if (order) {
+        // 管理者への通知
         await notifyDataReceipt(
           orderId,
           order.order_number,
@@ -378,6 +380,40 @@ export async function POST(
           file.name,
           fileType
         );
+
+        // ============================================================
+        // 顧客へ受領確認メールを送信
+        // Customer email notification for data receipt
+        // ============================================================
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://epackage-lab.com';
+          const customerEmail = user.email;
+
+          if (customerEmail) {
+            await notifyDataReceivedEmail(
+              {
+                orderId,
+                orderNumber: order.order_number,
+                customerEmail,
+                customerName: order.customer_name || 'お客様',
+                viewUrl: `${baseUrl}/member/orders/${orderId}`,
+              },
+              file.name
+            );
+
+            console.log('[Data Receipt Upload] Customer notification email sent:', {
+              orderId: order.order_number,
+              email: customerEmail,
+              fileName: file.name,
+            });
+          } else {
+            console.warn('[Data Receipt Upload] No customer email found, skipping email notification');
+          }
+        } catch (emailError) {
+          // メール送信失敗時も処理を継続（エラーログのみ記録）
+          console.error('[Data Receipt Upload] Customer email notification failed:', emailError);
+          // Don't fail the upload if email notification fails
+        }
 
         // ============================================================
         // Auto-transition: DATA_UPLOADED → CORRECTION_IN_PROGRESS

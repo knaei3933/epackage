@@ -61,7 +61,7 @@ export function DataAndCorrectionManagementTab({
           <DataReceiptSection orderId={orderId} fetchFn={fetchFn} />
           {/* Comments Section */}
           <Card className="p-6">
-            <OrderCommentsSectionWrapper orderId={orderId} fetchFn={fetchFn} />
+            <OrderCommentsSectionWrapper orderId={orderId} fetchFn={fetchFn} isAdmin={true} />
           </Card>
         </TabsContent>
 

@@ -7,7 +7,7 @@
  */
 
 import { createServiceClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { getCurrentUser } from '@/lib/dashboard';
 
 export interface QuotationItem {
   id: string;
@@ -50,35 +50,6 @@ export interface QuotationsData {
 }
 
 /**
- * Get authenticated user from cookies
- */
-async function getAuthenticatedUser(): Promise<{ userId: string } | null> {
-  const cookieStore = await cookies();
-
-  // Use Supabase SSR to get session from cookies
-  const { createServerClient } = await import('@supabase/ssr');
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-    },
-  });
-
-  const { data: { user }, error } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    console.error('[Loader] Auth error:', error);
-    return null;
-  }
-
-  return { userId: user.id };
-}
-
-/**
  * Fetch quotations for the authenticated user
  */
 export async function fetchQuotationsServerSide(
@@ -86,8 +57,8 @@ export async function fetchQuotationsServerSide(
   limit: number = 20,
   offset: number = 0
 ): Promise<QuotationsData> {
-  // Get authenticated user
-  const authUser = await getAuthenticatedUser();
+  // Get authenticated user (from headers set by middleware)
+  const authUser = await getCurrentUser();
 
   if (!authUser) {
     return {
@@ -107,13 +78,13 @@ export async function fetchQuotationsServerSide(
   const { count: totalCount } = await serviceClient
     .from('quotations')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', authUser.userId);
+    .eq('user_id', authUser.id);
 
   // Apply status filter for count if specified
   let countQuery = serviceClient
     .from('quotations')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', authUser.userId);
+    .eq('user_id', authUser.id);
 
   if (status && status !== 'all') {
     const statusLower = status.toLowerCase();
@@ -140,7 +111,7 @@ export async function fetchQuotationsServerSide(
       *,
       quotation_items (*)
     `)
-    .eq('user_id', authUser.userId)
+    .eq('user_id', authUser.id)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 

@@ -28,9 +28,12 @@ export default function ContractWorkflowPage() {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
   const { data: contracts, mutate } = useSWR(
-    '/api/admin/contracts/workflow',
+    `/api/admin/contracts/workflow?page=${page}&page_size=${pageSize}`,
     fetcher,
     { refreshInterval: 10000 } // 10秒ごとに更新
   );
@@ -61,19 +64,21 @@ export default function ContractWorkflowPage() {
 
   // contractsが配列か確認 (エラー応答の場合に備え)
   const contractsArray = Array.isArray(contracts) ? contracts : [];
+  const paginationData = (contracts as any)?.pagination;
+  const totalContracts = paginationData?.total || contractsArray.length;
 
   const filteredContracts = contractsArray.filter((c: Contract) =>
     filterStatus === 'all' || c.status === filterStatus
   );
 
   const stats = useMemo(() => ({
-    total: contractsArray.length || 0,
+    total: totalContracts || 0,
     draft: contractsArray.filter((c: Contract) => c.status === 'DRAFT').length || 0,
     sent: contractsArray.filter((c: Contract) => c.status === 'SENT').length || 0,
     pending: contractsArray.filter((c: Contract) => ['PENDING_SIGNATURE', 'CUSTOMER_SIGNED', 'ADMIN_SIGNED'].includes(c.status)).length || 0,
     signed: contractsArray.filter((c: Contract) => c.status === 'SIGNED').length || 0,
     active: contractsArray.filter((c: Contract) => c.status === 'ACTIVE').length || 0,
-  }), [contractsArray]);
+  }), [contractsArray, totalContracts]);
 
   // Calculate expiring contracts safely (avoid Date.now() in render)
   const expiringSoonCount = useMemo(() => {
@@ -83,6 +88,12 @@ export default function ContractWorkflowPage() {
       return new Date(c.expiresAt) < sevenDaysFromNow;
     }).length || 0;
   }, [contractsArray]);
+
+  // Reset page when filter changes
+  const handleFilterChange = (newStatus: string) => {
+    setFilterStatus(newStatus);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -118,7 +129,7 @@ export default function ContractWorkflowPage() {
         <div className="flex gap-4 items-center">
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => handleFilterChange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg"
           >
             <option value="all">すべてのステータス</option>
@@ -132,6 +143,29 @@ export default function ContractWorkflowPage() {
             <option value="COMPLETED">完了</option>
           </select>
         </div>
+
+        {/* Pagination */}
+        {totalContracts > pageSize && (
+          <div className="flex justify-center items-center gap-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              前へ
+            </button>
+            <span className="text-sm text-gray-600">
+              {page} / {Math.ceil(totalContracts / pageSize)} ページ (全{totalContracts}件)
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(totalContracts / pageSize), p + 1))}
+              disabled={page >= Math.ceil(totalContracts / pageSize)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              次へ
+            </button>
+          </div>
+        )}
 
         {/* 契約リスト */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

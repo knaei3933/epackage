@@ -68,14 +68,13 @@ export function createSupabaseSSRClient(request: NextRequest): SupabaseSSRClient
         return request.cookies.get(name)?.value;
       },
       set(name: string, value: string, options: Record<string, unknown>) {
+        // Build cookie options WITHOUT name property (name is first parameter to set())
         const cookieOptions: Record<string, unknown> = {
-          name,
-          value,
           httpOnly: true,   // ✅ httpOnly設定（JavaScriptアクセス禁止）
           secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS時のみ
           sameSite: 'lax',   // ✅ CSRF対策（lax: 同一サイトGET許可）
           path: '/',         // ✅ 全パスで有効
-          maxAge: 1800,      // ✅ 30分セッション維持 (1800秒 = 30分)
+          maxAge: 86400,     // ✅ 24時間セッション維持 (86400秒 = 24時間)
         };
 
         // CRITICAL: Only set domain in production
@@ -87,7 +86,8 @@ export function createSupabaseSSRClient(request: NextRequest): SupabaseSSRClient
         // Merge with any additional options
         Object.assign(cookieOptions, options);
 
-        response.cookies.set(cookieOptions);
+        // ✅ CORRECT: name is first parameter, value is second, options are third
+        response.cookies.set(name, value, cookieOptions);
       },
       remove(name: string, options: Record<string, unknown>) {
         response.cookies.delete({
@@ -130,15 +130,30 @@ export function createSupabaseSSRClient(request: NextRequest): SupabaseSSRClient
  * ```
  */
 export async function getAuthenticatedUser(request: NextRequest) {
+  // Try cookie-based authentication first (works for both SSR and client-side navigation)
   const { client: supabase } = createSupabaseSSRClient(request);
 
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {
+    // Fallback: try headers (set by middleware for SSR pages)
+    const userId = request.headers.get('x-user-id');
+    if (userId) {
+      console.log('[getAuthenticatedUser] Using header-based auth as fallback');
+      return {
+        id: userId,
+        supabase,
+      };
+    }
+    console.log('[getAuthenticatedUser] No authenticated user found');
     return null;
   }
 
-  return user;
+  console.log('[getAuthenticatedUser] Found user via cookie auth:', user.id);
+  return {
+    id: user.id,
+    supabase,
+  };
 }
 
 // ============================================================

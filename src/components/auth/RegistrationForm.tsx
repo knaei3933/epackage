@@ -265,7 +265,7 @@ export default function RegistrationForm({
 
           {/* メールアドレス */}
           <Input
-            label="メールアドレス"
+            label="メールアドレス *"
             type="email"
             placeholder="example@company.com"
             error={errors.email?.message}
@@ -277,7 +277,7 @@ export default function RegistrationForm({
           {/* パスワード */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <Input
-              label="パスワード"
+              label="パスワード *"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               error={errors.password?.message}
@@ -294,7 +294,7 @@ export default function RegistrationForm({
               {...register('password')}
             />
             <Input
-              label="パスワード確認"
+              label="パスワード確認 *"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="••••••••"
               error={errors.passwordConfirm?.message}
@@ -329,7 +329,6 @@ export default function RegistrationForm({
             kanjiFirstNameName="kanjiFirstName"
             kanaLastNameName="kanaLastName"
             kanaFirstNameName="kanaFirstName"
-            required
           />
         </div>
 
@@ -498,7 +497,7 @@ export default function RegistrationForm({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-2">
-                  都道府県 <span className="text-error-500">*</span>
+                  都道府県
                 </label>
                 <select
                   {...register('prefecture')}
@@ -518,11 +517,10 @@ export default function RegistrationForm({
 
               <div>
                 <Input
-                  label="市区町村*"
+                  label="市区町村"
                   placeholder="加古郡稲美町六分一"
                   error={errors.city?.message}
                   {...register('city')}
-                  required
                 />
               </div>
               <div>

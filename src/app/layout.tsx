@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://epackage-lab.com'),
+  metadataBase: new URL('https://package-lab.com'),
   title: {
     default: "Epackage Lab | デジタル印刷・小ロット・短納期 | パッケージングソリューション",
     template: "%s | Epackage Lab"

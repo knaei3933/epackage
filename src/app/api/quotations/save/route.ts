@@ -67,6 +67,11 @@ interface QuotationItemData {
   specifications?: Record<string, unknown>;
 }
 
+interface AppliedCoupon {
+  couponId?: string;
+  type?: string;
+}
+
 interface SaveRequestBody {
   quotationNumber?: string;
   totalAmount?: number;
@@ -78,6 +83,9 @@ interface SaveRequestBody {
   specifications?: Record<string, unknown>;
   postProcessing?: string[];
   skuData?: Record<string, unknown>;
+  appliedCoupon?: AppliedCoupon;
+  discountAmount?: number;
+  adjustedTotal?: number;
 }
 
 // POST: 新しい見積を作成
@@ -105,10 +113,10 @@ export async function POST(request: NextRequest) {
 
     const userId = user.id;
 
-    // プロフィールからユーザー情報取得
+    // プロフィールからユーザー情報取得（company_nameを含む）
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, status, email, kanji_last_name, kanji_first_name')
+      .select('id, status, email, kanji_last_name, kanji_first_name, company_name')
       .eq('id', userId)
       .single();
 
@@ -127,9 +135,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const customerName = profile.kanji_last_name && profile.kanji_first_name
-      ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
-      : profile.email || '未登録';
+    // 会社名があれば会社名を優先、なければ氏名、さらになければメールアドレス
+    const customerName = profile.company_name ||
+      (profile.kanji_last_name && profile.kanji_first_name
+        ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+        : profile.email || '未登録');
     const customerEmail = profile.email || '';
 
     // リクエストボディをパース
@@ -143,9 +153,12 @@ export async function POST(request: NextRequest) {
       `QT${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Date.now().toString(36).toUpperCase()}`;
 
     // 価格データの決定
-    const totalAmount = body.totalAmount || body.pricing?.totalPrice || 0;
-    const grandTotal = body.grandTotal || totalAmount;
-    console.log('[API /quotations/save] totalAmount:', totalAmount, 'grandTotal:', grandTotal);
+    // adjustedTotalがあればそれを使用、なければ従来通りgrandTotal/totalAmountを使用
+    const baseTotal = body.totalAmount || body.pricing?.totalPrice || 0;
+    const grandTotal = body.adjustedTotal || body.grandTotal || baseTotal;
+    const hasCoupon = body.appliedCoupon && body.discountAmount !== undefined;
+
+    console.log('[API /quotations/save] totalAmount:', baseTotal, 'adjustedTotal:', body.adjustedTotal, 'grandTotal:', grandTotal, 'hasCoupon:', hasCoupon);
 
     // itemsデータの準備
     let itemsToSave: QuotationItemData[] = [];
@@ -201,22 +214,31 @@ export async function POST(request: NextRequest) {
 
     try {
       // 1. 見積を作成
+      const quotationInsertData: Record<string, unknown> = {
+        user_id: userId,
+        quotation_number: quotationNumber,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        total_amount: grandTotal,
+        valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        delivery_address_id: deliveryAddressId,
+        billing_address_id: billingAddressId,
+        notes: JSON.stringify({
+          items: itemsToSave,
+          quotationData: body,
+        }),
+      };
+
+      // クーポン情報があれば追加
+      if (hasCoupon) {
+        quotationInsertData.coupon_id = body.appliedCoupon?.couponId || null;
+        quotationInsertData.discount_amount = body.discountAmount;
+        quotationInsertData.discount_type = body.appliedCoupon?.type || null;
+      }
+
       const { data: quotationData, error: insertError } = await supabaseService
         .from('quotations')
-        .insert({
-          user_id: userId,
-          quotation_number: quotationNumber,
-          customer_name: customerName,
-          customer_email: customerEmail,
-          total_amount: grandTotal,
-          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          delivery_address_id: deliveryAddressId,
-          billing_address_id: billingAddressId,
-          notes: JSON.stringify({
-            items: itemsToSave,
-            quotationData: body,
-          }),
-        })
+        .insert(quotationInsertData)
         .select()
         .single();
 

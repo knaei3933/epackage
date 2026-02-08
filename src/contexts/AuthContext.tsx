@@ -1,12 +1,11 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { auth, type Profile } from '@/lib/supabase'
 import type { User, Session, RegistrationFormData } from '@/types/auth'
 import type { User as SupabaseUser, Session as SupabaseSession } from '@supabase/supabase-js'
-import { isDevMode } from '@/lib/dev-mode'
 
 // =====================================================
 // Type Definitions
@@ -95,144 +94,72 @@ function convertSupabaseSession(supabaseSession: SupabaseSession | null): Sessio
 // AuthProvider Component
 // =====================================================
 
-// クッキーからmockユーザーIDを読み込みます
-function getDevMockUserIdFromCookie(): string | null {
-  if (typeof document === 'undefined') return null
-
-  const cookies = document.cookie.split(';')
-  const mockUserIdCookie = cookies.find(cookie =>
-    cookie.trim().startsWith('dev-mock-user-id=')
-  )
-  if (mockUserIdCookie) {
-    return mockUserIdCookie.split('=')[1].trim()
-  }
-  return null
-}
-
-// localStorageから即座にユーザーデータをロードするヘルパー関数
-function loadUserFromLocalStorage(): { user: User | null; profile: Profile | null } {
-  // DEV_MODE: localStorage에서 mock user 데이터 로드 (signin API에서 저장된 데이터)
-  // IMPORTANT: Check for DEV_MODE indicators (cookie or localStorage) instead of relying on isDevMode()
-  // This is necessary because client-side isDevMode() always returns false for security
-  if (typeof document !== 'undefined') {
-    try {
-      // Check if DEV_MODE is active by looking for the cookie or localStorage item
-      const cookieUserId = getDevMockUserIdFromCookie()
-      const mockUserStr = localStorage.getItem('dev-mock-user')
-      const isDevModeActive = !!cookieUserId || !!mockUserStr
-
-      if (!isDevModeActive) {
-        return { user: null, profile: null }
-      }
-
-      if (mockUserStr) {
-        const mockUserData = JSON.parse(mockUserStr)
-        console.log('[AuthContext] Loading user from localStorage during init:', mockUserData)
-
-        // クッキーにあるユーザーIDで更新（一貫性維持）
-        const userId = cookieUserId || mockUserData.id
-
-        const mockProfile: Profile = {
-          id: userId, // 쿠키의 ID 사용
-          email: mockUserData.email,
-          kanji_last_name: mockUserData.kanjiLastName || 'テスト',
-          kanji_first_name: mockUserData.kanjiFirstName || 'ユーザー',
-          kana_last_name: mockUserData.kanaLastName || 'テスト',
-          kana_first_name: mockUserData.kanaFirstName || 'ユーザー',
-          corporate_phone: mockUserData.corporatePhone || '03-1234-5678',
-          personal_phone: mockUserData.personalPhone || '090-1234-5678',
-          business_type: mockUserData.businessType || 'CORPORATION',
-          company_name: mockUserData.companyName || 'テスト会社',
-          legal_entity_number: mockUserData.legalEntityNumber || '1234567890123',
-          position: mockUserData.position || '担当者',
-          department: mockUserData.department || '営業',
-          company_url: mockUserData.companyUrl || 'https://example.com',
-          product_category: mockUserData.productCategory || 'OTHER',
-          acquisition_channel: mockUserData.acquisitionChannel || 'web_search',
-          postal_code: mockUserData.postalCode || '123-4567',
-          prefecture: mockUserData.prefecture || '東京都',
-          city: mockUserData.city || '渋谷区',
-          street: mockUserData.street || '1-2-3',
-          role: mockUserData.role || 'MEMBER',
-          status: mockUserData.status || 'ACTIVE',
-          created_at: mockUserData.createdAt || new Date().toISOString(),
-          updated_at: mockUserData.updatedAt || new Date().toISOString(),
-          last_login_at: mockUserData.lastLoginAt || new Date().toISOString(),
-        }
-
-        const mockUser: User = {
-          id: mockProfile.id,
-          email: mockProfile.email,
-          emailVerified: new Date(),
-          kanjiLastName: mockProfile.kanji_last_name,
-          kanjiFirstName: mockProfile.kanji_first_name,
-          kanaLastName: mockProfile.kana_last_name,
-          kanaFirstName: mockProfile.kana_first_name,
-          corporatePhone: mockProfile.corporate_phone,
-          personalPhone: mockProfile.personal_phone,
-          businessType: mockProfile.business_type as User['businessType'],
-          companyName: mockProfile.company_name,
-          legalEntityNumber: mockProfile.legal_entity_number,
-          position: mockProfile.position,
-          department: mockProfile.department,
-          companyUrl: mockProfile.company_url,
-          productCategory: mockProfile.product_category as User['productCategory'],
-          acquisitionChannel: mockProfile.acquisition_channel,
-          postalCode: mockProfile.postal_code,
-          prefecture: mockProfile.prefecture,
-          city: mockProfile.city,
-          street: mockProfile.street,
-          role: mockProfile.role as User['role'],
-          status: mockProfile.status as User['status'],
-          createdAt: new Date(mockProfile.created_at),
-          updatedAt: new Date(mockProfile.updated_at),
-          lastLoginAt: new Date(mockProfile.last_login_at!),
-        }
-
-        return { user: mockUser, profile: mockProfile }
-      }
-    } catch (e) {
-      console.error('[AuthContext] Failed to load from localStorage:', e)
-    }
-  }
-  return { user: null, profile: null }
-}
-
 export function AuthProvider({ children }: AuthProviderProps) {
-  // useState初期化関数使用 - コンポーネントマウント時に即座に実行
-  const initialData = loadUserFromLocalStorage()
-  const [user, setUser] = useState<User | null>(initialData.user)
-  const [profile, setProfile] = useState<Profile | null>(initialData.profile)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(!initialData.user) // userがあれば既にローディング完了
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // Track previous route to detect changes
+  const previousPathname = useRef(pathname)
+  const previousSearchParams = useRef(searchParams.toString())
 
   // =====================================================
   // Session Management & Auth State Listener
   // =====================================================
 
+  // Memoized fetch session function that can be called on route changes
+  const fetchSessionAndUpdateState = useCallback(async () => {
+    try {
+      console.log('[AuthContext] Fetching session from /api/auth/session...')
+
+      const response = await fetch('/api/auth/session', {
+        credentials: 'include', // Critical: include cookies in request
+      })
+
+      if (response.ok) {
+        const sessionData = await response.json()
+
+        if (sessionData.session?.user && sessionData.profile) {
+          setSession({
+            token: 'server-managed',
+            expires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+          })
+          setProfile(sessionData.profile)
+          setUser(convertSupabaseUser(sessionData.session.user, sessionData.profile))
+          console.log('[AuthContext] Session updated successfully')
+        } else {
+          // Session is invalid or expired
+          setSession(null)
+          setProfile(null)
+          setUser(null)
+        }
+      } else {
+        console.warn('[AuthContext] Session fetch failed:', response.status)
+        setSession(null)
+        setProfile(null)
+        setUser(null)
+      }
+    } catch (error) {
+      console.error('[AuthContext] Session fetch error:', error)
+      setSession(null)
+      setProfile(null)
+      setUser(null)
+    }
+  }, [])
+
   useEffect(() => {
     let mounted = true
 
-    // DEV MODE: 이미 user가 로드되었으면 session만 설정
-    if (user) {
-      console.log('[AuthContext] User already loaded from state, setting session only')
-      if (mounted && !session) {
-        setSession({
-          token: 'dev-mock-token',
-          expires: new Date(Date.now() + 3600000).toISOString(),
-        })
-      }
-      setIsLoading(false)
-      return
-    }
+    // IMPORTANT: Call the server endpoint to read cookies (httpOnly cookies can't be read by client JS)
+    // CRITICAL: credentials: 'include' is required to send cookies with the request
 
-    // Get initial session (PROD or 初期ユーザーがない場合)
     const getInitialSession = async () => {
       try {
         console.log('[AuthContext] Initializing auth context...')
-        console.log('[AuthContext] NODE_ENV:', process.env.NODE_ENV)
-        // SECURITY: Client-side dev mode check removed for security
 
         if (!supabase) {
           console.warn('Supabase client not configured')
@@ -240,155 +167,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return
         }
 
-        // DEV MODE: localStorage에 mock user가 있는지 확인
-        if (typeof document !== 'undefined') {
-          const mockUserStr = localStorage.getItem('dev-mock-user')
-          if (mockUserStr) {
-            console.log('[AuthContext] Found mock user in localStorage, using DEV MODE')
+        // Use the shared fetch session function
+        await fetchSessionAndUpdateState()
 
-            // Get cookies
-            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-              const [key, value] = cookie.trim().split('=')
-              acc[key] = value
-              return acc
-            }, {} as Record<string, string>)
-            const mockAccessToken = cookies['sb-access-token']
-            console.log('[AuthContext] Found sb-access-token in cookies:', !!mockAccessToken)
-
-            let mockUserData = null
-            try {
-              mockUserData = JSON.parse(mockUserStr)
-              console.log('[AuthContext] Using mock user data from localStorage:', mockUserData)
-            } catch (e) {
-              console.error('[AuthContext] Failed to parse mock user data:', e)
-            }
-
-            if (mockUserData) {
-              // Create Profile from mockUserData
-              const mockProfile: Profile = {
-                id: mockUserData.id,
-                email: mockUserData.email,
-                kanji_last_name: mockUserData.kanjiLastName || 'テスト',
-                kanji_first_name: mockUserData.kanjiFirstName || 'ユーザー',
-                kana_last_name: mockUserData.kanaLastName || 'テスト',
-                kana_first_name: mockUserData.kanaFirstName || 'ユーザー',
-                corporate_phone: mockUserData.corporatePhone || '03-1234-5678',
-                personal_phone: mockUserData.personalPhone || '090-1234-5678',
-                business_type: mockUserData.businessType || 'CORPORATION',
-                company_name: mockUserData.companyName || 'テスト会社',
-                legal_entity_number: mockUserData.legalEntityNumber || '1234567890123',
-                position: mockUserData.position || '担当者',
-                department: mockUserData.department || '営業',
-                company_url: mockUserData.companyUrl || 'https://example.com',
-                product_category: mockUserData.productCategory || 'OTHER',
-                acquisition_channel: mockUserData.acquisitionChannel || 'web_search',
-                postal_code: mockUserData.postalCode || '123-4567',
-                prefecture: mockUserData.prefecture || '東京都',
-                city: mockUserData.city || '渋谷区',
-                street: mockUserData.street || '1-2-3',
-                role: mockUserData.role || 'MEMBER',
-                status: mockUserData.status || 'ACTIVE',
-                created_at: mockUserData.createdAt || new Date().toISOString(),
-                updated_at: mockUserData.updatedAt || new Date().toISOString(),
-                last_login_at: mockUserData.lastLoginAt || new Date().toISOString(),
-              }
-
-              const mockUser: User = {
-                id: mockProfile.id,
-                email: mockProfile.email,
-                emailVerified: new Date(),
-                kanjiLastName: mockProfile.kanji_last_name,
-                kanjiFirstName: mockProfile.kanji_first_name,
-                kanaLastName: mockProfile.kana_last_name,
-                kanaFirstName: mockProfile.kana_first_name,
-                corporatePhone: mockProfile.corporate_phone,
-                personalPhone: mockProfile.personal_phone,
-                businessType: mockProfile.business_type as User['businessType'],
-                companyName: mockProfile.company_name,
-                legalEntityNumber: mockProfile.legal_entity_number,
-                position: mockProfile.position,
-                department: mockProfile.department,
-                companyUrl: mockProfile.company_url,
-                productCategory: mockProfile.product_category as User['productCategory'],
-                acquisitionChannel: mockProfile.acquisition_channel,
-                postalCode: mockProfile.postal_code,
-                prefecture: mockProfile.prefecture,
-                city: mockProfile.city,
-                street: mockProfile.street,
-                role: mockProfile.role as User['role'],
-                status: mockProfile.status as User['status'],
-                createdAt: new Date(mockProfile.created_at),
-                updatedAt: new Date(mockProfile.updated_at),
-                lastLoginAt: new Date(mockProfile.last_login_at!),
-              }
-
-              if (mounted) {
-                console.log('[AuthContext] Setting mock user state:', mockUser)
-                setUser(mockUser)
-                setProfile(mockProfile)
-                setSession({
-                  token: mockAccessToken || 'dev-mock-token',
-                  expires: new Date(Date.now() + 3600000).toISOString(),
-                })
-                setIsLoading(false)
-              }
-              return
-            }
-          }
-        }
-
-        // Get current session from SERVER API
-        // IMPORTANT: Call the server endpoint to read cookies (httpOnly cookies can't be read by client JS)
-        // CRITICAL: credentials: 'include' is required to send cookies with the request
-        let sessionResponse
-        try {
-          sessionResponse = await fetch('/api/auth/session', {
-            credentials: 'include', // Include cookies in the request
-          })
-        } catch (fetchError) {
-          console.warn('[AuthContext] Session fetch failed:', fetchError)
-          if (mounted) {
-            setSession(null)
-            setProfile(null)
-            setUser(null)
-            setIsLoading(false)
-          }
-          return
-        }
-
-        if (!sessionResponse.ok) {
-          console.warn('[AuthContext] Session check failed:', sessionResponse.status)
-          if (mounted) {
-            setSession(null)
-            setProfile(null)
-            setUser(null)
-            setIsLoading(false)
-          }
-          return
-        }
-
-        const sessionData = await sessionResponse.json()
-
-        if (sessionData.session?.user) {
-          // Use session data from server (already includes profile)
-          const profileData = sessionData.profile
-
-          if (mounted) {
-            // Convert server session format to client session format
-            setSession({
-              token: 'server-managed', // Session is managed by httpOnly cookies
-              expires: new Date(Date.now() + 3600000).toISOString(),
-            })
-            setProfile(profileData)
-            setUser(convertSupabaseUser(sessionData.session.user, profileData))
-          }
-        } else {
-          if (mounted) {
-            setSession(null)
-            setProfile(null)
-            setUser(null)
-          }
-        }
       } catch (error) {
         console.error('Auth initialization error:', error)
         if (mounted) {
@@ -421,36 +202,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // 期限切れ5分前（300,000ms）または既に期限切れの場合にリフレッシュ
         if (timeUntilExpiry <= 5 * 60 * 1000) {
-          console.log('[AuthContext] Session expiring soon, refreshing...');
+          console.log('[AuthContext] Session expiring soon, refreshing...')
 
-          const response = await fetch('/api/auth/session', {
-            credentials: 'include',
-          });
-
-          if (response.ok) {
-            const sessionData = await response.json();
-
-            if (sessionData.session?.user && sessionData.profile) {
-              setSession({
-                token: 'server-managed',
-                expires: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // ✅ 30分延長
-              });
-              setProfile(sessionData.profile);
-              setUser(convertSupabaseUser(sessionData.session.user, sessionData.profile));
-              console.log('[AuthContext] Session refreshed successfully');
-            } else {
-              // セッションが無効になった場合、ログアウト状態に
-              console.warn('[AuthContext] Session no longer valid');
-              setSession(null);
-              setProfile(null);
-              setUser(null);
-            }
-          } else {
-            console.warn('[AuthContext] Failed to refresh session');
-            setSession(null);
-            setProfile(null);
-            setUser(null);
-          }
+          // Use the shared fetch session function
+          await fetchSessionAndUpdateState()
         }
       } catch (error) {
         console.error('[AuthContext] Session refresh error:', error);
@@ -470,6 +225,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // =====================================================
+  // Route Change Detection for Auth State Refresh
+  // =====================================================
+  // When navigating between member pages using Next.js Link, the AuthContext
+  // needs to re-fetch the session to ensure the auth state is up-to-date.
+  // This effect detects route changes and refreshes the session accordingly.
+
+  useEffect(() => {
+    // Detect route changes by comparing current and previous pathnames/search params
+    const routeChanged =
+      pathname !== previousPathname.current ||
+      searchParams.toString() !== previousSearchParams.current
+
+    if (routeChanged) {
+      console.log('[AuthContext] Route changed, refreshing auth state:', {
+        from: previousPathname.current,
+        to: pathname,
+      })
+
+      // Refresh session on route change to ensure auth state is current
+      fetchSessionAndUpdateState()
+
+      // Update previous values
+      previousPathname.current = pathname
+      previousSearchParams.current = searchParams.toString()
+    }
+  }, [pathname, searchParams, fetchSessionAndUpdateState])
 
   // =====================================================
   // Auth Operations
@@ -581,11 +364,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         method: 'POST',
         credentials: 'include', // Critical: include cookies in request
       })
-
-      // Clear localStorage mock data
-      if (typeof document !== 'undefined') {
-        localStorage.removeItem('dev-mock-user')
-      }
     } catch (error) {
       console.error('Sign out error:', error)
     } finally {
@@ -602,39 +380,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Uses server-side API to refresh httpOnly cookies
    */
   const refreshSession = useCallback(async () => {
-    try {
-      // Call server-side session endpoint to refresh httpOnly cookies
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include', // Critical: include cookies in request
-      })
-
-      if (response.ok) {
-        const sessionData = await response.json()
-
-        if (sessionData.session?.user && sessionData.profile) {
-          setSession({
-            token: 'server-managed', // Session is managed by httpOnly cookies
-            expires: new Date(Date.now() + 3600000).toISOString(),
-          })
-          setProfile(sessionData.profile)
-          setUser(convertSupabaseUser(sessionData.session.user, sessionData.profile))
-        } else {
-          setSession(null)
-          setProfile(null)
-          setUser(null)
-        }
-      } else {
-        setSession(null)
-        setProfile(null)
-        setUser(null)
-      }
-    } catch (error) {
-      console.error('Session refresh error:', error)
-      setSession(null)
-      setProfile(null)
-      setUser(null)
-    }
-  }, [])
+    await fetchSessionAndUpdateState()
+  }, [fetchSessionAndUpdateState])
 
   /**
    * Update user profile
