@@ -30,7 +30,6 @@ const navigation = [
   { name: '在庫管理', href: '/admin/inventory', icon: Boxes },
   { name: 'お知らせ管理', href: '/admin/notifications', icon: Bell },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },
-  { name: 'リード管理', href: '/admin/leads', icon: Users },
   { name: 'システム設定', href: '/admin/settings', icon: DollarSign },
   { name: 'クーポン管理', href: '/admin/coupons', icon: Tag },
 ];

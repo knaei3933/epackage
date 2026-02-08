@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { supabase } from '@/lib/supabase-browser';
 import { Card, Badge, Button } from '@/components/ui';
-import { EntryRecordingButton } from '@/components/admin';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -318,14 +317,6 @@ function InventoryDetailPanel({
           </div>
 
           <div className="pt-4 border-t space-y-2">
-            <EntryRecordingButton
-              productId={item.productId}
-              productName={item.productName}
-              productCode={item.productCode}
-              warehouseLocation={item.warehouseLocation}
-              binLocation={item.binLocation || undefined}
-              onSuccess={onUpdate}
-            />
             <Button className="w-full" onClick={onAdjustment}>
               在庫調整
             </Button>
