@@ -23,7 +23,7 @@
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { Database } from '@/types/database';
@@ -357,6 +357,40 @@ export function hasAnyRole(
   return roles.includes(profile.role);
 }
 
+// ============================================================
+// Exported Functions for External Use
+// ============================================================
+
+/**
+ * Get admin user ID from request headers
+ * Used by admin API routes to get the current admin user
+ */
+export async function getAdminUserId(request: NextRequest): Promise<string | null> {
+  try {
+    // Get x-user-id from request headers (set by middleware)
+    const userId = request.headers.get('x-user-id');
+
+    if (!userId) return null;
+
+    // Verify user is admin
+    const supabase = createServiceClient();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (!profile || profile.role !== 'ADMIN') {
+      return null;
+    }
+
+    return userId;
+  } catch (error) {
+    console.error('[getAdminUserId] Error:', error);
+    return null;
+  }
+}
+
 /**
  * Check if user has specific status
  */
@@ -380,6 +414,154 @@ export function isAdmin(profile: UserProfile): boolean {
  */
 export function isActiveMember(profile: UserProfile): boolean {
   return profile.status === 'ACTIVE';
+}
+
+// ============================================================
+// Header-Based Authentication (Next.js 16 API Routes)
+// ============================================================
+
+/**
+ * Get authenticated user from middleware-set headers
+ *
+ * CRITICAL FIX for Next.js 16 API Routes:
+ * - Middleware correctly sets x-user-id header for /api/admin routes
+ * - But request.cookies.getAll() returns empty array in API routes
+ * - This function reads from headers instead of cookies
+ *
+ * @param request - NextRequest object
+ * @returns User object or null if not authenticated
+ */
+export async function getAuthenticatedUserFromHeaders(request: NextRequest): Promise<{
+  id: string;
+  role?: string;
+  status?: string;
+} | null> {
+  // Get x-user-id from request headers (set by middleware)
+  const userId = request.headers.get('x-user-id');
+
+  if (!userId) {
+    console.log('[getAuthenticatedUserFromHeaders] No x-user-id header found');
+    return null;
+  }
+
+  // Get role from headers
+  const userRole = request.headers.get('x-user-role');
+  const userStatus = request.headers.get('x-user-status');
+
+  // Check for dev mode
+  const isDevMode = request.headers.get('x-dev-mode') === 'true';
+
+  console.log('[getAuthenticatedUserFromHeaders] Found user via headers:', {
+    userId,
+    role: userRole,
+    status: userStatus,
+    isDevMode,
+  });
+
+  return {
+    id: userId,
+    role: userRole,
+    status: userStatus,
+  };
+}
+
+/**
+ * Get authenticated admin user from middleware-set headers
+ *
+ * This is the RECOMMENDED way for admin API authentication in Next.js 16
+ *
+ * @param request - NextRequest object
+ * @returns User object or null if not authenticated admin
+ */
+export async function getAdminUserFromHeaders(request: NextRequest): Promise<{
+  id: string;
+  role: string;
+  status?: string;
+} | null> {
+  const user = await getAuthenticatedUserFromHeaders(request);
+
+  if (!user) {
+    return null;
+  }
+
+  // Check if user is admin (case-insensitive)
+  if (user.role?.toLowerCase() !== 'admin') {
+    console.log('[getAdminUserFromHeaders] User is not admin:', user.role);
+    return null;
+  }
+
+  return user;
+}
+
+/**
+ * Wrapper for admin API routes using header-based authentication
+ *
+ * @example
+ * ```ts
+ * export const GET = withAdminAuth(async (req, session, profile, supabase) => {
+ *   // Your handler code here
+ *   return NextResponse.json({ success: true });
+ * });
+ * ```
+ */
+export function withAdminAuth<T = NextResponse>(
+  handler: (
+    req: NextRequest,
+    session: { id: string },
+    profile: UserProfile,
+    supabase: any
+  ) => Promise<T>
+): (req: NextRequest) => Promise<T | NextResponse> {
+  return async (req: NextRequest) => {
+    // Get user from middleware-set headers
+    const user = await getAdminUserFromHeaders(req);
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: '管理者権限が必要です', errorEn: 'Admin access required' },
+        { status: 401 }
+      );
+    }
+
+    // Verify admin role
+    if (user.role?.toLowerCase() !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: '管理者権限が必要です', errorEn: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    // Check user status
+    if (user.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { success: false, error: 'アカウントが無効です', errorEn: 'Account is inactive' },
+        { status: 403 }
+      );
+    }
+
+    // Create service role client for database operations
+    const supabase = createServiceRoleClient();
+
+    // Create session object for handler
+    const session = {
+      user: {
+        id: user.id,
+        email: '', // Not available in headers
+        email_verified: true,
+      },
+      access_token: '', // Not available in headers
+    };
+
+    try {
+      return await handler(req, session, user as UserProfile, supabase);
+    } catch (error) {
+      console.error('[withAdminAuth] Handler error:', error);
+      return NextResponse.json(
+        { success: false, error: 'サーバーエラーが発生しました', errorEn: 'Server error' },
+        { status: 500 }
+      );
+    }
+  };
 }
 
 // ============================================================
