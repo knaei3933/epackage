@@ -51,7 +51,7 @@ async function getOrderDetail(orderId: string) {
       billing_address
     `)
     .eq('id', orderId)
-    .single();
+    .single() as { data: any; error: any };
 
   if (error || !order) {
     return null;
@@ -255,7 +255,6 @@ export default async function CustomerOrderDetailPage({
           {order.shipment_info && (
             <ShipmentTrackingCard
               shipment={order.shipment_info}
-              orderNumber={order.orderNumber}
             />
           )}
 

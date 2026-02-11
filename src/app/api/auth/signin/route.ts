@@ -172,7 +172,7 @@ async function handleSignInPost(request: NextRequest) {
     // IMPORTANT: createSupabaseSSRClient creates a response object that @supabase/ssr
     // uses to set cookies via the cookies.set callback
     console.log('[Signin API] Creating SSR client...');
-    const { client: supabase, response: initialResponse } = createSupabaseSSRClient(request);
+    const { client: supabase, response: initialResponse } = await createSupabaseSSRClient(request);
 
     // Attempt login
     // When signInWithPassword succeeds, @supabase/ssr automatically sets session cookies
@@ -274,51 +274,27 @@ async function handleSignInPost(request: NextRequest) {
     // - sb-<project-ref>-auth-token
     // - sb-<project-ref>-auth-token.0, .1, .2, etc.
 
-    const cookies = initialResponse.cookies.getAll();
-    console.log('[Signin API] Cookies from initialResponse:', cookies.length, cookies.map(c => c.name));
+    // CRITICAL FIX: Get cookies from Set-Cookie headers instead of cookies.getAll()
+    // Supabase SSR client uses response.headers.append('Set-Cookie', ...)
+    // So we must use response.headers.getSetCookie() to retrieve them
+    const setCookieHeaders = initialResponse.headers.getSetCookie();
+    console.log('[Signin API] Set-Cookie headers from initialResponse:', setCookieHeaders.length);
 
     // Create JSON response
     const finalResponse = NextResponse.json(responseData, {
       status: 200,
     });
 
-    // CRITICAL: Copy ALL cookies from initialResponse to finalResponse
+    // CRITICAL: Copy ALL Set-Cookie headers from initialResponse to finalResponse
     // This preserves the auth tokens set by @supabase/ssr
     let copiedCount = 0;
-    cookies.forEach(cookie => {
-      if (cookie.name && cookie.value) {
-        const cookieOptions: any = {
-          httpOnly: cookie.httpOnly ?? true,
-          secure: cookie.secure ?? (process.env.NODE_ENV === 'production'),
-          sameSite: cookie.sameSite ?? 'lax',
-          path: cookie.path ?? '/',
-        };
-
-        // Preserve maxAge if set
-        if (cookie.maxAge) {
-          cookieOptions.maxAge = cookie.maxAge;
-        } else {
-          cookieOptions.maxAge = 86400; // Default: 24 hours
-        }
-
-        // Preserve expires if set
-        if (cookie.expires) {
-          cookieOptions.expires = cookie.expires;
-        }
-
-        // Preserve domain if set (but don't set domain for localhost)
-        if (cookie.domain) {
-          cookieOptions.domain = cookie.domain;
-        } else if (process.env.NODE_ENV === 'production') {
-          cookieOptions.domain = '.epackage-lab.com';
-        }
-
-        finalResponse.cookies.set(cookie.name, cookie.value, cookieOptions);
-        copiedCount++;
-      }
+    setCookieHeaders.forEach(setCookieHeader => {
+      // Parse and set each cookie
+      finalResponse.headers.append('Set-Cookie', setCookieHeader);
+      copiedCount++;
     });
 
-    console.log('[Signin API] Copied', copiedCount, 'cookies to finalResponse');
+    console.log('[Signin API] Copied', copiedCount, 'Set-Cookie headers to finalResponse');
     console.log('[Signin API] Login successful, cookies set for:', data.user.email);
 
     // Return the response with cookies

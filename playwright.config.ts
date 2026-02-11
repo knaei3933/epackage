@@ -5,10 +5,11 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * Usage:
  * - Run all tests: npx playwright test
- * - Run specific test: npx playwright test quotation-order-workflow.spec.ts
+ * - Run specific test: npx playwright test tests/e2e/admin-dashboard-navigation.spec.ts
  * - Run with UI: npx playwright test --ui
  * - Run in headed mode: npx playwright test --headed
- * - Generate report: npx playwright test --reporter=html
+ *
+ * @see https://playwright.dev/docs/test-configuration
  */
 
 export default defineConfig({
@@ -18,46 +19,56 @@ export default defineConfig({
   // Fully parallelize tests by default
   fullyParallel: true,
 
-  // Fail the build on CI if you accidentally left test.only in the source code
+  // Fail the build if you accidentally leave test.only in source code
   forbidOnly: !!process.env.CI,
 
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
-
   // Reporter configuration
   reporter: [
     ['html', { outputFolder: 'test-results/html-report' }],
     ['json', { outputFile: 'test-results/test-results.json' }],
-    ['junit', { outputFile: 'test-results/junit-results.xml' }],
     ['list']
   ],
 
   // Shared settings for all tests
   use: {
     // Base URL for tests
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:3002',
 
-    // Collect trace when retrying the failed test
+    // Collect trace when retrying
     trace: 'on-first-retry',
 
     // Take screenshot on failure
     screenshot: 'only-on-failure',
 
-    // Record video on failure
-    video: 'retain-on-failure',
-
-    // Browser context options
+    // Viewport configuration
     viewport: { width: 1280, height: 720 },
+
+    // Ignore HTTPS errors for self-signed certs
     ignoreHTTPSErrors: true,
 
-    // Action timeout
-    actionTimeout: 10000,
+    // Action timeout (60 seconds - sufficient for slower networks)
+    actionTimeout: 60000,
 
-    // Navigation timeout
-    navigationTimeout: 30000,
+    // Navigation timeout (30 seconds - admin dashboard can be slow)
+    navigationTimeout: 60000,
+
+    // Browser context options
+    contextOptions: {
+      // Enable JavaScript for cookie handling
+      javaScriptEnabled: true,
+
+      // User locale
+      locale: 'ja-JP',
+
+      // Timezone
+      timezoneId: 'Asia/Tokyo',
+
+      // Ignore HTTPS errors for localhost development
+      ignoreHTTPSErrors: true,
+    },
   },
 
   // Configure projects for major browsers
@@ -66,50 +77,48 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
-    /* Test against mobile viewports */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
-    /* Test against branded browsers */
+    /* Microsoft Edge */
     {
       name: 'Microsoft Edge',
       use: { channel: 'msedge' },
     },
+    /* Mobile Chrome */
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    /* Mobile Safari */
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
+    },
   ],
 
   // Run your local dev server before starting the tests
-  // Temporarily disabled - using existing server on port 3001
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3006',
-  //   reuseExistingServer: true,
-  //   timeout: 120000,
-  // },
-
-  // Global setup and teardown
-  globalSetup: './tests/e2e/global-setup.ts',
-  globalTeardown: './tests/e2e/global-teardown.ts',
+  // This is currently disabled - tests run on localhost:3002 directly
+  webServer: {
+    // Command to start the server
+    command: 'npm run dev',
+    // URL where the server is running
+    url: 'http://localhost:3002',
+    // Timeout for server startup
+    timeout: 120000,
+    // Whether to reuse the existing server or launch a new one
+    reuseExistingServer: !process.env.CI,
+  },
 
   // Output directory for test artifacts
   outputDir: 'test-results/artifacts',
 
-  // Test timeout
-  timeout: 60000,
+  // Global setup and teardown
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: './tests/e2e/global-teardown.ts',
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
@@ -290,6 +290,3 @@ function QuickActionCard({
     </a>
   );
 }
-
-// useStateをインポート
-import { useState } from 'react';

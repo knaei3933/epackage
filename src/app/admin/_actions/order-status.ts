@@ -68,19 +68,16 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
       .from('orders')
       .select('id, user_id, status, order_number')
       .eq('id', orderId)
-      .single();
-
-    console.log('[Server Action] Order query result:', {
-      order: order ? 'Found' : 'Not found',
-      orderId: order?.id,
-      orderNumber: order?.order_number,
-      error: orderError?.message,
-      details: orderError?.details,
-      code: orderError?.code,
-      hint: orderError?.hint
-    });
+      .single() as { data: { id: string; order_number: string; user_id: string; status: string } | null; error: any };
 
     if (orderError || !order) {
+      console.log('[Server Action] Order query result:', {
+        order: order ? 'Found' : 'Not found',
+        error: orderError?.message,
+        details: orderError?.details,
+        code: orderError?.code,
+        hint: orderError?.hint
+      });
       console.error('[Server Action] ========================================');
       console.error('[Server Action] ORDER NOT FOUND!');
       console.error('[Server Action] Error:', JSON.stringify(orderError, null, 2));
@@ -92,13 +89,19 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
       };
     }
 
+    console.log('[Server Action] Order query result:', {
+      order: 'Found',
+      orderId: order.id,
+      orderNumber: order.order_number,
+    });
+
     // ステータス更新（current_state 컬럼은存在しない）
     const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
       .update({
-        status: status,
+        status,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', orderId)
       .select()
       .single();
@@ -120,10 +123,10 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
           record_id: orderId,
           action: 'UPDATE',
           old_value: { status: order.status },
-          new_value: { status: status },
-          changed_by: 'ADMIN', // Server ActionなのでユーザーIDを取得せず
+          new_value: { status },
+          changed_by: 'ADMIN',
           reason: reason || 'Admin status update via Server Action',
-        });
+        } as never);
     } catch (auditError) {
       console.warn('[Server Action] Failed to create audit log:', auditError);
     }
@@ -145,7 +148,7 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
       newStatus: status,
       reason,
     });
-    console.log('[Server Action] ========================================');
+    console.log('[Server Action] ======================================');
 
     return {
       success: true,

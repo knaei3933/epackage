@@ -62,7 +62,7 @@ export async function PUT(
     console.log('[Admin Order Items API] PUT request received');
 
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
     console.log('[Admin Order Items API] Order ID:', orderId);
 
     const body = await request.json() as UpdateRequest;
@@ -326,7 +326,7 @@ export async function GET(
     console.log('[Admin Order Items API] GET request received');
 
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
 
     const supabase = createServiceClient();
 

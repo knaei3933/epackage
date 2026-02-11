@@ -1,125 +1,355 @@
 forward-logs-shared.ts:95 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
 forward-logs-shared.ts:95 [HMR] connected
-forward-logs-shared.ts:95 Image with src "/images/main/main15.png" is using quality "95" which is not configured in images.qualities [75]. Please update your config to [75, 95].
-Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/api/member/inquiries/route.ts:71:30
+Ecmascript file had an error
+  69 |     }
+  70 |
+> 71 |     const { data: inquiries, error } = await query;
+     |                              ^^^^^
+  72 |
+  73 |     if (error) {
+  74 |       console.error('Inquiries fetch error:', error);
+
+the name `error` is defined multiple times
+error @ intercept-console-error.ts:42
+handleErrors @ hot-reloader-app.tsx:234
+processMessage @ hot-reloader-app.tsx:329
+handleMessage @ web-socket.ts:107
+intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/api/member/inquiries/route.ts:55:11
+Ecmascript file had an error
+  53 |     const type = searchParams.get('type');
+  54 |
+> 55 |     const supabase = createServiceClient();
+     |           ^^^^^^^^
+  56 |
+  57 |     let query = supabase
+  58 |       .from('inquiries')
+
+the name `supabase` is defined multiple times
+error @ intercept-console-error.ts:42
+handleErrors @ hot-reloader-app.tsx:234
+processMessage @ hot-reloader-app.tsx:329
+handleMessage @ web-socket.ts:107
+intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/api/member/inquiries/route.ts:71:30
+Ecmascript file had an error
+  69 |     }
+  70 |
+> 71 |     const { data: inquiries, error } = await query;
+     |                              ^^^^^
+  72 |
+  73 |     if (error) {
+  74 |       console.error('Inquiries fetch error:', error);
+
+the name `error` is defined multiple times
+error @ intercept-console-error.ts:42
+handleErrors @ hot-reloader-app.tsx:234
+processMessage @ hot-reloader-app.tsx:329
+handleMessage @ web-socket.ts:107
+intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/api/member/inquiries/route.ts:55:11
+Ecmascript file had an error
+  53 |     const type = searchParams.get('type');
+  54 |
+> 55 |     const supabase = createServiceClient();
+     |           ^^^^^^^^
+  56 |
+  57 |     let query = supabase
+  58 |       .from('inquiries')
+
+the name `supabase` is defined multiple times
+error @ intercept-console-error.ts:42
+handleErrors @ hot-reloader-app.tsx:234
+processMessage @ hot-reloader-app.tsx:329
+handleMessage @ web-socket.ts:107
+AuthContext.tsx:164 [AuthContext] Initializing auth context...
+AuthContext.tsx:117 [AuthContext] Fetching session from /api/auth/current-user...
+AuthContext.tsx:119  GET http://localhost:3000/api/auth/current-user 500 (Internal Server Error)
+AuthProvider.useCallback[fetchSessionAndUpdateState] @ AuthContext.tsx:119
+AuthProvider.useEffect.getInitialSession @ AuthContext.tsx:173
+AuthProvider.useEffect @ AuthContext.tsx:189
+react_stack_bottom_frame @ react-dom-client.development.js:28123
+runWithFiberInDEV @ react-dom-client.development.js:986
+commitHookEffectListMount @ react-dom-client.development.js:13692
+commitHookPassiveMountEffects @ react-dom-client.development.js:13779
+commitPassiveMountOnFiber @ react-dom-client.development.js:16733
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16768
+flushPassiveEffects @ react-dom-client.development.js:19859
+flushPendingEffects @ react-dom-client.development.js:19785
+performSyncWorkOnRoot @ react-dom-client.development.js:20396
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20241
+flushSpawnedWork @ react-dom-client.development.js:19752
+commitRoot @ react-dom-client.development.js:19335
+commitRootWhenReady @ react-dom-client.development.js:18178
+performWorkOnRoot @ react-dom-client.development.js:18054
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
+performWorkUntilDeadline @ scheduler.development.js:45
+"use client"
+RootLayout @ layout.tsx:151
+initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
+(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
+initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
+getOutlinedModel @ react-server-dom-turbopack-client.browser.development.js:2337
+parseModelString @ react-server-dom-turbopack-client.browser.development.js:2729
+(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4554
+initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
+resolveModelChunk @ react-server-dom-turbopack-client.browser.development.js:1672
+processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4442
+processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
+processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
+progress @ react-server-dom-turbopack-client.browser.development.js:4799
+<RootLayout>
+initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
+initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
+initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
+processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
+processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
+processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
+progress @ react-server-dom-turbopack-client.browser.development.js:4799
+"use server"
+ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
+createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
+exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
+module evaluation @ app-index.tsx:211
+(anonymous) @ dev-base.ts:244
+runModuleExecutionHooks @ dev-base.ts:278
+instantiateModule @ dev-base.ts:238
+getOrInstantiateModuleFromParent @ dev-base.ts:162
+commonJsRequire @ runtime-utils.ts:389
+(anonymous) @ app-next-turbopack.ts:11
+(anonymous) @ app-bootstrap.ts:79
+loadScriptsInSequence @ app-bootstrap.ts:23
+appBootstrap @ app-bootstrap.ts:61
+module evaluation @ app-next-turbopack.ts:10
+(anonymous) @ dev-base.ts:244
+runModuleExecutionHooks @ dev-base.ts:278
+instantiateModule @ dev-base.ts:238
+getOrInstantiateRuntimeModule @ dev-base.ts:128
+registerChunk @ runtime-backend-dom.ts:57
+await in registerChunk
+registerChunk @ dev-base.ts:1149
+(anonymous) @ dev-backend-dom.ts:126
+(anonymous) @ dev-backend-dom.ts:126
+AuthContext.tsx:141 [AuthContext] Session fetch failed: 500
 warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/products/granola-standpouch-real.jpg" is using quality "95" which is not configured in images.qualities [75]. Please update your config to [75, 95].
-Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 [AuthContext] Initializing auth context...
-forward-logs-shared.ts:95 [AuthContext] NODE_ENV: development
-forward-logs-shared.ts:95 Image with src "/images/main/main1.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main2.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main3.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main4.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main5.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main6.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main7.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main8.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main9.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main15.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main16.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main17.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main14.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main13.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main12.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 Image with src "/images/main/main11.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
+AuthProvider.useCallback[fetchSessionAndUpdateState] @ AuthContext.tsx:141
+await in AuthProvider.useCallback[fetchSessionAndUpdateState]
+AuthProvider.useEffect.getInitialSession @ AuthContext.tsx:173
+AuthProvider.useEffect @ AuthContext.tsx:189
+react_stack_bottom_frame @ react-dom-client.development.js:28123
+runWithFiberInDEV @ react-dom-client.development.js:986
+commitHookEffectListMount @ react-dom-client.development.js:13692
+commitHookPassiveMountEffects @ react-dom-client.development.js:13779
+commitPassiveMountOnFiber @ react-dom-client.development.js:16733
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16753
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16725
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:17010
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
+commitPassiveMountOnFiber @ react-dom-client.development.js:16768
+flushPassiveEffects @ react-dom-client.development.js:19859
+flushPendingEffects @ react-dom-client.development.js:19785
+performSyncWorkOnRoot @ react-dom-client.development.js:20396
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20241
+flushSpawnedWork @ react-dom-client.development.js:19752
+commitRoot @ react-dom-client.development.js:19335
+commitRootWhenReady @ react-dom-client.development.js:18178
+performWorkOnRoot @ react-dom-client.development.js:18054
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
+performWorkUntilDeadline @ scheduler.development.js:45
+"use client"
+RootLayout @ layout.tsx:151
+initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
+(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
+initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
+getOutlinedModel @ react-server-dom-turbopack-client.browser.development.js:2337
+parseModelString @ react-server-dom-turbopack-client.browser.development.js:2729
+(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4554
+initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
+resolveModelChunk @ react-server-dom-turbopack-client.browser.development.js:1672
+processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4442
+processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
+processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
+progress @ react-server-dom-turbopack-client.browser.development.js:4799
+<RootLayout>
+initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
+initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
+initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
+processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
+processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
+processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
+progress @ react-server-dom-turbopack-client.browser.development.js:4799
+"use server"
+ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
+createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
+exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
+module evaluation @ app-index.tsx:211
+(anonymous) @ dev-base.ts:244
+runModuleExecutionHooks @ dev-base.ts:278
+instantiateModule @ dev-base.ts:238
+getOrInstantiateModuleFromParent @ dev-base.ts:162
+commonJsRequire @ runtime-utils.ts:389
+(anonymous) @ app-next-turbopack.ts:11
+(anonymous) @ app-bootstrap.ts:79
+loadScriptsInSequence @ app-bootstrap.ts:23
+appBootstrap @ app-bootstrap.ts:61
+module evaluation @ app-next-turbopack.ts:10
+(anonymous) @ dev-base.ts:244
+runModuleExecutionHooks @ dev-base.ts:278
+instantiateModule @ dev-base.ts:238
+getOrInstantiateRuntimeModule @ dev-base.ts:128
+registerChunk @ runtime-backend-dom.ts:57
+await in registerChunk
+registerChunk @ dev-base.ts:1149
+(anonymous) @ dev-backend-dom.ts:126
+(anonymous) @ dev-backend-dom.ts:126
+intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/api/member/inquiries/route.ts:71:30
+Ecmascript file had an error
+  69 |     }
+  70 |
+> 71 |     const { data: inquiries, error } = await query;
+     |                              ^^^^^
+  72 |
+  73 |     if (error) {
+  74 |       console.error('Inquiries fetch error:', error);
+
+the name `error` is defined multiple times
+error @ intercept-console-error.ts:42
+handleErrors @ hot-reloader-app.tsx:234
+processMessage @ hot-reloader-app.tsx:329
+handleMessage @ web-socket.ts:107
+intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/api/member/inquiries/route.ts:55:11
+Ecmascript file had an error
+  53 |     const type = searchParams.get('type');
+  54 |
+> 55 |     const supabase = createServiceClient();
+     |           ^^^^^^^^
+  56 |
+  57 |     let query = supabase
+  58 |       .from('inquiries')
+
+the name `supabase` is defined multiple times
+error @ intercept-console-error.ts:42
+handleErrors @ hot-reloader-app.tsx:234
+processMessage @ hot-reloader-app.tsx:329
+handleMessage @ web-socket.ts:107
 forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 151ms
-forward-logs-shared.ts:95 Image with src "/images/main/main10.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ forward-logs-shared.ts:95
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 689ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 164ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 664ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 164ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 185ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 189ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 847ms
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] done in 182ms
-
----
-
-## 重要備考事項 (重要備考)
-
-### 製造・納品に関する注意事項
-
-※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10%程度の過不足が生じる場合がございます。
-数量の完全保証はいたしかねますので、あらかじめご了承ください。
-
-※不足分につきましては、実際に納品した数量に基づきご請求いたします。
-前払いにてお支払いいただいた場合は、差額分を返金いたします。
-
-※原材料価格の変動等により、見積有効期限経過後は価格が変更となる場合がございます。
-再見積の際は、あらかじめご了承くださいますようお願いいたします。
-
-※本見積金額には郵送費を含んでおります。
-
-※お客様によるご確認の遅れ、その他やむを得ない事情により、納期が前後する場合がございます。
-
-※年末年始等の長期休暇期間を挟む場合、通常より納期が延びる可能性がございます。
-
-※天候不良、事故、交通事情等の影響により、やむを得ず納期が遅延する場合がございますので、あらかじめご了承ください。
-
----
-
-## クーポン機能メモ (Coupon Feature Notes)
-
-### クーポンコード (Coupon Codes)
-
-テスト用クーポンコード:
-
-| コード | 名称 | タイプ | 値 | 説明 |
-|--------|------|--------|-----|------|
-| TEST10 | 10% Off Test | percentage | 10 | 10%割引 |
-| SAVE1000 | 1000 YEN Off | fixed_amount | 1000 | 1000円割引 |
-| FREESHIP | Free Shipping | free_shipping | 0 | 送料無料 |
-
-### クーポン作成SQL
-
-```sql
--- テスト用クーポンの作成
-INSERT INTO coupons (code, name, name_ja, type, value, status, valid_from, valid_until, minimum_order_amount, max_uses, max_uses_per_customer)
-VALUES
-  ('TEST10', '10% Off Test Coupon', 'テスト10%割引', 'percentage', 10, 'active', NOW(), NOW() + INTERVAL '30 days', 0, NULL, 3),
-  ('SAVE1000', '1000 YEN Off', '1000円割引', 'fixed_amount', 1000, 'active', NOW(), NOW() + INTERVAL '30 days', 5000, NULL, 5),
-  ('FREESHIP', 'Free Shipping', '送料無料', 'free_shipping', 0, 'active', NOW(), NOW() + INTERVAL '30 days', 3000, NULL, 10);
-```
-
-### 実装完了機能 (2026-02-08)
-
-- [x] データベーススキーマ（quotationsテーブルにクーポンカラム追加）
-- [x] APIルート（guest-save, save, member/quotations）
-- [x] フロントエンド（ImprovedQuotingWizard, EnhancedQuoteSimulator）
-- [x] PDF生成（クーポンバナー表示）
-- [x] TypeScript型定義
-
-### 既知の問題
-
-- **PDF数量表示**: クーポン適用時、PDF明細に割引アイテムが追加されるため、合計数量が実際の商品数量+1になる表示があります（例：5000個の商品+割引アイテム1個=5001個表示）
-- **修正予定**: 割引アイテムを別途表示し、数量計算から除外する予定です
-
----

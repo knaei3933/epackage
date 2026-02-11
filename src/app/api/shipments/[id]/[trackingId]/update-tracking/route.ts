@@ -11,10 +11,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ shipmentId: string }> }
+  { params }: { params: Promise<{ id: string; trackingId: string }> }
 ) {
   try {
-    const { shipmentId } = await params;
+    const { id: shipmentId, trackingId } = await params;
     const body = await request.json();
     const {
       status,

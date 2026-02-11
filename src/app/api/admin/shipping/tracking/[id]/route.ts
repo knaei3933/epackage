@@ -3,12 +3,12 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 /**
- * GET /api/admin/shipping/tracking/[shipmentId]
+ * GET /api/admin/shipping/tracking/[id]
  * 出荷追跡情報を取得
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ shipmentId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // ✅ Verify admin authentication first
@@ -17,7 +17,7 @@ export async function GET(
       return unauthorizedResponse();
     }
 
-    const { shipmentId } = await params;
+    const { id: shipmentId } = await params;
     const supabase = createSupabaseClient();
 
     const { data: tracking, error } = await supabase

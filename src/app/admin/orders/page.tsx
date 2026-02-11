@@ -22,7 +22,6 @@ interface AuthContext {
   userId: string;
   role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
   userName: string;
-  isDevMode: boolean;
 }
 
 interface Order {

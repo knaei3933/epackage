@@ -3,7 +3,6 @@
  *
  * SWRポーリングによるリアルタイム通知取得
  * - 30秒間隔で自動更新
- * - DEV_MODE対応
  * - 統合通知APIを使用
  */
 
@@ -39,29 +38,13 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     limit = 50,
   } = options;
 
-  // DEV_MODEヘッダー生成
-  const getHeaders = () => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    const devUserId = typeof window !== 'undefined'
-      ? localStorage.getItem('dev-mock-user-id')
-      : null;
-
-    if (devUserId) {
-      headers['x-dev-mode'] = 'true';
-      headers['x-user-id'] = devUserId;
-    }
-
-    return headers;
-  };
-
   // SWRフェッチャー
   const fetcher = async (url: string) => {
     const response = await fetch(url, {
       credentials: 'include',
-      headers: getHeaders(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!response.ok) {

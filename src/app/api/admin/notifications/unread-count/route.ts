@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { client: supabase } = createSupabaseSSRClient(request)
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS)
 
     // Get unread count from unified_notifications
     const { count, error } = await supabase

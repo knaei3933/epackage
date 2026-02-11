@@ -5,7 +5,7 @@
  * Updated to use @supabase/ssr for proper cookie handling
  * Supports both Cookie and Authorization header authentication
  *
- * SECURITY: Proper JWT verification with DEV_MODE support
+ * SECURITY: Proper JWT verification
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -20,7 +20,6 @@ export interface AdminAuthResult {
   userId: string;
   role: 'ADMIN' | 'MEMBER' | 'KOREAN_MEMBER' | 'PRODUCTION' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
-  isDevMode: boolean;
 }
 
 /**
@@ -33,13 +32,47 @@ export interface AdminAuthResult {
  * 1. Authorization: Bearer <token> header (for client-side API calls)
  * 2. Cookie-based session (for server-side rendering)
  *
- * DEV_MODE: When ENABLE_DEV_MOCK_AUTH=true and x-dev-mode=true header is present,
- * accepts x-user-id header for testing purposes.
- *
  * @param request NextRequestオブジェクト
  * @returns 認証されたユーザー情報またはnull (null if authentication fails)
  */
 export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthResult | null> {
+  // DEV_MODE: Check for mock user via headers (set by middleware) or cookie
+  const isDevMode = process.env.ENABLE_DEV_MOCK_AUTH === 'true' && process.env.NODE_ENV === 'development';
+
+  if (isDevMode) {
+    // Try headers first (set by middleware for SSR pages)
+    const userRole = request.headers.get('x-user-role');
+    const userId = request.headers.get('x-user-id');
+    const userStatus = request.headers.get('x-user-status');
+
+    if (userRole && userId) {
+      console.log('[verifyAdminAuth] DEV_MODE: Using header-based auth:', { userId, userRole });
+
+      // Check if user has admin role
+      const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+      if (adminRoles.includes(userRole)) {
+        return {
+          userId,
+          role: userRole as AdminAuthResult['role'],
+          status: (userStatus || 'ACTIVE') as AdminAuthResult['status'],
+        };
+      }
+    }
+
+    // Fall back to cookie-based DEV_MODE
+    const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+    if (devMockUserId) {
+      console.log('[verifyAdminAuth] DEV_MODE: Using mock user cookie:', devMockUserId);
+      return {
+        userId: devMockUserId,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+      };
+    }
+
+    console.log('[verifyAdminAuth] DEV_MODE enabled but no mock user found');
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -48,117 +81,10 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
     return null;
   }
 
-  // DEV MODE: Check for development mock authentication
-  const isDevModeEnabled = process.env.NODE_ENV === 'development' &&
-                           process.env.ENABLE_DEV_MOCK_AUTH === 'true';
-  const devModeHeader = request.headers.get('x-dev-mode');
-  const devAdminUserId = process.env.DEV_ADMIN_USER_ID;
-
-  // If dev mode is enabled and DEV_ADMIN_USER_ID is set, use it automatically
-  if (isDevModeEnabled && devAdminUserId) {
-    // Check for explicit dev mode header first
-    const headerUserId = request.headers.get('x-user-id');
-    const userIdToUse = headerUserId || devAdminUserId;
-
-    console.log('[verifyAdminAuth] DEV MODE: Using mock authentication for user:', userIdToUse);
-
-    // Verify the dev user exists in profiles table
-    try {
-      const serviceClient = createServiceClient();
-      const { data: profile, error } = await serviceClient
-        .from('profiles')
-        .select('role, status')
-        .eq('id', userIdToUse)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[verifyAdminAuth] DEV MODE: Database error:', error);
-        return null;
-      }
-
-      if (!profile) {
-        console.warn('[verifyAdminAuth] DEV MODE: User not found in database:', userIdToUse);
-        return null;
-      }
-
-      const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
-
-      if (typedProfile.role !== 'ADMIN' || typedProfile.status !== 'ACTIVE') {
-        console.warn('[verifyAdminAuth] DEV MODE: User not admin or not active:', {
-          userId: userIdToUse,
-          role: typedProfile.role,
-          status: typedProfile.status,
-        });
-        return null;
-      }
-
-      return {
-        userId: userIdToUse,
-        role: typedProfile.role,
-        status: typedProfile.status,
-        isDevMode: true,
-      };
-    } catch (error) {
-      console.error('[verifyAdminAuth] DEV MODE: Error verifying user:', error);
-      return null;
-    }
-  }
-
-  // Legacy dev mode support with explicit headers (for backward compatibility)
-  if (isDevModeEnabled && devModeHeader === 'true') {
-    const devUserId = request.headers.get('x-user-id');
-    if (devUserId) {
-      console.log('[verifyAdminAuth] DEV MODE: Using mock authentication for user:', devUserId);
-
-      // Verify the dev user exists in profiles table
-      try {
-        const serviceClient = createServiceClient();
-        const { data: profile, error } = await serviceClient
-          .from('profiles')
-          .select('role, status')
-          .eq('id', devUserId)
-          .maybeSingle();
-
-        if (error) {
-          console.error('[verifyAdminAuth] DEV MODE: Database error:', error);
-          return null;
-        }
-
-        if (!profile) {
-          console.warn('[verifyAdminAuth] DEV MODE: User not found in database:', devUserId);
-          return null;
-        }
-
-        const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
-
-        if (typedProfile.role !== 'ADMIN' || typedProfile.status !== 'ACTIVE') {
-          console.warn('[verifyAdminAuth] DEV MODE: User not admin or not active:', {
-            userId: devUserId,
-            role: typedProfile.role,
-            status: typedProfile.status,
-          });
-          return null;
-        }
-
-        return {
-          userId: devUserId,
-          role: typedProfile.role,
-          status: typedProfile.status,
-          isDevMode: true,
-        };
-      } catch (error) {
-        console.error('[verifyAdminAuth] DEV MODE: Error verifying user:', error);
-        return null;
-      }
-    }
-  }
-
   // Try Authorization header first (for client-side API calls)
-  const authHeader = request.headers.get('authorization');
   let userId: string | null = null;
-
+  const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    // Verify JWT from Authorization header
     const token = authHeader.substring(7);
     try {
       const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -185,7 +111,7 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
     }
   }
 
-  // Fall back to cookie-based auth
+  // Fall back to Supabase httpOnly cookies
   if (!userId) {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -201,7 +127,6 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
       },
     });
 
-    // Get user from session using JWT verification
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -241,7 +166,6 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
       userId,
       role: typedProfile.role,
       status: typedProfile.status,
-      isDevMode: false,
     };
   } catch (error) {
     console.error('[verifyAdminAuth] Error checking admin role:', error);
@@ -275,10 +199,48 @@ export function forbiddenResponse() {
  * 会員向けAPI用認証検証ヘルパー関数
  * MEMBERロール（および管理者）のユーザーを許可
  *
+ * SECURITY: Uses Supabase httpOnly cookies only
+ * 1. Authorization header (Bearer token)
+ * 2. Cookie-based session (Supabase httpOnly cookies)
+ *
  * @param request NextRequestオブジェクト
  * @returns 認証されたユーザー情報またはnull
  */
 export async function verifyMemberAuth(request: NextRequest): Promise<AdminAuthResult | null> {
+  // DEV_MODE: Check for mock user via headers (set by middleware) or cookie
+  const isDevMode = process.env.ENABLE_DEV_MOCK_AUTH === 'true' && process.env.NODE_ENV === 'development';
+
+  if (isDevMode) {
+    // Try headers first (set by middleware for SSR pages)
+    const userRole = request.headers.get('x-user-role');
+    const userId = request.headers.get('x-user-id');
+    const userStatus = request.headers.get('x-user-status');
+
+    if (userRole && userId) {
+      console.log('[verifyMemberAuth] DEV_MODE: Using header-based auth:', { userId, userRole });
+
+      // All roles can access member APIs in DEV_MODE
+      return {
+        userId,
+        role: userRole as AdminAuthResult['role'],
+        status: (userStatus || 'ACTIVE') as AdminAuthResult['status'],
+      };
+    }
+
+    // Fall back to cookie-based DEV_MODE
+    const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+    if (devMockUserId) {
+      console.log('[verifyMemberAuth] DEV_MODE: Using mock user cookie:', devMockUserId);
+      return {
+        userId: devMockUserId,
+        role: 'ADMIN', // Admin has access to member APIs
+        status: 'ACTIVE',
+      };
+    }
+
+    console.log('[verifyMemberAuth] DEV_MODE enabled but no mock user found');
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -287,64 +249,10 @@ export async function verifyMemberAuth(request: NextRequest): Promise<AdminAuthR
     return null;
   }
 
-  // DEV MODE: Check for development mock authentication
-  const isDevModeEnabled = process.env.NODE_ENV === 'development' &&
-                           process.env.ENABLE_DEV_MOCK_AUTH === 'true';
-  const devModeHeader = request.headers.get('x-dev-mode');
-
-  if (isDevModeEnabled && devModeHeader === 'true') {
-    const devUserId = request.headers.get('x-user-id');
-    if (devUserId) {
-      console.log('[verifyMemberAuth] DEV MODE: Using mock authentication for user:', devUserId);
-
-      try {
-        const serviceClient = createServiceClient();
-        const { data: profile, error } = await serviceClient
-          .from('profiles')
-          .select('role, status')
-          .eq('id', devUserId)
-          .maybeSingle();
-
-        if (error) {
-          console.error('[verifyMemberAuth] DEV MODE: Database error:', error);
-          return null;
-        }
-
-        if (!profile) {
-          console.warn('[verifyMemberAuth] DEV MODE: User not found in database:', devUserId);
-          return null;
-        }
-
-        const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
-
-        // MEMBER, ADMIN, KOREAN_MEMBER, PRODUCTION すべて許可
-        const allowedRoles = ['MEMBER', 'ADMIN', 'KOREAN_MEMBER', 'PRODUCTION', 'OPERATOR', 'SALES', 'ACCOUNTING'];
-        if (!allowedRoles.includes(typedProfile.role) || typedProfile.status !== 'ACTIVE') {
-          console.warn('[verifyMemberAuth] DEV MODE: User not allowed or not active:', {
-            userId: devUserId,
-            role: typedProfile.role,
-            status: typedProfile.status,
-          });
-          return null;
-        }
-
-        return {
-          userId: devUserId,
-          role: typedProfile.role,
-          status: typedProfile.status,
-          isDevMode: true,
-        };
-      } catch (error) {
-        console.error('[verifyMemberAuth] DEV MODE: Error verifying user:', error);
-        return null;
-      }
-    }
-  }
-
-  // Try Authorization header first
-  const authHeader = request.headers.get('authorization');
   let userId: string | null = null;
 
+  // Try Authorization header first (Bearer token)
+  const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     try {
@@ -372,7 +280,7 @@ export async function verifyMemberAuth(request: NextRequest): Promise<AdminAuthR
     }
   }
 
-  // Fall back to cookie-based auth
+  // Fall back to Supabase httpOnly cookies
   if (!userId) {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -425,7 +333,6 @@ export async function verifyMemberAuth(request: NextRequest): Promise<AdminAuthR
       userId,
       role: typedProfile.role,
       status: typedProfile.status,
-      isDevMode: false,
     };
   } catch (error) {
     console.error('[verifyMemberAuth] Error checking member role:', error);

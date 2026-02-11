@@ -35,7 +35,7 @@ interface ConvertToOrderRequest {
  */
 async function getAuthenticatedUser(request: NextRequest) {
   // Normal auth: Use cookie-based auth with createSupabaseSSRClient
-  const { client: supabase } = createSupabaseSSRClient(request);
+  const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser) {
@@ -59,7 +59,7 @@ export async function POST(
 ) {
   try {
     const params = await context.params;
-    const quotationId = params.id;
+    const { id: quotationId } = params;
 
     // Get authenticated user
     const authResult = await getAuthenticatedUser(request);
@@ -77,7 +77,7 @@ export async function POST(
     const { notes, deliveryAddress } = body;
 
     // Use normal SSR client with cookie auth
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Get quotation data (simple query first)
     const { data: quotation, error: quotationError } = await supabase
@@ -378,7 +378,7 @@ export async function GET(
 ) {
   try {
     const params = await context.params;
-    const quotationId = params.id;
+    const { id: quotationId } = params;
 
     // Get authenticated user
     const authResult = await getAuthenticatedUser(request);
@@ -392,7 +392,7 @@ export async function GET(
     const { userId } = authResult;
 
     // Use normal SSR client with cookie auth
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Get quotation data
     const { data: quotation, error } = await supabase

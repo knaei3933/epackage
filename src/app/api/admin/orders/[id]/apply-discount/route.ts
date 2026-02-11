@@ -47,7 +47,7 @@ export async function POST(
     console.log('[Admin Manual Discount API] POST request received');
 
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
     console.log('[Admin Manual Discount API] Order ID:', orderId);
 
     const body = await request.json() as ApplyDiscountRequest;
@@ -216,7 +216,7 @@ export async function DELETE(
     console.log('[Admin Manual Discount API] DELETE request received');
 
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
 
     const supabase = createServiceClient() as any;
 

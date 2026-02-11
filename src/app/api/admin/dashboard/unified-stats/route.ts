@@ -1,14 +1,14 @@
 /**
  * 統合管理者ダッシュボード統計API
  * SSR/CSR両対応、DEV_MODE対応
+ * Cookie-based authentication for client-side navigation
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getUnifiedDashboardStats,
 } from '@/lib/dashboard';
-import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
-import { createServiceClient } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
       ? parseInt(searchParams.get('period')!)
       : 30;
 
-    // Supabase SSR clientを使用して認証
-    const { client: supabase } = createSupabaseSSRClient(request);
-    const { data: { user }, error } = await supabase.auth.getUser();
+    // Cookie-based authentication (primary method)
+    // getAuthenticatedUser handles DEV_MODE fallback automatically
+    const authUser = await getAuthenticatedUser(request);
 
-    if (error || !user) {
+    if (!authUser || !authUser.id) {
       console.warn('[API] Admin dashboard stats: Unauthorized');
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -29,29 +29,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Service clientを使用してプロフィールを取得（RLSバイパス）
-    const serviceClient = createServiceClient();
-    const { data: profile } = await serviceClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    // admin/operator/sales/accountingのみアクセス可能
-    const adminRoles = ['admin', 'operator', 'sales', 'accounting'];
-    const userRole = profile?.role?.toLowerCase();
-
-    if (!userRole || !adminRoles.includes(userRole)) {
-      console.warn('[API] Admin dashboard stats: Forbidden - insufficient permissions');
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
+    console.log('[API] Admin dashboard stats: User authenticated:', authUser.id);
 
     // 統計取得
     const stats = await getUnifiedDashboardStats(
-      user.id,
+      authUser.id,
       'ADMIN',
       period
     );

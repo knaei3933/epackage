@@ -10,11 +10,11 @@ import { getServerClient } from '@/lib/supabase';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
-    const notificationId = params.id;
+    const { id: notificationId } = await params;
     const supabase = getServerClient();
 
     // Update notification as read

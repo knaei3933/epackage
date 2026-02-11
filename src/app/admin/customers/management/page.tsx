@@ -492,7 +492,7 @@ export default function CustomerManagementPage() {
                 <Filter className="w-4 h-4" />
                 <span>ステータス:</span>
               </div>
-              {(['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'] as const).map((status) => (
+              {(['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'] as (UserStatus | 'ALL')[]).map((status) => (
                 <button
                   key={status}
                   onClick={() => { setSelectedStatus(status); setCurrentPage(1); }}

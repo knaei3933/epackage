@@ -101,7 +101,7 @@ export async function GET(
     const { id: orderId } = await params;
     console.log('[Order Comments GET] Order ID:', orderId);
 
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -287,7 +287,7 @@ export async function POST(
     const { id: orderId } = await params;
     console.log('[Order Comments POST] Order ID:', orderId);
 
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     console.log('[Order Comments POST] Getting user...');

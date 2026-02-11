@@ -14,7 +14,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { OrderSummaryCard } from '@/components/shared';
+import { OrderSummaryCard, type OrderSummaryType } from '@/components/shared';
 import { formatDate } from '@/types/portal';
 import { cn } from '@/lib/utils';
 import { createServiceClient } from '@/lib/supabase';
@@ -31,7 +31,7 @@ async function getDashboardData() {
     .from('orders')
     .select('id, order_number, status, total_amount, estimated_delivery_date, created_at')
     .order('created_at', { ascending: false })
-    .limit(10);
+    .limit(10) as { data: any[] | null; error: any };
 
   if (ordersError) {
     console.error('Orders fetch error:', ordersError);
@@ -57,8 +57,16 @@ async function getDashboardData() {
     unread_notifications: 0, // TODO: Fetch from notifications table
   };
 
-  // Get recent orders
-  const recent_orders = orders?.slice(0, 6) || [];
+  // Get recent orders with proper mapping for OrderSummaryCard
+  const recent_orders: OrderSummaryType[] = orders?.slice(0, 6).map((order: any) => ({
+    id: order.id,
+    orderNumber: order.order_number,
+    status: order.status,
+    created_at: order.created_at,
+    totalAmount: order.total_amount,
+    progress_percentage: order.progress_percentage || 0,
+    estimatedDeliveryDate: order.estimated_delivery_date,
+  })) || [];
 
   // Get upcoming deliveries (orders with estimated_delivery_date in future)
   const now = new Date();
@@ -195,7 +203,7 @@ export default async function CustomerPortalDashboardPage() {
 
           {recent_orders && recent_orders.length > 0 ? (
             <div className="grid sm:grid-cols-2 gap-4">
-              {recent_orders.map((order: { id: string }) => (
+              {recent_orders.map((order) => (
                 <OrderSummaryCard key={order.id} order={order} />
               ))}
             </div>

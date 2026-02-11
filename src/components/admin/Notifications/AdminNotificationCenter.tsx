@@ -20,19 +20,9 @@ export function AdminNotificationCenter() {
   // 未読通知数を取得
   const fetchUnreadCount = useCallback(async () => {
     try {
-      // DEV_MODE用ヘッダーの設定
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
-
-      // DEV_MODEの場合はヘッダーを追加
-      if (typeof window !== 'undefined') {
-        const devUserId = localStorage.getItem('dev-mock-user-id');
-        if (devUserId) {
-          headers['x-dev-mode'] = 'true';
-          headers['x-user-id'] = devUserId;
-        }
-      }
 
       const response = await fetch('/api/admin/notifications/unread-count', {
         headers,

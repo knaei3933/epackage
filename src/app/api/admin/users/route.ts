@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
     if (!auth) {
       return unauthorizedResponse();
     }
-const { client: supabase } = createSupabaseSSRClient(request);
+const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const query: UserListQuery = {

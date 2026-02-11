@@ -159,7 +159,6 @@ async function testMemberFlow() {
   console.log('   API URL:', API_URL);
   console.log('   Supabase URL:', supabaseUrl);
   console.log('   Supabase Key exists:', !!supabaseServiceKey);
-  console.log('   DEV_MODE:', process.env.NEXT_PUBLIC_DEV_MODE);
   console.log('');
 
   if (!supabaseUrl || !supabaseServiceKey) {

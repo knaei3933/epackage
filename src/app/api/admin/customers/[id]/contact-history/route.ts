@@ -9,9 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // =====================================================
@@ -24,7 +24,7 @@ export async function GET(
 ) {
   try {
     const supabase = createServiceClient();
-    const { id } = params;
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
 
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -71,7 +71,7 @@ export async function POST(
 ) {
   try {
     const supabase = createServiceClient();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const { type, subject, content, createdBy } = body;

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { client: supabase } = createSupabaseSSRClient(request)
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS)
 
     // Create notification using unified_notifications table
     const { data, error } = await supabase

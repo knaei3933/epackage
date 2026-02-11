@@ -51,7 +51,7 @@ export async function PUT(
 ) {
   try {
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
 
     const cookieStore = await cookies();
     const supabase = createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {

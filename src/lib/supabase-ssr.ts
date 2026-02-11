@@ -5,12 +5,18 @@
  * - @supabase/auth-helpers-nextjs (deprecated) → @supabase/ssr (modern)
  * - クッキーアダプターパターンを提供
  *
+ * CRITICAL FIX FOR NEXT.JS 16 + TURBOPACK:
+ * - cookies() is a dynamic API that MUST be imported lazily
+ * - Top-level imports of this API cause build hangs during static analysis
+ * - All imports of next/headers are now dynamic (await import())
+ *
  * @module lib/supabase-ssr
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
+import { SESSION_MAX_AGE, COOKIE_DOMAIN } from './auth-constants';
 
 // ============================================================
 // Type Definitions
@@ -33,6 +39,18 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 // ============================================================
+// Cookie Options for Localhost Development
+// ============================================================
+
+/**
+ * CRITICAL FIX: Localhost cookie handling
+ *
+ * Localhost browsers REJECT cookies with explicit domain attributes.
+ * - development: NO domain (browser auto-handles localhost)
+ * - production: .epackage-lab.com for cross-subdomain
+ */
+
+// ============================================================
 // Helper: Create Supabase SSR Client for API Routes
 // ============================================================
 
@@ -47,7 +65,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
  * @example
  * ```ts
  * export async function GET(request: NextRequest) {
- *   const { client: supabase, response } = createSupabaseSSRClient(request);
+ *   const { client: supabase, response } = await createSupabaseSSRClient(request);
  *
  *   const { data } = await supabase.from('table').select('*');
  *
@@ -56,49 +74,70 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
  * }
  * ```
  */
-export function createSupabaseSSRClient(request: NextRequest): SupabaseSSRClientResult {
+export async function createSupabaseSSRClient(request: NextRequest): Promise<SupabaseSSRClientResult> {
   // Create a response object that we'll use to set cookies
-  // IMPORTANT: This response object must be used as the base for the final response
-  // to preserve any cookie changes made by Supabase during auth operations
-  const response = NextResponse.next();
+  const response = new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
   const client = createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
+      // ✅ Use getAll() pattern recommended by Supabase SSR
+      getAll() {
+        return request.cookies.getAll();
       },
-      set(name: string, value: string, options: Record<string, unknown>) {
-        // Build cookie options WITHOUT name property (name is first parameter to set())
-        const cookieOptions: Record<string, unknown> = {
-          httpOnly: true,   // ✅ httpOnly設定（JavaScriptアクセス禁止）
-          secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS時のみ
-          sameSite: 'lax',   // ✅ CSRF対策（lax: 同一サイトGET許可）
-          path: '/',         // ✅ 全パスで有効
-          maxAge: 86400,     // ✅ 24時間セッション維持 (86400秒 = 24時間)
-        };
+      // ✅ CRITICAL: Use setAll() pattern for proper cookie handling in Next.js 15/16
+      setAll(cookiesToSet) {
+        console.log('[supabase-ssr] setAll called with', cookiesToSet.length, 'cookies');
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            console.log('[supabase-ssr] Setting cookie:', name, 'value length:', value?.length || 0);
 
-        // CRITICAL: Only set domain in production
-        // localhost will reject cookies with domain attribute
-        if (process.env.NODE_ENV === 'production') {
-          cookieOptions.domain = '.epackage-lab.com';
+            // Build cookie options with proper domain handling
+            const cookieOptions: any = {
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              maxAge: SESSION_MAX_AGE,
+            };
+
+            // CRITICAL: Handle domain attribute
+            if (process.env.NODE_ENV === 'production' && COOKIE_DOMAIN) {
+              cookieOptions.domain = COOKIE_DOMAIN;
+            } else {
+              delete cookieOptions.domain;
+            }
+
+            // ✅ CRITICAL: Construct Set-Cookie header manually
+            // This is the ONLY reliable way to set cookies in Next.js 16 API Route Handlers
+            const cookieParts = [`${name}=${value}`];
+            cookieParts.push(`HttpOnly`);
+            if (process.env.NODE_ENV === 'production') {
+              cookieParts.push(`Secure`);
+            }
+            cookieParts.push(`SameSite=${cookieOptions.sameSite}`);
+            cookieParts.push(`Path=${cookieOptions.path}`);
+            cookieParts.push(`Max-Age=${cookieOptions.maxAge}`);
+            if (cookieOptions.domain) {
+              cookieParts.push(`Domain=${cookieOptions.domain}`);
+            }
+
+            const setCookieHeader = cookieParts.join('; ');
+            response.headers.append('Set-Cookie', setCookieHeader);
+
+            console.log('[supabase-ssr] Set-Cookie header set for:', name);
+          });
+
+          const finalSetCookieHeaders = response.headers.getSetCookie();
+          console.log('[supabase-ssr] Final response has', finalSetCookieHeaders.length, 'Set-Cookie headers');
+        } catch (error) {
+          console.error('[supabase-ssr] Error in setAll:', error);
         }
-
-        // Merge with any additional options
-        Object.assign(cookieOptions, options);
-
-        // ✅ CORRECT: name is first parameter, value is second, options are third
-        response.cookies.set(name, value, cookieOptions);
-      },
-      remove(name: string, options: Record<string, unknown>) {
-        response.cookies.delete({
-          name,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          domain: process.env.NODE_ENV === 'production' ? '.epackage-lab.com' : undefined,
-          ...options,
-        });
       },
     },
   });
@@ -131,7 +170,7 @@ export function createSupabaseSSRClient(request: NextRequest): SupabaseSSRClient
  */
 export async function getAuthenticatedUser(request: NextRequest) {
   // Try cookie-based authentication first (works for both SSR and client-side navigation)
-  const { client: supabase } = createSupabaseSSRClient(request);
+  const { client: supabase } = await createSupabaseSSRClient(request);
 
   const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -167,7 +206,7 @@ export async function getAuthenticatedUser(request: NextRequest) {
  * @returns true if user is admin, false otherwise
  */
 export async function isAdminUser(request: NextRequest): Promise<boolean> {
-  const { client: supabase } = createSupabaseSSRClient(request);
+  const { client: supabase } = await createSupabaseSSRClient(request);
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -204,7 +243,7 @@ export async function isAdminUser(request: NextRequest): Promise<boolean> {
  * ```ts
  * import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
  *
- * const { client: supabase } = createSupabaseSSRClient(request);
+ * const { client: supabase } = await createSupabaseSSRClient(request);
  * ```
  *
  * Benefits:

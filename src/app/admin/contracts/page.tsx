@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import useSWR from 'swr';
 import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { ContractWorkflowList } from '@/components/admin/contract-workflow/ContractWorkflowList';

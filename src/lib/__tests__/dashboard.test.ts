@@ -8,7 +8,6 @@
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { jest } from '@jest/globals'
@@ -124,7 +123,6 @@ describe('Dashboard Library', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-    process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
     // Default authenticated user
     mockAuthGetUser.mockResolvedValue({
@@ -206,16 +204,6 @@ describe('Dashboard Library', () => {
 
       expect(result).toBeNull()
     })
-
-    it('should return mock user in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      process.env.NODE_ENV = 'development'
-
-      const result = await dashboard.getCurrentUser()
-
-      expect(result).not.toBeNull()
-      expect(result?.id).toBe('test-mock-user-id')
-    })
   })
 
   describe('requireAuth', () => {
@@ -271,15 +259,6 @@ describe('Dashboard Library', () => {
 
       expect(result).toBeNull()
     })
-
-    it('should return mock user ID in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      process.env.NODE_ENV = 'development'
-
-      const result = await dashboard.getCurrentUserId()
-
-      expect(result).toBe('test-mock-user-id')
-    })
   })
 
   // ============================================================
@@ -317,20 +296,6 @@ describe('Dashboard Library', () => {
       })
 
       await expect(dashboard.getOrders()).rejects.toThrow('Not authenticated')
-    })
-
-    it('should return mock data in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-
-      const result = await dashboard.getOrders()
-
-      expect(result).toEqual({
-        data: [],
-        total: 0,
-        page: 1,
-        limit: 20,
-        totalPages: 0,
-      })
     })
   })
 
@@ -820,21 +785,6 @@ describe('Dashboard Library', () => {
       expect(result).toHaveProperty('quotations')
       expect(result).toHaveProperty('samples')
       expect(result).toHaveProperty('inquiries')
-    })
-
-    it('should return mock data in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      process.env.NODE_ENV = 'development'
-
-      const result = await dashboard.getDashboardStats()
-
-      expect(result).toEqual({
-        orders: { new: [], processing: [], total: 0 },
-        quotations: { pending: [], total: 0 },
-        samples: { pending: [], total: 0 },
-        inquiries: { unread: [], total: 0 },
-        announcements: [],
-      })
     })
 
     it('should return empty stats when not authenticated', async () => {

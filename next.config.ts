@@ -6,6 +6,32 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // =====================================================
+  // CRITICAL FIX FOR NEXT.JS 16 + TURBOPACK BUILD HANG
+  // =====================================================
+  // Remove turbopack.root configuration as it may cause issues
+  // with lock file handling during build
+  // turbopack: {
+  //   root: process.cwd(),
+  // },
+  // =====================================================
+  // Rewrites to fix trailing slash redirect loops
+  // =====================================================
+  async rewrites() {
+    return [
+      {
+        source: '/api/auth/session',
+        destination: '/api/auth/session',
+      },
+      {
+        source: '/api/auth/session/:path*',
+        destination: '/api/auth/session/:path*',
+      },
+    ];
+  },
+  // =====================================================
+  // Turbopack is now default in Next.js 16
+  // =====================================================
   serverExternalPackages: [
     '@react-pdf/renderer',
     '@fontsource/noto-sans-jp',

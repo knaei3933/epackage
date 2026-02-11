@@ -377,7 +377,6 @@ export function _createMockAuthResult(overrides: Partial<AdminAuthResult> = {}):
     userId: overrides.userId || '00000000-0000-0000-0000-000000000000',
     role: overrides.role || 'ADMIN',
     status: overrides.status || 'ACTIVE',
-    isDevMode: overrides.isDevMode || false,
   };
 }
 

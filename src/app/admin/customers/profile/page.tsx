@@ -31,7 +31,7 @@ async function getProfileData() {
     .from('profiles')
     .select('*')
     .eq('id', context.userId)
-    .single();
+    .single() as { data: any; error: any };
 
   if (profileError || !profile) {
     return null;
@@ -44,7 +44,7 @@ async function getProfileData() {
       .from('companies')
       .select('*')
       .eq('id', context.userId)
-      .maybeSingle();
+      .maybeSingle() as { data: any; error: any };
 
     company = companyData;
   }
@@ -80,10 +80,10 @@ async function updateProfile(data: any) {
     throw new Error('Unauthorized');
   }
 
-  const supabase = createServiceClient();
+  const supabase = createServiceClient() as any;
 
   // Build update object with only provided fields
-  const updates: Record<string, any> = {};
+  const updates: any = {};
   if (data.corporate_phone !== undefined) updates.corporate_phone = data.corporate_phone;
   if (data.personal_phone !== undefined) updates.personal_phone = data.personal_phone;
   if (data.position !== undefined) updates.position = data.position;

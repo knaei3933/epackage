@@ -71,14 +71,15 @@ export default function MemberLayout({
 
   // Don't render header if user is not available yet (SSR/hydration safety)
   // This prevents null reference errors during initial render
-  if (!isMounted || !user) {
+  // NOTE: Server Components handle auth via requireAuth()
+  if (!isMounted) {
     return (
       <ErrorBoundaryWrapper
         enableRetry={false}
         showDetails={false}
       >
         <div className="min-h-screen bg-bg-secondary">
-          {/* ローディング状態 */}
+          {/* ローディング状態 - only during initial mount */}
           <div className="flex items-center justify-center min-h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
@@ -87,23 +88,26 @@ export default function MemberLayout({
     );
   }
 
+  // Since Server Components handle auth via requireAuth(),
+  // if we're here, the user is authenticated server-side.
+  // Always show sidebar and layout - client-side user can be null initially
   return (
     <ErrorBoundaryWrapper
       enableRetry={false}
       showDetails={false}
     >
       <div className="min-h-screen bg-bg-secondary">
-        {/* デスクトップサイドバー */}
+        {/* デスクトップサイドバー - always show (server-side auth passed) */}
         <div className="hidden lg:block">
           <SidebarNavigation menuItems={menuItems} notifications={notifications} />
         </div>
 
         {/* メインコンテンツエリア */}
         <div className="lg:pl-52">
-          {/* ダッシュボードヘッダー */}
-          <DashboardHeader user={user} notifications={notifications} />
+          {/* ダッシュボードヘッダー - only show if we have client-side user */}
+          {user && <DashboardHeader user={user} notifications={notifications} />}
 
-          {/* ページコンテンツ */}
+          {/* ページコンテンツ - always render */}
           <main className="p-4 md:p-6 lg:p-8">
             {children}
           </main>

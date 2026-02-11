@@ -1,7 +1,7 @@
 /**
  * Environment Validation Utilities
  *
- * セキュアな環境変数検証と開発モード安全チェック
+ * セキュアな環境変数検証
  * Security: サーバーサイドのみで実行される検証関数
  *
  * @module lib/env-validation
@@ -67,59 +67,6 @@ export function isProductionEnvironment(): boolean {
  */
 export function isDevelopmentEnvironment(): boolean {
   return process.env.NODE_ENV === 'development';
-}
-
-// =====================================================
-// Dev Mode Safety Validation
-// =====================================================
-
-/**
- * 開発モード安全検証
- *
- * プロダクション環境で開発モードが有効になっている場合、エラーを投げる
- * この関数はサーバー起動時に呼び出すことを推奨
- *
- * @throws {Error} プロダクション環境で開発モードが有効な場合
- *
- * @example
- * ```typescript
- * // サーバー起動時
- * import { validateDevModeSafety } from '@/lib/env-validation';
- * validateDevModeSafety();
- * ```
- */
-export function validateDevModeSafety(): void {
-  const isProd = isProductionEnvironment();
-  const devModeEnabled = process.env.ENABLE_DEV_MOCK_AUTH === 'true';
-
-  if (isProd && devModeEnabled) {
-    throw new Error(
-      'CRITICAL: Dev mode (ENABLE_DEV_MOCK_AUTH) is enabled in production environment.\n' +
-      'This is a security risk. Please disable ENABLE_DEV_MOCK_AUTH in production.\n' +
-      '\n' +
-      'Current settings:\n' +
-      `  - NODE_ENV: ${process.env.NODE_ENV}\n` +
-      `  - NEXT_PUBLIC_APP_URL: ${process.env.NEXT_PUBLIC_APP_URL}\n` +
-      `  - ENABLE_DEV_MOCK_AUTH: ${process.env.ENABLE_DEV_MOCK_AUTH}\n` +
-      `  - VERCEL_ENV: ${process.env.VERCEL_ENV}\n` +
-      '\n' +
-      'Action required: Set ENABLE_DEV_MOCK_AUTH to "false" or remove it from production environment.'
-    );
-  }
-}
-
-/**
- * 開発モード安全チェック（エラーを投げないバージョン）
- *
- * @returns {boolean} 安全な場合true、危険な場合false
- */
-export function isDevModeSafe(): boolean {
-  try {
-    validateDevModeSafety();
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 // =====================================================
@@ -261,16 +208,7 @@ export function validateOnStartup(): void {
 
   console.log('[ENV] Validating environment configuration...');
 
-  // 1. 開発モード安全検証
-  try {
-    validateDevModeSafety();
-    console.log('[ENV] ✓ Dev mode safety check passed');
-  } catch (error) {
-    console.error('[ENV] ✗ Dev mode safety check failed:', error);
-    throw error;
-  }
-
-  // 2. 必須環境変数検証
+  // 1. 必須環境変数検証
   const supabaseEnv = validateSupabaseEnv();
   if (!supabaseEnv.valid) {
     const errors = [
@@ -282,7 +220,7 @@ export function validateOnStartup(): void {
   }
   console.log('[ENV] ✓ Supabase environment validation passed');
 
-  // 3. セキュリティフィーチャーフラグログ
+  // 2. セキュリティフィーチャーフラグログ
   console.log('[ENV] Security feature flags:', {
     USE_PARAMETERIZED_QUERIES: SECURITY_FLAGS.USE_PARAMETERIZED_QUERIES,
     MCP_AUTH_REQUIRED: SECURITY_FLAGS.MCP_AUTH_REQUIRED,
@@ -290,7 +228,7 @@ export function validateOnStartup(): void {
     UNIFIED_AUTH_MIDDLEWARE: SECURITY_FLAGS.UNIFIED_AUTH_MIDDLEWARE,
   });
 
-  // 4. 環境情報ログ（機密情報なし）
+  // 3. 環境情報ログ（機密情報なし）
   console.log('[ENV] Environment info:', {
     NODE_ENV: process.env.NODE_ENV,
     VERCEL_ENV: process.env.VERCEL_ENV,

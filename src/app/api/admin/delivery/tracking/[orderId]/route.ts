@@ -203,7 +203,7 @@ export async function GET(
 ) {
   try {
     const params = await context.params;
-    const orderId = params.orderId;
+    const { orderId } = params;
 
     // ✅ Verify admin authentication first
     const auth = await verifyAdminAuth(request);
@@ -270,7 +270,7 @@ export async function PATCH(
 ) {
   try {
     const params = await context.params;
-    const orderId = params.orderId;
+    const { orderId } = params;
 
     // ✅ Verify admin authentication first
     const auth = await verifyAdminAuth(request);
@@ -363,7 +363,7 @@ export async function DELETE(
 ) {
   try {
     const params = await context.params;
-    const orderId = params.orderId;
+    const { orderId } = params;
 
     // ✅ Verify admin authentication first
     const auth = await verifyAdminAuth(request);

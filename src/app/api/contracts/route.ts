@@ -11,7 +11,7 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 export async function POST(request: NextRequest) {
   try {
     // Initialize Supabase client using modern @supabase/ssr pattern
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Initialize Supabase client using modern @supabase/ssr pattern
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

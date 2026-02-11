@@ -43,7 +43,7 @@ export async function PUT(
     console.log('[Modification Approval API] PUT request received');
 
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
 
     // Get user ID from middleware headers (more reliable than cookie auth)
     const headersList = await headers();

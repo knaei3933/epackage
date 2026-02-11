@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { PanInfo } from 'framer-motion'
 import { motion, AnimatePresence } from 'framer-motion'
-const useAnimation = dynamic(() => import('framer-motion').then(mod => ({ default: mod.useAnimation })), { ssr: false })
+import dynamic from 'next/dynamic'
 import {
   Smartphone,
   Tablet,

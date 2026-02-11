@@ -27,7 +27,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
     // Fetch production job details using execute_sql
     const { data: productionJob, error: jobError } = await supabase
       .from('production_orders')
@@ -108,7 +108,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
     const body = await request.json();
     const { action, reason } = body;
 

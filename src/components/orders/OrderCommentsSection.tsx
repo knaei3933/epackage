@@ -84,7 +84,7 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
       setLoading(true);
       setError(null);
 
-      const response = await fetchFn(`/api/member/orders/${orderId}/comments`);
+      const response = await fetchFn(`/api/admin/orders/${orderId}/comments`);
       const result = await response.json();
 
       if (result.success) {

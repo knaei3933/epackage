@@ -50,6 +50,9 @@ interface PendingMember {
   company_url: string | null;
   product_category: string | null;
   acquisition_channel: string | null;
+  representative_name: string | null;
+  founded_year: string | null;
+  capital: string | null;
   created_at: string;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
 }
@@ -64,13 +67,17 @@ interface FetchPendingMembersResponse {
   success: boolean;
   data?: PendingMember[];
   error?: string;
+  pagination?: {
+    total: number;
+    page: number;
+    pageSize: number;
+  };
 }
 
 interface AuthContext {
   userId: string;
   role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
   userName: string;
-  isDevMode: boolean;
 }
 
 interface AdminApprovalsClientProps {

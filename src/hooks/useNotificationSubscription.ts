@@ -43,13 +43,6 @@ export function useNotificationSubscription({
   );
 
   useEffect(() => {
-    // DEV_MODEの場合はRealtimeをスキップ
-    const isDevMode = localStorage.getItem('dev-mock-user-id') !== null;
-    if (isDevMode) {
-      console.log('[NotificationSubscription] DEV_MODE: Skipping Realtime');
-      return;
-    }
-
     if (!supabase) {
       console.warn('[NotificationSubscription] Supabase client not available');
       return;
@@ -120,13 +113,6 @@ export function useNotificationSubscription({
         'Content-Type': 'application/json',
       };
 
-      // DEV_MODEヘッダー対応
-      const devUserId = localStorage.getItem('dev-mock-user-id');
-      if (devUserId) {
-        headers['x-dev-mode'] = 'true';
-        headers['x-user-id'] = devUserId;
-      }
-
       const response = await fetch(fetchUrl, {
         credentials: 'include',
         headers,
@@ -152,12 +138,6 @@ export function useNotificationSubscription({
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('dev-mock-user-id')
-            ? {
-                'x-dev-mode': 'true',
-                'x-user-id': localStorage.getItem('dev-mock-user-id')!,
-              }
-            : {}),
         },
       });
 
@@ -188,12 +168,6 @@ export function useNotificationSubscription({
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('dev-mock-user-id')
-            ? {
-                'x-dev-mode': 'true',
-                'x-user-id': localStorage.getItem('dev-mock-user-id')!,
-              }
-            : {}),
         },
       });
 
@@ -226,12 +200,6 @@ export function useNotificationSubscription({
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('dev-mock-user-id')
-            ? {
-                'x-dev-mode': 'true',
-                'x-user-id': localStorage.getItem('dev-mock-user-id')!,
-              }
-            : {}),
         },
       });
 

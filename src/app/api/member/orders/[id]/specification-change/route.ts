@@ -37,7 +37,7 @@ interface SpecChangeRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 認証確認
@@ -59,7 +59,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orderId = params.id;
+    const { id: orderId } = await params;
     const body = await request.json() as SpecChangeRequest;
 
     // 注文の詳細を取得

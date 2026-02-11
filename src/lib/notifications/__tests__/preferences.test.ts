@@ -109,7 +109,6 @@ async function importPreferencesModule() {
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-  process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
   const module = await import('../preferences')
   getUserPreferences = module.getUserPreferences

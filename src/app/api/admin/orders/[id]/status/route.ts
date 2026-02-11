@@ -35,7 +35,7 @@ export async function PUT(
 ) {
   try {
     const params = await context.params;
-    const orderId = params.id;
+    const { id: orderId } = params;
 
     console.log('[Admin Order Status] ========================================');
     console.log('[Admin Order Status] PUT request received');

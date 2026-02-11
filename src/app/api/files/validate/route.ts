@@ -91,7 +91,7 @@ interface ListFilesResponse {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-const { client: supabase } = createSupabaseSSRClient(request);
+const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -206,7 +206,7 @@ const { client: supabase } = createSupabaseSSRClient(request);
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-const { client: supabase } = createSupabaseSSRClient(request);
+const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

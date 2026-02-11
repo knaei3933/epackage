@@ -106,19 +106,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Track previous route to detect changes
   const previousPathname = useRef(pathname)
   const previousSearchParams = useRef(searchParams.toString())
+  // Track pending fetch to prevent race conditions
+  const pendingFetchId = useRef<number>(0)
 
   // =====================================================
   // Session Management & Auth State Listener
   // =====================================================
 
   // Memoized fetch session function that can be called on route changes
-  const fetchSessionAndUpdateState = useCallback(async () => {
-    try {
-      console.log('[AuthContext] Fetching session from /api/auth/session...')
+  // Uses fetchId to prevent race conditions from concurrent requests
+  const fetchSessionAndUpdateState = useCallback(async (fetchId?: number) => {
+    // Generate a new fetch ID if not provided
+    const currentFetchId = fetchId ?? ++pendingFetchId.current
 
-      const response = await fetch('/api/auth/session', {
+    try {
+      console.log('[AuthContext] Fetching session from /api/auth/current-user...', { fetchId: currentFetchId })
+
+      const response = await fetch('/api/auth/current-user', {
         credentials: 'include', // Critical: include cookies in request
       })
+
+      // Check if this is still the latest request
+      if (currentFetchId !== pendingFetchId.current) {
+        console.log('[AuthContext] Discarding stale session response', { fetchId: currentFetchId, latest: pendingFetchId.current })
+        return
+      }
 
       if (response.ok) {
         const sessionData = await response.json()
@@ -130,7 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           })
           setProfile(sessionData.profile)
           setUser(convertSupabaseUser(sessionData.session.user, sessionData.profile))
-          console.log('[AuthContext] Session updated successfully')
+          console.log('[AuthContext] Session updated successfully', { fetchId: currentFetchId })
         } else {
           // Session is invalid or expired
           setSession(null)
@@ -144,7 +156,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null)
       }
     } catch (error) {
-      console.error('[AuthContext] Session fetch error:', error)
+      // Check if this is still the latest request
+      if (currentFetchId !== pendingFetchId.current) {
+        console.log('[AuthContext] Discarding stale error response', { fetchId: currentFetchId })
+        return
+      }
+      // Gracefully handle fetch errors (redirect loops, network issues, etc.)
+      // The app can still function without session data - user will appear as logged out
+      console.log('[AuthContext] Session fetch unavailable - continuing without session data')
       setSession(null)
       setProfile(null)
       setUser(null)
@@ -232,6 +251,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // When navigating between member pages using Next.js Link, the AuthContext
   // needs to re-fetch the session to ensure the auth state is up-to-date.
   // This effect detects route changes and refreshes the session accordingly.
+  //
+  // CRITICAL: fetchSessionAndUpdateState is NOT in dependency array because:
+  // 1. It's stable (useCallback with empty deps)
+  // 2. Including it would cause the effect to run on every render
+  // 3. The function itself handles race conditions via fetchId
 
   useEffect(() => {
     // Detect route changes by comparing current and previous pathnames/search params
@@ -246,7 +270,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       // Refresh session on route change to ensure auth state is current
-      fetchSessionAndUpdateState()
+      // Pass a new fetch ID to track this specific request
+      const fetchId = ++pendingFetchId.current
+      fetchSessionAndUpdateState(fetchId)
 
       // Update previous values
       previousPathname.current = pathname

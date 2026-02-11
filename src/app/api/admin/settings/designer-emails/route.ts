@@ -31,7 +31,7 @@ interface DesignerEmailsResponse {
 // =====================================================
 
 async function getAuthenticatedAdmin(request: NextRequest) {
-  const { client: supabase } = createSupabaseSSRClient(request);
+  const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser?.id) {
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Get notification settings
     const { data: setting, error } = await supabase
@@ -144,7 +144,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Parse request body
     const body = await request.json();

@@ -144,13 +144,6 @@ export interface Profile {
 
 export const auth = {
     async getProfile(userId: string): Promise<Profile | null> {
-        if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
-            if (userId.startsWith('dev-user-') || userId.startsWith('dev-admin-')) {
-                console.log('[getProfile] Dev mode: Skipping database query for mock user:', userId);
-                return null;
-            }
-        }
-
         const serviceClient = createServiceClient();
 
         const { data, error } = await serviceClient
@@ -318,47 +311,6 @@ export const createSupabaseWithCookies = async (cookieStore: {
     set: (key: string, value: string, options?: { httpOnly?: boolean; secure?: boolean; sameSite?: string; path?: string }) => void;
     delete: (key: string) => void;
 }) => {
-    // DEV_MODE
-    if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_MOCK_AUTH === 'true') {
-        console.log('[createSupabaseWithCookies] DEV_MODE: Creating mock client');
-
-        const mockUserIdCookie = cookieStore.get('dev-mock-user-id');
-        const mockUserId = mockUserIdCookie?.value || null;
-
-        const { createClient } = await import('@supabase/supabase-js');
-
-        const mockClient = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder', {
-            auth: {
-                storage: {
-                    getItem: (key: string) => {
-                        if (key === 'sb-access-token' && mockUserId) {
-                            return JSON.stringify({
-                                access_token: 'mock-access-token',
-                                refresh_token: 'mock-refresh-token',
-                                user: {
-                                    id: mockUserId,
-                                    email: 'test@epackage-lab.com',
-                                    user_metadata: {
-                                        kanji_last_name: 'テスト',
-                                        kanji_first_name: 'ユーザー',
-                                    },
-                                },
-                            });
-                        }
-                        const cookie = cookieStore.get(key);
-                        return cookie?.value ?? null;
-                    },
-                    setItem: () => {},
-                    removeItem: (key: string) => {
-                        cookieStore.delete(key);
-                    },
-                },
-            },
-        });
-
-        return mockClient;
-    }
-
     if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error('Supabase credentials not configured');
     }

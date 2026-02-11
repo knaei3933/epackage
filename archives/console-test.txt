@@ -1,0 +1,7 @@
+Total messages: 5 (Errors: 0, Warnings: 0)
+
+[VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/auth/signin/?redirect=%2Fmember%2Forders%2Fhistory%2F:0
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Initializing auth context... @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Fetching session from /api/auth/session... @ http://localhost:3000/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297

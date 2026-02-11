@@ -25,7 +25,7 @@ export async function GET(
 ) {
   try {
     const params = await context.params;
-    const quotationId = params.id;
+    const { id: quotationId } = params;
 
     // Get authenticated user using unified authentication
     const authUser = await getAuthenticatedUser(request);
@@ -149,7 +149,7 @@ export async function DELETE(
 ) {
   try {
     const params = await context.params;
-    const quotationId = params.id;
+    const { id: quotationId } = params;
 
     // Get authenticated user using unified authentication
     const authUser = await getAuthenticatedUser(request);

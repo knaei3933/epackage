@@ -4,12 +4,13 @@
  * 会員・管理者共通の通知機能を提供します
  * - unified_notificationsテーブルを使用
  * - Realtime通知対応
- * - DEV_MODE対応
+ *
+ * CRITICAL FIX FOR NEXT.JS 16 + TURBOPACK:
+ * - cookies() is a dynamic API that MUST be imported lazily
+ * - Top-level imports cause build hangs during static analysis
  */
 
 import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { isDevMode } from '@/lib/dev-mode';
 
 // =====================================================
 // Types
@@ -78,6 +79,8 @@ export class UnifiedNotificationService {
   async initialize(): Promise<void> {
     if (this._supabase) return; // 既に初期化済み
 
+    // CRITICAL: Dynamic import to avoid build-time hang
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     this._supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,12 +95,6 @@ export class UnifiedNotificationService {
   async createNotification(params: CreateNotificationParams): Promise<string> {
     // 自動初期化
     await this.initialize();
-
-    // DEV_MODE: モック通知を返す
-    if (isDevMode()) {
-      console.log('[UnifiedNotificationService] DEV_MODE: Creating mock notification');
-      return `mock-notif-${Date.now()}`;
-    }
 
     const { data, error } = await this.supabase
       .from('unified_notifications')
@@ -128,12 +125,6 @@ export class UnifiedNotificationService {
   async getNotifications(params: NotificationFilter): Promise<Notification[]> {
     // 自動初期化
     await this.initialize();
-
-    // DEV_MODE: モックデータを返す
-    if (isDevMode()) {
-      console.log('[UnifiedNotificationService] DEV_MODE: Returning mock notifications');
-      return this.getMockNotifications(params);
-    }
 
     let query = this.supabase
       .from('unified_notifications')
@@ -169,11 +160,6 @@ export class UnifiedNotificationService {
     // 自動初期化
     await this.initialize();
 
-    // DEV_MODE: モック値を返す
-    if (isDevMode()) {
-      return Math.floor(Math.random() * 10);
-    }
-
     const { data, error, count } = await this.supabase
       .from('unified_notifications')
       .select('*', { count: 'exact', head: true })
@@ -193,9 +179,6 @@ export class UnifiedNotificationService {
     // 自動初期化
     await this.initialize();
 
-    // DEV_MODE: 何もしない
-    if (isDevMode()) return;
-
     const { error } = await this.supabase
       .from('unified_notifications')
       .update({ is_read: true, read_at: new Date().toISOString() })
@@ -210,9 +193,6 @@ export class UnifiedNotificationService {
   async markAllAsRead(recipientId: string, recipientType: 'member' | 'admin'): Promise<void> {
     // 自動初期化
     await this.initialize();
-
-    // DEV_MODE: 何もしない
-    if (isDevMode()) return;
 
     const { error } = await this.supabase
       .from('unified_notifications')
@@ -231,76 +211,12 @@ export class UnifiedNotificationService {
     // 自動初期化
     await this.initialize();
 
-    // DEV_MODE: 何もしない
-    if (isDevMode()) return;
-
     const { error } = await this.supabase
       .from('unified_notifications')
       .delete()
       .eq('id', notificationId);
 
     if (error) throw error;
-  }
-
-  /**
-   * DEV_MODE用モック通知データ生成
-   */
-  private getMockNotifications(params: NotificationFilter): Notification[] {
-    const mockNotifications: Notification[] = [
-      {
-        id: 'mock-notif-1',
-        recipient_id: params.recipientId,
-        recipient_type: params.recipientType,
-        type: 'order_created',
-        title: '新規注文',
-        message: '新しい注文が作成されました。',
-        priority: 'normal',
-        metadata: {},
-        is_read: false,
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'mock-notif-2',
-        recipient_id: params.recipientId,
-        recipient_type: params.recipientType,
-        type: 'production_started',
-        title: '製造開始',
-        message: '注文の製造が開始されました。',
-        priority: 'high',
-        metadata: {},
-        is_read: true,
-        read_at: new Date().toISOString(),
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-      },
-      {
-        id: 'mock-notif-3',
-        recipient_id: params.recipientId,
-        recipient_type: params.recipientType,
-        type: 'shipment_delivered',
-        title: '配送完了',
-        message: '商品が配送完了しました。',
-        priority: 'normal',
-        metadata: {},
-        is_read: false,
-        created_at: new Date(Date.now() - 7200000).toISOString(),
-      },
-    ];
-
-    let filtered = mockNotifications;
-
-    if (params.unreadOnly) {
-      filtered = filtered.filter(n => !n.is_read);
-    }
-
-    if (params.type) {
-      filtered = filtered.filter(n => n.type === params.type);
-    }
-
-    if (params.limit) {
-      filtered = filtered.slice(0, params.limit);
-    }
-
-    return filtered;
   }
 }
 

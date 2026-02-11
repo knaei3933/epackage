@@ -1,9 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import useSWR from 'swr';
-import { createSupabaseClient } from '@/lib/supabase';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
+import { supabase } from '@/lib/supabase-browser';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { Card, Badge, Button } from '@/components/ui';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -51,7 +63,6 @@ const CARRIERS = [
 ];
 
 export default function ShippingManagementPage() {
-  const supabase = createSupabaseClient();
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCarrier, setFilterCarrier] = useState<string>('all');

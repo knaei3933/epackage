@@ -7,7 +7,6 @@
  */
 
 import { Metadata } from 'next';
-import { Suspense } from 'react';
 import LoginForm from '@/components/auth/LoginForm';
 import Link from 'next/link';
 
@@ -44,10 +43,8 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* ログインフォーム - Suspense boundary for useSearchParams */}
-        <Suspense fallback={<div className="animate-pulse bg-gray-200 rounded-lg h-96" />}>
-          <LoginForm />
-        </Suspense>
+        {/* ログインフォーム - Client Component */}
+        <LoginForm redirectUrl="/member/dashboard" />
       </div>
     </main>
   );

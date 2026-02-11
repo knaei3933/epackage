@@ -11,7 +11,6 @@
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { jest } from '@jest/globals'
@@ -131,7 +130,6 @@ describe('Dashboard Library - Supabase Schema Aligned', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-    process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
     // Default authenticated user
     mockAuthGetUser.mockResolvedValue({
@@ -188,18 +186,6 @@ describe('Dashboard Library - Supabase Schema Aligned', () => {
       const user = await dashboard.getCurrentUser()
       expect(user).toBeNull()
     })
-
-    it('should return mock user in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      jest.resetModules()
-
-      const devDashboard = await import('../dashboard')
-      const user = await devDashboard.getCurrentUser()
-
-      expect(user).not.toBeNull()
-      // DEV_MODE uses mock cookie from next/headers mock
-      expect(user?.id).toBe('test-mock-user-id')
-    })
   })
 
   describe('requireAuth', () => {
@@ -227,17 +213,6 @@ describe('Dashboard Library - Supabase Schema Aligned', () => {
 
       const userId = await dashboard.getCurrentUserId()
       expect(userId).toBeNull()
-    })
-
-    it('should return mock user ID in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      jest.resetModules()
-
-      const devDashboard = await import('../dashboard')
-      const userId = await devDashboard.getCurrentUserId()
-
-      // DEV_MODE uses mock cookie from next/headers mock
-      expect(userId).toBe('test-mock-user-id')
     })
   })
 
@@ -275,20 +250,6 @@ describe('Dashboard Library - Supabase Schema Aligned', () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: null } })
 
       await expect(dashboard.getOrders()).rejects.toThrow('Not authenticated')
-    })
-
-    it('should return mock data in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      jest.resetModules()
-
-      const devDashboard = await import('../dashboard')
-      const result = await devDashboard.getOrders()
-
-      // DEV_MODE returns PaginatedResponse with empty data
-      expect(result).toHaveProperty('data')
-      expect(result).toHaveProperty('total')
-      expect(Array.isArray(result.data)).toBe(true)
-      expect(result.data).toHaveLength(0)
     })
   })
 
@@ -609,16 +570,6 @@ describe('Dashboard Library - Supabase Schema Aligned', () => {
       }
 
       const result = await dashboard.getDashboardStats()
-
-      expect(result).toHaveProperty('orders')
-    })
-
-    it('should return mock data in DEV_MODE', async () => {
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-      jest.resetModules()
-
-      const devDashboard = await import('../dashboard')
-      const result = await devDashboard.getDashboardStats()
 
       expect(result).toHaveProperty('orders')
     })

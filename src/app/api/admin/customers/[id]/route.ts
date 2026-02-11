@@ -15,9 +15,9 @@ import type { Database } from '@/types/database';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 interface CustomerDetailResponse {
@@ -51,7 +51,7 @@ export async function GET(
     }
 
     const supabase = createServiceClient();
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch customer from profiles
     const { data: customer, error } = await supabase
@@ -136,7 +136,7 @@ export async function PATCH(
     }
 
     const supabase = createServiceClient();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Remove fields that shouldn't be updated directly
@@ -198,7 +198,7 @@ export async function DELETE(
     }
 
     const supabase = createServiceClient();
-    const { id } = params;
+    const { id } = await params;
 
     // Soft delete by updating status in profiles
     const { data: deletedCustomer, error } = await supabase

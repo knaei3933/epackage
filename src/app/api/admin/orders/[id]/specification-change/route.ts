@@ -38,7 +38,7 @@ interface SpecChangeRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 管理者認証確認
@@ -47,7 +47,7 @@ export async function POST(
       return unauthorizedResponse();
     }
 
-    const orderId = params.id;
+    const { id: orderId } = await params;
     const body = await request.json() as SpecChangeRequest;
 
     // Supabaseクライアント作成（サービスロール）

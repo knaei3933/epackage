@@ -2,14 +2,14 @@
  * 테스트 설정
  *
  * 중요: 이 테스트 러너는 실전 환경(Production Mode)에서 동작합니다.
- * DEV_MODE, 모 데이터, 가상 인증을 사용하지 않습니다.
+ * 실제 Supabase 데이터베이스와 인증을 사용합니다.
  */
 
 export interface TestConfig {
   baseUrl: string;
   screenshots: boolean;
   screenshotDir: string;
-  // 실전 모드: DEV_MODE 비활성화
+  // 실전 모드: 실제 데이터베이스 사용
   productionMode: boolean;
   database: {
     supabaseUrl: string;

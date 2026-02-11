@@ -9,7 +9,7 @@ import { isDevMode } from '@/lib/dev-mode';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await getCurrentUserId();
@@ -19,7 +19,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const notificationId = params.id;
+    const { id: notificationId } = await params;
 
     // 権限チェック（自分の通知のみ既読化可能）
     // 管理者は全ての通知を既読化可能

@@ -87,7 +87,7 @@ export async function GET(
 
   try {
     const { id: orderId } = await params;
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
 
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();

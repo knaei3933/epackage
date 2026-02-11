@@ -16,22 +16,12 @@ import { DashboardSkeleton } from '@/components/ui/SkeletonLoader';
 import { AlertCircle, TrendingUp, Package, FileText, Activity, BarChart3, Users, Zap, Clock, ArrowRight, Upload, Edit, UserCheck, Settings, Truck } from 'lucide-react';
 import { Card } from '@/components/ui';
 
-// データフェッチャー - エラーハンドリング強化 + DEV_MODE対応
+// データフェッチャー - エラーハンドリング強化
 const fetcher = async (url: string) => {
   try {
-    // DEV_MODE用ヘッダーの設定
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-
-    // DEV_MODEの場合はヘッダーを追加
-    if (typeof window !== 'undefined') {
-      const devUserId = localStorage.getItem('dev-mock-user-id');
-      if (devUserId) {
-        headers['x-dev-mode'] = 'true';
-        headers['x-user-id'] = devUserId;
-      }
-    }
 
     const response = await fetch(url, {
       credentials: 'include',
@@ -76,7 +66,6 @@ interface AuthContext {
   userId: string;
   role: 'admin' | 'operator' | 'sales' | 'accounting';
   userName: string;
-  isDevMode: boolean;
 }
 
 interface AdminDashboardClientProps {

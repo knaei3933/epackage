@@ -6,15 +6,45 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { Plus, Search, Filter, Download, RefreshCw, Package } from 'lucide-react';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { Button } from '@/components/ui/Button';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { Input } from '@/components/ui/Input';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { Select } from '@/components/ui/Select';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { ShipmentCard } from '@/components/admin/ShipmentCard';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { ShipmentCreateModal } from '@/components/admin/ShipmentCreateModal';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { ShipmentEditModal } from '@/components/admin/ShipmentEditModal';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { TrackingTimeline } from '@/components/admin/TrackingTimeline';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import { Edit3 } from 'lucide-react';
+
+// Force dynamic rendering (skip static generation)
+export const dynamic = "force-dynamic";
 import {
   Shipment,
   ShipmentStatus,

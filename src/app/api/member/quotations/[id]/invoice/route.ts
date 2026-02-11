@@ -91,7 +91,7 @@ export async function POST(
 ) {
   try {
     const params = await context.params;
-    const quotationId = params.id;
+    const { id: quotationId } = params;
 
     // 1. Authentication Check using @supabase/ssr
     const cookieStore = await cookies();

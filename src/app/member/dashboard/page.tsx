@@ -9,7 +9,6 @@
  * - 注文・見積・サンプルの最近のアクティビティ
  */
 
-import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError, getDashboardStats, getUnifiedDashboardStats } from '@/lib/dashboard';
 import {
@@ -17,7 +16,7 @@ import {
   AnnouncementCard,
   EmptyState
 } from '@/components/dashboard';
-import { FullPageSpinner, Card } from '@/components/ui';
+import { Card } from '@/components/ui';
 import { UnifiedDashboardClient } from './UnifiedDashboardClient';
 
 // =====================================================
@@ -60,19 +59,26 @@ function safeGet<T>(value: T | undefined | null, defaultValue: T): T {
 // =====================================================
 
 async function DashboardContent() {
+  console.log('[DashboardContent] START: Rendering dashboard content');
+
   // ⚡ OPTIMIZATION: 並列実行でFCP改善
   // requireAuth, getUnifiedDashboardStats, getDashboardStats を同時実行
 
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
+    console.log('[DashboardContent] Calling requireAuth...');
     user = await requireAuth();
+    console.log('[DashboardContent] requireAuth SUCCESS:', user.id);
   } catch (error) {
+    console.error('[DashboardContent] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {
       redirect('/auth/signin?redirect=/member/dashboard');
     }
     throw error;
   }
+
+  console.log('[DashboardContent] Fetching stats...');
 
   // ⚡ OPTIMIZATION: Promise.all()で並列実行
   const [initialStats, stats] = await Promise.all([
@@ -103,10 +109,14 @@ async function DashboardContent() {
     }),
   ]);
 
+  console.log('[DashboardContent] Stats fetched:', { initialStats, stats });
+
   // ユーザー名の取得
   const userName = user.user_metadata?.kanji_last_name ||
                    user.user_metadata?.name_kanji ||
                    'テスト';
+
+  console.log('[DashboardContent] userName:', userName);
 
   // 安全に各属性を抽出
   const orders = safeGet(stats.orders, { new: [], processing: [], total: 0 });
@@ -116,6 +126,8 @@ async function DashboardContent() {
   const announcements = safeGet(stats.announcements, []);
   const contracts = safeGet(stats.contracts, { pending: [], signed: 0, total: 0 });
   const notifications = safeGet(stats.notifications, []);
+
+  console.log('[DashboardContent] About to render JSX');
 
   return (
     <div className="space-y-6">
@@ -278,23 +290,13 @@ async function DashboardContent() {
 }
 
 // =====================================================
-// Loading Component
-// =====================================================
-
-function DashboardLoading() {
-  return <FullPageSpinner label="ダッシュボードを読み込み中..." />;
-}
-
-// =====================================================
 // Page Component
 // =====================================================
 
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<DashboardLoading />}>
-      <DashboardContent />
-    </Suspense>
-  );
+// Attempt 58: Remove Suspense wrapper for async Server Component (Next.js 15/16 compatibility)
+// async Server Components are automatically wrapped in Suspense by Next.js
+export default async function DashboardPage() {
+  return <DashboardContent />;
 }
 
 // =====================================================

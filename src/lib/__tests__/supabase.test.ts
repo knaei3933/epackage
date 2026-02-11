@@ -11,7 +11,6 @@ import { jest } from '@jest/globals'
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
 // Mock createClient before importing supabase module
 const mockCreateClient = jest.fn()
@@ -73,7 +72,6 @@ describe('Supabase Utilities', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
-    process.env.NEXT_PUBLIC_DEV_MODE = 'false'
 
     // Create fresh mock client for each test
     mockClient = createMockSupabaseClient()
@@ -177,16 +175,6 @@ describe('Supabase Utilities', () => {
       const result = await auth.getProfile('user-001')
 
       expect(result).toBeNull()
-    })
-
-    it('should return null for mock users in dev mode', async () => {
-      process.env.NODE_ENV = 'development'
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-
-      const result = await auth.getProfile('dev-user-001')
-
-      expect(result).toBeNull()
-      expect(mockClient.from).not.toHaveBeenCalled()
     })
   })
 
@@ -711,26 +699,6 @@ describe('Supabase Utilities', () => {
     it('should create client with cookie storage', async () => {
       const mockCookieStore = {
         get: jest.fn(() => ({ value: 'test-value' })),
-        set: jest.fn(),
-        delete: jest.fn(),
-      }
-
-      const result = await createSupabaseWithCookies(mockCookieStore as any)
-
-      expect(result).toBeDefined()
-    })
-
-    it('should create mock client in dev mode', async () => {
-      process.env.NODE_ENV = 'development'
-      process.env.NEXT_PUBLIC_DEV_MODE = 'true'
-
-      const mockCookieStore = {
-        get: jest.fn((key: string) => {
-          if (key === 'dev-mock-user-id') {
-            return { value: 'dev-user-001' }
-          }
-          return undefined
-        }),
         set: jest.fn(),
         delete: jest.fn(),
       }

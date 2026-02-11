@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,6 +53,8 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
   pathname,
   onItemClick
 }) => {
+  // ✅ PRIORITY 3: Use Next.js Router instead of window.location.href for proper session management
+  const router = useRouter();
   const hasSubMenu = item.subMenu && item.subMenu.length > 0;
 
   // 現在のパスに基づいてサブメニューを自動的に開く
@@ -84,7 +86,9 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
             setIsSubmenuOpen(!isSubmenuOpen);
           } else {
             e.preventDefault();
-            window.location.href = item.href;
+            // ✅ PRIORITY 3 FIX: Use Next.js router instead of window.location.href
+            // This preserves session cookies and prevents authentication loss
+            router.push(item.href);
             if (onItemClick) {
               onItemClick();
             }
@@ -142,6 +146,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
         >
           <div className="ml-8 mt-1 space-y-1 pb-2">
             {item.subMenu!.map((subItem) => {
+              // ✅ PRIORITY 3: Use Next.js Router for submenu items
               const SubIcon = subItem.icon;
               const isSubItemActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/');
 
@@ -151,7 +156,8 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
                   href={subItem.href}
                   onClick={(e) => {
                     e.preventDefault();
-                    window.location.href = subItem.href;
+                    // ✅ PRIORITY 3 FIX: Use Next.js router instead of window.location.href
+                    router.push(subItem.href);
                     if (onItemClick) onItemClick();
                   }}
                   className={`
@@ -390,6 +396,9 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   setIsMobileMenuOpen(false);
+                  // ✅ PRIORITY 3 FIX: Use Next.js router instead of window.location.href
+                  // Note: For logout, we still use window.location.href to ensure full page reload
+                  // and proper session cleanup, but we close the menu first
                   window.location.href = '/auth/logout';
                 }}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50 cursor-pointer"
@@ -467,6 +476,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
             href="/auth/logout"
             onClick={(e) => {
               e.preventDefault();
+              // ✅ PRIORITY 3 FIX: For logout, we use window.location.href to ensure full page reload
+              // This is intentional - logout needs a full page reload to clear all session state
               window.location.href = '/auth/logout';
             }}
             className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"

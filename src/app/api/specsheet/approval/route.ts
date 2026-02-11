@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
   try {
     // ✅ STEP 1: Check authentication (SECURE: using getUser() instead of getSession())
     // Initialize Supabase client using modern @supabase/ssr pattern
-    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { client: supabaseAuth } = await createSupabaseSSRClient($$$ARGS);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Initialize Supabase client for auth check
-    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { client: supabaseAuth } = await createSupabaseSSRClient($$$ARGS);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -340,7 +340,7 @@ interface PutBody {
 export async function PUT(request: NextRequest) {
   try {
     // Initialize Supabase client for auth check
-    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { client: supabaseAuth } = await createSupabaseSSRClient($$$ARGS);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
@@ -501,7 +501,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Initialize Supabase client for auth check
-    const { client: supabaseAuth } = createSupabaseSSRClient(request);
+    const { client: supabaseAuth } = await createSupabaseSSRClient($$$ARGS);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {

@@ -53,6 +53,9 @@ interface PendingMember {
   company_url: string | null;
   product_category: string | null;
   acquisition_channel: string | null;
+  representative_name: string | null;
+  founded_year: string | null;
+  capital: string | null;
   created_at: string;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
 }

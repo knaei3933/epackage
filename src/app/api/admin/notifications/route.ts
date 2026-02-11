@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    const { client: supabase } = createSupabaseSSRClient(request)
+    const { client: supabase } = await createSupabaseSSRClient(request)
 
     // Build query for unified_notifications with recipient_type = 'admin'
     let query = supabase
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     const { action } = body
 
     if (action === 'mark_all_read') {
-      const { client: supabase } = createSupabaseSSRClient(request)
+      const { client: supabase } = await createSupabaseSSRClient(request)
 
       // Mark all admin notifications as read
       const { error } = await supabase

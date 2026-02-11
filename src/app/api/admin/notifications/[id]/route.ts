@@ -31,7 +31,7 @@ export async function DELETE(
     }
 
     const { id } = await params
-    const { client: supabase } = createSupabaseSSRClient(request)
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS)
 
     // Delete notification using unified_notifications table
     const { error } = await supabase
@@ -76,7 +76,7 @@ export async function PUT(
     const { id } = await params
     const body = await request.json() as UpdateNotificationData
 
-    const { client: supabase } = createSupabaseSSRClient(request)
+    const { client: supabase } = await createSupabaseSSRClient($$$ARGS)
 
     // Build update object
     const updateData: Record<string, any> = {}

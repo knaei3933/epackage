@@ -43,7 +43,7 @@ async function fetchBillingAddresses(): Promise<BillingAddress[]> {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({ error: '住所の取得に失敗しました' }));
     throw new Error(error.error || '住所の取得に失敗しました');
   }
 
@@ -60,7 +60,7 @@ async function createBillingAddressAPI(formData: BillingAddressFormData): Promis
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({ error: '住所の作成に失敗しました' }));
     throw new Error(error.error || '住所の作成に失敗しました');
   }
 }
@@ -74,7 +74,7 @@ async function updateBillingAddressAPI(id: string, formData: BillingAddressFormD
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({ error: '住所の更新に失敗しました' }));
     throw new Error(error.error || '住所の更新に失敗しました');
   }
 }
@@ -86,7 +86,7 @@ async function deleteBillingAddressAPI(id: string): Promise<void> {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({ error: '住所の削除に失敗しました' }));
     throw new Error(error.error || '住所の削除に失敗しました');
   }
 }

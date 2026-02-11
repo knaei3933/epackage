@@ -24,7 +24,6 @@ export default function robots(): MetadataRoute.Robots {
 
           // Interactive tools (not indexable content)
           '/quote-simulator',
-          '/simulation',
 
           // Internal pages
           '/compare',

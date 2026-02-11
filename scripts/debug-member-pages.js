@@ -8,7 +8,6 @@ async function debugPages() {
   });
   const page = await context.newPage();
 
-  // Set DEV_MODE cookies before navigation
   await page.goto('http://localhost:3006/member/samples', {
     waitUntil: 'domcontentloaded',
     timeout: 60000

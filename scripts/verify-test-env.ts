@@ -4,7 +4,7 @@
  * Test Environment Verification Script
  *
  * This script verifies that the environment is correctly configured
- * for running Phase 4 Admin E2E tests with DEV_MODE enabled.
+ * for running Phase 4 Admin E2E tests.
  */
 
 import dotenv from 'dotenv';
@@ -40,18 +40,9 @@ for (const envFile of envFiles) {
   const parsed = dotenv.parse({ content: Buffer.from(content) });
 
   // Check key variables
-  const enableDevMockAuth = parsed.ENABLE_DEV_MOCK_AUTH;
   const nodeEnv = parsed.NODE_ENV;
 
-  console.log(`   ENABLE_DEV_MOCK_AUTH: ${enableDevMockAuth || '(not set)'}`);
   console.log(`   NODE_ENV: ${nodeEnv || '(not set)'}`);
-
-  if (enableDevMockAuth !== 'true') {
-    console.log(`   ⚠️  WARNING: ENABLE_DEV_MOCK_AUTH is not set to 'true'`);
-    console.log(`       Tests may fail due to authentication redirects`);
-  } else {
-    console.log(`   ✅ ENABLE_DEV_MOCK_AUTH is correctly set`);
-  }
 
   if (nodeEnv !== 'development' && nodeEnv !== 'test') {
     console.log(`   ⚠️  WARNING: NODE_ENV is '${nodeEnv}', expected 'development' or 'test'`);
@@ -102,8 +93,8 @@ console.log('========================================\n');
 if (hasErrors) {
   console.log('❌ Some issues were found. Please fix them before running tests.');
   console.log('\nCommon fixes:');
-  console.log('1. Ensure .env.local has ENABLE_DEV_MOCK_AUTH=true');
-  console.log('2. Ensure .env.test has ENABLE_DEV_MOCK_AUTH=true');
+  console.log('1. Ensure .env.local has correct Supabase credentials');
+  console.log('2. Ensure .env.test has correct Supabase credentials');
   console.log('3. Start the dev server: PORT=3002 npm run dev');
   console.log('4. Or start with default port and update .env.test BASE_URL');
   process.exit(1);

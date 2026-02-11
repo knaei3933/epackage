@@ -1,0 +1,31 @@
+Total messages: 29 (Errors: 0, Warnings: 0)
+
+[VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3003/auth/signin:0
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [HMR] connected @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Initializing auth context... @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Fetching session from /api/auth/current-user... @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [LoginForm] Attempt 52: URL parameter auth for: arwg22@gmail.com @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [LoginForm] Login successful @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [LoginForm] Redirecting to: /member/dashboard @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Fast Refresh] rebuilding @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [Fast Refresh] done in 291ms @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] START: Rendering dashboard content background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] Calling requireAuth... background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [RBAC] getRBACContext() called background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [HMR] connected @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Initializing auth context... @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Fetching session from /api/auth/current-user... @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Session updated successfully @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [RBAC] Found auth in middleware headers: background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {userId: 118b0906-4d3d-4a19-be96-7245e5492523, userRole: MEMBER, userStatus: ACTIVE} @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [requireAuth] Got user from RBAC context: background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   118b0906-4d3d-4a19-be96-7245e5492523 @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] requireAuth SUCCESS: background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   118b0906-4d3d-4a19-be96-7245e5492523 @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] Fetching stats... background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [getCurrentUserId] Server-side: Found user ID from headers: background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   118b0906-4d3d-4a19-be96-7245e5492523 @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] Stats fetched: background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {initialStats: Object, stats: Object} @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] userName: background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   試験 @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] %c%s%c [DashboardContent] About to render JSX background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Route changed, refreshing auth state: {from: /member/dashboard, to: /auth/signin} @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[LOG] [AuthContext] Fetching session from /api/auth/current-user... @ http://localhost:3003/_next/static/chunks/43a1a_next_dist_1566a296._.js:2297
+[VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3003/auth/signin?redirect=%2Fmember%2Fquotations:0

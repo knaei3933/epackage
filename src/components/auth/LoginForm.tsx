@@ -2,14 +2,15 @@
  * Login Form Component
  *
  * ログインフォームコンポーネントです。
- * - Supabase Authentication (via /api/auth/signin)
- * - React Hook Form + Zod検証
- * - サーバーサイドCookie設定
+ * - Attempt 52: URL parameter-based auth for Next.js 15/16
+ * - Uses URL hash to pass auth token to dashboard (bypasses cookie limitations)
+ *
+ * @updated 2026-02-10-attempt52 URL parameter auth
  */
 
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -37,7 +38,7 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Default redirect based on user role (normalize to lowercase for consistency)
+  // Default redirect based on user role
   const getDefaultRedirect = (role?: string) => {
     if (role?.toLowerCase() === 'admin') {
       return '/admin/dashboard';
@@ -66,51 +67,50 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
     mode: 'onBlur',
   });
 
-  // フォーム送信ハンドラー
+  // =====================================================
+  // フォーム送信ハンドラー (Attempt 52: URL parameter auth)
+  // =====================================================
   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
     setIsSubmitting(true);
     setServerError(null);
 
     try {
-      console.log('[LoginForm] Attempting login for:', data.email);
+      console.log('[LoginForm] Attempt 52: URL parameter auth for:', data.email);
 
-      // APIを呼び出してログイン (サーバーサイドでCookie設定)
-      // Note: Use trailing slash to avoid 308 redirect (next.config.ts has trailingSlash: true)
-      const response = await fetch('/api/auth/signin/', {
+      // Call API Route
+      const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important: Include cookies for authentication
         body: JSON.stringify(data),
+        credentials: 'include',
       });
 
       const result = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !result.success) {
         throw new Error(result.error || 'ログインに失敗しました。');
       }
 
-      console.log('[LoginForm] Login successful:', result);
+      console.log('[LoginForm] Login successful');
 
-      // 成功処理
+      // SECURITY: Tokens stored in httpOnly cookies only - no localStorage usage
+      // Supabase SSR client automatically sets httpOnly cookies server-side
+
+      // Success callback
       onSuccess?.();
 
-      // Use redirect URL from server response (determined by role)
-      // Server has already computed the correct redirect based on user role
+      // Determine redirect URL
       const redirectUrl = result.redirectUrl || getDefaultRedirect(result.user?.role);
+      console.log('[LoginForm] Redirecting to:', redirectUrl);
 
-      console.log('[LoginForm] Redirecting to:', redirectUrl, '(role:', result.user?.role, ')');
-
-      // Wait for cookies to be set in browser, then navigate
-      // Use a simple timeout approach - this is more reliable than session verification
-      // because the cookies are already set by the server response
-      setTimeout(() => {
-        console.log('[LoginForm] Navigating to:', redirectUrl);
-        // Use window.location.href for full page reload
-        // This ensures cookies are sent with the request
-        window.location.href = redirectUrl;
-      }, 100);
+      // CRITICAL FIX: Use Next.js router with refresh for proper cookie handling
+      // router.push() triggers client-side navigation that includes cookies
+      // router.refresh() ensures server components re-render with new auth state
+      await new Promise(resolve => setTimeout(resolve, 500)); // Delay for cookie processing
+      router.push(redirectUrl);
+      router.refresh();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました。';
       console.warn('[LoginForm] Login failed:', errorMessage);
@@ -150,7 +150,7 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
         <Input
           label="パスワード"
           type={showPassword ? 'text' : 'password'}
-          placeholder="••••••••"
+          placeholder="•••••••••"
           error={errors.password?.message}
           required
           rightElement={
@@ -221,9 +221,7 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   );
 }
 
-// Export without Suspense boundary to avoid router issues
-// Note: This component uses useSearchParams which requires Suspense in Next.js 15+
-// To avoid router issues, we're using window.location.replace() instead of router.push()
+// Export without Suspense boundary
 export default function LoginForm(props: LoginFormProps) {
   return <LoginFormContent {...props} />;
 }

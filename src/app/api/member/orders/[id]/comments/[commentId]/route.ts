@@ -58,7 +58,7 @@ export async function DELETE(
     console.log('[Delete Comment] Order ID:', orderId);
     console.log('[Delete Comment] Comment ID:', commentId);
 
-    const { client: supabase } = createSupabaseSSRClient(request);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     console.log('[Delete Comment] Getting user...');

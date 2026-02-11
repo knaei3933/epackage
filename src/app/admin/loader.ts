@@ -4,7 +4,6 @@
  * 管理者ページ用データローダー
  * - RBAC認証チェック
  * - Server Component用データフェッチ
- * - DEV_MODE対応
  */
 
 import { createServiceClient } from '@/lib/supabase';
