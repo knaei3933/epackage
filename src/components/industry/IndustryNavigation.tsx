@@ -62,7 +62,7 @@ function IndustryNavigationInner({ activeIndustry }: IndustryNavigationProps) {
                 key={industry.key}
                 href={industry.href}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  props.activeIndustry === industry.key
+                  activeIndustry === industry.key
                     ? 'bg-brixa-600 text-brixa-600 font-medium'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
@@ -72,7 +72,7 @@ function IndustryNavigationInner({ activeIndustry }: IndustryNavigationProps) {
                   <div className="font-medium">{industry.name}</div>
                   <div className="text-xs text-gray-500">{industry.description}</div>
                 </div>
-                {props.activeIndustry === industry.key && (
+                {activeIndustry === industry.key && (
                   <CheckCircle className="w-4 h-4 ml-auto" />
                 )}
               </Link>
@@ -85,10 +85,12 @@ function IndustryNavigationInner({ activeIndustry }: IndustryNavigationProps) {
 }
 
 // Wrapper component with Suspense boundary for usePathname
-export default function IndustryNavigation(props: IndustryNavigationProps) {
+export function IndustryNavigation(props: IndustryNavigationProps) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <IndustryNavigationInner {...props} />
     </Suspense>
   );
 }
+
+export default IndustryNavigation;

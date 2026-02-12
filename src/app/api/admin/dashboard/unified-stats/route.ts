@@ -14,6 +14,18 @@ import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('[API] Supabase environment variables not configured');
+      return NextResponse.json(
+        { error: 'Service unavailable - Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get('period')
       ? parseInt(searchParams.get('period')!)

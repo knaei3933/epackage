@@ -1522,15 +1522,13 @@ export async function getUnifiedDashboardStats(
 
   return unstable_cache(
     async () => {
-      if (userRole === 'ADMIN') {
-        return fetchAdminDashboardStats(userId, period);
-      } else {
-        return fetchMemberDashboardStats(userId, period);
-      }
+      return userRole === 'ADMIN'
+        ? fetchAdminDashboardStats(userId, period)
+        : fetchMemberDashboardStats(userId, period);
     },
     [cacheKey],
     { revalidate: 30 } // 30秒キャッシュ
-  )();
+  );
 }
 
 /**
@@ -1545,7 +1543,7 @@ export const createDashboardFetcher = () => {
     const response = await fetch(url, {
       credentials: 'include',
       headers,
-    });
+    }) as Response;
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
