@@ -36,7 +36,7 @@ export default function FlowPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-brixa-50 via-white to-navy-50">
+      <section className="py-20 bg-gradient-to-br from-brixa-50 via-white to-brixa-secondary-50">
         <Container size="6xl">
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <MotionWrapper delay={0.1}>
@@ -47,7 +47,7 @@ export default function FlowPage() {
 
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
                 <span className="block text-brixa-600">最新技術で製造</span>
-                <span className="block text-navy-600">高品質包装材</span>
+                <span className="block text-brixa-secondary-600">高品質包装材</span>
               </h1>
             </MotionWrapper>
 
@@ -94,7 +94,7 @@ export default function FlowPage() {
 
   
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-brixa-600 to-navy-600">
+      <section className="py-20 bg-gradient-to-r from-brixa-600 to-brixa-secondary-700">
         <Container size="4xl" className="text-center">
           <MotionWrapper delay={0.8}>
             <div className="space-y-8">

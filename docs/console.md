@@ -1,126 +1,338 @@
-(index):1 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-7mu4H06fwDCjmnxxr/xNHyuQC6pLTHr4M2E4jXw5WZs='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-7tP/zdrpq394XLkjZZJw9B5oYJ9v9tLxdage7caMqs0='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-/9nmyMHoMnZPnypi4p0uwM7wEmgrJdDcZTO0ww0kaV4='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-rNQ2Wy2+VSQlh/iyRhzhAxqdt6gCgFZw79NcNfbKN1I='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-7tP/zdrpq394XLkjZZJw9B5oYJ9v9tLxdage7caMqs0='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-vY/p7HnZxfO2B/m0qYHWzLIWyTuj6x8YnJxvog8gldE='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-KCj/uhOjQciDloxi+9f38g5bySW4UA3FiM9xgu6vmi0='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-Pr/KKijavwsbR0ctRP0HZRYVU5evkwYwf7Jp+WKaHXE='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-933n9dB3zrpePJuHmX4ilPL2DhH6H4XqaIvl0vIrkRM='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-BtQKLsFxz9EtDxpgc/V3NKeAERPlyWGFFxyNwYnruMw='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-SQbWtvD6a3PG4W5U4BizmwORn+Zi6uP+9ycBbGFzV2I='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-gKlFWYQJNDUxAykdBimqFSU1zJXr0HrQEW+LwLu43v0='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-TXdjmcZzmcJaBpCvmmRwS3Bup0Jz1EVtVzJZuKvd/Sk='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):1 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-LcsuUMiDkprrt6ZKeiLP4iYNhWo8NqaSbAgtoZxVK3s='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):1 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-QAlSewaQLi/NPCznjAZSyvQ72heD0VdxmNDDkZeCxgc='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-D9S5KXsSSajKKVF3Jf+B22EHGKgFWMmaLff5rY6FNZc='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-iqo3zIm8vFVVhuaCOkcJnWz8BdXet2sZvmnFFAqs2TQ='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-M5mvz8hKSJX08Ll4PdNWDJGu/BXyLAKwMk/XOwyPdgI='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-bWUhum46+LjiFlK8JOAiVVXE8kr9271TRpZxxQ0LLX8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-P1WcItQJqorVtHPl5zXOf44dcpPfVA86U1CB5G8E2do='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-Js6ZDovSVuwohMfheawgz9NKn5okA0jwbQvy2rwe3KE='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-KYqDutyyohQ+tqNeLlo8lDTXLfftBZr/5WNmbpS+jUk='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-ySIQswXxEe5TXzkK/uYJ/2sNxETGsqEuOrG1301KgHM='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):2 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-HuHMKeGi8boOr5VYpLBV2jnxfv5axAMW37VEBf4w0yc='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-tTgjrFAQDNcRW/9ebtwfDewCTgZMFnKpGa9tcHFyvcs='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-GjjI5nGI/gQ8aWptwmSMGcokWm7rHCDHkYTBec2IOXg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-7ZNY+KqjKfGhjVGzM1Yt9rKVOeZCBSCmL0bx9/xYxiI='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-MJ1Ml6ktFuMeqDbnpErWWWzxTNkJKipLznS8VHIUQeI='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ozz9XpS1LniSBlkkdZEZmoKH2zdn9kcB/ygtUJLDA/c='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ozz9XpS1LniSBlkkdZEZmoKH2zdn9kcB/ygtUJLDA/c='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ozz9XpS1LniSBlkkdZEZmoKH2zdn9kcB/ygtUJLDA/c='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-Bo7bn8raXe1uPH4ELDUq9Zvnwd/gJ9S22zBr8B8Kt/E='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-Bo7bn8raXe1uPH4ELDUq9Zvnwd/gJ9S22zBr8B8Kt/E='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-Bo7bn8raXe1uPH4ELDUq9Zvnwd/gJ9S22zBr8B8Kt/E='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-68ahHyH65aqS202beKyu22MkdAEr0fBCN3eHnbYX+wg='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-LKiE90q6dW3Q4KC3oQJ2lXAkqsnB99W8mFGobqlaWkU='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zk74Ex68MGQQlPvHHvFAEPv9pDw9r9MaOU8TfYKu/qQ='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-ZDrxqUOB4m/L0JWL/+gS52g1CRH0l/qwMhjTw5Z/Fsc='), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. The action has been blocked.
-(index):156 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-fOc2zpSAUMIog2IeVwKwCFo8GHW2+DAqH8Mle+kD648='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-(index):156 Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://js.sendgrid.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-p7GE78bbMHDrE4IWzpiMSttAsTpUu7wwi5/wvnH54Os='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.
-3794-c3a42373eff782f5.js:2 Uncaught (in promise) Error: Connection closed.
-    at eo (3794-c3a42373eff782f5.js:2:26871)
-    at t (3794-c3a42373eff782f5.js:2:27226)
 2985-5cc3f481bb5e4558.js:1 [supabase-browser] Credentials not configured, returning mock client
 (anonymous) @ 2985-5cc3f481bb5e4558.js:1
-/images/hero-screenshot.jpg:1  GET https://www.package-lab.com/images/hero-screenshot.jpg 404 (Not Found)
-(index):1 Error while trying to use the following icon from the Manifest: https://www.package-lab.com/images/hero-screenshot.jpg (Download error or resource isn't a valid image)
+22308 @ 2985-5cc3f481bb5e4558.js:1
+f @ webpack-840d925f0bac9819.js:1
+32985 @ 2985-5cc3f481bb5e4558.js:1
+f @ webpack-840d925f0bac9819.js:1
+34001 @ layout-45f910680ef9192c.js:1
+f @ webpack-840d925f0bac9819.js:1
+Promise.then
+33827 @ layout-45f910680ef9192c.js:1
+f @ webpack-840d925f0bac9819.js:1
+(anonymous) @ layout-45f910680ef9192c.js:1
+(anonymous) @ webpack-840d925f0bac9819.js:1
+(anonymous) @ layout-45f910680ef9192c.js:1
+c @ webpack-840d925f0bac9819.js:1
+(anonymous) @ webpack-840d925f0bac9819.js:1
+(anonymous) @ webpack-840d925f0bac9819.js:1
+2985-5cc3f481bb5e4558.js:1 [AuthContext] Initializing auth context...
+2985-5cc3f481bb5e4558.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 1}
+2985-5cc3f481bb5e4558.js:1  GET https://www.package-lab.com/api/auth/current-user 500 (Internal Server Error)
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+iy @ 4bd1b696-43ba64781d20dbb7.js:1
+e @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+sC @ 4bd1b696-43ba64781d20dbb7.js:1
+(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
+w @ 3794-c3a42373eff782f5.js:1
+2985-5cc3f481bb5e4558.js:1 [AuthContext] Session fetch failed: 500
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+await in (anonymous)
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+iy @ 4bd1b696-43ba64781d20dbb7.js:1
+e @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+sC @ 4bd1b696-43ba64781d20dbb7.js:1
+(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
+w @ 3794-c3a42373eff782f5.js:1
+2985-5cc3f481bb5e4558.js:1 [AuthContext] Route changed, refreshing auth state: {from: '/archives', to: '/auth/signin'}
+2985-5cc3f481bb5e4558.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 2}
+3794-c3a42373eff782f5.js:1  GET https://www.package-lab.com/auth?_rsc=1u2lf 500 (Internal Server Error)
+m @ 3794-c3a42373eff782f5.js:1
+er @ 3794-c3a42373eff782f5.js:1
+Y @ 3794-c3a42373eff782f5.js:1
+(anonymous) @ 3794-c3a42373eff782f5.js:1
+(anonymous) @ 3794-c3a42373eff782f5.js:1
+C @ 3794-c3a42373eff782f5.js:1
+2985-5cc3f481bb5e4558.js:1  GET https://www.package-lab.com/api/auth/current-user 500 (Internal Server Error)
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+iy @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+sC @ 4bd1b696-43ba64781d20dbb7.js:1
+sN @ 4bd1b696-43ba64781d20dbb7.js:1
+sW @ 4bd1b696-43ba64781d20dbb7.js:1
+s$ @ 4bd1b696-43ba64781d20dbb7.js:1
+sE @ 4bd1b696-43ba64781d20dbb7.js:1
+sy @ 4bd1b696-43ba64781d20dbb7.js:1
+st @ 4bd1b696-43ba64781d20dbb7.js:1
+sn @ 4bd1b696-43ba64781d20dbb7.js:1
+sQ @ 4bd1b696-43ba64781d20dbb7.js:1
+w @ 3794-c3a42373eff782f5.js:1
+2985-5cc3f481bb5e4558.js:1 [AuthContext] Session fetch failed: 500
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+await in (anonymous)
+(anonymous) @ 2985-5cc3f481bb5e4558.js:1
+iy @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+up @ 4bd1b696-43ba64781d20dbb7.js:1
+um @ 4bd1b696-43ba64781d20dbb7.js:1
+sC @ 4bd1b696-43ba64781d20dbb7.js:1
+sN @ 4bd1b696-43ba64781d20dbb7.js:1
+sW @ 4bd1b696-43ba64781d20dbb7.js:1
+s$ @ 4bd1b696-43ba64781d20dbb7.js:1
+sE @ 4bd1b696-43ba64781d20dbb7.js:1
+sy @ 4bd1b696-43ba64781d20dbb7.js:1
+st @ 4bd1b696-43ba64781d20dbb7.js:1
+sn @ 4bd1b696-43ba64781d20dbb7.js:1
+sQ @ 4bd1b696-43ba64781d20dbb7.js:1
+w @ 3794-c3a42373eff782f5.js:1
+layout-45f910680ef9192c.js:1 [LoginForm] Attempt 52: URL parameter auth for: arwg22@gmail.com
+layout-45f910680ef9192c.js:1  POST https://www.package-lab.com/api/auth/signin 500 (Internal Server Error)
+v @ layout-45f910680ef9192c.js:1
+(anonymous) @ 9504-3c9b66dbb20136dc.js:1
+await in (anonymous)
+s0 @ 4bd1b696-43ba64781d20dbb7.js:1
+(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
+nU @ 4bd1b696-43ba64781d20dbb7.js:1
+s8 @ 4bd1b696-43ba64781d20dbb7.js:1
+fL @ 4bd1b696-43ba64781d20dbb7.js:1
+fT @ 4bd1b696-43ba64781d20dbb7.js:1
+layout-45f910680ef9192c.js:1 [LoginForm] Login failed: Supabase not configured
+v @ layout-45f910680ef9192c.js:1
+await in v
+(anonymous) @ 9504-3c9b66dbb20136dc.js:1
+await in (anonymous)
+s0 @ 4bd1b696-43ba64781d20dbb7.js:1
+(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
+nU @ 4bd1b696-43ba64781d20dbb7.js:1
+s8 @ 4bd1b696-43ba64781d20dbb7.js:1
+fL @ 4bd1b696-43ba64781d20dbb7.js:1
+fT @ 4bd1b696-43ba64781d20dbb7.js:1
