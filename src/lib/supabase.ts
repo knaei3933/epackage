@@ -30,8 +30,20 @@ let serverClient: any = null
 export const getServerClient = () => {
   if (serverClient) return serverClient
 
+  // During build or when credentials not available, return mock client
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase credentials not configured')
+    console.warn('[getServerClient] Credentials not configured, using mock client')
+    return {
+      from: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      select: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      insert: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      update: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      delete: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      rpc: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      auth: {
+        getUser: async () => ({ data: { user: null }, error: { message: 'Not configured' } }),
+      },
+    } as any
   }
 
   serverClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -324,13 +336,28 @@ export const createSupabaseWithCookies = async (cookieStore: {
     set: (key: string, value: string, options?: { httpOnly?: boolean; secure?: boolean; sameSite?: string; path?: string }) => void;
     delete: (key: string) => void;
 }) => {
-    if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Supabase credentials not configured');
+    // Check env vars at runtime, not module load time
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!url || !key) {
+        console.warn('[createSupabaseWithCookies] Credentials not configured, using mock client');
+        return {
+            from: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            select: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            insert: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            update: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            delete: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            rpc: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            auth: {
+                getUser: async () => ({ data: { user: null }, error: { message: 'Not configured' } }),
+            },
+        } as any;
     }
 
     const { createClient } = await import('@supabase/supabase-js');
 
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    return createClient(url, key, {
         auth: {
             storage: {
                 getItem: (key: string) => {
