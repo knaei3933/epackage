@@ -19,12 +19,22 @@ import { sendKoreaDataTransferWithAttachments } from '@/lib/email';
 // Environment Variables
 // =====================================================
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const getSupabaseClient = (request: NextRequest) => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+    },
+  });
+};
 
 // =====================================================
 // Types
@@ -63,7 +73,7 @@ export async function POST(
 ) {
   try {
     // 1. Authenticate user
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    const supabase = getSupabaseClient(request);
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value;
