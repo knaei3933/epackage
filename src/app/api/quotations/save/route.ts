@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
-// Helper: Create Supabase client with cookie support
+// Helper: Create Supabase client with cookie support (env check moved to runtime)
 async function createSupabaseClient() {
   const cookieStore = await cookies();
 
@@ -81,7 +81,7 @@ interface SaveRequestBody {
   adjustedTotal?: number;
 }
 
-// Helper: Get service role client
+// Helper: Get service role client (env check moved to runtime)
 function getServiceRoleClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

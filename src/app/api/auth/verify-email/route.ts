@@ -39,7 +39,7 @@ async function createSupabaseClient() {
   )
 }
 
-// Service client for admin operations (bypasses RLS)
+// Service client for admin operations (bypasses RLS) - moved check inside function body
 function createServiceClient(userId: string) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('Supabase service credentials not configured')

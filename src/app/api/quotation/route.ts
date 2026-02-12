@@ -22,7 +22,7 @@ const createQuotationSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Helper: Create Supabase client with cookie support
+// Helper: Create Supabase client with cookie support (env check moved to runtime)
 async function createSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

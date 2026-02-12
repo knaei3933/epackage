@@ -20,8 +20,9 @@ import { notifyModificationApproved, notifyModificationRejected } from '@/lib/ad
 // Environment Variables
 // ============================================================
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Env vars checked at runtime in handler function
+const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // ============================================================
 // Types
@@ -60,7 +61,7 @@ export async function PUT(
     }
 
     // Use service client (RLS bypass) - we already validated via middleware
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl(), supabaseServiceKey());
     console.log('[Modification Approval API] User ID:', userId);
     console.log('[Modification Approval API] Order ID:', orderId);
 

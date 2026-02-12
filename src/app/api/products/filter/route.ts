@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
  * This replaces the raw SQL approach with proper Supabase client methods
  */
 async function executeSQL(query: string, params: (string | number)[]): Promise<any[]> {
-  // Dynamic import to avoid edge execution issues
+  // Dynamic import to avoid edge execution issues (env check now at runtime)
   const { createClient } = await import('@supabase/supabase-js')
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

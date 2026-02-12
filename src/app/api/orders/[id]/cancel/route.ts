@@ -24,15 +24,7 @@ import {
 } from '@/lib/state-machine/order-machine';
 import type { OrderStatus } from '@/types/order-status';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabaseUrlTyped = supabaseUrl as string;
-const supabaseAnonKeyTyped = supabaseAnonKey as string;
+// Module-level env check removed - moved inside route handler to avoid build-time errors
 
 // ============================================================
 // Types

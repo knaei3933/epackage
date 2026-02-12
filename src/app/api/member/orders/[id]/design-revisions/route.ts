@@ -13,14 +13,15 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Env vars checked at runtime in handler function
+const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
 
 // サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl, supabaseServiceKey, {
+const getServiceClient = () => createClient(supabaseUrl(), supabaseServiceKey(), {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
@@ -39,8 +40,8 @@ export async function GET(
     // SSR Client for authentication
     const cookieStore = await cookies();
     const supabaseAuth = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
+      supabaseUrl(),
+      supabaseAnonKey(),
       {
         cookies: {
           get: (name) => cookieStore.get(name)?.value,
@@ -131,8 +132,8 @@ export async function PATCH(
     // SSR Client for authentication
     const cookieStore = await cookies();
     const supabaseAuth = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
+      supabaseUrl(),
+      supabaseAnonKey(),
       {
         cookies: {
           get: (name) => cookieStore.get(name)?.value,

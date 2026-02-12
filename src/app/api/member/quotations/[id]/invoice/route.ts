@@ -96,18 +96,8 @@ interface InvoiceResponse {
 }
 
 // ============================================================
-// Environment Variables
-// ============================================================
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-// ============================================================
 // POST: Generate Invoice PDF Data
+// Note: Environment variables are checked at runtime in getSupabaseClient()
 // ============================================================
 
 export async function POST(

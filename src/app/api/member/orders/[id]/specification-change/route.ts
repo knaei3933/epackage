@@ -15,8 +15,9 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { UnifiedNotificationService } from '@/lib/unified-notifications';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Env vars checked at runtime in handler function
+const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 interface Specification {
   width: number;
@@ -45,7 +46,7 @@ export async function POST(
     // 認証確認
     const cookieStore = await cookies();
     const supabase = createClient(
-      supabaseUrl!,
+      supabaseUrl(),
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const locale = searchParams.get('locale') || 'ja'
     const activeOnly = searchParams.get('activeOnly') !== 'false'
 
-    // Initialize Supabase client
+    // Initialize Supabase client (runtime env check - moved from module level)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
