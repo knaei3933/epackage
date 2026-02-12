@@ -46,11 +46,24 @@ export const getServerClient = () => {
 
 // Service client for admin operations (server-side only)
 export const createServiceClient = () => {
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase service credentials not configured')
+    // Read env vars at function call time, not module load time
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    if (!url || !key) {
+        // During build, return a mock client to prevent errors
+        console.warn('[createServiceClient] Credentials not configured, using mock client');
+        return {
+            from: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            select: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            insert: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            update: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            delete: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            rpc: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+        } as any;
     }
 
-    return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+    return createClient<Database>(url, key, {
         auth: {
             autoRefreshToken: false,
             persistSession: false
