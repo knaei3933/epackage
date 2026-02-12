@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -221,7 +221,11 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   );
 }
 
-// Export without Suspense boundary
+// Export with Suspense boundary for useSearchParams()
 export default function LoginForm(props: LoginFormProps) {
-  return <LoginFormContent {...props} />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginFormContent {...props} />
+    </Suspense>
+  );
 }

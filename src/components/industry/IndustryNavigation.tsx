@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
+import { Suspense } from 'react'
 
 interface IndustryNavigationProps {
   activeIndustry: string
 }
 
-export function IndustryNavigation({ activeIndustry }: IndustryNavigationProps) {
+function IndustryNavigationContent({ activeIndustry }: IndustryNavigationProps) {
   const pathname = usePathname()
 
   const industries = [
@@ -109,4 +110,12 @@ export function IndustryNavigation({ activeIndustry }: IndustryNavigationProps) 
       </div>
     </nav>
   )
+}
+
+export default function IndustryNavigation(props: IndustryNavigationProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <IndustryNavigationContent {...props} />
+    </Suspense>
+  );
 }

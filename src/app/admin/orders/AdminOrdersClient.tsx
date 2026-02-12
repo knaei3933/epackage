@@ -8,7 +8,7 @@
  * - UI/インタラクションを担当
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase-browser';
 import { OrderStatus, getStatusLabel, ORDER_STATUS_LABELS } from '@/types/order-status';
@@ -38,7 +38,7 @@ interface AdminOrdersClientProps {
   quotationFilter?: string;
 }
 
-export default function AdminOrdersClient({ authContext, initialStatus, initialOrders = [], quotationFilter }: AdminOrdersClientProps) {
+function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = [], quotationFilter }: AdminOrdersClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -384,5 +384,14 @@ export default function AdminOrdersClient({ authContext, initialStatus, initialO
         )}
       </div>
     </div>
+  );
+}
+
+// Suspense boundary for useSearchParams
+export default function AdminOrdersClient(props: AdminOrdersClientProps) {
+  return (
+    <Suspense fallback={<div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-1/4"></div><div className="h-64 bg-gray-200 rounded"></div></div>}>
+      <AdminOrdersClientContent {...props} />
+    </Suspense>
   );
 }

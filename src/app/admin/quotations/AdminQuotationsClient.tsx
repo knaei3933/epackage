@@ -8,7 +8,7 @@
  * - UI/インタラクションを担当
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Badge, Button } from '@/components/ui';
 import { DetailedCostBreakdown } from '@/components/admin/quotation/DetailedCostBreakdown';
@@ -106,7 +106,7 @@ const STATUS_LABELS: Record<string, { label: string; variant: 'success' | 'warni
   'converted': { label: '注文変換済み', variant: 'success' },
 };
 
-export default function AdminQuotationsClient({ authContext, initialStatus }: AdminQuotationsClientProps) {
+function AdminQuotationsClientContent({ authContext, initialStatus }: AdminQuotationsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
@@ -422,6 +422,15 @@ export default function AdminQuotationsClient({ authContext, initialStatus }: Ad
         }}
       />
     </div>
+  );
+}
+
+// Suspense boundary for useSearchParams
+export default function AdminQuotationsClient(props: AdminQuotationsClientProps) {
+  return (
+    <Suspense fallback={<div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-1/4"></div><div className="grid grid-cols-4 gap-4"><div className="h-24 bg-gray-200 rounded"></div><div className="h-24 bg-gray-200 rounded"></div><div className="h-24 bg-gray-200 rounded"></div><div className="h-24 bg-gray-200 rounded"></div></div></div>}>
+      <AdminQuotationsClientContent {...props} />
+    </Suspense>
   );
 }
 

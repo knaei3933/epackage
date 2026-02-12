@@ -1,5 +1,9 @@
 // UI Components Export
 
+// Layout Components
+export { Container } from './Container';
+export type { ContainerProps } from './Container';
+
 // Catalog Components
 export { ProductFAQ } from '../catalog/ProductFAQ';
 export { ProductDownloads } from '../catalog/ProductDownloads';
@@ -36,101 +40,16 @@ export type { TextareaProps } from './Textarea';
 export { Select, selectVariants } from './Select';
 export type { SelectOption } from './Select';
 
-// Layout Components
-export { Container, containerVariants } from './Container';
-export type { ContainerProps } from './Container';
+// Typography Components
+export { Badge } from './Badge';
+export { CurrencyBadge } from './CurrencyBadge';
+export { TagBadge } from './TagBadge';
 
-export { Grid, GridItem, gridVariants, gridItemVariants } from './Grid';
-export type { GridProps, GridItemProps } from './Grid';
+// Loading Components
+export { LoadingSpinner } from './LoadingSpinner';
+export { PageSpinner } from './PageSpinner';
+export { ButtonSpinner } from './ButtonSpinner';
 
-export { Flex, FlexItem, flexVariants, flexItemVariants } from './Flex';
-export type { FlexProps, FlexItemProps } from './Flex';
-
-// Card Components
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-  cardVariants
-} from './Card';
-export type {
-  CardProps,
-  CardHeaderProps,
-  CardFooterProps
-} from './Card';
-
-// Badge Components
-export {
-  Badge,
-  badgeVariants,
-  StatusBadge,
-  CurrencyBadge,
-  TagBadge
-} from './Badge';
-export type { BadgeProps } from './Badge';
-
-// Avatar Components
-export {
-  Avatar,
-  AvatarFallback,
-  AvatarImage
-} from './Avatar';
-
-// Empty State Component
-export { EmptyState } from './EmptyState';
-
-// Loading Component
-export {
-  LoadingSpinner,
-  PageSpinner,
-  ButtonSpinner,
-  CardSpinner,
-  FullPageSpinner,
-} from './LoadingSpinner';
-export type { LoadingSpinnerProps } from './LoadingSpinner';
-
-// Loading State Component
-export {
-  LoadingState,
-  PageLoadingState,
-  CardLoadingState,
-  InlineLoadingState,
-} from './LoadingState';
+// Loading States
+export { LoadingState as PageLoading } from './LoadingState';
 export type { LoadingStateProps } from './LoadingState';
-
-// Wizard Component
-export { Wizard } from './Wizard';
-export type { WizardProps, WizardStep } from './Wizard';
-
-// Accordion Component
-export { AccordionItem, AccordionSection } from './Accordion';
-export type { AccordionItemProps, AccordionSectionProps } from './Accordion';
-
-// Dialog Component
-export {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-} from './dialog';
-
-// Confirm Modal Component
-export {
-  ConfirmModal,
-  useConfirmModal,
-} from './ConfirmModal';
-export type { ConfirmModalProps, ConfirmVariant, UseConfirmModalResult } from './ConfirmModal';
-
-// Tabs Component
-export {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from './tabs';

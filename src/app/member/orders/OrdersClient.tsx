@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Button, Input, PageLoadingState } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
@@ -172,7 +172,7 @@ function TabButton({ active, onClick, icon, label, count }: TabButtonProps) {
 // Page Component
 // =====================================================
 
-export function OrdersClient({ userId }: OrdersClientProps) {
+function OrdersClientContent({ userId }: OrdersClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -614,5 +614,14 @@ export function OrdersClient({ userId }: OrdersClientProps) {
         </div>
       )}
     </div>
+  );
+}
+
+// Suspense boundary for useSearchParams
+export function OrdersClient(props: OrdersClientProps) {
+  return (
+    <Suspense fallback={<PageLoadingState isLoading={true} message="注文一覧を読み込み中..." />}>
+      <OrdersClientContent {...props} />
+    </Suspense>
   );
 }

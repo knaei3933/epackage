@@ -57,11 +57,12 @@ async function QuotationsContent({ searchParams }: { searchParams: { status?: st
 export default async function AdminQuotationsPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
+  const params = await searchParams;
   return (
     <Suspense fallback={<FullPageSpinner label="見積もりリストを読み込み中..." />}>
-      <QuotationsContent searchParams={searchParams} />
+      <QuotationsContent searchParams={params} />
     </Suspense>
   );
 }

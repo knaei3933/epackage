@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Badge, Button, PageLoadingState } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
@@ -359,7 +359,7 @@ function SpecificationDisplay({ item }: { item: any }) {
 // Client Component
 // =====================================================
 
-export default function QuotationsClient({ initialData, initialStatus, currentPage, totalPages }: QuotationsClientProps) {
+function QuotationsClientContent({ initialData, initialStatus, currentPage, totalPages }: QuotationsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, profile, isLoading: authLoading } = useAuth();
@@ -1006,5 +1006,14 @@ export default function QuotationsClient({ initialData, initialStatus, currentPa
         />
       )}
     </div>
+  );
+}
+
+// Suspense boundary for useSearchParams
+export default function QuotationsClient(props: QuotationsClientProps) {
+  return (
+    <Suspense fallback={<PageLoadingState isLoading={true} message="見積依頼を読み込み中..." />}>
+      <QuotationsClientContent {...props} />
+    </Suspense>
   );
 }

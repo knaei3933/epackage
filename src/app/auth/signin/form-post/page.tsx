@@ -11,12 +11,13 @@ import { redirect } from 'next/navigation';
 // Page Component
 // =====================================================
 
-export default function SignInPage({
+export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: { redirect?: string };
+  searchParams: Promise<{ redirect?: string }>;
 }) {
-  const redirectUrl = searchParams.redirect || '/member/dashboard';
+  const params = await searchParams;
+  const redirectUrl = params.redirect || '/member/dashboard';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

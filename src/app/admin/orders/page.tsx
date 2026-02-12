@@ -38,7 +38,7 @@ interface Order {
 // Server-Side Data Fetching
 // ============================================================
 
-async function OrdersContent({ searchParams }: { searchParams: Promise<{ status?: string; quotation?: string }> }) {
+async function OrdersContent({ searchParams }: { searchParams: { status?: string; quotation?: string } }) {
   // RBAC認証チェック
   let authContext: AuthContext;
   try {
@@ -51,9 +51,8 @@ async function OrdersContent({ searchParams }: { searchParams: Promise<{ status?
   }
 
   // URLパラメータからステータスと見積もりIDを取得
-  const params = await searchParams;
-  const initialStatus = params.status || 'all';
-  const quotationId = params.quotation;
+  const initialStatus = searchParams.status || 'all';
+  const quotationId = searchParams.quotation;
 
   // サーバーサイドで注文データを取得
   const supabaseService = createServiceClient();
@@ -93,11 +92,12 @@ async function OrdersContent({ searchParams }: { searchParams: Promise<{ status?
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: { status?: string; quotation?: string };
+  searchParams: Promise<{ status?: string; quotation?: string }>;
 }) {
+  const params = await searchParams;
   return (
     <Suspense fallback={<FullPageSpinner label="注文リストを読み込み中..." />}>
-      <OrdersContent searchParams={searchParams} />
+      <OrdersContent searchParams={params} />
     </Suspense>
   );
 }
