@@ -3,6 +3,7 @@
 // Layout Components
 export { Container } from './Container';
 export type { ContainerProps } from './Container';
+export { Flex } from './Flex';
 
 // Catalog Components
 export { ProductFAQ } from '../catalog/ProductFAQ';
@@ -31,6 +32,15 @@ export type { MotionWrapperProps } from './MotionWrapper';
 export { Button, buttonVariants } from './Button';
 export type { ButtonProps } from './Button';
 
+// Card Component
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
+export type { CardProps, CardHeaderProps, CardTitleProps, CardDescriptionProps, CardContentProps, CardFooterProps } from './Card';
+
+// Grid Component
+export { Grid, GridItem } from './Grid';
+export type { GridProps } from './Grid';
+export type { GridItemProps } from './Grid';
+
 export { Input, inputVariants } from './Input';
 export type { InputProps } from './Input';
 
@@ -42,14 +52,19 @@ export type { SelectOption } from './Select';
 
 // Typography Components
 export { Badge } from './Badge';
-export { CurrencyBadge } from './CurrencyBadge';
-export { TagBadge } from './TagBadge';
+export { StatusBadge } from './Badge';
+export { CurrencyBadge } from './Badge';
+export { TagBadge } from './Badge';
 
-// Loading Components
+// Loading States
 export { LoadingSpinner } from './LoadingSpinner';
-export { PageSpinner } from './PageSpinner';
-export { ButtonSpinner } from './ButtonSpinner';
 
 // Loading States
 export { LoadingState as PageLoading } from './LoadingState';
+export { PageLoadingState } from './LoadingState';
+export { CardLoadingState } from './LoadingState';
+export { InlineLoadingState } from './LoadingState';
 export type { LoadingStateProps } from './LoadingState';
+
+// Empty State
+export { EmptyState } from './EmptyState';
