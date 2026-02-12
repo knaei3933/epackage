@@ -8,32 +8,23 @@
  * - ✅ エラーハンドリング改善
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabaseUrlTyped = supabaseUrl as string;
-const supabaseServiceKeyTyped = supabaseServiceKey as string;
-const supabaseAnonKeyTyped = supabaseAnonKey as string;
-
-// Service role client for RLS bypass
-const supabaseService = createClient(supabaseUrlTyped, supabaseServiceKeyTyped);
 
 // Helper: Create Supabase client with cookie support
 async function createSupabaseClient() {
   const cookieStore = await cookies();
 
-  return createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+  // Get environment variables at request time
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       storage: {
         getItem: (key: string) => {
@@ -90,11 +81,26 @@ interface SaveRequestBody {
   adjustedTotal?: number;
 }
 
+// Helper: Get service role client
+function getServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
+
+export const dynamic = 'force-dynamic';
+
 // POST: 新しい見積を作成
 // ✅ quotation_itemsテーブルにもレコードを作成
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseClient();
+    const supabaseService = getServiceRoleClient();
 
     // セッション確認
     const { data: { user }, error: userError } = await supabase.auth.getUser();

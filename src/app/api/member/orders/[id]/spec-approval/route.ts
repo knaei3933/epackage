@@ -10,23 +10,33 @@
  * @route /api/member/orders/[id]/spec-approval
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendTemplatedEmail } from '@/lib/email';
 import { orderStatusEmails } from '@/lib/email/order-status-emails';
 import type { OrderStatus } from '@/types/order-status';
 
+export const dynamic = 'force-dynamic';
+
 // =====================================================
-// Environment Variables
+// Helper: Get Supabase client
 // =====================================================
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function getSupabaseClient(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+    },
+  });
 }
 
 // =====================================================
@@ -65,13 +75,7 @@ export async function POST(
 ) {
   try {
     // 1. Authenticate user
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
+    const supabase = getSupabaseClient(request);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -342,13 +346,7 @@ export async function GET(
 ) {
   try {
     // Authenticate
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
+    const supabase = getSupabaseClient(request);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 

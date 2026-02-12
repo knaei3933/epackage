@@ -8,10 +8,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Helper function to create service role client
 function createServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error('Missing Supabase environment variables');
@@ -24,9 +27,6 @@ function createServiceRoleClient() {
     },
   });
 }
-
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
 interface UpdateShipmentRequest {
   tracking_number?: string;

@@ -7,11 +7,34 @@
  * - Returns invoice data for client-side PDF generation
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+
+export const dynamic = 'force-dynamic';
+
+// ============================================================
+// Helper: Get Supabase client
+// ============================================================
+
+async function getSupabaseClient() {
+  const cookieStore = await cookies();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
+      },
+    },
+  });
+}
 
 // ============================================================
 // Types
@@ -96,18 +119,7 @@ export async function POST(
     const { id: quotationId } = params;
 
     // 1. Authentication Check using @supabase/ssr
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      supabaseUrl!,
-      supabaseAnonKey!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
+    const supabase = await getSupabaseClient();
 
     // Normal auth: Use cookie-based auth with getUser()
     const { data: { user }, error: userError } = await supabase.auth.getUser();

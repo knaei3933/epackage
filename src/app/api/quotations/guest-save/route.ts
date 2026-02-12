@@ -5,24 +5,23 @@
  * POST /api/quotations/guest-save - ログインなしで見積を作成
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Helper function to create service role client
+function getServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-const supabaseUrlTyped = supabaseUrl as string;
-const supabaseServiceKeyTyped = supabaseServiceKey as string;
-
-// Service role client for RLS bypass
-const supabase = createClient(supabaseUrlTyped, supabaseServiceKeyTyped);
+export const dynamic = 'force-dynamic';
 
 // クーポン情報の型定義
 interface AppliedCoupon {
@@ -63,6 +62,7 @@ const guestQuotationSchema = z.object({
 // POST: 新しい見積を作成（ゲスト用）
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getServiceRoleClient();
     const body = await request.json();
 
     // スキーマ検証

@@ -19,12 +19,34 @@ import { withApiHandler } from '@/lib/api-error-handler';
 import { validateRequestBody } from '@/lib/validation-schemas';
 import { z } from 'zod';
 
-// Environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// =====================================================
+// Helper: Get Supabase client
+// =====================================================
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+function getSupabaseClient(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: {
+        getItem: (key: string) => {
+          const cookie = request.cookies.get(key);
+          return cookie?.value ?? null;
+        },
+        setItem: (key: string, value: string) => {
+          // Not needed for this operation
+        },
+        removeItem: (key: string) => {
+          // Not needed for this operation
+        },
+      },
+    },
+  });
 }
 
 /**
@@ -59,22 +81,7 @@ export const POST = withApiHandler(
     const { quotationId } = bodyResult.data;
 
     // Create Supabase client with cookies
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        storage: {
-          getItem: (key: string) => {
-            const cookie = request.cookies.get(key);
-            return cookie?.value ?? null;
-          },
-          setItem: (key: string, value: string) => {
-            // Not needed for this operation
-          },
-          removeItem: (key: string) => {
-            // Not needed for this operation
-          },
-        },
-      },
-    });
+    const supabase = getSupabaseClient(request);
 
     // Fetch quotation with validation
     const { data: quotation, error: quotationError } = await supabase

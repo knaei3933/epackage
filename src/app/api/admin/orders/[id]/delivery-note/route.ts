@@ -7,11 +7,11 @@
  * @route /api/admin/orders/[id]/delivery-note
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendTemplatedEmail } from '@/lib/email';
+
+export const dynamic = 'force-dynamic';
 
 const getSupabaseConfig = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

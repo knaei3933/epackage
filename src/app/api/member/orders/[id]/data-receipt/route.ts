@@ -11,8 +11,6 @@
  * @route /api/member/orders/[id]/data-receipt
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
@@ -20,15 +18,35 @@ import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
 import { notifyDataReceived as notifyDataReceivedEmail } from '@/lib/email/order-status-emails';
 
+export const dynamic = 'force-dynamic';
+
 // =====================================================
-// Environment Variables
+// Helper: Get Supabase client
 // =====================================================
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+async function getSupabaseClient(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      set(_name: string, _value: string, _options: unknown) {
+        // We'll use response object later if needed
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      remove(_name: string, _options: unknown) {
+        // Cookie removal if needed
+      },
+    },
+  });
 }
 
 // =====================================================
@@ -519,21 +537,7 @@ export async function GET(
 ) {
   try {
     // 1. Authenticate user using SSR client (proper cookie handling)
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        set(_name: string, _value: string, _options: unknown) {
-          // Response handling if needed
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        remove(_name: string, _options: unknown) {
-          // Cookie removal if needed
-        },
-      },
-    });
+    const supabase = await getSupabaseClient(request);
 
     // Normal auth: Use cookie-based auth with getUser()
     const { data: { user }, error: userError } = await supabase.auth.getUser();

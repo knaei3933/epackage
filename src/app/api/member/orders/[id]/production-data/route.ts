@@ -7,21 +7,66 @@
  * - All DB operations via Supabase MCP
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 // =====================================================
-// Environment Variables
+// Helper: Create Supabase client
 // =====================================================
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+async function createSupabaseClient(request: NextRequest) {
+  const cookieStore = await cookies();
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: {
+        getItem: (key: string) => {
+          const cookie = cookieStore.get(key);
+          return cookie?.value ?? null;
+        },
+        setItem: (key: string, value: string) => {
+          cookieStore.set(key, value, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+          });
+        },
+        removeItem: (key: string) => {
+          cookieStore.delete(key);
+        },
+      },
+    },
+  });
+}
+
+// =====================================================
+// Types
+// =====================================================
+
+interface ProductionDataItem {
+  title: string;
+  validation_status: string;
+  validation_notes?: string;
+  validation_errors?: Record<string, unknown>;
+}
+
+interface ProductionDataResponse {
+  success: boolean;
+  data?: ProductionDataItem[];
+  requiredModifications?: string[];
+  error?: string;
+  errorEn?: string;
 }
 
 // =====================================================
@@ -45,28 +90,7 @@ export async function GET(
 ) {
   try {
     // 1. Authenticate user using cookie-based auth
-    const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        storage: {
-          getItem: (key: string) => {
-            const cookie = cookieStore.get(key);
-            return cookie?.value ?? null;
-          },
-          setItem: (key: string, value: string) => {
-            cookieStore.set(key, value, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
-            });
-          },
-          removeItem: (key: string) => {
-            cookieStore.delete(key);
-          },
-        },
-      },
-    });
+    const supabase = await createSupabaseClient(request);
 
     // Get user from cookie-based auth
     const { data: { user }, error: userError } = await supabase.auth.getUser();

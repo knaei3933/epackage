@@ -12,45 +12,17 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Helper function to create service role client
+function createServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
 
-// =====================================================
-// Cron Secret Validation
-// =====================================================
-/**
- * CRON_SECRET 환경 변수 검증
- *
- * 프로덕션 환경에서는 반드시 CRON_SECRET이 설정되어야 합니다.
- * 개발 환경에서는 .env.local 파일에 CRON_SECRET을 설정하세요.
- *
- * Vercel Cron Jobs 설정 예시:
- * env: CRON_SECRET
- * value: <strong-random-secret-key>
- *
- * 로컬 개발용 시크릿 키 생성:
- * node -e "console.log(crypto.randomBytes(32).toString('base64'))"
- */
-const CRON_SECRET = process.env.CRON_SECRET;
-
-// 프로덕션 환경에서 시크릿 키 누락 시 에러
-if (process.env.NODE_ENV === 'production' && !CRON_SECRET) {
-  throw new Error(
-    'CRON_SECRET environment variable is required in production. ' +
-    'Please set it in your hosting platform (Vercel/Netlify/etc).'
-  );
-}
-
-// 개발 환경에서 시크릿 키 누락 시 경고
-if (!CRON_SECRET && process.env.NODE_ENV !== 'production') {
-  console.warn(
-    '[Cron] ⚠️ CRON_SECRET not set. Using dev mode for testing only. ' +
-    'Set CRON_SECRET in .env.local for proper testing.'
-  );
+  const { createClient } = require('@supabase/supabase-js');
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
 
 interface ArchiveResponse {
@@ -68,6 +40,20 @@ interface ArchiveResponse {
  */
 export async function POST(request: NextRequest) {
   try {
+    // =====================================================
+    // Environment Variables & Cron Secret Verification
+    // =====================================================
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const CRON_SECRET = process.env.CRON_SECRET;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
     // =====================================================
     // Cron Secret Verification
     // =====================================================
@@ -104,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Use service role client for cron jobs (no user context)
     const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
     // Calculate date 3 months ago
     const threeMonthsAgo = new Date();

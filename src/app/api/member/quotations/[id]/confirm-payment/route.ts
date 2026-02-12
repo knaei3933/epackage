@@ -17,11 +17,11 @@
  * - notes: Additional notes
  */
 
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+
+export const dynamic = 'force-dynamic';
 
 // Temporarily disable email sending to avoid import errors
 // import { sendEmail } from '@/lib/email/notificationService';
@@ -77,6 +77,29 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   other: 'その他',
 };
 
+// =====================================================
+// Helper: Get Supabase client
+// =====================================================
+
+async function getSupabaseClient() {
+  const cookieStore = await cookies();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
+      },
+    },
+  });
+}
+
 // Email configuration
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@epackage-lab.com';
@@ -110,18 +133,7 @@ export async function POST(
 ) {
   try {
     // 1. Authenticate user using @supabase/ssr
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
+    const supabase = await getSupabaseClient();
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -514,18 +526,7 @@ export async function GET(
 ) {
   try {
     // 1. Authenticate user using @supabase/ssr
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
+    const supabase = await getSupabaseClient();
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
