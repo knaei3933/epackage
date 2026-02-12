@@ -7,14 +7,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   // =====================================================
-  // CRITICAL FIX FOR NEXT.JS 16 + TURBOPACK BUILD HANG
-  // =====================================================
-  // Remove turbopack.root configuration as it may cause issues
-  // with lock file handling during build
-  // turbopack: {
-  //   root: process.cwd(),
-  // },
-  // =====================================================
   // Rewrites to fix trailing slash redirect loops
   // =====================================================
   async rewrites() {
@@ -30,7 +22,7 @@ const nextConfig: NextConfig = {
     ];
   },
   // =====================================================
-  // Turbopack is now default in Next.js 16
+  // Server external packages
   // =====================================================
   serverExternalPackages: [
     '@react-pdf/renderer',

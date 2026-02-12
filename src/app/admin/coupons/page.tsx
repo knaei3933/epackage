@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-// Force dynamic rendering (skip static generation)
-export const dynamic = "force-dynamic";
 import { Tag, Plus, Trash2, Edit } from 'lucide-react';
 
 type CouponType = 'percentage' | 'fixed_amount' | 'free_shipping';

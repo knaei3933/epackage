@@ -2,12 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 
-// Force dynamic rendering (skip static generation)
-export const dynamic = "force-dynamic";
 import { motion, AnimatePresence } from 'framer-motion';
-
-// Force dynamic rendering (skip static generation)
-export const dynamic = "force-dynamic";
 import {
   DollarSign,
   Package,

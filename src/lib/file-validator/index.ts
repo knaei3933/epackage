@@ -76,7 +76,6 @@ export {
   validateFileSecurity,
   quickValidateFile,
   fullValidateFile,
-  scanForViruses,
   SECURITY_CONSTANTS,
 } from './security-validator';
 

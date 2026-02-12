@@ -8,6 +8,7 @@
  */
 
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import RegistrationForm from '@/components/auth/RegistrationForm';
 import Link from 'next/link';
 
@@ -45,7 +46,9 @@ export default function RegisterPage() {
         </div>
 
         {/* 会員登録フォーム */}
-        <RegistrationForm />
+        <Suspense fallback={<div className="text-center py-12">読み込み中...</div>}>
+          <RegistrationForm />
+        </Suspense>
 
         {/* ログインリンク */}
         <div className="text-center mt-6">

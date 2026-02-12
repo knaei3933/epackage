@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
-import { withAdminAuth } from '@/lib/api-middleware';
+import { withAdminAuth } from '@/lib/api-auth';
 
 // ============================================================
 // Constants

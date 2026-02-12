@@ -6,8 +6,8 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
   Button,
@@ -167,10 +167,10 @@ function StatusBadge({ status }: { status: ContractStatus }) {
 // Main Page Component
 // =====================================================
 
-export default function MemberContractsPage() {
+function MemberContractsPageWrapper() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // State
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -338,6 +338,14 @@ export default function MemberContractsPage() {
                 }}
                 className="pl-10"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             {/* Status Filters */}
@@ -354,6 +362,7 @@ export default function MemberContractsPage() {
                     'SIGNED',
                     'ACTIVE',
                     'EXPIRED',
+                    'CANCELLED',
                   ] as const
                 ).map((status) => (
                   <button
@@ -427,30 +436,25 @@ export default function MemberContractsPage() {
                             </h3>
                             <StatusBadge status={contract.status} />
                           </div>
-
                           <div className="flex items-center gap-2 text-sm text-text-muted mb-3">
                             <User className="w-4 h-4" />
                             <span className="font-medium">{contract.customer_name}</span>
                             <span className="text-gray-400">•</span>
                             <span className="text-xs">{contract.customer_email}</span>
                           </div>
-
-                          <div className="flex flex-wrap items-center gap-4 text-sm">
-                            <div className="flex items-center gap-1.5">
-                              <DollarSign className="w-4 h-4 text-green-600" />
-                              <span className="font-semibold text-text-primary">
-                                {Number(contract.total_amount).toLocaleString()} {contract.currency}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-text-muted">
-                              <Calendar className="w-4 h-4" />
-                              <span>
-                                作成: {new Date(contract.created_at).toLocaleDateString('ja-JP')}
-                              </span>
-                            </div>
+                          <div className="flex items-center gap-1.5 text-sm text-text-muted">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold text-text-primary">
+                              {Number(contract.total_amount).toLocaleString()} {contract.currency}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-text-muted">
+                            <Calendar className="w-4 h-4" />
+                            <span>
+                              作成: {new Date(contract.created_at).toLocaleDateString('ja-JP')}
+                            </span>
                           </div>
                         </div>
-
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
@@ -522,6 +526,15 @@ export default function MemberContractsPage() {
         )}
       </main>
     </div>
+  );
+}
+
+// Wrap with Suspense boundary for useSearchParams
+export default function MemberContractsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12">読み込み中...</div>}>
+      <MemberContractsPageWrapper />
+    </Suspense>
   );
 }
 

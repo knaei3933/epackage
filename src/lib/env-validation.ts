@@ -272,3 +272,39 @@ export function _clearTestEnv(...vars: string[]): void {
     delete process.env[varName];
   }
 }
+
+/**
+ * 開発モードの安全性を検証
+ *
+ * Supabase MCP API でのみ使用可能な検証関数
+ * プロダクション環境では MCP 実行を禁止
+ *
+ * @throws {Error} 開発モードでない場合エラーを投げる
+ *
+ * @example
+ * ```typescript
+ * import { validateDevModeSafety } from '@/lib/env-validation';
+ *
+ * // API ルートで開発モード検証
+ * validateDevModeSafety();
+ * ```
+ */
+export function validateDevModeSafety(): void {
+  // クライアントサイドでは実行しない
+  if (typeof window !== 'undefined') {
+    return;
+  }
+
+  // 開発モードでのみ許可
+  if (isDevelopmentEnvironment()) {
+    return;
+  }
+
+  // プロダクション環境では MCP 実行を禁止
+  if (isProductionEnvironment()) {
+    throw new Error(
+      'MCP operations are not allowed in production environment. ' +
+      'This function should only be called in development mode.'
+    );
+  }
+}

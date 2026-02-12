@@ -13,8 +13,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { sendCustomEmail } from '@/lib/email/epack-mailer';
 import { createCommentSchema, safeParseRequestBody } from '@/types/api-validation';
 import { getAuditLogger } from '@/lib/audit-logger';
-// Force rebuild comment
-import { withAdminAuth } from '@/lib/api-middleware';
+import { withAdminAuth } from '@/lib/api-auth';
 import { generateOrderCommentEmailHtml } from '@/lib/email-templates/order-comment-notification';
 
 // ============================================================

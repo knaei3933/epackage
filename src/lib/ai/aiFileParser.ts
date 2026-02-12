@@ -8,7 +8,7 @@
  */
 
 import { readFile } from 'fs/promises';
-import * as pdf from 'pdf-parse';
+import pdfParse from 'pdf-parse';
 import type {
   AiFileData,
   Dimensions,
