@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
+import { Suspense } from 'react';
 import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
 import { Footer } from "@/components/layout/Footer";
 
@@ -151,14 +152,16 @@ export default function RootLayout({
           enableSystem={true}
           attribute="class"
         >
-          <AuthProvider>
-            <LanguageProvider>
-              <HeaderWrapper />
-              <BreadcrumbList />
-              <main>{children}</main>
-              <Footer />
-            </LanguageProvider>
-          </AuthProvider>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
+            <AuthProvider>
+              <LanguageProvider>
+                <HeaderWrapper />
+                <BreadcrumbList />
+                <main>{children}</main>
+                <Footer />
+              </LanguageProvider>
+            </AuthProvider>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
