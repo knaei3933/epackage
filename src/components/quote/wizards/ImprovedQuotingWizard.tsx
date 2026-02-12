@@ -51,12 +51,14 @@ import { ErrorToast, useToast } from '../shared/ErrorToast';
 import { KeyboardShortcutsHint } from '../shared/KeyboardShortcutsHint';
 import { useKeyboardNavigation } from '../shared/useKeyboardNavigation';
 import { ResponsiveStepIndicators } from '../shared/ResponsiveStepIndicators';
-import { UnifiedSKUQuantityStep } from '../steps';
-import { ParallelProductionOptions, EconomicQuantityProposal } from '../shared';
-import { OrderSummarySection } from '../shared';
+import { UnifiedSKUQuantityStep } from '../steps/UnifiedSKUQuantityStep';
+import { ParallelProductionOptions } from '../shared/ParallelProductionOptions';
+import { EconomicQuantityProposal } from '../shared/EconomicQuantityProposal';
+import { OrderSummarySection } from '../shared/OrderSummarySection';
 import { QuantityOptionsGrid } from '../selectors';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
-import type { ParallelProductionOption, EconomicQuantitySuggestionData } from '../shared';
+import type { ParallelProductionOption } from '../shared/ParallelProductionOptions';
+import type { EconomicQuantitySuggestionData } from '../shared/EconomicQuantityProposal';
 import type { QuantityOption } from '../selectors';
 import { generateQuotePDF } from '@/lib/pdf-generator';
 

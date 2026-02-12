@@ -30,7 +30,8 @@ import {
 } from 'lucide-react';
 import { generateQuotePDF, type QuoteData } from '@/lib/pdf-generator';
 import { translateBagType, translateMaterialType } from '@/constants/enToJa';
-import { BankInfoCard, InvoiceDownloadButton } from '@/components/quote';
+import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
+import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import type { Quotation } from '@/types/dashboard';
 
