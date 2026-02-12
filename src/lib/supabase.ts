@@ -42,6 +42,7 @@ export const getServerClient = () => {
   })
 
   return serverClient
+}
 
 // Service client for admin operations (server-side only)
 export const createServiceClient = () => {
