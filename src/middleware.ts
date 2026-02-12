@@ -752,11 +752,12 @@ function addSecurityHeaders(response: NextResponse) {
 
   const cspDirectives = [
     "default-src 'self' blob:",
-    // 開発環境ではunsafe-inline/evalを許可
+    // React 19 and Framer Motion require unsafe-inline for hydration and animations
+    // Both dev and production need 'unsafe-inline' for client-side rendering
     isDev
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com"
-      : "script-src 'self' https://js.sendgrid.com",
-    isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self'",
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com",
+    isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: blob:",
     "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co",
