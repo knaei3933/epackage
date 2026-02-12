@@ -10,6 +10,9 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 
+// Force dynamic rendering to prevent useSearchParams bailout during build
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '会社概要 | Epackage Lab',
   description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。',

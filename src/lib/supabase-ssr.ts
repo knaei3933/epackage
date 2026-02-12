@@ -31,12 +31,18 @@ interface SupabaseSSRClientResult {
 // Environment Variables
 // ============================================================
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Lazy environment variable access - only validate when functions are called
+// This prevents build-time errors when env vars are not available during build
+const getSupabaseConfig = () => {
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase environment variables');
-}
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return { SUPABASE_URL, SUPABASE_ANON_KEY };
+};
 
 // ============================================================
 // Cookie Options for Localhost Development
@@ -82,6 +88,9 @@ export async function createSupabaseSSRClient(request: NextRequest): Promise<Sup
       'Content-Type': 'application/json',
     },
   });
+
+  // Lazy load config to avoid build-time errors
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = getSupabaseConfig();
 
   const client = createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {

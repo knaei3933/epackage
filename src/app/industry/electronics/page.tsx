@@ -2,6 +2,9 @@ import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
 import { ElectronicsContent } from '@/components/industry/ElectronicsContent'
 
+// Force dynamic rendering to prevent useSearchParams bailout during build
+export const dynamic = 'force-dynamic';
+
 // SEO Metadata for Electronics
 export async function generateMetadata(): Promise<Metadata> {
   return {

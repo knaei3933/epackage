@@ -14,24 +14,23 @@ export const metadata: Metadata = {
   description: '認証エラーが発生しました。',
 };
 
-export default async function AuthErrorPage({
-  searchParams,
+function AuthErrorContent({
+  error,
+  message,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  error?: string;
+  message?: string;
 }) {
-  // Next.js 16: searchParams is now a Promise
-  const params = await searchParams;
-
   // エラーメッセージマッピング
   const errorMessages: Record<string, string> = {
     AccessDenied: 'このページにアクセスする権限がありません。',
     Configuration: 'サーバー設定エラーが発生しました。',
-    verification_failed: params.message || 'メール認証に失敗しました。トークンの有効期限が切れているか、無効です。',
-    Default: params.message || '認証エラーが発生しました。',
+    verification_failed: message || 'メール認証に失敗しました。トークンの有効期限が切れているか、無効です。',
+    Default: message || '認証エラーが発生しました。',
   };
 
-  const error = params.error || 'Default';
-  const errorMessage = errorMessages[error] || errorMessages.Default;
+  const errorKey = error || 'Default';
+  const errorMessage = errorMessages[errorKey] || errorMessages.Default;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
@@ -82,5 +81,21 @@ export default async function AuthErrorPage({
         </div>
       </div>
     </main>
+  );
+}
+
+// Wrapper component with Suspense boundary to avoid useSearchParams warning
+export default async function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; message?: string }>;
+}) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthErrorContent
+        error={(await searchParams).error}
+        message={(await searchParams).message}
+      />
+    </Suspense>
   );
 }

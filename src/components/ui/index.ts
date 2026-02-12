@@ -58,6 +58,7 @@ export { TagBadge } from './Badge';
 
 // Loading States
 export { LoadingSpinner } from './LoadingSpinner';
+export { FullPageSpinner } from './LoadingSpinner';
 
 // Loading States
 export { LoadingState as PageLoading } from './LoadingState';

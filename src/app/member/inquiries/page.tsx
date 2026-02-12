@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Badge, Button, Input } from '@/components/ui';
 import { PageLoadingState } from '@/components/ui';
@@ -162,7 +162,7 @@ function TypeBadge({ type }: { type: InquiryType }) {
 // Page Component
 // =====================================================
 
-export default function InquiriesPage() {
+function InquiriesPageContent() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
 
@@ -512,5 +512,14 @@ export default function InquiriesPage() {
       )}
       </div>
     </PageLoadingState>
+  );
+}
+
+// Wrap with Suspense boundary for useSearchParams
+export default function InquiriesPage() {
+  return (
+    <Suspense fallback={<PageLoadingState isLoading={true} message="読み込み中..." />}>
+      <InquiriesPageContent />
+    </Suspense>
   );
 }

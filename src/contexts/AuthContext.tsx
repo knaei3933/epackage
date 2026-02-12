@@ -101,11 +101,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
+  // Note: useSearchParams() is called here but this provider is wrapped in layout Suspense
+  // so we defer reading searchParams until render
+  const [searchParams] = useState(() => {
+    // Lazily initialize searchParams to avoid build-time issues
+    try {
+      return useSearchParams();
+    } catch (e) {
+      console.warn('[AuthProvider] useSearchParams not available, using empty:', e);
+      return new URLSearchParams();
+    }
+  })
 
   // Track previous route to detect changes
   const previousPathname = useRef(pathname)
-  const previousSearchParams = useRef(searchParams.toString())
+  const previousSearchParams = useRef(
+    // Use the initial searchParams value, safely handling undefined
+    typeof searchParams === 'object' ? searchParams.toString() : ''
+  )
   // Track pending fetch to prevent race conditions
   const pendingFetchId = useRef<number>(0)
 

@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to prevent useSearchParams bailout during build
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useMemo } from 'react';
 
 import useSWR from 'swr';
