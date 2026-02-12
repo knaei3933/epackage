@@ -16,14 +16,24 @@ import { createServerClient } from '@supabase/ssr';
 import { sendTemplatedEmail } from '@/lib/email';
 
 // =====================================================
-// Environment Variables
+// Helper: Get Supabase client
 // =====================================================
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function getSupabaseClient(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+    },
+  });
 }
 
 // =====================================================
@@ -32,13 +42,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 async function getAuthenticatedAdmin(request: NextRequest) {
   // Normal auth: Use cookie-based auth
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-    },
-  });
+  const supabase = getSupabaseClient(request);
 
   const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
 
@@ -116,13 +120,7 @@ export async function POST(
     const { userId, user } = authResult;
     const { id: orderId } = await params;
 
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
+    const supabase = getSupabaseClient(request);
 
     // 2. Verify order exists
     const { data: order, error: orderError } = await supabase
@@ -319,13 +317,7 @@ export async function GET(
 
     const { id: orderId } = await params;
 
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
+    const supabase = getSupabaseClient(request);
 
     // Get payment info
     const { data: order } = await supabase
