@@ -18,17 +18,6 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { cookies } from 'next/headers';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-// Type assertions for TypeScript (throw doesn't narrow types in all cases)
-const supabaseUrlTyped = supabaseUrl as string;
-const supabaseAnonKeyTyped = supabaseAnonKey as string;
-
 // =====================================================
 // Zod Schema for Profile Update
 // =====================================================
@@ -67,8 +56,18 @@ type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
 
 export async function GET(request: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: 'Supabase environment variables not configured' },
+        { status: 500 }
+      );
+    }
+
     const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+    const supabase = createClient(supabaseUrl as string, supabaseAnonKey as string, {
       auth: {
         storage: {
           getItem: (key: string) => {
@@ -204,8 +203,18 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: 'Supabase environment variables not configured' },
+        { status: 500 }
+      );
+    }
+
     const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+    const supabase = createClient(supabaseUrl as string, supabaseAnonKey as string, {
       auth: {
         storage: {
           getItem: (key: string) => {

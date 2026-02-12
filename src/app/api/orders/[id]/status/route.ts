@@ -23,16 +23,6 @@ import {
 } from '@/lib/state-machine/order-machine';
 import type { OrderStatus } from '@/types/order-status';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabaseUrlTyped = supabaseUrl as string;
-const supabaseAnonKeyTyped = supabaseAnonKey as string;
-
 // ============================================================
 // Types
 // ============================================================
@@ -52,11 +42,21 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: 'Supabase environment variables not configured' },
+        { status: 500 }
+      );
+    }
+
     const params = await context.params;
     const { id: orderId } = params;
 
     const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         storage: {
           getItem: (key: string) => {

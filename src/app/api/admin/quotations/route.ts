@@ -15,13 +15,6 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
 import { notifyQuoteApproved } from '@/lib/email/order-status-emails';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
 // ============================================================
 // Types
 // ============================================================
@@ -81,6 +74,17 @@ export async function GET(request: NextRequest) {
     const auth = await verifyAdminAuth(request);
     if (!auth) {
       return unauthorizedResponse();
+    }
+
+    // Get environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
     }
 
     // Create service client (bypasses RLS)
@@ -203,6 +207,17 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Get environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
     // Create service client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -310,6 +325,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: '見積IDが必要です。' },
         { status: 400 }
+      );
+    }
+
+    // Get environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
       );
     }
 

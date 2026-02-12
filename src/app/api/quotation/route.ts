@@ -13,17 +13,6 @@ import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-// Type assertions for TypeScript (throw doesn't narrow types in all cases)
-const supabaseUrlTyped = supabaseUrl as string;
-const supabaseAnonKeyTyped = supabaseAnonKey as string;
-
 // Zodスキーマ
 const createQuotationSchema = z.object({
   projectName: z.string().min(1, 'プロジェクト名を入力してください。').max(200),
@@ -35,9 +24,16 @@ const createQuotationSchema = z.object({
 
 // Helper: Create Supabase client with cookie support
 async function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables not configured');
+  }
+
   const cookieStore = await cookies();
 
-  return createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+  return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       storage: {
         getItem: (key: string) => {

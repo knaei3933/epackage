@@ -63,11 +63,21 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: 'Supabase environment variables not configured' },
+        { status: 500 }
+      );
+    }
+
     const params = await context.params;
     const { id: orderId } = params;
 
     const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         storage: {
           getItem: (key: string) => {
