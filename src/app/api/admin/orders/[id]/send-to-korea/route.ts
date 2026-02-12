@@ -74,12 +74,6 @@ export async function POST(
   try {
     // 1. Authenticate user
     const supabase = getSupabaseClient(request);
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
