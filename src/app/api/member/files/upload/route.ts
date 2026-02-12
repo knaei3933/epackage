@@ -5,6 +5,8 @@
  * - POST: AI/PDFファイルアップロードおよび保存
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { Database } from '@/types/database';

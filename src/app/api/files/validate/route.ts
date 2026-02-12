@@ -13,6 +13,8 @@
  * - JSON with validation results, file metadata, and URLs
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 

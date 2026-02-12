@@ -4,6 +4,8 @@
  * GET /api/member/notifications - Get user notifications
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { getServerClient } from '@/lib/supabase';

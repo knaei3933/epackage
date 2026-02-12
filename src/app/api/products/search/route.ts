@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { executeSql } from '@/lib/supabase-mcp'
 import type { Database } from '@/types/database'

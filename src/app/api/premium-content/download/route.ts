@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { premiumContentSchema } from '@/types/premium-content'
 import { createServiceClient } from '@/lib/supabase'

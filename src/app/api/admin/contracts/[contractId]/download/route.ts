@@ -6,6 +6,8 @@
  * GET - Generate and download contract PDF
  */
 
+export const dynamic = 'force-dynamic';
+
 import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import { generateContractPDF } from '@/lib/pdf-contracts';

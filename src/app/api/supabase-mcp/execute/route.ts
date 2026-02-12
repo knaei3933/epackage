@@ -11,6 +11,8 @@
  * POST /api/supabase-mcp/execute
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { verifyAdminAuth } from '@/lib/auth-helpers'

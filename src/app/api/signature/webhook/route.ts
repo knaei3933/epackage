@@ -6,6 +6,8 @@
  * Receives webhook callbacks from signature providers (DocuSign, HelloSign)
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyWebhookSignature } from '@/lib/signature-integration';

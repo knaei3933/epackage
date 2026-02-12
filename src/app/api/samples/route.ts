@@ -13,6 +13,8 @@
  * - Support for authenticated users (user.id from profile) and guest requests (null)
  */
 
+export const dynamic = 'force-dynamic';
+
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';

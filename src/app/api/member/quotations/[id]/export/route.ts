@@ -10,6 +10,8 @@
  * - POST /api/member/quotations/[id]/export - ファイル生成
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Resend } from 'resend';

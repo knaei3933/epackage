@@ -6,6 +6,8 @@
  * Sends a document for electronic signature through configured provider
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSignatureIntegration, SignatureRequest } from '@/lib/signature-integration';
 import { createServiceClient } from '@/lib/supabase';

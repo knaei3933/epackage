@@ -5,6 +5,8 @@
  * GET /api/member/documents/[id]/download - Download document PDF
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 

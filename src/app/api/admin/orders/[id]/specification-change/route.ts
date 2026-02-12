@@ -9,6 +9,8 @@
  * - 顧客に通知を送信
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';

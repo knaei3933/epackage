@@ -7,6 +7,8 @@
  * admin_order_notes 테이블을 활용합니다.
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';

@@ -5,6 +5,8 @@
  * API endpoint for generating quotation Excel files using ExcelJS
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   generateQuoteExcel,

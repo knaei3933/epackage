@@ -5,6 +5,8 @@
  * GET /api/member/orders/[id]/production-logs - Get production logs for order
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 

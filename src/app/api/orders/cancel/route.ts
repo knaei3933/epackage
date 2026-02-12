@@ -9,6 +9,8 @@
  * POST /api/orders/cancel
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase'

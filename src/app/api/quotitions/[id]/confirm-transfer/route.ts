@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { NextRequest, NextResponse } from 'next/server';
 

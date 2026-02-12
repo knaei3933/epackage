@@ -7,6 +7,8 @@
  * SECURITY: Uses unified error handling from api-error-handler.ts
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { withMemberAuth } from '@/lib/api-auth';

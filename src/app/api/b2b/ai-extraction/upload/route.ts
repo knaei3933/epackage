@@ -13,6 +13,8 @@
  * - 413 with code: "FILE_TOO_LARGE" - File exceeds 10MB
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 

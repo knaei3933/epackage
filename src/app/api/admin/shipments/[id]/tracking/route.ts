@@ -3,6 +3,8 @@
  * Update tracking information for a specific shipment
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { shipmentTrackingService } from '@/lib/shipment-tracking-service';

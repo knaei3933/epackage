@@ -7,6 +7,8 @@
  * Admin can update shipping status and customers get notifications
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import {

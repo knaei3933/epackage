@@ -7,6 +7,8 @@
  * Uses MCP Supabase execute_sql for data retrieval
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';

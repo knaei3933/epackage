@@ -10,6 +10,8 @@
  * - Supports both B2B (company_id) and Member (user_id) patterns
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 import type { Database } from '@/types/database';

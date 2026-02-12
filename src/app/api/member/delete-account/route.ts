@@ -5,6 +5,8 @@
  * POST /api/member/delete-account
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseWithCookies } from '@/lib/supabase'
 import { createServiceClient } from '@/lib/supabase'

@@ -3,6 +3,8 @@
  * GET /api/admin/notifications/unread-count - Get unread count
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth } from '@/lib/auth-helpers'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr'

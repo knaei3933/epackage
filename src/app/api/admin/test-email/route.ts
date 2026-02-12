@@ -6,6 +6,8 @@
  * - Xserver SMTP 연결 확인
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { epackMailer } from '@/lib/email/epack-mailer';
 import { getEmailConfigStatus } from '@/lib/email';

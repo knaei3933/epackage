@@ -6,6 +6,8 @@
  * - POST: 新しいバージョンを作成
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';

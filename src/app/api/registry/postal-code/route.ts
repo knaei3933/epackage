@@ -6,6 +6,8 @@
  * - 日本郵便API（zipcloud.ibsnet.co.jp）を使用
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // =====================================================

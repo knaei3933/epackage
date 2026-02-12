@@ -2,6 +2,8 @@
  * 統合通知削除API
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createNotificationService } from '@/lib/unified-notifications';
 import { getCurrentUserId } from '@/lib/dashboard';

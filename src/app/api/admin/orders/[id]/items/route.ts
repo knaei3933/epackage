@@ -12,6 +12,8 @@
  * - 通知送信
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { notifyModificationRequested } from '@/lib/customer-notifications';

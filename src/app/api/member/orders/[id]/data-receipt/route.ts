@@ -11,6 +11,8 @@
  * @route /api/member/orders/[id]/data-receipt
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';

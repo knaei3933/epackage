@@ -7,6 +7,8 @@
  * @route POST /api/member/ai-extraction/upload
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getPerformanceMonitor } from '@/lib/performance-monitor'

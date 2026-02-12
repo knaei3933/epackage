@@ -14,6 +14,8 @@
  * - IP address tracking
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { withAdminAuth } from '@/lib/api-auth';

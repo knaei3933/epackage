@@ -7,6 +7,8 @@
  * - DELETE: 見積を削除
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Database } from '@/types/database';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';

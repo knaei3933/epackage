@@ -4,6 +4,8 @@
  * 現在の認証状態をデバッグします
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 

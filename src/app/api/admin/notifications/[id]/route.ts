@@ -4,6 +4,8 @@
  * PUT /api/admin/notifications/[id] - Update a notification (admin only)
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr'

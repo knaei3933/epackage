@@ -9,6 +9,8 @@
  * - 작성자 또는 관리자만 수정/삭제 가능
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';

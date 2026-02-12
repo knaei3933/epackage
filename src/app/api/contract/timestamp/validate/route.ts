@@ -6,6 +6,8 @@
  * - 電子署名法に基づく検証ロジック
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // ============================================================

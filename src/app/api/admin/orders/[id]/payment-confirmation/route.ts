@@ -9,6 +9,8 @@
  * @route /api/admin/orders/[id]/payment-confirmation
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendTemplatedEmail } from '@/lib/email';

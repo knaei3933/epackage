@@ -5,6 +5,8 @@
  * Get quotation detail by ID
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 

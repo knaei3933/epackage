@@ -5,6 +5,8 @@
  * PUT /api/member/orders/[id]/delivery-address
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 

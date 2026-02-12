@@ -7,6 +7,8 @@
  * DELETE: 特定のユーザーを削除（管理者のみ）
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';

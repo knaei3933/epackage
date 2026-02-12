@@ -7,6 +7,8 @@
  * This endpoint handles saving, loading, and deleting comparison data for quotes.
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {

@@ -4,6 +4,8 @@
  * 会員・管理者共通の通知機能を提供します
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createNotificationService } from '@/lib/unified-notifications';
 import { requireAuth, getCurrentUserId } from '@/lib/dashboard';

@@ -10,6 +10,8 @@
  * - Order summary by status
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 

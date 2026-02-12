@@ -5,6 +5,8 @@
  * Generates and returns a PDF for the specified invoice
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { generateInvoicePDF } from '@/lib/pdf-generator';

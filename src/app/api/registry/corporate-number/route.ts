@@ -7,6 +7,8 @@
  * - 国税庁法人番号公表サイトAPIを使用
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // =====================================================

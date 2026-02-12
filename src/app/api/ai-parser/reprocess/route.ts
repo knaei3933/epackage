@@ -4,6 +4,8 @@
  * POST /api/ai-parser/reprocess - Batch reprocess files with updated models
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createExtractionEngine } from '@/lib/ai-parser/core';

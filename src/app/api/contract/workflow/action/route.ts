@@ -6,6 +6,8 @@
  * - ステータス変更、メール通知、履歴記録
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import type { ContractWorkflowStatus, WorkflowAction } from '@/components/b2b/ContractApproval';
 import { sendApprovalEmail, createRecipient } from '@/lib/email';

@@ -8,6 +8,8 @@
  * @route GET /api/admin/orders/[id]/korea-send-status
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 

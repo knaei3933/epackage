@@ -6,6 +6,8 @@
  * - GET: モックデータまたはAPI情報を返却
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { parseAiFile } from '@/lib/ai/aiFileParser';
 import { extractSpecifications, validateSpecifications } from '@/lib/ai/specExtractor';

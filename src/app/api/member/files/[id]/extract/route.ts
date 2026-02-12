@@ -5,6 +5,8 @@
  * - POST: AI/PDFファイルから製品仕様抽出
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { Database } from '@/types/database';

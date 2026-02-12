@@ -4,6 +4,8 @@
  * Cookie-based authentication for client-side navigation
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getUnifiedDashboardStats,

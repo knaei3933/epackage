@@ -5,6 +5,8 @@
  * POST /api/analytics/vitals - Log web vitals metrics
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import type { Database } from '@/types/database';

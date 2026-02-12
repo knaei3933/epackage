@@ -8,6 +8,8 @@
  * GET /api/member/quotations/[id]/approve - Get approval status
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';

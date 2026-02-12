@@ -8,6 +8,8 @@
  * @route /api/admin/orders/[id]/comments
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendCustomEmail } from '@/lib/email/epack-mailer';

@@ -6,6 +6,8 @@
  * POST - Manually update shipment tracking information
  */
 
+export const dynamic = 'force-dynamic';
+
 import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 

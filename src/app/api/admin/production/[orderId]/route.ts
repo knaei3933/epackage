@@ -9,6 +9,8 @@
  * POST   - Add stage note, upload photo, assign staff
  */
 
+export const dynamic = 'force-dynamic';
+
 import { createSupabaseClient } from '@/lib/supabase';
 import { productionActions } from '@/lib/production-actions';
 import { NextRequest, NextResponse } from 'next/server';

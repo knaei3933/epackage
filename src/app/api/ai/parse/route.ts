@@ -6,6 +6,8 @@
  * - 構造化されたデザインデータをJSONとして返却
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   parseAiFile,

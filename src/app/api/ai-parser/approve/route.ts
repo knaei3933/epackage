@@ -4,6 +4,8 @@
  * POST /api/ai-parser/approve - Approve extracted data and create production records
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import {

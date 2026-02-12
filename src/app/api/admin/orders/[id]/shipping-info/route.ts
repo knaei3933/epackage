@@ -7,6 +7,8 @@
  * @route /api/admin/orders/[id]/shipping-info
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 

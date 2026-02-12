@@ -7,6 +7,8 @@
  * @route GET /api/member/ai-extraction/status?file_id={fileId}
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 

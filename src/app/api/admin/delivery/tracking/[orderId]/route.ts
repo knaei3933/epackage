@@ -9,6 +9,8 @@
  * DELETE /api/admin/delivery/tracking/:orderId - Delete tracking
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';

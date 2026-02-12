@@ -7,6 +7,8 @@
  * @route GET /api/admin/performance/metrics
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';

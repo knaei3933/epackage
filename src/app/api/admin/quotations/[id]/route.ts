@@ -2,6 +2,8 @@
  * Admin Quotation Detail API
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createServiceClient } from '@/lib/supabase';

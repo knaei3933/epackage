@@ -7,6 +7,8 @@
  * - 開発モードモック対応
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { generateUUID } from '@/lib/utils';

@@ -7,6 +7,8 @@
  * - 日本語契約書フォーマット対応
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { chromium as playwright } from 'playwright';
 import Handlebars from 'handlebars';

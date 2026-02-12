@@ -3,6 +3,8 @@
  * Provides endpoints for tracking updates and information
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { shipmentTrackingService } from '@/lib/shipment-tracking-service';

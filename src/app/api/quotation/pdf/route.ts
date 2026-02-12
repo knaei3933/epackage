@@ -6,6 +6,8 @@
  * - GET: PDFテンプレート情報を返却
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePdfBuffer, validatePdfData } from '@/lib/excel/pdfConverter';
 import type { QuotationData } from '@/lib/excel/excelQuotationTypes';

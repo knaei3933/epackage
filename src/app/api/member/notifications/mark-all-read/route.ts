@@ -4,6 +4,8 @@
  * PATCH /api/member/notifications/mark-all-read
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { getServerClient } from '@/lib/supabase';

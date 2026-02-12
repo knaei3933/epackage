@@ -7,6 +7,8 @@
  * @route POST /api/member/ai-extraction/approve
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { z } from 'zod'

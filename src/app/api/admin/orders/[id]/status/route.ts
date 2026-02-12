@@ -11,6 +11,8 @@
  * - Audit logging
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import type { OrderStatus } from '@/types/order-status';

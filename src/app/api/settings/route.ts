@@ -11,6 +11,8 @@
  * - 自分の設定のみ取得・修正可能
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';

@@ -8,6 +8,8 @@
  * - Proper error codes for E2E tests
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 

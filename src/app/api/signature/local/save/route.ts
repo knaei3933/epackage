@@ -6,6 +6,8 @@
  * Saves a locally captured signature (from canvas or hanko upload)
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { signatureToBase64, isValidSignatureData } from '@/lib/signature-integration';

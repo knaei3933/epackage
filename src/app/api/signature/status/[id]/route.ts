@@ -6,6 +6,8 @@
  * Checks the current status of a signature request
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSignatureIntegration } from '@/lib/signature-integration';
 

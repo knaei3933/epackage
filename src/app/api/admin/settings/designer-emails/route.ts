@@ -8,6 +8,8 @@
  * @route /api/admin/settings/designer-emails
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 

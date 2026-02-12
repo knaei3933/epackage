@@ -4,6 +4,8 @@
  * POST /api/ai-parser/validate - Validate extracted data with manual corrections
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createExtractionEngine } from '@/lib/ai-parser/core';

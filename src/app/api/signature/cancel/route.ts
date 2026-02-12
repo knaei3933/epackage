@@ -6,6 +6,8 @@
  * Cancels an active signature request
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSignatureIntegration } from '@/lib/signature-integration';
 import { createServiceClient } from '@/lib/supabase';

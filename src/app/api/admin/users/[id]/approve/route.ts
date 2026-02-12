@@ -6,6 +6,8 @@
  * - REJECT: ユーザー登録拒否
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Database } from '@/types/database';

@@ -3,6 +3,8 @@
  * POST /api/admin/notifications/create - Create a new notification (admin only)
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr'

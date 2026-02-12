@@ -12,6 +12,8 @@
  * - pdf_url: The public URL of the saved PDF
  */
 
+export const dynamic = 'force-dynamic';
+
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';

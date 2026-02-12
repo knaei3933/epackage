@@ -5,6 +5,8 @@
  * POST /api/quotations/guest-save - ログインなしで見積を作成
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';

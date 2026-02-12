@@ -18,6 +18,8 @@
  * - GET /api/quotes/pdf - API information
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // ============================================================

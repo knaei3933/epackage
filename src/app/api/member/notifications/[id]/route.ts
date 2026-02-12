@@ -4,6 +4,8 @@
  * DELETE /api/member/notifications/[id]
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { getServerClient } from '@/lib/supabase';

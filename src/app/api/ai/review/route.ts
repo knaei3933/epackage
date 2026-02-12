@@ -8,6 +8,8 @@
  * - DELETE: レビュータスクを削除
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import type { ProductSpecifications, ReviewDecision } from '@/lib/ai/types';
 import {

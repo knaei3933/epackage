@@ -6,6 +6,8 @@
  * - Client-side AuthContextから呼び出しユーザー情報取得
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { auth, createServiceClient } from '@/lib/supabase';

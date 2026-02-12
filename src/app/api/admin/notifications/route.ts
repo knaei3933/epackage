@@ -4,6 +4,8 @@
  * POST /api/admin/notifications - Mark all as read
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr'

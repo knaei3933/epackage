@@ -6,6 +6,8 @@
  * - 日本の電子署名法準拠TSA連携
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // ============================================================

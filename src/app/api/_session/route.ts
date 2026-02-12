@@ -8,6 +8,8 @@
  * - Moved to /api/_session to avoid redirect loop with /api/auth/session
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 

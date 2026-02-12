@@ -6,6 +6,8 @@
  * POST - Update production job status with timestamp tracking
  */
 
+export const dynamic = 'force-dynamic';
+
 import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';

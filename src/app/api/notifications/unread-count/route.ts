@@ -2,6 +2,8 @@
  * 統合通知未読件数取得API
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createNotificationService } from '@/lib/unified-notifications';
 import { getCurrentUserId } from '@/lib/dashboard';

@@ -9,6 +9,8 @@
  * - MODIFICATION_REQUESTED → MODIFICATION_REJECTED (拒否)
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';

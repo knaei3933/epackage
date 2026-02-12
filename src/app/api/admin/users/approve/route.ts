@@ -5,6 +5,8 @@
  * - POST: PENDING状態の会員をACTIVEに変更
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { getServerClient } from '@/lib/supabase';
