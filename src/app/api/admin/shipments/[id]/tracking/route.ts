@@ -70,6 +70,16 @@ export async function POST(
     const { force } = body;
 
     // Check if shipment exists and has tracking number
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Database configuration error' },
+        { status: 500 }
+      );
+    }
+
     const supabase = createServiceClient();
     const { data: shipment, error } = await supabase
       .from('shipments')
@@ -146,6 +156,17 @@ export async function PUT(
     switch (action) {
       case 'update_estimated_delivery': {
         const { estimatedDelivery } = body;
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+          return NextResponse.json(
+            { error: 'Database configuration error' },
+            { status: 500 }
+          );
+        }
+
         const supabase = createServiceClient();
 
         const { error } = await supabase
@@ -166,6 +187,17 @@ export async function PUT(
 
       case 'update_status': {
         const { status, notes } = body;
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+          return NextResponse.json(
+            { error: 'Database configuration error' },
+            { status: 500 }
+          );
+        }
+
         const supabase = createServiceClient();
 
         // Update status
@@ -196,6 +228,17 @@ export async function PUT(
 
       case 'add_tracking_number': {
         const { trackingNumber } = body;
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+          return NextResponse.json(
+            { error: 'Database configuration error' },
+            { status: 500 }
+          );
+        }
+
         const supabase = createServiceClient();
 
         const { error } = await supabase
