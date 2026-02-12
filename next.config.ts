@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: undefined, // Explicitly disable static export
+  output: 'standalone', // Force server mode, disable static export
   skipTrailingSlashRedirect: true,
   productionBrowserSourceMaps: false,
   typescript: {
