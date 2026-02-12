@@ -33,15 +33,40 @@ export const getServerClient = () => {
   // During build or when credentials not available, return mock client
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('[getServerClient] Credentials not configured, using mock client')
+
+    // Create a chainable query builder mock
+    const createQueryMock = () => ({
+      select: (columns?: string) => createQueryMock(),
+      insert: (data: any) => createQueryMock(),
+      update: (data: any) => createQueryMock(),
+      delete: () => createQueryMock(),
+      eq: (column: string, value: any) => createQueryMock(),
+      neq: (column: string, value: any) => createQueryMock(),
+      gt: (column: string, value: any) => createQueryMock(),
+      gte: (column: string, value: any) => createQueryMock(),
+      lt: (column: string, value: any) => createQueryMock(),
+      lte: (column: string, value: any) => createQueryMock(),
+      like: (column: string, value: any) => createQueryMock(),
+      ilike: (column: string, value: any) => createQueryMock(),
+      in: (column: string, values: any[]) => createQueryMock(),
+      order: (column: string, options?: { ascending: boolean }) => createQueryMock(),
+      limit: (n: number) => createQueryMock(),
+      range: (from: number, to: number) => createQueryMock(),
+      single: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      maybeSingle: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      then: (resolve: any) => resolve({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+    })
+
     return {
-      from: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      select: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      insert: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      update: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      delete: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      rpc: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      from: (table: string) => createQueryMock(),
+      select: (columns?: string) => createQueryMock(),
+      insert: (data: any) => createQueryMock(),
+      update: (data: any) => createQueryMock(),
+      delete: () => createQueryMock(),
+      rpc: (fn: string, params?: any) => createQueryMock(),
       auth: {
         getUser: async () => ({ data: { user: null }, error: { message: 'Not configured' } }),
+        getSession: async () => ({ data: { session: null }, error: { message: 'Not configured' } }),
       },
     } as any
   }
@@ -65,13 +90,37 @@ export const createServiceClient = () => {
     if (!url || !key) {
         // During build, return a mock client to prevent errors
         console.warn('[createServiceClient] Credentials not configured, using mock client');
+
+        // Create a chainable query builder mock
+        const createQueryMock = () => ({
+            select: (columns?: string) => createQueryMock(),
+            insert: (data: any) => createQueryMock(),
+            update: (data: any) => createQueryMock(),
+            delete: () => createQueryMock(),
+            eq: (column: string, value: any) => createQueryMock(),
+            neq: (column: string, value: any) => createQueryMock(),
+            gt: (column: string, value: any) => createQueryMock(),
+            gte: (column: string, value: any) => createQueryMock(),
+            lt: (column: string, value: any) => createQueryMock(),
+            lte: (column: string, value: any) => createQueryMock(),
+            like: (column: string, value: any) => createQueryMock(),
+            ilike: (column: string, value: any) => createQueryMock(),
+            in: (column: string, values: any[]) => createQueryMock(),
+            order: (column: string, options?: { ascending: boolean }) => createQueryMock(),
+            limit: (n: number) => createQueryMock(),
+            range: (from: number, to: number) => createQueryMock(),
+            single: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            maybeSingle: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            then: (resolve: any) => resolve({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+        });
+
         return {
-            from: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            select: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            insert: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            update: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            delete: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            rpc: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            from: (table: string) => createQueryMock(),
+            select: (columns?: string) => createQueryMock(),
+            insert: (data: any) => createQueryMock(),
+            update: (data: any) => createQueryMock(),
+            delete: () => createQueryMock(),
+            rpc: (fn: string, params?: any) => createQueryMock(),
         } as any;
     }
 
