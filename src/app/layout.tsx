@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -148,14 +149,16 @@ export default function RootLayout({
           enableSystem={true}
           attribute="class"
         >
-          <AuthProvider>
-            <LanguageProvider>
-              <HeaderWrapper />
-              <BreadcrumbList />
-              <main>{children}</main>
-              <Footer />
-            </LanguageProvider>
-          </AuthProvider>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
+            <AuthProvider>
+              <LanguageProvider>
+                <HeaderWrapper />
+                <BreadcrumbList />
+                <main>{children}</main>
+                <Footer />
+              </LanguageProvider>
+            </AuthProvider>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
