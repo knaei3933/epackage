@@ -254,7 +254,146 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  return POST(request, context);
+  try {
+    const params = await context.params;
+    const { id: quotationId } = params;
+
+    // Authentication Check
+    const supabase = await getSupabaseClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '認証されていません。ログインしてください。',
+          errorEn: 'Authentication required',
+        } as InvoiceResponse,
+        { status: 401 }
+      );
+    }
+
+    const userId = user.id;
+
+    // Fetch Quotation Data
+    const { data: quotation, error: quotationError } = await supabase
+      .from('quotations')
+      .select(`
+        id,
+        quotation_number,
+        customer_name,
+        customer_email,
+        customer_phone,
+        subtotal_amount,
+        tax_amount,
+        total_amount,
+        created_at,
+        valid_until,
+        status,
+        user_id,
+        quotation_items (
+          id,
+          product_name,
+          quantity,
+          unit_price,
+          total_price,
+          specifications
+        )
+      `)
+      .eq('id', quotationId)
+      .single();
+
+    if (quotationError || !quotation) {
+      console.error('[Invoice API GET] Error fetching quotation:', quotationError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: '見積が見つかりませんでした。',
+          errorEn: 'Quotation not found',
+        } as InvoiceResponse,
+        { status: 404 }
+      );
+    }
+
+    // Authorization Check
+    if (quotation.user_id !== userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'この請求書にアクセスする権限がありません。',
+          errorEn: 'Access denied',
+        } as InvoiceResponse,
+        { status: 403 }
+      );
+    }
+
+    // Prepare Invoice Data (same as POST)
+    const invoiceItems: InvoiceItem[] = (quotation.quotation_items || []).map((item: any) => ({
+      id: item.id,
+      name: item.product_name,
+      description: undefined,
+      quantity: item.quantity,
+      unit: '枚',
+      unitPrice: item.unit_price,
+      amount: item.total_price,
+    }));
+
+    const invoiceNumber = quotation.quotation_number.replace('QT', 'INV');
+
+    const issueDate = new Date();
+    const dueDate = new Date(issueDate);
+    dueDate.setDate(dueDate.getDate() + 30);
+
+    const invoiceData: InvoiceData = {
+      invoiceNumber,
+      issueDate: issueDate.toISOString(),
+      dueDate: dueDate.toISOString(),
+      billingName: quotation.customer_name,
+      items: invoiceItems,
+      paymentMethod: '銀行振込',
+      bankInfo: {
+        bankName: '三菱UFJ銀行',
+        branchName: '東京支店',
+        accountType: '普通',
+        accountNumber: '1234567',
+        accountHolder: 'イーパックラボ株式会社',
+      },
+      supplierInfo: {
+        name: 'EPACKAGE Lab',
+        subBrand: 'by kanei-trade',
+        companyName: '金井貿易株式会社',
+        postalCode: '〒673-0846',
+        address: '兵庫県明石市上ノ丸2-11-21',
+        phone: '050-1793-6500',
+        email: 'info@package-lab.com',
+        description: 'オーダーメイドバッグ印刷専門',
+      },
+      remarks: `※本見積書に基づく請求書です。
+※お支払期限までにご送金くださいますようお願い申し上げます。`,
+    };
+
+    return NextResponse.json(
+      {
+        success: true,
+        invoice: invoiceData,
+        message: '請求書データを取得しました。',
+        messageEn: 'Invoice data retrieved successfully.',
+      } as InvoiceResponse,
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('[Invoice API GET] Unexpected error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: '予期しないエラーが発生しました。',
+        errorEn: 'An unexpected error occurred',
+        details: error instanceof Error ? error.message : String(error),
+      } as InvoiceResponse,
+      { status: 500 }
+    );
+  }
 }
 
 export async function OPTIONS() {
