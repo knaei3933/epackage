@@ -1517,6 +1517,9 @@ export async function getNotificationBadge(): Promise<NotificationBadge> {
 /**
  * 統合ダッシュボード統計取得
  * SSR/CSR両対応
+ *
+ * FIX: unstable_cacheの正しい使用方法に修正
+ * unstable_cacheはキャッシュされた関数を返すため、それを呼び出す必要がある
  */
 export async function getUnifiedDashboardStats(
   userId: string | undefined,
@@ -1528,20 +1531,27 @@ export async function getUnifiedDashboardStats(
     return getEmptyUnifiedStats();
   }
 
-  // Production対応
+  try {
+    // 本番データフェッチ（キャッシュ付き）
+    const cacheKey = `dashboard_${userRole}_${userId}_${period}`;
 
-  // 本番データフェッチ（キャッシュ付き）
-  const cacheKey = `dashboard_${userRole}_${userId}_${period}`;
+    // unstable_cacheは関数を返すので、それを呼び出して結果を取得
+    const cachedFetch = unstable_cache(
+      async () => {
+        return userRole === 'ADMIN'
+          ? fetchAdminDashboardStats(userId, period)
+          : fetchMemberDashboardStats(userId, period);
+      },
+      [cacheKey],
+      { revalidate: 30 } // 30秒キャッシュ
+    );
 
-  return unstable_cache(
-    async () => {
-      return userRole === 'ADMIN'
-        ? fetchAdminDashboardStats(userId, period)
-        : fetchMemberDashboardStats(userId, period);
-    },
-    [cacheKey],
-    { revalidate: 30 } // 30秒キャッシュ
-  );
+    // キャッシュされた関数を実行して結果を返す
+    return await cachedFetch();
+  } catch (error) {
+    console.error('[getUnifiedDashboardStats] Error:', error);
+    return getEmptyUnifiedStats();
+  }
 }
 
 /**
