@@ -69,18 +69,16 @@ export default function SettingsPage() {
     timezone: 'Asia/Tokyo',
   });
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/signin?redirect=/member/settings');
-    }
-  }, [isLoading, isAuthenticated, router]);
+  // NOTE: Authentication is handled by middleware server-side.
+  // The client-side redirect is removed to prevent race conditions with AuthContext.
+  // If user reaches this page unauthenticated, middleware will redirect to login.
+  // The useEffect was causing premature redirects when AuthContext wasn't fully initialized.
 
   // Load settings on mount
+  // Note: Always try to load settings - API handles auth via cookies
+  // Don't gate on isAuthenticated to avoid race conditions with AuthContext
   useEffect(() => {
     const loadSettings = async () => {
-      if (!isAuthenticated) return;
-
       try {
         // Use credentials: include for cookie-based auth
         const response = await fetch('/api/member/settings', {
@@ -101,7 +99,7 @@ export default function SettingsPage() {
     };
 
     loadSettings();
-  }, [isAuthenticated]);
+  }, []); // Empty deps - run once on mount, API handles auth via cookies
 
   // Handle notification setting change
   const handleNotificationChange = (key: keyof NotificationSettings) => {
