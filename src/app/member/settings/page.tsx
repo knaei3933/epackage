@@ -48,13 +48,17 @@ async function SettingsContent() {
     throw error;
   }
 
-  // Extract user metadata
+  // Extract user metadata with fallbacks (same pattern as dashboard)
   const userMetadata = user.user_metadata || {};
   const userEmail = user.email || '';
   const userId = user.id || '';
-  const userLastName = userMetadata.kanji_last_name || userMetadata.name_kanji?.split(' ')[0] || '';
-  const userFirstName = userMetadata.kanji_first_name || userMetadata.name_kanji?.split(' ')[1] || '';
-  const userName = `${userLastName} ${userFirstName}`.trim() || userEmail;
+  const userLastName = userMetadata.kanji_last_name || '';
+  const userFirstName = userMetadata.kanji_first_name || '';
+
+  // Fallback chain for userName: lastName firstName -> email -> 'テスト'
+  const fullName = `${userLastName} ${userFirstName}`.trim();
+  const userName = fullName || userEmail || 'テスト';
+
   const userCreatedAt = formatDateToISO(user.created_at);
   const userStatus = userMetadata.status || 'ACTIVE';
 
