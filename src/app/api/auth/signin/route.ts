@@ -196,7 +196,18 @@ async function handleSignInPost(request: NextRequest) {
     if (error) {
       console.error('[Signin API] Supabase login error:', error);
       return NextResponse.json(
-        { error: 'ログインに失敗しました。メールアドレスとパスワードを確認してください。' },
+        {
+          error: 'ログインに失敗しました。メールアドレスとパスワードを確認してください。',
+          // DEBUG INFO - remove after fixing
+          debug: {
+            supabaseUrl: supabaseUrl,
+            anonKeyPrefix: supabaseAnonKey?.substring(0, 50) + '...',
+            anonKeyLength: supabaseAnonKey?.length,
+            isJwtFormat: supabaseAnonKey?.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'),
+            errorCode: error.message,
+            errorStatus: error.status
+          }
+        },
         { status: 401 }
       );
     }
