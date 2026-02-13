@@ -82,10 +82,19 @@ export class UnifiedNotificationService {
     // CRITICAL: Dynamic import to avoid build-time hang
     const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
+
+    // CRITICAL FIX: Server Components の cookieStore は読み取り専用
+    // set と remove は空関数として定義する必要がある
     this._supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: cookieStore.get, set: cookieStore.set, remove: cookieStore.delete } }
+      {
+        cookies: {
+          get: (name: string) => cookieStore.get(name)?.value,
+          set: () => {}, // 読み取り専用 - Server Components では何もしない
+          remove: () => {}, // 読み取り専用 - Server Components では何もしない
+        },
+      }
     );
   }
 
