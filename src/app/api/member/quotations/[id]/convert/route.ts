@@ -155,18 +155,6 @@ export async function POST(
       );
     }
 
-    if (existingOrder) {
-      return NextResponse.json(
-        {
-          success: true,
-          data: existingOrder,
-          message: '既に注文が生成されています。',
-          alreadyExists: true,
-        },
-        { status: 200 }
-      );
-    }
-
     // Generate order number
     const orderNumber = `ORD-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`;
 
