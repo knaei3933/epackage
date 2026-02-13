@@ -247,8 +247,14 @@ export async function requireAuth(): Promise<{
     // ============================================================
     // Use RBAC context for consistent authentication (same as admin)
     // ============================================================
-    const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
-    const context = await getRBACContext();
+    let context;
+    try {
+      const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
+      context = await getRBACContext();
+    } catch (rbacError) {
+      console.error('[requireAuth] getRBACContext failed:', rbacError);
+      throw new AuthRequiredError();
+    }
 
     if (!context) {
       console.log('[requireAuth] No RBAC context found, throwing AuthRequiredError');
@@ -259,15 +265,18 @@ export async function requireAuth(): Promise<{
 
     // Fetch profile data for user metadata
     const serviceClient = createServiceClient();
-    const { data: profile, error: profileError } = await serviceClient
-      .from('profiles')
-      .select('kanji_last_name, kanji_first_name, kana_last_name, email')
-      .eq('id', context.userId)
-      .maybeSingle();
-
-    if (profileError) {
-      console.error('[requireAuth] Profile fetch error:', profileError.message);
+    let profile;
+    try {
+      const result = await serviceClient
+        .from('profiles')
+        .select('kanji_last_name, kanji_first_name, kana_last_name, email')
+        .eq('id', context.userId)
+        .maybeSingle();
+      profile = result.data;
+    } catch (profileError) {
+      console.error('[requireAuth] Profile fetch error:', profileError);
       // Continue with empty profile data - don't crash
+      profile = null;
     }
 
     const profileAny = profile as any;

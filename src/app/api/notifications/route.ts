@@ -70,14 +70,23 @@ export async function GET(request: NextRequest) {
       recipientType = 'admin';
     }
 
-    const service = await createNotificationService();
-    const notifications = await service.getNotifications({
-      recipientId: userId || 'dev-mock-user',
-      recipientType,
-      unreadOnly,
-      limit,
-      type,
-    });
+    // CRITICAL FIX: unified_notifications テーブルが存在しない場合のエラーハンドリング
+    let notifications: any[] = [];
+    try {
+      const service = await createNotificationService();
+      notifications = await service.getNotifications({
+        recipientId: userId || 'dev-mock-user',
+        recipientType,
+        unreadOnly,
+        limit,
+        type,
+      });
+    } catch (serviceError) {
+      // unified_notifications テーブルが存在しない、または初期化に失敗した場合
+      console.error('[API] Notifications: Service error (table may not exist):', serviceError);
+      // エラーを無視して空の配列を返す（UIクラッシュ防止）
+      notifications = [];
+    }
 
     return NextResponse.json(notifications);
   } catch (error) {
