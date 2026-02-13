@@ -243,39 +243,55 @@ export async function requireAuth(): Promise<{
     name_kana?: string;
   };
 }> {
-  // ============================================================
-  // Use RBAC context for consistent authentication (same as admin)
-  // ============================================================
-  const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
-  const context = await getRBACContext();
+  try {
+    // ============================================================
+    // Use RBAC context for consistent authentication (same as admin)
+    // ============================================================
+    const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
+    const context = await getRBACContext();
 
-  if (!context) {
-    console.log('[requireAuth] No RBAC context found, throwing AuthRequiredError');
+    if (!context) {
+      console.log('[requireAuth] No RBAC context found, throwing AuthRequiredError');
+      throw new AuthRequiredError();
+    }
+
+    console.log('[requireAuth] Got user from RBAC context:', context.userId);
+
+    // Fetch profile data for user metadata
+    const serviceClient = createServiceClient();
+    const { data: profile, error: profileError } = await serviceClient
+      .from('profiles')
+      .select('kanji_last_name, kanji_first_name, kana_last_name, email')
+      .eq('id', context.userId)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('[requireAuth] Profile fetch error:', profileError.message);
+      // Continue with empty profile data - don't crash
+    }
+
+    const profileAny = profile as any;
+
+    return {
+      id: context.userId,
+      email: profileAny?.email || '',
+      user_metadata: {
+        kanji_last_name: profileAny?.kanji_last_name || '',
+        kanji_first_name: profileAny?.kanji_first_name || '',
+        name_kanji: profileAny?.kanji_last_name || '',
+        name_kana: profileAny?.kana_last_name || '',
+      },
+    };
+  } catch (error) {
+    // AuthRequiredError should be re-thrown for redirect handling
+    if (error instanceof AuthRequiredError) {
+      throw error;
+    }
+
+    // Log unexpected errors and treat as auth required
+    console.error('[requireAuth] Unexpected error during authentication:', error);
     throw new AuthRequiredError();
   }
-
-  console.log('[requireAuth] Got user from RBAC context:', context.userId);
-
-  // Fetch profile data for user metadata
-  const serviceClient = createServiceClient();
-  const { data: profile } = await serviceClient
-    .from('profiles')
-    .select('kanji_last_name, kanji_first_name, kana_last_name, email')
-    .eq('id', context.userId)
-    .maybeSingle();
-
-  const profileAny = profile as any;
-
-  return {
-    id: context.userId,
-    email: profileAny?.email,
-    user_metadata: {
-      kanji_last_name: profileAny?.kanji_last_name || '',
-      kanji_first_name: profileAny?.kanji_first_name || '',
-      name_kanji: profileAny?.kanji_last_name || '',
-      name_kana: profileAny?.kana_last_name || '',
-    },
-  };
 }
 
 /**
