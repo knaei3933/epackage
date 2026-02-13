@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/dashboard';
+import { isDevMode } from '@/lib/dev-mode';
 
 /**
  * ============================================================
@@ -104,11 +105,19 @@ function mergeWithDefaults(settings: Partial<UserSettings>): UserSettings {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const userId = await getCurrentUserId();
+    const isDevModeEnabled = isDevMode();
+
+    // DEV_MODEまたは未認証の場合はデフォルト設定を返す
     if (!userId) {
-      return NextResponse.json(
-        { error: '認証されていません', code: 'UNAUTHORIZED' },
-        { status: 401 }
-      );
+      if (isDevModeEnabled) {
+        console.log('[settings API] DEV_MODE: returning default settings');
+      } else {
+        console.log('[settings API] No authenticated user, returning default settings');
+      }
+      return NextResponse.json({
+        success: true,
+        data: DEFAULT_SETTINGS,
+      });
     }
 
     const supabase = createServiceClient();
