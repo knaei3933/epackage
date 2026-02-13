@@ -49,7 +49,8 @@ export interface ServiceRoleContext {
  */
 export function createAuthenticatedServiceClient(context?: ServiceRoleContext) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // CRITICAL: Remove all whitespace from service role key to prevent JWT parsing errors
+  const supabaseServiceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').replace(/\s/g, '');
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error('Missing Supabase environment variables');
