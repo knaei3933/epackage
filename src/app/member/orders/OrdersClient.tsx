@@ -62,6 +62,17 @@ interface FilterState {
 
 interface OrdersClientProps {
   userId: string;
+  userEmail?: string;
+  userProfile?: {
+    kanji_last_name?: string;
+    kanji_first_name?: string;
+    kana_last_name?: string;
+    kana_first_name?: string;
+    company_name?: string;
+    corporate_phone?: string;
+    personal_phone?: string;
+    email?: string;
+  };
 }
 
 // =====================================================
@@ -172,7 +183,7 @@ function TabButton({ active, onClick, icon, label, count }: TabButtonProps) {
 // Page Component
 // =====================================================
 
-function OrdersClientContent({ userId }: OrdersClientProps) {
+function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -625,3 +636,8 @@ export function OrdersClient(props: OrdersClientProps) {
     </Suspense>
   );
 }
+
+/**
+ * Actual default export for Server Component to import
+ */
+export { OrdersClient as default };
