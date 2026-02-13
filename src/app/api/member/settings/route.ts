@@ -3,8 +3,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
-import { getCurrentUserId } from '@/lib/dashboard';
-import { isDevMode } from '@/lib/dev-mode';
 
 /**
  * ============================================================
@@ -14,8 +12,54 @@ import { isDevMode } from '@/lib/dev-mode';
  * GET /api/member/settings - Get user's notification settings
  * POST /api/member/settings - Update user's notification settings
  *
- * Settings are stored in profiles.settings column (JSONB)
+ * Uses direct Supabase auth for reliable authentication
  */
+
+// ============================================================
+// Helper: Get authenticated user ID from cookies
+// ============================================================
+
+async function getAuthenticatedUserId(): Promise<string | null> {
+  try {
+    const { createServerClient } = await import('@supabase/ssr');
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('[settings API] Missing Supabase environment variables');
+      return null;
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: () => {},
+        remove: () => {},
+      },
+    });
+
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error) {
+      console.log('[settings API] Auth error:', error.message);
+      return null;
+    }
+
+    if (!user) {
+      console.log('[settings API] No user found in session');
+      return null;
+    }
+
+    console.log('[settings API] Found user:', user.id);
+    return user.id;
+  } catch (error) {
+    console.error('[settings API] Error getting authenticated user:', error);
+    return null;
+  }
+}
 
 // ============================================================
 // Types
@@ -104,16 +148,11 @@ function mergeWithDefaults(settings: Partial<UserSettings>): UserSettings {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getCurrentUserId();
-    const isDevModeEnabled = isDevMode();
+    const userId = await getAuthenticatedUserId();
 
-    // DEV_MODEまたは未認証の場合はデフォルト設定を返す
+    // 未認証の場合はデフォルト設定を返す（UIを壊さないため）
     if (!userId) {
-      if (isDevModeEnabled) {
-        console.log('[settings API] DEV_MODE: returning default settings');
-      } else {
-        console.log('[settings API] No authenticated user, returning default settings');
-      }
+      console.log('[settings API] No authenticated user, returning default settings');
       return NextResponse.json({
         success: true,
         data: DEFAULT_SETTINGS,
@@ -126,7 +165,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .from('profiles')
       .select('settings')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Settings fetch error:', error);
@@ -163,7 +202,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
