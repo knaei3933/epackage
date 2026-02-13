@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
-import { getCurrentUserId } from '@/lib/dashboard';
 
 /**
  * ============================================================
@@ -38,14 +38,18 @@ const deliveryAddressSchema = z.object({
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
+    // Initialize Supabase SSR client to get authenticated user
+    const { client: supabaseAuth } = await createSupabaseSSRClient(request);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
         { status: 401 }
       );
     }
 
+    const userId = user.id;
     const supabase = createServiceClient();
 
     const { data: addresses, error } = await supabase
@@ -105,13 +109,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
+    // Initialize Supabase SSR client to get authenticated user
+    const { client: supabaseAuth } = await createSupabaseSSRClient(request);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
         { status: 401 }
       );
     }
+
+    const userId = user.id;
 
     const body = await request.json();
     const validationResult = deliveryAddressSchema.safeParse(body);
