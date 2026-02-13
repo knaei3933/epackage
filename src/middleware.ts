@@ -24,6 +24,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3001',
   'http://localhost:3004', // Dev server might use port 3004
   'http://localhost:3005', // Dev server might use port 3005
+  'https://www.package-lab.com',
+  'https://package-lab.com',
   // 本番環境で実際のドメイン追加
   // ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
 ];
@@ -93,8 +95,8 @@ const PUBLIC_ROUTES = [
 // =====================================================
 
 function createMiddlewareClient(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/\s/g, '');
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables');
