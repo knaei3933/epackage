@@ -15,7 +15,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
     // 1. 認証確認
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {

@@ -98,7 +98,7 @@ export async function POST(
     }
 
     const { id: userId } = await params;
-const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+const { client: supabase } = await createSupabaseSSRClient(request);
     // Parse and validate request body
     const body: ApprovalRequestBody = await request.json();
     const validatedData = approvalSchema.parse(body);

@@ -1,459 +1,115 @@
-2985-d893f9fb852cb9b4.js:1 [AuthContext] Initializing auth context...
-2985-d893f9fb852cb9b4.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 1}
-2985-d893f9fb852cb9b4.js:1 [AuthContext] Route changed, refreshing auth state: {from: '/contact', to: '/auth/signin'}
-2985-d893f9fb852cb9b4.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 2}
-3794-c3a42373eff782f5.js:1  GET https://www.package-lab.com/auth?_rsc=1u2lf 404 (Not Found)
+2985-9df1b87cb7e874e0.js:1 [AuthContext] Initializing auth context...
+2985-9df1b87cb7e874e0.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 1}
+2985-9df1b87cb7e874e0.js:1 [AuthContext] Session updated successfully {fetchId: 1}
+2985-9df1b87cb7e874e0.js:1 [AuthContext] Route changed, refreshing auth state: {from: '/member/orders', to: '/member/quotations'}
+2985-9df1b87cb7e874e0.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 2}
+2985-9df1b87cb7e874e0.js:1 [AuthContext] Session updated successfully {fetchId: 2}
+page-294f1ee6beec435a.js:1 [SpecApprovalModal] Raw specifications: {
+  "depth": 30,
+  "width": 200,
+  "height": 300,
+  "urgency": "standard",
+  "contents": "食品（固体） / 一般/中性 / 一般/常温",
+  "bagTypeId": "stand_up",
+  "sealWidth": "5mm",
+  "dimensions": "200 x 300 x 30 mm",
+  "materialId": "pet_al",
+  "doubleSided": false,
+  "contentsType": "solid",
+  "isUVPrinting": false,
+  "printingType": "digital",
+  "mainIngredient": "general_neutral",
+  "printingColors": 1,
+  "productCategory": "food",
+  "deliveryLocation": "domestic",
+  "thicknessSelection": "medium",
+  "postProcessingOptions": [
+    "corner-round",
+    "glossy",
+    "hang-hole-6mm",
+    "machi-printing-no",
+    "notch-yes",
+    "sealing-width-5mm",
+    "top-open",
+    "valve-no",
+    "zipper-yes"
+  ],
+  "distributionEnvironment": "general_roomTemp"
+}
+page-294f1ee6beec435a.js:1 [SpecApprovalModal] Raw specifications: {
+  "depth": 30,
+  "width": 200,
+  "height": 300,
+  "urgency": "standard",
+  "contents": "食品（固体） / 一般/中性 / 一般/常温",
+  "bagTypeId": "stand_up",
+  "sealWidth": "5mm",
+  "dimensions": "200 x 300 x 30 mm",
+  "materialId": "pet_al",
+  "doubleSided": false,
+  "contentsType": "solid",
+  "isUVPrinting": false,
+  "printingType": "digital",
+  "mainIngredient": "general_neutral",
+  "printingColors": 1,
+  "productCategory": "food",
+  "deliveryLocation": "domestic",
+  "thicknessSelection": "medium",
+  "postProcessingOptions": [
+    "corner-round",
+    "glossy",
+    "hang-hole-6mm",
+    "machi-printing-no",
+    "notch-yes",
+    "sealing-width-5mm",
+    "top-open",
+    "valve-no",
+    "zipper-yes"
+  ],
+  "distributionEnvironment": "general_roomTemp"
+}
+3794-c3a42373eff782f5.js:1  GET https://www.package-lab.com/sitemap?_rsc=ai8u5 404 (Not Found)
 m @ 3794-c3a42373eff782f5.js:1
 er @ 3794-c3a42373eff782f5.js:1
 Y @ 3794-c3a42373eff782f5.js:1
 (anonymous) @ 3794-c3a42373eff782f5.js:1
 (anonymous) @ 3794-c3a42373eff782f5.js:1
 C @ 3794-c3a42373eff782f5.js:1
-layout-45f910680ef9192c.js:1 [LoginForm] Attempt 52: URL parameter auth for: arwg22@gmail.com
-layout-45f910680ef9192c.js:1 [LoginForm] Login successful
-layout-45f910680ef9192c.js:1 [LoginForm] Redirecting to: /member/dashboard
-layout-45f910680ef9192c.js:1 [LoginForm] Attempt 52: URL parameter auth for: arwg22@gmail.com
-layout-45f910680ef9192c.js:1 [LoginForm] Login successful
-layout-45f910680ef9192c.js:1 [LoginForm] Redirecting to: /member/dashboard
-2985-d893f9fb852cb9b4.js:1 [AuthContext] Route changed, refreshing auth state: {from: '/auth/signin', to: '/member/dashboard'}
-2985-d893f9fb852cb9b4.js:1 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 3}
-3794-c3a42373eff782f5.js:1 Error: An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.
-d @ 3794-c3a42373eff782f5.js:1
-oR @ 4bd1b696-43ba64781d20dbb7.js:1
-(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
-lJ @ 4bd1b696-43ba64781d20dbb7.js:1
-l0 @ 4bd1b696-43ba64781d20dbb7.js:1
-ik @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-sS @ 4bd1b696-43ba64781d20dbb7.js:1
-sy @ 4bd1b696-43ba64781d20dbb7.js:1
-st @ 4bd1b696-43ba64781d20dbb7.js:1
-sn @ 4bd1b696-43ba64781d20dbb7.js:1
-sW @ 4bd1b696-43ba64781d20dbb7.js:1
-s$ @ 4bd1b696-43ba64781d20dbb7.js:1
-sE @ 4bd1b696-43ba64781d20dbb7.js:1
-sy @ 4bd1b696-43ba64781d20dbb7.js:1
-st @ 4bd1b696-43ba64781d20dbb7.js:1
-sn @ 4bd1b696-43ba64781d20dbb7.js:1
-sQ @ 4bd1b696-43ba64781d20dbb7.js:1
-w @ 3794-c3a42373eff782f5.js:1
-577-99129eeeb86d0448.js:1 🚨 Layout Error Boundary Caught: {name: 'Error', message: 'An error occurred in the Server Components render.…additional details about the nature of the error.', stack: 'Error: An error occurred in the Server Components …additional details about the nature of the error.', componentStack: '\n    at div (<anonymous>)\n    at M (https://www.pa…t/static/chunks/3794-c3a42373eff782f5.js:1:82552)'}
-onError @ 577-99129eeeb86d0448.js:1
-componentDidCatch @ 577-99129eeeb86d0448.js:1
-(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
-lJ @ 4bd1b696-43ba64781d20dbb7.js:1
-l0 @ 4bd1b696-43ba64781d20dbb7.js:1
-ik @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-sS @ 4bd1b696-43ba64781d20dbb7.js:1
-sy @ 4bd1b696-43ba64781d20dbb7.js:1
-st @ 4bd1b696-43ba64781d20dbb7.js:1
-sn @ 4bd1b696-43ba64781d20dbb7.js:1
-sW @ 4bd1b696-43ba64781d20dbb7.js:1
-s$ @ 4bd1b696-43ba64781d20dbb7.js:1
-sE @ 4bd1b696-43ba64781d20dbb7.js:1
-sy @ 4bd1b696-43ba64781d20dbb7.js:1
-st @ 4bd1b696-43ba64781d20dbb7.js:1
-sn @ 4bd1b696-43ba64781d20dbb7.js:1
-sQ @ 4bd1b696-43ba64781d20dbb7.js:1
-w @ 3794-c3a42373eff782f5.js:1
-layout-3ddd68918760a39b.js:1  GET https://www.package-lab.com/api/notifications?limit=50 500 (Internal Server Error)
-n @ layout-3ddd68918760a39b.js:1
-(anonymous) @ 7536-15d30a025a0ee603.js:1
-(anonymous) @ 7536-15d30a025a0ee603.js:1
-(anonymous) @ 7536-15d30a025a0ee603.js:1
-iy @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-uc @ 4bd1b696-43ba64781d20dbb7.js:1
-i5 @ 4bd1b696-43ba64781d20dbb7.js:1
-sS @ 4bd1b696-43ba64781d20dbb7.js:1
-sy @ 4bd1b696-43ba64781d20dbb7.js:1
-st @ 4bd1b696-43ba64781d20dbb7.js:1
-sn @ 4bd1b696-43ba64781d20dbb7.js:1
-sQ @ 4bd1b696-43ba64781d20dbb7.js:1
-w @ 3794-c3a42373eff782f5.js:1
-3794-c3a42373eff782f5.js:1  GET https://www.package-lab.com/member?_rsc=1o4hi 404 (Not Found)
-m @ 3794-c3a42373eff782f5.js:1
-er @ 3794-c3a42373eff782f5.js:1
-Y @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-C @ 3794-c3a42373eff782f5.js:1
-setTimeout
-b @ 3794-c3a42373eff782f5.js:1
-A @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:2
-Promise.then
-y @ 3794-c3a42373eff782f5.js:2
-c @ 3794-c3a42373eff782f5.js:1
-action @ 3794-c3a42373eff782f5.js:1
-_ @ 3794-c3a42373eff782f5.js:1
-y @ 3794-c3a42373eff782f5.js:1
-o @ 3794-c3a42373eff782f5.js:1
-Promise.then
-_ @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-dispatch @ 3794-c3a42373eff782f5.js:1
-o @ 3794-c3a42373eff782f5.js:1
-i @ 3794-c3a42373eff782f5.js:1
-R @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-I @ 3794-c3a42373eff782f5.js:1
-push @ 3794-c3a42373eff782f5.js:1
-v @ layout-45f910680ef9192c.js:1
-await in v
-(anonymous) @ 9504-3c9b66dbb20136dc.js:1
-await in (anonymous)
-s0 @ 4bd1b696-43ba64781d20dbb7.js:1
-(anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
-nU @ 4bd1b696-43ba64781d20dbb7.js:1
-s8 @ 4bd1b696-43ba64781d20dbb7.js:1
-fL @ 4bd1b696-43ba64781d20dbb7.js:1
-fT @ 4bd1b696-43ba64781d20dbb7.js:1
-3794-c3a42373eff782f5.js:1  GET https://www.package-lab.com/member?_rsc=1o4hi 404 (Not Found)
-m @ 3794-c3a42373eff782f5.js:1
-er @ 3794-c3a42373eff782f5.js:1
-Y @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-C @ 3794-c3a42373eff782f5.js:1
-setTimeout
-b @ 3794-c3a42373eff782f5.js:1
-A @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:2
-Promise.then
-y @ 3794-c3a42373eff782f5.js:2
-c @ 3794-c3a42373eff782f5.js:1
-action @ 3794-c3a42373eff782f5.js:1
-_ @ 3794-c3a42373eff782f5.js:1
-y @ 3794-c3a42373eff782f5.js:1
-o @ 3794-c3a42373eff782f5.js:1
-Promise.then
-_ @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-dispatch @ 3794-c3a42373eff782f5.js:1
-o @ 3794-c3a42373eff782f5.js:1
-i @ 3794-c3a42373eff782f5.js:1
-R @ 3794-c3a42373eff782f5.js:1
-(anonymous) @ 3794-c3a42373eff782f5.js:1
-I @ 3794-c3a42373eff782f5.js:1
-push @ 3794-c3a42373eff782f5.js:1
-v @ layout-45f910680ef9192c.js:1
-await in v
-(anonymous) @ 9504-3c9b66dbb20136dc.js:1
-await in (anonymous)
+page-294f1ee6beec435a.js:1 [SpecApprovalModal] Raw specifications: {
+  "depth": 30,
+  "width": 200,
+  "height": 300,
+  "urgency": "standard",
+  "contents": "食品（固体） / 一般/中性 / 一般/常温",
+  "bagTypeId": "stand_up",
+  "sealWidth": "5mm",
+  "dimensions": "200 x 300 x 30 mm",
+  "materialId": "pet_al",
+  "doubleSided": false,
+  "contentsType": "solid",
+  "isUVPrinting": false,
+  "printingType": "digital",
+  "mainIngredient": "general_neutral",
+  "printingColors": 1,
+  "productCategory": "food",
+  "deliveryLocation": "domestic",
+  "thicknessSelection": "medium",
+  "postProcessingOptions": [
+    "corner-round",
+    "glossy",
+    "hang-hole-6mm",
+    "machi-printing-no",
+    "notch-yes",
+    "sealing-width-5mm",
+    "top-open",
+    "valve-no",
+    "zipper-yes"
+  ],
+  "distributionEnvironment": "general_roomTemp"
+}
+page-294f1ee6beec435a.js:2  POST https://www.package-lab.com/api/member/quotations/941e882f-9f60-4c66-948a-b3267ddd6b20/convert 500 (Internal Server Error)
+onApprove @ page-294f1ee6beec435a.js:2
+j @ page-294f1ee6beec435a.js:1
 s0 @ 4bd1b696-43ba64781d20dbb7.js:1
 (anonymous) @ 4bd1b696-43ba64781d20dbb7.js:1
 nU @ 4bd1b696-43ba64781d20dbb7.js:1

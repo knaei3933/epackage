@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     // =====================================================
 
     // Create SSR client that can read cookies
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Debug: Log available cookies and headers
     if (process.env.NODE_ENV === 'development') {

@@ -14,7 +14,7 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
  */
 async function getAuthenticatedUser(request: NextRequest) {
   // Use cookie-based auth with createSupabaseSSRClient
-  const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+  const { client: supabase } = await createSupabaseSSRClient(request);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser) {
@@ -42,7 +42,7 @@ export async function GET(
     }
 
     const { userId } = authResult;
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
     const { id: orderId } = await context.params;
 
     // Get order with basic info
