@@ -37,7 +37,7 @@ interface ConvertToOrderRequest {
  */
 async function getAuthenticatedUser(request: NextRequest) {
   // Normal auth: Use cookie-based auth with createSupabaseSSRClient
-  const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+  const { client: supabase } = await createSupabaseSSRClient(request);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser) {
@@ -79,7 +79,7 @@ export async function POST(
     const { notes, deliveryAddress } = body;
 
     // Use normal SSR client with cookie auth
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get quotation data (simple query first)
     const { data: quotation, error: quotationError } = await supabase
@@ -394,7 +394,7 @@ export async function GET(
     const { userId } = authResult;
 
     // Use normal SSR client with cookie auth
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get quotation data
     const { data: quotation, error } = await supabase
