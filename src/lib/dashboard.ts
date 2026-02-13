@@ -396,6 +396,19 @@ export async function getCurrentUserId(): Promise<string | null> {
     } catch (e) {
       console.error('[getCurrentUserId] Server-side error:', e);
     }
+
+    // Fallback: Use getRBACContext() which reads from cookies directly
+    // This is needed for API routes that don't have middleware headers set
+    try {
+      const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
+      const context = await getRBACContext();
+      if (context?.userId) {
+        console.log('[getCurrentUserId] Server-side: Found user ID from RBAC context:', context.userId);
+        return context.userId;
+      }
+    } catch (e) {
+      console.error('[getCurrentUserId] RBAC context error:', e);
+    }
   }
 
   // Client-side auth removed - use API route /api/auth/session instead
