@@ -44,14 +44,6 @@ async function handleSignInPost(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // DEBUG: Log environment variable status (first 20 chars only for security)
-    console.log('[Signin API] DEBUG - SUPABASE_URL:', supabaseUrl);
-    console.log('[Signin API] DEBUG - ANON_KEY prefix:', supabaseAnonKey?.substring(0, 50) + '...');
-    console.log('[Signin API] DEBUG - ANON_KEY length:', supabaseAnonKey?.length);
-    // Check if key starts with correct JWT format
-    const isJwtFormat = supabaseAnonKey?.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
-    console.log('[Signin API] DEBUG - Is JWT format:', isJwtFormat);
-
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('[Signin API] Supabase not configured');
       return NextResponse.json(
@@ -196,18 +188,7 @@ async function handleSignInPost(request: NextRequest) {
     if (error) {
       console.error('[Signin API] Supabase login error:', error);
       return NextResponse.json(
-        {
-          error: 'ログインに失敗しました。メールアドレスとパスワードを確認してください。',
-          // DEBUG INFO - remove after fixing
-          debug: {
-            supabaseUrl: supabaseUrl,
-            anonKeyPrefix: supabaseAnonKey?.substring(0, 50) + '...',
-            anonKeyLength: supabaseAnonKey?.length,
-            isJwtFormat: supabaseAnonKey?.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'),
-            errorCode: error.message,
-            errorStatus: error.status
-          }
-        },
+        { error: 'ログインに失敗しました。メールアドレスとパスワードを確認してください。' },
         { status: 401 }
       );
     }
