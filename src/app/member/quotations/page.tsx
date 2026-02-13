@@ -39,7 +39,7 @@ export default async function QuotationsPage({ searchParams }: PageProps) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   // Fetch quotations on server side
-  const data = await fetchQuotationsServerSide(status, ITEMS_PER_PAGE, offset);
+  const data = await fetchQuotationsServerSide(user.id, status, ITEMS_PER_PAGE, offset);
 
   // Calculate total pages
   const totalPages = Math.ceil(data.pagination.total / ITEMS_PER_PAGE);
