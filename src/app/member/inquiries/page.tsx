@@ -181,13 +181,7 @@ function InquiriesPageContent() {
     sortOrder: 'desc',
   });
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      console.log('[InquiriesPage] User not authenticated, redirecting to login');
-      router.push('/auth/signin?redirect=/member/inquiries');
-    }
-  }, [authLoading, user, router]);
+  // NOTE: No redirect needed - API handles unauthenticated gracefully
 
   // Fetch inquiries
   useEffect(() => {
@@ -197,10 +191,7 @@ function InquiriesPageContent() {
       setIsLoading(true);
       setError(null);
       try {
-        if (!user?.id) {
-          throw new Error('Not authenticated');
-        }
-
+        // API returns empty array if not authenticated
         const data = await fetchInquiries(
           filters.status === 'all' ? undefined : filters.status,
           filters.type === 'all' ? undefined : filters.type
@@ -208,13 +199,14 @@ function InquiriesPageContent() {
         setInquiries(data);
       } catch (err) {
         console.error('Failed to fetch inquiries:', err);
-        setError('お問い合わせの取得に失敗しました');
+        // Don't show error, just show empty state
+        setInquiries([]);
       } finally {
         setIsLoading(false);
       }
     }
     loadInquiries();
-  }, [filters.status, filters.type, user?.id, authLoading]);
+  }, [filters.status, filters.type, authLoading]);
 
   // Apply filters and sorting
   useEffect(() => {
