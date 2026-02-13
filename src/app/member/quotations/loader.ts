@@ -7,7 +7,6 @@
  */
 
 import { createServiceClient } from '@/lib/supabase';
-import { getCurrentUser } from '@/lib/dashboard';
 
 export interface QuotationItem {
   id: string;
@@ -53,14 +52,12 @@ export interface QuotationsData {
  * Fetch quotations for the authenticated user
  */
 export async function fetchQuotationsServerSide(
+  userId: string,
   status?: string,
   limit: number = 20,
   offset: number = 0
 ): Promise<QuotationsData> {
-  // Get authenticated user (from headers set by middleware)
-  const authUser = await getCurrentUser();
-
-  if (!authUser) {
+  if (!userId) {
     return {
       quotations: [],
       pagination: {
@@ -78,13 +75,13 @@ export async function fetchQuotationsServerSide(
   const { count: totalCount } = await serviceClient
     .from('quotations')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', authUser.id);
+    .eq('user_id', userId);
 
   // Apply status filter for count if specified
   let countQuery = serviceClient
     .from('quotations')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', authUser.id);
+    .eq('user_id', userId);
 
   if (status && status !== 'all') {
     const statusLower = status.toLowerCase();
@@ -111,7 +108,7 @@ export async function fetchQuotationsServerSide(
       *,
       quotation_items (*)
     `)
-    .eq('user_id', authUser.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
