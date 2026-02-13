@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getCurrentUserId } from '@/lib/dashboard';
-import { isDevMode } from '@/lib/dev-mode';
 
 /**
  * ============================================================
@@ -22,13 +21,9 @@ import { isDevMode } from '@/lib/dev-mode';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const userId = await getCurrentUserId();
-    const isDevModeEnabled = isDevMode();
 
-    // DEV_MODEではモックユーザーIDを使用
-    const effectiveUserId = userId || (isDevModeEnabled ? 'dev-mock-user' : null);
-
-    if (!effectiveUserId) {
-      // 本番環境で認証されていない場合は空の配列を返す（UIを壊さないため）
+    // 未認証の場合は空の配列を返す（UIを壊さないため）
+    if (!userId) {
       console.log('[inquiries API] No authenticated user, returning empty array');
       return NextResponse.json({
         success: true,
@@ -46,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let query = supabase
       .from('inquiries')
       .select('*')
-      .eq('user_id', effectiveUserId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     // Apply filters
@@ -60,7 +55,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data: inquiries, error } = await query;
 
     if (error) {
-      console.error('Inquiries fetch error:', error);
+      console.error('[inquiries API] Database error:', error);
+      // テーブルが存在しない等の場合も空配列を返す
+      if (error.code === '42P01') { // relation does not exist
+        return NextResponse.json({
+          success: true,
+          data: [],
+        });
+      }
       return NextResponse.json(
         { error: 'お問い合わせの取得に失敗しました', code: 'FETCH_ERROR' },
         { status: 500 }
@@ -86,7 +88,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       data: transformedInquiries,
     });
   } catch (error) {
-    console.error('Inquiries API error:', error);
+    console.error('[inquiries API] Unexpected error:', error);
     return NextResponse.json(
       {
         error: 'サーバーエラーが発生しました',

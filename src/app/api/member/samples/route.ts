@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getCurrentUserId } from '@/lib/dashboard';
-import { isDevMode } from '@/lib/dev-mode';
 
 /**
  * ============================================================
@@ -22,13 +21,9 @@ import { isDevMode } from '@/lib/dev-mode';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const userId = await getCurrentUserId();
-    const isDevModeEnabled = isDevMode();
 
-    // DEV_MODEではモックユーザーIDを使用
-    const effectiveUserId = userId || (isDevModeEnabled ? 'dev-mock-user' : null);
-
-    if (!effectiveUserId) {
-      // 本番環境で認証されていない場合は空の配列を返す（UIを壊さないため）
+    // 未認証の場合は空の配列を返す（UIを壊さないため）
+    if (!userId) {
       console.log('[samples API] No authenticated user, returning empty array');
       return NextResponse.json({
         success: true,
@@ -53,7 +48,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           quantity
         )
       `)
-      .eq('user_id', effectiveUserId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     // Apply status filter
@@ -64,7 +59,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data: requests, error } = await query;
 
     if (error) {
-      console.error('Sample requests fetch error:', error);
+      console.error('[samples API] Database error:', error);
+      // テーブルが存在しない等の場合も空配列を返す
+      if (error.code === '42P01') { // relation does not exist
+        return NextResponse.json({
+          success: true,
+          data: [],
+        });
+      }
       return NextResponse.json(
         { error: 'サンプル依頼の取得に失敗しました', code: 'FETCH_ERROR' },
         { status: 500 }
@@ -90,7 +92,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       data: sampleRequests,
     });
   } catch (error) {
-    console.error('Sample requests API error:', error);
+    console.error('[samples API] Unexpected error:', error);
     return NextResponse.json(
       {
         error: 'サーバーエラーが発生しました',
