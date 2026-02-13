@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
+import { getCurrentUserId } from '@/lib/dashboard';
 
 /**
  * ============================================================
@@ -34,24 +35,6 @@ const updateBillingAddressSchema = z.object({
 });
 
 // ============================================================
-// Helper Functions
-// ============================================================
-
-/**
- * Get user ID from middleware headers (cookie-based auth)
- */
-async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  try {
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    return headersList.get('x-user-id');
-  } catch (error) {
-    console.error('[getUserIdFromRequest] Error:', error);
-    return null;
-  }
-}
-
-// ============================================================
 // GET Handler - Get Single Billing Address
 // ============================================================
 
@@ -60,7 +43,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
@@ -119,7 +102,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
@@ -217,7 +200,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },

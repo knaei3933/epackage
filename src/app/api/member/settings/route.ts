@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
+import { getCurrentUserId } from '@/lib/dashboard';
 
 /**
  * ============================================================
@@ -83,27 +84,6 @@ const DEFAULT_SETTINGS: UserSettings = {
 // ============================================================
 
 /**
- * Get user ID from authorization header
- */
-async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  // Use Bearer token
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-
-  const token = authHeader.substring(7);
-  const supabase = createServiceClient();
-
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) {
-    return null;
-  }
-
-  return user.id;
-}
-
-/**
  * Merge partial settings with defaults
  */
 function mergeWithDefaults(settings: Partial<UserSettings>): UserSettings {
@@ -123,7 +103,7 @@ function mergeWithDefaults(settings: Partial<UserSettings>): UserSettings {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
@@ -174,7 +154,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { getCurrentUserId } from '@/lib/dashboard';
 
 /**
  * ============================================================
@@ -10,28 +11,8 @@ import { createServiceClient } from '@/lib/supabase';
  *
  * GET /api/member/samples - Get user's sample requests
  *
- * Uses cookie-based authentication (middleware sets headers)
+ * Uses cookie-based authentication with fallback to RBAC context
  */
-
-// ============================================================
-// Helper Functions
-// ============================================================
-
-/**
- * Get user ID from middleware headers (cookie-based auth)
- */
-async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  try {
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const userId = headersList.get('x-user-id');
-
-    return userId;
-  } catch (error) {
-    console.error('[getUserIdFromRequest] Error:', error);
-    return null;
-  }
-}
 
 // ============================================================
 // GET Handler - List Sample Requests
@@ -39,7 +20,7 @@ async function getUserIdFromRequest(request: NextRequest): Promise<string | null
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
