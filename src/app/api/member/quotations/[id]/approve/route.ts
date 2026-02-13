@@ -29,7 +29,7 @@ interface ApprovalRequest {
  */
 async function getAuthenticatedUser(request: NextRequest) {
   // Normal auth: Use cookie-based auth with createSupabaseSSRClient
-  const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+  const { client: supabase } = await createSupabaseSSRClient(request);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser) {
@@ -65,7 +65,7 @@ export async function POST(
     }
 
     const { userId, user } = authResult;
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get quotation data
     const { data: quotation, error: quotationError } = await supabase
@@ -250,7 +250,7 @@ export async function GET(
     }
 
     const { userId } = authResult;
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get quotation with items
     const { data: quotation, error } = await supabase

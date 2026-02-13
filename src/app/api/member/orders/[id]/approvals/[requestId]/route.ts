@@ -59,7 +59,7 @@ export async function PATCH(
 
   try {
     const { id: orderId, requestId } = await params;
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();

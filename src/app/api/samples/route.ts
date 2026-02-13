@@ -133,7 +133,7 @@ async function handleSamplesPost(request: NextRequest) {
     // =====================================================
     // Authentication Check (Next.js 16 Pattern)
     // =====================================================
-const { client: supabaseAuth } = await createSupabaseSSRClient($$$ARGS);
+const { client: supabaseAuth } = await createSupabaseSSRClient(request);
     // Check for authenticated user
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 

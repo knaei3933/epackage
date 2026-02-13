@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     const validatedData = inviteSchema.parse(body);
 
     // Initialize Supabase client with SSR pattern
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     const {
@@ -331,7 +331,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Initialize Supabase client with SSR pattern
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     const {

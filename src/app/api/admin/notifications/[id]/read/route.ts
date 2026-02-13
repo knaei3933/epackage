@@ -21,7 +21,7 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS)
+    const { client: supabase } = await createSupabaseSSRClient(request)
 
     // Mark as read using unified_notifications table
     const { data, error } = await supabase

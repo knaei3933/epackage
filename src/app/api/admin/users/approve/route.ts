@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize Supabase client with SSR pattern
-    const { client: supabase } = await createSupabaseSSRClient($$$ARGS);
+    const { client: supabase } = await createSupabaseSSRClient(request);
 
     // Get current user
     const {
