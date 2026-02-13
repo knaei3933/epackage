@@ -10,6 +10,7 @@
 
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
+import { auth } from '@/lib/supabase';
 import { OrdersClient } from './OrdersClient';
 
 // Disable static generation for this page due to client-side interactivity
@@ -32,8 +33,6 @@ export default async function OrdersPage() {
   // =====================================================
   // Server-side Authentication Check
   // =====================================================
-  // This ensures the page is protected on the server-side
-  // and cookies are properly validated before rendering
   let user;
   try {
     console.log('[OrdersPage] Calling requireAuth...');
@@ -47,6 +46,9 @@ export default async function OrdersPage() {
     throw error;
   }
 
+  // Fetch user profile
+  const profile = await auth.getProfile(user.id);
+
   // Render the client component with user info
-  return <OrdersClient userId={user.id} />;
+  return <OrdersClient userId={user.id} userEmail={user.email} userProfile={profile} />;
 }
