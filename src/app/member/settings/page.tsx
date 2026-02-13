@@ -221,13 +221,20 @@ export default function SettingsPage() {
     setDeleteError(null);
   };
 
+  // Extract display info - prefer user from AuthContext, fallback to defaults
+  const displayEmail = user?.email || 'user@example.com';
+  const displayLastName = user?.kanjiLastName || '';
+  const displayFirstName = user?.kanjiFirstName || '';
+  const displayUserId = user?.id || '';
+  const displayCreatedAt = user?.createdAt || new Date().toISOString();
+  const displayStatus = user?.status || 'ACTIVE';
+
   // Display name helper
-  const displayName = `${user?.kanjiLastName || ''} ${user?.kanjiFirstName || ''}`.trim() || user?.email || '';
+  const displayName = `${displayLastName} ${displayFirstName}`.trim() || displayEmail;
 
   return (
-    <PageLoadingState isLoading={isLoading || isLoadingSettings} error={null} message="読み込み中...">
-      {!user ? null : (
-        <main className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
+    <PageLoadingState isLoading={isLoadingSettings} error={null} message="読み込み中...">
+      <main className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-8">
@@ -262,29 +269,29 @@ export default function SettingsPage() {
 
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brixa-400 to-brixa-600 flex items-center justify-center text-white text-xl font-bold">
-                  {user.kanjiLastName?.[0] || user.email[0].toUpperCase()}
+                  {displayLastName?.[0] || displayEmail[0].toUpperCase()}
                 </div>
                 <div>
                   <p className="font-medium text-text-primary">{displayName} 様</p>
-                  <p className="text-sm text-text-muted">{user.email}</p>
+                  <p className="text-sm text-text-muted">{displayEmail}</p>
                 </div>
               </div>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-text-muted">会員ID</span>
-                  <span className="text-text-primary font-mono">{user.id.slice(0, 8)}...</span>
+                  <span className="text-text-primary font-mono">{displayUserId ? `${displayUserId.slice(0, 8)}...` : '-'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">登録日</span>
                   <span className="text-text-primary">
-                    {new Date(user.createdAt).toLocaleDateString('ja-JP')}
+                    {new Date(displayCreatedAt).toLocaleDateString('ja-JP')}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">ステータス</span>
-                  <Badge variant={user.status === 'ACTIVE' ? 'success' : 'warning'}>
-                    {user.status === 'ACTIVE' ? '有効' : user.status === 'PENDING' ? '承認待ち' : user.status}
+                  <Badge variant={displayStatus === 'ACTIVE' ? 'success' : 'warning'}>
+                    {displayStatus === 'ACTIVE' ? '有効' : displayStatus === 'PENDING' ? '承認待ち' : displayStatus}
                   </Badge>
                 </div>
               </div>
@@ -610,7 +617,6 @@ export default function SettingsPage() {
             </div>
           </div>
         </main>
-      )}
     </PageLoadingState>
   );
 }
