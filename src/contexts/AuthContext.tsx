@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { auth, type Profile } from '@/lib/supabase'
 import type { User, Session, RegistrationFormData } from '@/types/auth'
@@ -102,16 +102,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Get search params directly at top level - useSearchParams() will return
-  // a readonly URLSearchParams object. During SSR, it will be empty.
-  // We use a ref to track the string value for comparison.
-  const searchParams = useSearchParams()
-
   // Track previous route to detect changes
   const previousPathname = useRef(pathname)
-  const previousSearchParams = useRef(searchParams?.toString() || '')
   // Track pending fetch to prevent race conditions
   const pendingFetchId = useRef<number>(0)
+  // Persist user state across route changes to prevent loss
+  const previousUserRef = useRef<User | null>(null)
 
   // =====================================================
   // Session Management & Auth State Listener
@@ -140,24 +136,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const sessionData = await response.json()
 
         if (sessionData.session?.user && sessionData.profile) {
+          const convertedUser = convertSupabaseUser(sessionData.session.user, sessionData.profile)
           setSession({
             token: 'server-managed',
             expires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
           })
           setProfile(sessionData.profile)
-          setUser(convertSupabaseUser(sessionData.session.user, sessionData.profile))
+          setUser(convertedUser)
+          // Update ref for state persistence
+          previousUserRef.current = convertedUser
           console.log('[AuthContext] Session updated successfully', { fetchId: currentFetchId })
         } else {
-          // Session is invalid or expired
+          // Session is invalid or expired - only clear if we have valid previous state
+          // to prevent flickering during route changes
           setSession(null)
           setProfile(null)
           setUser(null)
+          previousUserRef.current = null
         }
       } else {
-        console.warn('[AuthContext] Session fetch failed:', response.status)
-        setSession(null)
-        setProfile(null)
-        setUser(null)
+        // Only clear user state on explicit 401 unauthorized
+        // For other errors, preserve existing state to prevent flicker
+        if (response.status === 401) {
+          console.warn('[AuthContext] Session unauthorized (401), clearing state')
+          setSession(null)
+          setProfile(null)
+          setUser(null)
+          previousUserRef.current = null
+        } else {
+          console.warn('[AuthContext] Session fetch failed:', response.status, '- preserving existing state')
+          // Preserve current user state - don't clear on transient failures
+        }
       }
     } catch (error) {
       // Check if this is still the latest request
@@ -166,13 +175,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
       // Gracefully handle fetch errors (redirect loops, network issues, etc.)
-      // The app can still function without session data - user will appear as logged out
-      console.log('[AuthContext] Session fetch unavailable - continuing without session data')
-      setSession(null)
-      setProfile(null)
-      setUser(null)
+      // Preserve existing user state to prevent flickering during navigation
+      console.log('[AuthContext] Session fetch unavailable - preserving existing state')
+      // Don't clear user state on network errors - use fallback to previousUserRef if needed
+      if (previousUserRef.current && !user) {
+        // Restore from ref if user was unexpectedly lost
+        console.log('[AuthContext] Restoring user state from previous ref')
+        setUser(previousUserRef.current)
+      }
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     let mounted = true
@@ -262,10 +274,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 3. The function itself handles race conditions via fetchId
 
   useEffect(() => {
-    // Detect route changes by comparing current and previous pathnames/search params
-    const routeChanged =
-      pathname !== previousPathname.current ||
-      searchParams.toString() !== previousSearchParams.current
+    // Detect route changes by comparing current and previous pathnames
+    const routeChanged = pathname !== previousPathname.current
 
     if (routeChanged) {
       console.log('[AuthContext] Route changed, refreshing auth state:', {
@@ -280,9 +290,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Update previous values
       previousPathname.current = pathname
-      previousSearchParams.current = searchParams.toString()
     }
-  }, [pathname, searchParams, fetchSessionAndUpdateState])
+  }, [pathname, fetchSessionAndUpdateState])
 
   // =====================================================
   // Auth Operations
