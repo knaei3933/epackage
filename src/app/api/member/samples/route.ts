@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
-import { getCurrentUserId } from '@/lib/dashboard';
 
 /**
  * ============================================================
@@ -11,8 +11,46 @@ import { getCurrentUserId } from '@/lib/dashboard';
  *
  * GET /api/member/samples - Get user's sample requests
  *
- * Uses cookie-based authentication with fallback to RBAC context
+ * Uses cookie-based authentication directly
  */
+
+// ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * Get user ID from cookies directly (most reliable for API routes)
+ */
+async function getUserIdFromCookies(): Promise<string | null> {
+  try {
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name: string) => cookieStore.get(name)?.value,
+          set: () => {}, // Read-only
+          remove: () => {}, // Read-only
+        },
+      }
+    );
+
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      console.log('[samples API] No authenticated user found');
+      return null;
+    }
+
+    return user.id;
+  } catch (error) {
+    console.error('[samples API] Error getting user from cookies:', error);
+    return null;
+  }
+}
 
 // ============================================================
 // GET Handler - List Sample Requests
@@ -20,7 +58,7 @@ import { getCurrentUserId } from '@/lib/dashboard';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getUserIdFromCookies();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
