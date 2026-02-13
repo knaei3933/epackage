@@ -50,7 +50,7 @@ export const SESSION_MAX_AGE_MS = SESSION_MAX_AGE * 1000;
  * - Development: undefined to let browser handle automatically (localhost compatible)
  */
 export const COOKIE_DOMAIN = process.env.NODE_ENV === 'production'
-  ? '.epackage-lab.com'
+  ? '.package-lab.com'
   : undefined;
 
 /**
