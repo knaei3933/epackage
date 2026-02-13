@@ -11,27 +11,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { generateInvoicePDF } from '@/lib/pdf-generator';
 import type { InvoiceData, InvoiceItem } from '@/lib/pdf-generator';
-
-/**
- * Get user ID from middleware headers
- */
-async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  try {
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    return headersList.get('x-user-id');
-  } catch (error) {
-    console.error('[getUserIdFromRequest] Error:', error);
-    return null;
-  }
-}
+import { getCurrentUserId } from '@/lib/dashboard';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ invoiceId: string }> }
 ) {
   try {
-    const userId = await getUserIdFromRequest(request);
+    const userId = await getCurrentUserId();
     if (!userId) {
       return NextResponse.json(
         { error: '認証されていません', code: 'UNAUTHORIZED' },
