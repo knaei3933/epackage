@@ -380,13 +380,8 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
   const [showSpecModal, setShowSpecModal] = useState(false);
   const [quotationForSpec, setQuotationForSpec] = useState<Quotation | null>(null);
 
-  // Redirect to login if not authenticated after loading completes
-  useEffect(() => {
-    if (!authLoading && !user) {
-      console.log('[QuotationsClient] User not authenticated, redirecting to login');
-      router.push('/auth/signin?redirect=/member/quotations');
-    }
-  }, [authLoading, user, router]);
+  // NOTE: Authentication is handled by Server Component (requireAuth)
+  // No client-side redirect needed - data is already fetched server-side
 
   // Handle status filter change by updating URL (triggers server-side fetch)
   const handleStatusChange = (newStatus: QuotationStatus | 'all') => {
