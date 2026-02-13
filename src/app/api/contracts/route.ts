@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
       .from('orders')
       .select(`
         *,
-        companies (*),
         quotations (
           id,
           quotation_number,
@@ -100,8 +99,6 @@ export async function POST(request: NextRequest) {
       .insert({
         contract_number: contractNumber,
         order_id: order_id,
-        work_order_id: work_order_id || null,
-        company_id: order.company_id,
         customer_name: order.customer_name,
         total_amount: totalAmount,
         status: 'DRAFT'
@@ -172,10 +169,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user's role and company
+    // Get user's role
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, company_id')
+      .select('role')
       .eq('id', user.id)
       .single();
 
@@ -193,39 +190,14 @@ export async function GET(request: NextRequest) {
       .from('contracts')
       .select(`
         *,
-        companies (
-          id,
-          name,
-          name_kana
-        ),
         orders (
           id,
           order_number,
           customer_name
-        ),
-        work_orders (
-          id,
-          work_order_number,
-          pdf_url
         )
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
-
-    // Apply filters based on role
-    if (!isAdmin) {
-      // Regular users can only see contracts for their company
-      if (profile?.company_id) {
-        query = query.eq('company_id', profile.company_id);
-      } else {
-        // If no company, return empty
-        return NextResponse.json({
-          success: true,
-          data: [],
-          pagination: { limit, offset, total: 0 }
-        });
-      }
-    }
 
     // Apply status filter
     if (status) {
