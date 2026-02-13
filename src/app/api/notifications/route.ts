@@ -17,8 +17,11 @@ export async function GET(request: NextRequest) {
 
     // DEV_MODE対応
     const isDevModeEnabled = isDevMode();
+
+    // 認証されていない場合は空の配列を返す（エラーにしない）
     if (!userId && !isDevModeEnabled) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log('[API] Notifications: No user authenticated, returning empty array');
+      return NextResponse.json([]);
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -32,30 +35,35 @@ export async function GET(request: NextRequest) {
 
     // 本番環境ではプロフィールからロールを取得
     if (!isDevModeEnabled && userId) {
-      const { createServerClient } = await import('@supabase/ssr');
-      const { cookies } = await import('next/headers');
-      const cookieStore = await cookies();
-      // CRITICAL FIX: Server Components の cookieStore は読み取り専用
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            get: (name: string) => cookieStore.get(name)?.value,
-            set: () => {}, // 読み取り専用
-            remove: () => {}, // 読み取り専用
-          },
+      try {
+        const { createServerClient } = await import('@supabase/ssr');
+        const { cookies } = await import('next/headers');
+        const cookieStore = await cookies();
+        // CRITICAL FIX: Server Components の cookieStore は読み取り専用
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              get: (name: string) => cookieStore.get(name)?.value,
+              set: () => {}, // 読み取り専用
+              remove: () => {}, // 読み取り専用
+            },
+          }
+        );
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (profile?.role === 'ADMIN') {
+          recipientType = 'admin';
         }
-      );
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (profile?.role === 'ADMIN') {
-        recipientType = 'admin';
+      } catch (profileError) {
+        console.error('[API] Notifications: Failed to fetch profile, using default role:', profileError);
+        // エラーが発生してもデフォルトのmemberロールで続行
       }
     } else if (request.headers.get('x-user-role') === 'ADMIN') {
       // DEV_MODEでヘッダーからロールを取得
@@ -74,7 +82,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(notifications);
   } catch (error) {
     console.error('[API] Notifications fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
+    // エラー時は空の配列を返して、UIのレンダリングを中断させない
+    return NextResponse.json([]);
   }
 }
 
