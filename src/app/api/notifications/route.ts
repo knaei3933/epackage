@@ -35,10 +35,17 @@ export async function GET(request: NextRequest) {
       const { createServerClient } = await import('@supabase/ssr');
       const { cookies } = await import('next/headers');
       const cookieStore = await cookies();
+      // CRITICAL FIX: Server Components の cookieStore は読み取り専用
       const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { get: cookieStore.get, set: cookieStore.set, remove: cookieStore.delete } }
+        {
+          cookies: {
+            get: (name: string) => cookieStore.get(name)?.value,
+            set: () => {}, // 読み取り専用
+            remove: () => {}, // 読み取り専用
+          },
+        }
       );
 
       const { data: profile } = await supabase
