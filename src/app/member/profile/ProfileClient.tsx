@@ -148,7 +148,7 @@ export function ProfileClient({
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brixa-400 to-brixa-600 flex items-center justify-center text-white text-2xl font-bold">
-                  {userLastName?.[0] || userEmail[0].toUpperCase()}
+                  {userLastName?.[0] || userEmail?.[0]?.toUpperCase() || 'U'}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-text-primary">
