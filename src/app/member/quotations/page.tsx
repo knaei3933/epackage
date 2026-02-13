@@ -6,6 +6,8 @@
  * - Client Componentにデータを渡す
  */
 
+export const dynamic = 'force-dynamic';
+
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { fetchQuotationsServerSide } from './loader';
