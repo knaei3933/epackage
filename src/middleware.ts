@@ -445,15 +445,10 @@ export async function middleware(request: NextRequest) {
 
         return addSecurityHeaders(response);
       }
-      // DEV_MODE but no mock cookie - still allow access to admin pages
-      // The admin dashboard loader will handle the permission check
-      console.log('[Middleware] DEV_MODE: Allowing access to /admin page (no mock cookie)');
-      response.headers.set('x-dev-mode', 'true');
-      response.headers.set('x-user-id', '00000000-0000-0000-0000-000000000000');
-      response.headers.set('x-user-role', 'ADMIN');
-      response.headers.set('x-user-status', 'ACTIVE');
-
-      return addSecurityHeaders(response);
+      // DEV_MODE but no mock cookie - DO NOT allow access without authentication
+      // SECURITY FIX: Remove lenient dev mode access - proceed to normal auth check
+      console.log('[Middleware] DEV_MODE: No mock cookie for /admin, proceeding to normal auth check');
+      // Fall through to main authentication check
     }
   }
 
@@ -537,19 +532,9 @@ export async function middleware(request: NextRequest) {
       return addSecurityHeaders(response);
     }
 
-    // DEV_MODE but no mock cookie - still allow access to member/admin pages
-    // The signin flow should set the cookie, but we'll be lenient in dev mode
-    if (pathname.startsWith('/member') || pathname.startsWith('/admin')) {
-      console.log('[DEV_MODE] Allowing access without authentication (dev mode)');
-
-      const response = NextResponse.next();
-      response.headers.set('x-dev-mode', 'true');
-      response.headers.set('x-user-id', '00000000-0000-0000-0000-000000000000');
-      response.headers.set('x-user-role', pathname.startsWith('/admin') ? 'ADMIN' : 'MEMBER');
-      response.headers.set('x-user-status', 'ACTIVE');
-
-      return addSecurityHeaders(response);
-    }
+    // DEV_MODE but no mock cookie - DO NOT allow access without authentication
+    // SECURITY FIX: Remove lenient dev mode access - always require proper auth
+    console.log('[DEV_MODE] No mock cookie found, proceeding to normal auth check');
   }
 
   // =====================================================
