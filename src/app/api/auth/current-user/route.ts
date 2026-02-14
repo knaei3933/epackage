@@ -10,10 +10,10 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
-import { auth, createServiceClient } from '@/lib/supabase';
+import { createServiceClient } from '@/lib/supabase';
 
 // =====================================================
-// GET /api/auth/session
+// GET /api/auth/current-user
 // =====================================================
 
 export async function GET(request: NextRequest) {
@@ -126,24 +126,6 @@ export async function GET(request: NextRequest) {
         // Note: access_token not exposed for security - use server-side only
         access_token: 'server-managed',
         token_type: 'bearer',
-      },
-      profile,
-    });
-  } catch (error) {
-    console.error('[Session API] Error:', error);
-    return NextResponse.json(
-      { error: 'セッション確認中にエラーが発生しました' },
-      { status: 500 }
-    );
-  }
-}
-          email: user.email,
-          user_metadata: user.user_metadata,
-        },
-        access_token: session.access_token,
-        expires_at: session.expires_at,
-        expires_in: session.expires_in,
-        token_type: session.token_type,
       },
       profile,
     });
