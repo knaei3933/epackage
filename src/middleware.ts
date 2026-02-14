@@ -710,7 +710,7 @@ export async function middleware(request: NextRequest) {
 
   // /admin/customers allows both ADMIN and ACTIVE MEMBER
   if (isCustomerPortalRoute) {
-    if (profile.role !== 'ADMIN' && profile.status !== 'ACTIVE') {
+    if (normalizedRole !== 'admin' && profile.status !== 'ACTIVE') {
       return addSecurityHeaders(
         NextResponse.redirect(new URL('/auth/signin', request.url))
       );
