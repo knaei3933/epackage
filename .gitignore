@@ -34,7 +34,8 @@ yarn-error.log*
 .env*
 
 # vercel (project.json needed for Vercel to identify correct project)
-# .vercel
+.vercel/*
+!.vercel/project.json
 
 # typescript
 *.tsbuildinfo
