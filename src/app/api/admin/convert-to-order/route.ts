@@ -103,7 +103,7 @@ async function validateQuotationForConversion(
 }> {
   // Check if quotation exists
   const { data: quotationRaw, error: quoteError } = await supabase
-    .from('quotations')
+    .from('quotation')
     .select('*')
     .eq('id', quotationId)
     .single();
@@ -150,7 +150,7 @@ async function validateQuotationForConversion(
 
   // Get quotation items
   const { data: items, error: itemsError } = await supabase
-    .from('quotation_items')
+    .from('quotation_item')
     .select('*')
     .eq('quotation_id', quotationId)
     .order('display_order', { ascending: true });
@@ -317,7 +317,7 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
 
     // Update quotation status to CONVERTED
     const { error: updateQuoteError } = await supabase
-      .from('quotations')
+      .from('quotation')
       // @ts-expect-error - Supabase update type inference issue
       .update({ status: 'CONVERTED' })
       .eq('id', q.id);

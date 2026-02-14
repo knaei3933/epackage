@@ -139,7 +139,7 @@ export async function POST(
 
     // 元の見積情報を取得
     const { data: originalQuotation } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select('*')
       .eq('id', order.quotation_id)
       .single();
@@ -147,7 +147,7 @@ export async function POST(
     if (originalQuotation) {
       // 新しい見積を作成（仕様変更用）
       const { data: newQuotation } = await supabase
-        .from('quotations')
+        .from('quotation')
         .insert({
           user_id: user.id,
           company_id: originalQuotation.company_id,
@@ -170,7 +170,7 @@ export async function POST(
       if (newQuotation) {
         // 新しい見積アイテムを作成
         await supabase
-          .from('quotation_items')
+          .from('quotation_item')
           .insert({
             quotation_id: newQuotation.id,
             product_id: orderItems.product_id,

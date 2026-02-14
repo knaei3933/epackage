@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     // 見積作成 (Supabase quotationsテーブル)
     const { data: quotation, error: insertError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .insert({
         user_id: user.id,
         quotation_number: quotationNumber,
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     // 見積項目作成 (quotation_itemsテーブル)
     const { error: itemError } = await supabase
-      .from('quotation_items')
+      .from('quotation_item')
       .insert({
         quotation_id: quotation.id,
         product_name: data.projectName,
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
 
     // 見積一覧取得 (Supabase quotationsテーブル)
     let query = supabase
-      .from('quotations')
+      .from('quotation')
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })

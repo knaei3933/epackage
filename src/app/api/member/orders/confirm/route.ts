@@ -85,7 +85,7 @@ export const POST = withApiHandler(
 
     // Fetch quotation with validation
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select(`
         id,
         quotation_number,
@@ -196,7 +196,7 @@ export const POST = withApiHandler(
 
     // Update quotation items with order_id reference
     await supabase
-      .from('quotation_items')
+      .from('quotation_item')
       .update({ order_id: order.id })
       .eq('quotation_id', quotation.id);
 
