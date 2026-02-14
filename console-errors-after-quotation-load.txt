@@ -1,6 +1,0 @@
-Total messages: 5 (Errors: 2, Warnings: 0)
-Returning 2 messages for level "error"
-
-[ERROR] Failed to load resource: the server responded with a status of 500 () @ https://www.package-lab.com/api/member/quotations/941e882f-9f60-4c66-948a-b3267ddd6b20:0
-[ERROR] Failed to fetch quotation: Error: 見積の取得に失敗しました。
-    at W (https://www.package-lab.com/_next/static/chunks/app/member/quotations/%5Bid%5D/page-84cd21dc1ce55019.js:1:1865) @ https://www.package-lab.com/_next/static/chunks/app/member/quotations/%5Bid%5D/page-84cd21dc1ce55019.js:0

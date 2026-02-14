@@ -49,7 +49,7 @@ export async function GET(
         updated_at,
         valid_until,
         sent_at,
-        quotation_status,
+        status,
         user_id,
         notes,
         quotation_items (
@@ -104,7 +104,7 @@ export async function GET(
       updatedAt: quotation.updated_at,
       validUntil: quotation.valid_until,
       sentAt: quotation.sent_at,
-      status: quotation.quotation_status,
+      status: quotation.status,
       userId: quotation.user_id,
       remarks: quotation.notes,
       items: (quotation.quotation_items || []).map((item: any) => ({
@@ -160,7 +160,7 @@ export async function DELETE(
     // Check quotation exists and belongs to user
     const { data: quotation, error: fetchError } = await supabase
       .from('quotations')
-      .select('id, quotation_status, user_id')
+      .select('id, status, user_id')
       .eq('id', quotationId)
       .single();
 
@@ -178,7 +178,7 @@ export async function DELETE(
       );
     }
 
-    if (quotation.quotation_status !== 'DRAFT') {
+    if (quotation.status !== 'DRAFT') {
       return NextResponse.json(
         { error: 'ドラフト状態の見積のみ削除できます。' },
         { status: 400 }
