@@ -151,7 +151,7 @@ export async function POST(
           user_id: order.user_id,
           company_id: originalQuotation.company_id || profile?.company_name,
           quotation_number: `${originalQuotation.quotation_number}-REV-${Date.now()}`, // 管理者による修正版であることを示す
-          quotation_status: 'DRAFT', // ドラフトで作成
+          status: 'DRAFT', // ドラフトで作成
           customer_name: originalQuotation.customer_name,
           customer_email: originalQuotation.customer_email,
           customer_phone: originalQuotation.customer_phone,
