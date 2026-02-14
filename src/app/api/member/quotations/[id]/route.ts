@@ -187,7 +187,7 @@ export async function DELETE(
 
     // Delete quotation items first
     await supabase
-      .from('quotation_items')
+      .from('quotation_item')
       .delete()
       .eq('quotation_id', quotationId);
 
