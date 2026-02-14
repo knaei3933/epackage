@@ -96,6 +96,12 @@ export interface UnifiedDashboardStats {
     total: number;
   };
 
+  // 問い合わせ関連
+  inquiries?: {
+    total: number;
+    responded: number;
+  };
+
   // お知らせ
   announcements?: Announcement[];
 
@@ -1836,6 +1842,8 @@ async function fetchMemberDashboardStats(
     totalQuotationsResult,
     totalSamplesResult,
     pendingSamplesResult,
+    totalInquiriesResult,
+    respondedInquiriesResult,
   ] = await Promise.all([
     serviceClient
       .from('orders')
@@ -1856,12 +1864,27 @@ async function fetchMemberDashboardStats(
     serviceClient
       .from('sample_requests')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      // 期間内のすべてのサンプル依頼をカウント（ステータスフィルターなし）
+      .gte('created_at', startDate.toISOString()),
     serviceClient
       .from('sample_requests')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
+      // 処理中のサンプル依頼をカウント
       .in('status', ['received', 'processing']),
+    serviceClient
+      .from('inquiries')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      // 期間内のすべての問い合わせをカウント
+      .gte('created_at', startDate.toISOString()),
+    serviceClient
+      .from('inquiries')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      // 回答済みの問い合わせをカウント
+      .in('status', ['responded', 'resolved', 'closed']),
   ]);
 
   return {
@@ -1873,6 +1896,10 @@ async function fetchMemberDashboardStats(
     samples: {
       total: totalSamplesResult.count || 0,
       processing: pendingSamplesResult.count || 0,
+    },
+    inquiries: {
+      total: totalInquiriesResult.count || 0,
+      responded: respondedInquiriesResult.count || 0,
     },
     period,
   };
