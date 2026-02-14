@@ -49,15 +49,19 @@ export default async function QuotationDetailPage({
     throw error;
   }
 
+  // Get quotation ID from params
+  const { id: quotationId } = await params;
+
   // Fetch user profile
   const profile = await auth.getProfile(user.id);
 
-  // Render the client component with user info
+  // Render client component with user info
   return (
     <QuotationDetailClient
       userId={user.id}
       userEmail={user.email}
       userProfile={profile}
+      quotationId={quotationId}
     />
   );
 }

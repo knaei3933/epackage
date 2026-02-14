@@ -45,6 +45,7 @@ interface QuotationDetailPageProps {
   userId: string;
   userEmail?: string;
   userProfile?: Profile;
+  quotationId: string;
 }
 
 // =====================================================
@@ -274,10 +275,11 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
 // Page Component
 // =====================================================
 
-export function QuotationDetailClient({ userId, userEmail, userProfile }: QuotationDetailPageProps) {
+export function QuotationDetailClient({ userId, userEmail, userProfile, quotationId }: QuotationDetailPageProps) {
   const router = useRouter();
   const params = useParams();
-  const quotationId = params.id as string;
+  // Use quotationId from props instead of params
+  const id = quotationId || params.id as string;
 
   const [quotation, setQuotation] = useState<Quotation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -298,7 +300,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile }: Quotat
     setError(null);
 
     try {
-      const response = await fetch(`/api/member/quotations/${quotationId}`, {
+      const response = await fetch(`/api/member/quotations/${id}`, {
         credentials: 'include',
       });
 
@@ -540,7 +542,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile }: Quotat
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/member/quotations/${quotationId}`, {
+      const response = await fetch(`/api/member/quotations/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
