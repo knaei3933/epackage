@@ -1833,7 +1833,7 @@ async function fetchMemberDashboardStats(
   const [
     totalOrdersResult,
     pendingOrdersResult,
-    pendingQuotationsResult,
+    totalQuotationsResult,
     totalSamplesResult,
     pendingSamplesResult,
   ] = await Promise.all([
@@ -1851,7 +1851,8 @@ async function fetchMemberDashboardStats(
       .from('quotations')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .in('status', ['draft', 'sent']),
+      // 期間内のすべての見積もりをカウント（ステータスフィルターなし）
+      .gte('created_at', startDate.toISOString()),
     serviceClient
       .from('sample_requests')
       .select('*', { count: 'exact', head: true })
@@ -1868,7 +1869,7 @@ async function fetchMemberDashboardStats(
     pendingOrders: pendingOrdersResult.count || 0,
     totalRevenue: 0,
     activeUsers: 0,
-    pendingQuotations: pendingQuotationsResult.count || 0,
+    pendingQuotations: totalQuotationsResult.count || 0,
     samples: {
       total: totalSamplesResult.count || 0,
       processing: pendingSamplesResult.count || 0,
