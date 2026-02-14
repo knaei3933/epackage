@@ -129,7 +129,7 @@ export async function POST(
 
     // 2. Fetch Quotation Data
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select(`
         id,
         quotation_number,
@@ -277,7 +277,7 @@ export async function GET(
 
     // Fetch Quotation Data
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select(`
         id,
         quotation_number,

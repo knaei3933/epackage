@@ -61,7 +61,7 @@ export async function GET(
 
     // Get quotation details
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select('id, quotation_number, sku_count, total_meters, loss_meters, total_cost_breakdown, total_amount')
       .eq('id', quotationId)
       .single();
@@ -81,7 +81,7 @@ export async function GET(
     let legacyItems = null;
     if (!skuQuotes || skuError || skuQuotes.length === 0) {
       const { data: items } = await supabase
-        .from('quotation_items')
+        .from('quotation_item')
         .select('*')
         .eq('quotation_id', quotationId);
 

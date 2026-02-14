@@ -35,7 +35,7 @@ export async function GET(
     const supabase = createServiceClient();
 
     const { data: quotation } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select('*')
       .eq('id', quotationId)
       .single();
@@ -61,7 +61,7 @@ export async function GET(
     console.log('[Quotation Detail API] Fetching items for quotation_id:', quotationId);
 
     const { data: items, error: itemsError } = await supabase
-      .from('quotation_items')
+      .from('quotation_item')
       .select('*')
       .eq('quotation_id', quotationId)
       .order('created_at', { ascending: true });
@@ -115,7 +115,7 @@ export async function PATCH(
     const supabase = createServiceClient();
 
     if (body.admin_notes !== undefined) {
-      await supabase.from('quotations').update({ admin_notes: body.admin_notes }).eq('id', quotationId);
+      await supabase.from('quotation').update({ admin_notes: body.admin_notes }).eq('id', quotationId);
     }
 
     if (body.items && Array.isArray(body.items)) {
@@ -126,7 +126,7 @@ export async function PATCH(
         if (itemUpdate.quantity !== undefined) updateData.quantity = itemUpdate.quantity;
 
         if (Object.keys(updateData).length > 0) {
-          await supabase.from('quotation_items').update(updateData)
+          await supabase.from('quotation_item').update(updateData)
             .eq('id', itemUpdate.item_id).eq('quotation_id', quotationId);
         }
       }
@@ -245,7 +245,7 @@ function calculateBreakdown(item: QuotationItem) {
 }
 
 async function recalculateTotals(supabase: any, quotationId: string) {
-  const { data: items } = await supabase.from('quotation_items').select('quantity, unit_price').eq('quotation_id', quotationId);
+  const { data: items } = await supabase.from('quotation_item').select('quantity, unit_price').eq('quotation_id', quotationId);
   if (!items || items.length === 0) return;
 
   // Use same rounding logic as quote simulator
@@ -265,7 +265,7 @@ async function recalculateTotals(supabase: any, quotationId: string) {
     total,
   });
 
-  await supabase.from('quotations').update({
+  await supabase.from('quotation').update({
     subtotal_amount: roundedSubtotal,
     tax_amount: roundedTax,
     total_amount: total,
