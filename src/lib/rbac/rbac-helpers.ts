@@ -85,9 +85,13 @@ export async function authenticateRequest(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
+        // ✅ CRITICAL FIX: Use getAll/setAll pattern required by @supabase/ssr v0.4.0+
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // No-op in authenticateRequest - read-only context
+        },
       },
     }
   );

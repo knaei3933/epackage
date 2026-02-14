@@ -82,26 +82,24 @@ export async function GET(request: NextRequest) {
       console.log('[Session API] Referer:', request.headers.get('referer'));
     }
 
-    // Get current session (includes access_token)
-    // getSession() retrieves the full session including access_token
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // ✅ SECURITY FIX: Use getUser() instead of getSession()
+    // getUser() validates the JWT with Supabase Auth server for better security
+    // getSession() can return stale data and doesn't validate the token
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    console.log('[Session API] getSession result:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
-      error: sessionError?.message,
+    console.log('[Session API] getUser result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      error: userError?.message,
     });
 
-    if (sessionError || !session?.user) {
-      console.log('[Session API] No valid session found', sessionError?.message);
+    if (userError || !user) {
+      console.log('[Session API] No valid user found', userError?.message);
       return NextResponse.json({
         session: null,
         profile: null,
       });
     }
-
-    const user = session.user;
 
     // Get user profile using SERVICE ROLE client
     // CRITICAL: Use service role to bypass RLS policies that may block anon key access
@@ -122,6 +120,23 @@ export async function GET(request: NextRequest) {
       session: {
         user: {
           id: user.id,
+          email: user.email,
+          user_metadata: user.user_metadata,
+        },
+        // Note: access_token not exposed for security - use server-side only
+        access_token: 'server-managed',
+        token_type: 'bearer',
+      },
+      profile,
+    });
+  } catch (error) {
+    console.error('[Session API] Error:', error);
+    return NextResponse.json(
+      { error: 'セッション確認中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
+}
           email: user.email,
           user_metadata: user.user_metadata,
         },
