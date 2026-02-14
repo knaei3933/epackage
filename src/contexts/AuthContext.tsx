@@ -492,7 +492,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Computed Values
   // =====================================================
 
-  const isAuthenticated = !!user && !!session && new Date(session.expires_at) > new Date()
+  const isAuthenticated = !!user && !!session && new Date(session.expires) > new Date()
   // Normalize role to lowercase for consistency with rbac-helpers.ts normalizeRole()
   const isAdmin = user?.role?.toLowerCase() === 'admin'
 
