@@ -1690,8 +1690,8 @@ async function fetchAdminDashboardStats(
     serviceClient.from('orders').select('status').gte('created_at', startDate.toISOString()),
     // 見積統計
     serviceClient.from('quotations').select('*', { count: 'exact', head: true }),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('quotation_status', 'APPROVED'),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('quotation_status', ['DRAFT', 'SUBMITTED', 'PENDING']),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('status', 'APPROVED'),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('status', ['DRAFT', 'SUBMITTED', 'PENDING']),
     // 最新見積もり
     serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).limit(5),
     // 月別売上 (過去12ヶ月)

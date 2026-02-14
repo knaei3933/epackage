@@ -233,7 +233,7 @@ export interface Quotation {
   user_id: string
   company_id: string | null
   quotation_number: string
-  quotation_status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
+  status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
   customer_name: string
   customer_email: string
   customer_phone: string | null
@@ -451,7 +451,7 @@ export type Database = {
                     user_id: string  // FK to profiles
                     company_id: string | null  // FK to companies
                     quotation_number: string  // QT-YYYY-NNNN format
-                    quotation_status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
+                    status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED'
                     customer_name: string  // Customer name snapshot
                     customer_email: string  // Customer email snapshot
                     customer_phone: string | null  // Customer phone snapshot
@@ -1373,7 +1373,7 @@ export type Database = {
             // Order status
             order_status: 'pending' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'delivered' | 'cancelled'
             // Quotation status
-            quotation_status: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired'
+            status: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired'
             // Sample request status
             sample_request_status: 'received' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
             // Inquiry types (extended with contact form types)

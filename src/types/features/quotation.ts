@@ -38,7 +38,7 @@ export interface Quotation {
   user_id: string;
   company_id: string | null;
   quotation_number: string;
-  quotation_status: QuotationStatus;
+  status: QuotationStatus;
   customer_name: string;
   customer_email: string;
   customer_phone: string | null;
