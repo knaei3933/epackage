@@ -69,7 +69,7 @@ export async function POST(
 
     // Get quotation data
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('*')
       .eq('id', quotationId)
       .single();
@@ -119,7 +119,7 @@ export async function POST(
     }
 
     const { data: updatedQuotation, error: updateError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .update(updateData)
       .eq('id', quotationId)
       .select()
@@ -254,7 +254,7 @@ export async function GET(
 
     // Get quotation with items
     const { data: quotation, error } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select(`
         *,
         quotation_items (*),

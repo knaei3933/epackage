@@ -86,7 +86,7 @@ const fetchStatisticsWithCache = unstable_cache(
 
       // 2. 見積統計（Quotations Statistics）
       supabase
-        .from('quotation')
+        .from('quotations')
         .select('status, total_amount, created_at, customer_name, customer_email, quotation_number')
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false }),

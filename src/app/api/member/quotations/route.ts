@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 
     // Insert quotation
     const { data: quotation, error: quotationError } = await serviceClient
-      .from('quotation')
+      .from('quotations')
       .insert({
         user_id: userId,
         company_id: body.company_id || null, // Optional: B2B mode
@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
       console.error('[Quotation API] Items error details:', JSON.stringify(itemsError, null, 2));
       console.error('[Quotation API] Items to insert:', JSON.stringify(itemsToInsert, null, 2));
       // Rollback: delete quotation if items insertion fails
-      await serviceClient.from('quotation').delete().eq('id', quotation.id);
+      await serviceClient.from('quotations').delete().eq('id', quotation.id);
 
       return NextResponse.json(
         {
@@ -365,7 +365,7 @@ export async function GET(request: NextRequest) {
     // ✅ RPC関数を使わずに標準クエリを使用
     // 基本クエリを構築
     let query = serviceClient
-      .from('quotation')
+      .from('quotations')
       .select(`
         id,
         quotation_number,
@@ -421,7 +421,7 @@ export async function GET(request: NextRequest) {
 
     // 総数を取得
     let countQuery = serviceClient
-      .from('quotation')
+      .from('quotations')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 

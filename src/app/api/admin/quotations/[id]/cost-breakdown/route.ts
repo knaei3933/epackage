@@ -61,7 +61,7 @@ export async function GET(
 
     // Get quotation details
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('id, quotation_number, sku_count, total_meters, loss_meters, total_cost_breakdown, total_amount')
       .eq('id', quotationId)
       .single();

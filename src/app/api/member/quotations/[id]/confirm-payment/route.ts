@@ -148,7 +148,7 @@ export async function POST(
 
     // 2. Verify quotation exists and belongs to user
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('id, user_id, status, total_amount, quote_number')
       .eq('id', quotationId)
       .single();
@@ -277,7 +277,7 @@ export async function POST(
     // If quotation is approved but not yet converted, mark as payment confirmed
     if (quotation.status === 'APPROVED') {
       const { error: updateError } = await supabase
-        .from('quotation')
+        .from('quotations')
         .update({
           status: 'SENT', // Mark as sent/being processed
           updated_at: new Date().toISOString(),
@@ -541,7 +541,7 @@ export async function GET(
 
     // 2. Verify quotation belongs to user
     const { data: quotation } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('id, user_id')
       .eq('id', quotationId)
       .single();
