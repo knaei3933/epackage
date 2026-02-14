@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       // Quotations - directly by user_id
       (async () => {
         let q = supabase
-          .from('quotation')
+          .from('quotations')
           .select('id, quotation_number, pdf_url, total_amount, created_at, order_id')
           .eq('user_id', userId)
           .not('pdf_url', 'is', null)

@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     // 見積作成 (Supabase quotationsテーブル)
     const { data: quotation, error: insertError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .insert({
         user_id: user.id,
         quotation_number: quotationNumber,
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
 
     // 見積一覧取得 (Supabase quotationsテーブル)
     let query = supabase
-      .from('quotation')
+      .from('quotations')
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })

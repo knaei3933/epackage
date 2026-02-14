@@ -83,7 +83,7 @@ export async function POST(
 
     // Get quotation data (simple query first)
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('*')
       .eq('id', quotationId)
       .single();
@@ -326,7 +326,7 @@ export async function POST(
 
     // Update quotation status to converted
     await supabaseAdmin
-      .from('quotation')
+      .from('quotations')
       .update({ status: 'converted' })
       .eq('id', quotationId);
 
@@ -386,7 +386,7 @@ export async function GET(
 
     // Get quotation data
     const { data: quotation, error } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('*')
       .eq('id', quotationId)
       .single();

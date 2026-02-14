@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
     // Build query - simple select without quotation_items relation
     let query = supabase
-      .from('quotation')
+      .from('quotations')
       .select('*', { count: 'exact' });
 
     // Apply filters - use normalized status for 10-step workflow
@@ -223,7 +223,7 @@ export async function PATCH(request: NextRequest) {
 
     // Get current quotation to check previous status
     const { data: currentQuotation, error: fetchError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select('*')
       .eq('id', quotationId)
       .single();
@@ -242,7 +242,7 @@ export async function PATCH(request: NextRequest) {
 
     // Update quotation - use normalized status for 10-step workflow
     const { data: quotation, error } = await supabase
-      .from('quotation')
+      .from('quotations')
       .update({
         ...(body.status && { status: normalizeStatus(body.status) }),
         ...(body.customer_name && { customer_name: body.customer_name }),
@@ -344,7 +344,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete quotation (cascade will delete quotation_items)
     const { error } = await supabase
-      .from('quotation')
+      .from('quotations')
       .delete()
       .eq('id', quotationId);
 

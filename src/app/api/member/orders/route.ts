@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
 
     // Get quotation data
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select(`
         *,
         companies (*),
