@@ -97,3 +97,4 @@ update-*.js
 *_TEST_REPORT.md
 *_QA_REPORT.md
 *_INTEGRATION_TEST_REPORT.md
+.env*.local

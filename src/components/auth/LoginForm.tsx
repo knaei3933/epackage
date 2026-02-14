@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input, Button, Card } from '@/components/ui';
 import { loginSchema, type LoginFormData } from '@/types/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 // =====================================================
 // Props
@@ -37,6 +38,7 @@ export interface LoginFormProps {
 function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { signIn } = useAuth(); // ✅ AuthContextを使用
 
   // Default redirect based on user role
   const getDefaultRedirect = (role?: string) => {
@@ -68,49 +70,32 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
   });
 
   // =====================================================
-  // フォーム送信ハンドラー (Attempt 52: URL parameter auth)
+  // フォーム送信ハンドラー (AuthContext.signIn()を使用)
   // =====================================================
   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
     setIsSubmitting(true);
     setServerError(null);
 
     try {
-      console.log('[LoginForm] Attempt 52: URL parameter auth for:', data.email);
+      console.log('[LoginForm] Using AuthContext.signIn for:', data.email);
 
-      // Call API Route
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        credentials: 'include',
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'ログインに失敗しました。');
-      }
+      // ✅ CRITICAL FIX: AuthContext.signIn()を使用してステートスを更新
+      // これにより、Header.tsxのisAuthenticatedステートスが更新される
+      await signIn(data.email, data.password);
 
       console.log('[LoginForm] Login successful');
-
-      // SECURITY: Tokens stored in httpOnly cookies only - no localStorage usage
-      // Supabase SSR client automatically sets httpOnly cookies server-side
 
       // Success callback
       onSuccess?.();
 
-      // Determine redirect URL
-      const redirectUrl = result.redirectUrl || getDefaultRedirect(result.user?.role);
+      // Determine redirect URL (AuthContext.signIn()がステートスを更新済み）
+      const redirectUrl = callbackUrl || getDefaultRedirect();
       console.log('[LoginForm] Redirecting to:', redirectUrl);
 
-      // CRITICAL FIX: Use Next.js router with refresh for proper cookie handling
-      // router.push() triggers client-side navigation that includes cookies
-      // router.refresh() ensures server components re-render with new auth state
+      // ✅ CRITICAL FIX: router.refresh()をawaitする
       await new Promise(resolve => setTimeout(resolve, 500)); // Delay for cookie processing
       router.push(redirectUrl);
-      router.refresh();
+      await router.refresh(); // ✅ awaitする
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました。';
       console.warn('[LoginForm] Login failed:', errorMessage);
