@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
       }
 
       const { data: quotationData, error: insertError } = await supabaseService
-        .from('quotations')
+        .from('quotation')
         .insert(quotationInsertData)
         .select()
         .single();
@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
       if (itemsError) {
         console.error('[API /quotations/save] Insert quotation_items error:', itemsError);
         // ロールバック: 見積を削除
-        await supabaseService.from('quotations').delete().eq('id', quotation.id);
+        await supabaseService.from('quotation').delete().eq('id', quotation.id);
         throw new Error(`見積アイテムの作成に失敗しました: ${itemsError.message}`);
       }
 

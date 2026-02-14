@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     const discountType = validatedData.appliedCoupon?.type || null;
 
     const { data: quotation, error: insertError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .insert({
         user_id: guestUserId,
         quotation_number: quotationNumber,

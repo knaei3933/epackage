@@ -52,7 +52,7 @@ export async function GET(
 
     // Fetch quotation with items (admin can access any quotation)
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select(`
         *,
         quotation_items (*)
@@ -119,7 +119,7 @@ export async function POST(
 
     // Fetch quotation with items
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select(`
         *,
         quotation_items (*)

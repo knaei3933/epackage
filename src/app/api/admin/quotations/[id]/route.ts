@@ -35,7 +35,7 @@ export async function GET(
     const supabase = createServiceClient();
 
     const { data: quotation } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select('*')
       .eq('id', quotationId)
       .single();
@@ -115,7 +115,7 @@ export async function PATCH(
     const supabase = createServiceClient();
 
     if (body.admin_notes !== undefined) {
-      await supabase.from('quotations').update({ admin_notes: body.admin_notes }).eq('id', quotationId);
+      await supabase.from('quotation').update({ admin_notes: body.admin_notes }).eq('id', quotationId);
     }
 
     if (body.items && Array.isArray(body.items)) {
@@ -265,7 +265,7 @@ async function recalculateTotals(supabase: any, quotationId: string) {
     total,
   });
 
-  await supabase.from('quotations').update({
+  await supabase.from('quotation').update({
     subtotal_amount: roundedSubtotal,
     tax_amount: roundedTax,
     total_amount: total,

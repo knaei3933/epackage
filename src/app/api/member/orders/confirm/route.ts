@@ -85,7 +85,7 @@ export const POST = withApiHandler(
 
     // Fetch quotation with validation
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select(`
         id,
         quotation_number,
