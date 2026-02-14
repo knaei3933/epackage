@@ -909,13 +909,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
               )}
             </div>
           ))}
-
-          {/* Price */}
-          <div className="text-right pt-2 border-t border-border-secondary">
-            <p className="text-xl font-bold text-text-primary">
-              ¥{(item.totalPrice || 0).toLocaleString()}
-            </p>
-          </div>
         </div>
         <div className="mt-4 pt-4 border-t border-border-secondary space-y-2">
           <div className="flex items-center justify-between text-sm">
