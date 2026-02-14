@@ -94,6 +94,13 @@ const PUBLIC_ROUTES = [
 // Helper: Create Supabase Client for Middleware
 // =====================================================
 
+/**
+ * Create Supabase client for middleware with proper cookie handling
+ *
+ * CRITICAL FIX: Use getAll/setAll pattern for @supabase/ssr compatibility
+ * - Old get/set/remove pattern is deprecated
+ * - New getAll/setAll pattern required for @supabase/ssr v0.4.0+
+ */
 function createMiddlewareClient(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/\s/g, '');
@@ -106,6 +113,8 @@ function createMiddlewareClient(request: NextRequest) {
   if (process.env.NODE_ENV === 'development') {
     const allCookies = request.cookies.getAll();
     console.log('[Middleware] All cookies:', allCookies.map(c => ({ name: c.name, value: c.value ? 'set' : 'empty' })));
+    const sbCookies = allCookies.filter(c => c.name.startsWith('sb-'));
+    console.log('[Middleware] Supabase cookies:', sbCookies.map(c => c.name));
   }
 
   // Create response object for cookie setting
@@ -113,51 +122,48 @@ function createMiddlewareClient(request: NextRequest) {
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) {
-        const cookie = request.cookies.get(name);
-        if (process.env.NODE_ENV === 'development' && name.includes('sb-')) {
-          console.log('[Middleware] Getting cookie:', name, 'found:', !!cookie);
+      // ✅ CRITICAL: Use getAll() pattern required by @supabase/ssr
+      getAll() {
+        return request.cookies.getAll();
+      },
+      // ✅ CRITICAL: Use setAll() pattern required by @supabase/ssr
+      setAll(cookiesToSet) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] setAll called with', cookiesToSet.length, 'cookies');
         }
-        return cookie?.value;
-      },
-      set(name: string, value: string, options: any) {
-        // ✅ CRITICAL: Use SESSION_MAX_AGE (24 hours) for consistency with auth-constants.ts
-        // Previously used 1800 (30 minutes) which caused premature cookie expiration
-        request.cookies.set({
-          name,
-          value,
-          httpOnly: true,   // ✅ httpOnly設定
-          secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS時のみ
-          sameSite: 'lax',   // ✅ CSRF対策
-          path: '/',         // ✅ 全パスで有効
-          maxAge: 86400,     // ✅ 24時間セッション維持 (SESSION_MAX_AGEと一致)
-          ...options,
-        });
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[Middleware] Setting cookie:', name);
+            }
 
-        // ✅ responseにも設定（重要：クライアントに送信されるため）
-        response.cookies.set({
-          name,
-          value,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 86400,  // ✅ 24時間セッション維持 (SESSION_MAX_AGEと一致)
-          ...options,
-        });
-      },
-      remove(name: string, options: any) {
-        request.cookies.delete({ name, ...options });
-        // ✅ responseからも削除（maxAge: 0で期限切れにする）
-        response.cookies.delete({
-          name,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,  // ✅ 削除時はmaxAge: 0で即座に期限切れに
-          ...options,
-        });
+            // Update request cookies for immediate use
+            request.cookies.set({
+              name,
+              value,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              maxAge: 86400, // 24 hours
+              ...options,
+            });
+
+            // Update response cookies to send to client
+            response.cookies.set({
+              name,
+              value,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              maxAge: 86400, // 24 hours
+              ...options,
+            });
+          });
+        } catch (error) {
+          console.error('[Middleware] Error in setAll:', error);
+        }
       },
     },
   });
