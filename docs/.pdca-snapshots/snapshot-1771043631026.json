@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-02-14T04:33:51.026Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-14T04:19:25.742Z",
+    "activeFeatures": [
+      "[id]",
+      "admin"
+    ],
+    "primaryFeature": "[id]",
+    "features": {
+      "[id]": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-14T01:46:50.504Z",
+          "lastUpdated": "2026-02-14T04:19:25.742Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\quotations\\[id]\\route.ts"
+      },
+      "admin": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-14T01:57:55.632Z",
+          "lastUpdated": "2026-02-14T01:58:14.893Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\admin\\EntryRecordingButton.tsx"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-14T01:23:57.443Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-14T04:19:25.742Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-14T01:46:50.504Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:46:59.474Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:47:29.716Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:48:17.116Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:52:36.520Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:57:55.632Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:57:56.538Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T01:58:14.893Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T02:08:37.525Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-14T04:19:25.742Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}

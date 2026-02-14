@@ -35,7 +35,7 @@ export async function GET(
 
     // Fetch quotation with items
     const { data: quotation, error } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select(`
         id,
         quotation_number,
@@ -187,13 +187,13 @@ export async function DELETE(
 
     // Delete quotation items first
     await supabase
-      .from('quotation_item')
+      .from('quotation_items')
       .delete()
       .eq('quotation_id', quotationId);
 
     // Delete quotation
     const { error: deleteError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .delete()
       .eq('id', quotationId);
 
