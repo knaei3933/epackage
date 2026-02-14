@@ -1,57 +1,48 @@
 /**
- * 統合会員ダッシュボード統計API
- * SSR/CSR両対応、DEV_MODE対応
- * Cookie-based authentication for client-side navigation
+ * Member Dashboard Unified Stats API
+ *
+ * 会員ダッシュボード統計情報を返すAPIエンドポイント
+ * - 統計データ（注文、見積、サンプルなど）
+ * - 認証済みユーザーのみアクセス可能
  */
 
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth, AuthRequiredError, getUnifiedDashboardStats } from '@/lib/dashboard';
+
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
-import { getUnifiedDashboardStats } from '@/lib/dashboard';
+// =====================================================
+// GET /api/member/dashboard/unified-stats
+// =====================================================
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const period = searchParams.get('period')
-      ? parseInt(searchParams.get('period')!)
-      : 30;
+    // 認証チェック
+    const user = await requireAuth();
+    const userId = user.id;
 
-    // Cookie-based authentication (primary method)
-    let authUser = await getAuthenticatedUser(request);
-    let userId: string | null = null;
+    // クエリパラメータ取得
+    const { searchParams } = new URL(request.url);
+    const period = parseInt(searchParams.get('period') || '30', 10);
 
-    // Fallback: userId from query parameter for client-side requests
-    // This is a temporary workaround for cookie issues on client-side navigation
-    if (!authUser || !authUser.id) {
-      const queryUserId = searchParams.get('userId');
-      if (queryUserId) {
-        console.log('[unified-stats] Cookie auth failed, using userId from query param:', queryUserId);
-        userId = queryUserId;
-      } else {
-        console.log('[unified-stats] No authenticated user found (no cookies or userId param), returning 401');
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-    } else {
-      userId = authUser.id;
-      console.log('[unified-stats] Authenticated via cookies, user ID:', authUser.id);
-    }
-
-    // 統計取得
-    const stats = await getUnifiedDashboardStats(
-      userId,
-      'MEMBER',
-      period
-    );
+    // 統計データ取得
+    const stats = await getUnifiedDashboardStats(userId, 'MEMBER', period);
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('[API] Member dashboard unified stats error:', error);
+    // 認証エラー
+    if (error instanceof AuthRequiredError) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // その他のエラー
+    console.error('[/api/member/dashboard/unified-stats] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch dashboard stats' },
+      { error: 'Failed to fetch dashboard statistics' },
       { status: 500 }
     );
   }
