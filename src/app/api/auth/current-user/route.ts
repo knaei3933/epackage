@@ -104,6 +104,11 @@ export async function GET(request: NextRequest) {
     // Get user profile using SERVICE ROLE client
     // CRITICAL: Use service role to bypass RLS policies that may block anon key access
     const serviceClient = createServiceClient();
+
+    // DEBUG: Log environment variables
+    console.log('[Session API] NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('[Session API] SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
     const { data: profile, error: profileError } = await serviceClient
       .from('profiles')
       .select('*')
@@ -112,9 +117,11 @@ export async function GET(request: NextRequest) {
 
     if (profileError) {
       console.error('[Session API] Profile fetch error:', profileError);
+      console.error('[Session API] Profile error details:', JSON.stringify(profileError, null, 2));
     }
 
     console.log('[Session API] User found for:', user.email, 'Profile:', profile ? 'Found' : 'Not found');
+    console.log('[Session API] Profile data:', profile);
 
     return NextResponse.json({
       session: {
