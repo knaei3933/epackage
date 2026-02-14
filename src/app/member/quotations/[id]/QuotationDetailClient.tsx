@@ -300,7 +300,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
     setError(null);
 
     try {
-      const response = await fetch(`/api/member/quotations/${id}`, {
+      const response = await fetch(`/api/member/quotations/${quotationId}`, {
         credentials: 'include',
       });
 
