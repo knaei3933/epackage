@@ -70,7 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // 4. 保留中の見積もり数
     const { count: pendingQuotations } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'PENDING');
 

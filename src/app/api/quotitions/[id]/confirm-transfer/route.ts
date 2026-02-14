@@ -40,7 +40,7 @@ export async function POST(
 
     // 3. 見積照会および所有権確認
     const { data: quotation, error: quoteError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .select('*')
       .eq('id', quotationId)
       .eq('user_id', user.id)
@@ -55,7 +55,7 @@ export async function POST(
 
     // 4. 送金情報保存
     const { error: updateError } = await supabase
-      .from('quotations')
+      .from('quotation')
       .update({
         transfer_date: transferDate,
         transfer_amount: amount,
