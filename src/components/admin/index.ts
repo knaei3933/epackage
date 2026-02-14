@@ -18,6 +18,7 @@ export { TrackingTimeline } from './TrackingTimeline';
 
 // Inventory Management Components
 export { InventoryUpdateButton } from './InventoryUpdateButton';
+export { EntryRecordingButton } from './EntryRecordingButton';
 
 // Contract Management Components
 export { ContractSignatureRequestButton } from './ContractSignatureRequestButton';
