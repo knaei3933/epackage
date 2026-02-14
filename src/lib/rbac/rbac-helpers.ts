@@ -432,15 +432,15 @@ export async function getRBACContext(): Promise<RBACContext | null> {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => {
-          const value = cookieStore.get(name)?.value;
-          if (name.startsWith('sb-')) {
-            console.log('[RBAC] Getting cookie:', name, 'found:', !!value);
-          }
-          return value;
+        getAll: () => {
+          const allCookies = cookieStore.getAll();
+          console.log('[RBAC] getAll() called, found', allCookies.length, 'cookies');
+          console.log('[RBAC] Supabase cookies:', allCookies.filter(c => c.name.startsWith('sb-')).map(c => c.name));
+          return allCookies;
         },
-        set: () => {},
-        remove: () => {},
+        setAll: () => {
+          // Server Component에서는 쿠키 설정 불필요
+        },
       },
     }
   );
