@@ -1,0 +1,78 @@
+%AI_Design_Template_for_Box_Pouch
+%Package_Lab_Epackage_Design_Template
+%Japanese_Market_Standard_Dimensions
+
+Template_Name: BOX型パウチ (Box Pouch)
+Product_Category: box
+Standard_Sizes:
+  - 120mm x 80mm x 40mm
+  - 150mm x 100mm x 50mm
+  - 180mm x 120mm x 60mm
+  - 200mm x 140mm x 70mm
+
+Design_Specifications:
+  - Bleed: 3mm on all edges
+  - Safety Zone: 5mm from edges
+  - File Format: Adobe Illustrator CS6 or later
+  - Color Mode: CMYK
+  - Resolution: 300 DPI
+  - Includes all 6 panels (Front, Back, Top, Bottom, Left, Right)
+
+Cutting_Guides:
+  - Solid line: Final cut line
+  - Dashed line: Fold lines
+  - Cross marks: Registration points
+
+Design_Elements:
+  [Front_Panel]
+  - Product logo area: Top center
+  - Product name: Below logo
+  - Product description: Center area
+  - Weight/Volume: Bottom left
+  - Barcode area: Bottom right
+
+  [Back_Panel]
+  - Ingredients list: Top area
+  - Instructions: Center area
+  - Manufacturer info: Bottom area
+  - Expiry date: Bottom right
+  - Recycling symbols: Bottom corner
+
+  [Top_Panel]
+  - QR code: Center
+  - Opening instructions: Below QR code
+  - Brand tagline: Top area
+
+  [Bottom_Panel]
+  - Nutrition information (if applicable)
+  - Storage instructions
+  - Best before date
+
+  [Side_Panels_Left/Right]
+  - Nutritional highlights
+  - Marketing claims
+  - Certifications (organic, halal, etc.)
+
+Color_Guidelines:
+  - Primary colors: Brand specific
+  - Text color: High contrast (minimum 60%)
+  - Background: Consider premium positioning
+  - Each panel can have unique color scheme
+
+Special_Features:
+  - Premium appearance
+  - High protection for contents
+  - Shelf stability
+  - Easy to stack
+  - Re-sealable options available
+
+File_Naming_Convention:
+  - Client_Project_ProductCode_Size.ai
+  - Example: Epackage_Premium_Brand_BoxPouch_150x100x50.ai
+
+Contact_Information:
+  Epackage Lab
+  Email: info@package-lab.com
+  Phone: 080-6942-7235
+
+End_of_Template

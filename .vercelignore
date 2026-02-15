@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env*.local
+screenshots
+.playwright-mcp
+results
+docs/test-scenarios
+design/입고용 데이터
+*.png
+*.pdf
+*.log

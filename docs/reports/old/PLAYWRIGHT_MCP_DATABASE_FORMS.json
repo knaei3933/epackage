@@ -1,0 +1,63 @@
+{
+  "databaseTests": [
+    {
+      "name": "Product Catalog Loading",
+      "passed": false,
+      "details": {
+        "productCount": 0,
+        "sampleProducts": []
+      },
+      "error": null
+    },
+    {
+      "name": "Product Search API",
+      "passed": false,
+      "details": {
+        "hasData": false
+      },
+      "error": "Failed to execute 'json' on 'Response': Unexpected end of JSON input"
+    },
+    {
+      "name": "Category Loading",
+      "passed": false,
+      "details": {
+        "categoryCount": 0,
+        "categories": []
+      },
+      "error": null
+    }
+  ],
+  "formTests": [
+    {
+      "name": "Contact Form Accessibility",
+      "passed": false,
+      "error": "page.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[id*=\"name\"], [placeholder*=\"お名前\"]')\u001b[22m\n"
+    },
+    {
+      "name": "Sample Request Form",
+      "passed": true,
+      "details": {
+        "hasForm": true,
+        "inputCount": 24,
+        "hasSubmitButton": true
+      },
+      "error": null
+    },
+    {
+      "name": "Registration Form",
+      "passed": true,
+      "details": {
+        "hasForm": true,
+        "hasEmailInput": true,
+        "hasPasswordInput": true,
+        "hasSubmitButton": true
+      },
+      "error": null
+    }
+  ],
+  "summary": {
+    "totalTests": 6,
+    "passed": 2,
+    "failed": 4
+  }
+}

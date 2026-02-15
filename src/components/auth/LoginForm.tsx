@@ -1,0 +1,216 @@
+/**
+ * Login Form Component
+ *
+ * ログインフォームコンポーネントです。
+ * - Attempt 52: URL parameter-based auth for Next.js 15/16
+ * - Uses URL hash to pass auth token to dashboard (bypasses cookie limitations)
+ *
+ * @updated 2026-02-10-attempt52 URL parameter auth
+ */
+
+'use client';
+
+import React, { useState, Suspense } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Input, Button, Card } from '@/components/ui';
+import { loginSchema, type LoginFormData } from '@/types/auth';
+import { useAuth } from '@/contexts/AuthContext';
+
+// =====================================================
+// Props
+// =====================================================
+
+export interface LoginFormProps {
+  /** 送信成功時コールバック */
+  onSuccess?: () => void;
+  /** 送信失敗時コールバック */
+  onError?: (error: string) => void;
+  /** 追加クラス名 */
+  className?: string;
+}
+
+// =====================================================
+// Component
+// =====================================================
+
+function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signIn } = useAuth(); // ✅ AuthContextを使用
+
+  // Default redirect based on user role
+  const getDefaultRedirect = (role?: string) => {
+    if (role?.toLowerCase() === 'admin') {
+      return '/admin/dashboard';
+    }
+    return '/member/dashboard';
+  };
+
+  // Use redirect param if provided
+  const callbackUrl = searchParams.get('redirect') || searchParams.get('callbackUrl');
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  // React Hook Form設定
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onBlur',
+  });
+
+  // =====================================================
+  // フォーム送信ハンドラー (AuthContext.signIn()を使用)
+  // =====================================================
+  const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
+    setIsSubmitting(true);
+    setServerError(null);
+
+    try {
+      console.log('[LoginForm] Using AuthContext.signIn for:', data.email);
+
+      // ✅ CRITICAL FIX: AuthContext.signIn()を使用してステートスを更新
+      // これにより、Header.tsxのisAuthenticatedステートスが更新される
+      await signIn(data.email, data.password);
+
+      console.log('[LoginForm] Login successful');
+
+      // Success callback
+      onSuccess?.();
+
+      // Determine redirect URL (AuthContext.signIn()がステートスを更新済み）
+      const redirectUrl = callbackUrl || getDefaultRedirect();
+      console.log('[LoginForm] Redirecting to:', redirectUrl);
+
+      // ✅ CRITICAL FIX: router.refresh()をawaitする
+      await new Promise(resolve => setTimeout(resolve, 500)); // Delay for cookie processing
+      router.push(redirectUrl);
+      await router.refresh(); // ✅ awaitする
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました。';
+      console.warn('[LoginForm] Login failed:', errorMessage);
+      setServerError(errorMessage);
+      onError?.(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className="p-6 md:p-8">
+      <form onSubmit={handleSubmit(onSubmit)} className={className}>
+        {/* サーバーエラーメッセージ */}
+        {serverError && (
+          <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
+            <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
+          </div>
+        )}
+
+        {/* =====================================================
+            メールアドレス
+            ===================================================== */}
+        <Input
+          label="メールアドレス"
+          type="email"
+          placeholder="example@company.com"
+          error={errors.email?.message}
+          required
+          {...register('email')}
+          className="mb-4"
+        />
+
+        {/* =====================================================
+            パスワード
+            ===================================================== */}
+        <Input
+          label="パスワード"
+          type={showPassword ? 'text' : 'password'}
+          placeholder="•••••••••"
+          error={errors.password?.message}
+          required
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-text-muted hover:text-text-primary"
+            >
+              {showPassword ? '👁️' : '👁️‍🗨️'}
+            </button>
+          }
+          {...register('password')}
+          className="mb-4"
+        />
+
+        {/* =====================================================
+            ログイン維持 & パスワード再設定
+            ===================================================== */}
+        <div className="flex items-center justify-between mb-6">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              {...register('remember')}
+              type="checkbox"
+              className="w-4 h-4 text-brixa-500"
+            />
+            <span className="text-sm text-text-primary">
+              ログイン状態を保持
+            </span>
+          </label>
+
+          <a
+            href="/auth/forgot-password"
+            className="text-sm text-brixa-500 hover:text-brixa-600"
+          >
+            パスワードを忘れた方
+          </a>
+        </div>
+
+        {/* =====================================================
+            送信ボタン
+            ===================================================== */}
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={isSubmitting}
+          className="w-full mb-4"
+        >
+          {isSubmitting ? 'ログイン中...' : 'ログイン'}
+        </Button>
+
+        {/* =====================================================
+            会員登録リンク
+            ===================================================== */}
+        <div className="text-center">
+          <p className="text-sm text-text-muted">
+            まだアカウントをお持ちでない方{' '}
+            <a
+              href="/auth/register"
+              className="text-brixa-500 hover:text-brixa-600 font-medium"
+            >
+              会員登録
+            </a>
+          </p>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+// Export with Suspense boundary for useSearchParams()
+export default function LoginForm(props: LoginFormProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginFormContent {...props} />
+    </Suspense>
+  );
+}

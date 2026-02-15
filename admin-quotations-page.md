@@ -1,0 +1,543 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Epackage Lab - ホーム" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "Epackage Lab Logo" [ref=e6]
+        - generic [ref=e7]: Epackage Lab
+      - navigation "Main navigation" [ref=e8]:
+        - link "ホーム" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "製品カタログ" [ref=e12] [cursor=pointer]:
+          - /url: /catalog
+        - button "サービス" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: サービス
+          - img [ref=e16]
+        - link "導入事例" [ref=e19] [cursor=pointer]:
+          - /url: /archives
+        - button "お見積り" [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - link "ログイン - 会員認証ページへ移動" [ref=e24] [cursor=pointer]:
+            - /url: /auth/signin
+            - button "ログイン" [ref=e25]:
+              - generic [ref=e26]: ログイン
+          - link "会員登録" [ref=e27] [cursor=pointer]:
+            - /url: /auth/register
+            - button "会員登録" [ref=e28]:
+              - generic [ref=e29]: 会員登録
+        - link "お問い合わせ" [ref=e31] [cursor=pointer]:
+          - /url: /contact
+          - button "お問い合わせ" [ref=e32]:
+            - generic [ref=e33]: お問い合わせ
+  - navigation "Breadcrumb" [ref=e34]:
+    - link "ホーム" [ref=e36] [cursor=pointer]:
+      - /url: /
+      - img [ref=e37]
+      - generic [ref=e40]: ホーム
+    - generic [ref=e41]:
+      - generic [ref=e42]: /
+      - link "Admin" [ref=e43] [cursor=pointer]:
+        - /url: /admin
+        - generic [ref=e44]: Admin
+    - generic [ref=e321]:
+      - generic [ref=e322]: /
+      - generic [ref=e323]: Quotations
+  - main [ref=e48]:
+    - generic [ref=e49]:
+      - generic [ref=e52]:
+        - heading "EPackage Lab管理画面" [level=1] [ref=e54]
+        - generic [ref=e55]:
+          - button "通知 (0件の未読)" [ref=e57] [cursor=pointer]:
+            - img [ref=e58]
+          - generic [ref=e63]: A
+      - navigation [ref=e64]:
+        - generic [ref=e66]:
+          - link "ダッシュボード" [ref=e67] [cursor=pointer]:
+            - /url: /admin/dashboard
+            - img [ref=e68]
+            - generic [ref=e73]: ダッシュボード
+            - img [ref=e74]
+          - link "注文管理" [ref=e76] [cursor=pointer]:
+            - /url: /admin/orders
+            - img [ref=e77]
+            - generic [ref=e81]: 注文管理
+            - img [ref=e82]
+          - link "見積管理" [active] [ref=e84] [cursor=pointer]:
+            - /url: /admin/quotations
+            - img [ref=e85]
+            - generic [ref=e88]: 見積管理
+            - img [ref=e89]
+          - link "配送管理" [ref=e91] [cursor=pointer]:
+            - /url: /admin/shipments
+            - img [ref=e92]
+            - generic [ref=e97]: 配送管理
+            - img [ref=e98]
+          - link "契約管理" [ref=e100] [cursor=pointer]:
+            - /url: /admin/contracts
+            - img [ref=e101]
+            - generic [ref=e104]: 契約管理
+            - img [ref=e105]
+          - link "会員承認" [ref=e107] [cursor=pointer]:
+            - /url: /admin/approvals
+            - img [ref=e108]
+            - generic [ref=e112]: 会員承認
+            - img [ref=e113]
+          - link "顧客管理" [ref=e115] [cursor=pointer]:
+            - /url: /admin/customers/management
+            - img [ref=e116]
+            - generic [ref=e121]: 顧客管理
+            - img [ref=e122]
+          - link "お知らせ管理" [ref=e124] [cursor=pointer]:
+            - /url: /admin/notifications
+            - img [ref=e125]
+            - generic [ref=e128]: お知らせ管理
+            - img [ref=e129]
+          - link "配送設定" [ref=e131] [cursor=pointer]:
+            - /url: /admin/shipping
+            - img [ref=e132]
+            - generic [ref=e135]: 配送設定
+            - img [ref=e136]
+          - link "システム設定" [ref=e138] [cursor=pointer]:
+            - /url: /admin/settings
+            - img [ref=e139]
+            - generic [ref=e141]: システム設定
+            - img [ref=e142]
+          - link "クーポン管理" [ref=e144] [cursor=pointer]:
+            - /url: /admin/coupons
+            - img [ref=e145]
+            - generic [ref=e148]: クーポン管理
+            - img [ref=e149]
+      - main [ref=e151]:
+        - generic [ref=e325]:
+          - generic [ref=e326]:
+            - generic [ref=e327]:
+              - heading "見積もり管理" [level=1] [ref=e328]
+              - paragraph [ref=e329]: ようこそ、管理者さん
+            - button "更新" [ref=e330] [cursor=pointer]:
+              - generic [ref=e331]: 更新
+          - generic [ref=e332]:
+            - generic [ref=e333]:
+              - paragraph [ref=e334]: 総見積数
+              - paragraph [ref=e335]: "312"
+            - generic [ref=e336]:
+              - paragraph [ref=e337]: ドラフト
+              - paragraph [ref=e338]: "20"
+            - generic [ref=e339]:
+              - paragraph [ref=e340]: 送信済み
+              - paragraph [ref=e341]: "0"
+            - generic [ref=e342]:
+              - paragraph [ref=e343]: 承認済み
+              - paragraph [ref=e344]: "0"
+            - generic [ref=e345]:
+              - paragraph [ref=e346]: 拒否
+              - paragraph [ref=e347]: "0"
+          - combobox [ref=e349]:
+            - option "すべてのステータス" [selected]
+            - option "ドラフト"
+            - option "送信済み"
+            - option "承認済み"
+            - option "拒否"
+            - option "期限切れ"
+            - option "注文変換済み"
+          - generic [ref=e350]:
+            - generic [ref=e352]:
+              - heading "見積もり一覧" [level=2] [ref=e353]
+              - generic [ref=e354]:
+                - generic [ref=e356]:
+                  - generic [ref=e357] [cursor=pointer]:
+                    - generic [ref=e358]:
+                      - paragraph [ref=e359]: QT20260208-1485
+                      - generic [ref=e361]: ドラフト
+                    - paragraph [ref=e362]: EPackage Lab
+                    - paragraph [ref=e363]: admin@epackage-lab.com
+                    - paragraph [ref=e364]: "電話: 03-1234-5678"
+                  - generic [ref=e365]:
+                    - generic [ref=e366]:
+                      - paragraph [ref=e367]: ¥168,500
+                      - paragraph [ref=e368]: 2026/2/8
+                    - button "メール送信" [ref=e369] [cursor=pointer]:
+                      - img [ref=e370]
+                - generic [ref=e374]:
+                  - generic [ref=e375] [cursor=pointer]:
+                    - generic [ref=e376]:
+                      - paragraph [ref=e377]: QT20260208-8591
+                      - generic [ref=e379]: ドラフト
+                    - paragraph [ref=e380]: テスト株式会社
+                    - paragraph [ref=e381]: arwg22@gmail.com
+                    - paragraph [ref=e382]: "電話: 06-9876-5432"
+                  - generic [ref=e383]:
+                    - generic [ref=e384]:
+                      - paragraph [ref=e385]: ¥175,000
+                      - paragraph [ref=e386]: 2026/2/8
+                    - button "メール送信" [ref=e387] [cursor=pointer]:
+                      - img [ref=e388]
+                - generic [ref=e392]:
+                  - generic [ref=e393] [cursor=pointer]:
+                    - generic [ref=e394]:
+                      - paragraph [ref=e395]: QT20260208-4723
+                      - generic [ref=e397]: ドラフト
+                    - paragraph [ref=e398]: テスト株式会社
+                    - paragraph [ref=e399]: arwg22@gmail.com
+                    - paragraph [ref=e400]: "電話: 06-9876-5432"
+                  - generic [ref=e401]:
+                    - generic [ref=e402]:
+                      - paragraph [ref=e403]: ¥440,000
+                      - paragraph [ref=e404]: 2026/2/8
+                    - button "メール送信" [ref=e405] [cursor=pointer]:
+                      - img [ref=e406]
+                - generic [ref=e410]:
+                  - generic [ref=e411] [cursor=pointer]:
+                    - generic [ref=e412]:
+                      - paragraph [ref=e413]: QT20260208-6528
+                      - generic [ref=e415]: ドラフト
+                    - paragraph [ref=e416]: テスト株式会社
+                    - paragraph [ref=e417]: arwg22@gmail.com
+                    - paragraph [ref=e418]: "電話: 06-9876-5432"
+                  - generic [ref=e419]:
+                    - generic [ref=e420]:
+                      - paragraph [ref=e421]: ¥194,000
+                      - paragraph [ref=e422]: 2026/2/8
+                    - button "メール送信" [ref=e423] [cursor=pointer]:
+                      - img [ref=e424]
+                - generic [ref=e428]:
+                  - generic [ref=e429] [cursor=pointer]:
+                    - generic [ref=e430]:
+                      - paragraph [ref=e431]: QT20260208-7549
+                      - generic [ref=e433]: ドラフト
+                    - paragraph [ref=e434]: テスト株式会社
+                    - paragraph [ref=e435]: arwg22@gmail.com
+                    - paragraph [ref=e436]: "電話: 06-9876-5432"
+                  - generic [ref=e437]:
+                    - generic [ref=e438]:
+                      - paragraph [ref=e439]: ¥205,000
+                      - paragraph [ref=e440]: 2026/2/8
+                    - button "メール送信" [ref=e441] [cursor=pointer]:
+                      - img [ref=e442]
+                - generic [ref=e446]:
+                  - generic [ref=e447] [cursor=pointer]:
+                    - generic [ref=e448]:
+                      - paragraph [ref=e449]: QT20260208-9410
+                      - generic [ref=e451]: ドラフト
+                    - paragraph [ref=e452]: テスト株式会社
+                    - paragraph [ref=e453]: arwg22@gmail.com
+                    - paragraph [ref=e454]: "電話: 06-9876-5432"
+                  - generic [ref=e455]:
+                    - generic [ref=e456]:
+                      - paragraph [ref=e457]: ¥440,000
+                      - paragraph [ref=e458]: 2026/2/8
+                    - button "メール送信" [ref=e459] [cursor=pointer]:
+                      - img [ref=e460]
+                - generic [ref=e464]:
+                  - generic [ref=e465] [cursor=pointer]:
+                    - generic [ref=e466]:
+                      - paragraph [ref=e467]: QT20260208-7386
+                      - generic [ref=e469]: ドラフト
+                    - paragraph [ref=e470]: テスト株式会社
+                    - paragraph [ref=e471]: arwg22@gmail.com
+                    - paragraph [ref=e472]: "電話: 06-9876-5432"
+                  - generic [ref=e473]:
+                    - generic [ref=e474]:
+                      - paragraph [ref=e475]: ¥440,000
+                      - paragraph [ref=e476]: 2026/2/8
+                    - button "メール送信" [ref=e477] [cursor=pointer]:
+                      - img [ref=e478]
+                - generic [ref=e482]:
+                  - generic [ref=e483] [cursor=pointer]:
+                    - generic [ref=e484]:
+                      - paragraph [ref=e485]: QT20260208-9972
+                      - generic [ref=e487]: ドラフト
+                    - paragraph [ref=e488]: テスト株式会社
+                    - paragraph [ref=e489]: arwg22@gmail.com
+                    - paragraph [ref=e490]: "電話: 06-9876-5432"
+                  - generic [ref=e491]:
+                    - generic [ref=e492]:
+                      - paragraph [ref=e493]: ¥440,000
+                      - paragraph [ref=e494]: 2026/2/8
+                    - button "メール送信" [ref=e495] [cursor=pointer]:
+                      - img [ref=e496]
+                - generic [ref=e500]:
+                  - generic [ref=e501] [cursor=pointer]:
+                    - generic [ref=e502]:
+                      - paragraph [ref=e503]: QT20260208-8944
+                      - generic [ref=e505]: ドラフト
+                    - paragraph [ref=e506]: テスト株式会社
+                    - paragraph [ref=e507]: arwg22@gmail.com
+                    - paragraph [ref=e508]: "電話: 06-9876-5432"
+                  - generic [ref=e509]:
+                    - generic [ref=e510]:
+                      - paragraph [ref=e511]: ¥168,500
+                      - paragraph [ref=e512]: 2026/2/8
+                    - button "メール送信" [ref=e513] [cursor=pointer]:
+                      - img [ref=e514]
+                - generic [ref=e518]:
+                  - generic [ref=e519] [cursor=pointer]:
+                    - generic [ref=e520]:
+                      - paragraph [ref=e521]: QT20260207-4490
+                      - generic [ref=e523]: ドラフト
+                    - paragraph [ref=e524]: EPackage Lab
+                    - paragraph [ref=e525]: admin@epackage-lab.com
+                    - paragraph [ref=e526]: "電話: 03-1234-5678"
+                  - generic [ref=e527]:
+                    - generic [ref=e528]:
+                      - paragraph [ref=e529]: ¥166,900
+                      - paragraph [ref=e530]: 2026/2/7
+                    - button "メール送信" [ref=e531] [cursor=pointer]:
+                      - img [ref=e532]
+                - generic [ref=e536]:
+                  - generic [ref=e537] [cursor=pointer]:
+                    - generic [ref=e538]:
+                      - paragraph [ref=e539]: QT20260207-9771
+                      - generic [ref=e541]: ドラフト
+                    - paragraph [ref=e542]: EPackage Lab
+                    - paragraph [ref=e543]: admin@epackage-lab.com
+                    - paragraph [ref=e544]: "電話: 03-1234-5678"
+                  - generic [ref=e545]:
+                    - generic [ref=e546]:
+                      - paragraph [ref=e547]: ¥177,500
+                      - paragraph [ref=e548]: 2026/2/7
+                    - button "メール送信" [ref=e549] [cursor=pointer]:
+                      - img [ref=e550]
+                - generic [ref=e554]:
+                  - generic [ref=e555] [cursor=pointer]:
+                    - generic [ref=e556]:
+                      - paragraph [ref=e557]: QT20260207-8446
+                      - generic [ref=e559]: ドラフト
+                    - paragraph [ref=e560]: EPackage Lab
+                    - paragraph [ref=e561]: admin@epackage-lab.com
+                    - paragraph [ref=e562]: "電話: 03-1234-5678"
+                  - generic [ref=e563]:
+                    - generic [ref=e564]:
+                      - paragraph [ref=e565]: ¥177,500
+                      - paragraph [ref=e566]: 2026/2/7
+                    - button "メール送信" [ref=e567] [cursor=pointer]:
+                      - img [ref=e568]
+                - generic [ref=e572]:
+                  - generic [ref=e573] [cursor=pointer]:
+                    - generic [ref=e574]:
+                      - paragraph [ref=e575]: QT20260207-6311
+                      - generic [ref=e577]: ドラフト
+                    - paragraph [ref=e578]: EPackage Lab
+                    - paragraph [ref=e579]: admin@epackage-lab.com
+                    - paragraph [ref=e580]: "電話: 03-1234-5678"
+                  - generic [ref=e581]:
+                    - generic [ref=e582]:
+                      - paragraph [ref=e583]: ¥167,000
+                      - paragraph [ref=e584]: 2026/2/7
+                    - button "メール送信" [ref=e585] [cursor=pointer]:
+                      - img [ref=e586]
+                - generic [ref=e590]:
+                  - generic [ref=e591] [cursor=pointer]:
+                    - generic [ref=e592]:
+                      - paragraph [ref=e593]: QT20260207-0423
+                      - generic [ref=e595]: ドラフト
+                    - paragraph [ref=e596]: EPackage Lab
+                    - paragraph [ref=e597]: admin@epackage-lab.com
+                    - paragraph [ref=e598]: "電話: 03-1234-5678"
+                  - generic [ref=e599]:
+                    - generic [ref=e600]:
+                      - paragraph [ref=e601]: ¥175,000
+                      - paragraph [ref=e602]: 2026/2/7
+                    - button "メール送信" [ref=e603] [cursor=pointer]:
+                      - img [ref=e604]
+                - generic [ref=e608]:
+                  - generic [ref=e609] [cursor=pointer]:
+                    - generic [ref=e610]:
+                      - paragraph [ref=e611]: QT20260207-1982
+                      - generic [ref=e613]: ドラフト
+                    - paragraph [ref=e614]: EPackage Lab
+                    - paragraph [ref=e615]: admin@epackage-lab.com
+                    - paragraph [ref=e616]: "電話: 03-1234-5678"
+                  - generic [ref=e617]:
+                    - generic [ref=e618]:
+                      - paragraph [ref=e619]: ¥168,500
+                      - paragraph [ref=e620]: 2026/2/7
+                    - button "メール送信" [ref=e621] [cursor=pointer]:
+                      - img [ref=e622]
+                - generic [ref=e626]:
+                  - generic [ref=e627] [cursor=pointer]:
+                    - generic [ref=e628]:
+                      - paragraph [ref=e629]: QT20260207-4538
+                      - generic [ref=e631]: ドラフト
+                    - paragraph [ref=e632]: EPackage Lab
+                    - paragraph [ref=e633]: admin@epackage-lab.com
+                    - paragraph [ref=e634]: "電話: 03-1234-5678"
+                  - generic [ref=e635]:
+                    - generic [ref=e636]:
+                      - paragraph [ref=e637]: ¥168,500
+                      - paragraph [ref=e638]: 2026/2/7
+                    - button "メール送信" [ref=e639] [cursor=pointer]:
+                      - img [ref=e640]
+                - generic [ref=e644]:
+                  - generic [ref=e645] [cursor=pointer]:
+                    - generic [ref=e646]:
+                      - paragraph [ref=e647]: QT20260207-2855
+                      - generic [ref=e649]: ドラフト
+                    - paragraph [ref=e650]: EPackage Lab
+                    - paragraph [ref=e651]: admin@epackage-lab.com
+                    - paragraph [ref=e652]: "電話: 03-1234-5678"
+                  - generic [ref=e653]:
+                    - generic [ref=e654]:
+                      - paragraph [ref=e655]: ¥162,000
+                      - paragraph [ref=e656]: 2026/2/7
+                    - button "メール送信" [ref=e657] [cursor=pointer]:
+                      - img [ref=e658]
+                - generic [ref=e662]:
+                  - generic [ref=e663] [cursor=pointer]:
+                    - generic [ref=e664]:
+                      - paragraph [ref=e665]: QT20260207-8587
+                      - generic [ref=e667]: ドラフト
+                    - paragraph [ref=e668]: EPackage Lab
+                    - paragraph [ref=e669]: admin@epackage-lab.com
+                    - paragraph [ref=e670]: "電話: 03-1234-5678"
+                  - generic [ref=e671]:
+                    - generic [ref=e672]:
+                      - paragraph [ref=e673]: ¥165,000
+                      - paragraph [ref=e674]: 2026/2/7
+                    - button "メール送信" [ref=e675] [cursor=pointer]:
+                      - img [ref=e676]
+                - generic [ref=e680]:
+                  - generic [ref=e681] [cursor=pointer]:
+                    - generic [ref=e682]:
+                      - paragraph [ref=e683]: QT20260207-4707
+                      - generic [ref=e685]: ドラフト
+                    - paragraph [ref=e686]: EPackage Lab
+                    - paragraph [ref=e687]: admin@epackage-lab.com
+                    - paragraph [ref=e688]: "電話: 03-1234-5678"
+                  - generic [ref=e689]:
+                    - generic [ref=e690]:
+                      - paragraph [ref=e691]: ¥150,000
+                      - paragraph [ref=e692]: 2026/2/7
+                    - button "メール送信" [ref=e693] [cursor=pointer]:
+                      - img [ref=e694]
+                - generic [ref=e698]:
+                  - generic [ref=e699] [cursor=pointer]:
+                    - generic [ref=e700]:
+                      - paragraph [ref=e701]: QT20260207-3230
+                      - generic [ref=e703]: ドラフト
+                    - paragraph [ref=e704]: EPackage Lab
+                    - paragraph [ref=e705]: admin@epackage-lab.com
+                    - paragraph [ref=e706]: "電話: 03-1234-5678"
+                  - generic [ref=e707]:
+                    - generic [ref=e708]:
+                      - paragraph [ref=e709]: ¥150,000
+                      - paragraph [ref=e710]: 2026/2/7
+                    - button "メール送信" [ref=e711] [cursor=pointer]:
+                      - img [ref=e712]
+            - generic [ref=e716]: 見積もりを選択してください
+          - generic [ref=e717]:
+            - button "前へ" [disabled] [ref=e718]
+            - generic [ref=e719]: 1 / 32 ページ (全312件)
+            - button "次へ" [ref=e720] [cursor=pointer]
+  - button "ページ上部に移動":
+    - img
+  - contentinfo [ref=e175]:
+    - generic [ref=e178]:
+      - generic [ref=e179]:
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - link "Epackage Lab - ホームへ戻る" [ref=e182] [cursor=pointer]:
+              - /url: /
+              - img "Epackage Lab Logo" [ref=e184]
+              - generic [ref=e185]: Epackage Lab
+            - paragraph [ref=e186]: 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - img [ref=e189]
+                - generic [ref=e192]: info@package-lab.com
+              - generic [ref=e193]:
+                - img [ref=e194]
+                - generic [ref=e196]: 050-1793-6500
+              - generic [ref=e197]:
+                - img [ref=e198]
+                - generic [ref=e201]:
+                  - generic [ref=e202]: 本社：兵庫県明石市上ノ丸2-11-21
+                  - generic [ref=e203]: ロジスティクス：兵庫県加古郡稲美町六分一486
+          - generic [ref=e204]:
+            - heading "プライバシーとご利用規約" [level=3] [ref=e205]
+            - generic [ref=e206]:
+              - link "個人情報保護方針 お客様の個人情報を適切に管理・保護する方針についてご説明します" [ref=e207] [cursor=pointer]:
+                - /url: /privacy
+                - generic [ref=e208]:
+                  - img [ref=e210]
+                  - generic [ref=e212]:
+                    - heading "個人情報保護方針" [level=4] [ref=e213]
+                    - paragraph [ref=e214]: お客様の個人情報を適切に管理・保護する方針についてご説明します
+              - link "利用規約 当社サービスの利用条件と規約について詳しくご確認いただけます" [ref=e215] [cursor=pointer]:
+                - /url: /terms
+                - generic [ref=e216]:
+                  - img [ref=e218]
+                  - generic [ref=e221]:
+                    - heading "利用規約" [level=4] [ref=e222]
+                    - paragraph [ref=e223]: 当社サービスの利用条件と規約について詳しくご確認いただけます
+              - link "特定商取引法 表示事項に基づく事業内容と販売条件の詳細情報" [ref=e224] [cursor=pointer]:
+                - /url: /legal
+                - generic [ref=e225]:
+                  - img [ref=e227]
+                  - generic [ref=e232]:
+                    - heading "特定商取引法" [level=4] [ref=e233]
+                    - paragraph [ref=e234]: 表示事項に基づく事業内容と販売条件の詳細情報
+              - link "社会的責任 環境配慮と社会的責任に関する当社の取り組みについて" [ref=e235] [cursor=pointer]:
+                - /url: /csr
+                - generic [ref=e236]:
+                  - img [ref=e238]
+                  - generic [ref=e240]:
+                    - heading "社会的責任" [level=4] [ref=e241]
+                    - paragraph [ref=e242]: 環境配慮と社会的責任に関する当社の取り組みについて
+          - generic [ref=e244]:
+            - generic [ref=e245]:
+              - img [ref=e247]
+              - heading "最新情報をお届け" [level=3] [ref=e249]
+              - paragraph [ref=e250]: 新製品情報や限定オファーをメールでお知らせします
+            - generic [ref=e251]:
+              - generic [ref=e253]:
+                - img [ref=e255]
+                - textbox "メールアドレスを入力" [ref=e258]
+              - button "購読する" [ref=e259] [cursor=pointer]:
+                - generic [ref=e260]:
+                  - img [ref=e261]
+                  - text: 購読する
+        - generic [ref=e264]:
+          - generic [ref=e265]:
+            - heading "ソーシャルメディアでフォロー" [level=3] [ref=e266]
+            - paragraph [ref=e267]: 最新ニュースや製品情報をお届けしています
+          - generic [ref=e268]:
+            - link "Facebookでフォローする" [ref=e269] [cursor=pointer]:
+              - /url: https://facebook.com/epackagelab
+              - img [ref=e270]
+            - link "Twitterでフォローする" [ref=e273] [cursor=pointer]:
+              - /url: https://twitter.com/epackagelab
+              - img [ref=e274]
+            - link "LinkedInでフォローする" [ref=e277] [cursor=pointer]:
+              - /url: https://linkedin.com/company/epackagelab
+              - img [ref=e278]
+            - link "Instagramでフォローする" [ref=e283] [cursor=pointer]:
+              - /url: https://instagram.com/epackagelab
+              - img [ref=e284]
+            - link "YouTubeでフォローする" [ref=e288] [cursor=pointer]:
+              - /url: https://youtube.com/epackagelab
+              - img [ref=e289]
+      - generic [ref=e295]:
+        - paragraph [ref=e297]: © 2026 Epackage Lab. 全著作権所有.
+        - generic [ref=e298]:
+          - link "個人情報保護方針" [ref=e299] [cursor=pointer]:
+            - /url: /privacy
+          - link "利用規約" [ref=e300] [cursor=pointer]:
+            - /url: /terms
+          - link "サイトマップ" [ref=e301] [cursor=pointer]:
+            - /url: /sitemap
+  - generic [ref=e306] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e307]:
+      - img [ref=e308]
+    - generic [ref=e311]:
+      - button "Open issues overlay" [ref=e312]:
+        - generic [ref=e721]:
+          - generic [ref=e722]: "1"
+          - generic [ref=e723]: "2"
+        - generic [ref=e316]:
+          - text: Issue
+          - generic [ref=e724]: s
+      - button "Collapse issues badge" [ref=e317]:
+        - img [ref=e318]
+  - alert [ref=e320]: 見積管理 | Epackage Lab Admin | Epackage Lab
+  - generic [ref=e725]: 2026-01

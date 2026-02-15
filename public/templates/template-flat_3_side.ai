@@ -1,0 +1,53 @@
+%AI_Design_Template_for_Three_Side_Seal_Bag
+%Package_Lab_Epackage_Design_Template
+%Japanese_Market_Standard_Dimensions
+
+Template_Name: 三方シール袋 (Three-Side Seal Bag)
+Product_Category: flat_3_side
+Standard_Sizes:
+  - 100mm x 150mm
+  - 120mm x 180mm
+  - 150mm x 200mm
+  - 200mm x 250mm
+
+Design_Specifications:
+  - Bleed: 3mm on all sides
+  - Safety Zone: 5mm from edges
+  - File Format: Adobe Illustrator CS6 or later
+  - Color Mode: CMYK
+  - Resolution: 300 DPI
+
+Cutting_Guides:
+  - Solid line: Final cut line
+  - Dashed line: Crease line (if applicable)
+
+Design_Elements:
+  [Front_Panel]
+  - Product logo area: Top center
+  - Product name: Below logo
+  - Product description: Center area
+  - Weight/Volume: Bottom left
+  - Barcode area: Bottom right
+  - Nutrition info: Bottom panel (if applicable)
+
+  [Back_Panel]
+  - Ingredients list: Top area
+  - Instructions: Center area
+  - Manufacturer info: Bottom area
+  - Expiry date: Bottom right
+
+Color_Guidelines:
+  - Primary colors: Brand specific
+  - Text color: High contrast (minimum 60%)
+  - Background: Consider transparency requirements
+
+File_Naming_Convention:
+  - Client_Project_ProductCode_Size.ai
+  - Example: Epackage_Coffee_Brand_Flat3_100x150.ai
+
+Contact_Information:
+  Epackage Lab
+  Email: info@package-lab.com
+  Phone: 080-6942-7235
+
+End_of_Template

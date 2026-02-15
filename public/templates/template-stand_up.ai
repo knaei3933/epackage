@@ -1,0 +1,67 @@
+%AI_Design_Template_for_Stand_Pouch
+%Package_Lab_Epackage_Design_Template
+%Japanese_Market_Standard_Dimensions
+
+Template_Name: スタンドパウチ (Stand Pouch)
+Product_Category: stand_up
+Standard_Sizes:
+  - 100mm x 160mm (Bottom 80mm)
+  - 120mm x 200mm (Bottom 100mm)
+  - 150mm x 240mm (Bottom 120mm)
+  - 180mm x 280mm (Bottom 140mm)
+
+Design_Specifications:
+  - Bleed: 3mm on all sides
+  - Safety Zone: 5mm from edges
+  - File Format: Adobe Illustrator CS6 or later
+  - Color Mode: CMYK
+  - Resolution: 300 DPI
+  - Bottom gusset included in dimensions
+
+Cutting_Guides:
+  - Solid line: Final cut line
+  - Dashed line: Crease line for bottom formation
+
+Design_Elements:
+  [Front_Panel]
+  - Product logo area: Top center
+  - Product name: Below logo
+  - Product description: Center area
+  - Weight/Volume: Bottom left
+  - Barcode area: Bottom right
+  - Zipper closure indication: Below product name
+
+  [Back_Panel]
+  - Ingredients list: Top area
+  - Instructions: Center area
+  - Manufacturer info: Bottom area
+  - Expiry date: Bottom right
+  - Reusable closure instructions: Above zipper area
+
+  [Bottom_Panel/Display_Side]
+  - Additional branding elements
+  - Promotional messages
+  - "Stand here" indicator
+
+Color_Guidelines:
+  - Primary colors: Brand specific
+  - Text color: High contrast (minimum 60%)
+  - Background: Consider product visibility
+  - Bottom panel: Can use contrasting color
+
+Special_Features:
+  - Zipper placement: 10-15mm from top
+  - Hang hole option: Top center
+  - Transparent window options
+  - Matte/gloss finish areas
+
+File_Naming_Convention:
+  - Client_Project_ProductCode_Size.ai
+  - Example: Epackage_Snacks_Brand_StandPouch_120x200.ai
+
+Contact_Information:
+  Epackage Lab
+  Email: info@package-lab.com
+  Phone: 080-6942-7235
+
+End_of_Template

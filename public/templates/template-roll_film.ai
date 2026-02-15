@@ -1,0 +1,83 @@
+%AI_Design_Template_for_Roll_Film
+%Package_Lab_Epackage_Design_Template
+%Japanese_Market_Standard_Dimensions
+
+Template_Name: ロールフィルム (Roll Film)
+Product_Category: roll_film
+Standard_Sizes:
+  - Width: 200mm to 1200mm
+  - Length: 100m to 1000m rolls
+  - Thickness: 60µm to 120µm
+
+Design_Specifications:
+  - Bleed: 5mm on both sides
+  - Safety Zone: 10mm from edges
+  - File Format: Adobe Illustrator CS6 or later
+  - Color Mode: CMYK
+  - Resolution: 300 DPI
+  - Repeat pattern design as required
+
+Cutting_Guides:
+  - Solid line: Final cut line
+  - Dashed line: Fold line
+  - Registration marks: Every 200mm
+
+Design_Elements:
+  [Single_Package_Layout]
+  - Product logo area: Top center
+  - Product name: Below logo
+  - Product description: Center area
+  - Weight/Volume: Bottom left
+  - Barcode area: Bottom right
+  - Lot number: Bottom edge
+  - Expiry date: Bottom edge
+
+  [Repeat_Pattern_Design]
+  - Consistent spacing between units
+  - Registration marks for automatic cutting
+  - Color bars for quality control
+  - Machine readable indicators
+
+Color_Guidelines:
+  - Primary colors: Brand specific
+  - Text color: High contrast (minimum 60%)
+  - Background: Consider product visibility
+  - Reverse printing for back layers
+
+Special_Features:
+  - Automatic packaging machine compatible
+  - Multi-layer structure options
+  - High barrier properties
+  - Excellent print quality
+  - Custom printing patterns
+  - QR code placement options
+
+Technical_Specifications:
+  - Seal temperature: 120-180°C
+  - Seal pressure: 2-4 bar
+  - Seal time: 1-3 seconds
+  - Tension control: 10-50 N
+  - Speed compatibility: Up to 200 packages/minute
+
+Quality_Control:
+  - Color consistency: ±5%
+  - Print registration: ±0.2mm
+  - Thickness tolerance: ±10%
+  - Seal strength: Min 2N/15mm
+
+File_Naming_Convention:
+  - Client_Project_ProductCode_Width_Length.ai
+  - Example: Epackage_Snacks_Brand_RollFilm_300x500m.ai
+
+Machine_Compatibility:
+  - Pillow packaging machines
+  - Vertical form-fill-seal (VFFS)
+  - Horizontal flow wrappers
+  - Rotary packaging machines
+
+Contact_Information:
+  Epackage Lab
+  Email: info@package-lab.com
+  Phone: 080-6942-7235
+
+End_of_Template

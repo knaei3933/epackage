@@ -1,0 +1,645 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "116",
+        "title": "Set Up Project Structure and Dependencies",
+        "description": "Initialize the project with necessary dependencies and structure.",
+        "details": "Create a new project using the specified tech stack. Install required libraries and frameworks. Set up the project structure with necessary directories and files.",
+        "testStrategy": "Verify the project structure and dependencies are correctly set up by running a basic build and ensuring no errors are present.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Project with Tech Stack",
+            "description": "Set up the project using the specified technology stack.",
+            "dependencies": [],
+            "details": "Use the latest versions of the tech stack components and ensure compatibility.",
+            "status": "done",
+            "testStrategy": "Run a basic build to ensure no errors are present.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:25.774Z"
+          },
+          {
+            "id": 2,
+            "title": "Install Required Libraries and Frameworks",
+            "description": "Install all necessary libraries and frameworks.",
+            "dependencies": [
+              1
+            ],
+            "details": "Ensure all dependencies are up to date and correctly configured.",
+            "status": "done",
+            "testStrategy": "Check the installation by importing and using the libraries in a test script.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:26.208Z"
+          },
+          {
+            "id": 3,
+            "title": "Set Up Project Structure",
+            "description": "Create necessary directories and files.",
+            "dependencies": [
+              2
+            ],
+            "details": "Organize the project structure to include directories for source code, tests, and configurations.",
+            "status": "done",
+            "testStrategy": "Verify the structure by navigating through the directories and checking file existence.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:26.552Z"
+          },
+          {
+            "id": 4,
+            "title": "Activate RLS for inventory Table",
+            "description": "Enable RLS on the inventory table.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create RLS policies for the inventory table allowing full access to admins and restricted access to users.",
+            "status": "done",
+            "testStrategy": "Test RLS by attempting access with different user roles.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:26.918Z"
+          },
+          {
+            "id": 5,
+            "title": "Activate RLS for inventory_transactions Table",
+            "description": "Enable RLS on the inventory_transactions table.",
+            "dependencies": [
+              4
+            ],
+            "details": "Create RLS policies for the inventory_transactions table allowing full access to admins and restricted access to users.",
+            "status": "done",
+            "testStrategy": "Test RLS by attempting access with different user roles.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:27.281Z"
+          },
+          {
+            "id": 6,
+            "title": "Activate RLS for contracts Table",
+            "description": "Enable RLS on the contracts table.",
+            "dependencies": [
+              5
+            ],
+            "details": "Create RLS policies for the contracts table allowing full access to admins and restricted access to users.",
+            "status": "done",
+            "testStrategy": "Test RLS by attempting access with different user roles.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:27.636Z"
+          },
+          {
+            "id": 7,
+            "title": "Activate RLS for contract_reminders Table",
+            "description": "Enable RLS on the contract_reminders table.",
+            "dependencies": [
+              6
+            ],
+            "details": "Create RLS policies for the contract_reminders table allowing full access to admins and restricted access to users.",
+            "status": "done",
+            "testStrategy": "Test RLS by attempting access with different user roles.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:28.014Z"
+          },
+          {
+            "id": 8,
+            "title": "Activate RLS for Remaining Tables",
+            "description": "Enable RLS on the remaining tables.",
+            "dependencies": [
+              7
+            ],
+            "details": "Create RLS policies for order_status_history, notifications, admin_notifications, and payment_confirmations tables.",
+            "status": "done",
+            "testStrategy": "Test RLS by attempting access with different user roles on each table.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:28.346Z"
+          }
+        ],
+        "updatedAt": "2026-01-04T11:45:28.346Z"
+      },
+      {
+        "id": "117",
+        "title": "Implement Homepage and Core Pages",
+        "description": "Create the homepage and other core public pages.",
+        "details": "Develop the homepage (`/`) and other core pages (`/catalog`, `/quote-simulator`, `/contact`, `/samples`) using the provided templates and requirements. Ensure all buttons and sections are functional.",
+        "testStrategy": "Test each page to ensure all buttons and sections are working as expected. Verify navigation and static content.",
+        "priority": "high",
+        "dependencies": [
+          "116"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:36:24.068Z"
+      },
+      {
+        "id": "118",
+        "title": "Implement Contact Form",
+        "description": "Create the contact form with validation and submission.",
+        "details": "Develop the contact form on the `/contact` page with Zod validation for each field. Ensure the form submits to the `/api/contact` endpoint and sends an email via SendGrid.",
+        "testStrategy": "Test the form by filling out all fields and submitting. Verify that the data is correctly sent to the backend and an email is sent.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "117"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:36:39.013Z"
+      },
+      {
+        "id": "119",
+        "title": "Implement Sample Request Form",
+        "description": "Create the sample request form with dynamic fields and validation.",
+        "details": "Develop the sample request form on the `/samples` page with dynamic fields and validation. Ensure the form submits to the `/api/samples` endpoint and stores data in the `sample_requests` table.",
+        "testStrategy": "Test the form by adding multiple sample items and submitting. Verify that the data is correctly stored in the database.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "117"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:36:39.068Z"
+      },
+      {
+        "id": "120",
+        "title": "Implement Product Catalog Page",
+        "description": "Create the product catalog page with filtering and sorting.",
+        "details": "Develop the product catalog page (`/catalog`) with filtering options for category, material, and thickness. Implement client-side search and sorting, but recommend server-side implementation.",
+        "testStrategy": "Test the filtering, search, and sorting features. Verify that the correct products are displayed based on the selected filters.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "117"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Move Search Functionality to Server Side",
+            "description": "Transfer the search functionality from client to server side.",
+            "dependencies": [],
+            "details": "Modify the `/catalog` endpoint to handle search queries on the server side. Update the frontend to send search requests to the server.",
+            "status": "done",
+            "testStrategy": "Test by performing searches and verifying results are fetched from the server.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:34:54.466Z"
+          },
+          {
+            "id": 2,
+            "title": "Move Sorting Functionality to Server Side",
+            "description": "Transfer the sorting functionality from client to server side.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update the `/catalog` endpoint to handle sorting on the server side. Adjust the frontend to send sorting parameters to the server.",
+            "status": "done",
+            "testStrategy": "Test by applying different sorting options and verifying the results are sorted correctly.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:34:54.533Z"
+          },
+          {
+            "id": 3,
+            "title": "Implement Server-Side Filtering for Orders",
+            "description": "Move order search and date filtering to the server side.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify the `/member/orders` endpoint to handle search and date filtering on the server side. Update the frontend to send relevant parameters.",
+            "status": "done",
+            "testStrategy": "Test by searching and filtering orders, ensuring results are accurate.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:35:42.678Z"
+          },
+          {
+            "id": 4,
+            "title": "Implement Server-Side Search for Quotations",
+            "description": "Move quotation search functionality to the server side.",
+            "dependencies": [
+              3
+            ],
+            "details": "Update the `/member/quotations` endpoint to handle search queries on the server side. Adjust the frontend to send search requests to the server.",
+            "status": "done",
+            "testStrategy": "Test by searching for quotations and verifying the results are fetched from the server.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:35:42.737Z"
+          },
+          {
+            "id": 5,
+            "title": "Implement Server-Side Status Filtering for Samples and Inquiries",
+            "description": "Move status filtering for samples and inquiries to the server side.",
+            "dependencies": [
+              4
+            ],
+            "details": "Modify the `/member/samples` and `/member/inquiries` endpoints to handle status filtering on the server side. Update the frontend to send status parameters.",
+            "status": "done",
+            "testStrategy": "Test by applying status filters and verifying the results are filtered correctly.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:34:54.584Z"
+          }
+        ],
+        "updatedAt": "2026-01-04T11:35:42.737Z"
+      },
+      {
+        "id": "121",
+        "title": "Implement Quotation Simulator",
+        "description": "Create the quotation simulator with multiple steps and validation.",
+        "details": "Develop the quotation simulator (`/quote-simulator`) with multiple steps for product selection, specifications, and quantity. Ensure each step is validated and the final step generates a PDF.",
+        "testStrategy": "Test each step of the simulator. Verify that the data is correctly processed and a PDF is generated.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "117"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:36:39.321Z"
+      },
+      {
+        "id": "122",
+        "title": "Implement Authentication Pages",
+        "description": "Create the authentication pages for login, registration, and logout.",
+        "details": "Develop the authentication pages (`/auth/signin`, `/auth/register`, `/auth/signout`) with form validation and API calls. Ensure secure user authentication and session management.",
+        "testStrategy": "Test the login, registration, and logout functionalities. Verify that users can successfully authenticate and sessions are managed correctly.",
+        "priority": "high",
+        "dependencies": [
+          "116"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:36:38.946Z"
+      },
+      {
+        "id": "123",
+        "title": "Implement Member Dashboard",
+        "description": "Create the member dashboard with order and quotation management.",
+        "details": "Develop the member dashboard (`/member/dashboard`) with widgets for order and quotation management. Ensure data is fetched from the appropriate APIs and displayed correctly.",
+        "testStrategy": "Test the dashboard by logging in as a member. Verify that all widgets display the correct data and links navigate to the appropriate pages.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:09.468Z"
+      },
+      {
+        "id": "124",
+        "title": "Implement Order Management Pages",
+        "description": "Create pages for order management including order list and details.",
+        "details": "Develop the order management pages (`/member/orders`, `/member/orders/[id]`) with filtering, search, and detailed order information. Ensure data is fetched from the `orders` table.",
+        "testStrategy": "Test the order management pages by creating and managing orders. Verify that the correct data is displayed and filters work as expected.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "123"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:09.534Z"
+      },
+      {
+        "id": "125",
+        "title": "Implement Quotation Management Pages",
+        "description": "Create pages for quotation management including quotation list and details.",
+        "details": "Develop the quotation management pages (`/member/quotations`, `/member/quotations/[id]`) with filtering, search, and detailed quotation information. Ensure data is fetched from the `quotations` table.",
+        "testStrategy": "Test the quotation management pages by creating and managing quotations. Verify that the correct data is displayed and filters work as expected.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "123"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:09.592Z"
+      },
+      {
+        "id": "126",
+        "title": "Implement Admin Dashboard",
+        "description": "Create the admin dashboard with statistics and order management.",
+        "details": "Develop the admin dashboard (`/admin/dashboard`) with widgets for statistics and order management. Ensure data is fetched from the appropriate tables and displayed correctly.",
+        "testStrategy": "Test the admin dashboard by logging in as an admin. Verify that all widgets display the correct data and links navigate to the appropriate pages.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:09.816Z"
+      },
+      {
+        "id": "127",
+        "title": "Implement Admin Order Management",
+        "description": "Create pages for admin order management including order list and details.",
+        "details": "Develop the admin order management pages (`/admin/orders`, `/admin/orders/[id]`) with detailed order information and status updates. Ensure data is fetched from the `orders` table.",
+        "testStrategy": "Test the admin order management pages by creating and managing orders. Verify that the correct data is displayed and status updates work as expected.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:23.194Z"
+      },
+      {
+        "id": "128",
+        "title": "Implement Admin Production Management",
+        "description": "Create pages for admin production management including job list and details.",
+        "details": "Develop the admin production management pages (`/admin/production`, `/admin/production/[id]`) with detailed job information and status updates. Ensure data is fetched from the `production_jobs` table.",
+        "testStrategy": "Test the admin production management pages by creating and managing production jobs. Verify that the correct data is displayed and status updates work as expected.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:23.255Z"
+      },
+      {
+        "id": "129",
+        "title": "Implement Admin Shipment Management",
+        "description": "Create pages for admin shipment management including shipment list and details.",
+        "details": "Develop the admin shipment management pages (`/admin/shipments`, `/admin/shipments/[id]`) with detailed shipment information. Ensure data is fetched from the `shipments` table.",
+        "testStrategy": "Test the admin shipment management pages by creating and managing shipments. Verify that the correct data is displayed.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:23.554Z"
+      },
+      {
+        "id": "130",
+        "title": "Implement Admin Contract Management",
+        "description": "Create pages for admin contract management including contract list and details.",
+        "details": "Develop the admin contract management pages (`/admin/contracts`, `/admin/contracts/[id]`) with detailed contract information and signing requests. Ensure data is fetched from the `contracts` table.",
+        "testStrategy": "Test the admin contract management pages by creating and managing contracts. Verify that the correct data is displayed and signing requests work as expected.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:24.010Z"
+      },
+      {
+        "id": "131",
+        "title": "Implement Member Profile Management",
+        "description": "Create pages for member profile management including profile view and edit.",
+        "details": "Develop the member profile management pages (`/member/profile`, `/member/edit`) with profile information and editing capabilities. Ensure data is fetched from the `profiles` table.",
+        "testStrategy": "Test the member profile management pages by logging in as a member. Verify that the profile information is displayed correctly and can be edited.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "123"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-01-04T11:37:24.403Z"
+      },
+      {
+        "id": "132",
+        "title": "Implement Member Settings",
+        "description": "Create the member settings page with various toggles and options.",
+        "details": "Develop the member settings page (`/member/settings`) with toggles for notifications and account options. Ensure data is stored in the appropriate tables.",
+        "testStrategy": "Test the member settings page by toggling various options. Verify that the settings are correctly saved and applied.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "123"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Settings API Endpoint",
+            "description": "Generate the API endpoint for settings.",
+            "dependencies": [],
+            "details": "Develop the `/api/settings` endpoint to handle settings data.",
+            "status": "done",
+            "testStrategy": "Test the endpoint by sending requests and verifying responses.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:29:52.148Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement Notification Toggles",
+            "description": "Add toggles for notifications in the settings page.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create toggles for quote update notifications and ensure they are saved in the database.",
+            "status": "done",
+            "testStrategy": "Toggle the notification settings and confirm they are stored correctly.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:37.881Z"
+          },
+          {
+            "id": 3,
+            "title": "Add Email Toggles",
+            "description": "Include toggles for email preferences.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement toggles for promotional emails and newsletters, storing preferences in the database.",
+            "status": "done",
+            "testStrategy": "Test email preference toggles and verify storage in the database.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:37.939Z"
+          },
+          {
+            "id": 4,
+            "title": "Create Login Notification Toggle",
+            "description": "Add a toggle for login notifications.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop a toggle for login notifications and ensure it is saved in the user's settings.",
+            "status": "done",
+            "testStrategy": "Toggle the login notification setting and check if it is saved.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:37.995Z"
+          },
+          {
+            "id": 5,
+            "title": "Store Settings in Database",
+            "description": "Save settings data in the appropriate tables.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Ensure all settings data is stored in either the `user_metadata` or `settings` table.",
+            "status": "done",
+            "testStrategy": "Check the database to confirm settings are stored in the correct tables.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:38.261Z"
+          },
+          {
+            "id": 6,
+            "title": "Develop Member Settings Page",
+            "description": "Create the member settings page.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Design and develop the `/member/settings` page with all the implemented toggles and options.",
+            "status": "done",
+            "testStrategy": "Test the member settings page by toggling options and verifying they are saved and applied.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:38.615Z"
+          }
+        ],
+        "updatedAt": "2026-01-04T11:45:38.615Z"
+      },
+      {
+        "id": "133",
+        "title": "Implement Critical Security Fixes",
+        "description": "Implement critical security fixes for admin APIs and order/quote permissions.",
+        "details": "Add authentication to all `/api/admin/*` endpoints. Implement user_id checks for order and quote management APIs. Ensure all critical security issues are resolved.",
+        "testStrategy": "Test the security fixes by attempting unauthorized access and verifying that all checks are in place.",
+        "priority": "high",
+        "dependencies": [
+          "116",
+          "122",
+          "126",
+          "127",
+          "128"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Authentication to Jobs Endpoint",
+            "description": "Implement authentication for the jobs endpoint.",
+            "dependencies": [],
+            "details": "Add authentication middleware to `/api/admin/production/jobs` endpoint. Ensure only authenticated users can access.",
+            "status": "done",
+            "testStrategy": "Attempt access without authentication and verify access is denied.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:49.679Z"
+          },
+          {
+            "id": 2,
+            "title": "Add Authentication to Jobs ID Endpoint",
+            "description": "Implement authentication for the jobs ID endpoint.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add authentication middleware to `/api/admin/production/jobs/[id]` endpoint. Ensure only authenticated users can access.",
+            "status": "done",
+            "testStrategy": "Attempt access without authentication and verify access is denied.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:50.063Z"
+          },
+          {
+            "id": 3,
+            "title": "Add Authentication to Workflow Endpoint",
+            "description": "Implement authentication for the workflow endpoint.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Add authentication middleware to `/api/admin/contracts/workflow` endpoint. Ensure only authenticated users can access.",
+            "status": "done",
+            "testStrategy": "Attempt access without authentication and verify access is denied.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:50.453Z"
+          },
+          {
+            "id": 4,
+            "title": "Implement verifyAdminAuth Helper Function",
+            "description": "Create a helper function for admin authentication.",
+            "dependencies": [
+              3
+            ],
+            "details": "Develop `verifyAdminAuth()` function to handle admin authentication checks. Use this function in relevant endpoints.",
+            "status": "done",
+            "testStrategy": "Test the helper function with valid and invalid admin credentials.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:50.834Z"
+          },
+          {
+            "id": 5,
+            "title": "Add User ID Checks for Order Management",
+            "description": "Implement user ID checks for order management APIs.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add checks to ensure the user_id matches the authenticated user for order management APIs.",
+            "status": "done",
+            "testStrategy": "Test order management APIs with mismatched user IDs and verify access is denied.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:51.230Z"
+          },
+          {
+            "id": 6,
+            "title": "Add User ID Checks for Quote Management",
+            "description": "Implement user ID checks for quote management APIs.",
+            "dependencies": [
+              5
+            ],
+            "details": "Add checks to ensure the user_id matches the authenticated user for quote management APIs.",
+            "status": "done",
+            "testStrategy": "Test quote management APIs with mismatched user IDs and verify access is denied.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:51.618Z"
+          },
+          {
+            "id": 7,
+            "title": "Review and Resolve Critical Security Issues",
+            "description": "Ensure all critical security issues are resolved.",
+            "dependencies": [
+              6
+            ],
+            "details": "Conduct a security review and address any remaining critical security issues. Ensure all endpoints are secure.",
+            "status": "done",
+            "testStrategy": "Perform a security audit and penetration testing to identify and fix any vulnerabilities.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:51.981Z"
+          },
+          {
+            "id": 8,
+            "title": "Final Testing of Security Fixes",
+            "description": "Test the implemented security fixes.",
+            "dependencies": [
+              7
+            ],
+            "details": "Test all security fixes by attempting unauthorized access and verifying that all checks are in place.",
+            "status": "done",
+            "testStrategy": "Test all endpoints with various authentication scenarios to ensure security measures are effective.",
+            "parentId": "undefined",
+            "updatedAt": "2026-01-04T11:45:52.336Z"
+          }
+        ],
+        "updatedAt": "2026-01-04T11:45:52.336Z"
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-01-04T11:45:52.336Z",
+      "taskCount": 18,
+      "completedCount": 18,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}
