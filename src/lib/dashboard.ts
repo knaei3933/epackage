@@ -253,14 +253,19 @@ export async function requireAuth(): Promise<{
     name_kana?: string;
   };
 }> {
+  console.log('[requireAuth] START: Authentication check initiated');
+
   try {
     // ============================================================
     // Use RBAC context for consistent authentication (same as admin)
     // ============================================================
     let context;
     try {
+      console.log('[requireAuth] Importing getRBACContext...');
       const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
+      console.log('[requireAuth] Calling getRBACContext()...');
       context = await getRBACContext();
+      console.log('[requireAuth] getRBACContext returned:', context ? 'CONTEXT' : 'NULL', context);
     } catch (rbacError) {
       console.error('[requireAuth] getRBACContext failed:', rbacError);
       throw new AuthRequiredError();
@@ -271,7 +276,7 @@ export async function requireAuth(): Promise<{
       throw new AuthRequiredError();
     }
 
-    console.log('[requireAuth] Got user from RBAC context:', context.userId);
+    console.log('[requireAuth] Got user from RBAC context:', context.userId, 'Role:', context.role, 'Status:', context.status);
 
     // Fetch profile data for user metadata
     const serviceClient = createServiceClient();

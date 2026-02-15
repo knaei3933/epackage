@@ -315,7 +315,10 @@ function normalizeRole(role: string): Role {
  * Always call this function from within a Server Component's render function or async handler.
  */
 export async function getRBACContext(): Promise<RBACContext | null> {
+  const callStack = new Error().stack;
   console.log('[RBAC] getRBACContext() called');
+  console.log('[RBAC] Environment:', { NODE_ENV: process.env.NODE_ENV, NEXT_PHASE: process.env.NEXT_PHASE });
+  console.log('[RBAC] Call stack:', callStack?.split('\n').slice(1, 4).join('\n'));
 
   // =====================================================
   // BUILD-TIME GUARD: Skip ALL async operations during build
@@ -368,13 +371,27 @@ export async function getRBACContext(): Promise<RBACContext | null> {
   // =====================================================
   // Middleware sets x-user-id, x-user-role, x-user-status headers
   // This is the most reliable way to get auth info in Server Components
+  console.log('[RBAC] Checking middleware headers...');
   try {
     // CRITICAL: Dynamic import to avoid build-time hang
     const { headers } = await import('next/headers');
     const headersList = await headers();
+
+    // Debug: Log ALL headers to see what's available
+    console.log('[RBAC] All available headers:', Array.from(headersList.entries()));
+
     const userId = headersList.get('x-user-id');
     const userRole = headersList.get('x-user-role');
     const userStatus = headersList.get('x-user-status');
+
+    console.log('[RBAC] Middleware headers found:', {
+      hasUserId: !!userId,
+      hasUserRole: !!userRole,
+      hasUserStatus: !!userStatus,
+      userId,
+      userRole,
+      userStatus
+    });
 
     if (userId && userRole && userStatus) {
       console.log('[RBAC] Found auth in middleware headers:', { userId, userRole, userStatus });
@@ -390,9 +407,10 @@ export async function getRBACContext(): Promise<RBACContext | null> {
         isDevMode: false,
       };
     }
+    console.log('[RBAC] Middleware headers incomplete, falling back to cookie auth');
   } catch (error) {
     // headers() might fail in some contexts, continue to cookie check
-    console.log('[RBAC] Could not read headers, trying cookies...');
+    console.log('[RBAC] Could not read headers, trying cookies...', error);
   }
 
   // =====================================================
