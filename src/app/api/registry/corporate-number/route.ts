@@ -1,12 +1,12 @@
 /**
  * Corporate Number Search API Route
  *
- * 日本の適格請求書発行事業者登録番号公表サイトAPI
- * - 会社名から登録番号を検索
- * - 適格請求書発行事業者の情報を取得
- * - 国税庁適格請求書発行事業者登録番号公表サイトAPIを使用
+ * 日本の法人番号システムWeb-API
+ * - 会社名から法人番号を検索
+ * - 法人情報を取得
+ * - 国税庁法人番号システムWeb-APIを使用
  *
- * APIドキュメント: https://www.invoice-kohyo.nta.go.jp/web-api/index.html
+ * APIドキュメント: https://www.houjin-bangou.nta.go.jp/webapi/
  */
 
 export const dynamic = 'force-dynamic';
@@ -19,18 +19,36 @@ import { NextRequest, NextResponse } from 'next/server';
 
 interface CorporateNumberResponse {
   name: string;          // 事業者名
-  corporateNumber: string; // 登録番号
+  corporateNumber: string; // 法人番号
   address: string;       // 本店所在地
 }
 
-interface InvoiceKohyoResponse {
-  status?: number;
+interface HoujinBangouResponse {
+  count?: number;
+  lastUpdateDate?: string;
+  divideNumber?: string;
+  divideSize?: number;
+  hint?: string;
+  error?: number;
   message?: string;
-  searchResult?: {
-    registrationNumber: string;  // 登録番号 (T + 13桁)
-    name: string;                 // 事業者名
-    nameKana: string;             // 事業者名カナ
+  corporations?: {
+    sequenceNumber: string;
+    corporateNumber: string;     // 法人番号 (13桁)
+    name: string;                 // 商号又は名称
+    nameImageId?: string;
+    postCode: string;             // 郵便番号
     address: string;              // 本店所在地
+    prefectureName: string;       // 都道府県名
+    cityCode: string;             // 市区町村コード
+    cityName: string;             // 市区町村名
+    streetNumber: string;         // 街区画等
+    addressImageId?: string;
+    prefectureCode?: string;
+    closeDate?: string;           // 設立年月日
+    updateDate?: string;
+    changeDate?: string;
+    nameImageId?: string;
+    addressImageId?: string;
   }[];
 }
 
@@ -61,12 +79,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 適格請求書発行事業者登録番号公表サイトAPI呼び出し
-    // エンドポイント: /web-api/api (事業者名検索)
-    const apiUrl = new URL('https://invoice-kohyo.nta.go.jp/web-api/api');
+    // 法人番号システムWeb-API呼び出し
+    // エンドポイント: /web-api/alpha/v1/search (事業者名検索)
+    const apiUrl = new URL('https://api.houjin-bangou.nta.go.jp/v1/search');
     apiUrl.searchParams.set('id', apiKey);
-    apiUrl.searchParams.set('searchWord', name);
-    apiUrl.searchParams.set('type', '1'); // 事業者名検索
+    apiUrl.searchParams.set('name', name);
+    apiUrl.searchParams.set('mode', '1'); // 検索モード: 1=完全一致, 2=前方一致, 3=後方一致
 
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
@@ -76,20 +94,29 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error('Invoice Kohyo API error:', response.status);
+      console.error('Houjin Bangou API error:', response.status);
       return NextResponse.json<CorporateNumberResponse[]>(
         [],
         { status: response.status }
       );
     }
 
-    const data: InvoiceKohyoResponse = await response.json();
+    const data: HoujinBangouResponse = await response.json();
+
+    // エラーチェック
+    if (data.error !== undefined && data.error !== 0) {
+      console.error('Houjin Bangou API error:', data.message);
+      return NextResponse.json<CorporateNumberResponse[]>(
+        [],
+        { status: 500 }
+      );
+    }
 
     // レスポンスデータの変換
-    if (data.searchResult && data.searchResult.length > 0) {
-      const results: CorporateNumberResponse[] = data.searchResult.map((item) => ({
+    if (data.corporations && data.corporations.length > 0) {
+      const results: CorporateNumberResponse[] = data.corporations.map((item) => ({
         name: item.name,
-        corporateNumber: item.registrationNumber,
+        corporateNumber: item.corporateNumber,
         address: item.address,
       }));
 

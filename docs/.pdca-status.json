@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-15T03:53:12.519Z",
+  "lastUpdated": "2026-02-15T21:09:35.773Z",
   "activeFeatures": [
     "[id]",
     "admin",
@@ -28,7 +28,8 @@
     "[slug]",
     "cart",
     "compare",
-    "seo"
+    "seo",
+    "corporate-number"
   ],
   "primaryFeature": "[id]",
   "features": {
@@ -132,9 +133,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-14T08:55:01.610Z",
-        "lastUpdated": "2026-02-14T08:55:22.924Z"
+        "lastUpdated": "2026-02-15T21:02:42.613Z"
       },
-      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\auth\\LoginForm.tsx"
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\auth\\RegistrationForm.tsx"
     },
     "contexts": {
       "phase": "do",
@@ -382,6 +383,19 @@
         "lastUpdated": "2026-02-15T03:53:12.518Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\seo\\BreadcrumbList.tsx"
+    },
+    "corporate-number": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-15T21:02:25.446Z",
+        "lastUpdated": "2026-02-15T21:09:35.773Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\corporate-number\\route.ts"
     }
   },
   "pipeline": {
@@ -392,7 +406,7 @@
   "session": {
     "startedAt": "2026-02-14T01:23:57.443Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-15T03:53:12.519Z"
+    "lastActivity": "2026-02-15T21:09:35.773Z"
   },
   "history": [
     {
@@ -950,6 +964,36 @@
     {
       "timestamp": "2026-02-15T03:53:12.518Z",
       "feature": "seo",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T21:02:25.446Z",
+      "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T21:02:42.613Z",
+      "feature": "auth",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T21:03:08.144Z",
+      "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T21:09:13.478Z",
+      "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T21:09:35.773Z",
+      "feature": "corporate-number",
       "phase": "do",
       "action": "updated"
     }
