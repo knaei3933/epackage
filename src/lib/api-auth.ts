@@ -214,25 +214,67 @@ export function withAuth<T = any>(
 }
 
 /**
+ * Next.js 16 ルートコンテキスト型
+ *
+ * 動的ルートパラメータを含むコンテキスト
+ */
+export interface RouteContext {
+  params: Promise<Record<string, string | string[]>>;
+}
+
+/**
  * 管理者専用ハンドラーラッパー（ショートカット）
+ *
+ * Next.js 16対応：動的ルートパラメータを含むルートコンテキストをサポート
  *
  * @param handler - APIハンドラー関数
  * @returns ラップされたハンドラー関数
  *
  * @example
  * ```typescript
+ * // 動的ルートなし
  * export const GET = withAdminAuth(async (request, auth) => {
  *   return NextResponse.json({ adminId: auth.userId });
+ * });
+ *
+ * // 動的ルートあり (Next.js 16)
+ * export const GET = withAdminAuth(async (request, auth, context) => {
+ *   const { id } = await context.params;
+ *   return NextResponse.json({ orderId: id });
  * });
  * ```
  */
 export function withAdminAuth<T = any>(
-  handler: (request: NextRequest, auth: AdminAuthResult) => Promise<NextResponse<T>>
-): (request: NextRequest) => Promise<NextResponse> {
-  return withAuth(handler, {
-    requireAdmin: true,
-    requireActive: true,
-  });
+  handler: (
+    request: NextRequest,
+    auth: AdminAuthResult,
+    context?: RouteContext
+  ) => Promise<NextResponse<T>>
+): (request: NextRequest, context?: RouteContext) => Promise<NextResponse> {
+  return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
+    const middleware = createAuthMiddleware({
+      requireAdmin: true,
+      requireActive: true,
+    });
+    const result = await middleware(request);
+
+    // 認証失敗の場合、エラー応答を返す
+    if (result instanceof NextResponse) {
+      return result;
+    }
+
+    // 認証成功の場合、ハンドラーを実行
+    try {
+      return await handler(request, result as AdminAuthResult, context);
+    } catch (error) {
+      console.error('[Auth] Handler error:', error);
+
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+  };
 }
 
 /**
