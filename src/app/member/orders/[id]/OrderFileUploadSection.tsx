@@ -60,6 +60,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [description, setDescription] = useState('');
+  const [productName, setProductName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
@@ -149,6 +150,8 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       formData.append('file', selectedFile);
       // Always use production_data for AI files
       formData.append('data_type', 'production_data');
+      // 製品名は必須
+      formData.append('product_name', productName.trim());
       if (description) {
         formData.append('description', description);
       }
@@ -186,6 +189,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         setSuccessMessage('入稿データをアップロードしました。韓国担当者に送信されました。');
         setSelectedFile(null);
         setDescription('');
+        setProductName('');
         loadUploadedFiles();
 
         // Callback to notify parent component
@@ -386,6 +390,25 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
         {/* Upload Form */}
         <div className="space-y-4">
+          {/* 製品名（必須） */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              製品名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="製品名を入力してください（例：スタンディングパウチ）"
+              className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              disabled={isUploading}
+              required
+            />
+            <p className="text-xs text-text-muted mt-1">
+              ※Google Driveのフォルダ名とファイル名に使用されます
+            </p>
+          </div>
+
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
