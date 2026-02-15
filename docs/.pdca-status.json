@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-15T22:12:35.793Z",
+  "lastUpdated": "2026-02-15T22:27:55.965Z",
   "activeFeatures": [
     "[id]",
     "admin",
@@ -31,7 +31,8 @@
     "seo",
     "corporate-number",
     "test",
-    "corporation"
+    "corporation",
+    "company"
   ],
   "primaryFeature": "[id]",
   "features": {
@@ -395,7 +396,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-15T21:02:25.446Z",
-        "lastUpdated": "2026-02-15T22:12:35.792Z"
+        "lastUpdated": "2026-02-15T22:20:55.922Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\corporate-number\\route.ts"
     },
@@ -424,6 +425,19 @@
         "lastUpdated": "2026-02-15T22:08:49.460Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\corporation\\route.ts"
+    },
+    "company": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-15T22:27:55.965Z",
+        "lastUpdated": "2026-02-15T22:27:55.965Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\company\\route.ts"
     }
   },
   "pipeline": {
@@ -434,7 +448,7 @@
   "session": {
     "startedAt": "2026-02-14T01:23:57.443Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-15T22:12:35.793Z"
+    "lastActivity": "2026-02-15T22:27:55.965Z"
   },
   "history": [
     {
@@ -1088,6 +1102,24 @@
     {
       "timestamp": "2026-02-15T22:12:35.792Z",
       "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T22:18:34.471Z",
+      "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T22:20:55.922Z",
+      "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T22:27:55.965Z",
+      "feature": "company",
       "phase": "do",
       "action": "updated"
     }

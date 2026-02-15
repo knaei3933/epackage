@@ -1,5 +1,5 @@
 /**
- * Corporate Number Search API Route
+ * Company Search API Route
  */
 
 export const dynamic = 'force-dynamic';
