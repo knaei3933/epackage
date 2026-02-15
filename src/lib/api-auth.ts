@@ -214,15 +214,6 @@ export function withAuth<T = any>(
 }
 
 /**
- * Next.js 16 ルートコンテキスト型
- *
- * 動的ルートパラメータを含むコンテキスト
- */
-export interface RouteContext {
-  params: Promise<Record<string, string | string[]>>;
-}
-
-/**
  * 管理者専用ハンドラーラッパー（ショートカット）
  *
  * Next.js 16対応：動的ルートパラメータを含むルートコンテキストをサポート
@@ -248,10 +239,10 @@ export function withAdminAuth<T = any>(
   handler: (
     request: NextRequest,
     auth: AdminAuthResult,
-    context?: RouteContext
+    context?: { params: Promise<Record<string, string | string[]>> }
   ) => Promise<NextResponse<T>>
-): (request: NextRequest, context?: RouteContext) => Promise<NextResponse> {
-  return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
+): (request: NextRequest, context?: { params: Promise<Record<string, string | string[]>> }) => Promise<NextResponse> {
+  return async (request: NextRequest, context?: { params: Promise<Record<string, string | string[]>> }): Promise<NextResponse> => {
     const middleware = createAuthMiddleware({
       requireAdmin: true,
       requireActive: true,
