@@ -167,21 +167,7 @@ export async function POST(
 ) {
   try {
     // 1. Authenticate user using SSR client (proper cookie handling)
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        set(_name: string, _value: string, _options: unknown) {
-          // We'll use the response object later if needed
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        remove(_name: string, _options: unknown) {
-          // Cookie removal if needed
-        },
-      },
-    });
+    const supabase = await getSupabaseClient(request);
 
     // Normal auth: Use cookie-based auth with getUser()
     const { data: { user }, error: userError } = await supabase.auth.getUser();
