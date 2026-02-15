@@ -4,10 +4,12 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CatalogProvider } from "@/contexts/CatalogContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { Suspense } from 'react';
 import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
 import { Footer } from "@/components/layout/Footer";
+import { ModalWrapper } from "./components/ModalWrapper";
 
 // Force dynamic rendering to avoid useSearchParams bailout during build
 export const dynamic = 'force-dynamic';
@@ -121,7 +123,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="dns-prefetch" href="//api.supabase.io" />
-        <link rel="dns-prefetch" href="//sendgrid.api.com" />
 
         {/* Security headers */}
         <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -154,12 +155,15 @@ export default function RootLayout({
         >
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
             <AuthProvider>
-              <LanguageProvider>
-                <HeaderWrapper />
-                <BreadcrumbList />
-                <main>{children}</main>
-                <Footer />
-              </LanguageProvider>
+              <CatalogProvider>
+                <LanguageProvider>
+                  <ModalWrapper />
+                  <HeaderWrapper />
+                  <BreadcrumbList />
+                  <main>{children}</main>
+                  <Footer />
+                </LanguageProvider>
+              </CatalogProvider>
             </AuthProvider>
           </Suspense>
         </ThemeProvider>

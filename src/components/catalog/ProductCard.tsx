@@ -15,7 +15,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const { openModal } = useCatalog()
+  const { openModal, openSampleRequestModal } = useCatalog()
 
   const handleCardClick = useCallback(() => {
     if (onClick) {
@@ -32,9 +32,8 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
   const handleSampleRequest = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    // TODO: Open sample request modal
-    console.log('Sample request for:', product.id)
-  }, [product])
+    openSampleRequestModal(product)
+  }, [product, openSampleRequestModal])
 
   const handleTemplateDownload = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()

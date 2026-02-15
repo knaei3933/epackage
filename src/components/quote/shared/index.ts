@@ -30,8 +30,8 @@ export { DataImportStatusPanel } from './DataImportStatusPanel'
 export { DataTemplateGuide } from './DataTemplateGuide'
 
 // Analytics & Recommendations
-export default as QuantityEfficiencyChart from './QuantityEfficiencyChart'
-export default as MultiQuantityComparisonTable from './MultiQuantityComparisonTable'
+export { default as QuantityEfficiencyChart } from './QuantityEfficiencyChart'
+export { default as MultiQuantityComparisonTable } from './MultiQuantityComparisonTable'
 export { ParallelProductionOptions } from './ParallelProductionOptions'
 export type { ParallelProductionOption } from './ParallelProductionOptions'
 export { EconomicQuantityProposal } from './EconomicQuantityProposal'

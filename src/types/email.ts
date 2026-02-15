@@ -19,6 +19,10 @@ export type EmailTemplateId =
   | 'contract_signed_admin'      // 契約署名通知（管理者）
   | 'production_update'          // 生産状況更新（顧客）
   | 'shipped'                    // 発送通知（顧客）
+  | 'user_approved'              // ユーザー承認通知（顧客）
+  | 'premium_content_download'   // プレミアムコンテンツダウンロード確認
+  | 'contract_signature_request'  // 契約署名リクエスト
+  | 'order_status_updated'        // 注文ステータス更新通知（顧客）
 
 /**
  * メールテンプレートデータ
@@ -109,6 +113,53 @@ export interface ShippedData extends EmailTemplateData {
   shipped_at: string
   tracking_url?: string
   view_url: string
+}
+
+/**
+ * ユーザー承認通知（顧客）テンプレートデータ
+ */
+export interface UserApprovedData extends EmailTemplateData {
+  user_name: string
+  user_email: string
+  approved_at: string
+  login_url: string
+}
+
+/**
+ * プレミアムコンテンツダウンロード確認テンプレートデータ
+ */
+export interface PremiumContentDownloadData extends EmailTemplateData {
+  user_name: string
+  user_email: string
+  content_title: string
+  content_category: string
+  download_url: string
+  downloaded_at: string
+}
+
+/**
+ * 契約署名リクエストテンプレートデータ
+ */
+export interface ContractSignatureRequestData extends EmailTemplateData {
+  customer_name: string
+  contract_url: string
+  order_number: string
+  due_date: string
+  requested_at: string
+}
+
+/**
+ * 注文ステータス更新通知テンプレートデータ
+ */
+export interface OrderStatusUpdatedData extends EmailTemplateData {
+  order_number: string
+  customer_name: string
+  product_name: string
+  old_status: string
+  new_status: string
+  status_label: string
+  view_url: string
+  updated_at: string
 }
 
 // ============================================================

@@ -14,6 +14,9 @@ interface CatalogContextType extends CatalogState {
   setCurrentImageIndex: (index: number) => void
   resetFilters: () => void
   updateURL: () => void
+  // Sample Request Modal
+  openSampleRequestModal: (product: PackageProduct) => void
+  closeSampleRequestModal: () => void
 }
 
 type CatalogAction =
@@ -27,6 +30,8 @@ type CatalogAction =
   | { type: 'SET_IMAGE_INDEX'; payload: number }
   | { type: 'RESET_FILTERS' }
   | { type: 'APPLY_FILTERS_AND_SORTING' }
+  | { type: 'OPEN_SAMPLE_REQUEST_MODAL'; payload: PackageProduct }
+  | { type: 'CLOSE_SAMPLE_REQUEST_MODAL' }
 
 const initialState: CatalogState = {
   products: catalogProducts,
@@ -47,7 +52,10 @@ const initialState: CatalogState = {
   isLoading: false,
   selectedProduct: null,
   modalOpen: false,
-  currentImageIndex: 0
+  currentImageIndex: 0,
+  // Sample Request Modal
+  sampleRequestModalOpen: false,
+  sampleRequestProduct: null
 }
 
 function catalogReducer(state: CatalogState, action: CatalogAction): CatalogState {
@@ -135,6 +143,20 @@ function catalogReducer(state: CatalogState, action: CatalogAction): CatalogStat
         filteredProducts: filteredAndSorted
       }
 
+    case 'OPEN_SAMPLE_REQUEST_MODAL':
+      return {
+        ...state,
+        sampleRequestModalOpen: true,
+        sampleRequestProduct: action.payload
+      }
+
+    case 'CLOSE_SAMPLE_REQUEST_MODAL':
+      return {
+        ...state,
+        sampleRequestModalOpen: false,
+        sampleRequestProduct: null
+      }
+
     default:
       return state
   }
@@ -194,6 +216,15 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'RESET_FILTERS' })
   }, [])
 
+  // Sample Request Modal functions
+  const openSampleRequestModal = useCallback((product: PackageProduct) => {
+    dispatch({ type: 'OPEN_SAMPLE_REQUEST_MODAL', payload: product })
+  }, [])
+
+  const closeSampleRequestModal = useCallback(() => {
+    dispatch({ type: 'CLOSE_SAMPLE_REQUEST_MODAL' })
+  }, [])
+
   const debouncedUpdateURL = useMemo(() => debounce(() => {
     if (typeof window !== 'undefined') {
       const queryString = createQueryString(state.filters, state.sort)
@@ -220,7 +251,9 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     closeModal,
     setCurrentImageIndex,
     resetFilters,
-    updateURL
+    updateURL,
+    openSampleRequestModal,
+    closeSampleRequestModal
   }
 
   return (
