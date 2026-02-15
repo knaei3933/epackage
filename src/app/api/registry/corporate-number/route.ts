@@ -1,5 +1,6 @@
 /**
- * Company Search API Route
+ * Corporate Number Search API Route
+ * Searches Japanese corporate numbers using Houjin Bangou API
  */
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const text = await response.text();
 
-    // Parse XML response
+    // Parse XML response using regex
     const corps: any[] = [];
     const regex = /<corporation[^>]*>([\s\S]*?)<\/corporation>/g;
     let match;
