@@ -43,12 +43,16 @@ export async function GET(request: NextRequest) {
       const searchParams = request.nextUrl.searchParams;
       const status = searchParams.get('status');
       const quotationId = searchParams.get('quotation_id');
+      const page = parseInt(searchParams.get('page') || '1', 10);
+      const pageSize = parseInt(searchParams.get('page_size') || '10', 10);
+      const offset = (page - 1) * pageSize;
 
-      // Build query
+      // Build query with pagination
       let query = supabaseService
         .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + pageSize - 1);
 
       if (status && status !== 'all') {
         query = query.eq('status', status);
@@ -59,9 +63,9 @@ export async function GET(request: NextRequest) {
         console.log('[API] Admin orders: Filtering by quotation_id:', quotationId);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
-      console.log('[API] Admin orders: Orders count:', data?.length || 0);
+      console.log('[API] Admin orders: Orders count:', data?.length || 0, 'Total:', count);
 
       if (error) {
         console.error('[API] Admin orders: Database error:', error);
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({ data: data || [] });
+      return NextResponse.json({ data: data || [], total: count || 0 });
     }
 
     // Standard authentication flow
@@ -115,12 +119,16 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const quotationId = searchParams.get('quotation_id');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(searchParams.get('page_size') || '10', 10);
+    const offset = (page - 1) * pageSize;
 
-    // Build query
+    // Build query with pagination
     let query = supabaseService
       .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1);
 
     if (status && status !== 'all') {
       query = query.eq('status', status);
@@ -131,9 +139,9 @@ export async function GET(request: NextRequest) {
       console.log('[API] Admin orders: Filtering by quotation_id:', quotationId);
     }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
-    console.log('[API] Admin orders: Orders count:', data?.length || 0);
+    console.log('[API] Admin orders: Orders count:', data?.length || 0, 'Total:', count);
 
     if (error) {
       console.error('[API] Admin orders: Database error:', error);
@@ -143,7 +151,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ data: data || [] });
+    return NextResponse.json({ data: data || [], total: count || 0 });
   } catch (error) {
     console.error('[API] Admin orders error:', error);
     return NextResponse.json(
