@@ -30,10 +30,11 @@ let transportType: 'xserver' | 'console' = 'console'
  * Xserver SMTP Transporter 생성
  */
 function createXServerTransporter() {
-  const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST
-  const XSERVER_SMTP_PORT = parseInt(process.env.XSERVER_SMTP_PORT || '587')
-  const XSERVER_SMTP_USER = process.env.XSERVER_SMTP_USER
-  const XSERVER_SMTP_PASSWORD = process.env.XSERVER_SMTP_PASSWORD
+  // Support both XSERVER_SMTP_* and SUPABASE_SMTP_* variable names
+  const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST || process.env.SUPABASE_SMTP_HOST
+  const XSERVER_SMTP_PORT = parseInt(process.env.XSERVER_SMTP_PORT || process.env.SUPABASE_SMTP_PORT || '587')
+  const XSERVER_SMTP_USER = process.env.XSERVER_SMTP_USER || process.env.SUPABASE_SMTP_USER
+  const XSERVER_SMTP_PASSWORD = process.env.XSERVER_SMTP_PASSWORD || process.env.SUPABASE_SMTP_PASSWORD
 
   if (!XSERVER_SMTP_HOST || !XSERVER_SMTP_USER || !XSERVER_SMTP_PASSWORD) {
     return null
