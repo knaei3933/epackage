@@ -10,7 +10,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import type { Database } from '@/types/database';
 
 // =====================================================
 // POST /api/auth/signout
@@ -38,32 +39,45 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // PRODUCTION: Clear all Supabase auth cookies
+    // PRODUCTION: Use Supabase SSR to properly clear session and cookies
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    // Create response object first
     const response = NextResponse.json({
       success: true,
       message: 'ログアウトしました',
     });
 
-    // Get all cookies from the request
-    const requestCookies = request.cookies.getAll();
-
-    // Delete ALL Supabase auth cookies
-    // Supabase uses cookies with names like: sb-{ref}-auth-token, sb-access-token, sb-refresh-token
-    for (const cookie of requestCookies) {
-      const name = cookie.name;
-      // Delete any cookie that starts with 'sb-' (Supabase cookies)
-      if (name.startsWith('sb-')) {
-        response.cookies.delete(name);
-        console.log(`[Signout] Deleting cookie: ${name}`);
+    // Create Supabase client with proper cookie handling
+    const supabase = createServerClient<Database>(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          // Read cookies from the request
+          getAll() {
+            return request.cookies.getAll();
+          },
+          // Set cookies on the response
+          setAll(cookiesToSet) {
+            for (const { name, value, options } of cookiesToSet) {
+              // When setting a cookie with maxAge=0 or expired date, it deletes it
+              if (value === '' || (options?.maxAge && options.maxAge <= 0)) {
+                response.cookies.delete(name);
+              } else {
+                response.cookies.set(name, value, options);
+              }
+            }
+          },
+        },
       }
-    }
+    );
 
-    // Also explicitly delete the common cookie names for safety
-    response.cookies.delete('sb-access-token');
-    response.cookies.delete('sb-refresh-token');
-    response.cookies.delete('dev-mock-user-id');
+    // Sign out from Supabase - this will trigger setAll with deletion cookies
+    await supabase.auth.signOut();
 
-    console.log('[Signout] All Supabase cookies cleared');
+    console.log('[Signout] Supabase session cleared');
 
     return response;
   } catch (error) {
