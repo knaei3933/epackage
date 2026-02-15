@@ -407,7 +407,7 @@ export function Footer() {
                     利用規約
                   </Link>
                   <Link
-                    href="/sitemap"
+                    href="/sitemap.xml"
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-brixa-600 dark:hover:text-brixa-400 transition-colors duration-200"
                   >
                     サイトマップ

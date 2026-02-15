@@ -58,6 +58,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [dataType, setDataType] = useState<'production_data' | 'design_file' | 'specification' | 'other'>('production_data');
+  const [productName, setProductName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -222,6 +223,12 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const handleUpload = async () => {
     if (selectedFiles.length === 0 || !canUploadData) return;
 
+    // Validate product name
+    if (!productName || productName.trim() === '') {
+      setError('製品名を入力してください。');
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
     setValidationErrors([]);
@@ -235,6 +242,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
         const file = selectedFiles[i];
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('product_name', productName);
         formData.append('data_type', dataType);
         if (description) {
           formData.append('description', description);
@@ -249,6 +257,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
 
           if (!response.ok) {
             const errorData = await response.json();
+
             results.push({
               success: false,
               fileName: file.name,
@@ -288,6 +297,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
       }
 
       setSelectedFiles([]);
+      setProductName('');
       setDescription('');
       loadUploadedFiles();
 
@@ -413,6 +423,25 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
               <option value="specification">仕様書</option>
               <option value="other">その他</option>
             </select>
+          </div>
+
+          {/* Product Name */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              製品名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="製品名を入力してください（例：パッケージ箱A）"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={isUploading}
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              ※ファイル名は「製品名_入稿データ_会社名_日付」となります
+            </p>
           </div>
 
           {/* Description */}

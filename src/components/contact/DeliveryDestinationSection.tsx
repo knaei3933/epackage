@@ -244,6 +244,15 @@ function DeliveryDestinationCard({
             onChange={(e) => {
               if (e.target.checked) {
                 onCopyCustomerInfo()
+              } else {
+                // Clear fields when unchecked
+                const destKey = `deliveryDestinations.${index}` as const
+                setValue(`${destKey}.companyName`, '')
+                setValue(`${destKey}.contactPerson`, '')
+                setValue(`${destKey}.phone`, '')
+                setValue(`${destKey}.postalCode`, '')
+                setValue(`${destKey}.address`, '')
+                setValue(`${destKey}.sameAsCustomer`, false)
               }
             }}
           />

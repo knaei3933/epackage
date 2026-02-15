@@ -26,22 +26,6 @@ export function SampleItemsSection({ control, errors }: SampleItemsSectionProps)
           製品サンプル1セットを無料でご提供いたします
         </p>
 
-        {/* 説明文 */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <Package className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-900">
-              <p className="font-medium mb-1">サンプル内容</p>
-              <ul className="space-y-1 text-blue-800">
-                <li>• 主要6種類のパウチ各1点（全6点）</li>
-                <li>• 実際の製品と同じ素材・仕様</li>
-                <li>• 素材、厚さ、サイズなどの詳細を確認いただけます</li>
-                <li>• お見積りの参考に最適です</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
         {/* サンプル製品一覧 */}
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">

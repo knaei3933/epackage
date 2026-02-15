@@ -1354,6 +1354,88 @@ export type Database = {
                 Insert: Omit<Database['public']['Tables']['coupon_usage']['Row'], 'id' | 'used_at'>
                 Update: Partial<Database['public']['Tables']['coupon_usage']['Row']>
             }
+
+            // ============================================================
+            // Order Comments table - 注文コメントシステム
+            // ============================================================
+            order_comments: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    content: string
+                    comment_type: 'general' | 'production' | 'shipping' | 'billing' | 'correction' | 'internal'
+                    author_id: string  // FK to profiles
+                    author_role: 'customer' | 'admin' | 'production'
+                    is_internal: boolean
+                    attachments: Json  // JSON array of attachment info
+                    parent_comment_id: string | null  // FK to order_comments (self-reference)
+                    metadata: Json
+                    created_at: string
+                    updated_at: string
+                    deleted_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['order_comments']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['order_comments']['Row'], 'id' | 'created_at'>>
+            }
+
+            // ============================================================
+            // Customer Approval Requests table - 顧客承認リクエストシステム
+            // ============================================================
+            customer_approval_requests: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    korea_correction_id: string | null  // FK to korea_corrections
+                    title: string
+                    description: string
+                    approval_type: 'correction' | 'spec_change' | 'price_adjustment' | 'delay' | 'other'
+                    status: 'pending' | 'approved' | 'rejected' | 'cancelled'
+                    response_notes: string | null
+                    responded_at: string | null
+                    responded_by: string | null  // FK to users
+                    expires_at: string  // Default 7 days from request
+                    requested_by: string  // FK to users
+                    requested_at: string
+                    metadata: Json
+                    version: number  // Optimistic locking
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['customer_approval_requests']['Row'], 'id' | 'created_at' | 'updated_at' | 'requested_at'>
+                Update: Partial<Omit<Database['public']['Tables']['customer_approval_requests']['Row'], 'id' | 'created_at' | 'updated_at' | 'requested_at'>>
+            }
+
+            // Approval Request Files table - 承認リクエスト添付ファイル
+            approval_request_files: {
+                Row: {
+                    id: string
+                    approval_request_id: string  // FK to customer_approval_requests
+                    file_name: string
+                    file_type: string
+                    file_url: string
+                    file_size_bytes: number
+                    file_category: 'specification' | 'quote' | 'contract' | 'image' | 'document' | 'other'
+                    uploaded_at: string
+                    uploaded_by: string | null  // FK to users
+                }
+                Insert: Omit<Database['public']['Tables']['approval_request_files']['Row'], 'id' | 'uploaded_at'>
+                Update: Partial<Database['public']['Tables']['approval_request_files']['Row']>
+            }
+
+            // Approval Request Comments table - 承認リクエストコメント
+            approval_request_comments: {
+                Row: {
+                    id: string
+                    approval_request_id: string  // FK to customer_approval_requests
+                    content: string
+                    author_id: string  // FK to users
+                    author_role: 'admin' | 'member' | 'system'
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['approval_request_comments']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['approval_request_comments']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
         }
         Views: {
             [_ in never]: never

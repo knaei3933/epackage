@@ -17,6 +17,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
 import { notifyDataReceived as notifyDataReceivedEmail } from '@/lib/email/order-status-emails';
+import { uploadDataReceiptToDrive, uploadCorrectionToDrive } from '@/lib/google-drive';
 
 export const dynamic = 'force-dynamic';
 
@@ -196,10 +197,10 @@ export async function POST(
     // Use appropriate client for data access
     const dataClient = isAdmin ? adminClient : supabase;
 
-    // 2. Verify order exists
+    // 2. Verify order exists and get details
     const { data: order, error: orderError } = await dataClient
       .from('orders')
-      .select('id, user_id, status')
+      .select('id, user_id, status, order_number, customer_name')
       .eq('id', orderId)
       .single();
 
@@ -229,6 +230,7 @@ export async function POST(
     // 3. Parse form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const productName = formData.get('product_name') as string | null;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const description = formData.get('description') as string | null;
 
@@ -238,6 +240,18 @@ export async function POST(
           error: 'ファイルが選択されていません。',
           errorEn: 'No file provided',
           code: 'NO_FILE',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate product name (required)
+    if (!productName || productName.trim() === '') {
+      return NextResponse.json(
+        {
+          error: '製品名を入力してください。',
+          errorEn: 'Product name is required',
+          code: 'NO_PRODUCT_NAME',
         },
         { status: 400 }
       );
@@ -265,37 +279,47 @@ export async function POST(
       console.warn('[Data Receipt Upload] File validation warnings:', validationResult.warnings);
     }
 
-    // 5. Generate storage path
-    const storagePath = generateStoragePath(userId, orderId, file.name);
+    // 5. Upload to Google Drive (using admin credentials)
+    let driveFileData;
+    try {
+      driveFileData = await uploadDataReceiptToDrive(
+        file,
+        orderId,
+        productName.trim(),
+        order.customer_name || 'お客様',
+        order.order_number
+      );
+    } catch (driveError) {
+      console.error('[Data Receipt Upload] Google Drive upload error:', driveError);
 
-    // 6. Upload file to Supabase Storage
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
+      // Check if it's an auth error
+      if (driveError instanceof Error && driveError.message.includes('auth')) {
+        return NextResponse.json(
+          {
+            error: 'Google Driveの認証が期限切れです。再認証してください。',
+            errorEn: 'Google Drive authentication expired',
+            code: 'GOOGLE_AUTH_EXPIRED',
+            authUrl: '/api/auth/google/url?redirect=' + encodeURIComponent(`/member/orders/${orderId}/data-receipt`),
+          },
+          { status: 401 }
+        );
+      }
 
-    const { data: uploadData, error: uploadError } = await dataClient.storage
-      .from('production-files')
-      .upload(storagePath, fileBuffer, {
-        contentType: file.type,
-        upsert: false,
-      });
-
-    if (uploadError || !uploadData) {
-      console.error('[Data Receipt Upload] Storage upload error:', uploadError);
       return NextResponse.json(
         {
-          error: 'ファイルのアップロードに失敗しました。',
-          errorEn: 'Failed to upload file',
-          code: 'UPLOAD_ERROR',
+          error: 'Google Driveへのアップロードに失敗しました。',
+          errorEn: 'Failed to upload to Google Drive',
+          code: 'DRIVE_UPLOAD_ERROR',
         },
         { status: 500 }
       );
     }
 
-    // 7. Get public URL
-    const { data: urlData } = dataClient.storage
-      .from('production-files')
-      .getPublicUrl(storagePath);
+    // 6. Prepare file URL and path from Drive response
+    const fileUrl = driveFileData.webViewLink;
+    const filePath = `google_drive:${driveFileData.id}`; // Prefix to identify Drive files
 
-    // 8. Create file record in database (files table)
+    // 7. Create file record in database (files table)
     const fileType = getFileType(file.type);
 
     const { data: fileRecord, error: dbError } = await dataClient
@@ -304,19 +328,20 @@ export async function POST(
         order_id: orderId,
         file_type: fileType,
         original_filename: file.name,
-        file_url: urlData.publicUrl,
-        file_path: storagePath,
+        file_url: fileUrl,
+        file_path: filePath,
         file_size_bytes: file.size,
         uploaded_by: userId,
         validation_status: 'PENDING',
+        product_name: productName.trim(),
+        drive_folder_id: driveFileData.folderId,
       })
       .select()
       .single();
 
     if (dbError) {
       console.error('[Data Receipt Upload] Database insert error:', dbError);
-      // Cleanup uploaded file
-      await supabase.storage.from('production-files').remove([storagePath]);
+      // Note: Can't cleanup Drive files easily, so we just log the error
 
       return NextResponse.json(
         {

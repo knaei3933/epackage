@@ -18,7 +18,6 @@ import { useSampleRequestSubmit } from './useSampleRequestForm'
 import { SampleRequestSuccess } from './SampleRequestSuccess'
 import { CustomerInfoSection } from './CustomerInfoSection'
 import { DeliveryDestinationSection } from './DeliveryDestinationSection'
-import { MessageSection } from './MessageSection'
 import { PrivacySection } from './PrivacySection'
 import { SampleItemsSection } from './SampleItemsSection'
 import { useDraftSave } from '@/hooks'
@@ -269,11 +268,6 @@ export default function PouchSampleRequestForm() {
             errors={errors}
           />
 
-          {/* Message Section */}
-          <MessageSection
-            register={register}
-            errors={errors}
-          />
 
           {/* Privacy Agreement Section */}
           <PrivacySection

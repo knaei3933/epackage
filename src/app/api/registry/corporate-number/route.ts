@@ -1,10 +1,10 @@
 /**
- * Corporate Number Search API Route
+ * Corporate Number Verification API Route
  *
- * 日本の法人番号検索API
- * - 会社名から法人番号を検索
- * - 登記上の正式名称と所在地を取得
- * - 国税庁法人番号公表サイトAPIを使用
+ * 日本の法人番号検証API
+ * - 法人番号から会社情報を検索
+ * - KEIシステムAPIを使用
+ * - Application ID: K2gaDNtfauzdk
  */
 
 export const dynamic = 'force-dynamic';
@@ -24,21 +24,104 @@ interface CorporateNumberResponse {
   street: string;        // 番地・建物名
 }
 
-interface HoujinBangouResponse {
-  status: number;
-  message: string;
+interface KeiSystemResponse {
+  status: string;
+  message?: string;
   data?: {
-    name: string;
     corporateNumber: string;
-    postalCode?: string;
-    prefectureName?: string;
-    cityName?: string;
-    streetName?: string;
-  }[];
+    name: string;
+    prefecture?: string;
+    city?: string;
+    address?: string;
+    postCode?: string;
+    date?: string;
+    updateDate?: string;
+    changeDate?: string;
+  };
 }
 
 // =====================================================
-// API Handler
+// POST Handler - Corporate Number Verification
+// =====================================================
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { corporateNumber } = body;
+
+    // バリデーション
+    if (!corporateNumber || corporateNumber.length !== 13) {
+      return NextResponse.json(
+        { error: '法人番号は13桁で入力してください。' },
+        { status: 400 }
+      );
+    }
+
+    // 環境変数からアプリケーションIDを取得
+    const appId = process.env.KEI_CORPORATE_API_ID;
+    if (!appId) {
+      console.error('KEI_CORPORATE_API_ID is not set');
+      return NextResponse.json(
+        { error: 'API設定が見つかりません。' },
+        { status: 500 }
+      );
+    }
+
+    // KEIシステムAPI呼び出し
+    // エンドポイント: https://api.kei-system.com/v1/corporate
+    const apiUrl = new URL('https://api.kei-system.com/v1/corporate');
+    apiUrl.searchParams.set('id', appId);
+    apiUrl.searchParams.set('number', corporateNumber);
+
+    const response = await fetch(apiUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('KEI System API error:', response.status);
+      return NextResponse.json(
+        { error: '法人番号の検証に失敗しました。' },
+        { status: response.status }
+      );
+    }
+
+    const data: KeiSystemResponse = await response.json();
+
+    // レスポンスデータの変換
+    if (data.status === 'success' && data.data) {
+      const result: CorporateNumberResponse = {
+        name: data.data.name,
+        corporateNumber: data.data.corporateNumber,
+        postalCode: data.data.postCode || '',
+        prefecture: data.data.prefecture || '',
+        city: data.data.city || '',
+        street: data.data.address || '',
+      };
+
+      return NextResponse.json(result);
+    }
+
+    // 見つからなかった場合
+    return NextResponse.json(
+      { error: data.message || '法人番号が見つかりませんでした。' },
+      { status: 404 }
+    );
+
+  } catch (error) {
+    console.error('Corporate number verification error:', error);
+    return NextResponse.json(
+      { error: '法人番号の検証に失敗しました。' },
+      { status: 500 }
+    );
+  }
+}
+
+// =====================================================
+// GET Handler - Name Search (国税庁APIフォールバック)
 // =====================================================
 
 export async function GET(request: NextRequest) {
@@ -54,7 +137,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 環境変数からAPIキーを取得
+    // 環境変数からAPIキーを取得（国税庁API）
     const apiKey = process.env.HOUJIN_BANGOU_API_KEY;
     if (!apiKey) {
       console.error('HOUJIN_BANGOU_API_KEY is not set');
@@ -65,12 +148,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 国税庁法人番号公表サイトAPI呼び出し
-    // ドキュメント: https://www.houjin-bangou.nta.go.jp/documents/
     const apiUrl = new URL('https://api.houjin-bangou.nta.go.jp/v1/search');
     apiUrl.searchParams.set('id', apiKey);
     apiUrl.searchParams.set('name', name);
-    apiUrl.searchParams.set('mode', '1'); // 完全一致モード
-    apiUrl.searchParams.set('type', '02'); // 検索対象: 全て
+    apiUrl.searchParams.set('mode', '1');
+    apiUrl.searchParams.set('type', '02');
 
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
@@ -87,11 +169,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data: HoujinBangouResponse = await response.json();
+    const data: any = await response.json();
 
     // レスポンスデータの変換
     if (data.data && data.data.length > 0) {
-      const results: CorporateNumberResponse[] = data.data.map((item) => ({
+      const results: CorporateNumberResponse[] = data.data.map((item: any) => ({
         name: item.name,
         corporateNumber: item.corporateNumber,
         postalCode: item.postalCode || '',
@@ -123,7 +205,7 @@ export async function OPTIONS() {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
