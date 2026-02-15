@@ -38,29 +38,32 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // PRODUCTION: Real Supabase logout
-    const supabase = createSupabaseClient();
-
-    // Sign out from Supabase
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error('Supabase signout error:', error);
-      return NextResponse.json(
-        { error: 'ログアウトに失敗しました' },
-        { status: 500 }
-      );
-    }
-
-    // Clear cookies and redirect
+    // PRODUCTION: Clear all Supabase auth cookies
     const response = NextResponse.json({
       success: true,
       message: 'ログアウトしました',
     });
 
-    // Clear Supabase session cookies
+    // Get all cookies from the request
+    const requestCookies = request.cookies.getAll();
+
+    // Delete ALL Supabase auth cookies
+    // Supabase uses cookies with names like: sb-{ref}-auth-token, sb-access-token, sb-refresh-token
+    for (const cookie of requestCookies) {
+      const name = cookie.name;
+      // Delete any cookie that starts with 'sb-' (Supabase cookies)
+      if (name.startsWith('sb-')) {
+        response.cookies.delete(name);
+        console.log(`[Signout] Deleting cookie: ${name}`);
+      }
+    }
+
+    // Also explicitly delete the common cookie names for safety
     response.cookies.delete('sb-access-token');
     response.cookies.delete('sb-refresh-token');
+    response.cookies.delete('dev-mock-user-id');
+
+    console.log('[Signout] All Supabase cookies cleared');
 
     return response;
   } catch (error) {
