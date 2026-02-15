@@ -3,6 +3,7 @@ import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingPro
 import { HeroSection, ProductShowcaseSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts, getLatestAnnouncements } from '@/lib/products'
+import { getAuthenticatedUser } from '@/lib/supabase/server'
 
 // FAQ Schema data for homepage
 const faqData = [
@@ -30,11 +31,13 @@ const faqData = [
 
 // Main Home Page Component with Performance Monitoring and SEO
 export default async function Home() {
+  // Check if user is authenticated
+  const user = await getAuthenticatedUser()
+
   // Fetch dynamic data from Supabase
-  const [featuredProducts, announcements] = await Promise.all([
-    getFeaturedProducts(6),
-    getLatestAnnouncements(3)
-  ])
+  // Only fetch announcements if user is authenticated
+  const featuredProducts = await getFeaturedProducts(6)
+  const announcements = user ? await getLatestAnnouncements(3) : []
 
   return (
     <>
@@ -44,8 +47,8 @@ export default async function Home() {
       <FAQSchema faqs={faqData} />
 
       <div className="min-h-screen">
-        {/* Announcement Banner - Dynamic from Supabase */}
-        {announcements.length > 0 && (
+        {/* Announcement Banner - Only for authenticated users */}
+        {user && announcements.length > 0 && (
           <AnnouncementBanner announcements={announcements} />
         )}
 
