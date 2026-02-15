@@ -140,12 +140,56 @@ export async function PUT(
   }
 }
 
+// ============================================================
+// GET: 注文ステータス取得
+// ============================================================
+
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const { id: orderId } = params;
+
+    console.log('[Admin Order Status] GET request for order:', orderId);
+
+    const supabase = createServiceClient();
+
+    // Fetch order status
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, status, order_number, updated_at')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
+      console.error('[Admin Order Status] Order not found:', orderError);
+      return NextResponse.json(
+        { error: '注文が見つかりませんでした。' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    console.error('[Admin Order Status] GET error:', error);
+    return NextResponse.json(
+      { error: 'ステータスの取得に失敗しました。' },
+      { status: 500 }
+    );
+  }
+}
+
 // OPTIONSメソッド - CORS preflightリクエスト処理
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Methods': 'PUT, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
