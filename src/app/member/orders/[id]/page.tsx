@@ -190,6 +190,11 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
           承認待ちリクエストセクション
           ===================================================== */}
       <CustomerApprovalSection orderId={order.id} />
+
+      {/* =====================================================
+          コメントセクション
+          ===================================================== */}
+      <OrderCommentsSectionWrapper orderId={order.id} />
     </div>
   );
 }
