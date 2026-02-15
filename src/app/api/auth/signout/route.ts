@@ -49,6 +49,14 @@ export async function POST(request: NextRequest) {
       message: 'ログアウトしました',
     });
 
+    // Get all Supabase cookies from the request to know what to delete
+    const requestCookies = request.cookies.getAll();
+    const supabaseCookieNames = requestCookies
+      .filter(c => c.name.startsWith('sb-'))
+      .map(c => c.name);
+
+    console.log('[Signout] Found Supabase cookies:', supabaseCookieNames);
+
     // Create Supabase client with proper cookie handling
     const supabase = createServerClient<Database>(
       SUPABASE_URL,
@@ -62,6 +70,8 @@ export async function POST(request: NextRequest) {
           // Set cookies on the response
           setAll(cookiesToSet) {
             for (const { name, value, options } of cookiesToSet) {
+              console.log('[Signout] Cookie update:', name, 'value:', value ? 'present' : 'empty', 'maxAge:', options?.maxAge);
+
               // When Supabase sends a deletion cookie (maxAge=0 or empty value),
               // we must set it with the same attributes to properly delete it
               if (value === '' || (options?.maxAge !== undefined && options.maxAge <= 0)) {
@@ -72,6 +82,7 @@ export async function POST(request: NextRequest) {
                   expires: new Date(0),
                   maxAge: 0,
                 });
+                console.log('[Signout] Deleting cookie:', name);
               } else {
                 response.cookies.set(name, value, options);
               }
@@ -83,6 +94,24 @@ export async function POST(request: NextRequest) {
 
     // Sign out from Supabase - this will trigger setAll with deletion cookies
     await supabase.auth.signOut();
+
+    // Fallback: Explicitly delete any remaining Supabase cookies
+    // This ensures cookies are deleted even if Supabase's signOut doesn't trigger setAll
+    for (const cookieName of supabaseCookieNames) {
+      console.log('[Signout] Fallback: deleting cookie', cookieName);
+      // Delete with all possible domain variations
+      response.cookies.set(cookieName, '', {
+        expires: new Date(0),
+        maxAge: 0,
+        path: '/',
+        domain: '.package-lab.com',
+      });
+      response.cookies.set(cookieName, '', {
+        expires: new Date(0),
+        maxAge: 0,
+        path: '/',
+      });
+    }
 
     console.log('[Signout] Supabase session cleared');
 
