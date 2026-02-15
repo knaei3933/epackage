@@ -84,7 +84,12 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
       setLoading(true);
       setError(null);
 
-      const response = await fetchFn(`/api/admin/orders/${orderId}/comments`);
+      // 管理者モードとメンバーモードでAPIエンドポイントを切り替え
+      const apiUrl = isAdmin
+        ? `/api/admin/orders/${orderId}/comments`
+        : `/api/member/orders/${orderId}/comments`;
+
+      const response = await fetchFn(apiUrl);
       const result = await response.json();
 
       if (result.success) {
@@ -98,7 +103,7 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
     } finally {
       setLoading(false);
     }
-  }, [orderId]);
+  }, [orderId, isAdmin]);
 
   // Submit new comment - memoized with useCallback
   const handleSubmitComment = useCallback(async () => {
