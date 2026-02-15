@@ -1,10 +1,12 @@
 /**
  * Corporate Number Search API Route
  *
- * 日本の法人番号検索API
- * - 会社名から法人番号を検索
- * - 登記上の正式名称と所在地を取得
- * - 国税庁法人番号公表サイトAPIを使用
+ * 日本の適格請求書発行事業者登録番号公表サイトAPI
+ * - 会社名から登録番号を検索
+ * - 適格請求書発行事業者の情報を取得
+ * - 国税庁適格請求書発行事業者登録番号公表サイトAPIを使用
+ *
+ * APIドキュメント: https://www.invoice-kohyo.nta.go.jp/web-api/index.html
  */
 
 export const dynamic = 'force-dynamic';
@@ -16,24 +18,19 @@ import { NextRequest, NextResponse } from 'next/server';
 // =====================================================
 
 interface CorporateNumberResponse {
-  name: string;          // 正式名称
-  corporateNumber: string; // 法人番号
-  postalCode: string;    // 郵便番号
-  prefecture: string;    // 都道府県
-  city: string;          // 市区町村
-  street: string;        // 番地・建物名
+  name: string;          // 事業者名
+  corporateNumber: string; // 登録番号
+  address: string;       // 本店所在地
 }
 
-interface HoujinBangouResponse {
-  status: number;
-  message: string;
-  data?: {
-    name: string;
-    corporateNumber: string;
-    postalCode?: string;
-    prefectureName?: string;
-    cityName?: string;
-    streetName?: string;
+interface InvoiceKohyoResponse {
+  status?: number;
+  message?: string;
+  searchResult?: {
+    registrationNumber: string;  // 登録番号 (T + 13桁)
+    name: string;                 // 事業者名
+    nameKana: string;             // 事業者名カナ
+    address: string;              // 本店所在地
   }[];
 }
 
@@ -55,22 +52,21 @@ export async function GET(request: NextRequest) {
     }
 
     // 環境変数からAPIキーを取得
-    const apiKey = process.env.HOUJIN_BANGOU_API_KEY;
+    const apiKey = process.env.KEI_CORPORATE_API_ID || process.env.INVOICE_KOHYO_API_KEY;
     if (!apiKey) {
-      console.error('HOUJIN_BANGOU_API_KEY is not set');
+      console.error('KEI_CORPORATE_API_ID or INVOICE_KOHYO_API_KEY is not set');
       return NextResponse.json<CorporateNumberResponse[]>(
         [],
         { status: 500 }
       );
     }
 
-    // 国税庁法人番号公表サイトAPI呼び出し
-    // ドキュメント: https://www.houjin-bangou.nta.go.jp/documents/
-    const apiUrl = new URL('https://api.houjin-bangou.nta.go.jp/v1/search');
+    // 適格請求書発行事業者登録番号公表サイトAPI呼び出し
+    // エンドポイント: /web-api/api (事業者名検索)
+    const apiUrl = new URL('https://invoice-kohyo.nta.go.jp/web-api/api');
     apiUrl.searchParams.set('id', apiKey);
-    apiUrl.searchParams.set('name', name);
-    apiUrl.searchParams.set('mode', '1'); // 完全一致モード
-    apiUrl.searchParams.set('type', '02'); // 検索対象: 全て
+    apiUrl.searchParams.set('searchWord', name);
+    apiUrl.searchParams.set('type', '1'); // 事業者名検索
 
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
@@ -80,24 +76,21 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error('Houjin Bangou API error:', response.status);
+      console.error('Invoice Kohyo API error:', response.status);
       return NextResponse.json<CorporateNumberResponse[]>(
         [],
         { status: response.status }
       );
     }
 
-    const data: HoujinBangouResponse = await response.json();
+    const data: InvoiceKohyoResponse = await response.json();
 
     // レスポンスデータの変換
-    if (data.data && data.data.length > 0) {
-      const results: CorporateNumberResponse[] = data.data.map((item) => ({
+    if (data.searchResult && data.searchResult.length > 0) {
+      const results: CorporateNumberResponse[] = data.searchResult.map((item) => ({
         name: item.name,
-        corporateNumber: item.corporateNumber,
-        postalCode: item.postalCode || '',
-        prefecture: item.prefectureName || '',
-        city: item.cityName || '',
-        street: item.streetName || '',
+        corporateNumber: item.registrationNumber,
+        address: item.address,
       }));
 
       return NextResponse.json<CorporateNumberResponse[]>(results);

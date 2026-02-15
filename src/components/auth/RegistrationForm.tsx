@@ -119,7 +119,7 @@ export default function RegistrationForm({
   const companyName = watch('companyName', '');
   const postalCode = watch('postalCode', '');
 
-  // 法人番号検索関数
+  // 法人番号検索関数（適格請求書発行事業者登録番号公表サイトAPI）
   const searchCorporateNumber = async (name: string) => {
     if (!name || name.length < 2) {
       setCorporateSearchError('会社名を2文字以上入力してください。');
@@ -141,15 +141,35 @@ export default function RegistrationForm({
       if (data.length > 0) {
         const result = data[0];
         // 検索結果をフォームに自動反映
-        setValue('legalEntityNumber', result.corporateNumber);
+        setValue('legalEntityNumber', result.corporateNumber); // T + 13桁の登録番号
         setValue('companyName', result.name);
-        if (result.postalCode) setValue('postalCode', result.postalCode);
-        if (result.prefecture) setValue('prefecture', result.prefecture);
-        if (result.city) setValue('city', result.city);
-        if (result.street) setValue('street', result.street);
+
+        // addressフィールドから郵便番号と住所を解析して自動入力
+        // 形式: "〒100-0001 東京都千代田区千代田1-1" のような形式
+        if (result.address) {
+          // 郵便番号抽出 (〒XXX-XXXX 形式)
+          const postalMatch = result.address.match(/〒(\d{3})-(\d{4})/);
+          if (postalMatch) {
+            setValue('postalCode', `${postalMatch[1]}-${postalMatch[2]}`);
+          }
+
+          // 都道府県と市区町村抽出
+          let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
+
+          // 都道府県のマッチング
+          const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
+          if (prefectureMatch) {
+            setValue('prefecture', prefectureMatch);
+            addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
+          }
+
+          // 残りを市区町村として設定
+          setValue('city', addressWithoutPostal.trim());
+        }
+
         setCorporateSearchError(null);
       } else {
-        setCorporateSearchError('法人番号が見つかりませんでした。正式名称（「株式会社」なども含む）で再度入力してください。');
+        setCorporateSearchError('適格請求書発行事業者が見つかりませんでした。正式名称（「株式会社」なども含む）で再度入力してください。');
       }
     } catch (error) {
       setCorporateSearchError(error instanceof Error ? error.message : '法人番号の検索に失敗しました。');
