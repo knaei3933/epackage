@@ -340,6 +340,22 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================================================
+  // /login → /auth/signin 301 Redirect
+  // =====================================================
+  // Redirect legacy /login to /auth/signin
+  if (pathname === '/login') {
+    const url = new URL('/auth/signin', request.url);
+    url.search = request.nextUrl.search; // Preserve query parameters
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] 301 Redirect: /login → /auth/signin');
+    }
+
+    const response = NextResponse.redirect(url, 301);
+    return addSecurityHeaders(response);
+  }
+
+  // =====================================================
   // Portal → Admin/Customers 301 Permanent Redirect
   // =====================================================
   // Redirect old Portal routes to new Admin/Customers routes

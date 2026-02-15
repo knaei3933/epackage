@@ -84,13 +84,14 @@ interface GetCommentsResponse {
 
 export const GET = withAdminAuth(async (
   request: NextRequest,
-  session,
-  profile,
-  supabase
+  auth
 ) => {
   const { id: orderId } = await (request as any).params;
   console.log('[Admin Order Comments GET] Order ID:', orderId);
-  console.log('[Admin Order Comments GET] Authenticated user:', session.id);
+  console.log('[Admin Order Comments GET] Authenticated user:', auth.userId);
+
+  // Use service client to bypass RLS
+  const supabase = createServiceClient();
 
   // Fetch all comments (admin sees everything)
   const { data: comments, error: commentsError } = await supabase
@@ -164,12 +165,13 @@ export const GET = withAdminAuth(async (
 
 export const POST = withAdminAuth(async (
   request: NextRequest,
-  session,
-  profile,
-  supabase
+  auth
 ) => {
   const { id: orderId } = await (request as any).params;
   console.log('[Admin Order Comments POST] Order ID:', orderId);
+
+  // Use service client to bypass RLS
+  const supabase = createServiceClient();
 
   // Get order details for email
   const { data: order, error: orderError } = await supabase
@@ -217,18 +219,25 @@ export const POST = withAdminAuth(async (
     }
   }
 
-  // Create admin comment
-  const adminDisplayName = profile.kanji_last_name && profile.kanji_first_name
-    ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
-    : profile.company_name || '管理者';
+  // Get admin profile for display name
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, kanji_last_name, kanji_first_name, company_name, email')
+    .eq('id', auth.userId)
+    .single();
 
+  const adminDisplayName = profile?.kanji_last_name && profile?.kanji_first_name
+    ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+    : profile?.company_name || '管理者';
+
+  // Create admin comment
   const { data: newComment, error: createError } = await supabase
     .from('order_comments')
     .insert({
       order_id: orderId,
       content: content.trim(),
       comment_type,
-      author_id: session.id,
+      author_id: auth.userId,
       author_role: 'admin',
       is_internal: comment_type === 'internal',
       attachments,
@@ -246,7 +255,7 @@ export const POST = withAdminAuth(async (
       event_type: 'error_occurred',
       resource_type: 'other',
       resource_id: orderId,
-      user_id: session.id,
+      user_id: auth.userId,
       ip_address: request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                    request.headers.get('x-real-ip') || undefined,
       user_agent: request.headers.get('user-agent') || undefined,
@@ -268,11 +277,11 @@ export const POST = withAdminAuth(async (
   // Attach author info to response
   if (newComment) {
     (newComment as any).author = {
-      id: profile.id,
+      id: auth.userId,
       full_name: adminDisplayName,
-      email: profile.email,
+      email: profile?.email || '',
       avatar_url: null,
-      role: profile.role
+      role: 'ADMIN'
     };
   }
 
@@ -346,7 +355,7 @@ Copyright (c) ${new Date().getFullYear()} EPackage Lab. All rights reserved.
     event_type: 'data_modification',
     resource_type: 'other',
     resource_id: newComment?.id,
-    user_id: session.id,
+    user_id: auth.userId,
     ip_address: request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                  request.headers.get('x-real-ip') || undefined,
     user_agent: request.headers.get('user-agent') || undefined,
