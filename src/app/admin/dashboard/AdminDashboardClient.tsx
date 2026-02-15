@@ -55,11 +55,19 @@ const defaultStats = {
   totalOrders: 0,
   totalRevenue: 0,
   recentQuotations: [],
-  samples: { total: 0, processing: 0 },
-  production: { avgDays: 0, completed: 0 },
+  samples: { total: 0, processing: 0, completed: 0 },
+  production: { avgDays: 0, completed: 0, inProgress: 0 },
   shipments: { today: 0, inTransit: 0 },
   activeCustomers: 0,
-  quotations: { total: 0, approved: 0, conversionRate: 0 },
+  quotations: {
+    total: 0,
+    draft: 0,
+    sent: 0,
+    pending: 0,
+    approved: 0,
+    conversionRate: 0,
+    recent: []
+  },
 };
 
 interface AuthContext {
@@ -330,7 +338,7 @@ export default function AdminDashboardClient({
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.4, 0, 0.2, 1],
+        ease: [0.4, 0, 0.2, 1] as const,
       },
     },
   };

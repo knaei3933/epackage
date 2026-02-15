@@ -119,6 +119,9 @@ export interface CatalogState {
   selectedProduct: PackageProduct | null
   modalOpen: boolean
   currentImageIndex: number
+  // Sample Request Modal
+  sampleRequestModalOpen: boolean
+  sampleRequestProduct: PackageProduct | null
 }
 
 export interface ContactFormData {

@@ -20,18 +20,24 @@ export function AlertsWidget() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 실제 API 호출로 대체 필요
+  // API 호출로アラートを取得
   useEffect(() => {
-    // TODO: /api/admin/alerts 엔드포인트에서 데이터 가져오기
-    // fetch('/api/admin/alerts')
-    //   .then(res => res.json())
-    //   .then(data => setAlerts(data.data || []))
-    //   .finally(() => setLoading(false))
+    const fetchAlerts = async () => {
+      try {
+        const response = await fetch('/api/admin/alerts')
+        if (response.ok) {
+          const data = await response.json()
+          setAlerts(data.data || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch alerts:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-    // 현재는 빈 배열로 시작
-    setAlerts([]);
-    setLoading(false);
-  }, []);
+    fetchAlerts()
+  }, [])
 
   const getAlertIcon = (type: string) => {
     switch (type) {
