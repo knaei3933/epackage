@@ -297,7 +297,7 @@ export default function PremiumContentPage() {
                     無料相談する
                   </Button>
                 </Link>
-                <Link href="/roi-calculator">
+                <Link href="/quote-simulator">
                   <Button
                     variant="outline"
                     size="lg"

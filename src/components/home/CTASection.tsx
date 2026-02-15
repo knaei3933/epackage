@@ -45,7 +45,7 @@ export function CTASection() {
               </Link>
 
               {/* Price Calculator */}
-              <Link href="/roi-calculator" className="group flex-1 min-w-[200px]">
+              <Link href="/pricing" className="group flex-1 min-w-[200px]">
                 <Card className="p-4 sm:p-6 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 h-full">
                   <div className="text-center space-y-2 sm:space-y-4">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto group-hover:bg-white/30 transition-colors">

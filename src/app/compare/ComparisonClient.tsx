@@ -483,7 +483,7 @@ export function ComparisonClient() {
                           詳細
                         </Button>
                       </Link>
-                      <Link href="/roi-calculator">
+                      <Link href="/quote-simulator">
                         <Button variant="primary" size="sm" className="flex-1">
                           <BarChart3 className="w-4 h-4 mr-2" />
                           見積
@@ -564,7 +564,7 @@ export function ComparisonClient() {
                     専門家に相談
                   </Button>
                 </Link>
-                <Link href="/roi-calculator">
+                <Link href="/quote-simulator">
                   <Button
                     variant="outline"
                     size="lg"

@@ -30,7 +30,7 @@ export default function CartPageClient() {
     try {
       // This would open a modal for quote request details
       // For now, redirect to quote calculator with cart items
-      window.location.href = '/roi-calculator/?fromCart=true'
+      window.location.href = '/quote-simulator/?fromCart=true'
     } catch (error) {
       console.error('Failed to request quote:', error)
     }
@@ -95,7 +95,7 @@ export default function CartPageClient() {
                       製品カタログを見る
                     </Button>
                   </Link>
-                  <Link href="/roi-calculator">
+                  <Link href="/quote-simulator">
                     <Button variant="outline" size="lg" className="w-full">
                       <Calculator className="w-5 h-5 mr-2" />
                       まず見積計算から始める
@@ -203,7 +203,7 @@ export default function CartPageClient() {
                             {isLoading ? '処理中...' : '詳細見積計算'}
                           </Button>
 
-                          <Link href="/roi-calculator">
+                          <Link href="/quote-simulator">
                             <Button
                               variant="outline"
                               size="lg"

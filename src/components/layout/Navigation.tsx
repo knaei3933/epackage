@@ -412,7 +412,7 @@ export const defaultNavigationItems: NavigationItem[] = [
   },
   {
     label: 'お見積り',
-    href: '/roi-calculator',
+    href: '/pricing',
     icon: Calculator,
   },
   {

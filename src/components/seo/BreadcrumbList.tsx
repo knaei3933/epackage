@@ -59,7 +59,6 @@ export function BreadcrumbList() {
           'cosmetics': '化粧品',
           'pharmaceutical': '医薬品',
           'electronics': '電子機器',
-          'roi-calculator': '費用対効果計算',
           'quote-simulator': '見積りシミュレーター',
           'samples': 'サンプル',
         }
