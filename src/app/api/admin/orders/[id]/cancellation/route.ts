@@ -36,13 +36,14 @@ const cancellationActionSchema = z.object({
 
 export const POST = withAdminAuth(async (
   request: NextRequest,
-  session,
-  profile,
-  supabase
+  auth
 ) => {
   const { id: orderId } = await (request as any).params;
   const body = await request.json();
   const validationResult = cancellationActionSchema.safeParse(body);
+
+  // Use service client to bypass RLS
+  const supabase = createServiceClient();
 
   if (!validationResult.success) {
     return NextResponse.json(
@@ -147,11 +148,12 @@ export const POST = withAdminAuth(async (
 
 export const GET = withAdminAuth(async (
   request: NextRequest,
-  session,
-  profile,
-  supabase
+  auth
 ) => {
   const { id: orderId } = await (request as any).params;
+
+  // Use service client to bypass RLS
+  const supabase = createServiceClient();
 
   // Get order and cancellation request
   const { data: order } = await supabase
