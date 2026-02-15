@@ -38,14 +38,13 @@ export const POST = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  let orderId;
-  try {
-    const params = await (request as any).params;
-    orderId = params.id;
-  } catch (paramError) {
-    console.error('[Cancellation POST] Error getting params:', paramError);
+  // Access params without await for Next.js 16 compatibility
+  const params = (request as any).params;
+  const orderId = params?.id;
+
+  if (!orderId) {
     return NextResponse.json(
-      { error: '注文IDの取得に失敗しました。', code: 'INVALID_PARAMS' },
+      { error: '注文IDが指定されていません。', code: 'INVALID_PARAMS' },
       { status: 400 }
     );
   }
@@ -161,14 +160,13 @@ export const GET = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  let orderId;
-  try {
-    const params = await (request as any).params;
-    orderId = params.id;
-  } catch (paramError) {
-    console.error('[Cancellation GET] Error getting params:', paramError);
+  // Access params without await for Next.js 16 compatibility
+  const params = (request as any).params;
+  const orderId = params?.id;
+
+  if (!orderId) {
     return NextResponse.json(
-      { error: '注文IDの取得に失敗しました。', code: 'INVALID_PARAMS' },
+      { error: '注文IDが指定されていません。', code: 'INVALID_PARAMS' },
       { status: 400 }
     );
   }
