@@ -53,7 +53,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -162,16 +162,27 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const handleFileSelect = useCallback((files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    const file = files[0];
+    const newFiles: File[] = [];
+    const errors: string[] = [];
 
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('ファイルサイズは10MB以下にしてください');
-      return;
+    // Validate each file
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Validate file size (10MB per file)
+      if (file.size > 10 * 1024 * 1024) {
+        errors.push(`${file.name}: 10MBを超えています`);
+        continue;
+      }
+
+      newFiles.push(file);
     }
 
-    setSelectedFile(file);
-    setError(null);
+    if (errors.length > 0) {
+      setError(errors.join(', '));
+    }
+
+    setSelectedFiles(prev => [...prev, ...newFiles]);
     setValidationErrors([]);
     setSuccessMessage(null);
   }, []);
@@ -195,67 +206,93 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
     }
   }, [canUploadData, handleFileSelect]);
 
-  // Upload file
+  // Remove a file from selected files
+  const removeFile = useCallback((index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setError(null);
+  }, []);
+
+  // Clear all selected files
+  const clearFiles = useCallback(() => {
+    setSelectedFiles([]);
+    setError(null);
+  }, []);
+
+  // Upload files (multiple files support)
   const handleUpload = async () => {
-    if (!selectedFile || !canUploadData) return;
+    if (selectedFiles.length === 0 || !canUploadData) return;
 
     setIsUploading(true);
     setError(null);
     setValidationErrors([]);
     setUploadProgress(0);
 
+    const results: { success: boolean; fileName: string; error?: string }[] = [];
+
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('data_type', dataType);
-      if (description) {
-        formData.append('description', description);
-      }
-
-      // Upload with progress simulation
-      const uploadPromise = fetch(`/api/member/orders/${order.id}/data-receipt`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      // Simulate progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 100);
-
-      const response = await uploadPromise;
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-
-        // Handle validation errors
-        if (errorData.details && Array.isArray(errorData.details)) {
-          setValidationErrors(errorData.details);
+      // Upload files sequentially
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('data_type', dataType);
+        if (description) {
+          formData.append('description', description);
         }
 
-        throw new Error(errorData.error || errorData.errorEn || 'アップロードに失敗しました');
+        try {
+          const response = await fetch(`/api/member/orders/${order.id}/data-receipt`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            results.push({
+              success: false,
+              fileName: file.name,
+              error: errorData.error || errorData.errorEn || 'アップロードに失敗しました',
+            });
+          } else {
+            results.push({ success: true, fileName: file.name });
+          }
+        } catch (err) {
+          results.push({
+            success: false,
+            fileName: file.name,
+            error: err instanceof Error ? err.message : '予期しないエラーが発生しました',
+          });
+        }
+
+        // Update progress
+        setUploadProgress(Math.round(((i + 1) / selectedFiles.length) * 100));
       }
 
-      const result = await response.json();
+      // Show results summary
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
 
-      if (result.success) {
-        setSuccessMessage('ファイルをアップロードしました');
-        setSelectedFile(null);
-        setDescription('');
-        loadUploadedFiles();
-
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccessMessage(null), 3000);
+      if (failCount === 0) {
+        setSuccessMessage(`${successCount}件のファイルをアップロードしました`);
+      } else if (successCount === 0) {
+        setError(`${failCount}件のファイルのアップロードに失敗しました`);
+      } else {
+        setSuccessMessage(`${successCount}件成功、${failCount}件失敗`);
       }
+
+      // Show detailed errors if any
+      const failedFiles = results.filter(r => !r.success);
+      if (failedFiles.length > 0) {
+        console.error('Failed uploads:', failedFiles);
+      }
+
+      setSelectedFiles([]);
+      setDescription('');
+      loadUploadedFiles();
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
     } finally {
@@ -414,6 +451,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
               disabled={isUploading}
+              multiple
             />
 
             {isUploading ? (
@@ -430,7 +468,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                   />
                 </div>
               </div>
-            ) : selectedFile ? (
+            ) : selectedFiles.length > 0 ? (
               <div>
                 <svg
                   className="mx-auto h-12 w-12 text-green-600"
@@ -446,20 +484,52 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                   />
                 </svg>
                 <p className="mt-4 text-sm font-medium text-gray-900">
-                  {selectedFile.name}
+                  {selectedFiles.length}個のファイルが選択されています
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {formatFileSize(selectedFile.size)}
-                </p>
-                <p
-                  className="text-sm text-blue-600 mt-2 cursor-pointer hover:underline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFile(null);
-                  }}
-                >
-                  別のファイルを選択
-                </p>
+                <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                      <div className="flex-1 truncate">
+                        <span className="font-medium">{file.name}</span>
+                        <span className="text-gray-500 ml-2">({formatFileSize(file.size)})</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(index);
+                        }}
+                        className="text-red-600 hover:text-red-800 ml-2"
+                        disabled={isUploading}
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-center space-x-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearFiles();
+                    }}
+                    className="text-sm text-red-600 hover:text-red-800"
+                    disabled={isUploading}
+                  >
+                    全てクリア
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                    disabled={isUploading}
+                  >
+                    ファイルを追加
+                  </button>
+                </div>
               </div>
             ) : (
               <div>
@@ -480,19 +550,22 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                   ファイルをドラッグ&ドロップまたは
                   <span className="text-blue-600 font-medium"> クリックして選択</span>
                 </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  複数のファイルを一度にアップロードできます
+                </p>
               </div>
             )}
           </div>
 
           {/* Upload Button */}
-          {selectedFile && (
+          {selectedFiles.length > 0 && (
             <div className="mt-4 flex justify-end space-x-4">
               <Button
                 variant="secondary"
-                onClick={() => setSelectedFile(null)}
+                onClick={clearFiles}
                 disabled={isUploading}
               >
-                キャンセル
+                クリア
               </Button>
               <Button
                 variant="primary"
@@ -500,7 +573,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                 disabled={isUploading}
                 loading={isUploading}
               >
-                アップロード
+                {selectedFiles.length}個のファイルをアップロード
               </Button>
             </div>
           )}
