@@ -13,7 +13,8 @@ export async function generateStaticParams() {
     'box_with_valve',
     'spout_pouch',
     'flat_with_zip',
-    'roll_film'
+    'roll_film',
+    'gassho'
   ]
 
   return categories.map((category) => ({
@@ -134,6 +135,20 @@ export async function POST(
           downloadUrl: '/templates/roll-film.pdf',
           fileType: 'PDF'
         }
+      ],
+      gassho: [
+        {
+          filename: '合掌袋_テンプレート.ai',
+          displayName: '合掌袋 デザインテンプレート',
+          downloadUrl: '/templates/gassho-bag.ai',
+          fileType: 'AI'
+        },
+        {
+          filename: '合掌袋_テンプレート.pdf',
+          displayName: '合掌袋 デザインガイドライン',
+          downloadUrl: '/templates/gassho-bag.pdf',
+          fileType: 'PDF'
+        }
       ]
     }
 
@@ -189,7 +204,8 @@ export async function GET(
       box_with_valve: { count: 2, types: ['AI', 'PDF'] },
       spout_pouch: { count: 2, types: ['AI', 'PDF'] },
       flat_with_zip: { count: 2, types: ['AI', 'EPS'] },
-      roll_film: { count: 2, types: ['AI', 'PDF'] }
+      roll_film: { count: 2, types: ['AI', 'PDF'] },
+      gassho: { count: 2, types: ['AI', 'PDF'] }
     }
 
     const info = templateInfo[category]
