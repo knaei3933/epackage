@@ -86,17 +86,19 @@ export const GET = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  try {
-    const { id: orderId } = await (request as any).params;
-    console.log('[Admin Order Comments GET] Order ID:', orderId);
-    console.log('[Admin Order Comments GET] Authenticated user:', auth?.userId);
-  } catch (paramError) {
-    console.error('[Admin Order Comments GET] Error getting params:', paramError);
+  // Access params without await for Next.js 16 compatibility
+  const params = (request as any).params;
+  const orderId = params?.id;
+
+  if (!orderId) {
     return NextResponse.json(
-      { success: false, error: '注文IDの取得に失敗しました。', errorEn: 'Failed to get order ID' },
+      { success: false, error: '注文IDが指定されていません。', errorEn: 'Order ID is required' },
       { status: 400 }
     );
   }
+
+  console.log('[Admin Order Comments GET] Order ID:', orderId);
+  console.log('[Admin Order Comments GET] Authenticated user:', auth?.userId);
 
   // Use service client to bypass RLS
   const supabase = createServiceClient();
@@ -175,7 +177,17 @@ export const POST = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  const { id: orderId } = await (request as any).params;
+  // Access params without await for Next.js 16 compatibility
+  const params = (request as any).params;
+  const orderId = params?.id;
+
+  if (!orderId) {
+    return NextResponse.json(
+      { success: false, error: '注文IDが指定されていません。', errorEn: 'Order ID is required' },
+      { status: 400 }
+    );
+  }
+
   console.log('[Admin Order Comments POST] Order ID:', orderId);
 
   // Use service client to bypass RLS
