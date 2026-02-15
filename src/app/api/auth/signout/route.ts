@@ -62,9 +62,16 @@ export async function POST(request: NextRequest) {
           // Set cookies on the response
           setAll(cookiesToSet) {
             for (const { name, value, options } of cookiesToSet) {
-              // When setting a cookie with maxAge=0 or expired date, it deletes it
-              if (value === '' || (options?.maxAge && options.maxAge <= 0)) {
-                response.cookies.delete(name);
+              // When Supabase sends a deletion cookie (maxAge=0 or empty value),
+              // we must set it with the same attributes to properly delete it
+              if (value === '' || (options?.maxAge !== undefined && options.maxAge <= 0)) {
+                // Set cookie with expires in the past to delete it
+                // This preserves domain, path, and other attributes
+                response.cookies.set(name, '', {
+                  ...options,
+                  expires: new Date(0),
+                  maxAge: 0,
+                });
               } else {
                 response.cookies.set(name, value, options);
               }
