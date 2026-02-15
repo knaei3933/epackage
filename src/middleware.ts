@@ -524,6 +524,54 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================================================
+  // /member/* page routes - Add authentication headers for server components
+  // =====================================================
+  if (pathname.startsWith('/member') && !pathname.startsWith('/api/member')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] Processing /member page route:', pathname);
+    }
+
+    const response = NextResponse.next();
+
+    // DEV_MODE: Check for mock user cookie first
+    if (isDevMode) {
+      const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+
+      if (devMockUserId) {
+        console.log('[Middleware] DEV_MODE: Setting headers for /member page:', devMockUserId);
+        response.headers.set('x-dev-mode', 'true');
+        response.headers.set('x-user-id', devMockUserId);
+        response.headers.set('x-user-role', 'MEMBER');
+        response.headers.set('x-user-status', 'ACTIVE');
+
+        return addSecurityHeaders(response);
+      }
+    }
+
+    // Normal auth: extract user info and add to headers for server components
+    const { supabase, response: authResponse } = createMiddlewareClient(request);
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (user && !error) {
+      // Get user profile for role and status
+      const profile = await getUserProfile(supabase, user.id);
+      authResponse.headers.set('x-user-id', user.id);
+      authResponse.headers.set('x-user-role', profile?.role || 'MEMBER');
+      authResponse.headers.set('x-user-status', profile?.status || 'ACTIVE');
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] Added auth headers for /member page:', user.id, profile?.role, profile?.status);
+      }
+    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] No auth for /member page - will redirect to signin');
+      }
+    }
+
+    return addSecurityHeaders(authResponse);
+  }
+
+  // =====================================================
   // DEV_MODE: Bypass authentication for testing (SECURE: server-side only)
   // =====================================================
   // Check for dev mode - enabled when ENABLE_DEV_MOCK_AUTH is true in non-production environments
@@ -735,7 +783,28 @@ export async function middleware(request: NextRequest) {
   authResponse.headers.set('x-user-role', profile.role);
   authResponse.headers.set('x-user-status', profile.status);
 
-  return addSecurityHeaders(authResponse);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Middleware] Setting auth headers for server components:', {
+      'x-user-id': user.id,
+      'x-user-role': profile.role,
+      'x-user-status': profile.status,
+    });
+  }
+
+  const finalResponse = addSecurityHeaders(authResponse);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Middleware] Final response headers (auth):', {
+      hasUserId: finalResponse.headers.has('x-user-id'),
+      hasUserRole: finalResponse.headers.has('x-user-role'),
+      hasUserStatus: finalResponse.headers.has('x-user-status'),
+      userId: finalResponse.headers.get('x-user-id'),
+      userRole: finalResponse.headers.get('x-user-role'),
+      userStatus: finalResponse.headers.get('x-user-status'),
+    });
+  }
+
+  return finalResponse;
 }
 
 // =====================================================
