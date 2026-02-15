@@ -94,29 +94,22 @@ export async function POST(request: NextRequest) {
       console.log('[Signout] Deleting cookie:', name);
     }
 
-    // Create response with all deletion headers
-    const response = NextResponse.json(
-      { success: true, message: 'ログアウトしました' },
-      {
-        headers: Object.fromEntries(
-          cookieDeletionHeaders.map((header, i) => [`set-cookie-${i}`, header])
-        ),
-      }
-    );
+    // Create Headers object and append all Set-Cookie headers
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
 
-    // Actually set the Set-Cookie headers properly
-    // Next.js requires us to append headers in a specific way
+    // Append each Set-Cookie header separately
+    for (const cookieHeader of cookieDeletionHeaders) {
+      headers.append('set-cookie', cookieHeader);
+    }
+
+    // Create response with proper headers
     const finalResponse = new Response(JSON.stringify({ success: true, message: 'ログアウトしました' }), {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        ...Object.fromEntries(
-          cookieDeletionHeaders.map((header, i) => [`set-cookie`, header])
-        ),
-      },
+      headers: headers,
     });
 
-    console.log('[Signout] All cookies deleted');
+    console.log('[Signout] All cookies deleted, sending', cookieDeletionHeaders.length, 'Set-Cookie headers');
 
     return finalResponse;
   } catch (error) {
