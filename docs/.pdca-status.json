@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-15T21:51:05.423Z",
+  "lastUpdated": "2026-02-15T22:08:49.460Z",
   "activeFeatures": [
     "[id]",
     "admin",
@@ -30,7 +30,8 @@
     "compare",
     "seo",
     "corporate-number",
-    "test"
+    "test",
+    "corporation"
   ],
   "primaryFeature": "[id]",
   "features": {
@@ -394,7 +395,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-15T21:02:25.446Z",
-        "lastUpdated": "2026-02-15T21:29:54.868Z"
+        "lastUpdated": "2026-02-15T22:02:38.586Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\corporate-number\\route.ts"
     },
@@ -410,6 +411,19 @@
         "lastUpdated": "2026-02-15T21:51:05.423Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\test\\route.ts"
+    },
+    "corporation": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-15T22:08:49.460Z",
+        "lastUpdated": "2026-02-15T22:08:49.460Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\corporation\\route.ts"
     }
   },
   "pipeline": {
@@ -420,7 +434,7 @@
   "session": {
     "startedAt": "2026-02-14T01:23:57.443Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-15T21:51:05.423Z"
+    "lastActivity": "2026-02-15T22:08:49.460Z"
   },
   "history": [
     {
@@ -1056,6 +1070,18 @@
     {
       "timestamp": "2026-02-15T21:51:05.423Z",
       "feature": "test",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T22:02:38.587Z",
+      "feature": "corporate-number",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-15T22:08:49.460Z",
+      "feature": "corporation",
       "phase": "do",
       "action": "updated"
     }
