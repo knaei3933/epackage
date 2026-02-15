@@ -36,11 +36,11 @@ const cancellationActionSchema = z.object({
 
 export const POST = withAdminAuth(async (
   request: NextRequest,
-  auth
+  auth,
+  context
 ) => {
-  // Access params without await for Next.js 16 compatibility
-  const params = (request as any).params;
-  const orderId = params?.id;
+  // Next.js 16: params is provided in context as a Promise
+  const { id: orderId } = await context.params;
 
   if (!orderId) {
     return NextResponse.json(
@@ -158,11 +158,11 @@ export const POST = withAdminAuth(async (
 
 export const GET = withAdminAuth(async (
   request: NextRequest,
-  auth
+  auth,
+  context
 ) => {
-  // Access params without await for Next.js 16 compatibility
-  const params = (request as any).params;
-  const orderId = params?.id;
+  // Next.js 16: params is provided in context as a Promise
+  const { id: orderId } = await context.params;
 
   if (!orderId) {
     return NextResponse.json(
