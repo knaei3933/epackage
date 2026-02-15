@@ -39,83 +39,86 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // PRODUCTION: Use Supabase SSR to properly clear session and cookies
+    // PRODUCTION: Invalidate session and delete cookies
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-    // Create response object first
-    const response = NextResponse.json({
-      success: true,
-      message: 'ログアウトしました',
-    });
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     // Get all Supabase cookies from the request to know what to delete
     const requestCookies = request.cookies.getAll();
-    const supabaseCookieNames = requestCookies
-      .filter(c => c.name.startsWith('sb-'))
-      .map(c => c.name);
+    const supabaseCookies = requestCookies.filter(c => c.name.startsWith('sb-'));
 
-    console.log('[Signout] Found Supabase cookies:', supabaseCookieNames);
+    console.log('[Signout] Found Supabase cookies:', supabaseCookies.map(c => c.name));
 
-    // Create Supabase client with proper cookie handling
-    const supabase = createServerClient<Database>(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY,
+    // Invalidate the session using service role key
+    if (SUPABASE_SERVICE_ROLE_KEY && supabaseCookies.length > 0) {
+      try {
+        // Get the access token from cookies
+        const accessTokenCookie = supabaseCookies.find(c => c.name.includes('access-token'));
+        if (accessTokenCookie) {
+          // Invalidate the session using Supabase admin API
+          await fetch(`${SUPABASE_URL}/rest/v1/auth/admin/logout`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_SERVICE_ROLE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: accessTokenCookie.value }),
+          });
+          console.log('[Signout] Session invalidated via service role');
+        }
+      } catch (error) {
+        console.error('[Signout] Failed to invalidate session:', error);
+        // Continue anyway - cookie deletion is more important
+      }
+    }
+
+    // Create response with cookie deletion headers
+    const cookieDeletionHeaders = [];
+
+    // Build Set-Cookie headers to delete each Supabase cookie
+    for (const cookie of supabaseCookies) {
+      const name = cookie.name;
+
+      // Delete with domain .package-lab.com
+      cookieDeletionHeaders.push(
+        `${name}=; Path=/; Domain=.package-lab.com; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; Secure; SameSite=Lax`
+      );
+
+      // Delete without domain (fallback)
+      cookieDeletionHeaders.push(
+        `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; Secure; SameSite=Lax`
+      );
+
+      console.log('[Signout] Deleting cookie:', name);
+    }
+
+    // Create response with all deletion headers
+    const response = NextResponse.json(
+      { success: true, message: 'ログアウトしました' },
       {
-        cookies: {
-          // Read cookies from the request
-          getAll() {
-            return request.cookies.getAll();
-          },
-          // Set cookies on the response
-          setAll(cookiesToSet) {
-            for (const { name, value, options } of cookiesToSet) {
-              console.log('[Signout] Cookie update:', name, 'value:', value ? 'present' : 'empty', 'maxAge:', options?.maxAge);
-
-              // When Supabase sends a deletion cookie (maxAge=0 or empty value),
-              // we must set it with the same attributes to properly delete it
-              if (value === '' || (options?.maxAge !== undefined && options.maxAge <= 0)) {
-                // Set cookie with expires in the past to delete it
-                // This preserves domain, path, and other attributes
-                response.cookies.set(name, '', {
-                  ...options,
-                  expires: new Date(0),
-                  maxAge: 0,
-                });
-                console.log('[Signout] Deleting cookie:', name);
-              } else {
-                response.cookies.set(name, value, options);
-              }
-            }
-          },
-        },
+        headers: Object.fromEntries(
+          cookieDeletionHeaders.map((header, i) => [`set-cookie-${i}`, header])
+        ),
       }
     );
 
-    // Sign out from Supabase - this will trigger setAll with deletion cookies
-    await supabase.auth.signOut();
+    // Actually set the Set-Cookie headers properly
+    // Next.js requires us to append headers in a specific way
+    const finalResponse = new Response(JSON.stringify({ success: true, message: 'ログアウトしました' }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...Object.fromEntries(
+          cookieDeletionHeaders.map((header, i) => [`set-cookie`, header])
+        ),
+      },
+    });
 
-    // Fallback: Explicitly delete any remaining Supabase cookies
-    // This ensures cookies are deleted even if Supabase's signOut doesn't trigger setAll
-    for (const cookieName of supabaseCookieNames) {
-      console.log('[Signout] Fallback: deleting cookie', cookieName);
-      // Delete with all possible domain variations
-      response.cookies.set(cookieName, '', {
-        expires: new Date(0),
-        maxAge: 0,
-        path: '/',
-        domain: '.package-lab.com',
-      });
-      response.cookies.set(cookieName, '', {
-        expires: new Date(0),
-        maxAge: 0,
-        path: '/',
-      });
-    }
+    console.log('[Signout] All cookies deleted');
 
-    console.log('[Signout] Supabase session cleared');
-
-    return response;
+    return finalResponse;
   } catch (error) {
     console.error('Signout API error:', error);
 
