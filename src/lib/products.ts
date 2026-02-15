@@ -169,7 +169,7 @@ export const getLatestAnnouncements = unstable_cache(
   }
   },
   ['announcements:latest'],
-  { revalidate: 300, tags: ['announcements'] }
+  { revalidate: 60, tags: ['announcements'] }
 )
 
 /**
