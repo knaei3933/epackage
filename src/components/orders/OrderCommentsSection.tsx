@@ -425,15 +425,37 @@ interface OrderCommentsSectionWrapperProps {
 }
 
 export function OrderCommentsSectionWrapper({ orderId, fetchFn, compact, maxHeight, isAdmin }: OrderCommentsSectionWrapperProps) {
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering after client-side hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Try to use AuthContext, but handle case where it's not available (admin pages)
   let currentUserId: string | undefined = undefined;
 
-  try {
-    const { user } = useAuth();
-    currentUserId = user?.id;
-  } catch (error) {
-    // AuthProvider not available (admin pages), currentUserId remains undefined
-    console.debug('[OrderCommentsSectionWrapper] AuthProvider not available, running without auth context');
+  if (mounted) {
+    try {
+      const { user } = useAuth();
+      currentUserId = user?.id;
+    } catch (error) {
+      // AuthProvider not available (admin pages), currentUserId remains undefined
+      console.debug('[OrderCommentsSectionWrapper] AuthProvider not available, running without auth context');
+    }
+  }
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-muted-foreground">
+            コメントを読み込み中...
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return <OrderCommentsSection orderId={orderId} currentUserId={currentUserId} fetchFn={fetchFn} compact={compact} maxHeight={maxHeight} isAdmin={isAdmin} />;
