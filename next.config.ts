@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
     '@fontsource/noto-sans-jp',
     '@supabase/supabase-js',
     '@supabase/ssr',
+    'fast-xml-parser',
   ],
   images: {
     unoptimized: false,
