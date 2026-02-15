@@ -86,9 +86,17 @@ export const GET = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  const { id: orderId } = await (request as any).params;
-  console.log('[Admin Order Comments GET] Order ID:', orderId);
-  console.log('[Admin Order Comments GET] Authenticated user:', auth.userId);
+  try {
+    const { id: orderId } = await (request as any).params;
+    console.log('[Admin Order Comments GET] Order ID:', orderId);
+    console.log('[Admin Order Comments GET] Authenticated user:', auth?.userId);
+  } catch (paramError) {
+    console.error('[Admin Order Comments GET] Error getting params:', paramError);
+    return NextResponse.json(
+      { success: false, error: '注文IDの取得に失敗しました。', errorEn: 'Failed to get order ID' },
+      { status: 400 }
+    );
+  }
 
   // Use service client to bypass RLS
   const supabase = createServiceClient();

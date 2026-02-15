@@ -38,7 +38,18 @@ export const POST = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  const { id: orderId } = await (request as any).params;
+  let orderId;
+  try {
+    const params = await (request as any).params;
+    orderId = params.id;
+  } catch (paramError) {
+    console.error('[Cancellation POST] Error getting params:', paramError);
+    return NextResponse.json(
+      { error: '注文IDの取得に失敗しました。', code: 'INVALID_PARAMS' },
+      { status: 400 }
+    );
+  }
+
   const body = await request.json();
   const validationResult = cancellationActionSchema.safeParse(body);
 
@@ -150,7 +161,17 @@ export const GET = withAdminAuth(async (
   request: NextRequest,
   auth
 ) => {
-  const { id: orderId } = await (request as any).params;
+  let orderId;
+  try {
+    const params = await (request as any).params;
+    orderId = params.id;
+  } catch (paramError) {
+    console.error('[Cancellation GET] Error getting params:', paramError);
+    return NextResponse.json(
+      { error: '注文IDの取得に失敗しました。', code: 'INVALID_PARAMS' },
+      { status: 400 }
+    );
+  }
 
   // Use service client to bypass RLS
   const supabase = createServiceClient();
