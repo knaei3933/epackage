@@ -566,7 +566,7 @@ export async function middleware(request: NextRequest) {
 
     // 認証が必要なAPIの場合セッション検証
     // (ただし、/api/contact、/api/samples等は認証なしでも許可)
-    const publicAPIs = ['/api/contact', '/api/samples', '/api/quotation'];
+    const publicAPIs = ['/api/contact', '/api/samples', '/api/quotation', '/api/registry'];
     if (publicAPIs.some(api => pathname.startsWith(api))) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[Middleware] Exempting public API route:', pathname);
