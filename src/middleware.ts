@@ -66,7 +66,6 @@ const PUBLIC_ROUTES = [
   '/samples',
   '/print',
   '/guide',
-  '/roi-calculator',
   '/smart-quote',
   '/industry',
   '/news',

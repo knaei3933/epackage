@@ -220,7 +220,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
                 {/* Call to Action */}
                 <div className="space-y-4">
-                  <Link href="/roi-calculator">
+                  <Link href="/quote-simulator">
                     <Button variant="primary" size="lg" className="w-full text-lg py-4">
                       <Calculator className="w-5 h-5 mr-2" />
                       見積計算を開始
