@@ -99,3 +99,10 @@ update-*.js
 *_QA_REPORT.md
 *_INTEGRATION_TEST_REPORT.md
 .env*.local
+
+# Coverage reports
+coverage/
+
+# PDF files (large catalogs)
+design/**/*.pdf
+*.pdf
