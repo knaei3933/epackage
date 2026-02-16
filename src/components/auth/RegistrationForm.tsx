@@ -510,7 +510,7 @@ export default function RegistrationForm({
                       検索結果が{searchResults.length}件見つかりました。選択してください：
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
                       value={selectedSearchIndex}
                       onChange={(e) => handleSelectSearchResult(parseInt(e.target.value))}
                     >
@@ -647,7 +647,7 @@ export default function RegistrationForm({
 
           <select
             {...register('productCategory')}
-            className="w-full px-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500"
+            className="w-full px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
           >
             {PRODUCT_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -670,7 +670,7 @@ export default function RegistrationForm({
 
           <select
             {...register('acquisitionChannel')}
-            className="w-full px-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500"
+            className="w-full px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
           >
             <option value="">選択</option>
             {ACQUISITION_CHANNEL_OPTIONS.map((option) => (
