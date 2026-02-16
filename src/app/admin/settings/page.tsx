@@ -489,7 +489,7 @@ export default function AdminSettingsPage() {
   const handleSaveCustomerMarkup = async (customerId: string) => {
     setSavingCustomer(customerId);
     try {
-      const response = await fetch(`/api/admin/settings/customer-markup/${customerId}`, {
+      const response = await fetch(`/api/admin/settings/customer-markup?id=${customerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
