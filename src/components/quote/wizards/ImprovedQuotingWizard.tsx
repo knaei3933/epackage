@@ -1733,6 +1733,20 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         await new Promise(resolve => setTimeout(resolve, 0)) // resultの更新を待つ
         updateField('skuQuantities', [newQuantity])
       } else {
+        // 顧客別マークアップ率を取得
+        let customerMarkupRate = 0.2; // デフォルト20%
+        if (user?.id) {
+          try {
+            const response = await fetch('/api/user/markup-rate');
+            if (response.ok) {
+              const result = await response.json();
+              customerMarkupRate = result.data?.markupRate ?? 0.2;
+            }
+          } catch (e) {
+            console.warn('[handleQuantityChange] Failed to fetch markup rate:', e);
+          }
+        }
+
         // 新しい見積もりを計算（標準計算）
         newResult = await unifiedPricingEngine.calculateQuote({
           bagTypeId: state.bagTypeId,
@@ -1750,6 +1764,8 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           deliveryLocation: state.deliveryLocation,
           urgency: state.urgency,
           skuQuantities: state.skuQuantities,
+          // 顧客別マークアップ率
+          markupRate: customerMarkupRate,
           // 2列生産オプション関連パラメータ
           twoColumnOptionApplied: state.twoColumnOptionApplied,
           discountedUnitPrice: state.discountedUnitPrice,
@@ -3544,6 +3560,20 @@ function RealTimePriceDisplay() {
 
       setIsCalculating(true);
       try {
+        // 顧客別マークアップ率を取得
+        let customerMarkupRate = 0.2; // デフォルト20%
+        if (user?.id) {
+          try {
+            const response = await fetch('/api/user/markup-rate');
+            if (response.ok) {
+              const result = await response.json();
+              customerMarkupRate = result.data?.markupRate ?? 0.2;
+            }
+          } catch (e) {
+            console.warn('[calculatePrice] Failed to fetch markup rate:', e);
+          }
+        }
+
         // Calculate quotes for all quantities using unified pricing engine
         const quotes: Array<{
           quantity: number;
@@ -3570,6 +3600,8 @@ function RealTimePriceDisplay() {
             doubleSided: state.doubleSided,
             deliveryLocation: state.deliveryLocation,
             urgency: state.urgency,
+            // 顧客別マークアップ率
+            markupRate: customerMarkupRate,
             rollCount: state.rollCount, // 롤 필름 시 롤 개수
             // 2列生産オプション関連パラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
