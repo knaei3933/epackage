@@ -4,6 +4,7 @@
  */
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -21,9 +22,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Re-encode the name parameter (like debug endpoint does)
-    const encodedName = encodeURIComponent(name);
-    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${encodedName}&mode=1&type=12&history=0&close=0`;
+    // Use URLSearchParams for proper encoding
+    const params = new URLSearchParams();
+    params.set('id', apiKey);
+    params.set('name', name);
+    params.set('mode', '1');
+    params.set('type', '12');
+    params.set('history', '0');
+    params.set('close', '0');
+
+    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?${params.toString()}`;
 
     console.log('Fetching:', apiUrl);
 
