@@ -16,24 +16,6 @@ const nextConfig: NextConfig = {
     } : false,
   },
   // =====================================================
-  // Domain Redirects: www → non-www
-  // =====================================================
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.package-lab.com',
-          },
-        ],
-        destination: 'https://package-lab.com/:path*',
-        permanent: true,
-      },
-    ];
-  },
-  // =====================================================
   // Rewrites to fix trailing slash redirect loops
   // =====================================================
   async rewrites() {

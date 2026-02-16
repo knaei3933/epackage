@@ -291,6 +291,19 @@ function validateCSRFRequest(request: NextRequest): { valid: boolean; reason?: s
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const hostname = request.headers.get('host');
+
+  // =====================================================
+  // Domain Redirect: www → non-www
+  // =====================================================
+  // Redirect www.package-lab.com to package-lab.com
+  if (hostname === 'www.package-lab.com') {
+    const url = new URL(request.url);
+    url.protocol = 'https:';
+    url.hostname = 'package-lab.com';
+
+    return NextResponse.redirect(url, 308); // Permanent Redirect
+  }
 
   // Debug: Always log middleware execution
   if (process.env.NODE_ENV === 'development') {
