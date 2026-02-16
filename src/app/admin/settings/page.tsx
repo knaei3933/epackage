@@ -891,7 +891,7 @@ export default function AdminSettingsPage() {
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">고객 정보</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">회사명</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">마크업율</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">할인율</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">메모</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
                           </tr>
