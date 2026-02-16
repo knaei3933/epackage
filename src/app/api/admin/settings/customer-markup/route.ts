@@ -23,20 +23,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createServiceClient();
 
-    // Get all profiles (temporarily without role filter for debugging)
+    // Simple query without order for debugging
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        id,
-        email,
-        full_name,
-        company_name,
-        role,
-        markup_rate,
-        markup_rate_note,
-        created_at
-      `)
-      .order('company_name', { ascending: true, nullsFirst: false });
+      .select('*')
+      .limit(10);
 
     if (error) {
       console.error('Customer markup fetch error:', error);
