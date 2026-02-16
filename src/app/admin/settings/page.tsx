@@ -937,7 +937,7 @@ export default function AdminSettingsPage() {
                                     />
                                   ) : (
                                     <p className="text-sm font-medium text-gray-900">
-                                      {(customer.markupRate * 100).toFixed(0)}%
+                                      {((customer.markupRate ?? 0) * 100).toFixed(0)}%
                                     </p>
                                   )}
                                 </td>
