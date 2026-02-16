@@ -23,11 +23,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createServiceClient();
 
-    // Fetch all customers (excluding admin users)
+    // Fetch all customers (simple query for debugging)
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, company_name, role, markup_rate, markup_rate_note, created_at')
-      .limit(100);
+      .select('*')
+      .limit(10);
 
     if (error) {
       console.error('Customer markup fetch error:', error);
@@ -37,22 +37,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Transform data to match frontend interface
-    const transformedData = (data || []).map(profile => ({
-      id: profile.id,
-      email: profile.email,
-      fullName: profile.full_name,
-      companyName: profile.company_name,
-      role: profile.role,
-      markupRate: profile.markup_rate ?? 0.0, // Default to 0.0 (no discount)
-      markupRateNote: profile.markup_rate_note,
-      createdAt: profile.created_at
-    }));
-
+    // Return raw data for debugging
     return NextResponse.json({
       success: true,
-      data: transformedData,
-      count: transformedData.length
+      data: data || [],
+      count: data?.length || 0
     });
   } catch (error) {
     console.error('Customer markup API error:', error);
