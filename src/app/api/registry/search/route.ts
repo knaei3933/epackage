@@ -21,9 +21,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Build URL with proper UTF-8 encoding for Japanese characters
-    const encodedName = encodeURIComponent(name);
-    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${encodedName}&mode=1&type=12&history=0&close=0`;
+    // Build URL - searchParams.get() already decodes, so we need to encode again
+    // But we should use the original URL search param to avoid double encoding
+    const originalUrl = request.url;
+    const urlObj = new URL(originalUrl);
+    const rawName = urlObj.searchParams.get('name');
+
+    // Use raw name from URL (already encoded by browser/client)
+    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${rawName}&mode=1&type=12&history=0&close=0`;
 
     console.log('Fetching:', apiUrl);
 
