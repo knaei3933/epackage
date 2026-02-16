@@ -195,7 +195,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     // Invalidate all customer-markup cache entries
     // Since we don't have a way to iterate over cache keys, we clear the specific pattern
     // In production, you might want to use a more sophisticated cache invalidation strategy
-    const { searchParams } = new URL(request.url);
     const page = searchParams.get('page') || '1';
     const perPage = searchParams.get('perPage') || '20';
     const search = searchParams.get('search') || '';
