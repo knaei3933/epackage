@@ -991,16 +991,19 @@ export class PouchCostCalculator {
     const finalPriceJPY = subtotalJPY * 1.2;
     const salesMarginJPY = finalPriceJPY - subtotalJPY;
 
-    console.log('[calculateCostBreakdown] Price Calculation Detail', JSON.stringify({
-      baseCostKRW,
-      manufacturerPriceKRW,
-      manufacturerPriceJPY,
-      dutyJPY,
-      deliveryJPY,
-      subtotalJPY,
-      finalPriceJPY,
-      salesMarginJPY
-    }, null, 2));
+    // Security: Price calculation details only logged in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[calculateCostBreakdown] Price Calculation Detail', JSON.stringify({
+        baseCostKRW,
+        manufacturerPriceKRW,
+        manufacturerPriceJPY,
+        dutyJPY,
+        deliveryJPY,
+        subtotalJPY,
+        finalPriceJPY,
+        salesMarginJPY
+      }, null, 2));
+    }
 
     // Breakdown for display (すべてJPY)
     // すべての項目を最終段階で丸めることで、一貫性を保証

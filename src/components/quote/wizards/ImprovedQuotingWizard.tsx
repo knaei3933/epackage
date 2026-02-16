@@ -3309,7 +3309,7 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
                   setCouponCode(e.target.value.toUpperCase());
                   setCouponError('');
                 }}
-                placeholder="クーポンコード入力 (例: WELCOME5)"
+                placeholder="クーポンコード入力"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 uppercase"
                 disabled={isVerifyingCoupon}
                 onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
@@ -3328,9 +3328,6 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
                 {couponError}
               </div>
             )}
-            <p className="text-xs text-gray-500">
-              サンプルクーポン: WELCOME5 (5%割引), VIP10 (10%割引), FREESHIP (無料配送)
-            </p>
           </div>
         ) : (
           <div className="space-y-3">

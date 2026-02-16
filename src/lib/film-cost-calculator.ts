@@ -299,9 +299,6 @@ export class FilmCostCalculator {
     const deliveryCostPerRoll = dbSettings?.delivery_cost_per_roll ?? DELIVERY_COST_PER_ROLL;
     const kgPerRoll = dbSettings?.delivery_kg_per_roll ?? KG_PER_ROLL;
 
-    // DEBUG: 로스율 관련 로그 출력
-    console.log('[FilmCostCalculator DEBUG] lossRate:', lossRate, 'effectiveLossRate:', effectiveLossRate, 'length:', length);
-    console.log('[FilmCostCalculator DEBUG] lengthWithLoss calculation:', length, '*', '(1 +', effectiveLossRate, ') =', length * (1 + effectiveLossRate));
 
     // 로스 포함 미터수 계산 (effectiveLossRate 사용)
     const lengthWithLoss = length * (1 + effectiveLossRate);

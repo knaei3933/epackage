@@ -1093,7 +1093,7 @@ export function EnhancedQuoteSimulator() {
                             type="text"
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                            placeholder="クーポンコードを入力（例: WELCOME5）"
+                            placeholder="クーポンコードを入力"
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
                             data-testid="coupon-code-input"
                             onKeyPress={(e) => e.key === 'Enter' && validateCoupon()}

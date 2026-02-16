@@ -1221,10 +1221,13 @@ export class UnifiedPricingEngine {
     // unitPrice * totalQuantity === totalPrice を保証
     // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     // 小数点以下を含む場合: 168400.646... → 168500
-    console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
+    // Security: Rounding details only logged in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
+      console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
+      console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
+    }
     const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
-    console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
-    console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
     // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
     // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
     // 100円単位で切り上げた totalPrice から unitPrice を再計算
@@ -1454,10 +1457,13 @@ export class UnifiedPricingEngine {
     // unitPrice * totalQuantity === totalPrice を保証
     // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     // 小数点以下を含む場合: 168400.646... → 168500
-    console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
+    // Security: Rounding details only logged in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
+      console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
+      console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
+    }
     const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
-    console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
-    console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
     // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
     // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
     const unitPrice = roundedTotalPrice / totalQuantity;
