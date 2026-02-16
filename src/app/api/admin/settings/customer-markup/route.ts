@@ -27,7 +27,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, email, full_name, company_name, role, markup_rate, markup_rate_note, created_at')
-      .order('created_at', { ascending: false })
       .limit(100);
 
     if (error) {
