@@ -166,25 +166,25 @@ export default function RegistrationForm({
     setValue('legalEntityNumber', result.corporateNumber);
     setValue('companyName', result.name);
 
-    // addressフィールドから郵便番号と住所を解析して自動入力
-    if (result.address) {
-      // 郵便番号抽出 (〒XXX-XXXX 形式)
-      const postalMatch = result.address.match(/〒(\d{3})-(\d{4})/);
-      if (postalMatch) {
-        setValue('postalCode', `${postalMatch[1]}-${postalMatch[2]}`);
-      }
+    // APIから個別フィールドで住所情報が返ってきた場合、直接設定
+    if (result.prefecture) {
+      setValue('prefecture', result.prefecture);
+    }
+    if (result.city) {
+      setValue('city', result.city);
+    }
+    if (result.postalCode) {
+      setValue('postalCode', result.postalCode);
+    }
 
-      // 都道府県と市区町村抽出
+    // フォールバック: 個別フィールドがない場合、addressフィールドから解析
+    if (!result.prefecture && result.address) {
       let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
-
-      // 都道府県のマッチング
       const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
       if (prefectureMatch) {
         setValue('prefecture', prefectureMatch);
         addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
       }
-
-      // 残りを市区町村として設定
       setValue('city', addressWithoutPostal.trim());
     }
   };

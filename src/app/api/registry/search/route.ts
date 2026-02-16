@@ -38,23 +38,28 @@ function parseXmlResponse(text: string): any[] {
     const corpXml = matchResult[1];
     const nameMatch = corpXml.match(/<name[^>]*>([^<]+)<\/name>/);
     const numMatch = corpXml.match(/<corporateNumber[^>]*>([^<]+)<\/corporateNumber>/);
-    const addrMatch = corpXml.match(/<address[^>]*>([^<]+)<\/address>/);
     const prefMatch = corpXml.match(/<prefectureName[^>]*>([^<]*)<\/prefectureName>/);
     const cityMatch = corpXml.match(/<cityName[^>]*>([^<]*)<\/cityName>/);
     const streetMatch = corpXml.match(/<streetNumber[^>]*>([^<]*)<\/streetNumber>/);
+    const postMatch = corpXml.match(/<postCode[^>]*>([^<]*)<\/postCode>/);
 
-    // Build address from components if full address not available
-    let address = addrMatch?.[1] || '';
-    if (!address && (prefMatch?.[1] || cityMatch?.[1])) {
-      address = [prefMatch?.[1], cityMatch?.[1], streetMatch?.[1]]
-        .filter(Boolean)
-        .join('');
-    }
+    // Format postal code if available (XXX-XXXX format)
+    const postCode = postMatch?.[1] || '';
+    const formattedPostalCode = postCode.length === 7
+      ? `${postCode.substring(0, 3)}-${postCode.substring(3)}`
+      : postCode;
 
     corps.push({
       name: nameMatch?.[1] || '',
       corporateNumber: numMatch?.[1] || '',
-      address: address
+      prefecture: prefMatch?.[1] || '',
+      city: cityMatch?.[1] || '',
+      streetNumber: streetMatch?.[1] || '',
+      postalCode: formattedPostalCode,
+      // Full address for backward compatibility
+      address: [prefMatch?.[1], cityMatch?.[1], streetMatch?.[1]]
+        .filter(Boolean)
+        .join('')
     });
   }
   return corps;
