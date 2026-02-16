@@ -7,13 +7,20 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { stringify } from 'querystring';
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const name = searchParams.get('name');
+  // Get the raw URL and extract the encoded name parameter
+  const rawUrl = request.url;
+  const urlMatch = rawUrl.match(/[?&]name=([^&]+)/);
 
-  if (!name || name.length < 2) {
+  if (!urlMatch) {
+    return NextResponse.json({ error: 'Name parameter required' }, { status: 400 });
+  }
+
+  const encodedName = urlMatch[1];
+  const name = decodeURIComponent(encodedName);
+
+  if (name.length < 2) {
     return NextResponse.json({ error: 'Name parameter required (min 2 characters)' }, { status: 400 });
   }
 
@@ -23,17 +30,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Use querystring.stringify for proper UTF-8 encoding
-    const params = stringify({
-      id: apiKey,
-      name: name,
-      mode: '1',
-      type: '12',
-      history: '0',
-      close: '0'
-    });
-
-    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?${params}`;
+    // Build URL with the already-encoded name from browser
+    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${encodedName}&mode=1&type=12&history=0&close=0`;
 
     console.log('Fetching:', apiUrl);
 
