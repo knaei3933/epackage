@@ -241,7 +241,7 @@ export async function POST(
     // 9. Send production start notification for approval
     if (action === 'approve') {
       try {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
         // 顧客メールアドレスを取得（fallback で user.email も試行）
         let customerEmail = order.customer_email;
@@ -279,7 +279,7 @@ export async function POST(
     // 10. For rejection, notify Korea designer
     if (action === 'reject') {
       try {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
         // データベースからデザイナーメール取得
         const { data: setting } = await supabase

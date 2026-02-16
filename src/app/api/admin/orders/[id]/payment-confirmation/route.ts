@@ -236,7 +236,7 @@ export async function POST(
         const designerEmails: string[] = setting?.value || [];
 
         if (designerEmails.length > 0) {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+          const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
           // 各デザイナーにメール送信
           for (const email of designerEmails) {

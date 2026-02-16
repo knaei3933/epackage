@@ -31,7 +31,7 @@ interface ApproveUserResponse {
 
 async function sendApprovalEmail(email: string, companyName: string): Promise<void> {
   try {
-    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/member/signin`;
+    const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/member/signin`;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[Email Mock] Approval Email:', {

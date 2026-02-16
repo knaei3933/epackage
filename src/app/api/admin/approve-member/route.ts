@@ -175,7 +175,7 @@ async function sendApprovalEmail(
   companyName?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`;
+    const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/login`;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[Email Mock] Approval Email:', {

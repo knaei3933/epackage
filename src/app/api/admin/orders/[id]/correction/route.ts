@@ -349,7 +349,7 @@ export async function POST(
     // 顧客に通知を送信（通知オプションがオンの場合のみ）
     if (notifyCustomer && order.customer_email) {
       try {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
         await sendTemplatedEmail(
           'correction_ready_for_review',

@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T04:38:53.288Z",
+  "lastUpdated": "2026-02-16T04:43:59.235Z",
   "activeFeatures": [
     "[id]",
     "admin",
@@ -39,7 +39,15 @@
     "food-manufacturing",
     "cosmetics",
     "pharmaceutical",
-    "register"
+    "register",
+    "forgot-password",
+    "approve",
+    "approve-member",
+    "resend-verification",
+    "send",
+    "correction",
+    "payment-confirmation",
+    "spec-approval"
   ],
   "primaryFeature": "[id]",
   "features": {
@@ -536,6 +544,110 @@
         "lastUpdated": "2026-02-16T04:38:53.288Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\auth\\register\\route.ts"
+    },
+    "forgot-password": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:41:09.161Z",
+        "lastUpdated": "2026-02-16T04:41:13.860Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\auth\\forgot-password\\route.ts"
+    },
+    "approve": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:41:32.322Z",
+        "lastUpdated": "2026-02-16T04:41:32.322Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\users\\approve\\route.ts"
+    },
+    "approve-member": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:43:16.589Z",
+        "lastUpdated": "2026-02-16T04:43:16.589Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\approve-member\\route.ts"
+    },
+    "resend-verification": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:43:24.059Z",
+        "lastUpdated": "2026-02-16T04:43:24.059Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\auth\\resend-verification\\route.ts"
+    },
+    "send": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:43:32.224Z",
+        "lastUpdated": "2026-02-16T04:43:32.224Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\invites\\send\\route.ts"
+    },
+    "correction": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:43:39.779Z",
+        "lastUpdated": "2026-02-16T04:43:39.779Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\orders\\[id]\\correction\\route.ts"
+    },
+    "payment-confirmation": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:43:47.061Z",
+        "lastUpdated": "2026-02-16T04:43:47.061Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\orders\\[id]\\payment-confirmation\\route.ts"
+    },
+    "spec-approval": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T04:43:59.235Z",
+        "lastUpdated": "2026-02-16T04:43:59.235Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\orders\\[id]\\spec-approval\\route.ts"
     }
   },
   "pipeline": {
@@ -546,7 +658,7 @@
   "session": {
     "startedAt": "2026-02-14T01:23:57.443Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T04:38:53.288Z"
+    "lastActivity": "2026-02-16T04:43:59.235Z"
   },
   "history": [
     {
@@ -1560,6 +1672,60 @@
     {
       "timestamp": "2026-02-16T04:38:53.288Z",
       "feature": "register",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:41:09.161Z",
+      "feature": "forgot-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:41:13.860Z",
+      "feature": "forgot-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:41:32.322Z",
+      "feature": "approve",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:43:16.589Z",
+      "feature": "approve-member",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:43:24.059Z",
+      "feature": "resend-verification",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:43:32.224Z",
+      "feature": "send",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:43:39.779Z",
+      "feature": "correction",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:43:47.061Z",
+      "feature": "payment-confirmation",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T04:43:59.235Z",
+      "feature": "spec-approval",
       "phase": "do",
       "action": "updated"
     }

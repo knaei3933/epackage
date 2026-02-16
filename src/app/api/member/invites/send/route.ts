@@ -83,7 +83,7 @@ async function sendInvitationEmail(
   message?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
     const inviteUrl = `${appUrl}/member/invites/accept?token=${token}`;
 
     // Development mode: log email details

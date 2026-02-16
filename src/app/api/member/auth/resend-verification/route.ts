@@ -34,7 +34,7 @@ function generateVerificationToken(): string {
 }
 
 function generateVerificationUrl(email: string, token: string): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
   return `${appUrl}/member/register/verify?email=${encodeURIComponent(email)}&token=${token}`;
 }
 

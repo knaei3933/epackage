@@ -48,7 +48,7 @@ async function handleForgotPasswordPost(request: NextRequest) {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Create a fake reset link (in real scenario, this would come from Supabase)
-      const mockResetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password?token=mock-token-${Date.now()}`;
+      const mockResetLink = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/reset-password?token=mock-token-${Date.now()}`;
 
       console.log('[FORGOT PASSWORD API] Mock reset link:', mockResetLink);
 
@@ -83,7 +83,7 @@ async function handleForgotPasswordPost(request: NextRequest) {
     const { error } = await supabase.auth.resetPasswordForEmail(
       validatedData.email,
       {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/reset-password`,
       }
     );
 
