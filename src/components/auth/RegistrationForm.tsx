@@ -109,7 +109,7 @@ export default function RegistrationForm({
   } = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
-      businessType: BusinessType.INDIVIDUAL,
+      businessType: BusinessType.CORPORATION,
       productCategory: ProductCategory.OTHER,
       ...defaultValues,
     },
@@ -602,7 +602,7 @@ export default function RegistrationForm({
                 </label>
                 <select
                   {...register('prefecture')}
-                  className="w-full px-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500"
+                  className="w-full h-10 px-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500"
                 >
                   <option value="">選択</option>
                   {PREFECTURE_OPTIONS.map((pref) => (
