@@ -142,7 +142,7 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     icon: Coins,
     groups: [
       { title: '마진율', description: '가격 정책 설정', icon: TrendingUp, keywords: ['마진', 'MARGIN', '마크업', 'MARKUP', '기본', '제조업체', '최소', '판매'] },
-      { title: '고객별 마크업율', description: '고객별 마크업율 관리', icon: PercentIcon, keywords: ['__CUSTOMER_MARKUP__'] },
+      { title: '고객별 할인율', description: '고객별 할인율 관리 (0% ~ -50%)', icon: PercentIcon, keywords: ['__CUSTOMER_MARKUP__'] },
     ]
   },
 };
@@ -226,7 +226,7 @@ export default function AdminSettingsPage() {
   const [customerSearch, setCustomerSearch] = useState('');
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<{ markupRate: number; markupRateNote: string }>({
-    markupRate: 0.5,
+    markupRate: 0.0,
     markupRateNote: ''
   });
 
@@ -483,7 +483,7 @@ export default function AdminSettingsPage() {
 
   const handleCancelEdit = () => {
     setEditingCustomerId(null);
-    setEditFormData({ markupRate: 0.5, markupRateNote: '' });
+    setEditFormData({ markupRate: 0.0, markupRateNote: '' });
   };
 
   const handleSaveCustomerMarkup = async (customerId: string) => {
@@ -507,7 +507,7 @@ export default function AdminSettingsPage() {
             ? { ...c, markupRate: result.data.markupRate, markupRateNote: result.data.markupRateNote }
             : c
         ));
-        showMessage('success', '마크업율이 저장되었습니다');
+        showMessage('success', '할인율이 저장되었습니다');
         setEditingCustomerId(null);
       } else {
         showMessage('error', result.error || '저장 실패');
@@ -852,8 +852,8 @@ export default function AdminSettingsPage() {
                           <PercentIcon className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">고객별 마크업율</h3>
-                          <p className="text-sm text-gray-500">고객별 마크업율 관리</p>
+                          <h3 className="text-lg font-semibold text-gray-900">고객별 할인율</h3>
+                          <p className="text-sm text-gray-500">고객별 할인율 관리 (0% ~ -50%)</p>
                         </div>
                       </div>
                       <button
@@ -929,8 +929,8 @@ export default function AdminSettingsPage() {
                                     <input
                                       type="number"
                                       step="0.01"
-                                      min="0"
-                                      max="2"
+                                      min="-0.5"
+                                      max="0"
                                       value={editFormData.markupRate}
                                       onChange={(e) => setEditFormData({ ...editFormData, markupRate: parseFloat(e.target.value) || 0 })}
                                       className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm"

@@ -90,14 +90,14 @@ export async function PUT(
     // Validation
     if (markupRate === undefined || typeof markupRate !== 'number') {
       return NextResponse.json(
-        { error: 'markupRate는 숫자여야 합니다 (0.0 - 2.0)' },
+        { error: 'markupRate는 숫자여야 합니다 (-0.5 - 0.0)' },
         { status: 400 }
       );
     }
 
-    if (markupRate < 0 || markupRate > 2) {
+    if (markupRate < -0.5 || markupRate > 0) {
       return NextResponse.json(
-        { error: 'markupRate는 0부터 2 사이여야 합니다 (0% - 200%)' },
+        { error: 'markupRate는 -0.5부터 0 사이여야 합니다 (-50% - 0%)' },
         { status: 400 }
       );
     }

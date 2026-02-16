@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-16T02:22:31.423Z",
+  "timestamp": "2026-02-16T12:51:49.486Z",
   "reason": "compaction",
   "status": {
     "version": "2.0",
-    "lastUpdated": "2026-02-16T02:22:14.501Z",
+    "lastUpdated": "2026-02-16T12:50:27.771Z",
     "activeFeatures": [
       "[id]",
       "admin",
@@ -41,7 +41,23 @@
       "about",
       "food-manufacturing",
       "cosmetics",
-      "pharmaceutical"
+      "pharmaceutical",
+      "register",
+      "forgot-password",
+      "approve",
+      "approve-member",
+      "resend-verification",
+      "send",
+      "correction",
+      "payment-confirmation",
+      "spec-approval",
+      "orders",
+      "wizards",
+      "quote",
+      "markup-rate",
+      "%5Bid%5D",
+      "print",
+      "industry"
     ],
     "primaryFeature": "[id]",
     "features": {
@@ -54,9 +70,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-14T01:46:50.504Z",
-          "lastUpdated": "2026-02-14T22:07:26.429Z"
+          "lastUpdated": "2026-02-16T05:36:04.723Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\member\\quotations\\[id]\\QuotationDetailClient.tsx"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\quotations\\[id]\\route.ts"
       },
       "admin": {
         "phase": "do",
@@ -80,9 +96,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-14T04:52:06.363Z",
-          "lastUpdated": "2026-02-14T04:52:06.363Z"
+          "lastUpdated": "2026-02-16T09:01:21.079Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\quotations\\route.ts"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\quotations\\route.ts"
       },
       "specification-change": {
         "phase": "do",
@@ -119,9 +135,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-14T07:22:24.472Z",
-          "lastUpdated": "2026-02-16T01:44:04.667Z"
+          "lastUpdated": "2026-02-16T12:50:27.771Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\next.config.ts"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\middleware.ts"
       },
       "current-user": {
         "phase": "do",
@@ -145,7 +161,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-14T08:55:01.610Z",
-          "lastUpdated": "2026-02-16T02:22:14.501Z"
+          "lastUpdated": "2026-02-16T05:13:43.407Z"
         },
         "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\auth\\RegistrationForm.tsx"
       },
@@ -158,9 +174,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-14T11:14:35.723Z",
-          "lastUpdated": "2026-02-16T01:44:04.844Z"
+          "lastUpdated": "2026-02-16T04:36:30.390Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\contexts\\AuthContext.tsx"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\contexts\\CatalogContext.tsx"
       },
       "dashboard": {
         "phase": "do",
@@ -301,9 +317,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-15T03:51:51.241Z",
-          "lastUpdated": "2026-02-15T03:51:51.241Z"
+          "lastUpdated": "2026-02-16T12:04:47.215Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\home\\CTASection.tsx"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\home\\PremiumProductShowcase.tsx"
       },
       "layout": {
         "phase": "do",
@@ -392,9 +408,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-15T03:53:12.518Z",
-          "lastUpdated": "2026-02-15T03:53:12.518Z"
+          "lastUpdated": "2026-02-16T12:01:44.409Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\seo\\BreadcrumbList.tsx"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\lib\\seo\\index.ts"
       },
       "corporate-number": {
         "phase": "do",
@@ -457,7 +473,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-16T00:24:48.771Z",
-          "lastUpdated": "2026-02-16T01:46:09.065Z"
+          "lastUpdated": "2026-02-16T04:24:34.122Z"
         },
         "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\search\\route.ts"
       },
@@ -525,6 +541,214 @@
           "lastUpdated": "2026-02-16T01:43:25.062Z"
         },
         "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\industry\\pharmaceutical\\page.tsx"
+      },
+      "register": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:38:53.287Z",
+          "lastUpdated": "2026-02-16T04:38:53.288Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\auth\\register\\route.ts"
+      },
+      "forgot-password": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:41:09.161Z",
+          "lastUpdated": "2026-02-16T04:41:13.860Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\auth\\forgot-password\\route.ts"
+      },
+      "approve": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:41:32.322Z",
+          "lastUpdated": "2026-02-16T05:21:25.347Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\users\\[id]\\approve\\route.ts"
+      },
+      "approve-member": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:43:16.589Z",
+          "lastUpdated": "2026-02-16T04:43:16.589Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\approve-member\\route.ts"
+      },
+      "resend-verification": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:43:24.059Z",
+          "lastUpdated": "2026-02-16T04:43:24.059Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\auth\\resend-verification\\route.ts"
+      },
+      "send": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:43:32.224Z",
+          "lastUpdated": "2026-02-16T04:43:32.224Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\invites\\send\\route.ts"
+      },
+      "correction": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:43:39.779Z",
+          "lastUpdated": "2026-02-16T04:43:39.779Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\orders\\[id]\\correction\\route.ts"
+      },
+      "payment-confirmation": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:43:47.061Z",
+          "lastUpdated": "2026-02-16T04:43:47.061Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\orders\\[id]\\payment-confirmation\\route.ts"
+      },
+      "spec-approval": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T04:43:59.235Z",
+          "lastUpdated": "2026-02-16T04:43:59.235Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\orders\\[id]\\spec-approval\\route.ts"
+      },
+      "orders": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T05:18:06.029Z",
+          "lastUpdated": "2026-02-16T05:18:18.431Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\orders\\route.ts"
+      },
+      "wizards": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T06:14:08.803Z",
+          "lastUpdated": "2026-02-16T11:56:30.553Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\quote\\wizards\\ImprovedQuotingWizard.tsx"
+      },
+      "quote": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T09:13:45.131Z",
+          "lastUpdated": "2026-02-16T09:13:45.131Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\hooks\\quote\\useQuoteCalculation.ts"
+      },
+      "markup-rate": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T11:56:30.669Z",
+          "lastUpdated": "2026-02-16T11:56:30.669Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\user\\markup-rate\\route.ts"
+      },
+      "%5Bid%5D": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T11:56:38.411Z",
+          "lastUpdated": "2026-02-16T11:56:38.411Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\settings\\customer-markup\\%5Bid%5D\\route.ts"
+      },
+      "print": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T12:02:12.098Z",
+          "lastUpdated": "2026-02-16T12:02:24.049Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\print\\page.tsx"
+      },
+      "industry": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-16T12:05:38.720Z",
+          "lastUpdated": "2026-02-16T12:05:38.720Z"
+        },
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\industry\\TechnicalSpecsSection.tsx"
       }
     },
     "pipeline": {
@@ -535,7 +759,7 @@
     "session": {
       "startedAt": "2026-02-14T01:23:57.443Z",
       "onboardingCompleted": false,
-      "lastActivity": "2026-02-16T02:22:14.501Z"
+      "lastActivity": "2026-02-16T12:50:27.771Z"
     },
     "history": [
       {
@@ -1441,6 +1665,570 @@
       {
         "timestamp": "2026-02-16T02:22:14.501Z",
         "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T02:37:17.534Z",
+        "feature": "search",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T02:37:36.569Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T02:43:30.818Z",
+        "feature": "search",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T02:43:49.369Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T02:47:59.559Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T03:01:35.674Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T03:03:54.925Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T03:06:35.007Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:24:08.931Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:24:12.405Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:24:24.429Z",
+        "feature": "search",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:24:34.122Z",
+        "feature": "search",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:24:45.131Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:32:49.224Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:32:53.492Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:36:30.390Z",
+        "feature": "contexts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:38:14.460Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:38:53.288Z",
+        "feature": "register",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:41:09.161Z",
+        "feature": "forgot-password",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:41:13.860Z",
+        "feature": "forgot-password",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:41:32.322Z",
+        "feature": "approve",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:43:16.589Z",
+        "feature": "approve-member",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:43:24.059Z",
+        "feature": "resend-verification",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:43:32.224Z",
+        "feature": "send",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:43:39.779Z",
+        "feature": "correction",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:43:47.061Z",
+        "feature": "payment-confirmation",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T04:43:59.235Z",
+        "feature": "spec-approval",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:05:56.152Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:13:06.490Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:13:17.950Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:13:43.407Z",
+        "feature": "auth",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:18:06.029Z",
+        "feature": "orders",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:18:18.431Z",
+        "feature": "orders",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:21:25.347Z",
+        "feature": "approve",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:29:05.739Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T05:36:04.723Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:00:47.801Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:00:59.378Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:01:03.217Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:01:07.779Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:11:39.124Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:11:59.645Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:12:18.567Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:14:08.803Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:14:20.158Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:14:41.419Z",
+        "feature": "home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:20:48.203Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:20:48.413Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:20:48.555Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:20:48.717Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:20:48.870Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:20:49.015Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:21:48.630Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:22:15.918Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T06:23:14.403Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T08:37:15.903Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T08:37:21.043Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T08:37:50.533Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T08:38:00.339Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T08:38:05.422Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T09:01:07.775Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T09:01:21.079Z",
+        "feature": "quotations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T09:02:57.694Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T09:13:45.131Z",
+        "feature": "quote",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T11:56:30.553Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T11:56:30.669Z",
+        "feature": "markup-rate",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T11:56:38.411Z",
+        "feature": "%5Bid%5D",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:01:08.097Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:01:14.784Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:01:24.855Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:01:31.111Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:01:44.409Z",
+        "feature": "seo",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:01:57.402Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:02:02.559Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:02:12.098Z",
+        "feature": "print",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:02:24.049Z",
+        "feature": "print",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:02:40.401Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:03:15.517Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:03:42.717Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:03:50.713Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:04:00.807Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:04:46.828Z",
+        "feature": "home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:04:47.012Z",
+        "feature": "home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:04:47.215Z",
+        "feature": "home",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:04:47.438Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:05:38.544Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:05:38.720Z",
+        "feature": "industry",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:05:38.915Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:05:39.117Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:27:23.820Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:28:38.822Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:31:31.981Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:31:48.642Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-16T12:50:27.771Z",
+        "feature": "02.epac_homepagever1.1",
         "phase": "do",
         "action": "updated"
       }

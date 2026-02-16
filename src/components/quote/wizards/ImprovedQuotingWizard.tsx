@@ -3825,17 +3825,17 @@ export function ImprovedQuotingWizard() {
           console.log(`[handleNext] Calculating quote for ${useSKUMode ? 'SKU' : 'single'} mode, total quantity: ${totalQuantity}`);
 
           // Get customer-specific markup rate (if logged in)
-          let markupRate = 0.5; // Default 50%
+          let markupRate = 0.0; // Default 0% (no discount)
           if (user?.id) {
             try {
               // Fetch customer markup rate from API
               const response = await fetch('/api/user/markup-rate');
               if (response.ok) {
                 const result = await response.json();
-                markupRate = result.data?.markupRate ?? 0.5;
+                markupRate = result.data?.markupRate ?? 0.0;
                 console.log('[handleNext] Customer markup rate:', markupRate);
               } else {
-                console.warn('[handleNext] Failed to fetch markup rate, using default 50%');
+                console.warn('[handleNext] Failed to fetch markup rate, using default 0%');
               }
             } catch (error) {
               console.warn('[handleNext] Failed to fetch markup rate, using default 50%:', error);

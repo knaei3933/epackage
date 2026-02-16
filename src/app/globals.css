@@ -384,6 +384,55 @@
     outline-color: var(--error-500);
   }
 
+  /* Chrome Autofill Styles */
+  /* Standard autofill - uses bg-primary background */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus {
+    /* Preserve background color from design system */
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-primary) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* For filled variant inputs (bg-secondary) */
+  input[data-variant="filled"]:-webkit-autofill,
+  input[data-variant="filled"]:-webkit-autofill:hover,
+  input[data-variant="filled"]:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+  }
+
+  /* For ghost variant (transparent background) - minimal styling */
+  input[data-variant="ghost"]:-webkit-autofill,
+  input[data-variant="ghost"]:-webkit-autofill:hover,
+  input[data-variant="ghost"]:-webkit-autofill:focus {
+    -webkit-box-shadow: none !important;
+    background-color: transparent !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+  }
+
+  /* Dark mode autofill support */
+  @media (prefers-color-scheme: dark) {
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+      -webkit-text-fill-color: var(--text-primary) !important;
+    }
+
+    input[data-variant="filled"]:-webkit-autofill,
+    input[data-variant="filled"]:-webkit-autofill:hover,
+    input[data-variant="filled"]:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px var(--bg-muted) inset !important;
+    }
+  }
+
   /* Navigation Styles */
   .nav-link {
     color: #6b7280;

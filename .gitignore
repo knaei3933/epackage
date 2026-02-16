@@ -108,3 +108,4 @@ coverage/
 # PDF files (large catalogs)
 design/**/*.pdf
 *.pdf
+.vercel
