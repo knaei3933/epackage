@@ -163,25 +163,31 @@ export default function RegistrationForm({
 
   // 検索結果をフォームに適用する関数
   const applySearchResult = (result: any) => {
+    console.log('applySearchResult called with:', result);
     setValue('legalEntityNumber', result.corporateNumber);
     setValue('companyName', result.name);
 
     // APIから個別フィールドで住所情報が返ってきた場合、直接設定
     if (result.prefecture) {
+      console.log('Setting prefecture:', result.prefecture);
       setValue('prefecture', result.prefecture, { shouldValidate: true, shouldDirty: true });
     }
     if (result.city) {
+      console.log('Setting city:', result.city);
       setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
     }
     if (result.postalCode) {
+      console.log('Setting postalCode:', result.postalCode);
       setValue('postalCode', result.postalCode, { shouldValidate: true, shouldDirty: true });
     }
 
     // フォールバック: 個別フィールドがない場合、addressフィールドから解析
     if (!result.prefecture && result.address) {
+      console.log('Using fallback address parsing');
       let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
       const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
       if (prefectureMatch) {
+        console.log('Fallback: found prefecture:', prefectureMatch);
         setValue('prefecture', prefectureMatch, { shouldValidate: true, shouldDirty: true });
         addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
       }
