@@ -227,6 +227,11 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
 
   const debouncedUpdateURL = useMemo(() => debounce(() => {
     if (typeof window !== 'undefined') {
+      // Only update URL if we're on the catalog page
+      // This prevents redirecting from homepage to catalog on page load
+      if (!window.location.pathname.startsWith('/catalog')) {
+        return
+      }
       const queryString = createQueryString(state.filters, state.sort)
       const newUrl = queryString ? `/catalog?${queryString}` : '/catalog'
       window.history.replaceState(null, '', newUrl)
