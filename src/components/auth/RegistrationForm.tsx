@@ -152,7 +152,7 @@ export default function RegistrationForm({
         }
         // 複数の場合はドロップダウンを表示（ユーザーが選択するのを待つ）
       } else {
-        setCorporateSearchError('検索結果が見つかりませんでした。');
+        setCorporateSearchError('検索結果が見つかりませんでした。※データベースに未登録の場合は、会社名と法人番号を手動で入力してください（例: アイネコスメティクス株式会社 / 3140001129128）');
       }
     } catch (error) {
       setCorporateSearchError(error instanceof Error ? error.message : '法人番号の検索に失敗しました。');
@@ -450,7 +450,7 @@ export default function RegistrationForm({
                   label="会社名"
                   placeholder="株式会社イパッケージLab"
                   {...register('companyName')}
-                  helperText="会社名を入力して「法人番号自動検索」ボタンをクリックすると、正式名称と所在地が自動反映されます。"
+                  helperText="会社名を入力してください。法人番号自動検索も利用できます（※検索対象外の場合は手動で法人番号を入力してください）"
                 />
                 <div className="mt-2">
                   <Button
@@ -501,7 +501,7 @@ export default function RegistrationForm({
                   error={errors.legalEntityNumber?.message}
                   maxLength={13}
                   {...register('legalEntityNumber')}
-                  helperText="※会社名から自動検索されます"
+                  helperText="※自動検索対象外の場合は、手動で法人番号を入力してください（例: 3140001129128）"
                 />
                 <Input
                   label="役職"
