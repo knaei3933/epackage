@@ -154,7 +154,7 @@ async function handleRegisterPost(request: NextRequest) {
           city: validatedData.city || null,
           street: validatedData.street || null,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/pending`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/pending`,
       },
     })
 
