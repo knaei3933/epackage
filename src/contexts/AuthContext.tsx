@@ -236,7 +236,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const timeUntilExpiry = expiresAt - now;
 
         // 期限切れ5分前（300,000ms）または既に期限切れの場合にリフレッシュ
-        if (timeUntilExpiry <= 5 * 60 * 1000) {
+        if (timeUntilExpiry <= 10 * 60 * 1000) {
           console.log('[AuthContext] Session expiring soon, refreshing...')
 
           // Use the shared fetch session function
@@ -245,7 +245,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (error) {
         console.error('[AuthContext] Session refresh error:', error);
       }
-    }, 60 * 1000); // ✅ 1分ごとにチェック
+    }, 5 * 60 * 1000); // ✅ 1分ごとにチェック
 
     // NOTE: onAuthStateChange listener removed because:
     // 1. Client-side supabase client uses localStorage, but we're using httpOnly cookies

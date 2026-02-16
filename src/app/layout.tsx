@@ -11,9 +11,6 @@ import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
 
-// Force dynamic rendering to avoid useSearchParams bailout during build
-export const dynamic = 'force-dynamic';
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

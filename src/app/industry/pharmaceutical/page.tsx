@@ -2,9 +2,6 @@ import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
 import { PharmaceuticalContent } from '@/components/industry/PharmaceuticalContent'
 
-// Force dynamic rendering to prevent useSearchParams bailout during build
-export const dynamic = 'force-dynamic';
-
 // SEO Metadata for Pharmaceuticals
 export async function generateMetadata(): Promise<Metadata> {
   return {

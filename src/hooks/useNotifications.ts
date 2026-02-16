@@ -33,7 +33,7 @@ interface UseNotificationsOptions {
  */
 export function useNotifications(options: UseNotificationsOptions = {}): UseNotificationsResult {
   const {
-    refreshInterval = 30000, // 30秒デフォルト
+    refreshInterval = 60000, // 60秒デフォルト
     unreadOnly = false,
     limit = 50,
   } = options;
