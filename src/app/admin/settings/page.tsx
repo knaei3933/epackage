@@ -954,15 +954,20 @@ export default function AdminSettingsPage() {
                                 </td>
                                 <td className="px-6 py-4">
                                   {editingCustomerId === customer.id ? (
-                                    <input
-                                      type="number"
-                                      step="0.01"
-                                      min="-0.5"
-                                      max="0"
-                                      value={editFormData.markupRate}
-                                      onChange={(e) => setEditFormData({ ...editFormData, markupRate: parseFloat(e.target.value) || 0 })}
-                                      className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm"
-                                    />
+                                    <div>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        min="-0.5"
+                                        max="0"
+                                        value={editFormData.markupRate}
+                                        onChange={(e) => setEditFormData({ ...editFormData, markupRate: parseFloat(e.target.value) || 0 })}
+                                        className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm"
+                                      />
+                                      <p className="text-xs text-gray-400 mt-1">
+                                        예: -0.1 (10% 할인), -0.2 (20% 할인)
+                                      </p>
+                                    </div>
                                   ) : (
                                     <p className="text-sm font-medium text-gray-900">
                                       {((customer.markupRate ?? 0) * 100).toFixed(0)}%
