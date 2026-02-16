@@ -1969,7 +1969,17 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Failed to save quotation');
+        console.error('[handleSave] API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          quotationData: {
+            customer_name: quotationData.customer_name,
+            customer_email: quotationData.customer_email,
+            itemsCount: quotationData.items?.length || 0,
+          }
+        });
+        throw new Error(errorData.error || errorData.errorEn || 'Failed to save quotation');
       }
 
       const savedQuotation = await response.json();
@@ -1984,7 +1994,14 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
-      console.error('Failed to save quote:', error);
+      console.error('[handleSave] ========================================');
+      console.error('[handleSave] Failed to save quote:');
+      console.error('[handleSave] Error name:', error instanceof Error ? error.name : typeof error);
+      console.error('[handleSave] Error message:', error instanceof Error ? error.message : String(error));
+      console.error('[handleSave] Error stack:', error instanceof Error ? error.stack : 'no stack');
+      console.error('[handleSave] User authenticated:', !!user?.id);
+      console.error('[handleSave] User email:', user?.email || 'N/A');
+      console.error('[handleSave] ========================================');
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } finally {
@@ -2123,7 +2140,13 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         });
 
         if (!saveResponse.ok) {
-          throw new Error('Failed to save quotation');
+          const errorData = await saveResponse.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('[handleSubmit] Save API error:', {
+            status: saveResponse.status,
+            statusText: saveResponse.statusText,
+            errorData,
+          });
+          throw new Error(errorData.error || errorData.errorEn || 'Failed to save quotation');
         }
 
         const savedQuotation = await saveResponse.json();
@@ -2142,7 +2165,13 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       setSubmitStatus('success');
       setTimeout(() => setSubmitStatus('idle'), 3000);
     } catch (error) {
-      console.error('Failed to submit quotation:', error);
+      console.error('[handleSubmit] ========================================');
+      console.error('[handleSubmit] Failed to submit quotation:');
+      console.error('[handleSubmit] Error name:', error instanceof Error ? error.name : typeof error);
+      console.error('[handleSubmit] Error message:', error instanceof Error ? error.message : String(error));
+      console.error('[handleSubmit] Error stack:', error instanceof Error ? error.stack : 'no stack');
+      console.error('[handleSubmit] User authenticated:', !!user?.id);
+      console.error('[handleSubmit] ========================================');
       setSubmitStatus('error');
       setTimeout(() => setSubmitStatus('idle'), 3000);
     } finally {

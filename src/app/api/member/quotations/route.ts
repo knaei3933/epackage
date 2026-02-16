@@ -101,11 +101,14 @@ export async function POST(request: NextRequest) {
     // Get authenticated user using unified authentication
     const authUser = await getAuthenticatedUser(request);
     if (!authUser) {
+      console.error('[Quotation API] Authentication failed: No user found in request');
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
       );
     }
+
+    console.log('[Quotation API] Authenticated user:', authUser.id);
 
     const { id: userId } = authUser;
 
@@ -227,15 +230,22 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (quotationError) {
-      console.error('[Quotation API] Insert quotation error:', quotationError);
-      console.error('[Quotation API] Error details:', JSON.stringify(quotationError, null, 2));
+      console.error('[Quotation API] ========================================');
+      console.error('[Quotation API] Insert quotation ERROR:');
+      console.error('[Quotation API] Error code:', quotationError.code);
+      console.error('[Quotation API] Error message:', quotationError.message);
+      console.error('[Quotation API] Error details:', quotationError.details);
+      console.error('[Quotation API] Error hint:', quotationError.hint);
+      console.error('[Quotation API] Full error:', JSON.stringify(quotationError, null, 2));
       console.error('[Quotation API] Request body:', JSON.stringify(body, null, 2));
       console.error('[Quotation API] User ID:', userId);
+      console.error('[Quotation API] ========================================');
       return NextResponse.json(
         {
           error: '見積の作成に失敗しました。',
           errorEn: 'Failed to create quotation',
-          details: quotationError.message,
+          details: process.env.NODE_ENV === 'development' ? quotationError.message : 'Internal server error',
+          code: quotationError.code,
         },
         { status: 500 }
       );
@@ -264,9 +274,16 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (itemsError) {
-      console.error('[Quotation API] Insert items error:', itemsError);
-      console.error('[Quotation API] Items error details:', JSON.stringify(itemsError, null, 2));
+      console.error('[Quotation API] ========================================');
+      console.error('[Quotation API] Insert quotation_items ERROR:');
+      console.error('[Quotation API] Error code:', itemsError.code);
+      console.error('[Quotation API] Error message:', itemsError.message);
+      console.error('[Quotation API] Error details:', itemsError.details);
+      console.error('[Quotation API] Error hint:', itemsError.hint);
+      console.error('[Quotation API] Full error:', JSON.stringify(itemsError, null, 2));
       console.error('[Quotation API] Items to insert:', JSON.stringify(itemsToInsert, null, 2));
+      console.error('[Quotation API] Quotation ID:', quotation.id);
+      console.error('[Quotation API] ========================================');
       // Rollback: delete quotation if items insertion fails
       await serviceClient.from('quotations').delete().eq('id', quotation.id);
 
@@ -274,7 +291,8 @@ export async function POST(request: NextRequest) {
         {
           error: '見積項目の登録に失敗しました。',
           errorEn: 'Failed to create quotation items',
-          details: itemsError.message,
+          details: process.env.NODE_ENV === 'development' ? itemsError.message : 'Internal server error',
+          code: itemsError.code,
         },
         { status: 500 }
       );

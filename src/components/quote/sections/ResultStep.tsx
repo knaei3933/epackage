@@ -958,7 +958,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error', errorEn: 'Failed to save quotation' }));
-        console.error('[saveQuotationToDatabase] API error:', errorData);
+        console.error('[saveQuotationToDatabase] ========================================');
+        console.error('[saveQuotationToDatabase] API error status:', response.status);
+        console.error('[saveQuotationToDatabase] API error data:', errorData);
+        console.error('[saveQuotationToDatabase] Request data:', {
+          customer_name: user?.kanjiLastName && user?.kanjiFirstName
+            ? `${user.kanjiLastName} ${user.kanjiFirstName}`
+            : user?.email?.split('@')[0] || 'Guest',
+          customer_email: user?.email || 'guest@example.com',
+          itemCount: itemsToSave.length,
+        });
+        console.error('[saveQuotationToDatabase] ========================================');
         throw new Error(errorData.error || errorData.errorEn || 'Failed to save quotation');
       }
 
@@ -966,7 +976,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       console.log('[saveQuotationToDatabase] 見積が自動保存されました:', savedQuotation);
       return savedQuotation.id || savedQuotation.quotation?.id || null;
     } catch (error) {
-      console.error('[saveQuotationToDatabase] 保存失敗:', error);
+      console.error('[saveQuotationToDatabase] ========================================');
+      console.error('[saveQuotationToDatabase] 保存失敗 (CATCH):');
+      console.error('[saveQuotationToDatabase] Error name:', error instanceof Error ? error.name : typeof error);
+      console.error('[saveQuotationToDatabase] Error message:', error instanceof Error ? error.message : String(error));
+      console.error('[saveQuotationToDatabase] Error stack:', error instanceof Error ? error.stack : 'no stack');
+      console.error('[saveQuotationToDatabase] User authenticated:', !!user?.id);
+      console.error('[saveQuotationToDatabase] User email:', user?.email || 'N/A');
+      console.error('[saveQuotationToDatabase] ========================================');
       // ✅ ユーザー体験を妨げないためにエラーを表示しない
       // PDFダウンロードは成功したので継続
       // エラーはコンソールにのみ出力
