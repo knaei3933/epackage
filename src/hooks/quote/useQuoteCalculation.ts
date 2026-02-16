@@ -177,7 +177,27 @@ export function useQuoteCalculation(options: QuoteCalculationOptions = {}) {
    */
   useEffect(() => {
     const calculatePrice = async () => {
-      if (!state.bagTypeId || !state.materialId || state.width === 0 || state.height === 0) {
+      // Validate required fields and minimum values
+      if (!state.bagTypeId || !state.materialId) {
+        setCurrentPrice(null);
+        setQuantityQuotes([]);
+        return;
+      }
+
+      // Check if dimensions are valid (10mm - 1000mm range)
+      const isValidDimension = (value: number | undefined): boolean => {
+        if (!value || value === 0) return false;
+        return value >= 10 && value <= 1000;
+      };
+
+      if (!isValidDimension(state.width) || !isValidDimension(state.height)) {
+        setCurrentPrice(null);
+        setQuantityQuotes([]);
+        return;
+      }
+
+      // Depth is optional but must be valid if provided
+      if (state.depth !== undefined && state.depth !== 0 && (state.depth < 10 || state.depth > 1000)) {
         setCurrentPrice(null);
         setQuantityQuotes([]);
         return;
