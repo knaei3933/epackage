@@ -294,16 +294,17 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host');
 
   // =====================================================
-  // Domain Redirect: www → non-www
+  // Domain Redirect: www → non-www (一時無効化)
   // =====================================================
-  // Redirect www.package-lab.com to package-lab.com
+  // TODO: Vercel側のドメイン設定が修正されたら有効化する
+  /*
   if (hostname === 'www.package-lab.com') {
     const url = new URL(request.url);
     url.protocol = 'https:';
     url.hostname = 'package-lab.com';
-
-    return NextResponse.redirect(url, 308); // Permanent Redirect
+    return NextResponse.redirect(url, 308);
   }
+  */
 
   // Debug: Always log middleware execution
   if (process.env.NODE_ENV === 'development') {
