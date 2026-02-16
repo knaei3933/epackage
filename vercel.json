@@ -51,14 +51,5 @@
         }
       ]
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/admin/settings/customer-markup",
-      "dest": "/api/admin/settings/customer-markup",
-      "methods": ["GET", "PUT"],
-      "maxRate": 30
-    }
-  ],
-  "crons": []
+  ]
 }
