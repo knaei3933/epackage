@@ -19,17 +19,16 @@ const nextConfig: NextConfig = {
   // Domain Redirects: www → non-www
   // =====================================================
   async redirects() {
-    const domain = 'package-lab.com';
     return [
       {
-        source: /:path*/,
+        source: '/:path*',
         has: [
           {
             type: 'host',
             value: 'www.package-lab.com',
           },
         ],
-        destination: `https://package-lab.com/:path*`,
+        destination: 'https://package-lab.com/:path*',
         permanent: true,
       },
     ];
