@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T01:09:19.251Z",
+  "lastUpdated": "2026-02-16T01:13:08.672Z",
   "activeFeatures": [
     "[id]",
     "admin",
@@ -33,7 +33,8 @@
     "test",
     "corporation",
     "company",
-    "search"
+    "search",
+    "debug"
   ],
   "primaryFeature": "[id]",
   "features": {
@@ -452,6 +453,19 @@
         "lastUpdated": "2026-02-16T01:09:19.251Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\search\\route.ts"
+    },
+    "debug": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T01:13:08.672Z",
+        "lastUpdated": "2026-02-16T01:13:08.672Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\registry\\debug\\route.ts"
     }
   },
   "pipeline": {
@@ -462,7 +476,7 @@
   "session": {
     "startedAt": "2026-02-14T01:23:57.443Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T01:09:19.251Z"
+    "lastActivity": "2026-02-16T01:13:08.672Z"
   },
   "history": [
     {
@@ -1182,6 +1196,12 @@
     {
       "timestamp": "2026-02-16T01:09:19.251Z",
       "feature": "search",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T01:13:08.672Z",
+      "feature": "debug",
       "phase": "do",
       "action": "updated"
     }
