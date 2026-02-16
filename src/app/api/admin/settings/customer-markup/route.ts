@@ -37,18 +37,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Debug: return raw data for now
     return NextResponse.json({
       success: true,
-      data: data?.map(customer => ({
-        id: customer.id,
-        email: customer.email,
-        fullName: customer.full_name,
-        companyName: customer.company_name,
-        role: customer.role,
-        markupRate: customer.markup_rate || 0.5,
-        markupRateNote: customer.markup_rate_note,
-        createdAt: customer.created_at
-      })) || [],
+      data: data || [],
       count: data?.length || 0
     });
   } catch (error) {
