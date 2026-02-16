@@ -23,6 +23,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createServiceClient();
 
+    // Get all profiles except admin - filter by role != 'ADMIN'
     const { data, error } = await supabase
       .from('profiles')
       .select(`
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         markup_rate_note,
         created_at
       `)
-      .in('role', ['customer', 'member'])
+      .neq('role', 'ADMIN')
       .order('company_name', { ascending: true, nullsFirst: false });
 
     if (error) {
