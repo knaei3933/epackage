@@ -3829,10 +3829,10 @@ export function ImprovedQuotingWizard() {
           if (user?.id) {
             try {
               // Fetch customer markup rate from API
-              const response = await fetch(`/api/admin/settings/customer-markup/${user.id}`);
+              const response = await fetch('/api/user/markup-rate');
               if (response.ok) {
-                const data = await response.json();
-                markupRate = data.markupRate ?? 0.5;
+                const result = await response.json();
+                markupRate = result.data?.markupRate ?? 0.5;
                 console.log('[handleNext] Customer markup rate:', markupRate);
               } else {
                 console.warn('[handleNext] Failed to fetch markup rate, using default 50%');

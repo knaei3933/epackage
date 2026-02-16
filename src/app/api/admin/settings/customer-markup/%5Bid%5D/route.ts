@@ -22,6 +22,11 @@ export async function GET(
   request: NextRequest,
   context: RouteContext
 ): Promise<NextResponse> {
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   try {
     const params = await context.params;
     const customerId = params.id;
