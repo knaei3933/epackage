@@ -1185,9 +1185,8 @@ export class UnifiedPricingEngine {
     const importCost = manufacturerPrice * 1.05;
 
     // Step 3: 輸入原価 + 販売マージン = 最終販売価格
-    // ドキュメント基準: フィルムロール20%、パウチ加工品20%
-    // シナリオ確認済み: 全製品20%で統一
-    const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
+    // 顧客別マークアップ率を適用（デフォルト20%、負の値は割引）
+    const salesMargin = markupRate;  // 顧客別マージン率を適用
 
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
@@ -1199,8 +1198,8 @@ export class UnifiedPricingEngine {
     // totalPrice = Math.max(totalPrice, CONSTANTS.MINIMUM_PRICE);
     let unitPrice = totalPrice / quantity
 
-    // マークアップ適用情報を計算（全製品20%で統一）
-    const salesMarginRate = 0.20; // 全製品20%で統一（ドキュメント準拠）
+    // マークアップ適用情報を計算（顧客別マージン率を適用）
+    const salesMarginRate = markupRate; // 顧客別マージン率を適用
     const markedUpPrice = postProcessingAdjustedBaseCost * (1 + salesMarginRate);
     const markupAmount = markedUpPrice - postProcessingAdjustedBaseCost;
 

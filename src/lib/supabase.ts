@@ -211,6 +211,8 @@ export interface Profile {
     capital?: string | null;
     representative_name?: string | null;
     business_document_path?: string | null;
+    markup_rate?: number | null;        // 顧客別マークアップ率 (-0.5 ～ 0.0, 負の値は割引)
+    markup_rate_note?: string | null;   // マークアップ率のメモ
     created_at: string;
     updated_at: string;
     last_login_at?: string | null;
