@@ -230,6 +230,12 @@ export default function AdminSettingsPage() {
     markupRateNote: ''
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const perPage = 20;
+
   // Load settings
   useEffect(() => {
     loadSettings();
@@ -447,14 +453,23 @@ export default function AdminSettingsPage() {
   };
 
   // Customer markup rate management functions
-  const loadCustomers = async () => {
+  const loadCustomers = async (page: number = currentPage) => {
     setLoadingCustomers(true);
     try {
-      const response = await fetch('/api/admin/settings/customer-markup');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        perPage: perPage.toString(),
+        ...(customerSearch && { search: customerSearch })
+      });
+
+      const response = await fetch(`/api/admin/settings/customer-markup?${params}`);
       const result = await response.json();
 
       if (result.success) {
         setCustomers(result.data || []);
+        setTotalPages(result.pagination?.totalPages || 1);
+        setTotalCustomers(result.pagination?.total || 0);
+        setCurrentPage(page);
       } else {
         showMessage('error', result.error || '고객 데이터 로드 실패');
       }
@@ -464,6 +479,19 @@ export default function AdminSettingsPage() {
     } finally {
       setLoadingCustomers(false);
     }
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      loadCustomers(newPage);
+    }
+  };
+
+  // Handle search with page reset
+  const handleCustomerSearch = (search: string) => {
+    setCustomerSearch(search);
+    setCurrentPage(1);
   };
 
   // Load customers when pricing tab is activated
@@ -878,7 +906,7 @@ export default function AdminSettingsPage() {
                           type="text"
                           placeholder="고객 검색... (이메일, 회사명)"
                           value={customerSearch}
-                          onChange={(e) => setCustomerSearch(e.target.value)}
+                          onChange={(e) => handleCustomerSearch(e.target.value)}
                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                         />
                       </div>
@@ -993,6 +1021,64 @@ export default function AdminSettingsPage() {
                           )}
                         </tbody>
                       </table>
+
+                      {/* Pagination */}
+                      {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                          <div className="text-sm text-gray-600">
+                            총 <span className="font-medium">{totalCustomers}</span>명의 고객
+                            <span className="mx-2">•</span>
+                            <span className="font-medium">{currentPage}</span> / {totalPages} 페이지
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handlePageChange(currentPage - 1)}
+                              disabled={currentPage === 1 || loadingCustomers}
+                              className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                            >
+                              <ChevronRight className="w-4 h-4 rotate-180" />
+                              이전
+                            </button>
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum;
+                                if (totalPages <= 5) {
+                                  pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                  pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                  pageNum = totalPages - 4 + i;
+                                } else {
+                                  pageNum = currentPage - 2 + i;
+                                }
+
+                                return (
+                                  <button
+                                    key={pageNum}
+                                    onClick={() => handlePageChange(pageNum)}
+                                    className={cn(
+                                      "min-w-[2rem] px-3 py-1 text-sm font-medium border rounded-lg",
+                                      currentPage === pageNum
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "border-gray-300 hover:bg-gray-50"
+                                    )}
+                                  >
+                                    {pageNum}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <button
+                              onClick={() => handlePageChange(currentPage + 1)}
+                              disabled={currentPage === totalPages || loadingCustomers}
+                              className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                            >
+                              다음
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}

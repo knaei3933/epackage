@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T14:04:24.565Z",
+  "lastUpdated": "2026-02-16T14:27:42.241Z",
   "activeFeatures": [
     "[id]",
     "admin",
@@ -56,7 +56,10 @@
     "print",
     "industry",
     "settings",
-    "customer-markup"
+    "customer-markup",
+    "guest-save",
+    "save",
+    "sections"
   ],
   "primaryFeature": "[id]",
   "features": {
@@ -95,7 +98,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-14T04:52:06.363Z",
-        "lastUpdated": "2026-02-16T09:01:21.079Z"
+        "lastUpdated": "2026-02-16T14:13:12.266Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\member\\quotations\\route.ts"
     },
@@ -680,7 +683,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T06:14:08.803Z",
-        "lastUpdated": "2026-02-16T13:44:57.562Z"
+        "lastUpdated": "2026-02-16T14:14:35.956Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\quote\\wizards\\ImprovedQuotingWizard.tsx"
     },
@@ -758,7 +761,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T13:16:56.972Z",
-        "lastUpdated": "2026-02-16T14:04:24.565Z"
+        "lastUpdated": "2026-02-16T14:27:42.241Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\admin\\settings\\page.tsx"
     },
@@ -771,9 +774,48 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T13:23:53.650Z",
-        "lastUpdated": "2026-02-16T14:04:09.608Z"
+        "lastUpdated": "2026-02-16T14:26:29.716Z"
       },
       "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\admin\\settings\\customer-markup\\route.ts"
+    },
+    "guest-save": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T14:06:34.498Z",
+        "lastUpdated": "2026-02-16T14:06:34.498Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\quotations\\guest-save\\route.ts"
+    },
+    "save": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T14:06:34.665Z",
+        "lastUpdated": "2026-02-16T14:06:35.007Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\quotations\\save\\route.ts"
+    },
+    "sections": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-16T14:13:21.208Z",
+        "lastUpdated": "2026-02-16T14:13:32.609Z"
+      },
+      "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\quote\\sections\\ResultStep.tsx"
     }
   },
   "pipeline": {
@@ -784,7 +826,7 @@
   "session": {
     "startedAt": "2026-02-14T01:23:57.443Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T14:04:24.565Z"
+    "lastActivity": "2026-02-16T14:27:42.241Z"
   },
   "history": [
     {
@@ -2403,6 +2445,114 @@
     },
     {
       "timestamp": "2026-02-16T14:04:24.565Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:06:34.498Z",
+      "feature": "guest-save",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:06:34.665Z",
+      "feature": "save",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:06:34.836Z",
+      "feature": "save",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:06:35.007Z",
+      "feature": "save",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:12:33.837Z",
+      "feature": "quotations",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:12:53.036Z",
+      "feature": "quotations",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:13:12.266Z",
+      "feature": "quotations",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:13:21.208Z",
+      "feature": "sections",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:13:32.609Z",
+      "feature": "sections",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:14:09.711Z",
+      "feature": "wizards",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:14:16.783Z",
+      "feature": "wizards",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:14:28.508Z",
+      "feature": "wizards",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:14:35.956Z",
+      "feature": "wizards",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:26:29.716Z",
+      "feature": "customer-markup",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:26:47.831Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:27:09.184Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:27:35.322Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-16T14:27:42.241Z",
       "feature": "settings",
       "phase": "do",
       "action": "updated"

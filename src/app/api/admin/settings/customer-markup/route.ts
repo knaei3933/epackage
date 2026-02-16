@@ -13,7 +13,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
  */
 
 /**
- * GET - 고객별 마크업율 목록 조회
+ * GET - 고객별 마크업율 목록 조회 (with pagination)
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const auth = await verifyAdminAuth(request);
@@ -24,11 +24,47 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = createServiceClient();
 
-    // Fetch all customers (simple query for debugging)
-    const { data, error } = await supabase
+    // Parse query parameters for pagination
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const perPage = parseInt(searchParams.get('perPage') || '20', 10);
+    const search = searchParams.get('search') || '';
+
+    // Validate pagination parameters
+    if (page < 1 || perPage < 1 || perPage > 100) {
+      return NextResponse.json(
+        { error: '유효하지 않은 페이지네이션 파라미터' },
+        { status: 400 }
+      );
+    }
+
+    // Get total count (with optional search filter)
+    let countQuery = supabase
       .from('profiles')
-      .select('*')
-      .limit(10);
+      .select('*', { count: 'exact', head: true });
+
+    if (search) {
+      countQuery = countQuery.or(`email.ilike.%${search}%,company_name.ilike.%${search}%`);
+    }
+
+    const { count } = await countQuery;
+
+    // Calculate range for pagination
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    // Fetch customers with pagination
+    let dataQuery = supabase
+      .from('profiles')
+      .select('id, email, company_name, markup_rate, markup_rate_note')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (search) {
+      dataQuery = dataQuery.or(`email.ilike.%${search}%,company_name.ilike.%${search}%`);
+    }
+
+    const { data, error } = await dataQuery;
 
     if (error) {
       console.error('Customer markup fetch error:', error);
@@ -38,11 +74,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Return raw data for debugging
+    // Calculate total pages
+    const totalPages = Math.ceil((count || 0) / perPage);
+
     return NextResponse.json({
       success: true,
       data: data || [],
-      count: data?.length || 0
+      pagination: {
+        page,
+        perPage,
+        total: count || 0,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
     });
   } catch (error) {
     console.error('Customer markup API error:', error);
