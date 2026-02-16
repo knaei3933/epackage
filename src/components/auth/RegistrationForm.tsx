@@ -154,11 +154,6 @@ export default function RegistrationForm({
       } else {
         setCorporateSearchError('検索結果が見つかりませんでした。');
       }
-
-        setCorporateSearchError(null);
-      } else {
-        setCorporateSearchError('適格請求書発行事業者が見つかりませんでした。正式名称（「株式会社」なども含む）で再度入力してください。');
-      }
     } catch (error) {
       setCorporateSearchError(error instanceof Error ? error.message : '法人番号の検索に失敗しました。');
     } finally {
