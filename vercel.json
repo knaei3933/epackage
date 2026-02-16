@@ -10,6 +10,55 @@
           "value": "public, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/member/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/api/admin/settings/customer-markup",
+      "dest": "/api/admin/settings/customer-markup",
+      "methods": ["GET", "PUT"],
+      "maxRate": 30
+    }
+  ],
+  "crons": []
 }
