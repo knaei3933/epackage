@@ -8,8 +8,10 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const name = searchParams.get('name');
+  // Extract name parameter directly from URL without decoding
+  const match = request.url.match(/[?&]name=([^&]+)/);
+  const rawName = match ? match[1] : null;
+  const name = rawName ? decodeURIComponent(rawName) : null;
 
   if (!name || name.length < 2) {
     return NextResponse.json({ error: 'Name parameter required (min 2 characters)' }, { status: 400 });
@@ -21,13 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Build URL - searchParams.get() already decodes, so we need to encode again
-    // But we should use the original URL search param to avoid double encoding
-    const originalUrl = request.url;
-    const urlObj = new URL(originalUrl);
-    const rawName = urlObj.searchParams.get('name');
-
-    // Use raw name from URL (already encoded by browser/client)
+    // Use the raw (encoded) name from URL
     const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${rawName}&mode=1&type=12&history=0&close=0`;
 
     console.log('Fetching:', apiUrl);
@@ -46,10 +42,10 @@ export async function GET(request: NextRequest) {
     // Parse XML response using regex
     const corps: any[] = [];
     const regex = /<corporation[^>]*>([\s\S]*?)<\/corporation>/g;
-    let match;
+    let matchResult;
 
-    while ((match = regex.exec(text)) !== null) {
-      const corpXml = match[1];
+    while ((matchResult = regex.exec(text)) !== null) {
+      const corpXml = matchResult[1];
       const nameMatch = corpXml.match(/<name[^>]*>([^<]+)<\/name>/);
       const numMatch = corpXml.match(/<corporateNumber[^>]*>([^<]+)<\/corporateNumber>/);
       const addrMatch = corpXml.match(/<address[^>]*>([^<]+)<\/address>/);
