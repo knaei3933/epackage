@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   // =====================================================
+  // Remove console.log in production builds
+  // =====================================================
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  // =====================================================
   // Rewrites to fix trailing slash redirect loops
   // =====================================================
   async rewrites() {
