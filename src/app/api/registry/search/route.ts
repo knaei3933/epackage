@@ -8,10 +8,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  // Extract name parameter directly from URL without decoding
-  const match = request.url.match(/[?&]name=([^&]+)/);
-  const rawName = match ? match[1] : null;
-  const name = rawName ? decodeURIComponent(rawName) : null;
+  const { searchParams } = new URL(request.url);
+  const name = searchParams.get('name');
 
   if (!name || name.length < 2) {
     return NextResponse.json({ error: 'Name parameter required (min 2 characters)' }, { status: 400 });
@@ -23,8 +21,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Use the raw (encoded) name from URL
-    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${rawName}&mode=1&type=12&history=0&close=0`;
+    // Re-encode the name parameter (like debug endpoint does)
+    const encodedName = encodeURIComponent(name);
+    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${encodedName}&mode=1&type=12&history=0&close=0`;
 
     console.log('Fetching:', apiUrl);
 
