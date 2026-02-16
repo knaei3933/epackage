@@ -19,7 +19,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUser } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
-import { sendAdminQuoteRequestEmail } from '@/lib/email';
+import { sendTemplatedEmail } from '@/lib/email';
+import { subject, plainText, html } from '@/lib/email/templates/quote_created_admin';
 
 // Initialize performance monitor
 const perfMonitor = getPerformanceMonitor({
@@ -304,6 +305,8 @@ export async function POST(request: NextRequest) {
     // Send notification email to admin
     // ========================================
     try {
+      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
+
       // Get user profile for company name
       const { data: profile } = await serviceClient
         .from('profiles')
@@ -313,22 +316,25 @@ export async function POST(request: NextRequest) {
 
       const companyName = profile?.company_name || 'EPackage Lab';
 
-      // Send email to admin using the template function
-      await sendAdminQuoteRequestEmail(
+      // Send email to admin using the template
+      await sendTemplatedEmail(
+        'info@package-lab.com', // Admin email recipient
+        'quote_created_admin',
         {
           quotation_id: quotation.id,
           quotation_number: quotation.quotation_number,
           customer_name: quotation.customer_name,
+          company_name: companyName,
           total_amount: Number(quotation.total_amount),
           valid_until: quotation.valid_until
             ? new Date(quotation.valid_until).toLocaleDateString('ja-JP')
             : '設定なし',
+          view_url: `${appUrl}/admin/quotations/${quotation.id}`,
+          submitted_at: new Date(quotation.created_at).toLocaleString('ja-JP'),
         },
-        {
-          name: quotation.customer_name,
-          email: quotation.customer_email,
-          company: companyName,
-        }
+        subject,
+        plainText,
+        html
       );
 
       console.log('[Quotation API] Admin notification email sent for quotation:', quotation.quotation_number);
