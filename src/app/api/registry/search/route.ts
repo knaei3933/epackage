@@ -1,6 +1,9 @@
 /**
  * Company Search API Route
  * Searches Japanese corporate numbers using Houjin Bangou API
+ *
+ * IMPORTANT: The API often requires company names WITHOUT legal suffixes.
+ * We automatically try both full name and name without suffix.
  */
 
 export const dynamic = 'force-dynamic';
@@ -8,23 +11,66 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 
+// Legal suffixes to remove for better search results
+const LEGAL_SUFFIXES = [
+  '株式会社', '有限会社', '合同会社', '合名会社', '合資会社',
+  'ＧＫ', 'ＫＫ', 'LLP', 'LLC'
+];
+
+function removeLegalSuffix(name: string): string {
+  let cleaned = name;
+  for (const suffix of LEGAL_SUFFIXES) {
+    if (cleaned.startsWith(suffix)) {
+      cleaned = cleaned.substring(suffix.length);
+    }
+    if (cleaned.endsWith(suffix)) {
+      cleaned = cleaned.substring(0, cleaned.length - suffix.length);
+    }
+  }
+  return cleaned.trim();
+}
+
+function parseXmlResponse(text: string): any[] {
+  const corps: any[] = [];
+  const regex = /<corporation[^>]*>([\s\S]*?)<\/corporation>/g;
+  let matchResult;
+  while ((matchResult = regex.exec(text)) !== null) {
+    const corpXml = matchResult[1];
+    const nameMatch = corpXml.match(/<name[^>]*>([^<]+)<\/name>/);
+    const numMatch = corpXml.match(/<corporateNumber[^>]*>([^<]+)<\/corporateNumber>/);
+    const addrMatch = corpXml.match(/<address[^>]*>([^<]+)<\/address>/);
+    const prefMatch = corpXml.match(/<prefectureName[^>]*>([^<]*)<\/prefectureName>/);
+    const cityMatch = corpXml.match(/<cityName[^>]*>([^<]*)<\/cityName>/);
+    const streetMatch = corpXml.match(/<streetNumber[^>]*>([^<]*)<\/streetNumber>/);
+
+    // Build address from components if full address not available
+    let address = addrMatch?.[1] || '';
+    if (!address && (prefMatch?.[1] || cityMatch?.[1])) {
+      address = [prefMatch?.[1], cityMatch?.[1], streetMatch?.[1]]
+        .filter(Boolean)
+        .join('');
+    }
+
+    corps.push({
+      name: nameMatch?.[1] || '',
+      corporateNumber: numMatch?.[1] || '',
+      address: address
+    });
+  }
+  return corps;
+}
+
+function getResultCount(xmlText: string): number {
+  const countMatch = xmlText.match(/<count>(\d+)<\/count>/);
+  return countMatch ? parseInt(countMatch[1], 10) : 0;
+}
+
 export async function GET(request: NextRequest) {
-  // Debug: log the raw URL
-  const rawUrl = request.url;
-  console.log('Raw URL:', rawUrl);
-
-  // Extract using regex
-  const urlMatch = rawUrl.match(/[?&]name=([^&]+)/);
-  const encodedName = urlMatch ? urlMatch[1] : null;
-  console.log('Extracted encoded name:', encodedName);
-
-  // Also get using searchParams for comparison
-  const { searchParams } = new URL(rawUrl);
+  const { searchParams } = new URL(request.url);
   const decodedName = searchParams.get('name');
-  console.log('Decoded name from searchParams:', decodedName);
 
   if (!decodedName || decodedName.length < 2) {
-    return NextResponse.json({ error: 'Name parameter required (min 2 characters)', debug: { rawUrl, encodedName, decodedName } }, { status: 400 });
+    return NextResponse.json({ error: 'Name parameter required (min 2 characters)' }, { status: 400 });
   }
 
   const apiKey = process.env.KEI_CORPORATE_API_ID || process.env.INVOICE_KOHYO_API_KEY;
@@ -33,72 +79,32 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Try with the extracted encoded name
-    const apiUrl1 = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${encodedName}&mode=1&type=12&history=0&close=0`;
-    console.log('API URL 1 (extracted):', apiUrl1);
-
-    const response1 = await fetch(apiUrl1);
-    console.log('Response 1 status:', response1.status);
-
-    if (response1.ok) {
-      const text = await response1.text();
-      // Parse XML response
-      const corps: any[] = [];
-      const regex = /<corporation[^>]*>([\s\S]*?)<\/corporation>/g;
-      let matchResult;
-      while ((matchResult = regex.exec(text)) !== null) {
-        const corpXml = matchResult[1];
-        const nameMatch = corpXml.match(/<name[^>]*>([^<]+)<\/name>/);
-        const numMatch = corpXml.match(/<corporateNumber[^>]*>([^<]+)<\/corporateNumber>/);
-        const addrMatch = corpXml.match(/<address[^>]*>([^<]+)<\/address>/);
-        corps.push({
-          name: nameMatch?.[1] || '',
-          corporateNumber: numMatch?.[1] || '',
-          address: addrMatch?.[1] || ''
-        });
-      }
-      return NextResponse.json(corps);
+    // Search terms to try: original name, then name without legal suffix
+    const searchTerms = [decodedName];
+    const cleanedName = removeLegalSuffix(decodedName);
+    if (cleanedName !== decodedName && cleanedName.length >= 2) {
+      searchTerms.push(cleanedName);
     }
 
-    const errorText1 = await response1.text();
-    console.error('API Error 1:', errorText1);
+    for (const searchTerm of searchTerms) {
+      const encodedTerm = encodeURIComponent(searchTerm);
+      const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${encodedTerm}&mode=1&type=12&history=0&close=0`;
 
-    // Try with re-encoded name
-    const reEncodedName = encodeURIComponent(decodedName);
-    const apiUrl2 = `https://api.houjin-bangou.nta.go.jp/4/name?id=${apiKey}&name=${reEncodedName}&mode=1&type=12&history=0&close=0`;
-    console.log('API URL 2 (re-encoded):', apiUrl2);
+      const response = await fetch(apiUrl);
 
-    const response2 = await fetch(apiUrl2);
-    console.log('Response 2 status:', response2.status);
+      if (response.ok) {
+        const text = await response.text();
+        const corps = parseXmlResponse(text);
 
-    if (response2.ok) {
-      const text = await response2.text();
-      const corps: any[] = [];
-      const regex = /<corporation[^>]*>([\s\S]*?)<\/corporation>/g;
-      let matchResult;
-      while ((matchResult = regex.exec(text)) !== null) {
-        const corpXml = matchResult[1];
-        const nameMatch = corpXml.match(/<name[^>]*>([^<]+)<\/name>/);
-        const numMatch = corpXml.match(/<corporateNumber[^>]*>([^<]+)<\/corporateNumber>/);
-        const addrMatch = corpXml.match(/<address[^>]*>([^<]+)<\/address>/);
-        corps.push({
-          name: nameMatch?.[1] || '',
-          corporateNumber: numMatch?.[1] || '',
-          address: addrMatch?.[1] || ''
-        });
+        // Return results if found
+        if (corps.length > 0) {
+          return NextResponse.json(corps);
+        }
       }
-      return NextResponse.json(corps);
     }
 
-    const errorText2 = await response2.text();
-    console.error('API Error 2:', errorText2);
-
-    return NextResponse.json({
-      error: 'Both attempts failed',
-      attempt1: { status: response1.status, error: errorText1.substring(0, 100) },
-      attempt2: { status: response2.status, error: errorText2.substring(0, 100) },
-      debug: { rawUrl, encodedName, decodedName, reEncodedName }
-    }, { status: 500 });
+    // No results found
+    return NextResponse.json([]);
 
   } catch (error) {
     console.error('Corporate number search error:', error);
