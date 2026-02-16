@@ -92,6 +92,8 @@ export default function RegistrationForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSearchingCorporate, setIsSearchingCorporate] = useState(false);
   const [corporateSearchError, setCorporateSearchError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState<number>(-1);
   const [isSearchingPostal, setIsSearchingPostal] = useState(false);
   const [postalSearchError, setPostalSearchError] = useState<string | null>(null);
 
@@ -128,6 +130,8 @@ export default function RegistrationForm({
 
     setIsSearchingCorporate(true);
     setCorporateSearchError(null);
+    setSearchResults([]);
+    setSelectedSearchIndex(-1);
 
     try {
       const response = await fetch(`/api/registry/search?name=${name}`);
@@ -139,33 +143,17 @@ export default function RegistrationForm({
       const data = await response.json();
 
       if (data.length > 0) {
-        const result = data[0];
-        // 検索結果をフォームに自動反映
-        setValue('legalEntityNumber', result.corporateNumber); // T + 13桁の登録番号
-        setValue('companyName', result.name);
+        setSearchResults(data);
 
-        // addressフィールドから郵便番号と住所を解析して自動入力
-        // 形式: "〒100-0001 東京都千代田区千代田1-1" のような形式
-        if (result.address) {
-          // 郵便番号抽出 (〒XXX-XXXX 形式)
-          const postalMatch = result.address.match(/〒(\d{3})-(\d{4})/);
-          if (postalMatch) {
-            setValue('postalCode', `${postalMatch[1]}-${postalMatch[2]}`);
-          }
-
-          // 都道府県と市区町村抽出
-          let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
-
-          // 都道府県のマッチング
-          const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
-          if (prefectureMatch) {
-            setValue('prefecture', prefectureMatch);
-            addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
-          }
-
-          // 残りを市区町村として設定
-          setValue('city', addressWithoutPostal.trim());
+        // 結果が1つのみの場合は自動入力
+        if (data.length === 1) {
+          const result = data[0];
+          applySearchResult(result);
         }
+        // 複数の場合はドロップダウンを表示（ユーザーが選択するのを待つ）
+      } else {
+        setCorporateSearchError('検索結果が見つかりませんでした。');
+      }
 
         setCorporateSearchError(null);
       } else {
@@ -175,6 +163,42 @@ export default function RegistrationForm({
       setCorporateSearchError(error instanceof Error ? error.message : '法人番号の検索に失敗しました。');
     } finally {
       setIsSearchingCorporate(false);
+    }
+  };
+
+  // 検索結果をフォームに適用する関数
+  const applySearchResult = (result: any) => {
+    setValue('legalEntityNumber', result.corporateNumber);
+    setValue('companyName', result.name);
+
+    // addressフィールドから郵便番号と住所を解析して自動入力
+    if (result.address) {
+      // 郵便番号抽出 (〒XXX-XXXX 形式)
+      const postalMatch = result.address.match(/〒(\d{3})-(\d{4})/);
+      if (postalMatch) {
+        setValue('postalCode', `${postalMatch[1]}-${postalMatch[2]}`);
+      }
+
+      // 都道府県と市区町村抽出
+      let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
+
+      // 都道府県のマッチング
+      const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
+      if (prefectureMatch) {
+        setValue('prefecture', prefectureMatch);
+        addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
+      }
+
+      // 残りを市区町村として設定
+      setValue('city', addressWithoutPostal.trim());
+    }
+  };
+
+  // ドロップダウンで検索結果を選択したときの関数
+  const handleSelectSearchResult = (index: number) => {
+    setSelectedSearchIndex(index);
+    if (searchResults[index]) {
+      applySearchResult(searchResults[index]);
     }
   };
 
@@ -446,6 +470,31 @@ export default function RegistrationForm({
                 </div>
                 {corporateSearchError && (
                   <p className="mt-2 text-sm text-warning-600">{corporateSearchError}</p>
+                )}
+                {searchResults.length > 1 && (
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      検索結果が{searchResults.length}件見つかりました。選択してください：
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      value={selectedSearchIndex}
+                      onChange={(e) => handleSelectSearchResult(parseInt(e.target.value))}
+                    >
+                      <option value={-1}>選択してください...</option>
+                      {searchResults.map((result, index) => (
+                        <option key={index} value={index}>
+                          {result.name} - {result.corporateNumber}
+                          {result.address && ` (${result.address})`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {searchResults.length === 1 && (
+                  <p className="mt-2 text-sm text-success-600">
+                    ✓ 検索結果が1件見かりました。自動入力されました。
+                  </p>
                 )}
               </div>
 
