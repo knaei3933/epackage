@@ -21,18 +21,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const apiUrl = new URL('https://api.houjin-bangou.nta.go.jp/4/name');
-    apiUrl.searchParams.set('id', apiKey);
-    apiUrl.searchParams.set('name', name);
-    apiUrl.searchParams.set('mode', '1');
-    apiUrl.searchParams.set('type', '12');
-    apiUrl.searchParams.set('history', '0');
-    apiUrl.searchParams.set('close', '0');
+    // Build URL with proper encoding
+    const baseUrl = 'https://api.houjin-bangou.nta.go.jp/4/name';
+    const params = new URLSearchParams({
+      id: apiKey,
+      name: name,
+      mode: '1',
+      type: '12',
+      history: '0',
+      close: '0'
+    });
 
-    console.log('Fetching:', apiUrl.toString());
+    const apiUrl = `${baseUrl}?${params.toString()}`;
+    console.log('Fetching:', apiUrl);
 
     const response = await fetch(apiUrl.toString());
-
     console.log('Response status:', response.status);
 
     if (!response.ok) {
