@@ -214,11 +214,166 @@ export async function DELETE(
   }
 }
 
+/**
+ * PUT /api/member/quotations/[id]
+ * Update quotation (DRAFT status only)
+ */
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const { id: quotationId } = params;
+
+    // Get authenticated user using unified authentication
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return NextResponse.json(
+        { error: '認証されていません。', errorEn: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { id: userId } = authUser;
+
+    // Import service client for RLS bypass
+    const { createServiceClient } = await import('@/lib/supabase');
+    const serviceClient = createServiceClient();
+
+    // Parse request body
+    const body = await request.json();
+
+    // Verify quotation exists and belongs to user
+    const { data: existingQuotation, error: fetchError } = await serviceClient
+      .from('quotations')
+      .select('*')
+      .eq('id', quotationId)
+      .single();
+
+    if (fetchError || !existingQuotation) {
+      console.error('[Quotation Detail API] PUT - Quotation not found:', fetchError);
+      return NextResponse.json(
+        { error: '見積が見つかりません。', errorEn: 'Quotation not found' },
+        { status: 404 }
+      );
+    }
+
+    if (existingQuotation.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'この見積にアクセスする権限がありません。', errorEn: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Only allow updating DRAFT status quotations
+    if (existingQuotation.status !== 'DRAFT') {
+      return NextResponse.json(
+        { error: 'ドラフト状態の見積のみ更新できます。', errorEn: 'Only draft quotations can be updated' },
+        { status: 400 }
+      );
+    }
+
+    // Update quotation
+    // Build update object dynamically
+    const updateData: any = {
+      customer_name: body.customer_name,
+      customer_email: body.customer_email,
+      customer_phone: body.customer_phone || null,
+      subtotal_amount: body.subtotal_amount,
+      tax_amount: body.tax_amount,
+      total_amount: body.total_amount,
+      notes: body.notes || null,
+      valid_until: body.valid_until || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Handle coupon fields - allow both setting and clearing
+    // Use 'included in body' check rather than truthy check to support zero/null values
+    if ('coupon_id' in body) {
+      updateData.coupon_id = body.coupon_id;
+    }
+    if ('discount_amount' in body) {
+      updateData.discount_amount = body.discount_amount;
+    }
+    if ('discount_type' in body) {
+      updateData.discount_type = body.discount_type;
+    }
+    if (body.total_cost_breakdown) {
+      updateData.total_cost_breakdown = body.total_cost_breakdown;
+    }
+
+    const { data: updatedQuotation, error: updateError } = await serviceClient
+      .from('quotations')
+      .update(updateData)
+      .eq('id', quotationId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('[Quotation Detail API] PUT - Update error:', updateError);
+      return NextResponse.json(
+        { error: '見積の更新に失敗しました。', errorEn: 'Failed to update quotation', details: updateError.message },
+        { status: 500 }
+      );
+    }
+
+    // Update items if provided
+    if (body.items && Array.isArray(body.items)) {
+      // Delete existing items
+      await serviceClient
+        .from('quotation_items')
+        .delete()
+        .eq('quotation_id', quotationId);
+
+      // Insert new items
+      const itemsToInsert = body.items.map((item: any) => ({
+        quotation_id: quotationId,
+        product_id: item.product_id || null,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        specifications: item.specifications || null,
+        cost_breakdown: item.cost_breakdown || {},
+      }));
+
+      const { error: itemsError } = await serviceClient
+        .from('quotation_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) {
+        console.error('[Quotation Detail API] PUT - Items update error:', itemsError);
+        return NextResponse.json(
+          { error: '見積項目の更新に失敗しました。', errorEn: 'Failed to update quotation items', details: itemsError.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      quotation: updatedQuotation,
+      message: '見積を更新しました。',
+      messageEn: 'Quotation updated successfully.',
+    });
+  } catch (error) {
+    console.error('[Quotation Detail API] PUT Error:', error);
+    return NextResponse.json(
+      {
+        error: '予期しないエラーが発生しました。',
+        errorEn: 'An unexpected error occurred',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     },
