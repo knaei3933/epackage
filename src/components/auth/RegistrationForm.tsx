@@ -172,14 +172,41 @@ export default function RegistrationForm({
       console.log('Setting prefecture:', result.prefecture);
       setValue('prefecture', result.prefecture, { shouldValidate: true, shouldDirty: true });
     }
-    if (result.city) {
+
+    // 市区町村と番地の処理
+    // streetNumber は「上ノ丸２丁目１１－２１...」のように町名＋番地が含まれる
+    // 町名部分（番地が始まる前）を市区町村に結合
+    if (result.city && result.streetNumber) {
+      // 町名と番地を分離（番地は「丁目」「番」「号」「－」などで始まる）
+      const streetMatch = result.streetNumber.match(/^(.*?)(\d+丁目|[^0-9]*\d+番|[^0-9]*\d+号|[^0-9]*\d+－)/);
+      if (streetMatch) {
+        // 町名部分が見つかった場合
+        const townName = streetMatch[1].trim();
+        const streetPart = result.streetNumber.substring(streetMatch[1].length).trim();
+
+        // 市区町村 ＋ 町名
+        const cityValue = `${result.city}${townName}`;
+        console.log('Setting city with town:', cityValue);
+        setValue('city', cityValue, { shouldValidate: true, shouldDirty: true });
+
+        // 番地部分
+        console.log('Setting street:', streetPart);
+        setValue('street', streetPart, { shouldValidate: true, shouldDirty: true });
+      } else {
+        // 分離できない場合は市区町村のみ設定、番地はstreetNumber全体
+        console.log('Setting city (no town split):', result.city);
+        setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
+        console.log('Setting street:', result.streetNumber);
+        setValue('street', result.streetNumber, { shouldValidate: true, shouldDirty: true });
+      }
+    } else if (result.city) {
       console.log('Setting city:', result.city);
       setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
-    }
-    if (result.streetNumber) {
-      console.log('Setting street:', result.streetNumber);
+    } else if (result.streetNumber) {
+      console.log('Setting street (no city):', result.streetNumber);
       setValue('street', result.streetNumber, { shouldValidate: true, shouldDirty: true });
     }
+
     if (result.postalCode) {
       console.log('Setting postalCode:', result.postalCode);
       setValue('postalCode', result.postalCode, { shouldValidate: true, shouldDirty: true });
