@@ -43,6 +43,18 @@ interface CategoryData {
   [key: string]: SettingValue;
 }
 
+// Customer markup rate types
+interface CustomerMarkupData {
+  id: string;
+  email: string;
+  fullName?: string | null;
+  companyName?: string | null;
+  role: string;
+  markupRate: number;
+  markupRateNote?: string | null;
+  createdAt: string;
+}
+
 type TabKey = 'film_material' | 'pouch_processing' | 'printing' | 'lamination' | 'slitter' | 'exchange_rate' | 'delivery' | 'production' | 'pricing';
 
 interface SettingGroup {
@@ -129,7 +141,8 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: '価格設定',
     icon: Coins,
     groups: [
-      { title: '마진율', description: '가격 정책 설정', icon: TrendingUp, keywords: ['마진', 'MARGIN', '마크업', 'MARKUP'] },
+      { title: '마진율', description: '가격 정책 설정', icon: TrendingUp, keywords: ['마진', 'MARGIN', '마크업', 'MARKUP', '기본', '제조업체', '최소', '판매'] },
+      { title: '고객별 마크업율', description: '고객별 마크업율 관리', icon: PercentIcon, keywords: ['__CUSTOMER_MARKUP__'] },
     ]
   },
 };
@@ -205,6 +218,17 @@ export default function AdminSettingsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [modifiedSettings, setModifiedSettings] = useState<Set<string>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Customer markup rate management
+  const [customers, setCustomers] = useState<CustomerMarkupData[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [savingCustomer, setSavingCustomer] = useState<string | null>(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<{ markupRate: number; markupRateNote: string }>({
+    markupRate: 0.5,
+    markupRateNote: ''
+  });
 
   // Load settings
   useEffect(() => {
@@ -421,6 +445,92 @@ export default function AdminSettingsPage() {
       console.error('Failed to clear cache:', cacheError);
     }
   };
+
+  // Customer markup rate management functions
+  const loadCustomers = async () => {
+    setLoadingCustomers(true);
+    try {
+      const response = await fetch('/api/admin/settings/customer-markup');
+      const result = await response.json();
+
+      if (result.success) {
+        setCustomers(result.data || []);
+      } else {
+        showMessage('error', result.error || '고객 데이터 로드 실패');
+      }
+    } catch (error) {
+      console.error('Failed to load customers:', error);
+      showMessage('error', '고객 데이터 로드 실패');
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+
+  // Load customers when pricing tab is activated
+  useEffect(() => {
+    if (activeTab === 'pricing' && customers.length === 0) {
+      loadCustomers();
+    }
+  }, [activeTab]);
+
+  const handleStartEdit = (customer: CustomerMarkupData) => {
+    setEditingCustomerId(customer.id);
+    setEditFormData({
+      markupRate: customer.markupRate,
+      markupRateNote: customer.markupRateNote || ''
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCustomerId(null);
+    setEditFormData({ markupRate: 0.5, markupRateNote: '' });
+  };
+
+  const handleSaveCustomerMarkup = async (customerId: string) => {
+    setSavingCustomer(customerId);
+    try {
+      const response = await fetch(`/api/admin/settings/customer-markup/${customerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          markupRate: editFormData.markupRate,
+          markupRateNote: editFormData.markupRateNote || null
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update local state
+        setCustomers(prev => prev.map(c =>
+          c.id === customerId
+            ? { ...c, markupRate: result.data.markupRate, markupRateNote: result.data.markupRateNote }
+            : c
+        ));
+        showMessage('success', '마크업율이 저장되었습니다');
+        setEditingCustomerId(null);
+      } else {
+        showMessage('error', result.error || '저장 실패');
+      }
+    } catch (error) {
+      console.error('Failed to save customer markup:', error);
+      showMessage('error', '저장 실패');
+    } finally {
+      setSavingCustomer(null);
+    }
+  };
+
+  // Filter customers based on search
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch) return customers;
+
+    const query = customerSearch.toLowerCase();
+    return customers.filter(c =>
+      c.email?.toLowerCase().includes(query) ||
+      c.companyName?.toLowerCase().includes(query) ||
+      c.fullName?.toLowerCase().includes(query)
+    );
+  }, [customers, customerSearch]);
 
   // Filter settings based on search query
   const filteredSettings = useMemo(() => {
@@ -727,6 +837,165 @@ export default function AdminSettingsPage() {
                     </motion.div>
                   );
                 })}
+
+                {/* Customer Markup Rate Management */}
+                {activeTab === 'pricing' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                  >
+                    {/* Group Header */}
+                    <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <PercentIcon className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">고객별 마크업율</h3>
+                          <p className="text-sm text-gray-500">고객별 마크업율 관리</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={loadCustomers}
+                        disabled={loadingCustomers}
+                        className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors flex items-center gap-2"
+                      >
+                        {loadingCustomers ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <RotateCcw className="w-4 h-4" />
+                        )}
+                        새로고침
+                      </button>
+                    </div>
+
+                    {/* Customer Search */}
+                    <div className="px-6 py-4 border-b border-gray-100">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="고객 검색... (이메일, 회사명)"
+                          value={customerSearch}
+                          onChange={(e) => setCustomerSearch(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Customer Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">고객 정보</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">회사명</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">마크업율</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">메모</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {loadingCustomers ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-12 text-center">
+                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
+                                <p className="text-sm text-gray-500">로딩 중...</p>
+                              </td>
+                            </tr>
+                          ) : filteredCustomers.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-12 text-center">
+                                <p className="text-sm text-gray-500">
+                                  {customerSearch ? '검색 결과가 없습니다.' : '고객 데이터가 없습니다.'}
+                                </p>
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredCustomers.map((customer) => (
+                              <tr key={customer.id} className="hover:bg-gray-50/50">
+                                <td className="px-6 py-4">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">{customer.email}</p>
+                                    <p className="text-xs text-gray-500">{customer.role}</p>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <p className="text-sm text-gray-700">{customer.companyName || '-'}</p>
+                                </td>
+                                <td className="px-6 py-4">
+                                  {editingCustomerId === customer.id ? (
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      max="2"
+                                      value={editFormData.markupRate}
+                                      onChange={(e) => setEditFormData({ ...editFormData, markupRate: parseFloat(e.target.value) || 0 })}
+                                      className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm"
+                                    />
+                                  ) : (
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {(customer.markupRate * 100).toFixed(0)}%
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4">
+                                  {editingCustomerId === customer.id ? (
+                                    <input
+                                      type="text"
+                                      value={editFormData.markupRateNote}
+                                      onChange={(e) => setEditFormData({ ...editFormData, markupRateNote: e.target.value })}
+                                      placeholder="메모 입력..."
+                                      className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm"
+                                    />
+                                  ) : (
+                                    <p className="text-sm text-gray-600">{customer.markupRateNote || '-'}</p>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  {editingCustomerId === customer.id ? (
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button
+                                        onClick={handleCancelEdit}
+                                        disabled={savingCustomer === customer.id}
+                                        className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+                                      >
+                                        취소
+                                      </button>
+                                      <button
+                                        onClick={() => handleSaveCustomerMarkup(customer.id)}
+                                        disabled={savingCustomer === customer.id}
+                                        className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+                                      >
+                                        {savingCustomer === customer.id ? (
+                                          <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                          <>
+                                            <Save className="w-3 h-3" />
+                                            저장
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleStartEdit(customer)}
+                                      className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100"
+                                    >
+                                      편집
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             )}
           </div>
