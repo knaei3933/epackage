@@ -72,9 +72,7 @@ const qualityStats = [
 ]
 
 const certifications = [
-  { name: 'ISO9001', description: '品質マネジメントシステム' },
-  { name: 'FSSC22000', description: '食品安全マネジメントシステム' },
-  { name: 'JIS規格', description: '日本工業規格適合' },
+  { name: '食品安全規格', description: '日本の食品安全基準に対応' },
   { name: '食品衛生法', description: '食品衛生法完全準拠' }
 ]
 

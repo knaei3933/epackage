@@ -7,7 +7,7 @@ export const SITE_CONFIG = {
   locale: 'ja_JP',
   defaultTitle: 'Epackage Lab | 韓国品質の包装材料で日本のものづくりを支援',
   description:
-    '韓国品質の包装材料と日本規制完全準拠で日本のものづくりを支援するEpackage Lab。ISO 9001、JIS規格取得済み。500社以上の日本企業実績。',
+    '韓国品質の包装材料と日本規制完全準拠で日本のものづくりを支援するEpackage Lab。食品安全規格対応。500社以上の日本企業実績。',
   ogImage: '/images/og-image.jpg',
   twitterCreator: '@epackage_lab',
 } as const

@@ -41,52 +41,13 @@ interface Certification {
 export function CertificationBadges({ className = '' }: CertificationBadgesProps) {
   const certifications: Certification[] = [
     {
-      id: 'iso9001',
-      name: 'ISO 9001:2015',
-      description: '品質マネジメントシステム',
+      id: 'food_safety',
+      name: '食品安全規格対応',
+      description: '日本の食品安全基準に準拠',
       icon: Shield,
       status: 'certified',
-      category: '国際標準',
-      validUntil: '2026-12-31',
-      certificateNumber: 'ISO-2023-001',
-      issuedBy: '国際標準化機構 (ISO)',
-      jpnEquivalent: 'JIS Q 9001',
+      category: '食品安全',
       score: 95
-    },
-    {
-      id: 'iso14001',
-      name: 'ISO 14001:2015',
-      description: '環境マネジメントシステム',
-      icon: Leaf,
-      status: 'active',
-      category: '国際標準',
-      validUntil: '2025-12-31',
-      certificateNumber: 'ISO-ENV-2023-002',
-      issuedBy: '国際標準化機構 (ISO)',
-      score: 92
-    },
-    {
-      id: 'jis1707',
-      name: 'JIS Z 1707',
-      description: '包装用プラスチックフィルム',
-      icon: File,
-      status: 'certified',
-      category: '日本工業規格',
-      validUntil: '2027-03-31',
-      certificateNumber: 'JIS-Z-1707-2023',
-      issuedBy: '日本工業標準調査会',
-      score: 98
-    },
-    {
-      id: 'jis3011',
-      name: 'JIS S 3011',
-      description: '洗浄剤の包装',
-      icon: File,
-      status: 'compliant',
-      category: '日本工業規準',
-      validUntil: '2026-06-30',
-      issuedBy: '日本工業標準調査会',
-      score: 90
     },
     {
       id: 'food_hygiene',
@@ -95,8 +56,8 @@ export function CertificationBadges({ className = '' }: CertificationBadgesProps
       icon: CheckCircle,
       status: 'certified',
       category: '日本法規制',
-      validUntil: '2025-12-31',
-      certificateNumber: 'FH-2023-004',
+      score: 98
+    },
       issuedBy: '厚生労働省',
       jpnEquivalent: '食品衛生法第11条',
       score: 100

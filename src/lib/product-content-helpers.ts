@@ -102,11 +102,9 @@ export function groupDownloadsByType(
  */
 export function getCertificationIcon(name: string): string {
   const iconMap: Record<string, string> = {
-    'ISO 9001': 'certificate',
-    'ISO 14001': 'certificate',
-    'ISO 22000': 'shield',
-    'FDA': 'check-circle',
+    '食品安全規格': 'certificate',
     '食品衛生法': 'award',
+    '薬機法': 'check-circle',
     'FSSC 22000': 'shield-check',
   }
 

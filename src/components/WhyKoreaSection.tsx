@@ -218,8 +218,8 @@ export function WhyKoreaSection({ className = '' }: WhyKoreaSectionProps) {
                       <Award className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">ISO 9001 認証取得</div>
-                      <div className="text-sm text-gray-600">国際品質基準の完全準拠</div>
+                      <div className="font-semibold text-gray-900">食品安全規格対応</div>
+                      <div className="text-sm text-gray-600">日本の食品安全基準に準拠</div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">

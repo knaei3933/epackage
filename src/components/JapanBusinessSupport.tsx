@@ -128,7 +128,7 @@ export function JapanBusinessSupport({ className = '' }: JapanBusinessSupportPro
     {
       id: 'quality-manual',
       title: '品質マニュアル日本語版',
-      description: 'ISO 9001:2015の日本語完全対応版',
+      description: '品質マネジメントシステムの日本語完全対応版',
       category: '品質管理',
       format: 'pdf',
       size: '4.3MB',

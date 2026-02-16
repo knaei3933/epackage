@@ -94,7 +94,7 @@ export function TrustSignalsSection({ className = '' }: TrustSignalsSectionProps
       name: 'GHIコスメティクス株式会社',
       industry: '化粧品',
       logo: '/logos/ghi-cosmetics.png',
-      testimonial: 'JIS規格準拠の証明書が整備されており、新規製品開発の稟議がスムーズに進みました。技術サポートも非常に充実しています。',
+      testimonial: '食品安全規格対応の証明書が整備されており、新規製品開発の稟議がスムーズに進みました。技術サポートも非常に充実しています。',
       results: [
         '開発期間30%短縮',
         '包装デザイン自由度向上',

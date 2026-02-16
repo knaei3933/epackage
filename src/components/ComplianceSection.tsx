@@ -58,16 +58,16 @@ export function ComplianceSection({ className = '' }: ComplianceSectionProps) {
     },
     {
       icon: Certificate,
-      title: 'JIS規格',
-      description: '日本工業規格に準拠した品質保証体制',
+      title: '食品安全規格',
+      description: '日本の食品安全基準に準拠した品質保証体制',
       details: [
-        'JIS Z 1707 (包装材一般)',
-        'JIS S 3011 (洗浄剤包装)',
-        'JIS Z 1530 (印刷適性)',
-        'JIS K 6721 (材質試験)'
+        '食品衛生法対応',
+        '薬機法対応',
+        '安全管理手順書完備',
+        'トレーサビリティシステム'
       ],
       status: 'certified',
-      certificate: 'JIS認証書'
+      certificate: '食品安全規格適合証明書'
     },
     {
       icon: CheckShield,
@@ -138,7 +138,7 @@ export function ComplianceSection({ className = '' }: ComplianceSectionProps) {
   const complianceDocuments = [
     {
       title: '品質マニュアル',
-      description: 'ISO 9001:2015 品質マネジメントシステムマニュアル',
+      description: '品質マネジメントシステムマニュアル',
       size: '2.5MB',
       format: 'PDF',
       category: '品質管理'

@@ -179,7 +179,7 @@ export default function PrintPage() {
     },
     {
       title: '品質管理システム',
-      description: 'ISO 9001に基づく体系的な品質管理により、完璧な製品を保証します。',
+      description: '体系的な品質管理により、完璧な製品を保証します。',
       icon: Shield,
       features: [
         'リアルタイム品質モニタリング',
@@ -191,7 +191,7 @@ export default function PrintPage() {
         '検査項目：50+種類',
         '自動検査率：100%',
         '品質保証期間：2年',
-        '認証：ISO 9001, 14001'
+        '認証：食品安全規格対応'
       ]
     }
   ]
@@ -225,23 +225,18 @@ export default function PrintPage() {
 
   const certifications = [
     {
-      name: 'ISO 9001',
-      description: '品質マネジメントシステム認証',
-      icon: Award
-    },
-    {
-      name: 'ISO 14001',
-      description: '環境マネジメントシステム認証',
-      icon: Globe
-    },
-    {
-      name: '食品安全',
-      description: 'FDAおよび欧州食品安全基準',
+      name: '食品安全規格',
+      description: '日本の食品安全基準に対応',
       icon: Shield
     },
     {
-      name: '環境配慮認証',
-      description: '持続可能な包装材認証',
+      name: '品質管理',
+      description: '体系的な品質管理体制',
+      icon: Award
+    },
+    {
+      name: '法規制準拠',
+      description: '食品衛生法・薬機法対応',
       icon: CheckCircle
     }
   ]

@@ -319,9 +319,9 @@ const commonDownloads = [
 
 const commonCertifications = [
     {
-        name: 'ISO 9001',
-        issuer: 'ISO',
-        description: '品質マネジメントシステム認証'
+        name: '食品安全規格',
+        issuer: '日本食品安全基準',
+        description: '日本の食品安全基準に対応'
     },
     {
         name: '食品衛生法適合',

@@ -108,26 +108,26 @@ export function QualitySection({ className = '' }: QualitySectionProps) {
 
   const certifications = [
     {
-      name: 'ISO 9001:2015',
-      description: '品質マネジメントシステム',
-      icon: Award,
-      status: 'active'
-    },
-    {
-      name: 'ISO 14001:2015',
-      description: '環境マネジメントシステム',
-      icon: Globe,
-      status: 'active'
-    },
-    {
-      name: 'CEマーキング',
-      description: 'EU安全基準適合',
+      name: '食品安全規格',
+      description: '日本の食品安全基準に対応',
       icon: Shield,
       status: 'active'
     },
     {
-      name: 'GMP準拠',
-      description: '医薬品製造品質基準',
+      name: '品質管理体制',
+      description: '体系的な品質管理プロセス',
+      icon: Award,
+      status: 'active'
+    },
+    {
+      name: '食品衛生法',
+      description: '食品衛生法対応',
+      icon: CheckCircle,
+      status: 'compliant'
+    },
+    {
+      name: '薬機法',
+      description: '医薬品機器法対応',
       icon: ClipboardCheck,
       status: 'compliant'
     }

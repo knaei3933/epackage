@@ -48,26 +48,10 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           certification: [
             {
               '@type': 'Certification',
-              name: 'ISO 9001:2015',
+              name: '食品安全規格対応',
               issuedBy: {
                 '@type': 'Organization',
-                name: '国際標準化機構 (ISO)'
-              }
-            },
-            {
-              '@type': 'Certification',
-              name: 'ISO 14001:2015',
-              issuedBy: {
-                '@type': 'Organization',
-                name: '国際標準化機構 (ISO)'
-              }
-            },
-            {
-              '@type': 'Certification',
-              name: 'JIS Z 1707',
-              issuedBy: {
-                '@type': 'Organization',
-                name: '日本工業標準調査会'
+                name: '日本の食品安全基準'
               }
             }
           ],
@@ -77,8 +61,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             '食品包装',
             '医薬品包装',
             '化粧品包装',
-            'JIS規格',
-            'ISO認証',
+            '食品安全規格',
             '法規制準拠'
           ],
           serviceType: 'B2Bパッケージングソリューション',
