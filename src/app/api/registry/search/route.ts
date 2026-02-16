@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { stringify } from 'querystring';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -22,16 +23,17 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Use URLSearchParams for proper encoding
-    const params = new URLSearchParams();
-    params.set('id', apiKey);
-    params.set('name', name);
-    params.set('mode', '1');
-    params.set('type', '12');
-    params.set('history', '0');
-    params.set('close', '0');
+    // Use querystring.stringify for proper UTF-8 encoding
+    const params = stringify({
+      id: apiKey,
+      name: name,
+      mode: '1',
+      type: '12',
+      history: '0',
+      close: '0'
+    });
 
-    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?${params.toString()}`;
+    const apiUrl = `https://api.houjin-bangou.nta.go.jp/4/name?${params}`;
 
     console.log('Fetching:', apiUrl);
 
