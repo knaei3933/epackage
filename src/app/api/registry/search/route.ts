@@ -30,6 +30,25 @@ function removeLegalSuffix(name: string): string {
   return cleaned.trim();
 }
 
+// Convert half-width alphanumeric to full-width (zenkaku)
+// The Houjin Bangou API stores company names with full-width characters
+function toZenkaku(input: string): string {
+  const halfWidth = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
+  const fullWidth = '０１２３４５６７８９ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ　';
+
+  let result = '';
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    const index = halfWidth.indexOf(char);
+    if (index !== -1) {
+      result += fullWidth[index];
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
 function parseXmlResponse(text: string): any[] {
   const corps: any[] = [];
   const regex = /<corporation[^>]*>([\s\S]*?)<\/corporation>/g;
@@ -84,11 +103,28 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Search terms to try: original name, then name without legal suffix
+    // Search terms to try in order:
+    // 1. Original name
+    // 2. Name without legal suffix
+    // 3. Full-width converted name (for English company names)
+    // 4. Full-width name without legal suffix
     const searchTerms = [decodedName];
+
+    // Try without legal suffix
     const cleanedName = removeLegalSuffix(decodedName);
     if (cleanedName !== decodedName && cleanedName.length >= 2) {
       searchTerms.push(cleanedName);
+    }
+
+    // Try full-width conversion (for English company names)
+    const zenkakuName = toZenkaku(decodedName);
+    if (zenkakuName !== decodedName) {
+      searchTerms.push(zenkakuName);
+      // Also try full-width without legal suffix
+      const zenkakuCleaned = removeLegalSuffix(zenkakuName);
+      if (zenkakuCleaned !== zenkakuName && zenkakuCleaned.length >= 2) {
+        searchTerms.push(zenkakuCleaned);
+      }
     }
 
     for (const searchTerm of searchTerms) {
