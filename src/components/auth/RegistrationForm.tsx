@@ -168,13 +168,13 @@ export default function RegistrationForm({
 
     // APIから個別フィールドで住所情報が返ってきた場合、直接設定
     if (result.prefecture) {
-      setValue('prefecture', result.prefecture);
+      setValue('prefecture', result.prefecture, { shouldValidate: true, shouldDirty: true });
     }
     if (result.city) {
-      setValue('city', result.city);
+      setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
     }
     if (result.postalCode) {
-      setValue('postalCode', result.postalCode);
+      setValue('postalCode', result.postalCode, { shouldValidate: true, shouldDirty: true });
     }
 
     // フォールバック: 個別フィールドがない場合、addressフィールドから解析
@@ -182,10 +182,10 @@ export default function RegistrationForm({
       let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
       const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
       if (prefectureMatch) {
-        setValue('prefecture', prefectureMatch);
+        setValue('prefecture', prefectureMatch, { shouldValidate: true, shouldDirty: true });
         addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
       }
-      setValue('city', addressWithoutPostal.trim());
+      setValue('city', addressWithoutPostal.trim(), { shouldValidate: true, shouldDirty: true });
     }
   };
 
