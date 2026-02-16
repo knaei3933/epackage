@@ -130,7 +130,7 @@ export default function RegistrationForm({
     setCorporateSearchError(null);
 
     try {
-      const response = await fetch(`/api/registry/corporate-number?name=${encodeURIComponent(name)}`);
+      const response = await fetch(`/api/registry/corporate?name=${encodeURIComponent(name)}`);
 
       if (!response.ok) {
         throw new Error('法人番号の検索に失敗しました。');
