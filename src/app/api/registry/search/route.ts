@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const name = searchParams.get('name');
 
   if (!name || name.length < 2) {
-    return NextResponse.json([], { status: 400 });
+    return NextResponse.json({ error: 'Name parameter required (min 2 characters)' }, { status: 400 });
   }
 
   const apiKey = process.env.KEI_CORPORATE_API_ID || process.env.INVOICE_KOHYO_API_KEY;
@@ -29,10 +29,16 @@ export async function GET(request: NextRequest) {
     apiUrl.searchParams.set('history', '0');
     apiUrl.searchParams.set('close', '0');
 
+    console.log('Fetching:', apiUrl.toString());
+
     const response = await fetch(apiUrl.toString());
 
+    console.log('Response status:', response.status);
+
     if (!response.ok) {
-      return NextResponse.json({ error: 'External API error' }, { status: response.status });
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      return NextResponse.json({ error: 'External API error', details: errorText }, { status: 500 });
     }
 
     const text = await response.text();
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(corps);
   } catch (error) {
     console.error('Corporate number search error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', message: String(error) }, { status: 500 });
   }
 }
 
