@@ -176,6 +176,10 @@ export default function RegistrationForm({
       console.log('Setting city:', result.city);
       setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
     }
+    if (result.streetNumber) {
+      console.log('Setting street:', result.streetNumber);
+      setValue('street', result.streetNumber, { shouldValidate: true, shouldDirty: true });
+    }
     if (result.postalCode) {
       console.log('Setting postalCode:', result.postalCode);
       setValue('postalCode', result.postalCode, { shouldValidate: true, shouldDirty: true });
