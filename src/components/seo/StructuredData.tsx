@@ -16,8 +16,8 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@type': 'Organization',
           name: 'Epackage Lab',
           alternateName: 'Eパッケージラボ',
-          url: 'https://epackage-lab.com',
-          logo: 'https://epackage-lab.com/logo.png',
+          url: 'https://package-lab.com',
+          logo: 'https://package-lab.com/logo.png',
           description: '韓国品質の包装材料で日本のものづくりを支援するパッケージング専門会社',
           foundingDate: '2010',
           areaServed: [
@@ -29,14 +29,14 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           address: {
             '@type': 'PostalAddress',
             addressCountry: 'JP',
-            addressRegion: '東京都',
-            addressLocality: '千代田区',
-            postalCode: '100-0001',
-            streetAddress: '丸の内1-2-3'
+            addressRegion: '兵庫県',
+            addressLocality: '明石市',
+            postalCode: '673-0846',
+            streetAddress: '上ノ丸2-11-21'
           },
           contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+81-3-1234-5678',
+            telephone: '+81-50-1793-6500',
             contactType: 'customer service',
             availableLanguage: ['Japanese', 'Korean', 'English'],
             hoursAvailable: 'Mo-Fr 09:00-18:00'
@@ -139,20 +139,20 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@type': 'LocalBusiness',
           name: 'Epackage Lab Japan',
           description: '韓国品質の包装材料で日本のものづくりを支援',
-          url: 'https://epackage-lab.com',
-          telephone: '+81-3-1234-5678',
+          url: 'https://package-lab.com',
+          telephone: '+81-50-1793-6500',
           address: {
             '@type': 'PostalAddress',
             addressCountry: 'JP',
-            addressRegion: '東京都',
-            addressLocality: '千代田区',
-            postalCode: '100-0001',
-            streetAddress: '丸の内1-2-3'
+            addressRegion: '兵庫県',
+            addressLocality: '明石市',
+            postalCode: '673-0846',
+            streetAddress: '上ノ丸2-11-21'
           },
           geo: {
             '@type': 'GeoCoordinates',
-            latitude: 35.6812,
-            longitude: 139.7671
+            latitude: 34.99,
+            longitude: 134.99
           },
           openingHours: [
             'Mo-Fr 09:00-18:00'

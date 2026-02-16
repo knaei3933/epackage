@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
-    url: 'https://epackage-lab.com',
+    url: 'https://package-lab.com',
     siteName: 'Epackage Lab',
     title: 'Epackage Lab | パッケージングソリューション',
     description: 'パッケージングの専門会社。革新的な包装ソリューション、自動見積もり、豊富な製品カタログを提供。',
@@ -102,7 +102,8 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'your-google-verification-code',
+    // TODO: Google Search Consoleから取得した検証コードを設定してください
+    // google: 'your-google-verification-code',
     yandex: 'your-yandex-verification-code',
     yahoo: 'your-yahoo-verification-code',
   },
