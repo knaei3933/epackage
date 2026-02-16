@@ -358,6 +358,7 @@ export default function RegistrationForm({
               placeholder="••••••••"
               error={errors.password?.message}
               required
+              helperText="8文字以上で、英大文字・英小文字・数字をそれぞれ1文字以上含めてください"
               rightElement={
                 <button
                   type="button"
