@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
       // Get query parameters
       const searchParams = request.nextUrl.searchParams;
-      const status = searchParams.get('status');
+      const statusParam = searchParams.get('status');
       const quotationId = searchParams.get('quotation_id');
       const page = parseInt(searchParams.get('page') || '1', 10);
       const pageSize = parseInt(searchParams.get('page_size') || '10', 10);
@@ -54,8 +54,14 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .range(offset, offset + pageSize - 1);
 
-      if (status && status !== 'all') {
-        query = query.eq('status', status);
+      // Handle multiple statuses (comma-separated)
+      if (statusParam && statusParam !== 'all') {
+        const statuses = statusParam.split(',').map(s => s.trim());
+        if (statuses.length === 1) {
+          query = query.eq('status', statuses[0]);
+        } else {
+          query = query.in('status', statuses);
+        }
       }
 
       if (quotationId) {
@@ -117,7 +123,7 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
-    const status = searchParams.get('status');
+    const statusParam = searchParams.get('status');
     const quotationId = searchParams.get('quotation_id');
     const page = parseInt(searchParams.get('page') || '1', 10);
     const pageSize = parseInt(searchParams.get('page_size') || '10', 10);
@@ -130,8 +136,14 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + pageSize - 1);
 
-    if (status && status !== 'all') {
-      query = query.eq('status', status);
+    // Handle multiple statuses (comma-separated)
+    if (statusParam && statusParam !== 'all') {
+      const statuses = statusParam.split(',').map(s => s.trim());
+      if (statuses.length === 1) {
+        query = query.eq('status', statuses[0]);
+      } else {
+        query = query.in('status', statuses);
+      }
     }
 
     if (quotationId) {
