@@ -3694,7 +3694,7 @@ function RealTimePriceDisplay() {
         priceResetTimeoutRef.current = null;
       }
     };
-  }, [pricingCacheKey]); // Single stable dependency - cache key includes all relevant state including quantities
+  }, [pricingCacheKey, user]); // user を依存配列に追加 - 顧客別割引率を適用
 
   // Cleanup price reset timeout on unmount
   useEffect(() => {
