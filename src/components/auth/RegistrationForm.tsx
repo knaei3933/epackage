@@ -603,7 +603,7 @@ export default function RegistrationForm({
                 </label>
                 <select
                   {...register('prefecture')}
-                  className="w-full h-10 px-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500"
+                  className="w-full h-10 px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
                 >
                   <option value="">選択</option>
                   {PREFECTURE_OPTIONS.map((pref) => (
