@@ -171,8 +171,8 @@ export function ProductRelatedCases({ product, locale = 'ja' }: ProductRelatedCa
             ))}
           </div>
 
-          {/* アーカイブページへのリンク */}
-          <div className="text-center pt-4">
+          {/* アーカイブページへのリンク - 一時的に無効化（ページが存在しないため404エラー） */}
+          {/* <div className="text-center pt-4">
             <a
               href="/archives"
               className="inline-flex items-center text-brixa-600 hover:text-brixa-700 font-medium transition-colors"
@@ -180,7 +180,7 @@ export function ProductRelatedCases({ product, locale = 'ja' }: ProductRelatedCa
               {locale === 'ja' ? 'すべての導入事例を見る' : 'View All Case Studies'}
               <ExternalLink className="w-4 h-4 ml-1" />
             </a>
-          </div>
+          </div> */}
         </div>
       </Card>
 
@@ -298,15 +298,15 @@ function CaseDetailModal({
           )}
         </div>
 
-        {/* フッター */}
-        <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end">
+        {/* フッター - 一時的に無効化（ページが存在しないため404エラー） */}
+        {/* <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end">
           <a
             href={`/archives#${record.id}`}
             className="px-4 py-2 bg-brixa-600 text-white rounded-lg hover:bg-brixa-700 transition-colors"
           >
             {locale === 'ja' ? 'アーカイブで見る' : 'View in Archives'}
           </a>
-        </div>
+        </div> */}
       </div>
     </div>
   )

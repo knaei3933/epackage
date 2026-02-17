@@ -797,12 +797,13 @@ function ProductDetailModal({ product, onClose }: {
                 実際の導入事例をご覧いただけます。<br />
                 業界別の活用事例、効果、お客様の声を確認できます。
               </p>
-              <Link href="/archives" className="inline-block">
+              {/* 一時的に無効化（ページが存在しないため404エラー） */}
+              {/* <Link href="/archives" className="inline-block">
                 <Button variant="primary" size="lg">
                   <Package className="w-4 h-4 mr-2" />
                   アーカイブページへ
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </Card>
         )}

@@ -57,11 +57,12 @@ export function Header() {
         { label: '品質管理', href: '/guide' },
       ]
     },
-    {
-      label: '導入事例',
-      href: '/archives',
-      description: '成功事例と実績'
-    },
+    // 一時的に無効化（ページが存在しないため404エラー）
+    // {
+    //   label: '導入事例',
+    //   href: '/archives',
+    //   description: '成功事例と実績'
+    // },
     {
       label: 'お見積り',
       href: '/quote-simulator',
