@@ -1,4 +1,0 @@
-Total messages: 160 (Errors: 1, Warnings: 0)
-Returning 1 messages for level "error"
-
-[ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ http://localhost:3000/api/comparison/save:0

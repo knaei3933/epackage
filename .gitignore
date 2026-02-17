@@ -109,3 +109,15 @@ coverage/
 design/**/*.pdf
 *.pdf
 .vercel
+
+# Large directories and files
+screenshots/
+.playwright-mcp/
+results/
+archives/
+design/
+
+# Large image directories
+public/images/archives/
+public/images/inbound-data/
+docs/test-scenarios/runner/results/

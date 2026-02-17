@@ -1,80 +1,44 @@
 # Dependencies
 node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Testing
-coverage
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
-__tests__
 
 # Next.js
 .next
 out
 
-# Production
-build
-dist
+# Testing
+coverage
+.nyc_output
 
 # Misc
 .DS_Store
 *.pem
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
 
 # Vercel
 .vercel
 
-# Logs
-logs
-*.log
+# Playwright MCP screenshots
+.playwright-mcp
 
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-*~
+# Test screenshots
+screenshots
+results
+docs/test-scenarios/runner/results
 
-# OS
-Thumbs.db
-.DS_Store
+# Archives
+archives
 
-# Documentation
-docs
-*.md
-!README.md
+# AI files
+**/*.ai
 
-# Misc git
-.git
-.gitignore
-.gitattributes
-
-# CI/CD
-.github
-.gitlab-ci.yml
-.travis.yml
-
-# Package manager lock files (use only one)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Temp files
-tmp
-temp
-.tmp
-.cache
-
-# bkit
-.bkit
-.omc
-
-# Build artifacts
-*.tsbuildinfo
+# Large images that should be optimized
+public/images/archives
+public/images/inbound-data
