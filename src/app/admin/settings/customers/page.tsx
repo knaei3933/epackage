@@ -46,7 +46,7 @@ export default function CustomerMarkupPage() {
   const handleUpdateMarkup = async (customerId: string, markupRate: number, note: string) => {
     setSaving(customerId);
     try {
-      const response = await fetch(`/api/admin/settings/customer-markup/${customerId}`, {
+      const response = await fetch(`/api/admin/settings/customer-markup?id=${customerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
