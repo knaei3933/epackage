@@ -1740,7 +1740,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         let customerMarkupRate = 0.2; // デフォルト20%
         if (currentUser?.id) {
           try {
-            const response = await fetch('/api/user/markup-rate');
+            const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
             if (response.ok) {
               const result = await response.json();
               customerMarkupRate = result.data?.markupRate ?? 0.2;
@@ -3586,7 +3586,7 @@ function RealTimePriceDisplay() {
         let customerMarkupRate = 0.2; // デフォルト20%
         if (currentUser?.id) {
           try {
-            const response = await fetch('/api/user/markup-rate');
+            const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
             if (response.ok) {
               const result = await response.json();
               customerMarkupRate = result.data?.markupRate ?? 0.2;
@@ -3915,7 +3915,7 @@ export function ImprovedQuotingWizard() {
           } else if (user?.id) {
             try {
               // Fetch customer markup rate from API
-              const response = await fetch('/api/user/markup-rate');
+              const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
               if (response.ok) {
                 const result = await response.json();
                 markupRate = result.data?.markupRate ?? 0.2;
