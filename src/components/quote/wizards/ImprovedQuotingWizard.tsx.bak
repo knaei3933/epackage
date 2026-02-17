@@ -1740,7 +1740,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         let customerMarkupRate = 0.2; // デフォルト20%
         if (currentUser?.id) {
           try {
-            const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
+            const response = await fetch('/api/user/markup-rate');
             if (response.ok) {
               const result = await response.json();
               customerMarkupRate = result.data?.markupRate ?? 0.2;
@@ -3586,7 +3586,7 @@ function RealTimePriceDisplay() {
         let customerMarkupRate = 0.2; // デフォルト20%
         if (currentUser?.id) {
           try {
-            const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
+            const response = await fetch('/api/user/markup-rate');
             if (response.ok) {
               const result = await response.json();
               customerMarkupRate = result.data?.markupRate ?? 0.2;
@@ -3607,7 +3607,6 @@ function RealTimePriceDisplay() {
         }> = [];
 
         for (const quantity of quantities) {
-          console.log('[RealTimePriceDisplay] 計算開始 - 数量:', quantity, 'markupRate:', customerMarkupRate, 'ユーザーID:', currentUser?.id);
           const quoteResult = await unifiedPricingEngine.calculateQuote({
             bagTypeId: state.bagTypeId,
             materialId: state.materialId,
@@ -3626,19 +3625,12 @@ function RealTimePriceDisplay() {
             // 顧客別マークアップ率
             markupRate: customerMarkupRate,
             rollCount: state.rollCount, // 롤 필름 시 롤 개수
-            // SKU計算を使用（handleNextと同じ計算方法）
-            useSKUCalculation: true,
-            skuQuantities: [quantity],
-            // Roll film specific parameters
-            materialWidth: state.materialWidth,
-            filmLayers: state.filmLayers,
             // 2列生産オプション関連パラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
             discountedTotalPrice: state.discountedTotalPrice,
             originalUnitPrice: state.originalUnitPrice
           });
-          console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '価格:', quoteResult.totalPrice, '円');
 
           // Determine price break and discount rate
           let discountRate = 0;
@@ -3917,14 +3909,13 @@ export function ImprovedQuotingWizard() {
 
           // Get customer-specific markup rate (if logged in)
           let markupRate = 0.2; // Default 20% (standard margin)
-          console.log('[handleNext] デフォルトmarkupRate:', markupRate, 'ユーザーID:', user?.id);
           // CRITICAL: Wait for auth to complete before checking user
           if (isAuthLoading) {
             console.log('[handleNext] Auth still loading, using default markup rate: 0.2');
           } else if (user?.id) {
             try {
               // Fetch customer markup rate from API
-              const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
+              const response = await fetch('/api/user/markup-rate');
               if (response.ok) {
                 const result = await response.json();
                 markupRate = result.data?.markupRate ?? 0.2;
@@ -3968,7 +3959,7 @@ export function ImprovedQuotingWizard() {
             originalUnitPrice: state.originalUnitPrice
           });
 
-          console.log('[handleNext] 価格計算完了 - 総額:', quoteResult.totalPrice, '円, markupRate:', markupRate, 'ユーザーID:', user?.id);
+          console.log('[handleNext] Quote calculation result:', quoteResult);
 
           // Enhance result with mode-specific information
           const enhancedResult = {
@@ -4225,68 +4216,55 @@ export function ImprovedQuotingWizard() {
 
                   <motion.button
                     onClick={handleNext}
-                    disabled={!canProceed || isCalculating || isAuthLoading}
-                    className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center relative shadow-lg w-full sm:w-auto border-2 ${!canProceed || isCalculating || isAuthLoading
+                    disabled={!canProceed || isCalculating}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center relative shadow-lg w-full sm:w-auto border-2 ${!canProceed || isCalculating
                       ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed opacity-70'
                       : 'bg-info-700 border-info-800 hover:bg-info-800 hover:border-info-900 hover:shadow-xl'
                       }`}
-                    style={!canProceed || isCalculating || isAuthLoading ? {} : {
+                    style={!canProceed || isCalculating ? {} : {
                       backgroundColor: '#1e3a8a',
                       borderColor: '#1e40af',
                       color: '#FFFFFF !important'
                     }}
                     aria-label={isLastStep ? "見積もりを完了する" : "次のステップに進む"}
-                    whileHover={canProceed && !isCalculating && !isAuthLoading ? {
+                    whileHover={canProceed && !isCalculating ? {
                       scale: 1.02,
                       backgroundColor: '#1e40af',
                       borderColor: '#1e3a8a'
                     } : {}}
-                    whileTap={canProceed && !isCalculating && !isAuthLoading ? { scale: 0.98 } : {}}
+                    whileTap={canProceed && !isCalculating ? { scale: 0.98 } : {}}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
                     <div className="relative flex items-center" style={{
-                      color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF',
+                      color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF',
                       fontWeight: 'bold'
                     }}>
-                      {isAuthLoading ? (
+                      {isCalculating ? (
                         <>
                           <div
                             className="animate-spin rounded-full h-4 w-4 border-2 mr-2"
                             style={{
-                              borderColor: !canProceed || isCalculating || isAuthLoading ? 'currentColor' : '#FFFFFF',
+                              borderColor: !canProceed || isCalculating ? 'currentColor' : '#FFFFFF',
                               borderTopColor: 'transparent'
                             }}
                           />
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
-                            認証確認中...
-                          </span>
-                        </>
-                      ) : isCalculating ? (
-                        <>
-                          <div
-                            className="animate-spin rounded-full h-4 w-4 border-2 mr-2"
-                            style={{
-                              borderColor: !canProceed || isCalculating || isAuthLoading ? 'currentColor' : '#FFFFFF',
-                              borderTopColor: 'transparent'
-                            }}
-                          />
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
+                          <span style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }}>
                             計算中...
                           </span>
                         </>
                       ) : isLastStep ? (
                         <>
-                          <Check className="w-4 h-4 mr-2" style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }} />
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
+                          <Check className="w-4 h-4 mr-2" style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }} />
+                          <span style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }}>
                             見積もりを完了
                           </span>
                         </>
                       ) : (
                         <>
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
+                          <span style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }}>
                             次へ
                           </span>
-                          <ChevronRight className="w-4 h-4 ml-2" style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }} />
+                          <ChevronRight className="w-4 h-4 ml-2" style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }} />
                         </>
                       )}
                     </div>

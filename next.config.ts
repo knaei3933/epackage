@@ -51,12 +51,6 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
-  // =====================================================
-  // Force Vercel to bypass build cache
-  // =====================================================
-  generateBuildId: async () => {
-    return `build-${Date.now()}`;
-  },
 };
 
 export default nextConfig;

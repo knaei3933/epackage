@@ -72,5 +72,9 @@ temp
 .tmp
 .cache
 
+# bkit
+.bkit
+.omc
+
 # Build artifacts
 *.tsbuildinfo
