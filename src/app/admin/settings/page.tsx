@@ -257,12 +257,13 @@ export default function AdminSettingsPage() {
         const settingsWithOriginals: Record<TabKey, CategoryData> = {};
         Object.entries(result.data).forEach(([category, data]: [string, any]) => {
           settingsWithOriginals[category as TabKey] = {};
-          Object.entries(data as CategoryData).forEach(([key, value]: [string, any]) => {
-            settingsWithOriginals[category as TabKey][key] = {
-              value: value.value,
-              description: value.description || key,
-              unit: value.unit || '',
-              originalValue: value.value
+          // data is an array, use forEach with the item's key property
+          data.forEach((item: any) => {
+            settingsWithOriginals[category as TabKey][item.key] = {
+              value: item.value,
+              description: item.description || item.key,
+              unit: item.unit || '',
+              originalValue: item.value
             };
           });
         });
