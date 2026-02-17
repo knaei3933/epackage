@@ -3480,6 +3480,7 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
 
 // Real-time price display component
 function RealTimePriceDisplay() {
+  const { user } = useAuth();
   const state = useQuoteState();
   const [isCalculating, setIsCalculating] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
