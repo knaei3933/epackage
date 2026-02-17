@@ -2381,8 +2381,8 @@ export class UnifiedPricingEngine {
       params.urgency || 'standard',
       // 필름 원가 계산 관련 파라미터 (새로운 기능)
       params.useFilmCostCalculation?.toString() || 'false',
-      // キャッシュキーからmarkupRateを削除 - 常にsalesMargin=0.20を使用するため
-      // params.markupRate?.toString() || CONSTANTS.DEFAULT_MARKUP_RATE.toString(),
+      // CRITICAL: キャッシュキーにmarkupRateを含める - 顧客別割引率を正しく反映するため
+      params.markupRate?.toString() || CONSTANTS.DEFAULT_MARKUP_RATE.toString(),
       params.materialWidth?.toString() || '760', // デフォルト760mm
       params.lossRate?.toString() || CONSTANTS.DEFAULT_LOSS_RATE.toString(),
       // 필름 레이어 정보를 문자열로 변환
