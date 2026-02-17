@@ -1711,6 +1711,9 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
 
   // 数量変更ハンドラー
   const handleQuantityChange = async (option: QuantityOption) => {
+    // userをキャプチャしてスコープ問題を解決
+    const currentUser = user;
+
     try {
       const newQuantity = option.quantity
 
@@ -1735,7 +1738,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       } else {
         // 顧客別マークアップ率を取得
         let customerMarkupRate = 0.2; // デフォルト20%
-        if (user?.id) {
+        if (currentUser?.id) {
           try {
             const response = await fetch('/api/user/markup-rate');
             if (response.ok) {
