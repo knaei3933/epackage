@@ -3625,6 +3625,12 @@ function RealTimePriceDisplay() {
             // 顧客別マークアップ率
             markupRate: customerMarkupRate,
             rollCount: state.rollCount, // 롤 필름 시 롤 개수
+            // SKU計算を使用（handleNextと同じ計算方法）
+            useSKUCalculation: true,
+            skuQuantities: [quantity],
+            // Roll film specific parameters
+            materialWidth: state.materialWidth,
+            filmLayers: state.filmLayers,
             // 2列生産オプション関連パラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
