@@ -291,7 +291,16 @@ export class FilmCostCalculator {
     } = params;
 
     // params.lossRate를 우선 적용 (SKU 모드에서 이미 로스가 포함된 경우 0을 전달)
-    const effectiveLossRate = lossRate ?? dbSettings?.production_default_loss_rate ?? 0.4;
+    let effectiveLossRate: number;
+    if (lossRate !== undefined) {
+      // 명시적으로 로스율이 지정된 경우 사용
+      effectiveLossRate = lossRate;
+    } else {
+      // 명시적 지정이 없는 경우, 재료에 따라 동적 로스율 적용
+      // AL(알루미늄)이 포함된 경우 0.4, 그 외 0.3
+      const containsAL = layers.some(layer => layer.materialId === 'AL');
+      effectiveLossRate = containsAL ? 0.4 : 0.3;
+    }
 
     // DB 설정값 또는 기본값
     const exchangeRate = dbSettings?.exchange_rate_krw_to_jpy ?? EXCHANGE_RATE;
