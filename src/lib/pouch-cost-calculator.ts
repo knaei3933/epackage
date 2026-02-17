@@ -992,9 +992,15 @@ export class PouchCostCalculator {
     // 6. 小計 (JPY) - 円貨製造者価格 + 関税 + 配送料
     const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
 
-    // 7. 最終販売価格 (JPY) - 顧客別マークアップ率を適用
-    const finalPriceJPY = subtotalJPY * (1 + markupRate);
-    const salesMarginJPY = finalPriceJPY - subtotalJPY;
+    // 7. 販売マージン適用（20%）- 全製品で統一
+    const SALES_MARGIN = 0.2; // 20%販売マージン
+    const priceAfterSalesMargin = subtotalJPY * (1 + SALES_MARGIN);
+    const salesMarginJPY = priceAfterSalesMargin - subtotalJPY;
+
+    // 8. 最終販売価格 (JPY) - 顧客別割引率を適用
+    // markupRate=0.0: 割引なし、markupRate=-0.1: 10%割引
+    const finalPriceJPY = priceAfterSalesMargin * (1 + markupRate);
+    const customerDiscountJPY = finalPriceJPY - priceAfterSalesMargin;
 
     // Security: Price calculation details only logged in development
     if (process.env.NODE_ENV === 'development') {
@@ -1005,8 +1011,12 @@ export class PouchCostCalculator {
         dutyJPY,
         deliveryJPY,
         subtotalJPY,
-        finalPriceJPY,
-        salesMarginJPY
+        salesMargin: SALES_MARGIN,
+        priceAfterSalesMargin,
+        salesMarginJPY,
+        customerMarkupRate: markupRate,
+        customerDiscountJPY,
+        finalPriceJPY
       }, null, 2));
     }
 
