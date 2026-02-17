@@ -1,27 +1,28 @@
 /**
- * Individual System Setting API
- * 개별 시스템 설정 수정 API
+ * Individual System Setting API (with category)
+ * 개별 시스템 설정 수정 API (카테고리 포함)
  *
- * PATCH /api/admin/settings/[key] - 단일 설정 수정
- * DELETE /api/admin/settings/[key] - 설정 삭제
+ * PATCH /api/admin/settings/[category]/[key] - 단일 설정 수정
+ * DELETE /api/admin/settings/[category]/[key] - 설정 삭제
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
-type SettingKeyParams = {
+type SettingCategoryKeyParams = {
   params: Promise<{
+    category?: string;
     key?: string;
   }>;
 };
 
 /**
- * PATCH - 단일 설정값 수정
+ * PATCH - 단일 설정값 수정 (category + key로 식별)
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: SettingKeyParams
+  { params }: SettingCategoryKeyParams
 ): Promise<NextResponse> {
   const auth = await verifyAdminAuth(request);
   if (!auth) {
@@ -29,10 +30,10 @@ export async function PATCH(
   }
 
   try {
-    const { key } = await params;
-    if (!key) {
+    const { category, key } = await params;
+    if (!category || !key) {
       return NextResponse.json(
-        { error: '설정 키가 필요합니다' },
+        { error: '카테고리와 설정 키가 필요합니다' },
         { status: 400 }
       );
     }
@@ -49,16 +50,17 @@ export async function PATCH(
 
     const supabase = createServiceClient();
 
-    // 현재 설정 확인
-    const { data: existing } = await supabase
+    // 현재 설정 확인 (category + key로 조회)
+    const { data: existing, error: fetchError } = await supabase
       .from('system_settings')
       .select('*')
+      .eq('category', category)
       .eq('key', key)
       .single();
 
-    if (!existing) {
+    if (fetchError || !existing) {
       return NextResponse.json(
-        { error: '설정을 찾을 수 없습니다', key },
+        { error: '설정을 찾을 수 없습니다', category, key },
         { status: 404 }
       );
     }
@@ -71,13 +73,14 @@ export async function PATCH(
       convertedValue = value === true || value === 'true';
     }
 
-    // 업데이트
+    // 업데이트 (category + key로 조건 지정)
     const { data, error } = await supabase
       .from('system_settings')
       .update({
         value: convertedValue,
         updated_by: auth.userId
       })
+      .eq('category', category)
       .eq('key', key)
       .select()
       .single();
@@ -90,14 +93,14 @@ export async function PATCH(
       );
     }
 
-    // 캐시 무�화화 API 호출
+    // 캐시 무효화 API 호출
     try {
       await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/settings/cache/invalidate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ category: existing.category }),
+        body: JSON.stringify({ category }),
       });
     } catch (cacheError) {
       console.warn('Cache invalidate failed:', cacheError);
@@ -127,11 +130,11 @@ export async function PATCH(
 }
 
 /**
- * DELETE - 설정 삭제
+ * DELETE - 설정 삭제 (category + key로 식별)
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: SettingKeyParams
+  { params }: SettingCategoryKeyParams
 ): Promise<NextResponse> {
   const auth = await verifyAdminAuth(request);
   if (!auth) {
@@ -139,10 +142,10 @@ export async function DELETE(
   }
 
   try {
-    const { key } = await params;
-    if (!key) {
+    const { category, key } = await params;
+    if (!category || !key) {
       return NextResponse.json(
-        { error: '설정 키가 필요합니다' },
+        { error: '카테고리와 설정 키가 필요합니다' },
         { status: 400 }
       );
     }
@@ -152,6 +155,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('system_settings')
       .delete()
+      .eq('category', category)
       .eq('key', key);
 
     if (error) {

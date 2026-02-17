@@ -318,7 +318,7 @@ export default function AdminSettingsPage() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/settings/${key}`, {
+      const response = await fetch(`/api/admin/settings/${category}/${key}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: newValue })
@@ -372,7 +372,7 @@ export default function AdminSettingsPage() {
 
       if (newValue !== undefined) {
         saves.push(
-          fetch(`/api/admin/settings/${key}`, {
+          fetch(`/api/admin/settings/${category}/${key}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: newValue })
