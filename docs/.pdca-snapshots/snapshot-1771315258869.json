@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-17T03:04:27.875Z",
+  "timestamp": "2026-02-17T08:00:58.868Z",
   "reason": "compaction",
   "status": {
     "version": "2.0",
-    "lastUpdated": "2026-02-17T02:15:41.787Z",
+    "lastUpdated": "2026-02-17T07:48:31.298Z",
     "activeFeatures": [
       "[id]",
       "admin",
@@ -140,9 +140,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-14T07:22:24.472Z",
-          "lastUpdated": "2026-02-17T01:29:04.090Z"
+          "lastUpdated": "2026-02-17T05:44:14.532Z"
         },
-        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\next.config.ts"
+        "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\lib\\unified-pricing-engine.ts"
       },
       "current-user": {
         "phase": "do",
@@ -686,7 +686,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-16T06:14:08.803Z",
-          "lastUpdated": "2026-02-17T02:15:41.787Z"
+          "lastUpdated": "2026-02-17T07:48:31.298Z"
         },
         "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\components\\quote\\wizards\\ImprovedQuotingWizard.tsx"
       },
@@ -712,7 +712,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-16T11:56:30.669Z",
-          "lastUpdated": "2026-02-16T13:44:47.051Z"
+          "lastUpdated": "2026-02-17T07:17:51.725Z"
         },
         "lastFile": "C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\src\\app\\api\\user\\markup-rate\\route.ts"
       },
@@ -829,7 +829,7 @@
     "session": {
       "startedAt": "2026-02-14T01:23:57.443Z",
       "onboardingCompleted": false,
-      "lastActivity": "2026-02-17T02:15:41.787Z"
+      "lastActivity": "2026-02-17T07:48:31.298Z"
     },
     "history": [
       {
@@ -2706,6 +2706,96 @@
       },
       {
         "timestamp": "2026-02-17T02:15:41.787Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:19:23.766Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:42:44.408Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:42:48.475Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:43:45.711Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:44:00.406Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:44:06.114Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:44:10.651Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:44:11.603Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T05:44:14.532Z",
+        "feature": "02.epac_homepagever1.1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T07:17:32.435Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T07:17:51.725Z",
+        "feature": "markup-rate",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T07:38:29.669Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T07:48:14.975Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T07:48:24.266Z",
+        "feature": "wizards",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-17T07:48:31.298Z",
         "feature": "wizards",
         "phase": "do",
         "action": "updated"

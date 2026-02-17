@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "ignoreCommand": "git ls-files --exclude-standard | grep -v -E '\\.(ts|tsx|js|jsx|json|css|html|md)$' | xargs -r git check-ignore -n || true",
   "headers": [
     {
       "source": "/sitemap.xml",
