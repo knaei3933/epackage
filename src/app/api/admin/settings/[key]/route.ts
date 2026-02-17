@@ -12,7 +12,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 type SettingKeyParams = {
   params: {
-    key?: string[];
+    key?: string;
   }
 };
 
@@ -29,7 +29,7 @@ export async function PATCH(
   }
 
   try {
-    const key = params.key?.[0];
+    const key = params.key;
     if (!key) {
       return NextResponse.json(
         { error: '설정 키가 필요합니다' },
@@ -139,7 +139,7 @@ export async function DELETE(
   }
 
   try {
-    const key = params.key?.[0];
+    const key = params.key;
     if (!key) {
       return NextResponse.json(
         { error: '설정 키가 필요합니다' },
