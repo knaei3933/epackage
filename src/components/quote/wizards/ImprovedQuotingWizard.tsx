@@ -3545,6 +3545,9 @@ function RealTimePriceDisplay() {
 
   // Calculate real-time price whenever essential form data changes
   useEffect(() => {
+    // user をキャプチャして、setTimeout実行時にも参照できるようにする
+    const currentUser = user;
+
     const calculatePrice = async () => {
       // Capture quantities at effect run time
       const quantities = state.quantities;
@@ -3562,7 +3565,7 @@ function RealTimePriceDisplay() {
       try {
         // 顧客別マークアップ率を取得
         let customerMarkupRate = 0.2; // デフォルト20%
-        if (user?.id) {
+        if (currentUser?.id) {
           try {
             const response = await fetch('/api/user/markup-rate');
             if (response.ok) {
