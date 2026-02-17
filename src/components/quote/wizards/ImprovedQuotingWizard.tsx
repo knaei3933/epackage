@@ -3583,13 +3583,13 @@ function RealTimePriceDisplay() {
       setIsCalculating(true);
       try {
         // 顧客別マークアップ率を取得
-        let customerMarkupRate = 0.2; // デフォルト20%
+        let customerMarkupRate = 0.0; // デフォルトは割引なし
         if (currentUser?.id) {
           try {
             const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
             if (response.ok) {
               const result = await response.json();
-              customerMarkupRate = result.data?.markupRate ?? 0.2;
+              customerMarkupRate = result.data?.markupRate ?? 0.0;
             }
           } catch (e) {
             console.warn('[calculatePrice] Failed to fetch markup rate:', e);
