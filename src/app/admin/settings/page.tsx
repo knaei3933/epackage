@@ -450,7 +450,11 @@ export default function AdminSettingsPage() {
         method: 'POST'
       });
       if (response.ok) {
-        console.log('[AdminSettings] キャッシュ無効化成功 - 30秒以内に見積もりシミュレーターに反映されます');
+        console.log('[AdminSettings] キャッシュ無効化成功 - ページをリロードして新しい設定を適用します');
+        // ページをリロードしてクライアント側のキャッシュをクリア
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         console.warn('[AdminSettings] キャッシュ無効化失敗:', response.status);
       }
