@@ -230,8 +230,98 @@ const FIXED_LOSS_METERS = 400; // ロス固定400m
 export class PouchCostCalculator {
   private filmCalculator: FilmCostCalculator;
 
+  // DB設定キャッシュ（unified-pricing-engine.tsと同じ仕組み）
+  private settingsCache: Map<string, any> = new Map();
+  private settingsCacheExpiry: number = 0;
+  private readonly SETTINGS_CACHE_TTL = 30 * 1000; // 30秒 - 設定変更を素早く反映
+
   constructor() {
     this.filmCalculator = new FilmCostCalculator();
+  }
+
+  /**
+   * Load system settings from database
+   * 公開価格設定APIを使用してDB設定をロード（30秒キャッシュ）
+   */
+  private async loadSystemSettings(): Promise<Map<string, any>> {
+    // Check cache
+    const now = Date.now();
+    if (this.settingsCacheExpiry > now && this.settingsCache.size > 0) {
+      return this.settingsCache;
+    }
+
+    try {
+      // 公開価格設定APIを使用（認証不要）
+      const response = await fetch('/api/pricing/settings', {
+        cache: 'no-store' // キャッシュを無効化して最新設定を取得
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch pricing settings: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load pricing settings');
+      }
+
+      // APIから返されたフラットなKey-ValueマップをMapに変換
+      const settings = new Map<string, any>();
+      if (result.data) {
+        for (const [key, value] of Object.entries(result.data)) {
+          settings.set(key, value);
+        }
+      }
+
+      // Update cache
+      this.settingsCache = settings;
+      this.settingsCacheExpiry = now + this.SETTINGS_CACHE_TTL;
+
+      console.log('[PouchCostCalculator] Loaded pricing settings from DB:', settings.size, 'settings');
+      return settings;
+    } catch (error) {
+      console.error('[PouchCostCalculator] Failed to load pricing settings, using defaults:', error);
+      // Return empty map on error (will use hardcoded defaults)
+      return new Map();
+    }
+  }
+
+  /**
+   * Get a specific setting value
+   */
+  private async getSetting(category: string, key: string, defaultValue: any): Promise<any> {
+    const settings = await this.loadSystemSettings();
+    const fullKey = `${category}.${key}`;
+    return settings.get(fullKey) ?? defaultValue;
+  }
+
+  /**
+   * FilmCostSettings形式でDB設定をロード
+   */
+  private async loadFilmCostSettings(): Promise<import('./film-cost-calculator').FilmCostSettings> {
+    return {
+      PET_unit_price: await this.getSetting('film_material', 'PET_unit_price', undefined),
+      AL_unit_price: await this.getSetting('film_material', 'AL_unit_price', undefined),
+      LLDPE_unit_price: await this.getSetting('film_material', 'LLDPE_unit_price', undefined),
+      NY_unit_price: await this.getSetting('film_material', 'NY_unit_price', undefined),
+      VMPET_unit_price: await this.getSetting('film_material', 'VMPET_unit_price', undefined),
+      PET_density: await this.getSetting('film_material', 'PET_density', undefined),
+      AL_density: await this.getSetting('film_material', 'AL_density', undefined),
+      LLDPE_density: await this.getSetting('film_material', 'LLDPE_density', undefined),
+      NY_density: await this.getSetting('film_material', 'NY_density', undefined),
+      VMPET_density: await this.getSetting('film_material', 'VMPET_density', undefined),
+      printing_cost_per_m2: await this.getSetting('printing', 'cost_per_m2', undefined),
+      matte_cost_per_m: await this.getSetting('printing', 'matte_cost_per_m', undefined),
+      lamination_cost_per_m2: await this.getSetting('lamination', 'cost_per_m2', undefined),
+      slitter_cost_per_m: await this.getSetting('slitter', 'cost_per_m', undefined),
+      slitter_min_cost: await this.getSetting('slitter', 'min_cost', undefined),
+      exchange_rate_krw_to_jpy: await this.getSetting('exchange_rate', 'krw_to_jpy', undefined),
+      duty_rate_import_duty: await this.getSetting('duty_rate', 'import_duty', undefined),
+      delivery_cost_per_roll: await this.getSetting('delivery', 'cost_per_roll', undefined),
+      delivery_kg_per_roll: await this.getSetting('delivery', 'kg_per_roll', undefined),
+      production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),
+      pricing_default_markup_rate: await this.getSetting('pricing', 'default_markup_rate', undefined)
+    };
   }
 
   /**
@@ -289,7 +379,7 @@ export class PouchCostCalculator {
   /**
    * SKU別原価計算メインメソッド
    */
-  calculateSKUCost(params: SKUCostParams): SKUCostResult {
+  async calculateSKUCost(params: SKUCostParams): Promise<SKUCostResult> {
     const {
       skuQuantities,
       dimensions,
@@ -368,7 +458,7 @@ export class PouchCostCalculator {
     });
 
     // 全体フィルム原価計算（530m全体に対して1回のみ計算）
-    const totalFilmCostResult = this.calculateFilmCost(
+    const totalFilmCostResult = await this.calculateFilmCost(
       dimensions,
       totalWithLossMeters, // 全体530mに対して計算
       materialId,
@@ -546,7 +636,7 @@ export class PouchCostCalculator {
   /**
    * 単一SKUの原価計算
    */
-  private calculateSingleSKUCost(
+  private async calculateSingleSKUCost(
     skuIndex: number,
     quantity: number,
     skuCount: number,
@@ -558,7 +648,7 @@ export class PouchCostCalculator {
     columnCount: number, // Added param
     filmLayers?: FilmStructureLayer[],
     postProcessingOptions?: string[]
-  ): SKUCostResult['costPerSKU'][0] {
+  ): Promise<SKUCostResult['costPerSKU'][0]> {
     // 1. 理論メートル数計算
     const theoreticalMeters = this.calculateTheoreticalMeters(
       quantity,
@@ -611,7 +701,7 @@ export class PouchCostCalculator {
       dimensions: { width: dimensions.width, height: dimensions.height, depth: dimensions.depth }
     });
 
-    const filmCostResult = this.calculateFilmCost(
+    const filmCostResult = await this.calculateFilmCost(
       dimensions,
       totalMetersForCost, // Secured + Loss per SKU
       materialId,
@@ -796,7 +886,7 @@ export class PouchCostCalculator {
   /**
    * フィルム原価計算
    */
-  private calculateFilmCost(
+  private async calculateFilmCost(
     dimensions: PouchDimensions,
     meters: number,
     materialId: string,
@@ -805,7 +895,7 @@ export class PouchCostCalculator {
     filmLayers?: FilmStructureLayer[],
     deliveryWeight?: number,
     postProcessingOptions?: string[]
-  ): FilmCostResult {
+  ): Promise<FilmCostResult> {
     // filmLayersが指定されていない場合は、materialIdとthicknessSelectionに基づいてデフォルトレイヤーを取得
     // getDefaultFilmLayersですでにthicknessSelectionに基づいて厚さを調整済み
     const baseLayers = filmLayers || getDefaultFilmLayers(materialId, thicknessSelection);
@@ -824,6 +914,9 @@ export class PouchCostCalculator {
       note: filmLayers ? '外部指定レイヤー → 厚さ調整適用' : 'デフォルトレイヤー → 既に調整済み'
     });
 
+    // DB設定をロード（nullではなく実際の設定値を渡す）
+    const dbSettings = await this.loadFilmCostSettings();
+
     // マット仕上げ選択確認
     const hasMatteFinishing = postProcessingOptions?.includes('matte') ?? false;
 
@@ -837,7 +930,7 @@ export class PouchCostCalculator {
       printingType: hasMatteFinishing ? 'matte' : 'basic',
       colors: 1,
       postProcessingOptions  // 表面処理オプションを渡す (glossy等)
-    }, null);
+    }, dbSettings);
 
     return filmCostResult;
   }
@@ -1175,7 +1268,7 @@ export class PouchCostCalculator {
    * @param accurateCalculationParams 正確な原価計算用パラメータ（オプション）
    * @returns 経済的生産数量提案
    */
-  calculateEconomicQuantitySuggestion(
+  async calculateEconomicQuantitySuggestion(
     orderQuantity: number,
     dimensions: PouchDimensions,
     pouchType: string,
@@ -1187,7 +1280,7 @@ export class PouchCostCalculator {
       thicknessSelection?: string;
       postProcessingOptions?: string[];
     }
-  ): EconomicQuantitySuggestion {
+  ): Promise<EconomicQuantitySuggestion> {
     // ========================================
     // 1. 基本計算
     // ========================================
@@ -1280,7 +1373,7 @@ export class PouchCostCalculator {
       recommendedQuantity,
       recommendationReason,
       // 2列生産オプションを経済的数量に基づいて計算
-      parallelProductionOptions: this.calculateParallelProductionOptions(
+      parallelProductionOptions: await this.calculateParallelProductionOptions(
         dimensions,
         pouchType,
         effectiveFilmUsage,
@@ -1304,7 +1397,7 @@ export class PouchCostCalculator {
    * @param currentUnitPrice 現在の単価（円/個）
    * @param accurateParams 正確な原価計算用パラメータ（オプション）
    */
-  private calculateParallelProductionOptions(
+  private async calculateParallelProductionOptions(
     dimensions: PouchDimensions,
     pouchType: string,
     currentFilmUsage: number,
@@ -1315,11 +1408,14 @@ export class PouchCostCalculator {
       thicknessSelection?: string;
       postProcessingOptions?: string[];
     }
-  ): ParallelProductionOption[] | undefined {
+  ): Promise<ParallelProductionOption[] | undefined> {
     // 롤 필름, 합장, 박스에만 적용
     if (pouchType !== 'roll_film' && pouchType !== 't_shape' && pouchType !== 'm_shape') {
       return undefined;
     }
+
+    // DB設定をロード（並列生産オプション計算で使用）
+    const dbSettings = await this.loadFilmCostSettings();
 
     // 현재 필름 폭 계산
     let filmWidth: number;
@@ -1380,6 +1476,7 @@ export class PouchCostCalculator {
           // マット仕上げ選択確認
           const hasMatteFinishing = accurateParams.postProcessingOptions?.includes('matte') ?? false;
 
+          // DB設定を使用してフィルム原価を計算（nullではなく実際の設定値を渡す）
           const filmCostResult = this.filmCalculator.calculateCostWithDBSettings({
             layers: accurateParams.filmLayers,
             width: effectiveMaterialWidth, // 原反の幅（570mmまたは740mm）
@@ -1390,7 +1487,7 @@ export class PouchCostCalculator {
             colors: 1,
             materialWidth: effectiveMaterialWidth,  // 原反の幅（570mmまたは740mm）
             postProcessingOptions: accurateParams.postProcessingOptions  // 表面処理オプション
-          }, null);
+          }, dbSettings);
 
           console.log('[ParallelProductionOption] filmCostResult', {
             materialCost: filmCostResult.materialCost,

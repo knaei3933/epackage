@@ -1535,74 +1535,80 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       // パウチの場合、result.filmUsageを使用
       const currentFilmUsageForCalc = state.bagTypeId === 'roll_film' ? state.quantity : (result.filmUsage || 900);
 
-      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
-        state.quantity,
-        { width: state.width, height: state.height, depth: state.depth },
-        state.bagTypeId,
-        currentFilmUsageForCalc,
-        result.unitPrice,
-        {
-          filmLayers: state.filmLayers,
-          materialId: state.materialId,
-          thicknessSelection: state.thicknessSelection,
-          postProcessingOptions: state.postProcessingOptions
+      // async関数を呼び出すためのIIFE
+      (async () => {
+        const suggestion = await pouchCostCalculator.calculateEconomicQuantitySuggestion(
+          state.quantity,
+          { width: state.width, height: state.height, depth: state.depth },
+          state.bagTypeId,
+          currentFilmUsageForCalc,
+          result.unitPrice,
+          {
+            filmLayers: state.filmLayers,
+            materialId: state.materialId,
+            thicknessSelection: state.thicknessSelection,
+            postProcessingOptions: state.postProcessingOptions
+          }
+        );
+
+        if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
+          setParallelProductionOptions(suggestion.parallelProductionOptions);
+          setShowOptimizationSuggestions(true);
         }
-      );
 
-      if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
-        setParallelProductionOptions(suggestion.parallelProductionOptions);
-        setShowOptimizationSuggestions(true);
-      }
-
-      // 経済的数量提案もセット
-      setEconomicQuantitySuggestion({
-        orderQuantity: suggestion.orderQuantity,
-        minimumOrderQuantity: suggestion.minimumOrderQuantity,
-        minimumFilmUsage: suggestion.minimumFilmUsage,
-        pouchesPerMeter: suggestion.pouchesPerMeter,
-        economicQuantity: suggestion.economicQuantity,
-        economicFilmUsage: suggestion.economicFilmUsage,
-        efficiencyImprovement: suggestion.efficiencyImprovement,
-        unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
-        unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
-        costSavings: suggestion.costSavings,
-        costSavingsRate: suggestion.costSavingsRate,
-        recommendedQuantity: suggestion.recommendedQuantity,
-        recommendationReason: suggestion.recommendationReason
-      });
+        // 経済的数量提案もセット
+        setEconomicQuantitySuggestion({
+          orderQuantity: suggestion.orderQuantity,
+          minimumOrderQuantity: suggestion.minimumOrderQuantity,
+          minimumFilmUsage: suggestion.minimumFilmUsage,
+          pouchesPerMeter: suggestion.pouchesPerMeter,
+          economicQuantity: suggestion.economicQuantity,
+          economicFilmUsage: suggestion.economicFilmUsage,
+          efficiencyImprovement: suggestion.efficiencyImprovement,
+          unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
+          unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
+          costSavings: suggestion.costSavings,
+          costSavingsRate: suggestion.costSavingsRate,
+          recommendedQuantity: suggestion.recommendedQuantity,
+          recommendationReason: suggestion.recommendationReason
+        });
+      })();
     } else {
       // パウチ製品（平袋・スタンド）の場合も経済的数量提案を計算
-      const currentFilmUsageForCalc = result.filmUsage || 900;
+      // async関数を呼び出すためのIIFE
+      (async () => {
+        const currentFilmUsageForCalc = result.filmUsage || 900;
 
-      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
-        state.quantity,
-        { width: state.width, height: state.height, depth: state.depth },
-        state.bagTypeId,
-        currentFilmUsageForCalc,
-        result.unitPrice,
-        {
-          filmLayers: state.filmLayers,
-          materialId: state.materialId,
-          thicknessSelection: state.thicknessSelection,
-          postProcessingOptions: state.postProcessingOptions
-        }
-      );
+        const suggestion = await pouchCostCalculator.calculateEconomicQuantitySuggestion(
+          state.quantity,
+          { width: state.width, height: state.height, depth: state.depth },
+          state.bagTypeId,
+          currentFilmUsageForCalc,
+          result.unitPrice,
+          {
+            filmLayers: state.filmLayers,
+            materialId: state.materialId,
+            thicknessSelection: state.thicknessSelection,
+            postProcessingOptions: state.postProcessingOptions
+          }
+        );
 
-      setEconomicQuantitySuggestion({
-        orderQuantity: suggestion.orderQuantity,
-        minimumOrderQuantity: suggestion.minimumOrderQuantity,
-        minimumFilmUsage: suggestion.minimumFilmUsage,
-        pouchesPerMeter: suggestion.pouchesPerMeter,
-        economicQuantity: suggestion.economicQuantity,
-        economicFilmUsage: suggestion.economicFilmUsage,
-        efficiencyImprovement: suggestion.efficiencyImprovement,
-        unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
-        unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
-        costSavings: suggestion.costSavings,
-        costSavingsRate: suggestion.costSavingsRate,
-        recommendedQuantity: suggestion.recommendedQuantity,
-        recommendationReason: suggestion.recommendationReason
-      });
+        setEconomicQuantitySuggestion({
+          orderQuantity: suggestion.orderQuantity,
+          minimumOrderQuantity: suggestion.minimumOrderQuantity,
+          minimumFilmUsage: suggestion.minimumFilmUsage,
+          pouchesPerMeter: suggestion.pouchesPerMeter,
+          economicQuantity: suggestion.economicQuantity,
+          economicFilmUsage: suggestion.economicFilmUsage,
+          efficiencyImprovement: suggestion.efficiencyImprovement,
+          unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
+          unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
+          costSavings: suggestion.costSavings,
+          costSavingsRate: suggestion.costSavingsRate,
+          recommendedQuantity: suggestion.recommendedQuantity,
+          recommendationReason: suggestion.recommendationReason
+        });
+      })();
     }
   }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result.unitPrice, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);
 

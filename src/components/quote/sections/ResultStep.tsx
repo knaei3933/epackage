@@ -111,27 +111,30 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   useEffect(() => {
     // roll_film, t_shape, m_shapeの場合に並列生産オプションを計算
     if (state.bagTypeId === 'roll_film' || state.bagTypeId === 't_shape' || state.bagTypeId === 'm_shape') {
-      // ロールフィルムの場合、ユーザーが入力した長さを使用
-      const currentFilmUsageForCalc = state.bagTypeId === 'roll_film' ? state.quantity : (result.filmUsage || 900);
+      // async関数を呼び出すためのIIFE
+      (async () => {
+        // ロールフィルムの場合、ユーザーが入力した長さを使用
+        const currentFilmUsageForCalc = state.bagTypeId === 'roll_film' ? state.quantity : (result.filmUsage || 900);
 
-      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
-        state.quantity,
-        { width: state.width, height: state.height, depth: state.depth },
-        state.bagTypeId,
-        currentFilmUsageForCalc,
-        result.unitPrice,
-        {
-          filmLayers: state.filmLayers,
-          materialId: state.materialId,
-          thicknessSelection: state.thicknessSelection,
-          postProcessingOptions: state.postProcessingOptions
+        const suggestion = await pouchCostCalculator.calculateEconomicQuantitySuggestion(
+          state.quantity,
+          { width: state.width, height: state.height, depth: state.depth },
+          state.bagTypeId,
+          currentFilmUsageForCalc,
+          result.unitPrice,
+          {
+            filmLayers: state.filmLayers,
+            materialId: state.materialId,
+            thicknessSelection: state.thicknessSelection,
+            postProcessingOptions: state.postProcessingOptions
+          }
+        );
+
+        if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
+          setParallelProductionOptions(suggestion.parallelProductionOptions);
+          setShowOptimizationSuggestions(true);
         }
-      );
-
-      if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
-        setParallelProductionOptions(suggestion.parallelProductionOptions);
-        setShowOptimizationSuggestions(true);
-      }
+      })();
     } else {
     }
   }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result.unitPrice, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);

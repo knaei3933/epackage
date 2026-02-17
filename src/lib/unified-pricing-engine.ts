@@ -1335,7 +1335,7 @@ export class UnifiedPricingEngine {
     const mappedPouchType = this.mapToPouchType(bagTypeId, postProcessingOptions)
 
     // SKU原価計算
-    const skuCostResult = pouchCostCalculator.calculateSKUCost({
+    const skuCostResult = await pouchCostCalculator.calculateSKUCost({
       skuQuantities,
       dimensions,
       materialId: params.materialId,
