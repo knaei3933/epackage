@@ -544,7 +544,10 @@ export class UnifiedPricingEngine {
 
   /**
    * Load system settings from database
-   * 캐시를 사용하여 DB 설정 로드 (5분 캐시)
+   * 公開価格設定APIを使用してDB設定をロード（5分キャッシュ）
+   *
+   * 注意: /api/admin/settingsはadmin認証が必要なため、
+   * 一般ユーザーが見積もりを作成する場合は /api/pricing/settings を使用
    */
   private async loadSystemSettings(): Promise<Map<string, any>> {
     // Check cache
@@ -554,27 +557,25 @@ export class UnifiedPricingEngine {
     }
 
     try {
-      // Fetch from API
-      const response = await fetch('/api/admin/settings')
+      // 公開価格設定APIを使用（認証不要）
+      const response = await fetch('/api/pricing/settings', {
+        cache: 'no-store' // キャッシュを無効化して最新設定を取得
+      })
+
       if (!response.ok) {
-        throw new Error('Failed to fetch settings')
+        throw new Error(`Failed to fetch pricing settings: ${response.status}`)
       }
 
       const result = await response.json()
       if (!result.success) {
-        throw new Error(result.error || 'Failed to load settings')
+        throw new Error(result.error || 'Failed to load pricing settings')
       }
 
-      // Flatten grouped settings into key-value map
+      // APIから返されたフラットなKey-ValueマップをMapに変換
       const settings = new Map<string, any>()
       if (result.data) {
-        // result.data is grouped by category
-        for (const [category, items] of Object.entries(result.data)) {
-          if (Array.isArray(items)) {
-            for (const item of items as any[]) {
-              settings.set(`${category}.${item.key}`, item.value)
-            }
-          }
+        for (const [key, value] of Object.entries(result.data)) {
+          settings.set(key, value)
         }
       }
 
@@ -582,9 +583,10 @@ export class UnifiedPricingEngine {
       this.settingsCache = settings
       this.settingsCacheExpiry = now + this.SETTINGS_CACHE_TTL
 
+      console.log('[UnifiedPricingEngine] Loaded pricing settings from DB:', settings.size, 'settings')
       return settings
     } catch (error) {
-      console.error('Failed to load system settings, using defaults:', error)
+      console.error('[UnifiedPricingEngine] Failed to load pricing settings, using defaults:', error)
       // Return empty map on error (will use hardcoded defaults)
       return new Map()
     }
