@@ -1292,7 +1292,7 @@ export class UnifiedPricingEngine {
       postProcessingOptions,
       postProcessingMultiplier = postProcessingOptions ? this.calculatePostProcessingMultiplier(postProcessingOptions) : CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
       urgency = 'standard',
-      markupRate = CONSTANTS.DEFAULT_MARKUP_RATE,
+      markupRate = 0.0,  // デフォルトは割引なし（PouchCostCalculatorですでに販売マージン20%が含まれているため）
       materialWidth = CONSTANTS.DEFAULT_MATERIAL_WIDTH,
       filmLayers
     } = params

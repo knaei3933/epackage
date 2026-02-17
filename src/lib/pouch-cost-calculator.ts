@@ -298,7 +298,7 @@ export class PouchCostCalculator {
       pouchType,
       filmLayers,
       postProcessingOptions,
-      markupRate = 0.2  // デフォルト20%マークアップ
+      markupRate = 0.0  // デフォルトは割引なし（販売マージン20%は計算済み）
     } = params;
 
     const skuCount = skuQuantities.length;

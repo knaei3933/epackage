@@ -3916,7 +3916,7 @@ export function ImprovedQuotingWizard() {
           console.log(`[handleNext] Calculating quote for ${useSKUMode ? 'SKU' : 'single'} mode, total quantity: ${totalQuantity}`);
 
           // Get customer-specific markup rate (if logged in)
-          let markupRate = 0.2; // Default 20% (standard margin)
+          let markupRate = 0.0; // Default 0% (no discount) - 顧客別割引率のみ適用
           console.log('[handleNext] デフォルトmarkupRate:', markupRate, 'ユーザーID:', user?.id);
           // CRITICAL: Wait for auth to complete before checking user
           if (isAuthLoading) {

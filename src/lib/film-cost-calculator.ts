@@ -751,10 +751,10 @@ export class FilmCostCalculator {
    * 고객별 마크업 적용 최종 가격 계산
    *
    * @param baseCost 원가 (엔)
-   * @param markupRate 마크업율 (기본값 0.5 = 50%)
+   * @param markupRate 마크업율 (기본값 0.0 = 할인 없음)
    * @returns 마크업 적용 후 가격 (엔)
    */
-  static applyMarkup(baseCost: number, markupRate: number = 0.2): number {
+  static applyMarkup(baseCost: number, markupRate: number = 0.0): number {
     return baseCost * (1 + markupRate);
   }
 
@@ -766,7 +766,7 @@ export class FilmCostCalculator {
    * @param quantity 파우치 수량
    * @param pouchType 파우치 타입
    * @param hasZipper 지퍼 유무
-   * @param markupRate 마크업율 (기본값 0.2 = 20%)
+   * @param markupRate 마크업율 (기본값 0.0 = 할인 없음)
    * @returns 최종 가격 (엔)
    */
   static calculatePouchFinalPrice(
@@ -774,7 +774,7 @@ export class FilmCostCalculator {
     quantity: number,
     pouchType: 'flat_3_side' | 'stand_up' | 'box' | 'other',
     hasZipper: boolean = false,
-    markupRate: number = 0.2
+    markupRate: number = 0.0
   ): {
     filmCostJPY: number;
     pouchProcessingCostJPY: number;
