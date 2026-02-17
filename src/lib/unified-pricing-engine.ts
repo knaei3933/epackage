@@ -1340,7 +1340,8 @@ export class UnifiedPricingEngine {
       thicknessSelection: thicknessSelection || 'medium',
       pouchType: mappedPouchType,
       filmLayers,
-      postProcessingOptions
+      postProcessingOptions,
+      markupRate  // 顧客別マークアップ率を適用
     })
 
     // 総数量計算

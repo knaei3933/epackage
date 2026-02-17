@@ -141,6 +141,7 @@ export interface SKUCostParams {
   materialWidth?: number; // 再料幅 (540 or 740mm)
   filmLayers?: FilmStructureLayer[]; // フィルム構造レイヤー
   postProcessingOptions?: string[]; // 後加工オプション（ジッパーなど）
+  markupRate?: number; // 顧客別マークアップ率（デフォルト20%）
 }
 
 /**
@@ -296,7 +297,8 @@ export class PouchCostCalculator {
       thicknessSelection,
       pouchType,
       filmLayers,
-      postProcessingOptions
+      postProcessingOptions,
+      markupRate = 0.2  // デフォルト20%マークアップ
     } = params;
 
     const skuCount = skuQuantities.length;
@@ -454,7 +456,8 @@ export class PouchCostCalculator {
         allocatedFilmCost,
         allocatedPouchProcessingCostKRW,
         quantity,
-        15358  // デフォルト配送料（後で上書き）
+        15358,  // デフォルト配送料（後で上書き）
+        markupRate  // 顧客別マークアップ率を適用
       );
 
       const costJPY = costBreakdown.totalCost;
@@ -633,7 +636,8 @@ export class PouchCostCalculator {
       filmCostResult,
       pouchProcessingCost, // KRW
       quantity,
-      15358  // デフォルト配送料（1箱分）：127980ウォン × 0.12
+      15358,  // デフォルト配送料（1箱分）：127980ウォン × 0.12
+      markupRate  // 顧客別マークアップ率を適用
     );
 
     // 8. 総原価（円） = 最終販売価格
@@ -956,7 +960,8 @@ export class PouchCostCalculator {
     filmCostResult: FilmCostResult,
     pouchProcessingCostKRW: number,
     quantity: number,
-    deliveryJPY: number = 15358  // デフォルトは1箱分（後で上書き）
+    deliveryJPY: number = 15358,  // デフォルトは1箱分（後で上書き）
+    markupRate: number = 0.2  // 顧客別マークアップ率（デフォルト20%）
   ): SKUCostBreakdown {
     const EXCHANGE_RATE = 0.12;
 
@@ -987,8 +992,8 @@ export class PouchCostCalculator {
     // 6. 小計 (JPY) - 円貨製造者価格 + 関税 + 配送料
     const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
 
-    // 7. 最終販売価格 (JPY) - Seller Margin 20%
-    const finalPriceJPY = subtotalJPY * 1.2;
+    // 7. 最終販売価格 (JPY) - 顧客別マークアップ率を適用
+    const finalPriceJPY = subtotalJPY * (1 + markupRate);
     const salesMarginJPY = finalPriceJPY - subtotalJPY;
 
     // Security: Price calculation details only logged in development
