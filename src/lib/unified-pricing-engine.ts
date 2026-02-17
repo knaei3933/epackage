@@ -478,7 +478,7 @@ export class UnifiedPricingEngine {
   private cache: Map<string, UnifiedQuoteResult> = new Map()
   private settingsCache: Map<string, any> = new Map()
   private settingsCacheExpiry: number = 0
-  private readonly SETTINGS_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+  private readonly SETTINGS_CACHE_TTL = 30 * 1000 // 30 seconds - 設定変更を素早く反映するため短縮
 
   // 韓国原価計算に基づく材料単価（ウォン/kg） - クラス定数
   private static readonly MATERIAL_PRICES_KRW: Record<string, { unitPrice: number; density: number }> = {

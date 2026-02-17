@@ -445,9 +445,15 @@ export default function AdminSettingsPage() {
 
   const invalidateCache = async () => {
     try {
-      await fetch('/api/admin/settings/cache/invalidate', {
+      console.log('[AdminSettings] キャッシュ無効化開始...');
+      const response = await fetch('/api/admin/settings/cache/invalidate', {
         method: 'POST'
       });
+      if (response.ok) {
+        console.log('[AdminSettings] キャッシュ無効化成功 - 30秒以内に見積もりシミュレーターに反映されます');
+      } else {
+        console.warn('[AdminSettings] キャッシュ無効化失敗:', response.status);
+      }
     } catch (cacheError) {
       console.error('Failed to clear cache:', cacheError);
     }

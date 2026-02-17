@@ -77,16 +77,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       settings[fullKey] = setting.value;
     });
 
-    // レスポンスにキャッシュ制御ヘッダーを追加（5分キャッシュ）
+    // レスポンスにキャッシュ制御ヘッダーを追加（30秒キャッシュ - 設定変更を素早く反映）
     return NextResponse.json({
       success: true,
       data: settings,
       count: data?.length || 0,
-      cachedUntil: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+      cachedUntil: new Date(Date.now() + 30 * 1000).toISOString()
     }, {
       headers: {
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
-        'CDN-Cache-Control': 'public, max-age=300'
+        'Cache-Control': 'public, max-age=30, stale-while-revalidate=10',
+        'CDN-Cache-Control': 'public, max-age=30'
       }
     });
 
