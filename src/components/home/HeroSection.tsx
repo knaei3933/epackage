@@ -86,13 +86,13 @@ export function HeroSection() {
             >
                 <h1 className="text-4xl md:text-6xl lg:text-8xl font-extrabold text-white leading-tight tracking-tight">
                   <span className="block text-white drop-shadow-2xl stroke-black stroke-2">
-                    あなたの製品を
+                    もう在庫に縛られない。
                   </span>
                   <span className="block text-green-400 drop-shadow-2xl">
-                    最適な包装で
+                    500枚から28日。
                   </span>
                   <span className="block text-green-300 drop-shadow-2xl">
-                    輝かせる
+                    常識を変えるパッケージ調達。
                   </span>
                 </h1>
             </motion.div>

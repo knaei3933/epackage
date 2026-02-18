@@ -24,10 +24,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://package-lab.com'),
   title: {
-    default: "Epackage Lab | デジタル印刷・小ロット・短納期 | パッケージングソリューション",
+    default: "Epackage Lab | 500枚から28日納品 | 小ロットパッケージ製造",
     template: "%s | Epackage Lab"
   },
-  description: "韓国品質の包装材料と日本規制完全準拠で日本のものづくりを支援するEpackage Lab。食品安全規格対応。500社以上の日本企業実績。平均30%コスト削減、最短10日納期。食品包装、医薬品包装、化粧品包装に対応。今すぐ無料見積もりで最適な包装ソリューションをご提案。",
+  description: "もう在庫に縛られない。500枚から28日納品の小ロットパッケージ製造。年間300万円の在庫廃棄コストを70%削減。500社以上の日本企業実績、食品安全規格完全対応。今なら30秒で見積もり完了、3営業日以内にサンプル発送。",
   keywords: [
     // 基本キーワード
     "パッケージング", "包装", "梱包", "包装資材", "包装会社",
@@ -101,10 +101,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // TODO: Google Search Consoleから取得した検証コードを設定してください
-    // google: 'your-google-verification-code',
-    yandex: 'your-yandex-verification-code',
-    yahoo: 'your-yahoo-verification-code',
+    google: 'F0MGJt4bRFH71oNsaalw0yVyTZn5FTLScKHxI1bihHw',
   },
 };
 

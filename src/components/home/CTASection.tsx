@@ -17,10 +17,13 @@ export function CTASection() {
               <span>製品購入・見積もり</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-white">
-              あなたの製品包装を今すぐ始めよう
+              今なら30秒で申し込み完了
             </h2>
             <p className="text-lg text-white/90 max-w-3xl mx-auto">
-              製品確認から価格計算、専門家相談まで、あらゆるニーズに応じた方法でお問い合わせください。
+              3営業日以内にサンプル発送、1週間でお手元に届きます。
+            </p>
+            <p className="text-base text-white/70 max-w-3xl mx-auto">
+              製品確認から価格計算、専門家相談まで、お気軽にご相談ください。
             </p>
 
             {/* Lead Generation Options - Single Row */}
@@ -64,7 +67,11 @@ export function CTASection() {
               </Link>
 
               {/* Product Samples */}
-              <Link href="/samples" className="group flex-1 min-w-[200px]">
+              <Link href="/samples" className="group flex-1 min-w-[200px] relative">
+                {/* 緊迫感ラベル */}
+                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse z-10">
+                  今すぐ
+                </div>
                 <Card className="p-4 sm:p-6 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 h-full">
                   <div className="text-center space-y-2 sm:space-y-4">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto group-hover:bg-white/30 transition-colors">
