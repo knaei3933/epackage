@@ -542,7 +542,7 @@ export class PouchCostCalculator {
       });
 
       // 配送料は仮計算（後で上書き）
-      const costBreakdown = this.calculateCostBreakdown(
+      const costBreakdown = await this.calculateCostBreakdown(
         allocatedFilmCost,
         allocatedPouchProcessingCostKRW,
         quantity,
@@ -722,7 +722,7 @@ export class PouchCostCalculator {
 
     // 7. 原価内訳集計 (KRW 기준으로 엄격한 마진 및 관세 계산)
     // デフォルトは1箱分の配送料（calculateSKUCostメソッドで後で上書き）
-    const costBreakdown = this.calculateCostBreakdown(
+    const costBreakdown = await this.calculateCostBreakdown(
       filmCostResult,
       pouchProcessingCost, // KRW
       quantity,
@@ -1042,14 +1042,14 @@ export class PouchCostCalculator {
    * docs/reports/calcultae/06-마진_및_최종가격.md 基準
    *
    * 1. 基礎原価 = 原材料費 + 印刷費 + 後加工費 (KRW)
-   * 2. 製造者価格 = 基礎原価 × 1.4 (KRW)
+   * 2. 製造者価格 = 基礎原価 × (1 + 製造者マージン率) (KRW)
    * 3. 円貨製造者価格 = 製造者価格 × 0.12 (JPY)
    * 4. 関税 = 円貨製造者価格 × 0.05 (JPY)
    * 5. 配送料 = 必要箱数 × 127,980ウォン × 0.12 (JPY)
    * 6. 小計 = 円貨製造者価格 + 関税 + 配送料 (JPY)
-   * 7. 最終販売価格 = 小計 × 1.2 (JPY)
+   * 7. 最終販売価格 = 小計 × (1 + 販売マージン率) (JPY)
    */
-  private calculateCostBreakdown(
+  private async calculateCostBreakdown(
     filmCostResult: FilmCostResult,
     pouchProcessingCostKRW: number,
     quantity: number,
@@ -1069,8 +1069,10 @@ export class PouchCostCalculator {
       deliveryJPY
     });
 
-    // 2. 製造者価格 (KRW) - Margin 40%
-    const manufacturerPriceKRW = baseCostKRW * 1.4;
+    // 2. 製造者価格 (KRW) - DB設定から製造者マージン率を取得（デフォルト40%）
+    const MANUFACTURER_MARGIN = await this.getSetting('pricing', 'manufacturer_margin', 0.4);
+    console.log('[PouchCostCalculator] manufacturerMargin:', MANUFACTURER_MARGIN);
+    const manufacturerPriceKRW = baseCostKRW * (1 + MANUFACTURER_MARGIN);
     const manufacturingMarginKRW = manufacturerPriceKRW - baseCostKRW;
 
     // 3. 円貨製造者価格 (JPY) - 엔화 환전
@@ -1085,8 +1087,9 @@ export class PouchCostCalculator {
     // 6. 小計 (JPY) - 円貨製造者価格 + 関税 + 配送料
     const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
 
-    // 7. 販売マージン適用（20%）- 全製品で統一
-    const SALES_MARGIN = 0.2; // 20%販売マージン
+    // 7. 販売マージン適用 - DB設定から販売マージン率を取得（デフォルト20%）
+    const SALES_MARGIN = await this.getSetting('pricing', 'default_markup_rate', 0.2);
+    console.log('[PouchCostCalculator] salesMargin:', SALES_MARGIN);
     const priceAfterSalesMargin = subtotalJPY * (1 + SALES_MARGIN);
     const salesMarginJPY = priceAfterSalesMargin - subtotalJPY;
 
