@@ -498,7 +498,7 @@ export class PouchCostCalculator {
     });
 
     // 各SKUの配分を計算（数量比で按分）
-    const costPerSKU = skuQuantities.map((quantity, index) => {
+    const costPerSKU = await Promise.all(skuQuantities.map(async (quantity, index) => {
       const quantityRatio = quantity / totalQuantity;
 
       // 事前計算した理論メートル数と確保量を使用
@@ -563,7 +563,7 @@ export class PouchCostCalculator {
         costBreakdown,
         deliveryWeight
       };
-    });
+    }));
 
     // 総配送重量の計算（全SKUの合計）
     const totalDeliveryWeight = costPerSKU.reduce((sum, sku) => sum + (sku.deliveryWeight || 0), 0);
