@@ -738,10 +738,10 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
             <span className="ml-1">{specs.bag_type}</span>
           </div>
         )}
-        {specs.material && (
+        {specs.material_display && (
           <div>
             <span className="text-gray-500">素材:</span>
-            <span className="ml-1">{specs.material}</span>
+            <span className="ml-1">{specs.material_display}</span>
           </div>
         )}
         {specs.size && (
@@ -750,16 +750,16 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
             <span className="ml-1">{specs.size}</span>
           </div>
         )}
-        {specs.printing && (
+        {specs.printing_display && (
           <div>
             <span className="text-gray-500">印刷:</span>
-            <span className="ml-1">{specs.printing}</span>
+            <span className="ml-1">{specs.printing_display}</span>
           </div>
         )}
         {specs.colors && (
           <div>
             <span className="text-gray-500">色数:</span>
-            <span className="ml-1">{specs.colors}色</span>
+            <span className="ml-1">{specs.colors}</span>
           </div>
         )}
         {specs.zipper && (
