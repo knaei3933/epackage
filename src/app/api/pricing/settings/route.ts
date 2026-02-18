@@ -23,6 +23,7 @@ const PUBLIC_CATEGORIES = [
   'duty_rate',      // 関税率
   'delivery',       // 配送料
   'production',     // 生産設定
+  'pricing',        // 価格計算設定（マージン率など）
 ] as const;
 
 /**
