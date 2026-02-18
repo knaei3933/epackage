@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  /* カスタムカーソル用 - デフォルトカーソルを非表示（タッチデバイス以外） */
+  @media (hover: hover) and (pointer: fine) {
+    * {
+      cursor: none !important;
+    }
+
+    input,
+    textarea,
+    [contenteditable] {
+      cursor: text !important;
+    }
+  }
+
   :root {
     /* Epackage Lab Brand Colors - Light Theme */
     --brixa-primary: #5EB6AC; /* Primary green - 5EB6AC */

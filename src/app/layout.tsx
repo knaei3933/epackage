@@ -10,6 +10,7 @@ import { Suspense } from 'react';
 import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
+import { CustomCursor } from "@/components/cursor/CustomCursor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -147,6 +148,7 @@ export default function RootLayout({
           enableSystem={true}
           attribute="class"
         >
+          <CustomCursor />
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
             <AuthProvider>
               <CatalogProvider>
