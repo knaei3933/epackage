@@ -170,6 +170,75 @@ function calculateBreakdown(item: QuotationItem) {
   const height = specs.height || 0;
   const depth = specs.depth || 0;
 
+  // 仕様情報のヘルパー関数
+  const getBagTypeName = (bagTypeId: string) => {
+    const types: Record<string, string> = {
+      'stand_up': 'スタンドパウチ',
+      'flat_pouch': 'フラットパウチ',
+      'roll_film': 'ロールフィルム',
+      'zipper_pouch': 'ジッパーパウチ',
+      'spout_pouch': 'スパウトパウチ',
+    };
+    return types[bagTypeId] || bagTypeId;
+  };
+
+  const getMaterialName = (materialId: string) => {
+    const materials: Record<string, string> = {
+      'pet_al': 'PET/AL (アルミラミネート)',
+      'pet_llppe': 'PET/LLDPE',
+      'pet_pet': 'PET/PET',
+      'kp kp': 'KP/KP',
+      'pet': 'PET',
+      'ppe': 'PPE',
+    };
+    return materials[materialId] || materialId;
+  };
+
+  const getThicknessName = (thickness: string) => {
+    const thicknesses: Record<string, string> = {
+      'thin': '薄い (60-80μm)',
+      'medium': '中間 (90-120μm)',
+      'thick': '厚い (130-150μm)',
+    };
+    return thicknesses[thickness] || thickness;
+  };
+
+  const getPostProcessingDisplay = (options: string[]) => {
+    const displayNames: Record<string, string> = {
+      'corner-round': 'コーナーR',
+      'glossy': '光沢 (グロッシー)',
+      'matte': 'マット',
+      'hang-hole-6mm': 'ハングホール (6mm)',
+      'hang-hole-8mm': 'ハングホール (8mm)',
+      'notch-yes': 'ノッチ',
+      'notch-no': 'ノッチなし',
+      'zipper-yes': 'ジッパー',
+      'zipper-no': 'ジッパーなし',
+      'valve-yes': 'バルブ',
+      'valve-no': 'バルブなし',
+      'spout-yes': 'スパウト',
+      'spout-no': 'スパウトなし',
+      'sealing-width-5mm': 'シール幅5mm',
+      'sealing-width-8mm': 'シール幅8mm',
+      'sealing-width-10mm': 'シール幅10mm',
+      'top-open': 'トップオープン',
+      'top-closed': 'トップクローズ',
+      'machi-printing-yes': 'マチ印刷あり',
+      'machi-printing-no': 'マチ印刷なし',
+    };
+    return options.map(opt => displayNames[opt] || opt);
+  };
+
+  const getPrintingTypeName = (printingType: string) => {
+    const types: Record<string, string> = {
+      'digital': 'デジタル印刷',
+      'gravure': 'グラビア印刷',
+      'flexographic': 'フレキソ印刷',
+      'uv': 'UV印刷',
+    };
+    return types[printingType] || printingType;
+  };
+
   // cost_breakdownが既に保存されている場合はそれを使用
   if (item.cost_breakdown) {
     const savedBreakdown = item.cost_breakdown as CostBreakdown;
@@ -178,14 +247,39 @@ function calculateBreakdown(item: QuotationItem) {
       unit_price: item.unit_price,
       total_price: item.total_price,
       specifications: {
-        bag_type: specs.bag_type,
-        material: specs.material,
+        // 基本情報
+        bag_type: specs.bagTypeId || specs.bag_type,
+        bag_type_display: getBagTypeName(specs.bagTypeId || specs.bag_type),
+        material: specs.materialId || specs.material,
+        material_display: getMaterialName(specs.materialId || specs.material),
+        thickness: specs.thicknessSelection,
+        thickness_display: getThicknessName(specs.thicknessSelection),
+        // サイズ
+        width,
+        height,
+        depth,
+        dimensions: specs.dimensions || `${width}×${height}${depth ? `×${depth}` : ''}mm`,
         size: `${width}×${height}${depth ? `×${depth}` : ''}mm`,
-        printing: specs.printing_type,
-        colors: specs.printing_colors,
-        post_processing: specs.post_processing || [],
-        zipper: specs.zipper || specs.post_processing?.includes('zipper-yes'),
-        spout: specs.spout || specs.post_processing?.includes('spout-yes'),
+        // 印刷
+        printing: specs.printingType || specs.printing_type,
+        printing_display: getPrintingTypeName(specs.printingType || specs.printing_type),
+        printing_type: specs.printingType || specs.printing_type,
+        colors: specs.printingColors || specs.printing_colors,
+        isUVPrinting: specs.isUVPrinting,
+        // 後加工
+        post_processing: specs.postProcessingOptions || specs.post_processing || [],
+        post_processing_display: getPostProcessingDisplay(specs.postProcessingOptions || specs.post_processing || []),
+        zipper: specs.zipper || specs.postProcessingOptions?.includes('zipper-yes') || specs.post_processing?.includes('zipper-yes'),
+        spout: specs.spout || specs.postProcessingOptions?.includes('spout-yes') || specs.post_processing?.includes('spout-yes'),
+        // その他
+        urgency: specs.urgency,
+        contents: specs.contents,
+        contentsType: specs.contentsType,
+        productCategory: specs.productCategory,
+        deliveryLocation: specs.deliveryLocation,
+        distributionEnvironment: specs.distributionEnvironment,
+        sealWidth: specs.sealWidth,
+        doubleSided: specs.doubleSided,
       },
       area: { mm2: width * height, m2: (width * height) / 1000000 },
       sku_info: specs.sku_quantities ? {
@@ -207,19 +301,113 @@ function calculateBreakdown(item: QuotationItem) {
   const estimatedMargin = Math.round(totalCost * 0.2); // 約20%
   const estimatedDelivery = Math.round(totalCost * 0.08); // 約8%
 
+  // 仕様情報のヘルパー関数
+  const getBagTypeName = (bagTypeId: string) => {
+    const types: Record<string, string> = {
+      'stand_up': 'スタンドパウチ',
+      'flat_pouch': 'フラットパウチ',
+      'roll_film': 'ロールフィルム',
+      'zipper_pouch': 'ジッパーパウチ',
+      'spout_pouch': 'スパウトパウチ',
+    };
+    return types[bagTypeId] || bagTypeId;
+  };
+
+  const getMaterialName = (materialId: string) => {
+    const materials: Record<string, string> = {
+      'pet_al': 'PET/AL (アルミラミネート)',
+      'pet_llppe': 'PET/LLDPE',
+      'pet_pet': 'PET/PET',
+      'kp kp': 'KP/KP',
+      'pet': 'PET',
+      'ppe': 'PPE',
+    };
+    return materials[materialId] || materialId;
+  };
+
+  const getThicknessName = (thickness: string) => {
+    const thicknesses: Record<string, string> = {
+      'thin': '薄い (60-80μm)',
+      'medium': '中間 (90-120μm)',
+      'thick': '厚い (130-150μm)',
+    };
+    return thicknesses[thickness] || thickness;
+  };
+
+  const getPostProcessingDisplay = (options: string[]) => {
+    const displayNames: Record<string, string> = {
+      'corner-round': 'コーナーR',
+      'glossy': '光沢 (グロッシー)',
+      'matte': 'マット',
+      'hang-hole-6mm': 'ハングホール (6mm)',
+      'hang-hole-8mm': 'ハングホール (8mm)',
+      'notch-yes': 'ノッチ',
+      'notch-no': 'ノッチなし',
+      'zipper-yes': 'ジッパー',
+      'zipper-no': 'ジッパーなし',
+      'valve-yes': 'バルブ',
+      'valve-no': 'バルブなし',
+      'spout-yes': 'スパウト',
+      'spout-no': 'スパウトなし',
+      'sealing-width-5mm': 'シール幅5mm',
+      'sealing-width-8mm': 'シール幅8mm',
+      'sealing-width-10mm': 'シール幅10mm',
+      'top-open': 'トップオープン',
+      'top-closed': 'トップクローズ',
+      'machi-printing-yes': 'マチ印刷あり',
+      'machi-printing-no': 'マチ印刷なし',
+    };
+    return options.map(opt => displayNames[opt] || opt);
+  };
+
+  const getPrintingTypeName = (printingType: string) => {
+    const types: Record<string, string> = {
+      'digital': 'デジタル印刷',
+      'gravure': 'グラビア印刷',
+      'flexographic': 'フレキソ印刷',
+      'uv': 'UV印刷',
+    };
+    return types[printingType] || printingType;
+  };
+
   return {
     quantity: item.quantity,
     unit_price: item.unit_price,
     total_price: item.total_price,
     specifications: {
-      bag_type: specs.bag_type,
-      material: specs.material,
+      // 基本情報
+      bag_type: specs.bagTypeId || specs.bag_type,
+      bag_type_display: getBagTypeName(specs.bagTypeId || specs.bag_type),
+      material: specs.materialId || specs.material,
+      material_display: getMaterialName(specs.materialId || specs.material),
+      thickness: specs.thicknessSelection,
+      thickness_display: getThicknessName(specs.thicknessSelection),
+      // サイズ
+      width,
+      height,
+      depth,
+      dimensions: specs.dimensions || `${width}×${height}${depth ? `×${depth}` : ''}mm`,
       size: `${width}×${height}${depth ? `×${depth}` : ''}mm`,
-      printing: specs.printing_type,
-      colors: specs.printing_colors,
-      post_processing: specs.post_processing || [],
-      zipper: specs.zipper || specs.post_processing?.includes('zipper-yes'),
-      spout: specs.spout || specs.post_processing?.includes('spout-yes'),
+      // 印刷
+      printing: specs.printingType || specs.printing_type,
+      printing_display: getPrintingTypeName(specs.printingType || specs.printing_type),
+      printing_type: specs.printingType || specs.printing_type,
+      colors: specs.printingColors || specs.printing_colors,
+      isUVPrinting: specs.isUVPrinting,
+      // 後加工
+      post_processing: specs.postProcessingOptions || specs.post_processing || [],
+      post_processing_display: getPostProcessingDisplay(specs.postProcessingOptions || specs.post_processing || []),
+      zipper: specs.zipper || specs.postProcessingOptions?.includes('zipper-yes') || specs.post_processing?.includes('zipper-yes'),
+      spout: specs.spout || specs.postProcessingOptions?.includes('spout-yes') || specs.post_processing?.includes('spout-yes'),
+      // その他
+      urgency: specs.urgency,
+      contents: specs.contents,
+      contentsType: specs.contentsType,
+      productCategory: specs.productCategory,
+      deliveryLocation: specs.deliveryLocation,
+      distributionEnvironment: specs.distributionEnvironment,
+      sealWidth: specs.sealWidth,
+      doubleSided: specs.doubleSided,
     },
     area: { mm2: width * height, m2: (width * height) / 1000000 },
     sku_info: specs.sku_quantities ? {
