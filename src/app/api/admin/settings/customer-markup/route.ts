@@ -95,12 +95,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Convert snake_case to camelCase for frontend
+    const formattedData = (data || []).map((item: any) => ({
+      id: item.id,
+      email: item.email,
+      companyName: item.company_name,
+      role: item.role || 'MEMBER',
+      markupRate: item.markup_rate ?? 0.0,
+      markupRateNote: item.markup_rate_note,
+      createdAt: item.created_at
+    }));
+
     // Calculate total pages
     const totalPages = Math.ceil((count || 0) / perPage);
 
     const responseData = {
       success: true,
-      data: data || [],
+      data: formattedData,
       pagination: {
         page,
         perPage,
