@@ -963,16 +963,19 @@ export class UnifiedPricingEngine {
     // 9. 最終価格計算
     // 計算式: docs/reports/tjfrP/old/原価計算.md 基づ
     //
-    // Step 1: 基礎原価 + 製造者マージン40% = 製造者価格
+    // Step 1: 基礎原価 + 製造者マージン = 製造者価格
     const baseCost = totalWithMatteCost; // 材料原価 + 印刷費 + 加工費 + マット印刷追加費
-    const manufacturerPrice = baseCost * (1 + CONSTANTS.MANUFACTURER_MARGIN);
+    // DB設定から製造者マージン率を取得（デフォルト40%）
+    const manufacturerMargin = await this.getSetting('pricing', 'manufacturer_margin', CONSTANTS.MANUFACTURER_MARGIN);
+    const manufacturerPrice = baseCost * (1 + manufacturerMargin);
 
     // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
     const importCost = manufacturerPrice * 1.05;
 
     // Step 3: 輸入原価 + 配送費 + 販売マージン = 最終販売価格
     // ドキュメント仕様: フィルムロール20%、パウチ加工品20%
-    const salesMargin = 0.20;  // 全製品20%で統一（ドキュメント準拠）
+    // DB設定から販売マージン率を取得（デフォルト20%）
+    const salesMargin = await this.getSetting('pricing', 'default_markup_rate', 0.20);
 
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
@@ -1102,7 +1105,8 @@ export class UnifiedPricingEngine {
       delivery_cost_per_roll: await this.getSetting('delivery', 'cost_per_roll', undefined),
       delivery_kg_per_roll: await this.getSetting('delivery', 'kg_per_roll', undefined),
       production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),
-      pricing_default_markup_rate: await this.getSetting('pricing', 'default_markup_rate', undefined)
+      pricing_default_markup_rate: await this.getSetting('pricing', 'default_markup_rate', undefined),
+      pricing_manufacturer_margin: await this.getSetting('pricing', 'manufacturer_margin', CONSTANTS.MANUFACTURER_MARGIN)
     }
 
     // ========================================
@@ -1180,8 +1184,8 @@ export class UnifiedPricingEngine {
     // ========================================
     // 計算式: docs/reports/tjfrP/old/原価計算.md 基づ
     //
-    // Step 1: 基礎原価 + 製造者マージン40% = 製造者価格
-    const manufacturerPrice = postProcessingAdjustedBaseCost * (1 + CONSTANTS.MANUFACTURER_MARGIN);
+    // Step 1: 基礎原価 + 製造者マージン = 製造者価格
+    const manufacturerPrice = postProcessingAdjustedBaseCost * (1 + filmCostSettings.pricing_manufacturer_margin);
 
     // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
     const importCost = manufacturerPrice * 1.05;
