@@ -738,10 +738,16 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
             <span className="ml-1">{specs.bag_type}</span>
           </div>
         )}
-        {specs.material_display && (
-          <div>
+        {specs.material_specification && (
+          <div className="col-span-2">
             <span className="text-gray-500">素材:</span>
-            <span className="ml-1">{specs.material_display}</span>
+            <span className="ml-1 text-blue-700">{specs.material_specification}</span>
+          </div>
+        )}
+        {specs.weight_range && (
+          <div>
+            <span className="text-gray-500">重量:</span>
+            <span className="ml-1">{specs.weight_range}</span>
           </div>
         )}
         {specs.size && (

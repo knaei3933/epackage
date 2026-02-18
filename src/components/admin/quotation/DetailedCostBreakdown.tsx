@@ -361,39 +361,6 @@ export function DetailedCostBreakdown({
           </p>
         </div>
       </div>
-
-      {/* 仕様情報 - 簡素化版 */}
-      {specifications && Object.keys(specifications).length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <h4 className="text-sm font-semibold text-gray-800 mb-2">📋 仕様情報</h4>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-            {specifications.bag_type_display && (
-              <div><span className="text-gray-500">タイプ:</span> <span className="font-medium">{specifications.bag_type_display}</span></div>
-            )}
-            {specifications.material_specification && (
-              <div className="col-span-2"><span className="text-gray-500">素材:</span> <span className="font-medium text-blue-700">{specifications.material_specification}</span></div>
-            )}
-            {specifications.weight_range && (
-              <div><span className="text-gray-500">重量:</span> <span className="font-medium">{specifications.weight_range}</span></div>
-            )}
-            {specifications.dimensions && (
-              <div><span className="text-gray-500">サイズ:</span> <span className="font-medium">{specifications.dimensions}</span></div>
-            )}
-            {specifications.printing_display && (
-              <div><span className="text-gray-500">印刷:</span> <span className="font-medium">{specifications.printing_display}</span></div>
-            )}
-            {specifications.colors && (
-              <div><span className="text-gray-500">色数:</span> <span className="font-medium">{specifications.colors}</span></div>
-            )}
-            {specifications.post_processing_display && specifications.post_processing_display.length > 0 && (
-              <div className="col-span-2">
-                <span className="text-gray-500">後加工:</span>
-                <span className="ml-1">{specifications.post_processing_display.join(', ')}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
