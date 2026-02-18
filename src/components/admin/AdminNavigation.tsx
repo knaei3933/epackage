@@ -28,6 +28,7 @@ const navigation = [
   { name: '契約管理', href: '/admin/contracts', icon: FileText },
   { name: '会員承認', href: '/admin/approvals', icon: UserCheck },
   { name: '顧客管理', href: '/admin/customers/management', icon: Users },
+  { name: 'ブログ管理', href: '/admin/blog', icon: FileText },
   { name: 'お知らせ管理', href: '/admin/notifications', icon: Bell },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },
   { name: 'システム設定', href: '/admin/settings', icon: DollarSign },
