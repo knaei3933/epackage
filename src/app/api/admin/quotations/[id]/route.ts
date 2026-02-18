@@ -164,80 +164,87 @@ interface CostBreakdown {
   totalCost: number;
 }
 
+// =====================================================
+// 仕様情報ヘルパー関数
+// =====================================================
+
+function getBagTypeName(bagTypeId: string): string {
+  const types: Record<string, string> = {
+    'stand_up': 'スタンドパウチ',
+    'flat_pouch': 'フラットパウチ',
+    'roll_film': 'ロールフィルム',
+    'zipper_pouch': 'ジッパーパウチ',
+    'spout_pouch': 'スパウトパウチ',
+  };
+  return types[bagTypeId] || bagTypeId;
+}
+
+function getMaterialName(materialId: string): string {
+  const materials: Record<string, string> = {
+    'pet_al': 'PET/AL (アルミラミネート)',
+    'pet_llppe': 'PET/LLDPE',
+    'pet_pet': 'PET/PET',
+    'kp kp': 'KP/KP',
+    'pet': 'PET',
+    'ppe': 'PPE',
+  };
+  return materials[materialId] || materialId;
+}
+
+function getThicknessName(thickness: string): string {
+  const thicknesses: Record<string, string> = {
+    'thin': '薄い (60-80μm)',
+    'medium': '中間 (90-120μm)',
+    'thick': '厚い (130-150μm)',
+  };
+  return thicknesses[thickness] || thickness;
+}
+
+function getPostProcessingDisplay(options: string[]): string[] {
+  const displayNames: Record<string, string> = {
+    'corner-round': 'コーナーR',
+    'glossy': '光沢 (グロッシー)',
+    'matte': 'マット',
+    'hang-hole-6mm': 'ハングホール (6mm)',
+    'hang-hole-8mm': 'ハングホール (8mm)',
+    'notch-yes': 'ノッチ',
+    'notch-no': 'ノッチなし',
+    'zipper-yes': 'ジッパー',
+    'zipper-no': 'ジッパーなし',
+    'valve-yes': 'バルブ',
+    'valve-no': 'バルブなし',
+    'spout-yes': 'スパウト',
+    'spout-no': 'スパウトなし',
+    'sealing-width-5mm': 'シール幅5mm',
+    'sealing-width-8mm': 'シール幅8mm',
+    'sealing-width-10mm': 'シール幅10mm',
+    'top-open': 'トップオープン',
+    'top-closed': 'トップクローズ',
+    'machi-printing-yes': 'マチ印刷あり',
+    'machi-printing-no': 'マチ印刷なし',
+  };
+  return options.map(opt => displayNames[opt] || opt);
+}
+
+function getPrintingTypeName(printingType: string): string {
+  const types: Record<string, string> = {
+    'digital': 'デジタル印刷',
+    'gravure': 'グラビア印刷',
+    'flexographic': 'フレキソ印刷',
+    'uv': 'UV印刷',
+  };
+  return types[printingType] || printingType;
+}
+
+// =====================================================
+// calculateBreakdown関数
+// =====================================================
+
 function calculateBreakdown(item: QuotationItem) {
   const specs = item.specifications || {};
   const width = specs.width || 0;
   const height = specs.height || 0;
   const depth = specs.depth || 0;
-
-  // 仕様情報のヘルパー関数
-  const getBagTypeName = (bagTypeId: string) => {
-    const types: Record<string, string> = {
-      'stand_up': 'スタンドパウチ',
-      'flat_pouch': 'フラットパウチ',
-      'roll_film': 'ロールフィルム',
-      'zipper_pouch': 'ジッパーパウチ',
-      'spout_pouch': 'スパウトパウチ',
-    };
-    return types[bagTypeId] || bagTypeId;
-  };
-
-  const getMaterialName = (materialId: string) => {
-    const materials: Record<string, string> = {
-      'pet_al': 'PET/AL (アルミラミネート)',
-      'pet_llppe': 'PET/LLDPE',
-      'pet_pet': 'PET/PET',
-      'kp kp': 'KP/KP',
-      'pet': 'PET',
-      'ppe': 'PPE',
-    };
-    return materials[materialId] || materialId;
-  };
-
-  const getThicknessName = (thickness: string) => {
-    const thicknesses: Record<string, string> = {
-      'thin': '薄い (60-80μm)',
-      'medium': '中間 (90-120μm)',
-      'thick': '厚い (130-150μm)',
-    };
-    return thicknesses[thickness] || thickness;
-  };
-
-  const getPostProcessingDisplay = (options: string[]) => {
-    const displayNames: Record<string, string> = {
-      'corner-round': 'コーナーR',
-      'glossy': '光沢 (グロッシー)',
-      'matte': 'マット',
-      'hang-hole-6mm': 'ハングホール (6mm)',
-      'hang-hole-8mm': 'ハングホール (8mm)',
-      'notch-yes': 'ノッチ',
-      'notch-no': 'ノッチなし',
-      'zipper-yes': 'ジッパー',
-      'zipper-no': 'ジッパーなし',
-      'valve-yes': 'バルブ',
-      'valve-no': 'バルブなし',
-      'spout-yes': 'スパウト',
-      'spout-no': 'スパウトなし',
-      'sealing-width-5mm': 'シール幅5mm',
-      'sealing-width-8mm': 'シール幅8mm',
-      'sealing-width-10mm': 'シール幅10mm',
-      'top-open': 'トップオープン',
-      'top-closed': 'トップクローズ',
-      'machi-printing-yes': 'マチ印刷あり',
-      'machi-printing-no': 'マチ印刷なし',
-    };
-    return options.map(opt => displayNames[opt] || opt);
-  };
-
-  const getPrintingTypeName = (printingType: string) => {
-    const types: Record<string, string> = {
-      'digital': 'デジタル印刷',
-      'gravure': 'グラビア印刷',
-      'flexographic': 'フレキソ印刷',
-      'uv': 'UV印刷',
-    };
-    return types[printingType] || printingType;
-  };
 
   // cost_breakdownが既に保存されている場合はそれを使用
   if (item.cost_breakdown) {
@@ -300,75 +307,6 @@ function calculateBreakdown(item: QuotationItem) {
   const estimatedPrintingCost = Math.round(totalCost * 0.1); // 約10%
   const estimatedMargin = Math.round(totalCost * 0.2); // 約20%
   const estimatedDelivery = Math.round(totalCost * 0.08); // 約8%
-
-  // 仕様情報のヘルパー関数
-  const getBagTypeName = (bagTypeId: string) => {
-    const types: Record<string, string> = {
-      'stand_up': 'スタンドパウチ',
-      'flat_pouch': 'フラットパウチ',
-      'roll_film': 'ロールフィルム',
-      'zipper_pouch': 'ジッパーパウチ',
-      'spout_pouch': 'スパウトパウチ',
-    };
-    return types[bagTypeId] || bagTypeId;
-  };
-
-  const getMaterialName = (materialId: string) => {
-    const materials: Record<string, string> = {
-      'pet_al': 'PET/AL (アルミラミネート)',
-      'pet_llppe': 'PET/LLDPE',
-      'pet_pet': 'PET/PET',
-      'kp kp': 'KP/KP',
-      'pet': 'PET',
-      'ppe': 'PPE',
-    };
-    return materials[materialId] || materialId;
-  };
-
-  const getThicknessName = (thickness: string) => {
-    const thicknesses: Record<string, string> = {
-      'thin': '薄い (60-80μm)',
-      'medium': '中間 (90-120μm)',
-      'thick': '厚い (130-150μm)',
-    };
-    return thicknesses[thickness] || thickness;
-  };
-
-  const getPostProcessingDisplay = (options: string[]) => {
-    const displayNames: Record<string, string> = {
-      'corner-round': 'コーナーR',
-      'glossy': '光沢 (グロッシー)',
-      'matte': 'マット',
-      'hang-hole-6mm': 'ハングホール (6mm)',
-      'hang-hole-8mm': 'ハングホール (8mm)',
-      'notch-yes': 'ノッチ',
-      'notch-no': 'ノッチなし',
-      'zipper-yes': 'ジッパー',
-      'zipper-no': 'ジッパーなし',
-      'valve-yes': 'バルブ',
-      'valve-no': 'バルブなし',
-      'spout-yes': 'スパウト',
-      'spout-no': 'スパウトなし',
-      'sealing-width-5mm': 'シール幅5mm',
-      'sealing-width-8mm': 'シール幅8mm',
-      'sealing-width-10mm': 'シール幅10mm',
-      'top-open': 'トップオープン',
-      'top-closed': 'トップクローズ',
-      'machi-printing-yes': 'マチ印刷あり',
-      'machi-printing-no': 'マチ印刷なし',
-    };
-    return options.map(opt => displayNames[opt] || opt);
-  };
-
-  const getPrintingTypeName = (printingType: string) => {
-    const types: Record<string, string> = {
-      'digital': 'デジタル印刷',
-      'gravure': 'グラビア印刷',
-      'flexographic': 'フレキソ印刷',
-      'uv': 'UV印刷',
-    };
-    return types[printingType] || printingType;
-  };
 
   return {
     quantity: item.quantity,
