@@ -30,9 +30,10 @@ export async function POST(
     // Import the pouch cost calculator
     const { pouchCostCalculator } = await import('@/lib/pouch-cost-calculator');
 
-    // Clear the settings cache for both engines
-    unifiedPricingEngine.clearSettingsCache();
-    pouchCostCalculator.clearSettingsCache();
+    // Clear both settings cache and calculation result cache
+    unifiedPricingEngine.clearCache(); // 計算結果のキャッシュをクリア
+    unifiedPricingEngine.clearSettingsCache(); // 設定のキャッシュをクリア
+    pouchCostCalculator.clearSettingsCache(); // 設定のキャッシュをクリア
 
     return NextResponse.json({
       success: true,
