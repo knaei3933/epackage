@@ -1,6 +1,6 @@
 import { OrganizationSchema, LocalBusinessSchema, FAQSchema } from '@/components/seo/StructuredData'
 import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingProcessShowcase'
-import { HeroSection, ProductShowcaseSection, CTASection, IndustryShowcase } from '@/components/home'
+import { HeroSection, ProductShowcaseSection, BeforeAfterSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts, getLatestAnnouncements } from '@/lib/products'
 import { getAuthenticatedUser } from '@/lib/supabase/server'
@@ -62,6 +62,12 @@ export default async function Home() {
 
         {/* Manufacturing Process Showcase - Real Production Images */}
         <ManufacturingProcessShowcase />
+
+        {/* Trust Signals Section - SEO Improvement */}
+        <TrustSignalsSection />
+
+        {/* Before & After Section - SEO Improvement */}
+        <BeforeAfterSection />
 
         {/* Removed sections as per modification request:
             - ComplianceSection (日本規制準拠と信頼構築)

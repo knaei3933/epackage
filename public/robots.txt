@@ -1,0 +1,45 @@
+# Epackage Lab robots.txt
+# Last Updated: 2026-02-18
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://package-lab.com/sitemap.xml
+
+# Disallow administrative and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /member/
+Disallow: /cart/
+Disallow: /compare/
+Disallow: /csr/
+Disallow: /data-templates/
+Disallow: /design-system/
+Disallow: /premium-content/
+
+# Disallow test and development paths
+Disallow: /test/
+Disallow: /tmp/
+Disallow: /.well-known/
+
+# Crawl-delay for respectful crawling (optional)
+Crawl-delay: 1
+
+# Popular search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Disallow specific bots if needed
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
