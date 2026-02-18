@@ -27,8 +27,12 @@ export async function POST(
     // Import the pricing engine
     const { unifiedPricingEngine } = await import('@/lib/unified-pricing-engine');
 
-    // Clear the settings cache
+    // Import the pouch cost calculator
+    const { pouchCostCalculator } = await import('@/lib/pouch-cost-calculator');
+
+    // Clear the settings cache for both engines
     unifiedPricingEngine.clearSettingsCache();
+    pouchCostCalculator.clearSettingsCache();
 
     return NextResponse.json({
       success: true,

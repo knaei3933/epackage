@@ -1880,6 +1880,16 @@ export class PouchCostCalculator {
 
     return options;
   }
+
+  /**
+   * 設定キャッシュをクリア
+   * Clear the settings cache to force reload from database
+   */
+  public clearSettingsCache(): void {
+    this.settingsCache.clear();
+    this.settingsCacheExpiry = 0;
+    console.log('[PouchCostCalculator] Settings cache cleared');
+  }
 }
 
 // シングルトンインスタンス
