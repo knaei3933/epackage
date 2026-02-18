@@ -63,9 +63,6 @@ export default async function Home() {
         {/* Manufacturing Process Showcase - Real Production Images */}
         <ManufacturingProcessShowcase />
 
-        {/* Trust Signals Section - SEO Improvement */}
-        <TrustSignalsSection />
-
         {/* Before & After Section - SEO Improvement */}
         <BeforeAfterSection />
 
