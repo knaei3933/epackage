@@ -77,7 +77,7 @@ export function DetailedCostBreakdown({
   filmCostDetails,
   showFormula = true
 }: DetailedCostBreakdownProps) {
-  const [exchangeRate, setExchangeRate] = useState<number>(900); // デフォルト為替レート
+  const [exchangeRateKRWToJPY, setExchangeRateKRWToJPY] = useState<number>(0.14); // デフォルト: 1ウォン = 0.14円
 
   // 為替レートを取得
   useEffect(() => {
@@ -86,10 +86,10 @@ export function DetailedCostBreakdown({
         const response = await fetch('/api/admin/settings');
         if (response.ok) {
           const data = await response.json();
-          // 為替レートを検索 (JPY to KRW)
-          const jpyRate = data.settings?.find((s: any) => s.key === 'exchange_rate_jpy_to_krw');
-          if (jpyRate) {
-            setExchangeRate(parseFloat(jpyRate.value) || 900);
+          // 為替レートを検索 (KRW to JPY)
+          const krwRate = data.data?.exchange_rate?.find((s: any) => s.key === 'krw_to_jpy');
+          if (krwRate) {
+            setExchangeRateKRWToJPY(parseFloat(krwRate.value) || 0.14);
           }
         }
       } catch (error) {
@@ -98,6 +98,9 @@ export function DetailedCostBreakdown({
     };
     fetchExchangeRate();
   }, []);
+
+  // 円をウォンに変換する関数
+  const jpyToKrw = (jpy: number) => Math.round(jpy / exchangeRateKRWToJPY);
 
   const {
     materialCost,
@@ -113,15 +116,20 @@ export function DetailedCostBreakdown({
     totalCost
   } = breakdown;
 
-  // 素材費合計（フィルム＋ラミネート＋スリッター＋表面処理）
-  const totalMaterialCost = (materialCost || 0) + (laminationCost || 0) + (slitterCost || 0) + (surfaceTreatmentCost || 0);
+  // 素材費合計（フィルム＋ラミネート＋スリッター＋表面処理）- 円
+  const totalMaterialCostJPY = (materialCost || 0) + (laminationCost || 0) + (slitterCost || 0) + (surfaceTreatmentCost || 0);
 
-  // 製造業者支払額の計算（素材費 + 加工費 + 印刷費 + 配送料 + 製造者マージン + 関税）
-  // 販売マージンは自社の利益なので除外
-  const manufacturerPaymentJPY = totalMaterialCost + (pouchProcessingCost || 0) + (printingCost || 0) + (delivery || 0) + (manufacturingMargin || 0) + (duty || 0);
+  // 製造業者支払額の計算（ウォン）
+  // 配送料と関税は除外。販売マージン（自社の利益）も除外。
+  // 各費用をウォンに変換して合計
+  const manufacturerPaymentKRW =
+    jpyToKrw(totalMaterialCostJPY) +           // 素材費（ウォン）
+    jpyToKrw(pouchProcessingCost || 0) +        // 加工費（ウォン）
+    jpyToKrw(printingCost || 0) +               // 印刷費（ウォン）
+    jpyToKrw(manufacturingMargin || 0);         // 製造者マージン（ウォン）
 
-  // ウォン換算
-  const manufacturerPaymentKRW = Math.round(manufacturerPaymentJPY * exchangeRate);
+  // 円換算（表示用）
+  const manufacturerPaymentJPY = Math.round(manufacturerPaymentKRW * exchangeRateKRWToJPY);
 
   // SKU追加料金があれば計算
   const skuSurcharge = sku_info && sku_info.count > 1 ? (sku_info.count - 1) * 10000 : 0;
@@ -166,7 +174,7 @@ export function DetailedCostBreakdown({
           {/* 素材費合計 */}
           <div className="flex justify-between items-center pt-2 border-t border-green-300">
             <span className="font-semibold text-gray-900">素材費合計</span>
-            <span className="font-semibold text-green-700">¥{(totalMaterialCost || 0).toLocaleString()}</span>
+            <span className="font-semibold text-green-700">¥{(totalMaterialCostJPY || 0).toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -290,46 +298,40 @@ export function DetailedCostBreakdown({
         <h4 className="text-sm font-semibold text-emerald-100 mb-3">🏭 製造業者支払額</h4>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between items-center text-white">
-            <span>素材費合計</span>
-            <span className="font-medium">¥{totalMaterialCost.toLocaleString()}</span>
+            <span>素材費（ウォン）</span>
+            <span className="font-medium">₩{jpyToKrw(totalMaterialCostJPY).toLocaleString()}</span>
           </div>
           <div className="flex justify-between items-center text-white">
-            <span>加工費</span>
-            <span className="font-medium">¥{(pouchProcessingCost || 0).toLocaleString()}</span>
+            <span>加工費（ウォン）</span>
+            <span className="font-medium">₩{jpyToKrw(pouchProcessingCost || 0).toLocaleString()}</span>
           </div>
           <div className="flex justify-between items-center text-white">
-            <span>印刷費</span>
-            <span className="font-medium">¥{(printingCost || 0).toLocaleString()}</span>
+            <span>印刷費（ウォン）</span>
+            <span className="font-medium">₩{jpyToKrw(printingCost || 0).toLocaleString()}</span>
           </div>
           <div className="flex justify-between items-center text-white">
-            <span>配送料</span>
-            <span className="font-medium">¥{(delivery || 0).toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>製造者マージン (40%)</span>
-            <span className="font-medium">¥{(manufacturingMargin || 0).toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>関税 (5%)</span>
-            <span className="font-medium">¥{(duty || 0).toLocaleString()}</span>
+            <span>製造者マージン（ウォン）</span>
+            <span className="font-medium">₩{jpyToKrw(manufacturingMargin || 0).toLocaleString()}</span>
           </div>
           <div className="border-t border-emerald-400 pt-2 mt-2">
             <div className="flex justify-between items-center">
-              <span className="text-white font-semibold">合計（円）</span>
-              <span className="text-xl font-bold text-white">¥{manufacturerPaymentJPY.toLocaleString()}</span>
+              <span className="text-emerald-100 text-sm">合計（円参考）</span>
+              <span className="text-lg font-bold text-emerald-100">¥{manufacturerPaymentJPY.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center mt-1">
-              <span className="text-emerald-100 text-sm">合計（ウォン）</span>
-              <span className="text-lg font-bold text-emerald-100">₩{manufacturerPaymentKRW.toLocaleString()}</span>
+              <span className="text-white font-semibold">合計（ウォン）</span>
+              <span className="text-xl font-bold text-white">₩{manufacturerPaymentKRW.toLocaleString()}</span>
             </div>
             <div className="text-xs text-emerald-200 mt-2 text-right">
-              為替レート: 1円 = ₩{exchangeRate.toLocaleString()}
+              為替レート: 1ウォン = ¥{exchangeRateKRWToJPY.toFixed(2)}
             </div>
           </div>
         </div>
         <div className="mt-3 pt-3 border-t border-emerald-400">
           <p className="text-xs text-emerald-100">
-            ※ 製造業者支払額は「素材費 + 加工費 + 印刷費 + 配送料 + 製造者マージン + 関税」の合計です。
+            ※ 製造業者支払額は「素材費 + 加工費 + 印刷費 + 製造者マージン」の合計です。
+            <br />
+            ※ 配送料と関税は除外されています。
             <br />
             ※ 販売マージン（自社の利益）は除外されています。
           </p>
