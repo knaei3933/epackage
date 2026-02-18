@@ -967,6 +967,7 @@ export class UnifiedPricingEngine {
     const baseCost = totalWithMatteCost; // 材料原価 + 印刷費 + 加工費 + マット印刷追加費
     // DB設定から製造者マージン率を取得（デフォルト40%）
     const manufacturerMargin = await this.getSetting('pricing', 'manufacturer_margin', CONSTANTS.MANUFACTURER_MARGIN);
+    console.log('[UnifiedPricingEngine] manufacturerMargin:', manufacturerMargin, 'baseCost:', baseCost);
     const manufacturerPrice = baseCost * (1 + manufacturerMargin);
 
     // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
