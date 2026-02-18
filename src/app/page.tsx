@@ -5,6 +5,8 @@ import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts, getLatestAnnouncements } from '@/lib/products'
 import { getAuthenticatedUser } from '@/lib/supabase/server'
 
+export const revalidate = 300; // ISR: revalidate every 5 minutes
+
 // FAQ Schema data for homepage
 const faqData = [
   {

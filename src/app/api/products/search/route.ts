@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour - products rarely change
 
 import { NextRequest, NextResponse } from 'next/server'
 import { executeSql } from '@/lib/supabase-mcp'

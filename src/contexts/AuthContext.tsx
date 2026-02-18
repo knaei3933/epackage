@@ -224,7 +224,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // =====================================================
     // ✅ Session Refresh Logic (30分セッション維持)
     // =====================================================
-    // 1分ごとにセッションを確認し、期限切れ5分前に自動リフレッシュ
+    // 15分ごとにセッションを確認し、期限切れ10分前に自動リフレッシュ
 
     const refreshInterval = setInterval(async () => {
       if (!mounted || !session) return;
@@ -245,14 +245,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (error) {
         console.error('[AuthContext] Session refresh error:', error);
       }
-    }, 5 * 60 * 1000); // ✅ 1分ごとにチェック
+    }, 15 * 60 * 1000); // 15分ごとにチェック
 
     // NOTE: onAuthStateChange listener removed because:
     // 1. Client-side supabase client uses localStorage, but we're using httpOnly cookies
     // 2. Auth state changes are handled by page navigation (full reload after login)
     // 3. The session API endpoint is called on page load to get the current state
     //
-    // ✅ セッションリフレッシュ: 1分ごとにチェックし、5分前に自動リフレッシュ
+    // ✅ セッションリフレッシュ: 15分ごとにチェックし、10分前に自動リフレッシュ
 
     return () => {
       mounted = false
