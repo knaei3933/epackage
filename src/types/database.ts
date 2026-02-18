@@ -1354,6 +1354,68 @@ export type Database = {
                 Insert: Omit<Database['public']['Tables']['coupon_usage']['Row'], 'id' | 'used_at'>
                 Update: Partial<Database['public']['Tables']['coupon_usage']['Row']>
             }
+
+            // ============================================================
+            // BLOG CMS SYSTEM NEW TABLES (Phase 1)
+            // ============================================================
+
+            // Blog Posts table - ブログ記事
+            blog_posts: {
+                Row: {
+                    id: string
+                    title: string
+                    slug: string
+                    content: string  // Markdown content
+                    excerpt: string | null  // Short description (max 160 chars)
+                    category: string  // 'news', 'technical', 'industry', 'company'
+                    tags: string[]  // Array of tag strings
+                    meta_title: string | null  // Override title for SEO (max 60 chars)
+                    meta_description: string | null  // Override description (max 160 chars)
+                    og_image_path: string | null  // Path in Supabase Storage
+                    canonical_url: string | null  // Optional canonical URL
+                    author_id: string | null  // FK to profiles
+                    status: 'draft' | 'review' | 'published' | 'archived'
+                    published_at: string | null
+                    created_at: string
+                    updated_at: string
+                    view_count: number
+                    reading_time_minutes: number | null
+                }
+                Insert: Omit<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'created_at'>>
+            }
+
+            // Blog Images table - ブログ画像
+            blog_images: {
+                Row: {
+                    id: string
+                    post_id: string | null  // FK to blog_posts
+                    storage_path: string  // Full path in Supabase Storage
+                    original_filename: string
+                    mime_type: string
+                    file_size: number
+                    width: number | null
+                    height: number | null
+                    alt_text: string | null
+                    created_at: string
+                    created_by: string | null  // FK to profiles
+                }
+                Insert: Omit<Database['public']['Tables']['blog_images']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['blog_images']['Row']>
+            }
+
+            // Blog Categories table - ブログカテゴリ
+            blog_categories: {
+                Row: {
+                    id: string  // 'news', 'technical', 'industry', 'company'
+                    name_ja: string  // Japanese display name
+                    name_en: string  // English display name
+                    description: string | null
+                    sort_order: number
+                }
+                Insert: Omit<Database['public']['Tables']['blog_categories']['Row'], 'id'>
+                Update: Partial<Database['public']['Tables']['blog_categories']['Row']>
+            }
         }
         Views: {
             [_ in never]: never
@@ -1471,6 +1533,16 @@ export type Database = {
 
             // Coupon status
             coupon_status: 'active' | 'inactive' | 'expired' | 'scheduled'
+
+            // ============================================================
+            // BLOG CMS SYSTEM NEW ENUMS (Phase 1)
+            // ============================================================
+
+            // Blog post status
+            blog_post_status: 'draft' | 'review' | 'published' | 'archived'
+
+            // Blog category
+            blog_category: 'news' | 'technical' | 'industry' | 'company'
         }
         CompositeTypes: {
             [_ in never]: never
@@ -1537,4 +1609,60 @@ export interface HankoImage {
   validation_data: Json | null
   created_at: string
   updated_at: string
+}
+
+// ============================================================
+// Blog CMS Tables
+// ============================================================
+
+/**
+ * Blog Posts table - Blog article posts
+ */
+export interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  content: string  // Markdown content
+  excerpt: string | null  // Short description (max 160 chars)
+  category: 'news' | 'technical' | 'industry' | 'company'
+  tags: string[]  // Array of tag strings
+  meta_title: string | null  // Override title for SEO (max 60 chars)
+  meta_description: string | null  // Override description (max 160 chars)
+  og_image_path: string | null  // Path in Supabase Storage
+  canonical_url: string | null  // Optional canonical URL
+  author_id: string | null  // FK to profiles
+  status: 'draft' | 'review' | 'published' | 'archived'
+  published_at: string | null
+  created_at: string
+  updated_at: string
+  view_count: number
+  reading_time_minutes: number | null
+}
+
+/**
+ * Blog Images table - Blog image management
+ */
+export interface BlogImage {
+  id: string
+  post_id: string | null  // FK to blog_posts
+  storage_path: string  // Full path in Supabase Storage
+  original_filename: string
+  mime_type: string
+  file_size: number
+  width: number | null
+  height: number | null
+  alt_text: string | null
+  created_at: string
+  created_by: string | null  // FK to profiles
+}
+
+/**
+ * Blog Categories table - Blog category lookup
+ */
+export interface BlogCategory {
+  id: 'news' | 'technical' | 'industry' | 'company'
+  name_ja: string  // Japanese display name
+  name_en: string  // English display name
+  description: string | null
+  sort_order: number
 }

@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getAllProducts } from '@/lib/product-data'
+import { createServiceClient } from '@/lib/supabase'
 
 // サイト設定
 const SITE_URL = 'https://package-lab.com'
@@ -13,6 +14,12 @@ const staticPages = [
     url: '',
     changefreq: 'daily' as const,
     priority: 1.0,
+    lastmod: new Date()
+  },
+  {
+    url: '/blog',
+    changefreq: 'daily' as const,
+    priority: 0.9,
     lastmod: new Date()
   },
   {
@@ -105,6 +112,14 @@ const guidePages = [
   'image'
 ]
 
+// ブログカテゴリ
+const blogCategories = [
+  { id: 'news', name: 'news' },
+  { id: 'technical', name: 'technical' },
+  { id: 'industry', name: 'industry' },
+  { id: 'company', name: 'company' }
+]
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = []
 
@@ -159,6 +174,56 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
     })
+  }
+
+  // ブログ記事を追加
+  try {
+    const supabase = createServiceClient()
+    const { data: blogPosts } = await supabase
+      .from('blog_posts')
+      .select('slug, updated_at, published_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+
+    if (blogPosts) {
+      for (const post of blogPosts) {
+        const postUrl = `/blog/${post.slug}`
+        urls.push({
+          url: `${SITE_URL}${postUrl}`,
+          lastModified: new Date(post.updated_at || post.published_at),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+          alternates: {
+            languages: {
+              ja: `${SITE_URL}${postUrl}`,
+              en: `${SITE_URL}/en${postUrl}`,
+              ko: `${SITE_URL}/ko${postUrl}`
+            }
+          }
+        })
+      }
+    }
+
+    // ブログカテゴリページを追加
+    for (const category of blogCategories) {
+      const categoryUrl = `/blog/category/${category.id}`
+      urls.push({
+        url: `${SITE_URL}${categoryUrl}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.6,
+        alternates: {
+          languages: {
+            ja: `${SITE_URL}${categoryUrl}`,
+            en: `${SITE_URL}/en${categoryUrl}`,
+            ko: `${SITE_URL}/ko${categoryUrl}`
+          }
+        }
+      })
+    }
+  } catch (error) {
+    console.error('[Sitemap] Failed to fetch blog posts:', error)
+    // Continue without blog posts if fetch fails
   }
 
   return urls

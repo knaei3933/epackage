@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createServiceClient } from '@/lib/supabase';
+import sharp from 'sharp';
 
 // ============================================================
 // Configuration
@@ -114,11 +115,7 @@ export async function POST(request: NextRequest) {
     let height: number | undefined;
 
     try {
-      // For a simple implementation, we'll need to use sharp or similar
-      // For now, we'll skip dimension detection or implement a basic version
-      // In production, you'd use sharp to get dimensions
-      const config = require('sharp');
-      const metadata = await config(buffer).metadata();
+      const metadata = await sharp(buffer).metadata();
       width = metadata.width;
       height = metadata.height;
     } catch (error) {

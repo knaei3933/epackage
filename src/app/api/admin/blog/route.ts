@@ -18,9 +18,8 @@ import type {
   CreatePostRequest,
   BlogPostStatus,
   BlogCategoryId,
-  generateSlug,
-  calculateReadingTime,
 } from '@/lib/types/blog';
+import { generateSlug, calculateReadingTime } from '@/lib/types/blog';
 
 // ============================================================
 // Types
