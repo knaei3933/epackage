@@ -27,7 +27,7 @@ export function CTASection() {
             </p>
 
             {/* Lead Generation Options - Single Row */}
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 max-w-6xl mx-auto">
               {/* Product Catalog */}
               <Link href="/catalog" className="group flex-1 min-w-[200px]">
                 <Card className="p-4 sm:p-6 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 h-full">

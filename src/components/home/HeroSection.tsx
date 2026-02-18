@@ -84,7 +84,7 @@ export function HeroSection() {
               variants={statVariants}
               className="space-y-4"
             >
-                <h1 className="text-4xl md:text-6xl lg:text-8xl font-extrabold text-white leading-tight tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-extrabold text-white leading-tight tracking-tight">
                   <span className="block text-white drop-shadow-2xl">
                     あなたの製品を
                   </span>

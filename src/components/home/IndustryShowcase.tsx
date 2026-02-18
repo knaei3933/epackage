@@ -95,7 +95,7 @@ export function IndustryShowcase({
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.36, delay: index * 0.018 }}
             viewport={{ once: true }}
-            className="flex-shrink-0 w-[265px] h-[265px] relative"
+            className="flex-shrink-0 w-[180px] sm:w-[220px] md:w-[265px] aspect-square relative"
           >
             <div className="w-full h-full rounded-lg overflow-hidden shadow-md bg-white border border-gray-200">
               <Image
@@ -103,7 +103,7 @@ export function IndustryShowcase({
                 alt={item.alt}
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 265px, 265px"
+                sizes="(max-width: 640px) 180px, (max-width: 768px) 220px, 265px"
               />
             </div>
           </motion.div>
