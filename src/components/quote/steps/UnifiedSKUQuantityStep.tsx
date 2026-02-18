@@ -949,7 +949,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       if (quoteState.bagTypeId?.includes('flat_3_side') ||
           quoteState.bagTypeId?.includes('three_side') ||
           quoteState.bagTypeId?.includes('zipper')) {
-        pitch = height;
+        pitch = quoteState.height || quoteState.depth || 0;
       } else if (quoteState.bagTypeId?.includes('m_shape') ||
                  quoteState.bagTypeId?.includes('box')) {
         const depth = quoteState.depth || 0;
