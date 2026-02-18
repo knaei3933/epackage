@@ -45,6 +45,8 @@ export interface DetailedCostBreakdownProps {
     bag_type_display?: string;
     material?: string;
     material_display?: string;
+    material_specification?: string; // 詳細な素材仕様（各層の素材と厚み）
+    weight_range?: string; // 重量範囲
     thickness?: string;
     thickness_display?: string;
     // サイズ
@@ -379,6 +381,18 @@ export function DetailedCostBreakdown({
                 <div>
                   <span className="text-gray-500">素材:</span>
                   <span className="ml-1 font-medium">{specifications.material_display}</span>
+                </div>
+              )}
+              {specifications.material_specification && (
+                <div className="col-span-2">
+                  <span className="text-gray-500">素材詳細仕様:</span>
+                  <span className="ml-1 font-medium text-green-700">{specifications.material_specification}</span>
+                </div>
+              )}
+              {specifications.weight_range && (
+                <div>
+                  <span className="text-gray-500">重量:</span>
+                  <span className="ml-1 font-medium">{specifications.weight_range}</span>
                 </div>
               )}
               {specifications.thickness_display && (

@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createServiceClient } from '@/lib/supabase';
+import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 
 interface QuotationItem {
   id: string;
@@ -275,6 +276,18 @@ function calculateBreakdown(item: QuotationItem) {
         bag_type_display: getBagTypeName(specs.bagTypeId || specs.bag_type),
         material: specs.materialId || specs.material,
         material_display: getMaterialName(specs.materialId || specs.material),
+        // 素材詳細仕様（各層の素材と厚み）
+        material_specification: getMaterialSpecification(
+          specs.materialId || specs.material,
+          specs.thicknessSelection
+        ),
+        // 重量範囲
+        weight_range: (() => {
+          const options = MATERIAL_THICKNESS_OPTIONS[specs.materialId || specs.material];
+          if (!options) return null;
+          const thickness = options.find(opt => opt.id === specs.thicknessSelection);
+          return thickness?.weightRange || null;
+        })(),
         thickness: specs.thicknessSelection,
         thickness_display: getThicknessName(specs.thicknessSelection),
         // サイズ
@@ -334,6 +347,18 @@ function calculateBreakdown(item: QuotationItem) {
       bag_type_display: getBagTypeName(specs.bagTypeId || specs.bag_type),
       material: specs.materialId || specs.material,
       material_display: getMaterialName(specs.materialId || specs.material),
+      // 素材詳細仕様（各層の素材と厚み）
+      material_specification: getMaterialSpecification(
+        specs.materialId || specs.material,
+        specs.thicknessSelection
+      ),
+      // 重量範囲
+      weight_range: (() => {
+        const options = MATERIAL_THICKNESS_OPTIONS[specs.materialId || specs.material];
+        if (!options) return null;
+        const thickness = options.find(opt => opt.id === specs.thicknessSelection);
+        return thickness?.weightRange || null;
+      })(),
       thickness: specs.thicknessSelection,
       thickness_display: getThicknessName(specs.thicknessSelection),
       // サイズ
