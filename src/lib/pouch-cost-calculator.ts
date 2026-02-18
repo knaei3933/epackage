@@ -1054,7 +1054,7 @@ export class PouchCostCalculator {
     pouchProcessingCostKRW: number,
     quantity: number,
     deliveryJPY: number = 15358,  // デフォルトは1箱分（後で上書き）
-    markupRate: number = 0.2  // 顧客別マークアップ率（デフォルト20%）
+    markupRate: number = 0.0  // 顧客別マークアップ率（デフォルト0% = 割引なし）
   ): SKUCostBreakdown {
     const EXCHANGE_RATE = 0.12;
 
