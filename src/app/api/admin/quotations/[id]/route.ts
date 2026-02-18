@@ -180,15 +180,31 @@ function getBagTypeName(bagTypeId: string): string {
 }
 
 function getMaterialName(materialId: string): string {
+  // 完全なフィルム構造を返す（外層/バリア層/シーラント層）
   const materials: Record<string, string> = {
+    'pet_al': 'PET/AL/LLDPE',  // 外層: PET、バリア: AL、シーラント: LLDPE
+    'pet_llppe': 'PET/LLDPE',
+    'pet_pet': 'PET/PET/LLDPE',  // 外層: PET、中間層: PET、シーラント: LLDPE
+    'kp kp': 'KP/KP/LLDPE',  // 外層: KP、中間層: KP、シーラント: LLDPE
+    'kp_al': 'KP/AL/LLDPE',  // 外層: KP、バリア: AL、シーラント: LLDPE
+    'pet': 'PET/LLDPE',  // 2層構造
+    'ppe': 'PPE/LLDPE',  // 2層構造
+  };
+  return materials[materialId] || materialId;
+}
+
+// 説明用の素材名（詳細説明）
+function getMaterialDescription(materialId: string): string {
+  const descriptions: Record<string, string> = {
     'pet_al': 'PET/AL (アルミラミネート)',
     'pet_llppe': 'PET/LLDPE',
     'pet_pet': 'PET/PET',
     'kp kp': 'KP/KP',
+    'kp_al': 'KP/AL',
     'pet': 'PET',
     'ppe': 'PPE',
   };
-  return materials[materialId] || materialId;
+  return descriptions[materialId] || materialId;
 }
 
 function getThicknessName(thickness: string): string {
@@ -271,7 +287,7 @@ function calculateBreakdown(item: QuotationItem) {
         printing: specs.printingType || specs.printing_type,
         printing_display: getPrintingTypeName(specs.printingType || specs.printing_type),
         printing_type: specs.printingType || specs.printing_type,
-        colors: specs.printingColors || specs.printing_colors,
+        colors: 'フルカラー',  // 色数は常にフルカラー表示
         isUVPrinting: specs.isUVPrinting,
         // 後加工
         post_processing: specs.postProcessingOptions || specs.post_processing || [],
@@ -330,7 +346,7 @@ function calculateBreakdown(item: QuotationItem) {
       printing: specs.printingType || specs.printing_type,
       printing_display: getPrintingTypeName(specs.printingType || specs.printing_type),
       printing_type: specs.printingType || specs.printing_type,
-      colors: specs.printingColors || specs.printing_colors,
+      colors: 'フルカラー',  // 色数は常にフルカラー表示
       isUVPrinting: specs.isUVPrinting,
       // 後加工
       post_processing: specs.postProcessingOptions || specs.post_processing || [],

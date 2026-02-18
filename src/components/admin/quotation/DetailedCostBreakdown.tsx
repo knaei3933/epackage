@@ -232,11 +232,11 @@ export function DetailedCostBreakdown({
 
           {showFormula && specifications && (
             <div className="text-xs text-gray-500 space-y-1">
-              {specifications.printing && (
-                <div>印刷方式: {specifications.printing}</div>
+              {specifications.printing_display && (
+                <div>印刷方式: {specifications.printing_display}</div>
               )}
               {specifications.colors && (
-                <div>色数: {specifications.colors}色</div>
+                <div>色数: {specifications.colors}</div>
               )}
             </div>
           )}
@@ -446,7 +446,7 @@ export function DetailedCostBreakdown({
               {specifications.colors && (
                 <div>
                   <span className="text-gray-500">色数:</span>
-                  <span className="ml-1 font-medium">{specifications.colors}色</span>
+                  <span className="ml-1 font-medium">{specifications.colors}</span>
                 </div>
               )}
               {specifications.isUVPrinting !== undefined && (
