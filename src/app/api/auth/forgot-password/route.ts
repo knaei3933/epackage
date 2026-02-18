@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { withRateLimit, createAuthRateLimiter } from '@/lib/rate-limiter';
 import { forgotPasswordSchema } from '@/types/auth';
+import { buildUrl } from '@/lib/app-url';
 
 // =====================================================
 // Rate Limiter
@@ -47,8 +48,8 @@ async function handleForgotPasswordPost(request: NextRequest) {
       // Simulate delay
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Create a fake reset link (in real scenario, this would come from Supabase)
-      const mockResetLink = `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/reset-password?token=mock-token-${Date.now()}`;
+      // Create a fake reset link (動的URL生成: ローカルと本番両対応)
+      const mockResetLink = buildUrl(`/auth/reset-password?token=mock-token-${Date.now()}`, request);
 
       console.log('[FORGOT PASSWORD API] Mock reset link:', mockResetLink);
 
@@ -78,12 +79,12 @@ async function handleForgotPasswordPost(request: NextRequest) {
     // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Generate password reset link
+    // Generate password reset link（動的URL生成: ローカルと本番両対応）
     // Supabase will send an email with the reset link
     const { error } = await supabase.auth.resetPasswordForEmail(
       validatedData.email,
       {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/reset-password`,
+        redirectTo: buildUrl('/auth/reset-password', request),
       }
     );
 
