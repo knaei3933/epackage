@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { CheckCircle, Award, Shield, AlertTriangle, Heart, Users, FileCheck, Globe } from 'lucide-react'
+import { CheckCircle, Award, Shield, AlertTriangle, Heart, Users, FileCheck, Globe, ArrowRight, X, TrendingDown } from 'lucide-react'
 
 export function PharmaceuticalContent() {
   const [activeFeature, setActiveFeature] = useState('gmp')

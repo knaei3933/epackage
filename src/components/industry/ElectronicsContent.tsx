@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { CheckCircle, Award, Zap, Shield, TrendingUp, Globe, Users, Link } from 'lucide-react'
+import { CheckCircle, Award, Zap, Shield, TrendingUp, TrendingDown, Globe, Users, Link, ArrowRight, X } from 'lucide-react'
 
 export function ElectronicsContent() {
   const [activeFeature, setActiveFeature] = useState('esd')
