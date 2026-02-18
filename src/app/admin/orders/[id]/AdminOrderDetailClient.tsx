@@ -171,10 +171,13 @@ const MATERIAL_LABELS: Record<string, string> = {
 
 // 袋タイプの日本語マッピング
 const BAG_TYPE_LABELS: Record<string, string> = {
-  'flat_pouch': 'ピロー袋',
-  'flat_3_side': '三方シール平袋',
-  'stand_up': 'スタンドアップパウチ',
-  'zipper': 'チャック付袋',
+  'flat_pouch': '平袋',
+  'flat_3_side': '合掌袋',
+  'stand_up': 'スタンドパウチ',
+  'gazette': 'ガゼットパウチ',
+  'roll_film': 'ロールフィルム',
+  'spout_pouch': 'スパウトパウチ',
+  'zipper_pouch': 'チャック付袋',
 };
 
 // 厚さの日本語マッピング

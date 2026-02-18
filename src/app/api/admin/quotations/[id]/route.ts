@@ -171,11 +171,13 @@ interface CostBreakdown {
 
 function getBagTypeName(bagTypeId: string): string {
   const types: Record<string, string> = {
+    'flat_pouch': '平袋',
+    'flat_3_side': '合掌袋',
     'stand_up': 'スタンドパウチ',
-    'flat_pouch': 'フラットパウチ',
+    'gazette': 'ガゼットパウチ',
     'roll_film': 'ロールフィルム',
-    'zipper_pouch': 'ジッパーパウチ',
     'spout_pouch': 'スパウトパウチ',
+    'zipper_pouch': 'チャック付袋',
   };
   return types[bagTypeId] || bagTypeId;
 }

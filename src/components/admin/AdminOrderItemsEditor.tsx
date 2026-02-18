@@ -76,6 +76,79 @@ function getItemValue(item: any, camelCaseKey: string, snakeCaseKey: string): an
 }
 
 // =====================================================
+// Helper Functions for Labels
+// =====================================================
+
+function getBagTypeLabel(value: string): string {
+  const labels: Record<string, string> = {
+    'flat_pouch': '平袋',
+    'flat_3_side': '合掌袋',
+    'stand_up': 'スタンドパウチ',
+    'gazette': 'ガゼットパウチ',
+    'roll_film': 'ロールフィルム',
+    'spout_pouch': 'スパウトパウチ',
+    'zipper_pouch': 'チャック付袋',
+  };
+  return labels[value] || value || '-';
+}
+
+function getMaterialLabel(value: string): string {
+  const labels: Record<string, string> = {
+    'pet_al': 'PET/AL (アルミ箔ラミネート)',
+    'pet_pe': 'PET/PE',
+    'cpp': 'CPP (未延伸ポリプロピレン)',
+    'lldpe': 'LLDPE (直鎖状低密度ポリエチレン)',
+  };
+  return labels[value] || value || '-';
+}
+
+function getThicknessLabel(value: string, materialId?: string): string {
+  // materialIdに応じた厚さオプションからラベルを取得
+  if (materialId) {
+    const options = MATERIAL_THICKNESS_OPTIONS[materialId];
+    if (options) {
+      const opt = options.find(o => o.id === value);
+      if (opt) return opt.nameJa;
+    }
+  }
+  // フォールバック
+  const labels: Record<string, string> = {
+    'thin': '薄い',
+    'medium': '標準',
+    'thick': '厚い',
+    'light': '軽量タイプ (~100g)',
+    'heavy': '高耐久タイプ (~800g)',
+    'ultra': '超耐久タイプ (800g~)',
+  };
+  return labels[value] || value || '-';
+}
+
+function getPrintingLabel(type: string): string {
+  const labels: Record<string, string> = {
+    'digital': 'デジタル印刷',
+    'gravure': 'グラビア印刷',
+    'none': 'なし',
+  };
+  return labels[type] || type || '-';
+}
+
+function getUrgencyLabel(value: string): string {
+  const labels: Record<string, string> = {
+    'standard': '標準',
+    'urgent': '至急',
+  };
+  return labels[value] || value || '-';
+}
+
+function getDeliveryLocationLabel(value: string): string {
+  const labels: Record<string, string> = {
+    'domestic': '国内',
+    'international': '海外',
+  };
+  return labels[value] || value || '-';
+}
+
+// =====================================================
 // Editable Spec Item Component
 // =====================================================
 
@@ -86,14 +159,15 @@ interface EditableSpecItemProps {
   options?: { value: string; label: string }[];
   isEditing: boolean;
   onChange: (value: string) => void;
+  displayLabel?: string; // 表示用ラベル（編集モード以外で使用）
 }
 
-function EditableSpecItem({ label, value, type = 'text', options, isEditing, onChange }: EditableSpecItemProps) {
+function EditableSpecItem({ label, value, type = 'text', options, isEditing, onChange, displayLabel }: EditableSpecItemProps) {
   if (!isEditing) {
     return (
       <div className="flex items-baseline gap-2 text-sm">
         <span className="text-text-muted flex-shrink-0">{label}:</span>
-        <span className="text-text-primary">{value}</span>
+        <span className="text-text-primary">{displayLabel !== undefined ? displayLabel : value}</span>
       </div>
     );
   }
@@ -162,12 +236,13 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
 
   // オプション定義
   const bagTypeOptions = [
-    { value: 'flat_pouch', label: 'ピロー袋' },
-    { value: 'flat_3_side', label: '三方シール平袋' },
-    { value: 'stand_up', label: 'スタンドアップパウチ' },
-    { value: 'zipper', label: 'チャック付袋' },
+    { value: 'flat_pouch', label: '平袋' },
+    { value: 'flat_3_side', label: '合掌袋' },
+    { value: 'stand_up', label: 'スタンドパウチ' },
+    { value: 'gazette', label: 'ガゼットパウチ' },
     { value: 'roll_film', label: 'ロールフィルム' },
     { value: 'spout_pouch', label: 'スパウトパウチ' },
+    { value: 'zipper_pouch', label: 'チャック付袋' },
   ];
 
   const materialOptions = [
@@ -356,17 +431,65 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
               options={bagTypeOptions}
               isEditing={isEditing}
               onChange={(v) => updateSpec('bagTypeId', v)}
+              displayLabel={!isEditing ? getBagTypeLabel(localSpecs.bagTypeId || '') : undefined}
             />
 
             {/* 素材 */}
-            <EditableSpecItem
-              label="素材"
-              value={localSpecs.materialId || '-'}
-              type="select"
-              options={materialOptions}
-              isEditing={isEditing}
-              onChange={(v) => updateSpec('materialId', v)}
-            />
+            {isEditing ? (
+              <EditableSpecItem
+                label="素材"
+                value={localSpecs.materialId || '-'}
+                type="select"
+                options={materialOptions}
+                isEditing={isEditing}
+                onChange={(v) => updateSpec('materialId', v)}
+              />
+            ) : (
+              <>
+                {/* 素材ラベル */}
+                {localSpecs.materialId && (
+                  <div className="col-span-2">
+                    <div className="flex items-baseline gap-2 text-sm">
+                      <span className="text-text-muted flex-shrink-0">素材:</span>
+                      <span className="text-text-primary">{getMaterialLabel(localSpecs.materialId)}</span>
+                    </div>
+                  </div>
+                )}
+                {/* 素材詳細仕様 */}
+                {localSpecs.materialId && localSpecs.thicknessSelection && (() => {
+                  const matSpec = getMaterialSpecification(localSpecs.materialId, localSpecs.thicknessSelection);
+                  if (matSpec && matSpec !== '-') {
+                    return (
+                      <div className="col-span-2">
+                        <div className="flex items-baseline gap-2 text-sm">
+                          <span className="text-text-muted flex-shrink-0">素材詳細:</span>
+                          <span className="text-text-primary text-blue-700">{matSpec}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {/* 重量範囲 */}
+                {localSpecs.materialId && localSpecs.thicknessSelection && (() => {
+                  const options = MATERIAL_THICKNESS_OPTIONS[localSpecs.materialId];
+                  if (options) {
+                    const thickness = options.find(opt => opt.id === localSpecs.thicknessSelection);
+                    if (thickness?.weightRange) {
+                      return (
+                        <div>
+                          <div className="flex items-baseline gap-2 text-sm">
+                            <span className="text-text-muted flex-shrink-0">重量:</span>
+                            <span className="text-text-primary">{thickness.weightRange}</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+              </>
+            )}
 
             {/* 厚さ */}
             {isEditing ? (
@@ -381,17 +504,20 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
             ) : (
               <>
                 <EditableSpecItem
-                  label="厚さ（タイプ）"
+                  label="厚さ"
                   value={localSpecs.thicknessSelection || '-'}
                   isEditing={false}
                   onChange={() => {}}
+                  displayLabel={getThicknessLabel(localSpecs.thicknessSelection || '', localSpecs.materialId)}
                 />
-                <EditableSpecItem
-                  label="厚さ（詳細）"
-                  value={formatThicknessDisplay(localSpecs)}
-                  isEditing={false}
-                  onChange={() => {}}
-                />
+                {formatThicknessDisplay(localSpecs) && formatThicknessDisplay(localSpecs) !== '-' && (
+                  <EditableSpecItem
+                    label="厚さ詳細"
+                    value={formatThicknessDisplay(localSpecs)}
+                    isEditing={false}
+                    onChange={() => {}}
+                  />
+                )}
               </>
             )}
 
@@ -424,14 +550,23 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
                 )}
               </div>
             ) : (
-              localSpecs.printingType && (
+              localSpecs.printingType && localSpecs.printingType !== 'none' && (
                 <EditableSpecItem
                   label="印刷"
-                  value={`${localSpecs.printingType} (${localSpecs.printingColors || 1}色)`}
+                  value={getPrintingLabel(localSpecs.printingType)}
                   isEditing={false}
                   onChange={() => {}}
                 />
               )
+            )}
+            {/* 色数は常にフルカラー表示 */}
+            {!isEditing && localSpecs.printingType && localSpecs.printingType !== 'none' && (
+              <EditableSpecItem
+                label="色数"
+                value="フルカラー"
+                isEditing={false}
+                onChange={() => {}}
+              />
             )}
 
             {/* 納期 */}
@@ -442,6 +577,7 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
               options={urgencyOptions}
               isEditing={isEditing}
               onChange={(v) => updateSpec('urgency', v)}
+              displayLabel={!isEditing ? getUrgencyLabel(localSpecs.urgency || '') : undefined}
             />
 
             {/* 配送先 */}
@@ -452,6 +588,7 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
               options={deliveryLocationOptions}
               isEditing={isEditing}
               onChange={(v) => updateSpec('deliveryLocation', v)}
+              displayLabel={!isEditing ? getDeliveryLocationLabel(localSpecs.deliveryLocation || '') : undefined}
             />
           </div>
 

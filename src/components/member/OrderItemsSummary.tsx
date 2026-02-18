@@ -16,6 +16,7 @@ import { ChevronDown, ChevronUp, Package, Building2, Tag, X } from 'lucide-react
 import { cn } from '@/lib/utils';
 import type { Order, AppliedCoupon } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
+import { processingOptionsConfig } from '@/components/quote/shared/processingConfig';
 
 // =====================================================
 // Types
@@ -66,10 +67,13 @@ function getItemValue(item: any, camelCaseKey: string, snakeCaseKey: string): an
 
 function getBagTypeName(bagTypeId: string): string {
   const names: Record<string, string> = {
-    flat_pouch: 'ピロー袋',
-    flat_3_side: '三方シール平袋',
-    stand_up: 'スタンドアップパウチ',
-    zipper: 'チャック付袋',
+    flat_pouch: '平袋',
+    flat_3_side: '合掌袋',
+    stand_up: 'スタンドパウチ',
+    gazette: 'ガゼットパウチ',
+    roll_film: 'ロールフィルム',
+    spout_pouch: 'スパウトパウチ',
+    zipper_pouch: 'チャック付袋',
   };
   return names[bagTypeId] || bagTypeId || '-';
 }
@@ -96,23 +100,9 @@ function getPrintingName(type: string, colors?: number): string {
 }
 
 function getPostProcessingName(option: string): string {
-  const names: Record<string, string> = {
-    'corner-round': '角丸め',
-    'glossy': '光沢仕上げ',
-    'matte': 'マット仕上げ',
-    'hang-hole-6mm': '吊り穴(6mm)',
-    'hang-hole-10mm': '吊り穴(10mm)',
-    'notch-yes': 'ノッチあり',
-    'notch-no': 'ノッチなし',
-    'top-open': '上部開放',
-    'side-open': '横開放',
-    'bottom-open': '下部開放',
-    'valve-yes': 'バルブあり',
-    'valve-no': 'バルブなし',
-    'zipper-yes': 'チャック付き',
-    'zipper-no': 'チャックなし',
-  };
-  return names[option] || option;
+  // processingOptionsConfigから日本語ラベルを取得
+  const config = processingOptionsConfig.find(opt => opt.id === option);
+  return config?.nameJa || option;
 }
 
 function getUrgencyName(urgency: string): string {
