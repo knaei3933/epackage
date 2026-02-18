@@ -362,200 +362,36 @@ export function DetailedCostBreakdown({
         </div>
       </div>
 
-      {/* 仕様情報 */}
+      {/* 仕様情報 - 簡素化版 */}
       {specifications && Object.keys(specifications).length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-800 mb-3">📋 詳細仕様情報</h4>
-
-          {/* 基本仕様 */}
-          <div className="mb-4">
-            <h5 className="text-xs font-semibold text-gray-600 mb-2 border-b pb-1">基本仕様</h5>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {specifications.bag_type_display && (
-                <div>
-                  <span className="text-gray-500">パウチタイプ:</span>
-                  <span className="ml-1 font-medium">{specifications.bag_type_display}</span>
-                </div>
-              )}
-              {specifications.material_display && (
-                <div>
-                  <span className="text-gray-500">素材:</span>
-                  <span className="ml-1 font-medium">{specifications.material_display}</span>
-                </div>
-              )}
-              {specifications.material_specification && (
-                <div className="col-span-2">
-                  <span className="text-gray-500">素材詳細仕様:</span>
-                  <span className="ml-1 font-medium text-green-700">{specifications.material_specification}</span>
-                </div>
-              )}
-              {specifications.weight_range && (
-                <div>
-                  <span className="text-gray-500">重量:</span>
-                  <span className="ml-1 font-medium">{specifications.weight_range}</span>
-                </div>
-              )}
-              {specifications.thickness_display && (
-                <div>
-                  <span className="text-gray-500">厚み:</span>
-                  <span className="ml-1 font-medium">{specifications.thickness_display}</span>
-                </div>
-              )}
-              {specifications.urgency && (
-                <div>
-                  <span className="text-gray-500">緊急度:</span>
-                  <span className="ml-1 font-medium">{specifications.urgency === 'standard' ? '標準' : specifications.urgency === 'urgent' ? '急ぎ' : specifications.urgency}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* サイズ詳細 */}
-          <div className="mb-4">
-            <h5 className="text-xs font-semibold text-gray-600 mb-2 border-b pb-1">サイズ詳細</h5>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              {specifications.width && (
-                <div>
-                  <span className="text-gray-500">幅:</span>
-                  <span className="ml-1 font-medium">{specifications.width}mm</span>
-                </div>
-              )}
-              {specifications.height && (
-                <div>
-                  <span className="text-gray-500">高さ:</span>
-                  <span className="ml-1 font-medium">{specifications.height}mm</span>
-                </div>
-              )}
-              {specifications.depth && (
-                <div>
-                  <span className="text-gray-500">マチ（深さ）:</span>
-                  <span className="ml-1 font-medium">{specifications.depth}mm</span>
-                </div>
-              )}
-              {specifications.dimensions && (
-                <div className="col-span-3">
-                  <span className="text-gray-500">全体サイズ:</span>
-                  <span className="ml-1 font-medium">{specifications.dimensions}</span>
-                </div>
-              )}
-              {specifications.sealWidth && (
-                <div>
-                  <span className="text-gray-500">シール幅:</span>
-                  <span className="ml-1 font-medium">{specifications.sealWidth}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 印刷仕様 */}
-          <div className="mb-4">
-            <h5 className="text-xs font-semibold text-gray-600 mb-2 border-b pb-1">印刷仕様</h5>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {specifications.printing_display && (
-                <div>
-                  <span className="text-gray-500">印刷方式:</span>
-                  <span className="ml-1 font-medium">{specifications.printing_display}</span>
-                </div>
-              )}
-              {specifications.colors && (
-                <div>
-                  <span className="text-gray-500">色数:</span>
-                  <span className="ml-1 font-medium">{specifications.colors}</span>
-                </div>
-              )}
-              {specifications.isUVPrinting !== undefined && (
-                <div>
-                  <span className="text-gray-500">UV印刷:</span>
-                  <span className="ml-1 font-medium">{specifications.isUVPrinting ? 'あり' : 'なし'}</span>
-                </div>
-              )}
-              {specifications.doubleSided !== undefined && (
-                <div>
-                  <span className="text-gray-500">両面印刷:</span>
-                  <span className="ml-1 font-medium">{specifications.doubleSided ? 'あり' : 'なし'}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 後加工オプション */}
-          {specifications.post_processing_display && specifications.post_processing_display.length > 0 && (
-            <div className="mb-4">
-              <h5 className="text-xs font-semibold text-gray-600 mb-2 border-b pb-1">後加工オプション</h5>
-              <div className="flex flex-wrap gap-1">
-                {specifications.post_processing_display.map((opt: string, idx: number) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs border border-blue-200"
-                  >
-                    {opt}
-                  </span>
-                ))}
+        <div className="bg-white border border-gray-200 rounded-lg p-3">
+          <h4 className="text-sm font-semibold text-gray-800 mb-2">📋 仕様情報</h4>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            {specifications.bag_type_display && (
+              <div><span className="text-gray-500">タイプ:</span> <span className="font-medium">{specifications.bag_type_display}</span></div>
+            )}
+            {specifications.material_specification && (
+              <div className="col-span-2"><span className="text-gray-500">素材:</span> <span className="font-medium text-blue-700">{specifications.material_specification}</span></div>
+            )}
+            {specifications.weight_range && (
+              <div><span className="text-gray-500">重量:</span> <span className="font-medium">{specifications.weight_range}</span></div>
+            )}
+            {specifications.dimensions && (
+              <div><span className="text-gray-500">サイズ:</span> <span className="font-medium">{specifications.dimensions}</span></div>
+            )}
+            {specifications.printing_display && (
+              <div><span className="text-gray-500">印刷:</span> <span className="font-medium">{specifications.printing_display}</span></div>
+            )}
+            {specifications.colors && (
+              <div><span className="text-gray-500">色数:</span> <span className="font-medium">{specifications.colors}</span></div>
+            )}
+            {specifications.post_processing_display && specifications.post_processing_display.length > 0 && (
+              <div className="col-span-2">
+                <span className="text-gray-500">後加工:</span>
+                <span className="ml-1">{specifications.post_processing_display.join(', ')}</span>
               </div>
-              {/* 特殊オプションの明示 */}
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                {(specifications.zipper || specifications.post_processing_display.some((p: string) => p.includes('ジッパー'))) && (
-                  <div className="text-green-600">
-                    <span className="font-medium">✓ ジッパー付き</span>
-                  </div>
-                )}
-                {(specifications.spout || specifications.post_processing_display.some((p: string) => p.includes('スパウト'))) && (
-                  <div className="text-green-600">
-                    <span className="font-medium">✓ スパウト付き</span>
-                  </div>
-                )}
-                {specifications.post_processing_display.some((p: string) => p.includes('ハングホール')) && (
-                  <div className="text-green-600">
-                    <span className="font-medium">✓ ハングホール</span>
-                  </div>
-                )}
-                {specifications.post_processing_display.some((p: string) => p.includes('ノッチ')) && (
-                  <div className="text-green-600">
-                    <span className="font-medium">✓ ノッチ</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 内容物・配送 */}
-          {(specifications.contents || specifications.contentsType || specifications.productCategory || specifications.deliveryLocation || specifications.distributionEnvironment) && (
-            <div className="mb-4">
-              <h5 className="text-xs font-semibold text-gray-600 mb-2 border-b pb-1">内容物・配送</h5>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {specifications.contentsType && (
-                  <div>
-                    <span className="text-gray-500">内容物タイプ:</span>
-                    <span className="ml-1">{specifications.contentsType === 'solid' ? '固形物' : specifications.contentsType === 'liquid' ? '液体' : specifications.contentsType === 'powder' ? '粉末' : specifications.contentsType}</span>
-                  </div>
-                )}
-                {specifications.productCategory && (
-                  <div>
-                    <span className="text-gray-500">製品カテゴリ:</span>
-                  <span className="ml-1">{specifications.productCategory === 'food' ? '食品' : specifications.productCategory === 'pharmaceutical' ? '医薬品' : specifications.productCategory === 'cosmetic' ? '化粧品' : specifications.productCategory === 'pet_food' ? 'ペットフード' : specifications.productCategory}</span>
-                  </div>
-                )}
-                {specifications.deliveryLocation && (
-                  <div>
-                    <span className="text-gray-500">配送先:</span>
-                  <span className="ml-1">{specifications.deliveryLocation === 'domestic' ? '国内' : specifications.deliveryLocation === 'overseas' ? '海外' : specifications.deliveryLocation}</span>
-                  </div>
-                )}
-                {specifications.distributionEnvironment && (
-                  <div>
-                    <span className="text-gray-500">流通環境:</span>
-                  <span className="ml-1">{specifications.distributionEnvironment === 'general_roomTemp' ? '常温' : specifications.distributionEnvironment === 'refrigerated' ? '冷蔵' : specifications.distributionEnvironment === 'frozen' ? '冷凍' : specifications.distributionEnvironment}</span>
-                  </div>
-                )}
-                {specifications.contents && (
-                  <div className="col-span-2">
-                    <span className="text-gray-500">内容物詳細:</span>
-                    <span className="ml-1">{specifications.contents}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
