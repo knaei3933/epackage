@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { ChevronDown, ChevronUp, Package, Building2, Tag, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order, AppliedCoupon } from '@/types/dashboard';
+import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 
 // =====================================================
 // Types
@@ -74,6 +75,7 @@ function getBagTypeName(bagTypeId: string): string {
 }
 
 function getMaterialName(materialId: string): string {
+  // 기본 매핑은 유지 (fallback용)
   const names: Record<string, string> = {
     pet_al: 'PET/AL (アルミ箔ラミネート)',
     pet_pe: 'PET/PE',
@@ -83,22 +85,14 @@ function getMaterialName(materialId: string): string {
   return names[materialId] || materialId || '-';
 }
 
-function getThicknessName(thickness: string): string {
-  const names: Record<string, string> = {
-    thin: '薄い',
-    medium: '標準',
-    thick: '厚い',
-  };
-  return names[thickness] || thickness || '-';
-}
-
 function getPrintingName(type: string, colors?: number): string {
   const typeNames: Record<string, string> = {
     digital: 'デジタル印刷',
     gravure: 'グラビア印刷',
   };
   const typeName = typeNames[type] || type || '-';
-  return colors !== undefined ? `${typeName} (${colors}色)` : typeName;
+  // 色数は常にフルカラー表示
+  return typeName;
 }
 
 function getPostProcessingName(option: string): string {
@@ -212,17 +206,33 @@ function OrderItemRow({ item }: OrderItemRowProps) {
       {isExpanded && item.specifications && Object.keys(item.specifications).length > 0 && (
         <div className="px-4 pb-3 bg-muted/10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+            {item.specifications.bagTypeId && (
+              <SpecItem label="タイプ" value={getBagTypeName(item.specifications.bagTypeId)} />
+            )}
+            {item.specifications.materialId && item.specifications.thicknessSelection && (() => {
+              const matSpec = getMaterialSpecification(item.specifications.materialId, item.specifications.thicknessSelection);
+              const weightRange = (() => {
+                const options = MATERIAL_THICKNESS_OPTIONS[item.specifications.materialId];
+                if (!options) return null;
+                const thickness = options.find(opt => opt.id === item.specifications.thicknessSelection);
+                return thickness?.weightRange || null;
+              })();
+              return (
+                <>
+                  {matSpec && (
+                    <SpecItem
+                      label="素材"
+                      value={<span className="text-blue-700">{matSpec}</span>}
+                    />
+                  )}
+                  {weightRange && (
+                    <SpecItem label="重量" value={weightRange} />
+                  )}
+                </>
+              );
+            })()}
             {item.specifications.dimensions && (
               <SpecItem label="サイズ" value={item.specifications.dimensions} />
-            )}
-            {item.specifications.bagTypeId && (
-              <SpecItem label="袋タイプ" value={getBagTypeName(item.specifications.bagTypeId)} />
-            )}
-            {item.specifications.materialId && (
-              <SpecItem label="素材" value={getMaterialName(item.specifications.materialId)} />
-            )}
-            {item.specifications.thicknessSelection && (
-              <SpecItem label="厚さ" value={getThicknessName(item.specifications.thicknessSelection)} />
             )}
             {(item.specifications.printingType || item.specifications.printingColors !== undefined) && (
               <SpecItem
@@ -233,6 +243,7 @@ function OrderItemRow({ item }: OrderItemRowProps) {
                 )}
               />
             )}
+            <SpecItem label="色数" value="フルカラー" />
             {item.specifications.urgency && (
               <SpecItem label="納期" value={getUrgencyName(item.specifications.urgency)} />
             )}
@@ -241,24 +252,15 @@ function OrderItemRow({ item }: OrderItemRowProps) {
             )}
           </div>
 
-          {/* 後加工 (複数ある場合は別行) */}
+          {/* 後加工 (簡素化 - カンマ区切り) */}
           {item.specifications.postProcessingOptions && item.specifications.postProcessingOptions.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-border-secondary">
-              <SpecItem
-                label="後加工"
-                value={
-                  <div className="flex flex-wrap gap-2">
-                    {item.specifications.postProcessingOptions.map((opt: string, idx: number) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-1 bg-background border border-border-secondary rounded text-xs"
-                      >
-                        {getPostProcessingName(opt)}
-                      </span>
-                    ))}
-                  </div>
-                }
-              />
+            <div className="mt-3 pt-3 border-t border-border-secondary text-sm">
+              <div className="flex items-baseline gap-2">
+                <span className="text-text-muted flex-shrink-0">後加工:</span>
+                <span className="text-text-primary">
+                  {item.specifications.postProcessingOptions.map((opt: string) => getPostProcessingName(opt)).join(', ')}
+                </span>
+              </div>
             </div>
           )}
         </div>

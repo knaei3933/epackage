@@ -21,6 +21,7 @@ import { AdminOrderItemsEditor } from '@/components/admin/AdminOrderItemsEditor'
 import { EmailComposer, type Recipient } from '@/components/admin/EmailComposer';
 import { adminFetch } from '@/lib/auth-client';
 import type { Order as DashboardOrder } from '@/types/dashboard';
+import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import { Package, User, Calendar, MapPin, CreditCard, FileText, AlertCircle, CheckCircle, XCircle, Mail } from 'lucide-react';
 
 interface OrderItem {
