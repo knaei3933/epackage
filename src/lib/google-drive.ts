@@ -169,15 +169,17 @@ export async function uploadFileToDrive(
     ''
   ].join('\r\n');
 
-  // 전체 바디 조합
+  // 전체 바디 조합 (파일 헤더와 내용 사이에 빈 줄 필요)
   const metadataBuffer = Buffer.from(metadataPart, 'utf-8');
   const fileHeaderBuffer = Buffer.from(filePartHeader, 'utf-8');
+  const fileBlankLine = Buffer.from('\r\n', 'utf-8');  // 빈 줄 추가
   const fileBuffer = fileContent;
   const closingBuffer = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
 
   const fullBody = Buffer.concat([
     metadataBuffer,
     fileHeaderBuffer,
+    fileBlankLine,  // 헤더와 내용 사이의 빈 줄
     fileBuffer,
     closingBuffer
   ]);
@@ -334,14 +336,20 @@ export async function getRefreshToken(userId: string): Promise<string | null> {
  * (리프레시 토큰에서 가져오거나 캐시된 것 사용)
  */
 export async function getValidAccessToken(userId: string): Promise<string> {
+  console.log('[getValidAccessToken] Getting token for user:', userId);
+
   const refreshToken = await getRefreshToken(userId);
+  console.log('[getValidAccessToken] Refresh token found:', !!refreshToken);
 
   if (!refreshToken) {
+    console.error('[getValidAccessToken] No refresh token found for user:', userId);
     throw new Error('구글 드라이브 연결이 필요합니다. 관리자에게 문의하세요.');
   }
 
   // 토큰 갱신
+  console.log('[getValidAccessToken] Refreshing access token...');
   const tokenResponse = await refreshAccessToken(refreshToken);
+  console.log('[getValidAccessToken] Token refresh successful');
 
   // 새로운 리프레시 토큰이 있으면 저장
   if (tokenResponse.refresh_token) {
@@ -357,10 +365,17 @@ export async function getValidAccessToken(userId: string): Promise<string> {
  */
 export async function getAdminAccessTokenForUpload(): Promise<string> {
   const adminUserId = process.env.GOOGLE_DRIVE_ADMIN_USER_ID;
+  console.log('[getAdminAccessTokenForUpload] Admin User ID:', adminUserId);
 
   if (!adminUserId) {
+    console.error('[getAdminAccessTokenForUpload] GOOGLE_DRIVE_ADMIN_USER_ID not set');
     throw new Error('GOOGLE_DRIVE_ADMIN_USER_ID 환경 변수가 설정되지 않았습니다.');
   }
 
-  return getValidAccessToken(adminUserId);
+  try {
+    return await getValidAccessToken(adminUserId);
+  } catch (error) {
+    console.error('[getAdminAccessTokenForUpload] Failed to get token:', error);
+    throw error;
+  }
 }
