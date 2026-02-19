@@ -18,7 +18,7 @@ import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
 import { notifyDataReceived as notifyDataReceivedEmail } from '@/lib/email/order-status-emails';
 import {
-  getValidAccessToken,
+  getAdminAccessTokenForUpload,
   uploadFileToDrive,
   getUploadFolderId
 } from '@/lib/google-drive';
@@ -271,7 +271,7 @@ export async function POST(
     let googleDriveFile: { id: string; webViewLink: string; webContentLink: string; name: string };
     try {
       // Get admin's access token for Google Drive
-      const accessToken = await getValidAccessToken(userId);
+      const accessToken = await getAdminAccessTokenForUpload();
 
       // Get upload folder ID
       const uploadFolderId = getUploadFolderId();

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/dashboard';
 import {
-  getValidAccessToken,
+  getAdminAccessTokenForUpload,
   uploadFileToDrive,
   getUploadFolderId,
   getCorrectionFolderId
@@ -75,10 +75,10 @@ export async function POST(
       );
     }
 
-    // Get Google Drive access token
+    // Get Google Drive access token (using admin's token for all uploads)
     let accessToken: string;
     try {
-      accessToken = await getValidAccessToken(userId);
+      accessToken = await getAdminAccessTokenForUpload();
     } catch (error) {
       console.error('Failed to get access token:', error);
       return NextResponse.json(
@@ -171,9 +171,12 @@ export async function GET(
       );
     }
 
-    // Check if Google Drive is configured
+    // Check if Google Drive is configured (using admin's token)
     const { getRefreshToken } = await import('@/lib/google-drive');
-    const refreshToken = await getRefreshToken(userId);
+    const adminUserId = process.env.GOOGLE_DRIVE_ADMIN_USER_ID;
+    const refreshToken = adminUserId
+      ? await getRefreshToken(adminUserId)
+      : await getRefreshToken(userId); // Fallback to user's token if admin ID not set
 
     const isConfigured = !!refreshToken;
     const uploadFolderId = getUploadFolderId();

@@ -350,3 +350,17 @@ export async function getValidAccessToken(userId: string): Promise<string> {
 
   return tokenResponse.access_token;
 }
+
+/**
+ * 파일 업로드용 관리자 액세스 토큰 반환
+ * 모든 파일 업로드는 관리자의 Google Drive 토큰을 사용
+ */
+export async function getAdminAccessTokenForUpload(): Promise<string> {
+  const adminUserId = process.env.GOOGLE_DRIVE_ADMIN_USER_ID;
+
+  if (!adminUserId) {
+    throw new Error('GOOGLE_DRIVE_ADMIN_USER_ID 환경 변수가 설정되지 않았습니다.');
+  }
+
+  return getValidAccessToken(adminUserId);
+}
