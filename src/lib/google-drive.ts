@@ -119,6 +119,10 @@ export async function refreshAccessToken(refreshToken: string): Promise<GoogleTo
 
 /**
  * 구글 드라이브에 파일 업로드
+ *
+ * Google Drive API v3 multipart upload 방식 사용
+ * - uploadType=multipart: 메타데이터와 파일을 함께 전송
+ * - Content-Type: multipart/related 사용 (Google API 표준)
  */
 export async function uploadFileToDrive(
   file: File | Buffer,
@@ -127,6 +131,8 @@ export async function uploadFileToDrive(
   folderId: string,
   accessToken: string
 ): Promise<UploadedFile> {
+  console.log('[uploadFileToDrive] Starting upload:', { fileName, mimeType, folderId });
+
   // 파일 내용을 Buffer로 변환
   let fileContent: Buffer;
   if (file instanceof Buffer) {
@@ -136,14 +142,16 @@ export async function uploadFileToDrive(
     fileContent = Buffer.from(arrayBuffer);
   }
 
+  console.log('[uploadFileToDrive] File size:', fileContent.length, 'bytes');
+
   // 메타데이터 생성
   const metadata = {
     name: fileName,
     parents: [folderId]
   };
 
-  // multipart/mixed 생성
-  const boundary = 'boundary_' + Math.random().toString(36).substring(2);
+  // multipart/related 생성 (Google Drive API 표준)
+  const boundary = '-------boundary_' + Math.random().toString(36).substring(2);
 
   // 메타데이터 파트
   const metadataPart = [
@@ -155,31 +163,27 @@ export async function uploadFileToDrive(
   ].join('\r\n');
 
   // 파일 파트
-  const filePart = [
+  const filePartHeader = [
     `--${boundary}`,
     `Content-Type: ${mimeType}`,
-    'Content-Transfer-Encoding: binary',
     ''
   ].join('\r\n');
 
-  // 마지막 boundary
-  const closingPart = [`--${boundary}--`, ''].join('\r\n');
-
   // 전체 바디 조합
   const metadataBuffer = Buffer.from(metadataPart, 'utf-8');
+  const fileHeaderBuffer = Buffer.from(filePartHeader, 'utf-8');
   const fileBuffer = fileContent;
-  const closingBuffer = Buffer.from(closingPart, 'utf-8');
-
-  // 파일 앞에 CRLF 추가
-  const fileSeparator = Buffer.from('\r\n', 'utf-8');
+  const closingBuffer = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
 
   const fullBody = Buffer.concat([
     metadataBuffer,
-    fileSeparator,
+    fileHeaderBuffer,
     fileBuffer,
-    Buffer.from('\r\n', 'utf-8'),
     closingBuffer
   ]);
+
+  console.log('[uploadFileToDrive] Request body size:', fullBody.length, 'bytes');
+  console.log('[uploadFileToDrive] Content-Type:', `multipart/related; boundary=${boundary}`);
 
   // 업로드 요청
   const response = await fetch(
@@ -188,18 +192,22 @@ export async function uploadFileToDrive(
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': `multipart/mixed; boundary=${boundary}`
+        'Content-Type': `multipart/related; boundary=${boundary}`
       },
       body: fullBody
     }
   );
 
+  console.log('[uploadFileToDrive] Response status:', response.status);
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to upload file: ${error}`);
+    const errorText = await response.text();
+    console.error('[uploadFileToDrive] Error response:', errorText);
+    throw new Error(`Failed to upload file (${response.status}): ${errorText}`);
   }
 
   const result = await response.json();
+  console.log('[uploadFileToDrive] Upload successful:', result.id);
 
   return {
     id: result.id,
