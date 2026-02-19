@@ -1227,8 +1227,8 @@ export class UnifiedPricingEngine {
     // unitPrice * totalQuantity === totalPrice を保証
     // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     // 小数点以下を含む場合: 168400.646... → 168500
-    // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
+
     // Security: Rounding details only logged in development
     if (process.env.NODE_ENV === 'development') {
       console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
@@ -1465,8 +1465,8 @@ export class UnifiedPricingEngine {
     // unitPrice * totalQuantity === totalPrice を保証
     // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     // 小数点以下を含む場合: 168400.646... → 168500
-    // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
+
     // Security: Rounding details only logged in development
     if (process.env.NODE_ENV === 'development') {
       console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
