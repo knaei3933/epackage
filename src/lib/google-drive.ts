@@ -187,9 +187,9 @@ export async function uploadFileToDrive(
   console.log('[uploadFileToDrive] Request body size:', fullBody.length, 'bytes');
   console.log('[uploadFileToDrive] Content-Type:', `multipart/related; boundary=${boundary}`);
 
-  // 업로드 요청
+  // 업로드 요청 (webViewLinkとwebContentLinkを取得するためfieldsパラメータ追加)
   const response = await fetch(
-    `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,
+    `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink`,
     {
       method: 'POST',
       headers: {

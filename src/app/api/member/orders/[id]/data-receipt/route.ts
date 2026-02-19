@@ -321,7 +321,8 @@ export async function POST(
     // ============================================================
     const fileType = getFileType(file.type);
 
-    const { data: fileRecord, error: dbError } = await dataClient
+    // Always use adminClient for file record insertion (bypasses RLS)
+    const { data: fileRecord, error: dbError } = await adminClient
       .from('files')
       .insert({
         order_id: orderId,
@@ -338,11 +339,19 @@ export async function POST(
 
     if (dbError) {
       console.error('[Data Receipt Upload] Database insert error:', dbError);
+      console.error('[Data Receipt Upload] Error details:', JSON.stringify(dbError, null, 2));
+      console.error('[Data Receipt Upload] Insert data:', {
+        order_id: orderId,
+        file_type: fileType,
+        original_filename: file.name,
+        uploaded_by: userId,
+      });
       return NextResponse.json(
         {
           error: 'ファイルレコードの作成に失敗しました。',
           errorEn: 'Failed to create file record',
           code: 'DB_ERROR',
+          details: dbError.message,
         },
         { status: 500 }
       );
