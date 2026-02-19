@@ -185,7 +185,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || errorData.errorEn || 'アップロードに失敗しました');
+        const details = errorData.details ? ` (${errorData.details})` : '';
+        const code = errorData.code ? ` [${errorData.code}]` : '';
+        throw new Error((errorData.error || errorData.errorEn || 'アップロードに失敗しました') + code + details);
       }
 
       const result = await response.json();
