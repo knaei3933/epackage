@@ -2,7 +2,8 @@
  * Admin Correction Data Upload API
  *
  * 教正データ保存API
- * - プレビュー画像・原版ファイルをGoogle Driveに保存（補正データフォルダ）
+ * - プレビュー画像: Supabase Storageに保存（表示用）
+ * - 原版ファイル: Google Driveに保存（補正データフォルダ）
  * - design_revisionsテーブルにレコード作成
  * - 顧客に承認依頼メール送信
  *
@@ -227,7 +228,7 @@ export async function POST(
     }
 
     // ============================================================
-    // Upload files to Google Drive (補正データフォルダ)
+    // Upload files (Hybrid: Preview → Supabase, Original → Google Drive)
     // ============================================================
     const correctionFolderId = getCorrectionFolderId();
 
@@ -238,31 +239,54 @@ export async function POST(
       );
     }
 
-    // Get admin access token for Google Drive
-    const accessToken = await getAdminAccessTokenForUpload();
-
-    // Generate unique file names
     const timestamp = Date.now();
-    const previewFileName = `${order.order_number}_rev${revisionNumber}_preview_${timestamp}_${previewImage.name}`;
+
+    // 1. Upload preview image to Supabase Storage (for display)
+    const previewPath = generateStoragePath(orderId, revisionNumber, previewImage.name, 'preview');
+    const previewBuffer = Buffer.from(await previewImage.arrayBuffer());
+
+    const previewUpload = await supabase.storage
+      .from('correction-files')
+      .upload(previewPath, previewBuffer, {
+        contentType: previewImage.type,
+        upsert: false,
+      });
+
+    if (previewUpload.error) {
+      console.error('[Correction Upload] Preview upload error:', previewUpload.error);
+      return NextResponse.json(
+        { success: false, error: 'プレビュー画像のアップロードに失敗しました。' },
+        { status: 500 }
+      );
+    }
+
+    const { data: previewUrlData } = supabase.storage
+      .from('correction-files')
+      .getPublicUrl(previewPath);
+
+    const previewImageUrl = previewUrlData.publicUrl;
+
+    // 2. Upload original file to Google Drive (補正データフォルダ)
+    const accessToken = await getAdminAccessTokenForUpload();
     const originalFileName = `${order.order_number}_rev${revisionNumber}_original_${timestamp}_${originalFile.name}`;
 
-    console.log('[Correction Upload] Uploading to Google Drive:', {
-      preview: previewFileName,
+    console.log('[Correction Upload] Uploading original file to Google Drive:', {
       original: originalFileName,
       folder: correctionFolderId,
     });
 
-    // Upload both files to Google Drive
-    const [previewDriveFile, originalDriveFile] = await Promise.all([
-      uploadFileToDrive(previewImage, previewFileName, previewImage.type, correctionFolderId, accessToken),
-      uploadFileToDrive(originalFile, originalFileName, originalFile.type, correctionFolderId, accessToken),
-    ]);
+    const originalDriveFile = await uploadFileToDrive(
+      originalFile,
+      originalFileName,
+      originalFile.type,
+      correctionFolderId,
+      accessToken
+    );
 
-    const previewImageUrl = previewDriveFile.webViewLink;
     const originalFileUrl = originalDriveFile.webViewLink;
 
-    console.log('[Correction Upload] Google Drive upload successful:', {
-      preview: previewDriveFile.id,
+    console.log('[Correction Upload] Upload successful:', {
+      preview: previewPath,
       original: originalDriveFile.id,
     });
 
