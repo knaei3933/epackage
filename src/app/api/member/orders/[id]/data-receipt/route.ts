@@ -347,7 +347,7 @@ export async function POST(
       .insert({
         order_id: orderId,
         file_type: fileType,
-        original_filename: file.name,
+        original_filename: driveFileName, // Use Google Drive file name
         file_url: googleDriveFile.webViewLink,
         file_path: googleDriveFile.id, // Store Google Drive file ID
         file_size_bytes: file.size,
@@ -363,7 +363,7 @@ export async function POST(
       console.error('[Data Receipt Upload] Insert data:', {
         order_id: orderId,
         file_type: fileType,
-        original_filename: file.name,
+        original_filename: driveFileName,
         uploaded_by: userId,
       });
       return NextResponse.json(
