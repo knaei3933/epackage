@@ -2,7 +2,7 @@
  * Order Data Receipt File Upload API (Member Portal)
  *
  * Task P2-12: Order data receipt file upload
- * - POST: Upload production data files (AI, EPS, PDF)
+ * - POST: Upload production data files (AI, EPS, PDF) to Google Drive
  * - GET: List uploaded files for an order
  * - Uses security-validator for comprehensive file validation
  * - Saves file metadata to database (files table)
@@ -17,6 +17,11 @@ import { createServiceClient } from '@/lib/supabase';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
 import { notifyDataReceived as notifyDataReceivedEmail } from '@/lib/email/order-status-emails';
+import {
+  getValidAccessToken,
+  uploadFileToDrive,
+  getUploadFolderId
+} from '@/lib/google-drive';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,11 +42,9 @@ async function getSupabaseClient(request: NextRequest) {
       get(name: string) {
         return request.cookies.get(name)?.value;
       },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       set(_name: string, _value: string, _options: unknown) {
         // We'll use response object later if needed
       },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       remove(_name: string, _options: unknown) {
         // Cookie removal if needed
       },
@@ -62,7 +65,7 @@ interface DataReceiptUploadResponse {
     file_url: string;
     uploaded_at: string;
     validation_status: string;
-    extraction_job_id?: string; // AI extraction job ID if applicable
+    extraction_job_id?: string;
   };
   error?: string;
   errorEn?: string;
@@ -73,7 +76,7 @@ interface DataReceiptUploadResponse {
 // Constants
 // =====================================================
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (using security-validator default)
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Admin roles that can access any order
 const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
@@ -113,28 +116,10 @@ const FILE_TYPE_MAP: Record<string, 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCE
   'image/vnd.adobe.photoshop': 'PSD',
   'image/jpeg': 'JPG',
   'image/png': 'PNG',
-  'image/webp': 'PNG', // Map webp to PNG
+  'image/webp': 'PNG',
   'application/vnd.ms-excel': 'EXCEL',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'EXCEL',
 };
-
-// =====================================================
-// Helper Functions
-// =====================================================
-
-/**
- * Generate storage path for order data receipt files
- */
-function generateStoragePath(
-  userId: string,
-  orderId: string,
-  fileName: string
-): string {
-  const timestamp = Date.now();
-  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-  return `order_data_receipt/${userId}/${orderId}/${timestamp}_${sanitizedFileName}`;
-}
 
 /**
  * Get file type enum from MIME type
@@ -143,13 +128,13 @@ function getFileType(mimeType: string): 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | '
   return FILE_TYPE_MAP[mimeType] || 'OTHER';
 }
 
-// =====================================================
-// POST Handler - Upload Data Receipt File
-// =====================================================
+// ============================================================
+// POST Handler - Upload Data Receipt File to Google Drive
+// ============================================================
 
 /**
  * POST /api/member/orders/[id]/data-receipt
- * Upload production data files for an order
+ * Upload production data files for an order to Google Drive
  *
  * Request FormData:
  * - file: File to upload
@@ -174,24 +159,17 @@ export async function POST(
       throw new Error('Missing Supabase environment variables');
     }
 
-    // 1. Authenticate user using SSR client (proper cookie handling)
+    // 1. Authenticate user using SSR client
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value;
         },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        set(_name: string, _value: string, _options: unknown) {
-          // We'll use the response object later if needed
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        remove(_name: string, _options: unknown) {
-          // Cookie removal if needed
-        },
+        set(_name: string, _value: string, _options: unknown) {},
+        remove(_name: string, _options: unknown) {},
       },
     });
 
-    // Normal auth: Use cookie-based auth with getUser()
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user?.id) {
@@ -218,14 +196,12 @@ export async function POST(
       .maybeSingle();
 
     const isAdmin = profile?.role && ADMIN_ROLES.includes(profile.role);
-
-    // Use appropriate client for data access
     const dataClient = isAdmin ? adminClient : supabase;
 
     // 2. Verify order exists
     const { data: order, error: orderError } = await dataClient
       .from('orders')
-      .select('id, user_id, status')
+      .select('id, user_id, status, order_number, customer_name')
       .eq('id', orderId)
       .single();
 
@@ -252,10 +228,9 @@ export async function POST(
       );
     }
 
-    // 3. Parse form data
+    // 4. Parse form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const description = formData.get('description') as string | null;
 
     if (!file) {
@@ -269,11 +244,10 @@ export async function POST(
       );
     }
 
-    // 4. Validate file security using security-validator
+    // 5. Validate file security using security-validator
     const validationResult = await quickValidateFile(file, MAX_FILE_SIZE);
 
     if (!validationResult.isValid) {
-      // Get first error message in Japanese
       const firstError = validationResult.errors[0];
       return NextResponse.json(
         {
@@ -291,37 +265,60 @@ export async function POST(
       console.warn('[Data Receipt Upload] File validation warnings:', validationResult.warnings);
     }
 
-    // 5. Generate storage path
-    const storagePath = generateStoragePath(userId, orderId, file.name);
+    // ============================================================
+    // 6. Upload to Google Drive
+    // ============================================================
+    let googleDriveFile: { id: string; webViewLink: string; webContentLink: string; name: string };
+    try {
+      // Get admin's access token for Google Drive
+      const accessToken = await getValidAccessToken(userId);
 
-    // 6. Upload file to Supabase Storage
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
+      // Get upload folder ID
+      const uploadFolderId = getUploadFolderId();
+      if (!uploadFolderId) {
+        return NextResponse.json(
+          {
+            error: 'Google Driveフォルダが設定されていません。',
+            errorEn: 'Google Drive folder not configured',
+            code: 'NO_DRIVE_FOLDER',
+          },
+          { status: 500 }
+        );
+      }
 
-    const { data: uploadData, error: uploadError } = await dataClient.storage
-      .from('production-files')
-      .upload(storagePath, fileBuffer, {
-        contentType: file.type,
-        upsert: false,
-      });
+      // Upload to Google Drive
+      const uploadedFile = await uploadFileToDrive(
+        file,
+        file.name,
+        file.type || 'application/octet-stream',
+        uploadFolderId,
+        accessToken
+      );
 
-    if (uploadError || !uploadData) {
-      console.error('[Data Receipt Upload] Storage upload error:', uploadError);
+      googleDriveFile = {
+        id: uploadedFile.id,
+        webViewLink: uploadedFile.webViewLink,
+        webContentLink: uploadedFile.webContentLink,
+        name: uploadedFile.name,
+      };
+
+      console.log('[Data Receipt Upload] File uploaded to Google Drive:', googleDriveFile.id);
+    } catch (driveError) {
+      console.error('[Data Receipt Upload] Google Drive upload error:', driveError);
       return NextResponse.json(
         {
-          error: 'ファイルのアップロードに失敗しました。',
-          errorEn: 'Failed to upload file',
-          code: 'UPLOAD_ERROR',
+          error: 'Google Driveへのアップロードに失敗しました。',
+          errorEn: 'Failed to upload to Google Drive',
+          code: 'DRIVE_UPLOAD_ERROR',
+          details: driveError instanceof Error ? driveError.message : String(driveError),
         },
         { status: 500 }
       );
     }
 
-    // 7. Get public URL
-    const { data: urlData } = dataClient.storage
-      .from('production-files')
-      .getPublicUrl(storagePath);
-
-    // 8. Create file record in database (files table)
+    // ============================================================
+    // 7. Create file record in database (files table)
+    // ============================================================
     const fileType = getFileType(file.type);
 
     const { data: fileRecord, error: dbError } = await dataClient
@@ -330,8 +327,8 @@ export async function POST(
         order_id: orderId,
         file_type: fileType,
         original_filename: file.name,
-        file_url: urlData.publicUrl,
-        file_path: storagePath,
+        file_url: googleDriveFile.webViewLink,
+        file_path: googleDriveFile.id, // Store Google Drive file ID
         file_size_bytes: file.size,
         uploaded_by: userId,
         validation_status: 'PENDING',
@@ -341,9 +338,6 @@ export async function POST(
 
     if (dbError) {
       console.error('[Data Receipt Upload] Database insert error:', dbError);
-      // Cleanup uploaded file
-      await supabase.storage.from('production-files').remove([storagePath]);
-
       return NextResponse.json(
         {
           error: 'ファイルレコードの作成に失敗しました。',
@@ -354,7 +348,29 @@ export async function POST(
       );
     }
 
+    // ============================================================
+    // 8. Log upload to order_file_uploads table
+    // ============================================================
+    try {
+      await adminClient
+        .from('order_file_uploads')
+        .insert({
+          order_id: orderId,
+          file_name: file.name,
+          file_type: 'upload',
+          drive_file_id: googleDriveFile.id,
+          drive_view_link: googleDriveFile.webViewLink,
+          drive_content_link: googleDriveFile.webContentLink,
+          uploaded_at: new Date().toISOString(),
+        });
+    } catch (logError) {
+      console.error('[Data Receipt Upload] Failed to log file upload:', logError);
+      // Don't fail the upload if logging fails
+    }
+
+    // ============================================================
     // 9. Trigger AI extraction for eligible file types
+    // ============================================================
     let extractionJobId: string | null = null;
     const eligibleFileTypes = ['AI', 'PDF', 'PSD'];
 
@@ -362,7 +378,6 @@ export async function POST(
       try {
         console.log('[Data Receipt Upload] Triggering AI extraction for file:', fileRecord.id);
 
-        // Determine data_type based on file type
         const dataType = fileType === 'AI' ? 'design_file' : 'production_data';
 
         // Call AI extraction API internally
@@ -383,113 +398,97 @@ export async function POST(
           console.log('[Data Receipt Upload] AI extraction started successfully:', extractionJobId);
         } else {
           console.error('[Data Receipt Upload] AI extraction API returned error:', extractionResponse.status);
-          // Don't fail the upload - extraction failure is non-critical
         }
       } catch (extractionError) {
         console.error('[Data Receipt Upload] Failed to trigger AI extraction:', extractionError);
-        // Don't fail the upload - extraction failure is non-critical
       }
     }
 
-    // 9.5. Create admin notification for data receipt
+    // ============================================================
+    // 10. Create admin notification and send email
+    // ============================================================
     try {
-      const { data: order } = await dataClient
-        .from('orders')
-        .select('order_number, customer_name, status')
-        .eq('id', orderId)
-        .single();
+      // 管理者への通知
+      await notifyDataReceipt(
+        orderId,
+        order.order_number,
+        order.customer_name || 'お客様',
+        file.name,
+        fileType
+      );
 
-      if (order) {
-        // 管理者への通知
-        await notifyDataReceipt(
-          orderId,
-          order.order_number,
-          order.customer_name || 'お客様',
-          file.name,
-          fileType
-        );
+      // 顧客へ受領確認メールを送信
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://epackage-lab.com';
+        const customerEmail = user.email;
 
-        // ============================================================
-        // 顧客へ受領確認メールを送信
-        // Customer email notification for data receipt
-        // ============================================================
-        try {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://epackage-lab.com';
-          const customerEmail = user.email;
+        if (customerEmail) {
+          await notifyDataReceivedEmail(
+            {
+              orderId,
+              orderNumber: order.order_number,
+              customerEmail,
+              customerName: order.customer_name || 'お客様',
+              viewUrl: `${baseUrl}/member/orders/${orderId}`,
+            },
+            file.name
+          );
 
-          if (customerEmail) {
-            await notifyDataReceivedEmail(
-              {
-                orderId,
-                orderNumber: order.order_number,
-                customerEmail,
-                customerName: order.customer_name || 'お客様',
-                viewUrl: `${baseUrl}/member/orders/${orderId}`,
-              },
-              file.name
-            );
-
-            console.log('[Data Receipt Upload] Customer notification email sent:', {
-              orderId: order.order_number,
-              email: customerEmail,
-              fileName: file.name,
-            });
-          } else {
-            console.warn('[Data Receipt Upload] No customer email found, skipping email notification');
-          }
-        } catch (emailError) {
-          // メール送信失敗時も処理を継続（エラーログのみ記録）
-          console.error('[Data Receipt Upload] Customer email notification failed:', emailError);
-          // Don't fail the upload if email notification fails
+          console.log('[Data Receipt Upload] Customer notification email sent:', {
+            orderId: order.order_number,
+            email: customerEmail,
+            fileName: file.name,
+          });
+        } else {
+          console.warn('[Data Receipt Upload] No customer email found, skipping email notification');
         }
+      } catch (emailError) {
+        console.error('[Data Receipt Upload] Customer email notification failed:', emailError);
+      }
 
-        // ============================================================
-        // Auto-transition: DATA_UPLOADED → CORRECTION_IN_PROGRESS
-        // 新しいワークフロー: 顧客がデータをアップロードすると自動的に教正作業中へ
-        // ============================================================
-        if (order.status === 'DATA_UPLOAD_PENDING') {
-          console.log('[Data Receipt Upload] Auto-transition: DATA_UPLOAD_PENDING → CORRECTION_IN_PROGRESS');
+      // ============================================================
+      // Auto-transition: DATA_UPLOADED → CORRECTION_IN_PROGRESS
+      // ============================================================
+      if (order.status === 'DATA_UPLOAD_PENDING') {
+        console.log('[Data Receipt Upload] Auto-transition: DATA_UPLOAD_PENDING → CORRECTION_IN_PROGRESS');
 
-          // 現在のステータスを記録
-          const currentStatus = order.status;
+        const currentStatus = order.status;
 
-          // 直接 CORRECTION_IN_PROGRESS に遷移（サービスロール使用でRLS回避）
-          const { error: updateError } = await adminClient
-            .from('orders')
-            .update({
-              status: 'CORRECTION_IN_PROGRESS',
-              updated_at: new Date().toISOString(),
+        const { error: updateError } = await adminClient
+          .from('orders')
+          .update({
+            status: 'CORRECTION_IN_PROGRESS',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', orderId);
+
+        if (updateError) {
+          console.error('[Data Receipt Upload] Status update error (CORRECTION_IN_PROGRESS):', updateError);
+        } else {
+          console.log('[Data Receipt Upload] Auto-transition completed to CORRECTION_IN_PROGRESS');
+
+          // 履歴を記録
+          await adminClient
+            .from('order_status_history')
+            .insert({
+              order_id: orderId,
+              from_status: currentStatus,
+              to_status: 'CORRECTION_IN_PROGRESS',
+              changed_by: 'SYSTEM',
+              changed_at: new Date().toISOString(),
+              reason: 'データ入稿完了による自動遷移',
             })
-            .eq('id', orderId);
-
-          if (updateError) {
-            console.error('[Data Receipt Upload] Status update error (CORRECTION_IN_PROGRESS):', updateError);
-            console.warn('[Data Receipt Upload] Status update failed, but file was uploaded. Manual update required.');
-          } else {
-            console.log('[Data Receipt Upload] Auto-transition completed to CORRECTION_IN_PROGRESS');
-
-            // 履歴を記録（サービスロール使用）
-            await adminClient
-              .from('order_status_history')
-              .insert({
-                order_id: orderId,
-                from_status: currentStatus,
-                to_status: 'CORRECTION_IN_PROGRESS',
-                changed_by: 'SYSTEM',
-                changed_at: new Date().toISOString(),
-                reason: 'データ入稿完了による自動遷移',
-              })
-              .then(() => console.log('[Data Receipt Upload] Status history logged'))
-              .catch((err) => console.error('[Data Receipt Upload] History logging error:', err));
-          }
+            .then(() => console.log('[Data Receipt Upload] Status history logged'))
+            .catch((err) => console.error('[Data Receipt Upload] History logging error:', err));
         }
       }
     } catch (notifyError) {
       console.error('[Data Receipt Upload] Notification error:', notifyError);
-      // Don't fail the upload if notification fails
     }
 
-    // 10. Prepare response (match expected format from OrderFileUploadSection)
+    // ============================================================
+    // 11. Prepare response
+    // ============================================================
     const response: DataReceiptUploadResponse = {
       success: true,
       data: {
@@ -502,10 +501,8 @@ export async function POST(
       },
     };
 
-    // Include extraction job ID if available
     if (extractionJobId) {
       response.data.extraction_job_id = extractionJobId;
-      console.log('[Data Receipt Upload] Returning extraction job ID:', extractionJobId);
     }
 
     return NextResponse.json(response, { status: 200 });
@@ -544,10 +541,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Authenticate user using SSR client (proper cookie handling)
+    // 1. Authenticate user using SSR client
     const supabase = await getSupabaseClient(request);
 
-    // Normal auth: Use cookie-based auth with getUser()
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user?.id) {
@@ -573,8 +569,6 @@ export async function GET(
       .maybeSingle();
 
     const isAdmin = profile?.role && ADMIN_ROLES.includes(profile.role);
-
-    // Use appropriate client for data access
     const dataClient = isAdmin ? adminClient : supabase;
 
     // 2. Verify order exists
@@ -613,7 +607,7 @@ export async function GET(
       .order('uploaded_at', { ascending: false });
 
     if (filesError) {
-      console.error('[Data Receipt Upload] Get files error:', filesError);
+      console.error('[Data Receipt GET] Get files error:', filesError);
     }
 
     // 5. Transform to expected format
@@ -637,7 +631,7 @@ export async function GET(
     );
 
   } catch (error) {
-    console.error('[Data Receipt Upload] GET error:', error);
+    console.error('[Data Receipt GET] Unexpected error:', error);
 
     return NextResponse.json(
       {
