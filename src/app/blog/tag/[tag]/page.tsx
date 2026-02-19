@@ -14,31 +14,32 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 // =====================================================
 
 interface BlogTagPageProps {
-  params: {
+  params: Promise<{
     tag: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(
   { params }: BlogTagPageProps
 ): Promise<Metadata> {
-  const tag = decodeURIComponent(params.tag);
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
 
   return {
-    title: `#${tag} | Epackage Lab ブログ`,
-    description: `#${tag}タグ付きの記事一覧です。包装資材・印刷の最新情報をお届けします。`,
+    title: `#${decodedTag} | Epackage Lab ブログ`,
+    description: `#${decodedTag}タグ付きの記事一覧です。包装資材・印刷の最新情報をお届けします。`,
     openGraph: {
-      title: `#${tag} | Epackage Lab ブログ`,
-      description: `#${tag}タグ付きの記事一覧です。`,
-      url: `${baseUrl}/blog/tag/${params.tag}`,
+      title: `#${decodedTag} | Epackage Lab ブログ`,
+      description: `#${decodedTag}タグ付きの記事一覧です。`,
+      url: `${baseUrl}/blog/tag/${tag}`,
       type: 'website',
     },
     alternates: {
-      canonical: `${baseUrl}/blog/tag/${params.tag}`,
+      canonical: `${baseUrl}/blog/tag/${tag}`,
     },
   };
 }
@@ -51,14 +52,16 @@ export default async function BlogTagPage({
   params,
   searchParams,
 }: BlogTagPageProps) {
-  const tag = decodeURIComponent(params.tag);
-  const page = parseInt(searchParams.page || '1', 10);
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
+  const { page: pageParam } = await searchParams;
+  const page = parseInt(pageParam || '1', 10);
 
   // Fetch posts with this tag
   const postsData = await getPublishedPosts({
     page,
     limit: 12,
-    tag,
+    tag: decodedTag,
   });
 
   // Get all tags for sidebar

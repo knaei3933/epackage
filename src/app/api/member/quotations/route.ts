@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
         tax_amount: roundedTaxAmount,
         total_amount: finalTotalAmount, // クーポン適用後の金額を使用
         coupon_id: couponId,
-        discount_amount: discountAmount > 0 ? discountAmount : null,
+        discount_amount: discountAmount > 0 ? discountAmount : 0,  // NOT NULL制約に対応
         discount_type: discountType,
         notes: body.notes || null,
         valid_until: body.valid_until || null,

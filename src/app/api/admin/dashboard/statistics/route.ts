@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   // キャッシュを無効化
   const { revalidateTag } = await import('next/cache');
-  revalidateTag(CACHE_TAG);
+  revalidateTag(CACHE_TAG, 'force-dynamic');
 
   return NextResponse.json({ success: true, message: 'Cache invalidated' });
 }

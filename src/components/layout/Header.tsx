@@ -48,6 +48,11 @@ export function Header() {
       description: 'パウチ製品一覧'
     },
     {
+      label: 'ブログ',
+      href: '/blog',
+      description: '最新情報・業界トレンド・お役立ち情報'
+    },
+    {
       label: 'サービス',
       href: '/service',
       description: '包装ソリューション',

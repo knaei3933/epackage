@@ -23,6 +23,20 @@ import type { Database } from '@/types/database';
 // Types
 // ============================================================
 
+interface ShipmentUpdate {
+  approval_date: string;
+  estimated_production_complete_date: string;
+  estimated_tracking_available_date: string;
+  estimated_delivery_date_min: string;
+  estimated_delivery_date_max: string;
+  updated_at: string;
+  tracking_number?: string;
+  carrier?: string;
+  shipping_date?: string;
+  actual_delivery_date?: string;
+  admin_notes?: string | null;
+}
+
 interface TrackingUpdateRequest {
   approvalDate?: string;
   trackingNumber?: string;
@@ -189,7 +203,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Delivery Tracking] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
@@ -256,7 +270,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

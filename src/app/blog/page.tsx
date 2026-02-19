@@ -52,19 +52,20 @@ export async function generateMetadata(): Promise<Metadata> {
 // =====================================================
 
 interface BlogPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     category?: string;
     tag?: string;
     q?: string;
-  };
+  }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const page = parseInt(searchParams.page || '1', 10);
-  const category = searchParams.category;
-  const tag = searchParams.tag;
-  const search = searchParams.q;
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1', 10);
+  const category = resolvedSearchParams.category;
+  const tag = resolvedSearchParams.tag;
+  const search = resolvedSearchParams.q;
 
   // Fetch posts
   const postsData = await getPublishedPosts({
