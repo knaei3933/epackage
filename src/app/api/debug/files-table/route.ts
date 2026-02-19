@@ -2,10 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   // Try with service role first (bypasses auth)
   const serviceClient = createServiceClient();
 
