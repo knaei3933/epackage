@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
-import type { UpdatePostRequest, generateSlug, calculateReadingTime } from '@/lib/types/blog';
+import type { UpdatePostRequest } from '@/lib/types/blog';
+import { generateSlug, calculateReadingTime } from '@/lib/types/blog';
 
 // ============================================================
 // GET /api/admin/blog/[id] - Get single blog post
