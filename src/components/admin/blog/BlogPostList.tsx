@@ -17,9 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, type SelectOption } from '@/components/ui/select';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select, type SelectOption } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import {
   DropdownMenu,
