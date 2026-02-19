@@ -49,6 +49,7 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
   // State
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [productName, setProductName] = useState('');
   const [partnerComment, setPartnerComment] = useState('');
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -171,6 +172,12 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
       return;
     }
 
+    // Validate product name
+    if (!productName.trim()) {
+      setError('製品名を入力してください');
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
@@ -179,6 +186,7 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
       const formData = new FormData();
       formData.append('preview_image', previewFile);
       formData.append('original_file', originalFile);
+      formData.append('product_name', productName.trim());
       formData.append('partner_comment', partnerComment);
       formData.append('notify_customer', notifyCustomer ? 'true' : 'false');
 
@@ -215,6 +223,7 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
         setSuccessMessage('教正データをアップロードしました');
         setPreviewFile(null);
         setOriginalFile(null);
+        setProductName('');
         setPartnerComment('');
         loadPreviousRevisions();
       }
@@ -414,6 +423,25 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           パートナーコメント
         </h3>
+        {/* Product Name Input */}
+        <div className="mb-4">
+          <label htmlFor="product-name" className="block text-sm font-medium text-gray-900 mb-2">
+            製品名 <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="product-name"
+            type="text"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            placeholder="例: EPAC-001"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={isUploading}
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            ※ ファイル名に使用されます（例: 製品名_校正データ_注文番号_日付）
+          </p>
+        </div>
         <textarea
           id="partner-comment"
           value={partnerComment}

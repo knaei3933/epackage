@@ -232,6 +232,7 @@ export async function POST(
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const description = formData.get('description') as string | null;
+    const productName = formData.get('product_name') as string | null;
 
     if (!file) {
       return NextResponse.json(
@@ -239,6 +240,18 @@ export async function POST(
           error: 'ファイルが選択されていません。',
           errorEn: 'No file provided',
           code: 'NO_FILE',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate product name is required
+    if (!productName || !productName.trim()) {
+      return NextResponse.json(
+        {
+          error: '製品名を入力してください。',
+          errorEn: 'Product name is required',
+          code: 'NO_PRODUCT_NAME',
         },
         { status: 400 }
       );
@@ -286,10 +299,17 @@ export async function POST(
         );
       }
 
+      // Generate file name: {製品名}_入稿データ_{注文番号}_{日付}
+      const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      const sanitizedProductName = productName.trim().replace(/[^a-zA-Z0-9-_가-힣]/g, '_');
+      const driveFileName = `${sanitizedProductName}_入稿データ_${order.order_number}_${dateStr}${file.name.substring(file.name.lastIndexOf('.'))}`;
+
+      console.log('[Data Receipt Upload] Generated file name:', driveFileName);
+
       // Upload to Google Drive
       const uploadedFile = await uploadFileToDrive(
         file,
-        file.name,
+        driveFileName,
         file.type || 'application/octet-stream',
         uploadFolderId,
         accessToken

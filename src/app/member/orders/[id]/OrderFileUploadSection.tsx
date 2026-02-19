@@ -60,6 +60,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [description, setDescription] = useState('');
+  const [productName, setProductName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
@@ -140,6 +141,12 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const handleUpload = async () => {
     if (!selectedFile) return;
 
+    // Validate product name is required
+    if (!productName.trim()) {
+      setError('製品名を入力してください');
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
@@ -147,6 +154,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
+      formData.append('product_name', productName.trim());
       // Always use production_data for AI files
       formData.append('data_type', 'production_data');
       if (description) {
@@ -186,6 +194,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         setSuccessMessage('入稿データをアップロードしました。韓国担当者に送信されました。');
         setSelectedFile(null);
         setDescription('');
+        setProductName('');
         loadUploadedFiles();
 
         // Callback to notify parent component
@@ -386,6 +395,25 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
         {/* Upload Form */}
         <div className="space-y-4">
+          {/* Product Name (Required) */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              製品名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="例: EPAC-001"
+              className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              disabled={isUploading}
+              required
+            />
+            <p className="text-xs text-text-muted mt-1">
+              ※ ファイル名に使用されます（例: 製品名_入稿データ_注文番号_日付）
+            </p>
+          </div>
+
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">

@@ -204,6 +204,7 @@ export async function POST(
     const formData = await request.formData();
     const previewImage = formData.get('preview_image') as File;
     const originalFile = formData.get('original_file') as File;
+    const productName = formData.get('product_name') as string | null;
     const partnerComment = formData.get('partner_comment') as string;
     const notifyCustomer = formData.get('notify_customer') === 'true';
     const revisionNumberParam = formData.get('revision_number');
@@ -213,6 +214,17 @@ export async function POST(
         {
           success: false,
           error: 'プレビュー画像と原版ファイルの両方が必須です。',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate product name is required
+    if (!productName || !productName.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '製品名を入力してください。',
         },
         { status: 400 }
       );
@@ -241,10 +253,16 @@ export async function POST(
     // Get admin access token for Google Drive
     const accessToken = await getAdminAccessTokenForUpload();
 
-    // Generate unique file names
-    const timestamp = Date.now();
-    const previewFileName = `${order.order_number}_rev${revisionNumber}_preview_${timestamp}_${previewImage.name}`;
-    const originalFileName = `${order.order_number}_rev${revisionNumber}_original_${timestamp}_${originalFile.name}`;
+    // Generate file names: {製品名}_校正データ_{注文番号}_{日付}
+    const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const sanitizedProductName = productName.trim().replace(/[^a-zA-Z0-9-_가-힣]/g, '_');
+
+    // Get file extensions
+    const previewExt = previewImage.name.substring(previewImage.name.lastIndexOf('.'));
+    const originalExt = originalFile.name.substring(originalFile.name.lastIndexOf('.'));
+
+    const previewFileName = `${sanitizedProductName}_校正データ_${order.order_number}_${dateStr}${previewExt}`;
+    const originalFileName = `${sanitizedProductName}_校正データ_${order.order_number}_${dateStr}${originalExt}`;
 
     console.log('[Correction Upload] Uploading to Google Drive:', {
       preview: previewFileName,
