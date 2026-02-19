@@ -127,28 +127,7 @@ export async function uploadFileToDrive(
   folderId: string,
   accessToken: string
 ): Promise<UploadedFile> {
-  // 메타데이터 생성
-  const metadata = {
-    name: fileName,
-    parents: [folderId]
-  };
-
-  // multipart/form-data 생성
-  const boundary = '-------314159265358979323846';
-  const delimiter = `\r\n--${boundary}\r\n`;
-  const closeDelimiter = `\r\n--${boundary}--`;
-
-  const body = [
-    delimiter,
-    'Content-Type: application/json; charset=UTF-8',
-    '\r\n',
-    JSON.stringify(metadata),
-    delimiter,
-    `Content-Type: ${mimeType}`,
-    '\r\n'
-  ].join('');
-
-  // 파일 내용
+  // 파일 내용을 Buffer로 변환
   let fileContent: Buffer;
   if (file instanceof Buffer) {
     fileContent = file;
@@ -157,10 +136,49 @@ export async function uploadFileToDrive(
     fileContent = Buffer.from(arrayBuffer);
   }
 
+  // 메타데이터 생성
+  const metadata = {
+    name: fileName,
+    parents: [folderId]
+  };
+
+  // multipart/mixed 생성
+  const boundary = 'boundary_' + Math.random().toString(36).substring(2);
+
+  // 메타데이터 파트
+  const metadataPart = [
+    `--${boundary}`,
+    'Content-Type: application/json; charset=UTF-8',
+    '',
+    JSON.stringify(metadata),
+    ''
+  ].join('\r\n');
+
+  // 파일 파트
+  const filePart = [
+    `--${boundary}`,
+    `Content-Type: ${mimeType}`,
+    'Content-Transfer-Encoding: binary',
+    ''
+  ].join('\r\n');
+
+  // 마지막 boundary
+  const closingPart = [`--${boundary}--`, ''].join('\r\n');
+
+  // 전체 바디 조합
+  const metadataBuffer = Buffer.from(metadataPart, 'utf-8');
+  const fileBuffer = fileContent;
+  const closingBuffer = Buffer.from(closingPart, 'utf-8');
+
+  // 파일 앞에 CRLF 추가
+  const fileSeparator = Buffer.from('\r\n', 'utf-8');
+
   const fullBody = Buffer.concat([
-    Buffer.from(body, 'utf-8'),
-    fileContent,
-    Buffer.from(closeDelimiter, 'utf-8')
+    metadataBuffer,
+    fileSeparator,
+    fileBuffer,
+    Buffer.from('\r\n', 'utf-8'),
+    closingBuffer
   ]);
 
   // 업로드 요청
@@ -170,7 +188,7 @@ export async function uploadFileToDrive(
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': `multipart/related; boundary=${boundary}`
+        'Content-Type': `multipart/mixed; boundary=${boundary}`
       },
       body: fullBody
     }
