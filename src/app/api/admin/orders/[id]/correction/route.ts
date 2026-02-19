@@ -2,7 +2,7 @@
  * Admin Correction Data Upload API
  *
  * 教正データ保存API
- * - プレビュー画像・原版ファイルをSupabase Storageに保存
+ * - プレビュー画像・原版ファイルをGoogle Driveに保存（補正データフォルダ）
  * - design_revisionsテーブルにレコード作成
  * - 顧客に承認依頼メール送信
  *
@@ -14,6 +14,11 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email';
+import {
+  getAdminAccessTokenForUpload,
+  uploadFileToDrive,
+  getCorrectionFolderId
+} from '@/lib/google-drive';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -221,47 +226,45 @@ export async function POST(
       revisionNumber = await getNextRevisionNumber(supabase, orderId);
     }
 
-    // Upload files to Supabase Storage
-    const previewPath = generateStoragePath(orderId, revisionNumber, previewImage.name, 'preview');
-    const originalPath = generateStoragePath(orderId, revisionNumber, originalFile.name, 'original');
+    // ============================================================
+    // Upload files to Google Drive (補正データフォルダ)
+    // ============================================================
+    const correctionFolderId = getCorrectionFolderId();
 
-    const previewBuffer = Buffer.from(await previewImage.arrayBuffer());
-    const originalBuffer = Buffer.from(await originalFile.arrayBuffer());
-
-    const [previewUpload, originalUpload] = await Promise.all([
-      supabase.storage
-        .from('correction-files')
-        .upload(previewPath, previewBuffer, {
-          contentType: previewImage.type,
-          upsert: false,
-        }),
-      supabase.storage
-        .from('correction-files')
-        .upload(originalPath, originalBuffer, {
-          contentType: originalFile.type,
-          upsert: false,
-        }),
-    ]);
-
-    if (previewUpload.error || originalUpload.error) {
-      console.error('[Correction Upload] Storage error:', {
-        preview: previewUpload.error,
-        original: originalUpload.error,
-      });
+    if (!correctionFolderId) {
       return NextResponse.json(
-        { success: false, error: 'ファイルアップロードに失敗しました。' },
+        { success: false, error: 'Google Driveフォルダが設定されていません。' },
         { status: 500 }
       );
     }
 
-    // Get public URLs
-    const { data: previewUrlData } = supabase.storage
-      .from('correction-files')
-      .getPublicUrl(previewPath);
+    // Get admin access token for Google Drive
+    const accessToken = await getAdminAccessTokenForUpload();
 
-    const { data: originalUrlData } = supabase.storage
-      .from('correction-files')
-      .getPublicUrl(originalPath);
+    // Generate unique file names
+    const timestamp = Date.now();
+    const previewFileName = `${order.order_number}_rev${revisionNumber}_preview_${timestamp}_${previewImage.name}`;
+    const originalFileName = `${order.order_number}_rev${revisionNumber}_original_${timestamp}_${originalFile.name}`;
+
+    console.log('[Correction Upload] Uploading to Google Drive:', {
+      preview: previewFileName,
+      original: originalFileName,
+      folder: correctionFolderId,
+    });
+
+    // Upload both files to Google Drive
+    const [previewDriveFile, originalDriveFile] = await Promise.all([
+      uploadFileToDrive(previewImage, previewFileName, previewImage.type, correctionFolderId, accessToken),
+      uploadFileToDrive(originalFile, originalFileName, originalFile.type, correctionFolderId, accessToken),
+    ]);
+
+    const previewImageUrl = previewDriveFile.webViewLink;
+    const originalFileUrl = originalDriveFile.webViewLink;
+
+    console.log('[Correction Upload] Google Drive upload successful:', {
+      preview: previewDriveFile.id,
+      original: originalDriveFile.id,
+    });
 
     // Create design revision record - using actual database schema
     const { data: revision, error: dbError } = await supabase
@@ -272,19 +275,14 @@ export async function POST(
         revision_name: `Revision ${revisionNumber}`,
         approval_status: 'pending',
         partner_comment: partnerComment || null,
-        preview_image_url: previewUrlData.publicUrl,
-        original_file_url: originalUrlData.publicUrl,
+        preview_image_url: previewImageUrl,
+        original_file_url: originalFileUrl,
       })
       .select()
       .single();
 
     if (dbError) {
       console.error('[Correction Upload] DB error:', dbError);
-      // Cleanup uploaded files
-      await Promise.all([
-        supabase.storage.from('correction-files').remove([previewPath]),
-        supabase.storage.from('correction-files').remove([originalPath]),
-      ]);
       return NextResponse.json(
         { success: false, error: 'データベース保存に失敗しました: ' + dbError.message },
         { status: 500 }
