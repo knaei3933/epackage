@@ -2,8 +2,7 @@
  * Admin Correction Data Upload API
  *
  * 教正データ保存API
- * - プレビュー画像: Supabase Storageに保存（表示用）
- * - 原版ファイル: Google Driveに保存（補正データフォルダ）
+ * - プレビュー画像・原版ファイルをGoogle Driveに保存（補正データフォルダ）
  * - design_revisionsテーブルにレコード作成
  * - 顧客に承認依頼メール送信
  *
@@ -228,7 +227,7 @@ export async function POST(
     }
 
     // ============================================================
-    // Upload files (Hybrid: Preview → Supabase, Original → Google Drive)
+    // Upload files to Google Drive (補正データフォルダ)
     // ============================================================
     const correctionFolderId = getCorrectionFolderId();
 
@@ -239,54 +238,32 @@ export async function POST(
       );
     }
 
-    const timestamp = Date.now();
-
-    // 1. Upload preview image to Supabase Storage (for display)
-    const previewPath = generateStoragePath(orderId, revisionNumber, previewImage.name, 'preview');
-    const previewBuffer = Buffer.from(await previewImage.arrayBuffer());
-
-    const previewUpload = await supabase.storage
-      .from('correction-files')
-      .upload(previewPath, previewBuffer, {
-        contentType: previewImage.type,
-        upsert: false,
-      });
-
-    if (previewUpload.error) {
-      console.error('[Correction Upload] Preview upload error:', previewUpload.error);
-      return NextResponse.json(
-        { success: false, error: 'プレビュー画像のアップロードに失敗しました。' },
-        { status: 500 }
-      );
-    }
-
-    const { data: previewUrlData } = supabase.storage
-      .from('correction-files')
-      .getPublicUrl(previewPath);
-
-    const previewImageUrl = previewUrlData.publicUrl;
-
-    // 2. Upload original file to Google Drive (補正データフォルダ)
+    // Get admin access token for Google Drive
     const accessToken = await getAdminAccessTokenForUpload();
+
+    // Generate unique file names
+    const timestamp = Date.now();
+    const previewFileName = `${order.order_number}_rev${revisionNumber}_preview_${timestamp}_${previewImage.name}`;
     const originalFileName = `${order.order_number}_rev${revisionNumber}_original_${timestamp}_${originalFile.name}`;
 
-    console.log('[Correction Upload] Uploading original file to Google Drive:', {
+    console.log('[Correction Upload] Uploading to Google Drive:', {
+      preview: previewFileName,
       original: originalFileName,
       folder: correctionFolderId,
     });
 
-    const originalDriveFile = await uploadFileToDrive(
-      originalFile,
-      originalFileName,
-      originalFile.type,
-      correctionFolderId,
-      accessToken
-    );
+    // Upload both files to Google Drive
+    const [previewDriveFile, originalDriveFile] = await Promise.all([
+      uploadFileToDrive(previewImage, previewFileName, previewImage.type, correctionFolderId, accessToken),
+      uploadFileToDrive(originalFile, originalFileName, originalFile.type, correctionFolderId, accessToken),
+    ]);
 
+    // Store Google Drive URLs
+    const previewImageDriveUrl = previewDriveFile.webViewLink;
     const originalFileUrl = originalDriveFile.webViewLink;
 
-    console.log('[Correction Upload] Upload successful:', {
-      preview: previewPath,
+    console.log('[Correction Upload] Google Drive upload successful:', {
+      preview: previewDriveFile.id,
       original: originalDriveFile.id,
     });
 
@@ -299,7 +276,7 @@ export async function POST(
         revision_name: `Revision ${revisionNumber}`,
         approval_status: 'pending',
         partner_comment: partnerComment || null,
-        preview_image_url: previewImageUrl,
+        preview_image_url: previewImageDriveUrl,
         original_file_url: originalFileUrl,
       })
       .select()
@@ -312,6 +289,17 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // Update preview_image_url to use proxy URL
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const previewProxyUrl = `${appUrl}/api/admin/orders/${orderId}/correction/${revision.id}/preview`;
+
+    await supabase
+      .from('design_revisions')
+      .update({ preview_image_url: previewProxyUrl })
+      .eq('id', revision.id);
+
+    console.log('[Correction Upload] Preview proxy URL:', previewProxyUrl);
 
     // ============================================================
     // Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING
