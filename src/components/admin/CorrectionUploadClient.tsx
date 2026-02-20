@@ -30,6 +30,17 @@ const FILE_SIZE_LIMITS = {
 } as const;
 
 // =====================================================
+// Types
+// =====================================================
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+  specifications: Record<string, any> | null;
+}
+
+// =====================================================
 // Props
 // =====================================================
 
@@ -56,6 +67,8 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
 
   // Load previous revisions
   const [previousRevisions, setPreviousRevisions] = useState<Array<{
@@ -70,6 +83,23 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
   useEffect(() => {
     loadPreviousRevisions();
   }, [order.id]);
+
+  // Initialize order items from order prop
+  useEffect(() => {
+    if (order.items && order.items.length > 0) {
+      const items: OrderItem[] = order.items.map(item => ({
+        id: item.id,
+        product_name: item.productName,
+        quantity: item.quantity,
+        specifications: item.specifications || null,
+      }));
+      setOrderItems(items);
+      // Auto-select first item if only one item exists
+      if (items.length === 1) {
+        setSelectedOrderItemId(items[0].id);
+      }
+    }
+  }, [order.items]);
 
   const loadPreviousRevisions = async () => {
     try {
@@ -189,6 +219,10 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
       formData.append('product_name', productName.trim());
       formData.append('partner_comment', partnerComment);
       formData.append('notify_customer', notifyCustomer ? 'true' : 'false');
+      // Add order_item_id if SKU is selected
+      if (selectedOrderItemId) {
+        formData.append('order_item_id', selectedOrderItemId);
+      }
 
       // Upload with progress simulation
       const uploadPromise = fetch(`/api/admin/orders/${order.id}/correction`, {
@@ -442,6 +476,33 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
             ※ ファイル名に使用されます（例: 製品名_校正データ_注文番号_日付）
           </p>
         </div>
+
+        {/* SKU Selector (conditional - only show when orderItems.length > 1) */}
+        {orderItems.length > 1 && (
+          <div className="mb-4">
+            <label htmlFor="sku-select" className="block text-sm font-medium text-gray-900 mb-2">
+              SKU選択 <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="sku-select"
+              value={selectedOrderItemId || ''}
+              onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              disabled={isUploading}
+              required
+            >
+              <option value="">選択してください</option>
+              {orderItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.product_name} (数量: {item.quantity})
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-1">
+              ※ 複数のSKUがある場合は、該当するSKUを選択してください
+            </p>
+          </div>
+        )}
         <textarea
           id="partner-comment"
           value={partnerComment}
