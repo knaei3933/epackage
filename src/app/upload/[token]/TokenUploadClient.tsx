@@ -30,9 +30,9 @@ import {
   Send,
   Clock,
 } from 'lucide-react';
-import TokenUploadForm from '@/components/upload/TokenUploadForm';
-import CommentSection from '@/components/upload/CommentSection';
-import BilingualText from '@/components/upload/BilingualText';
+import { TokenUploadForm } from '@/components/upload/TokenUploadForm';
+import { CommentSection } from '@/components/upload/CommentSection';
+import { BilingualText } from '@/components/upload/BilingualText';
 
 // =====================================================
 // Types
@@ -56,41 +56,49 @@ interface Order {
   items: OrderItem[];
 }
 
-interface CorrectionComment {
+interface DesignReviewComment {
   id: string;
-  korea_correction_id: string;
-  author_name: string;
+  order_id: string;
+  revision_id: string | null;
   content: string;
   content_translated: string | null;
-  original_language: 'ko' | 'ja' | 'en';
-  is_designer: boolean;
+  original_language: string;
+  author_name_display: string;
+  author_role: string;
   created_at: string;
 }
 
-interface KoreaCorrection {
+interface DesignRevision {
+  id: string;
+  revision_number: number;
+  preview_image_url: string | null;
+  original_file_url: string | null;
+  korean_designer_comment: string | null;
+  korean_designer_comment_ja: string | null;
+  approval_status: string;
+  created_at: string;
+}
+
+interface DesignerUploadToken {
   id: string;
   order_id: string;
   order_item_id: string | null;
   token_hash: string;
-  token_expires_at: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  customer_files: string[] | null;
-  corrected_files: string[] | null;
-  preview_image_url: string | null;
-  original_file_url: string | null;
-  comment_ko: string | null;
-  comment_ja: string | null;
-  translation_status: 'pending' | 'translated' | 'failed' | 'manual';
+  expires_at: string;
+  status: 'active' | 'used' | 'expired' | 'revoked';
+  upload_count: number;
   created_at: string;
-  updated_at: string;
+  last_accessed_at: string | null;
+  last_uploaded_at: string | null;
   sku_name?: string | null;
 }
 
 interface TokenUploadClientProps {
   token: string;
-  correction: KoreaCorrection;
+  tokenData: DesignerUploadToken;
   order: Order;
-  initialComments: CorrectionComment[];
+  initialRevisions: DesignRevision[];
+  initialComments: DesignReviewComment[];
 }
 
 // =====================================================
@@ -99,15 +107,17 @@ interface TokenUploadClientProps {
 
 export function TokenUploadClient({
   token,
-  correction,
+  tokenData,
   order,
+  initialRevisions,
   initialComments,
 }: TokenUploadClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // State
-  const [comments, setComments] = useState<CorrectionComment[]>(initialComments);
+  const [revisions, setRevisions] = useState<DesignRevision[]>(initialRevisions);
+  const [comments, setComments] = useState<DesignReviewComment[]>(initialComments);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -164,34 +174,34 @@ export function TokenUploadClient({
 
   // Get status info
   const getStatusInfo = () => {
-    switch (correction.status) {
-      case 'pending':
+    switch (tokenData.status) {
+      case 'active':
         return {
-          label: '保留中',
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-          icon: Clock,
-        };
-      case 'in_progress':
-        return {
-          label: '作業中',
-          color: 'bg-blue-100 text-blue-800 border-blue-200',
-          icon: Loader2,
-        };
-      case 'completed':
-        return {
-          label: '完了',
+          label: '有効',
           color: 'bg-green-100 text-green-800 border-green-200',
           icon: CheckCircle,
         };
-      case 'cancelled':
+      case 'used':
         return {
-          label: 'キャンセル',
+          label: '使用済み',
+          color: 'bg-blue-100 text-blue-800 border-blue-200',
+          icon: CheckCircle,
+        };
+      case 'expired':
+        return {
+          label: '期限切れ',
+          color: 'bg-red-100 text-red-800 border-red-200',
+          icon: X,
+        };
+      case 'revoked':
+        return {
+          label: '無効',
           color: 'bg-red-100 text-red-800 border-red-200',
           icon: X,
         };
       default:
         return {
-          label: correction.status,
+          label: tokenData.status,
           color: 'bg-gray-100 text-gray-800 border-gray-200',
           icon: AlertCircle,
         };
@@ -203,7 +213,7 @@ export function TokenUploadClient({
 
   // Check if token is expiring soon (within 7 days)
   const daysUntilExpiry = Math.ceil(
-    (new Date(correction.token_expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(tokenData.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
   const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry > 0;
 
@@ -311,7 +321,7 @@ export function TokenUploadClient({
                 <div>
                   <p className="text-xs text-slate-500">SKU</p>
                   <p className="font-medium text-slate-900">
-                    {correction.sku_name || order.items.map(i => i.product_name).join(', ')}
+                    {tokenData.sku_name || order.items.map(i => i.product_name).join(', ')}
                   </p>
                 </div>
               </div>
@@ -324,24 +334,12 @@ export function TokenUploadClient({
               </div>
             </div>
 
-            {/* Customer Files (if any) */}
-            {correction.customer_files && correction.customer_files.length > 0 && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="text-sm font-medium text-slate-900 mb-2">顧客アップロードファイル</h3>
-                <div className="space-y-2">
-                  {correction.customer_files.map((fileUrl, index) => (
-                    <a
-                      key={index}
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-blue-700 hover:text-blue-900"
-                    >
-                      <Download className="w-4 h-4" />
-                      {fileUrl.split('/').pop() || `ファイル ${index + 1}`}
-                    </a>
-                  ))}
-                </div>
+            {/* Upload count info */}
+            {tokenData.upload_count > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-slate-700">
+                  これまで {tokenData.upload_count} 回のアップロードがあります
+                </p>
               </div>
             )}
           </section>
@@ -349,58 +347,72 @@ export function TokenUploadClient({
           {/* Upload Form */}
           <TokenUploadForm
             token={token}
-            correction={correction}
+            tokenData={tokenData}
             onUploadSuccess={handleUploadSuccess}
             onError={setError}
           />
 
-          {/* Existing Corrections (if any) */}
-          {correction.corrected_files && correction.corrected_files.length > 0 && (
+          {/* Existing Revisions (if any) */}
+          {revisions.length > 0 && (
             <section className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
               <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-green-600" />
-                アップロード済み修正データ ({correction.corrected_files.length})
+                アップロード済み修正データ ({revisions.length})
               </h2>
 
-              <div className="space-y-3">
-                {correction.corrected_files.map((fileUrl, index) => (
+              <div className="space-y-4">
+                {revisions.map((revision) => (
                   <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                    key={revision.id}
+                    className="p-4 bg-green-50 rounded-lg border border-green-200"
                   >
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-medium text-slate-900">
-                        {fileUrl.split('/').pop() || `修正ファイル ${index + 1}`}
-                      </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="text-sm font-medium text-slate-900">
+                          リビジョン {revision.revision_number}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {formatDate(revision.created_at)}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        {revision.preview_image_url && (
+                          <a
+                            href={revision.preview_image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            プレビュー
+                          </a>
+                        )}
+                        {revision.original_file_url && (
+                          <a
+                            href={revision.original_file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                          >
+                            <Download className="w-4 h-4" />
+                            ダウンロード
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      ダウンロード
-                    </a>
+                    {revision.korean_designer_comment && (
+                      <div className="mt-2 p-2 bg-white rounded text-sm">
+                        <BilingualText
+                          content={revision.korean_designer_comment}
+                          content_translated={revision.korean_designer_comment_ja}
+                          original_language="ko"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
-            </section>
-          )}
-
-          {/* Initial Comment (if any) */}
-          {correction.comment_ko && (
-            <section className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Send className="w-6 h-6 text-purple-600" />
-                初期コメント
-              </h2>
-              <BilingualText
-                content={correction.comment_ko}
-                content_translated={correction.comment_ja}
-                original_language="ko"
-              />
             </section>
           )}
         </div>
@@ -410,7 +422,7 @@ export function TokenUploadClient({
           {/* Comments Section */}
           <CommentSection
             token={token}
-            correctionId={correction.id}
+            orderId={tokenData.order_id}
             initialComments={comments}
             onCommentsUpdate={setComments}
             isLoading={isLoadingComments}

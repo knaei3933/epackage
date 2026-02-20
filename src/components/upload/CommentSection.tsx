@@ -20,22 +20,23 @@ import BilingualText from './BilingualText';
 // Types
 // =====================================================
 
-interface CorrectionComment {
+interface DesignReviewComment {
   id: string;
-  korea_correction_id: string;
-  author_name: string;
+  order_id: string;
+  revision_id: string | null;
   content: string;
   content_translated: string | null;
-  original_language: 'ko' | 'ja' | 'en';
-  is_designer: boolean;
+  original_language: string;
+  author_name_display: string;
+  author_role: string;
   created_at: string;
 }
 
 interface CommentSectionProps {
   token: string;
-  correctionId: string;
-  initialComments: CorrectionComment[];
-  onCommentsUpdate: (comments: CorrectionComment[]) => void;
+  orderId: string;
+  initialComments: DesignReviewComment[];
+  onCommentsUpdate: (comments: DesignReviewComment[]) => void;
   isLoading?: boolean;
 }
 
@@ -81,13 +82,13 @@ function getLanguageBadgeInfo(language: string): { label: string; color: string 
 
 export function CommentSection({
   token,
-  correctionId,
+  orderId,
   initialComments,
   onCommentsUpdate,
   isLoading = false,
 }: CommentSectionProps) {
   // State
-  const [comments, setComments] = useState<CorrectionComment[]>(initialComments);
+  const [comments, setComments] = useState<DesignReviewComment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -132,14 +133,15 @@ export function CommentSection({
 
       if (result.success) {
         // Add new comment to list
-        const newCommentData: CorrectionComment = {
+        const newCommentData: DesignReviewComment = {
           id: result.comment.id,
-          korea_correction_id: correctionId,
-          author_name: 'デザイナー',
+          order_id: orderId,
+          revision_id: result.comment.revision_id || null,
+          author_name_display: result.comment.author_name_display || 'Korean Designer',
+          author_role: result.comment.author_role || 'korea_designer',
           content: trimmedComment,
           content_translated: result.comment.content_translated || null,
           original_language: 'ko',
-          is_designer: true,
           created_at: new Date().toISOString(),
         };
 
@@ -194,12 +196,13 @@ export function CommentSection({
           <div className="space-y-4">
             {comments.map((comment) => {
               const langBadge = getLanguageBadgeInfo(comment.original_language);
+              const isDesigner = comment.author_role === 'korea_designer';
 
               return (
                 <div
                   key={comment.id}
                   className={`p-3 rounded-lg ${
-                    comment.is_designer
+                    isDesigner
                       ? 'bg-blue-50 border border-blue-200'
                       : 'bg-slate-50 border border-slate-200'
                   }`}
@@ -209,9 +212,9 @@ export function CommentSection({
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-slate-400" />
                       <span className="text-sm font-medium text-slate-900">
-                        {comment.author_name}
+                        {comment.author_name_display}
                       </span>
-                      {comment.is_designer && (
+                      {isDesigner && (
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">
                           デザイナー
                         </span>

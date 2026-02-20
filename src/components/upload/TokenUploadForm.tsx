@@ -28,19 +28,17 @@ import {
 // Types
 // =====================================================
 
-interface KoreaCorrection {
+interface DesignerUploadToken {
   id: string;
   order_id: string;
   order_item_id: string | null;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  preview_image_url: string | null;
-  original_file_url: string | null;
-  corrected_files: string[] | null;
+  status: 'active' | 'used' | 'expired' | 'revoked';
+  upload_count: number;
 }
 
 interface TokenUploadFormProps {
   token: string;
-  correction: KoreaCorrection;
+  tokenData: DesignerUploadToken;
   onUploadSuccess: () => void;
   onError: (error: string) => void;
 }
@@ -73,7 +71,7 @@ function formatFileSize(bytes: number): string {
 
 export function TokenUploadForm({
   token,
-  correction,
+  tokenData,
   onUploadSuccess,
   onError,
 }: TokenUploadFormProps) {
@@ -188,9 +186,12 @@ export function TokenUploadForm({
       formData.append('preview_image', previewFile);
       formData.append('original_file', originalFile);
       formData.append('comment_ko', koreanComment);
+      if (tokenData.order_item_id) {
+        formData.append('order_item_id', tokenData.order_item_id);
+      }
 
       // Upload with progress simulation
-      const uploadPromise = fetch(`/api/upload/${token}/upload`, {
+      const uploadPromise = fetch(`/api/upload/${token}`, {
         method: 'POST',
         body: formData,
       });
@@ -239,7 +240,7 @@ export function TokenUploadForm({
   const canSubmit = previewFile && originalFile && !isUploading;
 
   // Check if already has uploads
-  const hasExistingUploads = correction.corrected_files && correction.corrected_files.length > 0;
+  const hasExistingUploads = tokenData.upload_count > 0;
 
   return (
     <section className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">

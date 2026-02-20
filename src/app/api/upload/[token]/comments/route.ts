@@ -11,8 +11,13 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase';
-import { hashToken, isTokenExpired } from '@/lib/designer-tokens';
+import { createClient } from '@supabase/supabase-js';
+import * as crypto from 'crypto';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // ============================================================
 // GET: Fetch comments
@@ -33,37 +38,46 @@ export async function GET(
       );
     }
 
-    // Get service client
-    const supabase = createServiceClient();
-    const tokenHash = hashToken(token);
+    // Hash the token with SHA-256
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // Get Korea correction record
-    const { data: correction, error: correctionError } = await supabase
-      .from('korea_corrections')
-      .select('id')
+    // Get designer upload token record
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('designer_upload_tokens')
+      .select('order_id, status, expires_at')
       .eq('token_hash', tokenHash)
       .maybeSingle();
 
-    if (correctionError || !correction) {
+    if (tokenError || !tokenData) {
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 404 }
       );
     }
 
+    // Check token status
+    if (tokenData.status !== 'active') {
+      return NextResponse.json(
+        { success: false, error: `Token is ${tokenData.status}` },
+        { status: 401 }
+      );
+    }
+
     // Check if token is expired
-    if (isTokenExpired(new Date(correction.token_expires_at))) {
+    const now = new Date();
+    const expiresAt = new Date(tokenData.expires_at);
+    if (expiresAt < now) {
       return NextResponse.json(
         { success: false, error: 'Token expired' },
         { status: 401 }
       );
     }
 
-    // Get comments
+    // Get comments for this order
     const { data: comments, error: commentsError } = await supabase
-      .from('korea_correction_comments')
+      .from('design_review_comments')
       .select('*')
-      .eq('korea_correction_id', correction.id)
+      .eq('order_id', tokenData.order_id)
       .order('created_at', { ascending: true });
 
     if (commentsError) {
@@ -106,37 +120,38 @@ export async function POST(
       );
     }
 
-    // Get service client
-    const supabase = createServiceClient();
-    const tokenHash = hashToken(token);
+    // Hash the token with SHA-256
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // Get Korea correction record
-    const { data: correction, error: correctionError } = await supabase
-      .from('korea_corrections')
-      .select('*')
+    // Get designer upload token record
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('designer_upload_tokens')
+      .select('order_id, status, expires_at')
       .eq('token_hash', tokenHash)
       .maybeSingle();
 
-    if (correctionError || !correction) {
+    if (tokenError || !tokenData) {
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 404 }
       );
     }
 
-    // Check if token is expired
-    if (isTokenExpired(new Date(correction.token_expires_at))) {
+    // Check token status
+    if (tokenData.status !== 'active') {
       return NextResponse.json(
-        { success: false, error: 'Token expired' },
+        { success: false, error: `Token is ${tokenData.status}` },
         { status: 401 }
       );
     }
 
-    // Check if correction is cancelled
-    if (correction.status === 'cancelled') {
+    // Check if token is expired
+    const now = new Date();
+    const expiresAt = new Date(tokenData.expires_at);
+    if (expiresAt < now) {
       return NextResponse.json(
-        { success: false, error: 'Correction cancelled' },
-        { status: 403 }
+        { success: false, error: 'Token expired' },
+        { status: 401 }
       );
     }
 
@@ -165,16 +180,54 @@ export async function POST(
       );
     }
 
+    // Get the latest revision for this order (uploaded by korea_designer)
+    const { data: latestRevision } = await supabase
+      .from('design_revisions')
+      .select('id')
+      .eq('order_id', tokenData.order_id)
+      .eq('uploaded_by_type', 'korea_designer')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    // Translate Korean comment to Japanese
+    let contentTranslated = '';
+    try {
+      if (process.env.DEEPL_API_KEY) {
+        const response = await fetch('https://api-free.deepl.com/v2/translate', {
+          method: 'POST',
+          headers: {
+            'Authorization': `DeepL-Auth-Key ${process.env.DEEPL_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: [content],
+            target_lang: 'JA',
+            source_lang: 'KO',
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          contentTranslated = data.translations?.[0]?.text || '';
+        }
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+    }
+
     // Insert comment
     const { data: comment, error: insertError } = await supabase
-      .from('korea_correction_comments')
+      .from('design_review_comments')
       .insert({
-        korea_correction_id: correction.id,
-        author_name: 'デザイナー',
+        order_id: tokenData.order_id,
+        revision_id: latestRevision?.id || null,
         content: content.trim(),
-        content_translated: null, // Will be translated asynchronously
+        content_translated: contentTranslated || null,
         original_language: 'ko',
-        is_designer: true,
+        author_name_display: 'Korean Designer',
+        author_role: 'korea_designer',
+        created_at: now.toISOString(),
       })
       .select()
       .single();
@@ -186,21 +239,6 @@ export async function POST(
         { status: 500 }
       );
     }
-
-    // Trigger translation (async, don't wait)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    fetch(`${baseUrl}/api/internal/translate-comment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        commentId: comment.id,
-        content: content.trim(),
-        sourceLanguage: 'ko',
-        targetLanguage: 'ja',
-      }),
-    }).catch(err => {
-      console.error('[Token Comments] Translation trigger error:', err);
-    });
 
     return NextResponse.json({
       success: true,

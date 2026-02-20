@@ -14,7 +14,8 @@
 import { notFound, redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase';
 import { hashToken, isTokenExpired } from '@/lib/designer-tokens';
-import TokenUploadClient from './TokenUploadClient';
+import { TokenUploadClient } from './TokenUploadClient';
+import * as crypto from 'crypto';
 
 // ============================================================
 // Types
@@ -38,32 +39,39 @@ interface Order {
   items: OrderItem[];
 }
 
-interface KoreaCorrection {
+interface DesignerUploadToken {
   id: string;
   order_id: string;
   order_item_id: string | null;
   token_hash: string;
-  token_expires_at: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  customer_files: string[] | null;
-  corrected_files: string[] | null;
-  preview_image_url: string | null;
-  original_file_url: string | null;
-  comment_ko: string | null;
-  comment_ja: string | null;
-  translation_status: 'pending' | 'translated' | 'failed' | 'manual';
+  expires_at: string;
+  status: 'active' | 'used' | 'expired' | 'revoked';
+  upload_count: number;
   created_at: string;
-  updated_at: string;
+  last_accessed_at: string | null;
+  last_uploaded_at: string | null;
 }
 
-interface CorrectionComment {
+interface DesignRevision {
   id: string;
-  korea_correction_id: string;
-  author_name: string;
+  revision_number: number;
+  preview_image_url: string | null;
+  original_file_url: string | null;
+  korean_designer_comment: string | null;
+  korean_designer_comment_ja: string | null;
+  approval_status: string;
+  created_at: string;
+}
+
+interface DesignReviewComment {
+  id: string;
+  order_id: string;
+  revision_id: string | null;
   content: string;
   content_translated: string | null;
-  original_language: 'ko' | 'ja' | 'en';
-  is_designer: boolean;
+  original_language: string;
+  author_name_display: string;
+  author_role: string;
   created_at: string;
 }
 
@@ -75,73 +83,79 @@ async function getTokenUploadData(token: string) {
   const supabase = createServiceClient();
 
   // Hash the token to compare with stored hash
-  const tokenHash = hashToken(token);
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-  // Get the Korea correction record with token
-  const { data: correction, error: correctionError } = await supabase
-    .from('korea_corrections')
-    .select('*')
+  // Get the designer upload token record
+  const { data: tokenData, error: tokenError } = await supabase
+    .from('designer_upload_tokens')
+    .select(`
+      *,
+      orders (
+        id,
+        order_number,
+        customer_name,
+        customer_email,
+        total_amount,
+        status,
+        created_at,
+        items:order_items(id, product_name, quantity, sku_name)
+      )
+    `)
     .eq('token_hash', tokenHash)
     .maybeSingle();
 
-  if (correctionError || !correction) {
-    console.error('[TokenUploadPage] Correction not found or invalid token');
+  if (tokenError || !tokenData) {
+    console.error('[TokenUploadPage] Token not found or invalid');
     return null;
   }
 
   // Check if token is expired
-  if (isTokenExpired(new Date(correction.token_expires_at))) {
+  if (isTokenExpired(new Date(tokenData.expires_at))) {
     console.error('[TokenUploadPage] Token expired');
     return { expired: true };
   }
 
-  // Check if correction is cancelled
-  if (correction.status === 'cancelled') {
-    console.error('[TokenUploadPage] Correction cancelled');
+  // Check if token is active
+  if (tokenData.status !== 'active') {
+    console.error('[TokenUploadPage] Token not active:', tokenData.status);
     return { cancelled: true };
   }
 
-  // Get order details
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .select(`
-      id,
-      order_number,
-      customer_name,
-      customer_email,
-      total_amount,
-      status,
-      created_at,
-      items:order_items(id, product_name, quantity, sku_name)
-    `)
-    .eq('id', correction.order_id)
-    .maybeSingle();
-
-  if (orderError || !order) {
+  const order = tokenData.orders as any;
+  if (!order) {
     console.error('[TokenUploadPage] Order not found');
     return null;
   }
 
-  // Get comments for this correction
-  const { data: comments, error: commentsError } = await supabase
-    .from('korea_correction_comments')
+  // Get existing revisions for this order
+  const { data: revisions, error: revisionsError } = await supabase
+    .from('design_revisions')
     .select('*')
-    .eq('korea_correction_id', correction.id)
+    .eq('order_id', tokenData.order_id)
+    .eq('uploaded_by_type', 'korea_designer')
+    .order('revision_number', { ascending: false });
+
+  // Get comments for this order
+  const { data: comments, error: commentsError } = await supabase
+    .from('design_review_comments')
+    .select('*')
+    .eq('order_id', tokenData.order_id)
     .order('created_at', { ascending: true });
 
   // Get SKU name if order_item_id exists
   let skuName = null;
-  if (correction.order_item_id) {
-    const item = order.items.find((i: OrderItem) => i.id === correction.order_item_id);
+  if (tokenData.order_item_id) {
+    const item = order.items.find((i: OrderItem) => i.id === tokenData.order_item_id);
     skuName = item?.sku_name || item?.product_name || null;
   }
 
   return {
-    correction: {
-      ...correction,
+    tokenData: {
+      ...tokenData,
       sku_name: skuName,
     },
     order,
+    revisions: revisions || [],
     comments: comments || [],
   };
 }
@@ -181,14 +195,15 @@ export default async function TokenUploadPage({ params }: TokenUploadPageProps) 
     redirect('/upload/invalid?reason=cancelled');
   }
 
-  const { correction, order, comments } = data;
+  const { tokenData, order, revisions, comments } = data;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <TokenUploadClient
         token={token}
-        correction={correction}
+        tokenData={tokenData}
         order={order}
+        initialRevisions={revisions}
         initialComments={comments}
       />
     </div>
