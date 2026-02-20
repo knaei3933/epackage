@@ -333,8 +333,13 @@ export type Database = {
                     city: string | null
                     street: string | null
                     building: string | null  // 建物名
-                    role: 'ADMIN' | 'MEMBER'
-                    status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'
+                    role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER'
+                    status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
+                    // Designer-specific fields
+                    designer_name_ko: string | null  // Korean name
+                    designer_name_en: string | null  // English name
+                    preferred_language: 'ja' | 'ko' | 'en'  // Preferred language for UI
+                    notification_settings: Json | null  // Notification preferences
                     // B2B追加フィールド
                     founded_year: string | null  // 設立年
                     capital: string | null  // 資本金
@@ -834,7 +839,16 @@ export type Database = {
                     preview_image_url: string | null  // プレビュー画像URL
                     original_file_url: string | null  // 元ファイルURL
                     customer_comment: string | null  // 顧客コメント
-                    partner_comment: string | null  // パートナーコメント
+                    partner_comment: string | null  // パートナーコメント (deprecated)
+                    // Korean designer bilingual support
+                    comment_ko: string | null  // Korean designer's original comment
+                    comment_ja: string | null  // Japanese translation
+                    translation_status: 'pending' | 'translated' | 'failed' | 'manual'  // Translation status
+                    translation_requested_at: string | null  // When translation was requested
+                    translation_completed_at: string | null  // When translation completed
+                    // Uploader tracking
+                    uploaded_by_type: 'admin' | 'korea_designer' | 'member'  // Who uploaded
+                    uploaded_by_id: string | null  // FK to profiles (uploader)
                     approval_status: 'pending' | 'approved' | 'rejected'  // 承認ステータス
                     approved_by: string | null  // 承認者 (user_id)
                     approved_at: string | null  // 承認日時
@@ -1383,6 +1397,43 @@ export type Database = {
                 Insert: Omit<Database['public']['Tables']['coupon_usage']['Row'], 'id' | 'used_at'>
                 Update: Partial<Database['public']['Tables']['coupon_usage']['Row']>
             }
+
+            // ============================================================
+            // KOREAN DESIGNER WORKFLOW TABLES
+            // ============================================================
+
+            // Translation Cache table - 翻訳キャッシュ
+            translation_cache: {
+                Row: {
+                    id: string
+                    source_text: string  // Original text to translate
+                    source_language: 'ko' | 'ja' | 'en'  // Source language
+                    target_language: 'ko' | 'ja' | 'en'  // Target language
+                    translated_text: string  // Translated text
+                    translation_provider: 'google' | 'manual'  // Translation provider
+                    quality_score: number | null  // Translation quality score
+                    created_at: string  // TIMESTAMPTZ
+                    expires_at: string  // TIMESTAMPTZ (default 30 days)
+                }
+                Insert: Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>>
+            }
+
+            // Designer Task Assignments table - デザイナータスク割り当て
+            designer_task_assignments: {
+                Row: {
+                    id: string
+                    designer_id: string  // FK to profiles (KOREA_DESIGNER)
+                    order_id: string  // FK to orders
+                    assigned_by: string | null  // FK to profiles (admin who assigned)
+                    status: 'pending' | 'in_progress' | 'completed' | 'cancelled'  // Assignment status
+                    assigned_at: string  // TIMESTAMPTZ
+                    completed_at: string | null  // TIMESTAMPTZ
+                    notes: string | null  // Assignment notes
+                }
+                Insert: Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>
+                Update: Partial<Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>>
+            }
         }
         Views: {
             [_ in never]: never
@@ -1396,9 +1447,9 @@ export type Database = {
             // Product categories
             product_category: 'COSMETICS' | 'CLOTHING' | 'ELECTRONICS' | 'KITCHEN' | 'FURNITURE' | 'OTHER'
             // User roles
-            user_role: 'ADMIN' | 'MEMBER'
+            user_role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER'
             // User status
-            user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'
+            user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
             // Order status
             order_status: 'pending' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'delivered' | 'cancelled'
             // Quotation status
@@ -1500,6 +1551,25 @@ export type Database = {
 
             // Coupon status
             coupon_status: 'active' | 'inactive' | 'expired' | 'scheduled'
+
+            // ============================================================
+            // KOREAN DESIGNER WORKFLOW ENUMS
+            // ============================================================
+
+            // Translation status for designer comments
+            translation_status: 'pending' | 'translated' | 'failed' | 'manual'
+
+            // Translation provider
+            translation_provider: 'google' | 'manual'
+
+            // Language codes for translation
+            language_code: 'ko' | 'ja' | 'en'
+
+            // Uploader type for design revisions
+            uploader_type: 'admin' | 'korea_designer' | 'member'
+
+            // Designer task assignment status
+            designer_task_status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
         }
         CompositeTypes: {
             [_ in never]: never

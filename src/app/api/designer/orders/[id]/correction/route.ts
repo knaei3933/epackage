@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email';
+import { translateKoreanToJapanese } from '@/lib/translation';
 import {
   getAdminAccessTokenForUpload,
   uploadFileToDrive,
@@ -48,8 +49,35 @@ interface CorrectionUploadResponse {
 
 /**
  * Get authenticated designer
+ * Supports both middleware-based auth (KOREA_DESIGNER role) and email list fallback
  */
 async function getAuthenticatedDesigner(request: NextRequest) {
+  // Try middleware-based auth first (x-user-role header)
+  const userIdFromMiddleware = request.headers.get('x-user-id');
+  const roleFromMiddleware = request.headers.get('x-user-role');
+  const statusFromMiddleware = request.headers.get('x-user-status');
+  const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
+
+  if (userIdFromMiddleware && roleFromMiddleware === 'KOREA_DESIGNER' && isFromMiddleware) {
+    // Get email from profile
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('email, status')
+      .eq('id', userIdFromMiddleware)
+      .single();
+
+    return {
+      user: { id: userIdFromMiddleware, email: profile?.email || '' },
+      email: profile?.email || '',
+      userId: userIdFromMiddleware,
+      status: profile?.status || statusFromMiddleware || 'ACTIVE',
+    };
+  }
+
+  // Fallback to cookie-based auth with email list
   const cookieStore = await cookies();
   const supabase = createServerClient(
     supabaseUrl,
@@ -82,7 +110,7 @@ async function getAuthenticatedDesigner(request: NextRequest) {
     return null;
   }
 
-  return { user, email: user.email };
+  return { user, email: user.email, userId: user.id, status: 'ACTIVE' };
 }
 
 /**
@@ -152,6 +180,7 @@ export async function POST(
     const previewImage = formData.get('preview_image') as File;
     const originalFile = formData.get('original_file') as File;
     const partnerComment = formData.get('partner_comment') as string;
+    const commentKo = formData.get('comment_ko') as string; // Korean comment (new field)
     const orderItemId = formData.get('order_item_id') as string | null;
 
     if (!previewImage || !originalFile) {
@@ -247,7 +276,27 @@ export async function POST(
       original: originalDriveFile.id,
     });
 
-    // Create design revision record
+    // ============================================================
+    // Translate Korean comment to Japanese (async)
+    // ============================================================
+    let commentJa: string | null = null;
+    let translationStatus: string = 'pending';
+
+    if (commentKo && commentKo.trim()) {
+      try {
+        console.log('[Designer Correction Upload] Translating Korean comment to Japanese...');
+        const translationResult = await translateKoreanToJapanese(commentKo);
+        commentJa = translationResult.translatedText;
+        translationStatus = translationResult.cached ? 'translated' : 'translated';
+        console.log('[Designer Correction Upload] Translation successful');
+      } catch (translationError) {
+        console.error('[Designer Correction Upload] Translation failed:', translationError);
+        translationStatus = 'failed';
+        // Continue without translation - admin can manually translate later
+      }
+    }
+
+    // Create design revision record with bilingual support
     const { data: revision, error: dbError } = await supabase
       .from('design_revisions')
       .insert({
@@ -257,8 +306,13 @@ export async function POST(
         revision_name: `Revision ${revisionNumber}`,
         approval_status: 'pending',
         partner_comment: partnerComment || null,
+        comment_ko: commentKo || null,
+        comment_ja: commentJa,
+        translation_status: translationStatus,
         preview_image_url: previewImageDriveUrl,
         original_file_url: originalFileUrl,
+        uploaded_by_type: 'korea_designer',
+        uploaded_by_id: authResult.userId,
       })
       .select()
       .single();
@@ -331,6 +385,28 @@ export async function POST(
       }
     } catch (statusUpdateError) {
       console.error('[Designer Correction Upload] Status update exception:', statusUpdateError);
+    }
+
+    // ============================================================
+    // Update assignment status to 'completed'
+    // ============================================================
+    try {
+      const { error: assignmentUpdateError } = await supabase
+        .from('designer_task_assignments')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        })
+        .eq('designer_id', authResult.userId)
+        .eq('order_id', orderId);
+
+      if (assignmentUpdateError) {
+        console.warn('[Designer Correction Upload] Assignment update error (may not exist):', assignmentUpdateError);
+      } else {
+        console.log('[Designer Correction Upload] Assignment status updated to completed');
+      }
+    } catch (assignmentError) {
+      console.warn('[Designer Correction Upload] Assignment update exception (may not exist):', assignmentError);
     }
 
     // Send notification to customer
