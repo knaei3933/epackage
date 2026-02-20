@@ -1,372 +1,216 @@
 /**
- * Token-Based Designer Comments API
+ * API Route: Comments for Token-Based Upload
  *
- * トークンベースデザイナーコメントAPI
- * - GET: Get comments for token holder (Korean designer)
- * - POST: Post comment from token holder with Korean→Japanese translation
+ * トークンベースアップロード用コメントAPI
+ * - GET: コメント一覧取得
+ * - POST: コメント投稿
  *
- * @route /api/upload/[token]/comments
+ * /api/upload/[token]/comments
  */
 
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { createCommentSchema, safeParseRequestBody } from '@/types/api-validation';
-import { translateKoreanToJapanese } from '@/lib/translation';
-import * as crypto from 'crypto';
+import { hashToken, isTokenExpired } from '@/lib/designer-tokens';
 
 // ============================================================
-// Constants
-// ============================================================
-
-// Helper to hash token (SHA-256)
-function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
-}
-
-// ============================================================
-// Types
-// ============================================================
-
-interface TokenComment {
-  id: string;
-  order_id: string;
-  content: string;
-  content_translated: string | null;
-  original_language: string | null;
-  translation_status: string | null;
-  comment_type: string;
-  author_id: string | null;
-  author_name_display: string | null;
-  author_role: string;
-  visibility: string;
-  attachments: string[];
-  parent_comment_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface CreateTokenCommentRequest {
-  content: string;
-  comment_type?: string;
-  visibility?: string;
-  parent_comment_id?: string;
-  attachments?: string[];
-}
-
-interface CreateTokenCommentResponse {
-  success: boolean;
-  comment?: TokenComment;
-  error?: string;
-  errorEn?: string;
-}
-
-interface GetTokenCommentsResponse {
-  success: boolean;
-  data?: TokenComment[];
-  error?: string;
-  errorEn?: string;
-}
-
-// ============================================================
-// Token Validation Helper
-// ============================================================
-
-/**
- * Validate token and return token info
- */
-async function validateToken(supabase: any, tokenHash: string) {
-  const { data: tokenData, error: tokenError } = await supabase
-    .from('designer_upload_tokens')
-    .select('id, order_id, designer_id, designer_name, designer_email, status, expires_at')
-    .eq('token_hash', tokenHash)
-    .single();
-
-  if (tokenError || !tokenData) {
-    return { valid: false, error: 'Invalid token' };
-  }
-
-  // Check status
-  if (tokenData.status !== 'active') {
-    return { valid: false, error: `Token is ${tokenData.status}` };
-  }
-
-  // Check expiration
-  if (new Date(tokenData.expires_at) < new Date()) {
-    // Auto-expire
-    await supabase
-      .from('designer_upload_tokens')
-      .update({ status: 'expired' })
-      .eq('id', tokenData.id);
-    return { valid: false, error: 'Token has expired' };
-  }
-
-  return { valid: true, token: tokenData };
-}
-
-// ============================================================
-// GET Handler - List Comments for Token Holder
+// GET: Fetch comments
 // ============================================================
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  console.log('[Token Comments GET] ===== START =====');
-
   try {
     const { token } = await params;
-    const tokenHash = hashToken(token);
-    console.log('[Token Comments GET] Token hash:', tokenHash.substring(0, 16) + '...');
 
-    const supabase = createServiceClient();
-
-    // Validate token
-    const validationResult = await validateToken(supabase, tokenHash);
-    if (!validationResult.valid) {
-      console.log('[Token Comments GET] Token validation failed:', validationResult.error);
+    // Validate token format
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'トークンが無効です。',
-          errorEn: validationResult.error
-        },
+        { success: false, error: 'Invalid token format' },
+        { status: 400 }
+      );
+    }
+
+    // Get service client
+    const supabase = createServiceClient();
+    const tokenHash = hashToken(token);
+
+    // Get Korea correction record
+    const { data: correction, error: correctionError } = await supabase
+      .from('korea_corrections')
+      .select('id')
+      .eq('token_hash', tokenHash)
+      .maybeSingle();
+
+    if (correctionError || !correction) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid token' },
+        { status: 404 }
+      );
+    }
+
+    // Check if token is expired
+    if (isTokenExpired(new Date(correction.token_expires_at))) {
+      return NextResponse.json(
+        { success: false, error: 'Token expired' },
         { status: 401 }
       );
     }
 
-    const tokenData = validationResult.token!;
-    console.log('[Token Comments GET] Token valid for order:', tokenData.order_id);
-
-    // Update last_accessed_at
-    await supabase
-      .from('designer_upload_tokens')
-      .update({ last_accessed_at: new Date().toISOString() })
-      .eq('id', tokenData.id);
-
-    // Fetch comments for the order
-    // Token holders see: all comments (admin, customer, other token-based comments)
+    // Get comments
     const { data: comments, error: commentsError } = await supabase
-      .from('order_comments')
+      .from('korea_correction_comments')
       .select('*')
-      .eq('order_id', tokenData.order_id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+      .eq('korea_correction_id', correction.id)
+      .order('created_at', { ascending: true });
 
     if (commentsError) {
-      console.error('[Token Comments GET] DB Error:', commentsError);
-
-      // Check if table doesn't exist
-      if (commentsError.code === '42P01' || commentsError.message?.includes('does not exist')) {
-        return NextResponse.json({
-          success: true,
-          data: [],
-        });
-      }
-
+      console.error('[Token Comments] GET error:', commentsError);
       return NextResponse.json(
-        {
-          success: false,
-          error: 'コメントの取得に失敗しました。',
-          errorEn: 'Failed to fetch comments',
-        },
+        { success: false, error: 'Failed to fetch comments' },
         { status: 500 }
       );
     }
 
-    const response: GetTokenCommentsResponse = {
+    return NextResponse.json({
       success: true,
-      data: comments as TokenComment[],
-    };
-
-    console.log('[Token Comments GET] Returning', comments?.length || 0, 'comments');
-    return NextResponse.json(response, { status: 200 });
-
+      comments: comments || [],
+    });
   } catch (error: any) {
-    console.error('[Token Comments GET] Unexpected error:', error);
+    console.error('[Token Comments] GET error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: '予期しないエラーが発生しました。',
-        errorEn: 'An unexpected error occurred',
-      },
+      { success: false, error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
 // ============================================================
-// POST Handler - Create Comment from Token Holder
+// POST: Create comment
 // ============================================================
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  console.log('[Token Comments POST] ===== START =====');
-
   try {
     const { token } = await params;
-    const tokenHash = hashToken(token);
-    console.log('[Token Comments POST] Token hash:', tokenHash.substring(0, 16) + '...');
 
-    const supabase = createServiceClient();
-
-    // Validate token
-    const validationResult = await validateToken(supabase, tokenHash);
-    if (!validationResult.valid) {
-      console.log('[Token Comments POST] Token validation failed:', validationResult.error);
+    // Validate token format
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'トークンが無効です。',
-          errorEn: validationResult.error
-        },
+        { success: false, error: 'Invalid token format' },
+        { status: 400 }
+      );
+    }
+
+    // Get service client
+    const supabase = createServiceClient();
+    const tokenHash = hashToken(token);
+
+    // Get Korea correction record
+    const { data: correction, error: correctionError } = await supabase
+      .from('korea_corrections')
+      .select('*')
+      .eq('token_hash', tokenHash)
+      .maybeSingle();
+
+    if (correctionError || !correction) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid token' },
+        { status: 404 }
+      );
+    }
+
+    // Check if token is expired
+    if (isTokenExpired(new Date(correction.token_expires_at))) {
+      return NextResponse.json(
+        { success: false, error: 'Token expired' },
         { status: 401 }
       );
     }
 
-    const tokenData = validationResult.token!;
-    console.log('[Token Comments POST] Token valid for order:', tokenData.order_id);
+    // Check if correction is cancelled
+    if (correction.status === 'cancelled') {
+      return NextResponse.json(
+        { success: false, error: 'Correction cancelled' },
+        { status: 403 }
+      );
+    }
 
-    // Parse and validate request body
+    // Parse request body
     const body = await request.json();
-    const parseResult = safeParseRequestBody(createCommentSchema, body);
+    const { content } = body;
 
-    if (parseResult.error) {
-      return NextResponse.json(parseResult.error, { status: 400 });
+    if (!content || typeof content !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Content is required' },
+        { status: 400 }
+      );
     }
 
-    const {
-      content,
-      comment_type = 'correction',
-      visibility = 'all',
-      parent_comment_id,
-      attachments = [],
-    } = parseResult.data as CreateTokenCommentRequest;
-
-    // Verify parent comment exists if provided
-    if (parent_comment_id) {
-      const { data: parentComment } = await supabase
-        .from('order_comments')
-        .select('id')
-        .eq('id', parent_comment_id)
-        .eq('order_id', tokenData.order_id)
-        .maybeSingle();
-
-      if (!parentComment) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: '親コメントが見つかりません。',
-            errorEn: 'Parent comment not found',
-          },
-          { status: 404 }
-        );
-      }
+    if (content.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Content cannot be empty' },
+        { status: 400 }
+      );
     }
 
-    // ============================================================
-    // Translate Korean to Japanese
-    // ============================================================
-    let contentTranslated: string | null = null;
-    let translationStatus: 'pending' | 'translated' | 'failed' = 'translated';
-
-    console.log('[Token Comments POST] Translating Korean to Japanese...');
-    try {
-      const translationResult = await translateKoreanToJapanese(content);
-      contentTranslated = translationResult.translatedText;
-      translationStatus = 'translated';
-      console.log('[Token Comments POST] Translation successful');
-    } catch (translationError) {
-      console.error('[Token Comments POST] Translation failed:', translationError);
-      translationStatus = 'failed';
-      // Continue without translation - admin can manually translate later
+    if (content.length > 5000) {
+      return NextResponse.json(
+        { success: false, error: 'Content exceeds maximum length of 5000 characters' },
+        { status: 400 }
+      );
     }
 
-    // Get designer name for display
-    const displayName = tokenData.designer_name || 'Designer';
-
-    // Create comment with NULL author_id (token-based)
-    const { data: newComment, error: createError } = await supabase
-      .from('order_comments')
+    // Insert comment
+    const { data: comment, error: insertError } = await supabase
+      .from('korea_correction_comments')
       .insert({
-        order_id: tokenData.order_id,
+        korea_correction_id: correction.id,
+        author_name: 'デザイナー',
         content: content.trim(),
-        content_translated: contentTranslated,
+        content_translated: null, // Will be translated asynchronously
         original_language: 'ko',
-        translation_status: translationStatus,
-        comment_type,
-        author_id: null, // NULL for token-based comments
-        author_name_display: displayName,
-        author_role: 'korean_designer',
-        is_internal: false,
-        visibility,
-        attachments,
-        parent_comment_id: parent_comment_id || null,
-        metadata: {
-          token_id: tokenData.id,
-          designer_email: tokenData.designer_email,
-        },
+        is_designer: true,
       })
-      .select('*')
+      .select()
       .single();
 
-    if (createError) {
-      console.error('[Token Comments POST] Error:', createError);
+    if (insertError) {
+      console.error('[Token Comments] POST insert error:', insertError);
       return NextResponse.json(
-        {
-          success: false,
-          error: 'コメントの作成に失敗しました。',
-          errorEn: 'Failed to create comment',
-        },
+        { success: false, error: 'Failed to create comment' },
         { status: 500 }
       );
     }
 
-    // Update token upload count
-    await supabase
-      .from('designer_upload_tokens')
-      .update({
-        upload_count: (tokenData.upload_count || 0) + 1,
-        last_accessed_at: new Date().toISOString(),
-      })
-      .eq('id', tokenData.id);
+    // Trigger translation (async, don't wait)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    fetch(`${baseUrl}/api/internal/translate-comment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commentId: comment.id,
+        content: content.trim(),
+        sourceLanguage: 'ko',
+        targetLanguage: 'ja',
+      }),
+    }).catch(err => {
+      console.error('[Token Comments] Translation trigger error:', err);
+    });
 
-    console.log('[Token Comments POST] Comment created:', newComment.id);
-
-    const response: CreateTokenCommentResponse = {
+    return NextResponse.json({
       success: true,
-      comment: newComment as TokenComment,
-    };
-
-    return NextResponse.json(response, { status: 201 });
-
+      comment,
+    });
   } catch (error: any) {
-    console.error('[Token Comments POST] Unexpected error:', error);
+    console.error('[Token Comments] POST error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: '予期しないエラーが発生しました。',
-        errorEn: 'An unexpected error occurred',
-      },
+      { success: false, error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
-}
-
-// ============================================================
-// OPTIONS - CORS preflight
-// ============================================================
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
 }
