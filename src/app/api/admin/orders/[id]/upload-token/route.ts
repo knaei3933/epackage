@@ -67,8 +67,8 @@ export async function POST(
       assignment_id,
       expires_in_days = 30,
       send_email = true,
-      designer_email,
-      designer_name,
+      designer_email = process.env.DEFAULT_DESIGNER_EMAIL || 'arwg22@gmail.com',
+      designer_name = process.env.DEFAULT_DESIGNER_NAME || 'Korean Designer',
     } = body;
 
     // Validate: if send_email is true, designer_email is required
