@@ -103,12 +103,20 @@ export async function GET(
 
     const { id: orderId } = await params;
 
-    // Get revisions
-    const { data: revisions, error } = await supabase
-      .from('design_revisions')
-      .select('*')
-      .eq('order_id', orderId)
-      .order('created_at', { ascending: false });
+    // Get revisions AND order items in parallel
+    const [revisionsResult, orderItemsResult] = await Promise.all([
+      supabase
+        .from('design_revisions')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('order_items')
+        .select('id, product_name, quantity, specifications')
+        .eq('order_id', orderId),
+    ]);
+
+    const { data: revisions, error } = revisionsResult;
 
     if (error) {
       console.error('[Correction GET] Error:', error);
@@ -131,6 +139,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       revisions: transformedRevisions,
+      orderItems: orderItemsResult.data || [],  // NEW: For SKU selector
     });
 
   } catch (error) {
@@ -208,6 +217,7 @@ export async function POST(
     const partnerComment = formData.get('partner_comment') as string;
     const notifyCustomer = formData.get('notify_customer') === 'true';
     const revisionNumberParam = formData.get('revision_number');
+    const orderItemId = formData.get('order_item_id') as string | null;  // NEW
 
     if (!previewImage || !originalFile) {
       return NextResponse.json(
@@ -290,8 +300,9 @@ export async function POST(
       .from('design_revisions')
       .insert({
         order_id: orderId,
+        order_item_id: orderItemId || null,  // NEW
         revision_number: revisionNumber,
-        revision_name: `Revision ${revisionNumber}`,
+        revision_name: `Revision ${revisionNumber}`,  // Already set
         approval_status: 'pending',
         partner_comment: partnerComment || null,
         preview_image_url: previewImageDriveUrl,

@@ -1,0 +1,77 @@
+src/components/CertificationBadges.tsx(61,15): error TS1005: ',' expected.
+src/components/CertificationBadges.tsx(62,20): error TS1005: ',' expected.
+src/components/CertificationBadges.tsx(63,12): error TS1005: ',' expected.
+src/components/CertificationBadges.tsx(64,5): error TS1005: ',' expected.
+src/components/CertificationBadges.tsx(64,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(67,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(68,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(69,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(70,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(71,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(72,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(73,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(74,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(75,20): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(76,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(77,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(80,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(81,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(82,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(83,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(84,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(85,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(86,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(87,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(88,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(89,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(92,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(93,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(94,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(95,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(96,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(97,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(98,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(99,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(100,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(101,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(104,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(105,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(106,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(107,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(108,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(109,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(110,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(111,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(112,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(113,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(116,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(117,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(118,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(119,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(120,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(121,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(122,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(123,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(124,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(125,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(128,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(129,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(130,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(131,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(132,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(133,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(134,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(135,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(136,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(137,6): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(140,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(141,18): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(142,11): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(143,13): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(144,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(145,17): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(146,24): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(147,15): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(148,12): error TS1005: ';' expected.
+src/components/CertificationBadges.tsx(150,3): error TS1128: Declaration or statement expected.
+src/components/CertificationBadges.tsx(439,1): error TS1128: Declaration or statement expected.
