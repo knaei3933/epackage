@@ -228,11 +228,10 @@ export async function POST(
     const formData = await request.formData();
     const previewImage = formData.get('preview_image') as File;
     const originalFile = formData.get('original_file') as File;
-    const productName = formData.get('product_name') as string | null;
     const partnerComment = formData.get('partner_comment') as string;
     const notifyCustomer = formData.get('notify_customer') === 'true';
     const revisionNumberParam = formData.get('revision_number');
-    const orderItemId = formData.get('order_item_id') as string | null;  // NEW
+    const orderItemId = formData.get('order_item_id') as string | null;
 
     if (!previewImage || !originalFile) {
       return NextResponse.json(
@@ -244,12 +243,33 @@ export async function POST(
       );
     }
 
-    // Validate product name is required
-    if (!productName || !productName.trim()) {
+    // Get product name from order item (SKU) - customer already entered this
+    // No need for admin to enter product name manually
+    let productName = '';
+    if (orderItemId) {
+      // Get product name from selected order item
+      const { data: orderItem } = await supabase
+        .from('order_items')
+        .select('product_name')
+        .eq('id', orderItemId)
+        .single();
+      productName = orderItem?.product_name || '';
+    } else {
+      // No SKU selected - get first order item's product name
+      const { data: firstItem } = await supabase
+        .from('order_items')
+        .select('product_name')
+        .eq('order_id', orderId)
+        .limit(1)
+        .single();
+      productName = firstItem?.product_name || '';
+    }
+
+    if (!productName) {
       return NextResponse.json(
         {
           success: false,
-          error: '製品名を入力してください。',
+          error: '製品情報が見つかりません。',
         },
         { status: 400 }
       );
