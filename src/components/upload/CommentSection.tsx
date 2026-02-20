@@ -14,7 +14,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Send, Loader2, User, Clock } from 'lucide-react';
-import BilingualText from './BilingualText';
+import { BilingualText } from './BilingualText';
 
 // =====================================================
 // Types

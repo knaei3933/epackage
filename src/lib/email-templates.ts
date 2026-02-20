@@ -345,7 +345,8 @@ export type EmailTemplateType =
   | 'correction_ready_for_review'
   | 'correction_rejected'
   | 'korea_designer_upload_complete'
-  | 'translation_failed_notice';
+  | 'translation_failed_notice'
+  | 'designer_token_upload';
 
 // =====================================================
 // Welcome Email Templates
@@ -4527,6 +4528,19 @@ export interface KoreaDesignerUploadCompleteEmailData extends TemplateData {
 }
 
 /**
+ * デザイナートークンアップロードメールデータ（韓国語）
+ * Designer Token Upload Email Data (Korean)
+ */
+export interface DesignerTokenUploadEmailData extends TemplateData {
+  uploadUrl: string;
+  orderNumber: string;
+  customerName: string;
+  expiresAt: string;
+  expiresInDays: number;
+  designerName: string;
+}
+
+/**
  * 翻訳失敗通知メールデータ（管理者向け）
  * Translation Failed Notice Email Data (Admin)
  */
@@ -5024,6 +5038,7 @@ export function renderEmailTemplate(
     | PurchaseOrderKoreaEmailData
     | KoreaDesignerUploadCompleteEmailData
     | TranslationFailedNoticeEmailData
+    | DesignerTokenUploadEmailData
 ): EmailTemplate {
   switch (type) {
     case 'welcome_customer':
@@ -5107,6 +5122,9 @@ export function renderEmailTemplate(
 
     case 'translation_failed_notice':
       return getTranslationFailedNoticeEmail(data as TranslationFailedNoticeEmailData);
+
+    case 'designer_token_upload':
+      return getDesignerTokenUploadEmail(data as DesignerTokenUploadEmailData);
 
     default:
       throw new Error(`Unknown email template type: ${type}`);
@@ -5925,6 +5943,107 @@ ${footer}
     </div>
 
     ${footer}
+  </div>
+</body>
+</html>
+    `.trim(),
+  };
+}
+
+// =====================================================
+// Designer Token Upload Email Template (Korean)
+// =====================================================
+
+/**
+ * デザイナートークンアップロードメール（韓国語）
+ * Designer Token Upload Email (Korean)
+ */
+export function getDesignerTokenUploadEmail(
+  data: DesignerTokenUploadEmailData
+): EmailTemplate {
+  const designerName = data.designerName || data.recipient.name;
+
+  return {
+    subject: `[패키지랩] 교정 데이터 업로드를 요청합니다 - 주문 #${data.orderNumber}`,
+    text: `
+${designerName} 님,
+
+다음 주문의 교정 데이터 업로드를 요청드립니다.
+
+────────────────────────────────
+■ 주문 정보
+────────────────────────────────
+주문 번호: ${data.orderNumber}
+고객명: ${data.customerName}
+
+────────────────────────────────
+■ 업로드 페이지
+────────────────────────────────
+아래 링크를 클릭하여 업로드 페이지로 이동하세요:
+
+${data.uploadUrl}
+
+※ 이 링크는 ${data.expiresInDays}일간 유효합니다.
+※ 로그인이 필요하지 않습니다.
+
+문의사항이 있으시면 관리자에게 연락해 주세요.
+
+────────────────────────────────
+이 메일은 시스템에서 자동으로 발송되었습니다.
+패키지랩 (Epackage Lab)
+https://epackage-lab.com
+────────────────────────────────
+`.trim(),
+    html: `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교정 데이터 업로드 요청</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background-color: #f3f4f6;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h2 style="color: #007bff; margin-bottom: 20px;">교정 데이터 업로드 요청</h2>
+
+      <p><strong>${designerName}</strong> 님,</p>
+
+      <p>다음 주문의 교정 데이터 업로드를 요청드립니다.</p>
+
+      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin-top: 0;"><strong>주문 정보:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li>주문 번호: ${data.orderNumber}</li>
+          <li>고객명: ${data.customerName}</li>
+        </ul>
+      </div>
+
+      <p>아래 버튼을 클릭하여 업로드 페이지로 이동하세요.</p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${data.uploadUrl}" style="background: #007bff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+          업로드 페이지 열기
+        </a>
+      </div>
+
+      <p style="color: #666; font-size: 14px;">
+        ※ 이 링크는 <strong>${data.expiresInDays}일간</strong> 유효합니다.<br>
+        ※ 로그인이 필요하지 않습니다.
+      </p>
+
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+      <p style="font-size: 12px; color: #999; margin: 0;">
+        이 메일은 시스템에서 자동으로 발송되었습니다.<br>
+        문의사항이 있으시면 관리자에게 연락해 주세요.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+      패키지랩 (Epackage Lab)<br>
+      https://epackage-lab.com
+    </div>
   </div>
 </body>
 </html>
