@@ -33,6 +33,14 @@ interface UploadedFile {
   file_url: string;
   uploaded_at: string;
   validation_status: 'PENDING' | 'VALID' | 'INVALID';
+  order_item_id?: string | null;  // NEW: SKU association
+  sku_name?: string | null;  // NEW: SKU name snapshot
+}
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
 }
 
 interface ValidationError {
@@ -65,11 +73,29 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [pendingDeleteFile, setPendingDeleteFile] = useState<{ id: string; name: string } | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
 
   // Load existing files on mount
   useEffect(() => {
     loadUploadedFiles();
   }, [order.id]);
+
+  // Initialize order items from order prop
+  useEffect(() => {
+    if (order.items && order.items.length > 0) {
+      const items: OrderItem[] = order.items.map(item => ({
+        id: item.id,
+        product_name: item.productName,
+        quantity: item.quantity,
+      }));
+      setOrderItems(items);
+      // Auto-select first item if only one item exists
+      if (items.length === 1) {
+        setSelectedOrderItemId(items[0].id);
+      }
+    }
+  }, [order.items]);
 
   // Load uploaded files
   const loadUploadedFiles = async () => {
@@ -159,6 +185,10 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       formData.append('data_type', 'production_data');
       if (description) {
         formData.append('description', description);
+      }
+      // Add order_item_id if SKU is selected
+      if (selectedOrderItemId) {
+        formData.append('order_item_id', selectedOrderItemId);
       }
 
       // Upload with progress simulation
@@ -276,6 +306,19 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         {s.label}
       </span>
     );
+  };
+
+  // Get SKU name helper function for files
+  const getFileSkuName = (file: UploadedFile) => {
+    // Use sku_name snapshot if available (most accurate)
+    if (file.sku_name) {
+      return file.sku_name;
+    }
+
+    // Fallback to order_item_id lookup
+    if (!file.order_item_id) return 'すべてのSKU (All SKUs)';
+    const item = orderItems.find(i => i.id === file.order_item_id);
+    return item ? `${item.product_name} (${item.quantity}枚)` : 'Unknown SKU';
   };
 
   return (
@@ -415,6 +458,32 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
               ※ ファイル名に使用されます（例: 製品名_入稿データ_注文番号_日付）
             </p>
           </div>
+
+          {/* SKU Selector (conditional - only show when orderItems.length > 1) */}
+          {orderItems.length > 1 && (
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                SKU選択 <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedOrderItemId || ''}
+                onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
+                className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
+                disabled={isUploading}
+                required
+              >
+                <option value="">選択してください</option>
+                {orderItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.product_name} (数量: {item.quantity})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-text-muted mt-1">
+                ※ 複数のSKUがある場合は、該当するSKUを選択してください
+              </p>
+            </div>
+          )}
 
           {/* Description */}
           <div>
@@ -588,6 +657,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
                             ✓ 必須データ
                           </span>
                         )}
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {getFileSkuName(file)}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-3 mt-1 text-sm text-text-muted">
                         <span>入稿データ</span>

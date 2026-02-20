@@ -24,15 +24,23 @@ interface DesignRevision {
   id: string;
   order_id: string;
   revision_number: number;
-  revision_name: string;
+  revision_name: string | null;
+  order_item_id?: string | null;  // NEW: SKU association
+  sku_name?: string | null;  // NEW: SKU name snapshot
   approval_status: 'pending' | 'approved' | 'rejected';
-  preview_image_url: string;
-  original_file_url: string;
+  preview_image_url: string | null;
+  original_file_url: string | null;
   partner_comment: string | null;
   customer_comment: string | null;
   approved_by: string | null;
   approved_at: string | null;
   created_at: string;
+}
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
 }
 
 interface DesignRevisionsSectionProps {
@@ -46,6 +54,7 @@ interface DesignRevisionsSectionProps {
 
 export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignRevisionsSectionProps) {
   const [revisions, setRevisions] = useState<DesignRevision[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [customerComment, setCustomerComment] = useState('');
@@ -53,17 +62,53 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Load revisions
+  // Load revisions and order items
   const loadRevisions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch revisions
       const response = await fetch(`/api/member/orders/${orderId}/design-revisions`);
       const result = await response.json();
 
       if (result.success) {
         setRevisions(result.revisions || []);
+
+        // Fetch order items from the revisions data
+        // We'll extract unique order items from the revisions
+        const uniqueOrderItems = new Map<string, OrderItem>();
+        result.revisions?.forEach((revision: DesignRevision) => {
+          if (revision.order_item_id && !uniqueOrderItems.has(revision.order_item_id)) {
+            // We'll need to fetch order item details separately
+            // For now, store the ID and fetch details below
+            uniqueOrderItems.set(revision.order_item_id, {
+              id: revision.order_item_id,
+              product_name: 'Loading...', // Will be updated
+              quantity: 0,
+            });
+          }
+        });
+
+        // If we have order_item_ids, fetch their details
+        if (uniqueOrderItems.size > 0) {
+          try {
+            const itemsResponse = await fetch(`/api/member/orders/${orderId}/items`);
+            const itemsResult = await itemsResponse.json();
+            if (itemsResult.success && itemsResult.items) {
+              const itemsMap = new Map(itemsResult.items.map((item: OrderItem) => [item.id, item]));
+              uniqueOrderItems.forEach((value, key) => {
+                const detailedItem = itemsMap.get(key);
+                if (detailedItem) {
+                  uniqueOrderItems.set(key, detailedItem);
+                }
+              });
+              setOrderItems(Array.from(uniqueOrderItems.values()));
+            }
+          } catch (err) {
+            console.error('[DesignRevisionsSection] Failed to load order items:', err);
+          }
+        }
       } else {
         setError(result.error || 'デザイン改訂データの読み込みに失敗しました。');
       }
@@ -168,6 +213,19 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     return labels[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
   };
 
+  // Get SKU name helper function
+  const getSkuName = (revision: DesignRevision) => {
+    // Use sku_name snapshot if available (most accurate)
+    if (revision.sku_name) {
+      return revision.sku_name;
+    }
+
+    // Fallback to order_item_id lookup
+    if (!revision.order_item_id) return 'すべてのSKU (All SKUs)';
+    const item = orderItems.find(i => i.id === revision.order_item_id);
+    return item ? `${item.product_name} (${item.quantity}枚)` : 'Unknown SKU';
+  };
+
   // Filter pending revisions
   const pendingRevisions = revisions.filter((r) => r.approval_status === 'pending');
   const hasPendingRevisions = pendingRevisions.length > 0;
@@ -244,6 +302,11 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded ${statusInfo.className}`}>
                           {statusInfo.text}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {getSkuName(revision)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">

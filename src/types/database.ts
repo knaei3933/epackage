@@ -395,6 +395,7 @@ export type Database = {
                     unit_price: number
                     total_price: number
                     specifications: Json | null
+                    sku_name: string | null  // SKU name for the product item (e.g., EPAC-001)
                     created_at: string
                 }
                 Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id' | 'created_at'>
@@ -793,9 +794,12 @@ export type Database = {
                     quotation_id: string | null  // FK to quotations
                     work_order_id: string | null  // FK to work_orders
                     production_log_id: string | null  // FK to production_logs
+                    order_item_id: string | null  // FK to order_items
+                    sku_name: string | null  // SKU name snapshot (denormalized for performance)
                     uploaded_by: string  // アップロード者 (user_id)
                     file_type: 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER'
-                    file_name: string  // 元のファイル名
+                    file_name: string  // 元のファイル名 (also used as original_filename for compatibility)
+                    original_filename: string | null  // Google Drive file name
                     file_url: string  // Storage URL
                     file_size: number  // ファイルサイズ (bytes)
                     version: number  // バージョン番号
@@ -814,6 +818,31 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>
                 Update: Partial<Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>>
+            }
+
+            // Design Revisions table - デザイン修正・承認管理
+            design_revisions: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    revision_number: number  // 修正回数
+                    revision_name: string | null  // 修正名（例：「第1回修正」）
+                    order_item_id: string | null  // FK to order_items (特定アイテムの修正のみ)
+                    sku_name: string | null  // SKU name snapshot (denormalized for performance)
+                    customer_files: Json | null  // 顧客アップロードファイル情報（filesテーブル参照）
+                    corrected_files: Json | null  // パートナー修正ファイル情報（filesテーブル参照）
+                    preview_image_url: string | null  // プレビュー画像URL
+                    original_file_url: string | null  // 元ファイルURL
+                    customer_comment: string | null  // 顧客コメント
+                    partner_comment: string | null  // パートナーコメント
+                    approval_status: 'pending' | 'approved' | 'rejected'  // 承認ステータス
+                    approved_by: string | null  // 承認者 (user_id)
+                    approved_at: string | null  // 承認日時
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>>
             }
 
             // Order Status History table - ステータス変更履歴

@@ -85,12 +85,20 @@ export async function GET(
       );
     }
 
-    // Get design revisions
-    const { data: revisions, error } = await supabase
-      .from('design_revisions')
-      .select('*')
-      .eq('order_id', orderId)
-      .order('created_at', { ascending: false });
+    // Get design revisions AND order items in parallel
+    const [revisionsResult, orderItemsResult] = await Promise.all([
+      supabase
+        .from('design_revisions')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('order_items')
+        .select('id, product_name, quantity, specifications')
+        .eq('order_id', orderId),
+    ]);
+
+    const { data: revisions, error } = revisionsResult;
 
     if (error) {
       console.error('[Design Revisions GET] Error:', error);
@@ -100,11 +108,32 @@ export async function GET(
       );
     }
 
+    // Create a map of order items for quick lookup
+    const orderItemsMap = new Map(
+      (orderItemsResult.data || []).map(item => [item.id, item])
+    );
+
+    // Add sku_name to each revision
+    const revisionsWithSkuNames = (revisions || []).map(revision => {
+      let skuName = null;
+      if (revision.order_item_id) {
+        const item = orderItemsMap.get(revision.order_item_id);
+        if (item) {
+          skuName = `${item.product_name} (${item.quantity}枚)`;
+        }
+      }
+      return {
+        ...revision,
+        sku_name: skuName,
+      };
+    });
+
     console.log('[Design Revisions GET] Success:', revisions?.length || 0, 'revisions');
 
     return NextResponse.json({
       success: true,
-      revisions: revisions || [],
+      revisions: revisionsWithSkuNames,
+      orderItems: orderItemsResult.data || [],  // NEW: For SKU selector
     });
 
   } catch (error) {

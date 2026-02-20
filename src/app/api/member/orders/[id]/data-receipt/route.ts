@@ -234,6 +234,7 @@ export async function POST(
     const file = formData.get('file') as File;
     const description = formData.get('description') as string | null;
     const productName = formData.get('product_name') as string | null;
+    const orderItemId = formData.get('order_item_id') as string | null;
 
     if (!file) {
       return NextResponse.json(
@@ -354,6 +355,7 @@ export async function POST(
       .from('files')
       .insert({
         order_id: orderId,
+        order_item_id: orderItemId || null,  // NEW
         file_type: fileType,
         original_filename: driveFileName, // Use Google Drive file name
         file_url: googleDriveFile.webViewLink,
@@ -636,32 +638,55 @@ export async function GET(
       );
     }
 
-    // 4. Get files for this order from files table
-    const { data: files, error: filesError } = await dataClient
-      .from('files')
-      .select('*')
-      .eq('order_id', orderId)
-      .order('uploaded_at', { ascending: false });
+    // 4. Get files AND order items for this order in parallel
+    const [filesResult, orderItemsResult] = await Promise.all([
+      dataClient
+        .from('files')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('uploaded_at', { ascending: false }),
+      dataClient
+        .from('order_items')
+        .select('id, product_name, quantity, specifications')
+        .eq('order_id', orderId),
+    ]);
 
-    if (filesError) {
-      console.error('[Data Receipt GET] Get files error:', filesError);
+    if (filesResult.error) {
+      console.error('[Data Receipt GET] Get files error:', filesResult.error);
     }
 
     // 5. Transform to expected format
-    const transformedFiles = (files || []).map(file => ({
-      id: file.id,
-      file_name: file.original_filename,
-      file_type: file.file_type.toLowerCase(),
-      file_url: file.file_url,
-      uploaded_at: file.uploaded_at,
-      validation_status: file.validation_status,
-    }));
+    const orderItemsMap = new Map(
+      (orderItemsResult.data || []).map(item => [item.id, item])
+    );
+
+    const transformedFiles = (filesResult.data || []).map(file => {
+      let skuName = null;
+      if (file.order_item_id) {
+        const item = orderItemsMap.get(file.order_item_id);
+        if (item) {
+          skuName = `${item.product_name} (${item.quantity}枚)`;
+        }
+      }
+
+      return {
+        id: file.id,
+        file_name: file.original_filename || file.file_name,
+        file_type: file.file_type.toLowerCase(),
+        file_url: file.file_url,
+        uploaded_at: file.uploaded_at || file.created_at,
+        validation_status: file.validation_status,
+        order_item_id: file.order_item_id,  // NEW
+        sku_name: skuName,  // NEW: SKU name snapshot
+      };
+    });
 
     return NextResponse.json(
       {
         success: true,
         data: {
           files: transformedFiles,
+          orderItems: orderItemsResult.data || [],  // NEW: For SKU selector
         },
       },
       { status: 200 }
