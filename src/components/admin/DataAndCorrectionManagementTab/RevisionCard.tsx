@@ -100,6 +100,11 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
           <div>
             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
               {revision.revision_number}次校正
+              {revision.sku_name && (
+                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                  {revision.sku_name}
+                </span>
+              )}
             </h4>
             <p className="text-sm text-gray-500 mt-1">
               {new Date(revision.created_at).toLocaleString('ja-JP')}

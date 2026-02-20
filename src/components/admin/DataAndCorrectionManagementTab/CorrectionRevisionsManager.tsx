@@ -16,9 +16,18 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Plus, FileImage, FileText, X, AlertCircle } from 'lucide-react';
 import { RevisionCard } from './RevisionCard';
-import type { DesignRevision } from './types';
+import type { DesignRevision, OrderItem } from './types';
 
 interface CorrectionRevisionsManagerProps {
+  order: {
+    id: string;
+    items?: Array<{
+      id: string;
+      productName: string;
+      quantity: number;
+      specifications?: Record<string, any> | null;
+    }>;
+  };
   orderId: string;
   fetchFn?: typeof fetch;
 }
@@ -28,7 +37,7 @@ const FILE_SIZE_LIMITS = {
   ORIGINAL_FILE: 50 * 1024 * 1024, // 50MB
 } as const;
 
-export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: CorrectionRevisionsManagerProps) {
+export function CorrectionRevisionsManager({ order, orderId, fetchFn = fetch }: CorrectionRevisionsManagerProps) {
   const [revisions, setRevisions] = useState<DesignRevision[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -43,6 +52,27 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [partnerComment, setPartnerComment] = useState('');
+
+  // SKU state
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
+
+  // Initialize order items from order prop
+  useEffect(() => {
+    if (order.items && order.items.length > 0) {
+      const items: OrderItem[] = order.items.map(item => ({
+        id: item.id,
+        product_name: item.productName,
+        quantity: item.quantity,
+        specifications: item.specifications || null,
+      }));
+      setOrderItems(items);
+      // Auto-select first item if only one item exists
+      if (items.length === 1) {
+        setSelectedOrderItemId(items[0].id);
+      }
+    }
+  }, [order.items]);
 
   const loadRevisions = useCallback(async () => {
     try {
@@ -133,6 +163,12 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
       return;
     }
 
+    // Validate SKU selection if multiple items exist
+    if (orderItems.length > 1 && !selectedOrderItemId) {
+      setError('SKUを選択してください');
+      return;
+    }
+
     setUploading(true);
     setError(null);
 
@@ -142,10 +178,15 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
       formData.append('original_file', originalFile);
       formData.append('partner_comment', partnerComment);
       formData.append('revision_number', String(getNextRevisionNumber()));
+      // Add order_item_id if SKU is selected
+      if (selectedOrderItemId) {
+        formData.append('order_item_id', selectedOrderItemId);
+      }
 
       console.log('[CorrectionRevisionsManager] Uploading files:', {
         preview: previewFile.name,
         original: originalFile.name,
+        orderItemId: selectedOrderItemId,
       });
 
       // Use native fetch for FormData upload to avoid Content-Type header issues
@@ -161,6 +202,12 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
         setPreviewFile(null);
         setOriginalFile(null);
         setPartnerComment('');
+        // Reset SKU selection to first item if only one item
+        if (orderItems.length === 1) {
+          setSelectedOrderItemId(orderItems[0].id);
+        } else {
+          setSelectedOrderItemId(null);
+        }
         setIsAddingNew(false);
         await loadRevisions();
       } else {
@@ -342,6 +389,43 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
               </label>
             </div>
 
+            {/* SKU Context - Always Visible */}
+            {orderItems.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  SKU {orderItems.length > 1 ? <span className="text-red-500">*</span> : ''}
+                </label>
+                {orderItems.length === 1 ? (
+                  <div className="flex items-center">
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-md text-sm font-medium">
+                      {orderItems[0].product_name} (数量: {orderItems[0].quantity})
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <select
+                      id="sku-select"
+                      value={selectedOrderItemId || ''}
+                      onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      disabled={uploading}
+                      required
+                    >
+                      <option value="">選択してください</option>
+                      {orderItems.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.product_name} (数量: {item.quantity})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      ※ 複数のSKUがある場合は、該当するSKUを選択してください
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Partner Comment */}
             <div>
               <label htmlFor="partner-comment" className="block text-sm font-medium text-gray-700 mb-2">
@@ -367,6 +451,12 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
                   setPreviewFile(null);
                   setOriginalFile(null);
                   setPartnerComment('');
+                  // Reset SKU selection to first item if only one item
+                  if (orderItems.length === 1) {
+                    setSelectedOrderItemId(orderItems[0].id);
+                  } else {
+                    setSelectedOrderItemId(null);
+                  }
                 }}
                 disabled={uploading}
               >
@@ -374,7 +464,7 @@ export function CorrectionRevisionsManager({ orderId, fetchFn = fetch }: Correct
               </Button>
               <Button
                 onClick={handleSubmitNewRevision}
-                disabled={!previewFile || !originalFile || uploading}
+                disabled={!previewFile || !originalFile || (orderItems.length > 1 && !selectedOrderItemId) || uploading}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {uploading ? 'アップロード中...' : 'アップロード'}

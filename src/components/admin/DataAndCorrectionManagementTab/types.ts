@@ -16,6 +16,19 @@ export interface DesignRevision {
   approval_status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   updated_at?: string;
+  order_item_id?: string | null;
+  sku_name?: string | null;
+}
+
+// =====================================================
+// Order Item Types
+// =====================================================
+
+export interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+  specifications?: Record<string, any> | null;
 }
 
 // =====================================================

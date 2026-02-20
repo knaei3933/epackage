@@ -81,7 +81,7 @@ export function DataAndCorrectionManagementTab({
 
         {/* Tab Content: Correction Management */}
         <TabsContent value="correction" className="space-y-4 mt-4">
-          <CorrectionRevisionsManager orderId={orderId} fetchFn={fetchFn} />
+          <CorrectionRevisionsManager order={order} orderId={orderId} fetchFn={fetchFn} />
         </TabsContent>
       </Tabs>
     </div>
