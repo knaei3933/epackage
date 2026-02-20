@@ -78,6 +78,8 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
     created_at: string;
     partner_comment: string | null;
     preview_image_url?: string;
+    order_item_id?: string | null;
+    sku_name?: string | null;
   }>>([]);
 
   useEffect(() => {
@@ -477,32 +479,41 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
           </p>
         </div>
 
-        {/* SKU Selector (conditional - only show when orderItems.length > 1) */}
-        {orderItems.length > 1 && (
-          <div className="mb-4">
-            <label htmlFor="sku-select" className="block text-sm font-medium text-gray-900 mb-2">
-              SKU選択 <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="sku-select"
-              value={selectedOrderItemId || ''}
-              onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              disabled={isUploading}
-              required
-            >
-              <option value="">選択してください</option>
-              {orderItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.product_name} (数量: {item.quantity})
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-gray-500 mt-1">
-              ※ 複数のSKUがある場合は、該当するSKUを選択してください
-            </p>
-          </div>
-        )}
+        {/* SKU Context - Always Visible */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            SKU {orderItems.length > 1 ? <span className="text-red-500">*</span> : ''}
+          </label>
+          {orderItems.length === 1 ? (
+            <div className="flex items-center">
+              <span className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-md text-sm font-medium">
+                {orderItems[0].product_name} (数量: {orderItems[0].quantity})
+              </span>
+              <input type="hidden" name="order_item_id" value={orderItems[0].id} />
+            </div>
+          ) : (
+            <div>
+              <select
+                id="sku-select"
+                value={selectedOrderItemId || ''}
+                onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                disabled={isUploading}
+                required
+              >
+                <option value="">選択してください</option>
+                {orderItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.product_name} (数量: {item.quantity})
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-gray-500 mt-1">
+                ※ 複数のSKUがある場合は、該当するSKUを選択してください
+              </p>
+            </div>
+          )}
+        </div>
         <textarea
           id="partner-comment"
           value={partnerComment}
@@ -595,10 +606,17 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
                 key={revision.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
-                <div>
-                  <p className="font-medium text-gray-900">
-                    リビジョン #{revision.revision_number}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">
+                      リビジョン #{revision.revision_number}
+                    </p>
+                    {revision.sku_name && (
+                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                        {revision.sku_name}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-600">
                     {new Date(revision.created_at).toLocaleString('ja-JP')}
                   </p>

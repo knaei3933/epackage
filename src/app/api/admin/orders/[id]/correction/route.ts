@@ -128,18 +128,33 @@ export async function GET(
 
     console.log('[Correction GET] Success:', revisions?.length || 0, 'revisions');
 
-    // Transform data to match expected format
-    const transformedRevisions = (revisions || []).map((rev: any) => ({
-      ...rev,
-      // Use actual database columns
-      revision_number: rev.revision_number,
-      approval_status: rev.approval_status || 'pending',
-    }));
+    // Create a map of order items for quick lookup
+    const orderItemsMap = new Map(
+      (orderItemsResult.data || []).map(item => [item.id, item])
+    );
+
+    // Add sku_name to each revision
+    const transformedRevisions = (revisions || []).map((rev: any) => {
+      let skuName = null;
+      if (rev.order_item_id) {
+        const item = orderItemsMap.get(rev.order_item_id);
+        if (item) {
+          skuName = `${item.product_name} (${item.quantity}枚)`;
+        }
+      }
+      return {
+        ...rev,
+        // Use actual database columns
+        revision_number: rev.revision_number,
+        approval_status: rev.approval_status || 'pending',
+        sku_name: skuName,
+      };
+    });
 
     return NextResponse.json({
       success: true,
       revisions: transformedRevisions,
-      orderItems: orderItemsResult.data || [],  // NEW: For SKU selector
+      orderItems: orderItemsResult.data || [],  // For SKU selector
     });
 
   } catch (error) {
