@@ -17,7 +17,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { ArrowLeft, FileText, User, Calendar, Package, AlertCircle } from 'lucide-react';
-import { DesignerOrderDetailClient } from '../DesignerOrderDetailClient';
+import { DesignerOrderDetailClient } from '../../DesignerOrderDetailClient';
 import { FullPageSpinner } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';

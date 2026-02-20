@@ -14,8 +14,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Plus, FileImage, FileText, X, AlertCircle } from 'lucide-react';
+import { Plus, FileImage, FileText, X, AlertCircle, User } from 'lucide-react';
 import { RevisionCard } from './RevisionCard';
+import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
+import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
 import type { DesignRevision, OrderItem } from './types';
 
 interface CorrectionRevisionsManagerProps {

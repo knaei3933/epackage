@@ -14,7 +14,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, XCircle, FileImage, FileText, Download, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, FileImage, FileText, Download, Clock, User } from 'lucide-react';
+import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
+import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
 
 // =====================================================
 // Types
@@ -31,6 +33,13 @@ interface DesignRevision {
   preview_image_url: string | null;
   original_file_url: string | null;
   partner_comment: string | null;
+  // Bilingual comment fields
+  partner_comment_ko?: string | null;
+  partner_comment_ja?: string | null;
+  translation_status?: 'pending' | 'translated' | 'failed' | 'manual' | null;
+  // Designer upload tracking
+  uploaded_by_type?: 'admin' | 'korea_designer' | null;
+  uploaded_by_name?: string | null;
   customer_comment: string | null;
   approved_by: string | null;
   approved_at: string | null;
@@ -296,13 +305,28 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-medium">
                           {revision.revision_name}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded ${statusInfo.className}`}>
                           {statusInfo.text}
                         </span>
+                        {/* Designer badge */}
+                        {revision.uploaded_by_type === 'korea_designer' && (
+                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            韓国デザイナー
+                          </span>
+                        )}
+                        {/* Translation status badge */}
+                        {revision.uploaded_by_type === 'korea_designer' && revision.translation_status && (
+                          <TranslationStatusBadge
+                            status={revision.translation_status}
+                            size="sm"
+                            animated={false}
+                          />
+                        )}
                       </div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
@@ -312,6 +336,15 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="w-3 h-3" />
                         {formatDate(revision.created_at)}
+                        {revision.uploaded_by_name && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {revision.uploaded_by_name}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                     <Button variant="ghost" size="sm">
@@ -323,13 +356,33 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                 {/* Expanded content */}
                 {isExpanded && (
                   <div className="p-4 pt-0 space-y-4 border-t border-border-secondary">
-                    {/* Partner comment */}
-                    {revision.partner_comment && (
+                    {/* Partner comment - Bilingual Display */}
+                    {(revision.partner_comment || revision.partner_comment_ko || revision.partner_comment_ja) && (
                       <div>
-                        <p className="text-sm font-medium mb-1">パートナーコメント:</p>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
-                          {revision.partner_comment}
-                        </p>
+                        <p className="text-sm font-medium mb-2">パートナーコメント:</p>
+                        {/* Bilingual display for Korean designer uploads */}
+                        {revision.uploaded_by_type === 'korea_designer' ? (
+                          <BilingualCommentDisplay
+                            commentKo={revision.partner_comment_ko || revision.partner_comment || ''}
+                            commentJa={revision.partner_comment_ja || ''}
+                            translationStatus={revision.translation_status || 'pending'}
+                            showStatus={false}
+                            defaultLanguage="ja"
+                            variant="bordered"
+                            isAdmin={false}
+                          />
+                        ) : (
+                          /* Legacy display for admin uploads */
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                            {revision.partner_comment}
+                          </p>
+                        )}
+                        {/* Failed translation notice for member */}
+                        {revision.translation_status === 'failed' && (
+                          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                            翻訳エラーが発生しました。韓国語の原文のみ表示されています。
+                          </div>
+                        )}
                       </div>
                     )}
 
