@@ -61,6 +61,8 @@ interface DesignRevision {
   korean_designer_comment_ja: string | null;
   approval_status: string;
   created_at: string;
+  original_customer_filename?: string | null;
+  generated_correction_filename?: string | null;
 }
 
 interface DesignReviewComment {
@@ -85,6 +87,8 @@ async function getTokenUploadData(token: string) {
   // Hash the token to compare with stored hash
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
+  console.log('[TokenUploadPage] Looking up token hash:', tokenHash);
+
   // Get the designer upload token record
   const { data: tokenData, error: tokenError } = await supabase
     .from('designer_upload_tokens')
@@ -97,15 +101,17 @@ async function getTokenUploadData(token: string) {
         customer_email,
         total_amount,
         status,
-        created_at,
-        items:order_items(id, product_name, quantity, sku_name)
+        created_at
       )
     `)
     .eq('token_hash', tokenHash)
     .maybeSingle();
 
+  console.log('[TokenUploadPage] Token data:', tokenData);
+  console.log('[TokenUploadPage] Token error:', tokenError);
+
   if (tokenError || !tokenData) {
-    console.error('[TokenUploadPage] Token not found or invalid');
+    console.error('[TokenUploadPage] Token not found or invalid:', tokenError);
     return null;
   }
 
@@ -142,17 +148,10 @@ async function getTokenUploadData(token: string) {
     .eq('order_id', tokenData.order_id)
     .order('created_at', { ascending: true });
 
-  // Get SKU name if order_item_id exists
-  let skuName = null;
-  if (tokenData.order_item_id) {
-    const item = order.items.find((i: OrderItem) => i.id === tokenData.order_item_id);
-    skuName = item?.sku_name || item?.product_name || null;
-  }
-
   return {
     tokenData: {
       ...tokenData,
-      sku_name: skuName,
+      sku_name: null,
     },
     order,
     revisions: revisions || [],

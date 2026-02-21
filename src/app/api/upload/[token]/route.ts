@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
+import { generateCorrectionFilename } from '@/lib/file-naming';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,20 +50,31 @@ async function translateKoreanToJapanese(koreanText: string): Promise<string> {
 async function uploadToGoogleDrive(
   file: File,
   orderId: string,
-  fileType: 'preview' | 'original'
+  fileType: 'preview' | 'original',
+  request: NextRequest
 ): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('orderId', orderId);
   formData.append('fileType', fileType);
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/upload-to-drive`, {
+  // Use the request's origin for internal API calls
+  const origin = request.headers.get('x-forwarded-host') ||
+                 request.headers.get('host') ||
+                 process.env.NEXT_PUBLIC_APP_URL ||
+                 'http://localhost:3006';
+  const protocol = request.headers.get('x-forwarded-proto') || 'http';
+  const baseUrl = `${protocol}://${origin}`;
+
+  const response = await fetch(`${baseUrl}/api/upload-to-drive`, {
     method: 'POST',
     body: formData,
   });
 
   if (!response.ok) {
-    throw new Error('Failed to upload file to Google Drive');
+    const errorText = await response.text();
+    console.error('[uploadToGoogleDrive] Error:', response.status, errorText);
+    throw new Error(`Failed to upload file to Google Drive: ${errorText}`);
   }
 
   const data = await response.json();
@@ -196,10 +208,27 @@ export async function POST(
 
     const nextRevisionNumber = (lastRevision?.revision_number || 0) + 1;
 
+    // Query customer submission to get original filename for file naming
+    const { data: customerSubmission } = await supabase
+      .from('customer_file_submissions')
+      .select('id, original_filename')
+      .eq('order_id', tokenData.order_id)
+      .eq('is_current', true)
+      .maybeSingle();
+
+    // Generate correction filename
+    const originalFilename = customerSubmission?.original_filename || 'file';
+    const orderForFilename = tokenData.orders as any;
+    const generatedFilename = generateCorrectionFilename(
+      originalFilename,
+      nextRevisionNumber,
+      orderForFilename?.order_number
+    );
+
     // Upload files to Google Drive
     const [previewImageUrl, originalFileUrl] = await Promise.all([
-      uploadToGoogleDrive(preview_image, tokenData.order_id, 'preview'),
-      uploadToGoogleDrive(original_file, tokenData.order_id, 'original'),
+      uploadToGoogleDrive(preview_image, tokenData.order_id, 'preview', request),
+      uploadToGoogleDrive(original_file, tokenData.order_id, 'original', request),
     ]);
 
     // Translate Korean comment to Japanese if provided
@@ -213,15 +242,18 @@ export async function POST(
       .from('design_revisions')
       .insert({
         order_id: tokenData.order_id,
-        order_item_id: order_item_id || null,
         revision_number: nextRevisionNumber,
+        revision_name: `Revision ${nextRevisionNumber}`, // Add revision_name
         preview_image_url: previewImageUrl,
         original_file_url: originalFileUrl,
-        uploaded_by_type: 'korea_designer',
-        korean_designer_comment: comment_ko || '',
-        korean_designer_comment_ja: commentJa,
-        approval_status: 'PENDING_CUSTOMER',
+        partner_comment: comment_ko || '', // Use partner_comment for Korean designer comments
+        customer_comment: commentJa || '', // Use customer_comment for Japanese translation
+        approval_status: 'pending', // Use 'pending' (allowed values: pending, approved, rejected)
         created_at: now.toISOString(),
+        // File naming fields for design revision workflow v2
+        original_customer_filename: originalFilename,
+        generated_correction_filename: generatedFilename,
+        customer_submission_id: customerSubmission?.id,
       })
       .select()
       .single();
@@ -232,16 +264,32 @@ export async function POST(
 
     // Create comment record if provided
     if (comment_ko && comment_ko.trim()) {
-      await supabase.from('design_review_comments').insert({
-        order_id: tokenData.order_id,
-        revision_id: revision.id,
-        content: comment_ko,
-        content_translated: commentJa,
-        original_language: 'ko',
-        author_name_display: 'Korean Designer',
-        author_role: 'korea_designer',
-        created_at: now.toISOString(),
-      });
+      // Use admin user as author (since we need a valid user_id)
+      // In production, you would create a korean_designer user
+      const { data: adminUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'admin')
+        .limit(1)
+        .single();
+
+      if (adminUser) {
+        await supabase.from('order_comments').insert({
+          order_id: tokenData.order_id,
+          content: comment_ko,
+          comment_type: 'correction',
+          author_id: adminUser.id,
+          author_role: 'admin', // Using admin for now (TODO: add korea_designer role)
+          is_internal: false,
+          metadata: {
+            original_language: 'ko',
+            content_translated: commentJa,
+            revision_id: revision.id,
+            author_name_display: 'Korean Designer',
+          } as any,
+          created_at: now.toISOString(),
+        });
+      }
     }
 
     // Update order status to CUSTOMER_APPROVAL_PENDING
@@ -278,6 +326,8 @@ export async function POST(
       revision: {
         id: revision.id,
         revision_number: revision.revision_number,
+        original_customer_filename: revision.original_customer_filename,
+        generated_correction_filename: revision.generated_correction_filename,
         preview_image_url: revision.preview_image_url,
         original_file_url: revision.original_file_url,
       },

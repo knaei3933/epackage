@@ -39,8 +39,17 @@ interface DesignerUploadToken {
 interface TokenUploadFormProps {
   token: string;
   tokenData: DesignerUploadToken;
-  onUploadSuccess: () => void;
+  onUploadSuccess: (revisionInfo?: UploadRevisionInfo) => void;
   onError: (error: string) => void;
+}
+
+interface UploadRevisionInfo {
+  id: string;
+  revision_number: number;
+  original_customer_filename?: string;
+  generated_correction_filename?: string;
+  preview_image_url?: string;
+  original_file_url?: string;
 }
 
 // =====================================================
@@ -86,6 +95,7 @@ export function TokenUploadForm({
   const [localError, setLocalError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewPreview, setPreviewPreview] = useState<string | null>(null);
+  const [lastUploadedRevision, setLastUploadedRevision] = useState<UploadRevisionInfo | null>(null);
 
   // Clear local error when it changes
   const handleClearError = () => {
@@ -219,12 +229,16 @@ export function TokenUploadForm({
       const result = await response.json();
 
       if (result.success) {
+        // Save revision info for display
+        const revisionInfo: UploadRevisionInfo = result.revision;
+        setLastUploadedRevision(revisionInfo);
+
         // Reset form
         setPreviewFile(null);
         setOriginalFile(null);
         setKoreanComment('');
         setPreviewPreview(null);
-        onUploadSuccess();
+        onUploadSuccess(revisionInfo);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '予期しないエラーが発生しました';
@@ -472,6 +486,36 @@ export function TokenUploadForm({
           )}
         </button>
       </div>
+
+      {/* Filename Info Display (after successful upload) */}
+      {lastUploadedRevision && (
+        <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+            アップロード完了 - ファイル名情報
+          </h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-start gap-2">
+              <span className="text-slate-600 font-medium min-w-[120px]">元ファイル名:</span>
+              <span className="text-slate-900 break-all font-mono text-xs">
+                {lastUploadedRevision.original_customer_filename || '-'}
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-slate-600 font-medium min-w-[120px]">生成ファイル名:</span>
+              <span className="text-slate-900 break-all font-mono text-xs">
+                {lastUploadedRevision.generated_correction_filename || '-'}
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-slate-600 font-medium min-w-[120px]">リビジョン番号:</span>
+              <span className="text-slate-900">
+                R{lastUploadedRevision.revision_number}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

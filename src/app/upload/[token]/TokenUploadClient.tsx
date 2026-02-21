@@ -77,6 +77,8 @@ interface DesignRevision {
   korean_designer_comment_ja: string | null;
   approval_status: string;
   created_at: string;
+  original_customer_filename?: string | null;
+  generated_correction_filename?: string | null;
 }
 
 interface DesignerUploadToken {
@@ -321,7 +323,7 @@ export function TokenUploadClient({
                 <div>
                   <p className="text-xs text-slate-500">SKU</p>
                   <p className="font-medium text-slate-900">
-                    {tokenData.sku_name || order.items.map(i => i.product_name).join(', ')}
+                    {tokenData.sku_name || '全製品'}
                   </p>
                 </div>
               </div>
@@ -401,6 +403,29 @@ export function TokenUploadClient({
                         )}
                       </div>
                     </div>
+
+                    {/* Filename Information */}
+                    {(revision.original_customer_filename || revision.generated_correction_filename) && (
+                      <div className="mb-2 p-2 bg-white rounded text-xs space-y-1">
+                        {revision.original_customer_filename && (
+                          <div className="flex items-start gap-2">
+                            <span className="text-slate-500 font-medium min-w-[80px]">元ファイル:</span>
+                            <span className="text-slate-700 break-all font-mono">
+                              {revision.original_customer_filename}
+                            </span>
+                          </div>
+                        )}
+                        {revision.generated_correction_filename && (
+                          <div className="flex items-start gap-2">
+                            <span className="text-slate-500 font-medium min-w-[80px]">生成ファイル:</span>
+                            <span className="text-slate-900 break-all font-mono font-medium">
+                              {revision.generated_correction_filename}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {revision.korean_designer_comment && (
                       <div className="mt-2 p-2 bg-white rounded text-sm">
                         <BilingualText
