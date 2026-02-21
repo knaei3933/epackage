@@ -14,6 +14,7 @@
 import { Suspense } from 'react';
 import { redirect, notFound } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { ArrowLeft, FileText, User, Calendar, Package, AlertCircle } from 'lucide-react';
@@ -66,6 +67,8 @@ interface DesignerProfile {
   id: string;
   email: string;
   name?: string;
+  role?: string;
+  isAdmin?: boolean;
 }
 
 // =====================================================
@@ -74,6 +77,7 @@ interface DesignerProfile {
 
 /**
  * デザイナー認証チェック
+ * - 管理者（ADMIN）または韓国デザイナーホワイトリスト内のユーザーのみアクセス可能
  */
 async function requireDesignerAuth(): Promise<DesignerProfile | null> {
   const cookieStore = await cookies();
@@ -95,6 +99,26 @@ async function requireDesignerAuth(): Promise<DesignerProfile | null> {
     return null;
   }
 
+  // Get user profile to check role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const userRole = profile?.role || '';
+
+  // Check if user is admin
+  if (userRole === 'ADMIN') {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.user_metadata?.name,
+      role: userRole,
+      isAdmin: true,
+    };
+  }
+
   // 韓国デザイナーメールアドレスリストを取得
   const { data: setting } = await supabase
     .from('notification_settings')
@@ -112,28 +136,48 @@ async function requireDesignerAuth(): Promise<DesignerProfile | null> {
     id: user.id,
     email: user.email,
     name: user.user_metadata?.full_name || user.user_metadata?.name,
+    role: userRole,
+    isAdmin: false,
   };
 }
 
 /**
  * 注文詳細とリビジョンを取得
+ * @param isAdmin - 管理者の場合はサービスロールキーを使用してRLSをバイパス
  */
-async function fetchOrderDetail(orderId: string): Promise<{
+async function fetchOrderDetail(orderId: string, isAdmin: boolean = false): Promise<{
   order: DesignerOrder | null;
   revisions: DesignRevision[];
 }> {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
+  let supabase: any;
+
+  if (isAdmin) {
+    // 管理者の場合はサービスロールキーを使用（RLSバイパス）
+    supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+  } else {
+    // デザイナーの場合はanonキーを使用
+    const cookieStore = await cookies();
+    supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name) => cookieStore.get(name)?.value,
+          set: () => {},
+          remove: () => {},
+        },
+      }
+    );
+  }
 
   // 注文を取得
   const { data: order, error: orderError } = await supabase
@@ -186,7 +230,7 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
     redirect('/auth/signin?redirect=/designer/orders/' + orderId + '&error=designer_required');
   }
 
-  const { order, revisions } = await fetchOrderDetail(orderId);
+  const { order, revisions } = await fetchOrderDetail(orderId, designer.isAdmin || false);
 
   if (!order) {
     notFound();
@@ -198,6 +242,7 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
       designerName={designer.name}
       order={order}
       initialRevisions={revisions}
+      isAdmin={designer.isAdmin || false}
     />
   );
 }

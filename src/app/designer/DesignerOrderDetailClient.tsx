@@ -76,6 +76,7 @@ interface DesignerOrderDetailClientProps {
   designerName?: string;
   order: DesignerOrder;
   initialRevisions: DesignRevision[];
+  isAdmin?: boolean;
 }
 
 // =====================================================
