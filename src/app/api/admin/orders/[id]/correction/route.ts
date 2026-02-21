@@ -354,16 +354,9 @@ export async function POST(
       );
     }
 
-    // Update preview_image_url to use proxy URL
-    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const previewProxyUrl = `${appUrl}/api/admin/orders/${orderId}/correction/${revision.id}/preview`;
-
-    await supabase
-      .from('design_revisions')
-      .update({ preview_image_url: previewProxyUrl })
-      .eq('id', revision.id);
-
-    console.log('[Correction Upload] Preview proxy URL:', previewProxyUrl);
+    // NOTE: preview_image_url should keep the original Google Drive URL
+    // The preview proxy endpoint will fetch from there
+    // DO NOT overwrite with proxy URL as it causes redirect loops
 
     // ============================================================
     // Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING

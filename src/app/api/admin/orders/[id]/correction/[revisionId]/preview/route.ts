@@ -45,7 +45,15 @@ export async function GET(
       );
     }
 
-    const imageUrl = revision.preview_image_url;
+    let imageUrl = revision.preview_image_url;
+
+    // Check if imageUrl is already our proxy URL (causes redirect loop)
+    if (imageUrl.includes('/api/admin/orders/') && imageUrl.includes('/preview')) {
+      return NextResponse.json(
+        { error: 'Invalid preview URL - redirect loop detected' },
+        { status: 500 }
+      );
+    }
 
     // Check if it's a Google Drive URL
     const googleDriveFileIdMatch = imageUrl.match(/\/d\/([^/]+)/);
