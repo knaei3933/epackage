@@ -162,6 +162,33 @@ export interface OrderStatusUpdatedData extends EmailTemplateData {
   updated_at: string
 }
 
+/**
+ * Designer Revision Rejected Email Data (Korean)
+ * 교정 데이터 반려 이메일 데이터
+ */
+export interface DesignerRevisionRejectedEmailData extends EmailTemplateData {
+  designer_name: string
+  designer_email: string
+  order_number: string
+  revision_number: number
+  rejection_reason: string
+  upload_url: string
+  rejected_at?: string
+}
+
+/**
+ * Designer Revision Approved Email Data (Korean)
+ * 교정 데이터 승인 이메일 데이터
+ */
+export interface DesignerRevisionApprovedEmailData extends EmailTemplateData {
+  designer_name: string
+  designer_email: string
+  order_number: string
+  revision_number: number
+  approved_at: string
+  view_url?: string
+}
+
 // ============================================================
 // Email Recipient Types
 // ============================================================

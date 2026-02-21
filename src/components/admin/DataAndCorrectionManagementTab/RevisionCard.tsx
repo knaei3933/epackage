@@ -183,7 +183,7 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
               <MessageSquare className="w-4 h-4 text-gray-500" />
               <p className="text-sm font-medium text-gray-700">パートナーコメント</p>
               {/* Show translation status badge if available */}
-              {revision.translation_status && revision.uploaded_by_type === 'korea_designer' && (
+              {revision.translation_status && (revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) && (
                 <TranslationStatusBadge
                   status={revision.translation_status}
                   size="sm"
@@ -191,8 +191,8 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
                 />
               )}
             </div>
-            {/* Bilingual display for Korean designer uploads */}
-            {revision.uploaded_by_type === 'korea_designer' ? (
+            {/* Use bilingual display when bilingual data is available OR uploaded by Korean designer */}
+            {(revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) ? (
               <BilingualCommentDisplay
                 commentKo={revision.comment_ko || revision.partner_comment || ''}
                 commentJa={revision.comment_ja || ''}
@@ -203,7 +203,7 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
                 isAdmin={true}
               />
             ) : (
-              /* Legacy display for admin uploads */
+              /* Legacy display for admin uploads without bilingual data */
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-600">{revision.partner_comment}</p>
               </div>

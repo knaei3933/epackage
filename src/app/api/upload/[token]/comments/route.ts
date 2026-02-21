@@ -75,9 +75,10 @@ export async function GET(
 
     // Get comments for this order
     const { data: comments, error: commentsError } = await supabase
-      .from('design_review_comments')
+      .from('order_comments')
       .select('*')
       .eq('order_id', tokenData.order_id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: true });
 
     if (commentsError) {
@@ -123,10 +124,17 @@ export async function POST(
     // Hash the token with SHA-256
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // Get designer upload token record
+    // Get designer upload token record with order user_id
     const { data: tokenData, error: tokenError } = await supabase
       .from('designer_upload_tokens')
-      .select('order_id, status, expires_at')
+      .select(`
+        order_id,
+        status,
+        expires_at,
+        orders!inner (
+          user_id
+        )
+      `)
       .eq('token_hash', tokenHash)
       .maybeSingle();
 
@@ -180,16 +188,6 @@ export async function POST(
       );
     }
 
-    // Get the latest revision for this order (uploaded by korea_designer)
-    const { data: latestRevision } = await supabase
-      .from('design_revisions')
-      .select('id')
-      .eq('order_id', tokenData.order_id)
-      .eq('uploaded_by_type', 'korea_designer')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
     // Translate Korean comment to Japanese
     let contentTranslated = '';
     try {
@@ -218,16 +216,21 @@ export async function POST(
 
     // Insert comment
     const { data: comment, error: insertError } = await supabase
-      .from('design_review_comments')
+      .from('order_comments')
       .insert({
         order_id: tokenData.order_id,
-        revision_id: latestRevision?.id || null,
         content: content.trim(),
-        content_translated: contentTranslated || null,
-        original_language: 'ko',
-        author_name_display: 'Korean Designer',
-        author_role: 'korea_designer',
-        created_at: now.toISOString(),
+        comment_type: 'correction',
+        author_id: (tokenData as any).orders?.user_id || null, // Use order's user_id for now
+        author_role: 'admin', // Using admin as fallback (TODO: update schema to support korea_designer)
+        is_internal: false,
+        metadata: {
+          original_language: 'ko',
+          content_translated: contentTranslated || null,
+          translation_status: contentTranslated ? 'translated' : 'not_needed',
+          token_based: true,
+          author_name_display: 'Korean Designer',
+        },
       })
       .select()
       .single();

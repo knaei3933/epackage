@@ -427,8 +427,8 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                     {(revision.partner_comment || revision.comment_ko || revision.comment_ja) && (
                       <div>
                         <p className="text-sm font-medium mb-2">パートナーコメント:</p>
-                        {/* Bilingual display for Korean designer uploads */}
-                        {revision.uploaded_by_type === 'korea_designer' ? (
+                        {/* Use bilingual display when bilingual data is available OR uploaded by Korean designer */}
+                        {(revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) ? (
                           <BilingualCommentDisplay
                             commentKo={revision.comment_ko || revision.partner_comment || ''}
                             commentJa={revision.comment_ja || ''}
@@ -439,7 +439,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                             isAdmin={false}
                           />
                         ) : (
-                          /* Legacy display for admin uploads */
+                          /* Legacy display for admin uploads without bilingual data */
                           <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
                             {revision.partner_comment}
                           </p>

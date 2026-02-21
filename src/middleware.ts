@@ -48,6 +48,7 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/categories', // Public categories API
   '/api/member', // Member API - handles its own auth via SSR
   '/api/comparison', // Comparison API - handles client-side data
+  '/api/upload', // Phase 4: Token-based designer upload API (public, token-based auth)
 ];
 
 // =====================================================
@@ -89,6 +90,7 @@ const PUBLIC_ROUTES = [
   '/auth/pending', // Public page shown after registration
   '/auth/suspended', // Public page for suspended accounts
   '/designer/login', // Phase 3: Designer login page (public)
+  '/upload', // Phase 4: Token-based designer upload (public, no auth required)
 ];
 
 // =====================================================
@@ -396,6 +398,14 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/auth')) {
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] EARLY EXEMPTION for /api/auth route:', pathname);
+    }
+    return addSecurityHeaders(NextResponse.next());
+  }
+
+  // /api/debug routes for debugging (no auth required)
+  if (pathname.startsWith('/api/debug')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] EARLY EXEMPTION for /api/debug route:', pathname);
     }
     return addSecurityHeaders(NextResponse.next());
   }

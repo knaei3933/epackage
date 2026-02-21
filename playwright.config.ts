@@ -103,17 +103,13 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
-  // This is currently disabled - tests run on localhost:3002 directly
-  webServer: {
-    // Command to start the server
-    command: 'npm run dev',
-    // URL where the server is running
-    url: 'http://localhost:3002',
-    // Timeout for server startup
-    timeout: 120000,
-    // Whether to reuse the existing server or launch a new one
-    reuseExistingServer: !process.env.CI,
-  },
+  // TEMPORARILY DISABLED - Using existing server on port 3000
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3002',
+  //   timeout: 120000,
+  //   reuseExistingServer: !process.env.CI,
+  // },
 
   // Output directory for test artifacts
   outputDir: 'test-results/artifacts',

@@ -24,7 +24,7 @@ import type { Order } from '@/types/dashboard';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { OrderActions } from './OrderActions';
 import { OrderCommentsSectionWrapper, CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
-import { OrderInfoAccordion, OrderAddressInfo, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection } from '@/components/member';
+import { OrderInfoAccordion, OrderAddressInfo, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection, RevisionHistoryTimeline } from '@/components/member';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
@@ -175,6 +175,11 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
           デザインワークフロー（2列レイアウト）
           ===================================================== */}
       <DesignWorkflowSection order={order} />
+
+      {/* =====================================================
+          リビジョン履歴タイムライン
+          ===================================================== */}
+      <RevisionHistoryTimeline orderId={order.id} />
 
       {/* =====================================================
           その他のアクションボタン（キャンセル、PDFダウンロード、戻る）

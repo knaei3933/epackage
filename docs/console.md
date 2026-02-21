@@ -1,4 +1,4 @@
-main-app.js?v=1771537804568:1094 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+main-app.js?v=1771641077846:1094 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
 dashboard.ts:256  Server  [requireAuth] START: Authentication check initiated
 dashboard.ts:264  Server  [requireAuth] Importing getRBACContext...
 dashboard.ts:266  Server  [requireAuth] Calling getRBACContext()...
@@ -20,16 +20,21 @@ forward-logs-shared.js:28 [HMR] connected
 C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\contexts\AuthContext.tsx:197 [AuthContext] Initializing auth context...
 C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\contexts\AuthContext.tsx:123 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 1}
 C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\contexts\AuthContext.tsx:148 [AuthContext] Session updated successfully {fetchId: 1}
-C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\OrderItemsSummary.tsx:283  POST http://localhost:3000/api/member/quotations/9e6d3abd-e607-46a4-89aa-0fe634737664/invoice 404 (Not Found)
-fetchBankInfo @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\OrderItemsSummary.tsx:283
-OrderItemsSummary.useEffect @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\OrderItemsSummary.tsx:299
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] done in 524ms
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] done in 567ms
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] done in 425ms
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\RevisionHistoryTimeline.tsx:79  GET http://localhost:3000/api/member/orders/ea3e05f6-9da2-4ff0-9500-7d0413e853bc/revision-history 500 (Internal Server Error)
+RevisionHistoryTimeline.useCallback[loadHistory] @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\RevisionHistoryTimeline.tsx:79
+RevisionHistoryTimeline.useEffect @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\RevisionHistoryTimeline.tsx:110
 react_stack_bottom_frame @ react-dom-client.development.js:28124
-runWithFiberInDEV @ react-dom-client.development.js:990
+runWithFiberInDEV @ react-dom-client.development.js:987
 commitHookEffectListMount @ react-dom-client.development.js:13693
 commitHookPassiveMountEffects @ react-dom-client.development.js:13780
 reconnectPassiveEffects @ react-dom-client.development.js:17125
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17077
-reconnectPassiveEffects @ react-dom-client.development.js:17178
 recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17077
 reconnectPassiveEffects @ react-dom-client.development.js:17178
 recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17077
@@ -221,16 +226,85 @@ commitPassiveMountOnFiber @ react-dom-client.development.js:16726
 recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16679
 commitPassiveMountOnFiber @ react-dom-client.development.js:16754
 recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16679
-C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\OrderItemsSummary.tsx:283  POST http://localhost:3000/api/member/quotations/9e6d3abd-e607-46a4-89aa-0fe634737664/invoice 404 (Not Found)
-fetchBankInfo @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\OrderItemsSummary.tsx:283
-OrderItemsSummary.useEffect @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\OrderItemsSummary.tsx:299
+commitPassiveMountOnFiber @ react-dom-client.development.js:16726
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16679
+"use client"
+OrderDetailContent @ page.tsx:182
+initializeElement @ react-server-dom-webpack-client.browser.development.js:1950
+eval @ react-server-dom-webpack-client.browser.development.js:4632
+initializeModelChunk @ react-server-dom-webpack-client.browser.development.js:1837
+readChunk @ react-server-dom-webpack-client.browser.development.js:1457
+react_stack_bottom_frame @ react-dom-client.development.js:28146
+resolveLazy @ react-dom-client.development.js:6321
+createChild @ react-dom-client.development.js:6673
+reconcileChildrenArray @ react-dom-client.development.js:6980
+reconcileChildFibersImpl @ react-dom-client.development.js:7306
+eval @ react-dom-client.development.js:7411
+reconcileChildren @ react-dom-client.development.js:10037
+beginWork @ react-dom-client.development.js:12408
+runWithFiberInDEV @ react-dom-client.development.js:987
+performUnitOfWork @ react-dom-client.development.js:18998
+workLoopSync @ react-dom-client.development.js:18826
+renderRootSync @ react-dom-client.development.js:18807
+performWorkOnRoot @ react-dom-client.development.js:17836
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20385
+performWorkUntilDeadline @ scheduler.development.js:45
+<OrderDetailContent>
+OrderDetailPage @ page.tsx:222
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:3401
+react_stack_bottom_frame @ react-server-dom-webpack-client.browser.development.js:5007
+resolveConsoleEntry @ react-server-dom-webpack-client.browser.development.js:3499
+processFullStringRow @ react-server-dom-webpack-client.browser.development.js:4413
+processFullBinaryRow @ react-server-dom-webpack-client.browser.development.js:4309
+processBinaryChunk @ react-server-dom-webpack-client.browser.development.js:4532
+progress @ react-server-dom-webpack-client.browser.development.js:4808
+<OrderDetailPage>
+Promise.all @ VM7070 <anonymous>:1
+Promise.all @ VM7070 <anonymous>:1
+Promise.all @ VM7070 <anonymous>:1
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:3399
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:3378
+react_stack_bottom_frame @ react-server-dom-webpack-client.browser.development.js:5007
+resolveConsoleEntry @ react-server-dom-webpack-client.browser.development.js:3499
+processFullStringRow @ react-server-dom-webpack-client.browser.development.js:4413
+processFullBinaryRow @ react-server-dom-webpack-client.browser.development.js:4309
+processBinaryChunk @ react-server-dom-webpack-client.browser.development.js:4532
+progress @ react-server-dom-webpack-client.browser.development.js:4808
+"use server"
+ResponseInstance @ react-server-dom-webpack-client.browser.development.js:2793
+createResponseFromOptions @ react-server-dom-webpack-client.browser.development.js:4669
+exports.createFromReadableStream @ react-server-dom-webpack-client.browser.development.js:5080
+eval @ app-index.js:150
+(app-pages-browser)/./node_modules/next/dist/client/app-index.js @ main-app.js?v=1771641077846:105
+options.factory @ webpack.js?v=1771641077846:708
+__webpack_require__ @ webpack.js?v=1771641077846:29
+fn @ webpack.js?v=1771641077846:361
+eval @ app-next-dev.js:14
+eval @ app-bootstrap.js:60
+loadScriptsInSequence @ app-bootstrap.js:25
+appBootstrap @ app-bootstrap.js:54
+eval @ app-next-dev.js:13
+(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js @ main-app.js?v=1771641077846:127
+options.factory @ webpack.js?v=1771641077846:708
+__webpack_require__ @ webpack.js?v=1771641077846:29
+__webpack_exec__ @ main-app.js?v=1771641077846:1879
+(anonymous) @ main-app.js?v=1771641077846:1880
+webpackJsonpCallback @ webpack.js?v=1771641077846:1384
+(anonymous) @ main-app.js?v=1771641077846:9
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] done in 464ms
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] done in 433ms
+forward-logs-shared.js:28 [Fast Refresh] rebuilding
+forward-logs-shared.js:28 [Fast Refresh] done in 448ms
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\RevisionHistoryTimeline.tsx:79  GET http://localhost:3000/api/member/orders/ea3e05f6-9da2-4ff0-9500-7d0413e853bc/revision-history 500 (Internal Server Error)
+RevisionHistoryTimeline.useCallback[loadHistory] @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\RevisionHistoryTimeline.tsx:79
+RevisionHistoryTimeline.useEffect @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\member\RevisionHistoryTimeline.tsx:110
 react_stack_bottom_frame @ react-dom-client.development.js:28124
-runWithFiberInDEV @ react-dom-client.development.js:990
+runWithFiberInDEV @ react-dom-client.development.js:987
 commitHookEffectListMount @ react-dom-client.development.js:13693
 commitHookPassiveMountEffects @ react-dom-client.development.js:13780
 reconnectPassiveEffects @ react-dom-client.development.js:17125
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17077
-reconnectPassiveEffects @ react-dom-client.development.js:17178
 recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17077
 reconnectPassiveEffects @ react-dom-client.development.js:17178
 recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17077
@@ -414,14 +488,20 @@ commitDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20140
 flushPassiveEffects @ react-dom-client.development.js:19867
 eval @ react-dom-client.development.js:19285
 performWorkUntilDeadline @ scheduler.development.js:45
-<ErrorBoundaryWrapper>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-MemberLayout @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\member\layout.tsx:95
-react_stack_bottom_frame @ react-dom-client.development.js:28039
-renderWithHooksAgain @ react-dom-client.development.js:8085
-renderWithHooks @ react-dom-client.development.js:7997
-updateFunctionComponent @ react-dom-client.development.js:10502
-beginWork @ react-dom-client.development.js:12137
+"use client"
+OrderDetailContent @ page.tsx:182
+initializeElement @ react-server-dom-webpack-client.browser.development.js:1950
+eval @ react-server-dom-webpack-client.browser.development.js:4632
+initializeModelChunk @ react-server-dom-webpack-client.browser.development.js:1837
+readChunk @ react-server-dom-webpack-client.browser.development.js:1457
+react_stack_bottom_frame @ react-dom-client.development.js:28146
+resolveLazy @ react-dom-client.development.js:6321
+createChild @ react-dom-client.development.js:6673
+reconcileChildrenArray @ react-dom-client.development.js:6980
+reconcileChildFibersImpl @ react-dom-client.development.js:7306
+eval @ react-dom-client.development.js:7411
+reconcileChildren @ react-dom-client.development.js:10037
+beginWork @ react-dom-client.development.js:12408
 runWithFiberInDEV @ react-dom-client.development.js:987
 performUnitOfWork @ react-dom-client.development.js:18998
 workLoopSync @ react-dom-client.development.js:18826
@@ -429,93 +509,46 @@ renderRootSync @ react-dom-client.development.js:18807
 performWorkOnRoot @ react-dom-client.development.js:17836
 performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20385
 performWorkUntilDeadline @ scheduler.development.js:45
-<MemberLayout>
-exports.jsx @ react-jsx-runtime.development.js:342
-ClientSegmentRoot @ client-segment.js:28
-react_stack_bottom_frame @ react-dom-client.development.js:28039
-renderWithHooksAgain @ react-dom-client.development.js:8085
-renderWithHooks @ react-dom-client.development.js:7997
-updateFunctionComponent @ react-dom-client.development.js:10502
-beginWork @ react-dom-client.development.js:12086
-runWithFiberInDEV @ react-dom-client.development.js:987
-performUnitOfWork @ react-dom-client.development.js:18998
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18992
-renderRootConcurrent @ react-dom-client.development.js:18974
-performWorkOnRoot @ react-dom-client.development.js:17835
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20385
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-Promise.all @ VM27696 <anonymous>:1
-initializeElement @ react-server-dom-webpack-client.browser.development.js:1949
+<OrderDetailContent>
+OrderDetailPage @ page.tsx:222
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:3401
+react_stack_bottom_frame @ react-server-dom-webpack-client.browser.development.js:5007
+resolveConsoleEntry @ react-server-dom-webpack-client.browser.development.js:3499
+processFullStringRow @ react-server-dom-webpack-client.browser.development.js:4413
+processFullBinaryRow @ react-server-dom-webpack-client.browser.development.js:4309
+processBinaryChunk @ react-server-dom-webpack-client.browser.development.js:4532
+progress @ react-server-dom-webpack-client.browser.development.js:4808
+<OrderDetailPage>
+Promise.all @ VM7070 <anonymous>:1
+Promise.all @ VM7070 <anonymous>:1
+Promise.all @ VM7070 <anonymous>:1
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:3399
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:3378
+react_stack_bottom_frame @ react-server-dom-webpack-client.browser.development.js:5007
+resolveConsoleEntry @ react-server-dom-webpack-client.browser.development.js:3499
+processFullStringRow @ react-server-dom-webpack-client.browser.development.js:4413
+processFullBinaryRow @ react-server-dom-webpack-client.browser.development.js:4309
+processBinaryChunk @ react-server-dom-webpack-client.browser.development.js:4532
+progress @ react-server-dom-webpack-client.browser.development.js:4808
 "use server"
 ResponseInstance @ react-server-dom-webpack-client.browser.development.js:2793
 createResponseFromOptions @ react-server-dom-webpack-client.browser.development.js:4669
 exports.createFromReadableStream @ react-server-dom-webpack-client.browser.development.js:5080
 eval @ app-index.js:150
-(app-pages-browser)/./node_modules/next/dist/client/app-index.js @ main-app.js?v=1771537804568:105
-options.factory @ webpack.js:1
-__webpack_require__ @ webpack.js:1
-fn @ webpack.js:1
+(app-pages-browser)/./node_modules/next/dist/client/app-index.js @ main-app.js?v=1771641077846:105
+options.factory @ webpack.js?v=1771641077846:708
+__webpack_require__ @ webpack.js?v=1771641077846:29
+fn @ webpack.js?v=1771641077846:361
 eval @ app-next-dev.js:14
 eval @ app-bootstrap.js:60
 loadScriptsInSequence @ app-bootstrap.js:25
 appBootstrap @ app-bootstrap.js:54
 eval @ app-next-dev.js:13
-(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js @ main-app.js?v=1771537804568:127
-options.factory @ webpack.js:1
-__webpack_require__ @ webpack.js:1
-__webpack_exec__ @ main-app.js?v=1771537804568:1879
-(anonymous) @ main-app.js?v=1771537804568:1880
-webpackJsonpCallback @ webpack.js:1
-(anonymous) @ main-app.js?v=1771537804568:9
-C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\member\orders\[id]\OrderFileUploadSection.tsx:165  POST http://localhost:3000/api/member/orders/87615c70-bd89-411f-aaf9-9611e72d13a3/data-receipt 500 (Internal Server Error)
-handleUpload @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\member\orders\[id]\OrderFileUploadSection.tsx:165
-executeDispatch @ react-dom-client.development.js:20544
-runWithFiberInDEV @ react-dom-client.development.js:987
-processDispatchQueue @ react-dom-client.development.js:20594
-eval @ react-dom-client.development.js:21165
-batchedUpdates$1 @ react-dom-client.development.js:3378
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20748
-dispatchEvent @ react-dom-client.development.js:25694
-dispatchDiscreteEvent @ react-dom-client.development.js:25662
-<button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-_c @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\components\ui\Button.tsx:110
-react_stack_bottom_frame @ react-dom-client.development.js:28039
-renderWithHooksAgain @ react-dom-client.development.js:8085
-renderWithHooks @ react-dom-client.development.js:7997
-updateForwardRef @ react-dom-client.development.js:10060
-beginWork @ react-dom-client.development.js:12476
-runWithFiberInDEV @ react-dom-client.development.js:987
-performUnitOfWork @ react-dom-client.development.js:18998
-workLoopSync @ react-dom-client.development.js:18826
-renderRootSync @ react-dom-client.development.js:18807
-performWorkOnRoot @ react-dom-client.development.js:17836
-performSyncWorkOnRoot @ react-dom-client.development.js:20400
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20242
-flushSyncWork$1 @ react-dom-client.development.js:18253
-batchedUpdates$1 @ react-dom-client.development.js:3386
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20748
-dispatchEvent @ react-dom-client.development.js:25694
-dispatchDiscreteEvent @ react-dom-client.development.js:25662
-<Button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-OrderFileUploadSection @ C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\member\orders\[id]\OrderFileUploadSection.tsx:538
-react_stack_bottom_frame @ react-dom-client.development.js:28039
-renderWithHooksAgain @ react-dom-client.development.js:8085
-renderWithHooks @ react-dom-client.development.js:7997
-updateFunctionComponent @ react-dom-client.development.js:10502
-beginWork @ react-dom-client.development.js:12137
-runWithFiberInDEV @ react-dom-client.development.js:987
-performUnitOfWork @ react-dom-client.development.js:18998
-workLoopSync @ react-dom-client.development.js:18826
-renderRootSync @ react-dom-client.development.js:18807
-performWorkOnRoot @ react-dom-client.development.js:17836
-performSyncWorkOnRoot @ react-dom-client.development.js:20400
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20242
-flushSyncWork$1 @ react-dom-client.development.js:18253
-batchedUpdates$1 @ react-dom-client.development.js:3386
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20748
-dispatchEvent @ react-dom-client.development.js:25694
-dispatchDiscreteEvent @ react-dom-client.development.js:25662
-
+(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js @ main-app.js?v=1771641077846:127
+options.factory @ webpack.js?v=1771641077846:708
+__webpack_require__ @ webpack.js?v=1771641077846:29
+__webpack_exec__ @ main-app.js?v=1771641077846:1879
+(anonymous) @ main-app.js?v=1771641077846:1880
+webpackJsonpCallback @ webpack.js?v=1771641077846:1384
+(anonymous) @ main-app.js?v=1771641077846:9
+forward-logs-shared.js:28 [Fast Refresh] done in 1355ms

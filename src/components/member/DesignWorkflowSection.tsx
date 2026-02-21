@@ -20,6 +20,7 @@ import type { Order } from '@/types/dashboard';
 import { OrderFileUploadSection } from '@/app/member/orders/[id]/OrderFileUploadSection';
 import { DesignRevisionsSection } from '@/components/member/DesignRevisionsSection';
 import { OrderCommentsSectionWrapper } from '@/components/orders/OrderCommentsSection';
+import { FileResubmissionSection } from '@/components/member/FileResubmissionSection';
 
 // =====================================================
 // Types
@@ -210,7 +211,18 @@ export function DesignWorkflowSection({ order }: DesignWorkflowSectionProps) {
           isActive={currentStep === 1}
           guidance={currentStep === 1 && "AIファイルをアップロードして、制作を開始してください"}
         >
-          <OrderFileUploadSection order={order} onFileUploaded={loadWorkflowStatus} />
+          <div className="space-y-6">
+            <OrderFileUploadSection order={order} onFileUploaded={loadWorkflowStatus} />
+
+            {/* File Re-submission Section */}
+            {hasFiles && (
+              <FileResubmissionSection
+                orderId={order.id}
+                orderNumber={order.orderNumber}
+                onFileResubmitted={loadWorkflowStatus}
+              />
+            )}
+          </div>
         </StepCard>
 
         {/* Step 2: 校正確認 */}

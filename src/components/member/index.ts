@@ -12,6 +12,7 @@ export { OrderItemsSummary } from './OrderItemsSummary';
 
 // Design Components
 export { DesignRevisionsSection } from './DesignRevisionsSection';
+export { RevisionHistoryTimeline } from './RevisionHistoryTimeline';
 
 // Approval Components
 export { SpecApprovalClient } from './SpecApprovalClient';

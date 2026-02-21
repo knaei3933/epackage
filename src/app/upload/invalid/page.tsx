@@ -8,6 +8,8 @@
  * Route: /upload/invalid
  */
 
+'use client';
+
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -169,13 +171,7 @@ export default function InvalidTokenPage() {
   );
 }
 
-// =====================================================
-// Metadata
-// =====================================================
-
-export const metadata = {
-  title: '無効なリンク | Epackage Lab',
-  description: 'トークンが無効または期限切れです',
-};
+// Client Components cannot export metadata
+// Metadata is handled by the parent layout or through SEO components
 
 export const dynamic = 'force-dynamic';
