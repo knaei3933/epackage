@@ -343,8 +343,11 @@ export async function POST(
     // ============================================================
     // Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING
     // ============================================================
+    // Auto-transition: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
+    // 2段階遷移: デザイナーが教正データをアップロードすると、校正完了→顧客承認待ちへ
+    // ============================================================
     try {
-      console.log('[Designer Correction Upload] Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING');
+      console.log('[Designer Correction Upload] Auto-transition: TWO-STEP process');
 
       const { data: currentOrder } = await supabase
         .from('orders')
@@ -355,32 +358,62 @@ export async function POST(
       const currentStatus = currentOrder?.status;
 
       if (currentStatus === 'CORRECTION_IN_PROGRESS') {
-        const { error: statusError } = await supabase
+        // Step 1: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED
+        const { error: step1Error } = await supabase
           .from('orders')
           .update({
-            status: 'CUSTOMER_APPROVAL_PENDING',
+            status: 'CORRECTION_COMPLETED',
             updated_at: new Date().toISOString(),
           })
           .eq('id', orderId);
 
-        if (statusError) {
-          console.error('[Designer Correction Upload] Status update error:', statusError);
+        if (step1Error) {
+          console.error('[Designer Correction Upload] Step 1 error (CORRECTION_COMPLETED):', step1Error);
         } else {
-          console.log('[Designer Correction Upload] Auto-transition completed to CUSTOMER_APPROVAL_PENDING');
+          console.log('[Designer Correction Upload] Step 1 completed: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED');
 
-          // Record history
+          // 履歴を記録 (Step 1)
           await supabase
             .from('order_status_history')
             .insert({
               order_id: orderId,
-              from_status: currentStatus,
-              to_status: 'CUSTOMER_APPROVAL_PENDING',
+              from_status: 'CORRECTION_IN_PROGRESS',
+              to_status: 'CORRECTION_COMPLETED',
               changed_by: authResult.email,
               changed_at: new Date().toISOString(),
-              reason: `教正データアップロード (リビジョン${revisionNumber})`,
+              reason: `教正データアップロード (リビジョン${revisionNumber}) - Step 1`,
             })
-            .then(() => console.log('[Designer Correction Upload] Status history logged'))
-            .catch((err) => console.error('[Designer Correction Upload] History logging error:', err));
+            .then(() => console.log('[Designer Correction Upload] Step 1 history logged'))
+            .catch((err) => console.error('[Designer Correction Upload] Step 1 history error:', err));
+
+          // Step 2: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
+          const { error: step2Error } = await supabase
+            .from('orders')
+            .update({
+              status: 'CUSTOMER_APPROVAL_PENDING',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', orderId);
+
+          if (step2Error) {
+            console.error('[Designer Correction Upload] Step 2 error (CUSTOMER_APPROVAL_PENDING):', step2Error);
+          } else {
+            console.log('[Designer Correction Upload] Step 2 completed: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING');
+
+            // 履歴を記録 (Step 2)
+            await supabase
+              .from('order_status_history')
+              .insert({
+                order_id: orderId,
+                from_status: 'CORRECTION_COMPLETED',
+                to_status: 'CUSTOMER_APPROVAL_PENDING',
+                changed_by: authResult.email,
+                changed_at: new Date().toISOString(),
+                reason: `教正データアップロード完了、顧客承認待ち (リビジョン${revisionNumber}) - Step 2`,
+              })
+              .then(() => console.log('[Designer Correction Upload] Step 2 history logged'))
+              .catch((err) => console.error('[Designer Correction Upload] Step 2 history error:', err));
+          }
         }
       }
     } catch (statusUpdateError) {

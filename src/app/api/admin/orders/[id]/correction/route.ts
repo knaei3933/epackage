@@ -359,12 +359,12 @@ export async function POST(
     // DO NOT overwrite with proxy URL as it causes redirect loops
 
     // ============================================================
-    // Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING
-    // 新しいワークフロー: デザイナーが教正データをアップロードすると、顧客承認待ちへ
+    // Auto-transition: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
+    // 新しいワークフロー: デザイナーが教正データをアップロードすると、2段階で顧客承認待ちへ
     // ※ 通知送信の有無に関わらず常に実行
     // ============================================================
     try {
-      console.log('[Correction Upload] Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING');
+      console.log('[Correction Upload] Auto-transition: TWO-STEP process');
 
       // 現在のステータスを取得
       const { data: currentOrder } = await supabase
@@ -375,35 +375,66 @@ export async function POST(
 
       const currentStatus = currentOrder?.status;
 
-      // 顧客承認待ちに遷移（現在のステータスがCORRECTION_IN_PROGRESSの場合のみ）
+      // 2段階遷移（現在のステータスがCORRECTION_IN_PROGRESSの場合のみ）
       if (currentStatus === 'CORRECTION_IN_PROGRESS') {
-        const { error: statusError } = await supabase
+        // Step 1: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED
+        const { error: step1Error } = await supabase
           .from('orders')
           .update({
-            status: 'CUSTOMER_APPROVAL_PENDING',
+            status: 'CORRECTION_COMPLETED',
             updated_at: new Date().toISOString(),
           })
           .eq('id', orderId);
 
-        if (statusError) {
-          console.error('[Correction Upload] Status update error (CUSTOMER_APPROVAL_PENDING):', statusError);
-          console.warn('[Correction Upload] Status update failed, but revision was saved. Manual update required.');
+        if (step1Error) {
+          console.error('[Correction Upload] Step 1 error (CORRECTION_COMPLETED):', step1Error);
+          console.warn('[Correction Upload] Step 1 failed. Manual update required.');
         } else {
-          console.log('[Correction Upload] Auto-transition completed to CUSTOMER_APPROVAL_PENDING');
+          console.log('[Correction Upload] Step 1 completed: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED');
 
-          // 履歴を記録
+          // 履歴を記録 (Step 1)
           await supabase
             .from('order_status_history')
             .insert({
               order_id: orderId,
-              from_status: currentStatus,
-              to_status: 'CUSTOMER_APPROVAL_PENDING',
+              from_status: 'CORRECTION_IN_PROGRESS',
+              to_status: 'CORRECTION_COMPLETED',
               changed_by: 'ADMIN',
               changed_at: new Date().toISOString(),
-              reason: `教正データアップロード (リビジョン${revisionNumber})`,
+              reason: `教正データアップロード (リビジョン${revisionNumber}) - Step 1`,
             })
-            .then(() => console.log('[Correction Upload] Status history logged'))
-            .catch((err) => console.error('[Correction Upload] History logging error:', err));
+            .then(() => console.log('[Correction Upload] Step 1 history logged'))
+            .catch((err) => console.error('[Correction Upload] Step 1 history error:', err));
+
+          // Step 2: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
+          const { error: step2Error } = await supabase
+            .from('orders')
+            .update({
+              status: 'CUSTOMER_APPROVAL_PENDING',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', orderId);
+
+          if (step2Error) {
+            console.error('[Correction Upload] Step 2 error (CUSTOMER_APPROVAL_PENDING):', step2Error);
+            console.warn('[Correction Upload] Step 2 failed. Order is in CORRECTION_COMPLETED state.');
+          } else {
+            console.log('[Correction Upload] Step 2 completed: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING');
+
+            // 履歴を記録 (Step 2)
+            await supabase
+              .from('order_status_history')
+              .insert({
+                order_id: orderId,
+                from_status: 'CORRECTION_COMPLETED',
+                to_status: 'CUSTOMER_APPROVAL_PENDING',
+                changed_by: 'ADMIN',
+                changed_at: new Date().toISOString(),
+                reason: `教正データアップロード完了、顧客承認待ち (リビジョン${revisionNumber}) - Step 2`,
+              })
+              .then(() => console.log('[Correction Upload] Step 2 history logged'))
+              .catch((err) => console.error('[Correction Upload] Step 2 history error:', err));
+          }
         }
       } else {
         console.log('[Correction Upload] Skipping auto-transition, current status:', currentStatus);
