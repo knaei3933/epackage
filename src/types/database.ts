@@ -852,11 +852,61 @@ export type Database = {
                     approval_status: 'pending' | 'approved' | 'rejected'  // 承認ステータス
                     approved_by: string | null  // 承認者 (user_id)
                     approved_at: string | null  // 承認日時
+                    // Design Revision Workflow v2 - Customer file submission tracking
+                    original_customer_filename: string | null  // Original customer uploaded filename
+                    generated_correction_filename: string | null  // Generated correction filename (e.g., ORD-001_SkuName_R1_correction.ai)
+                    customer_submission_id: string | null  // FK to customer_file_submissions
+                    // Rejection tracking
+                    rejection_reason: string | null  // Reason for rejection
+                    rejected_at: string | null  // Rejection timestamp
+                    rejected_by: string | null  // FK to profiles (user who rejected)
                     created_at: string
                     updated_at: string
                 }
                 Insert: Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Customer File Submissions table - カスタマーファイル提出管理 (Design Revision Workflow v2)
+            customer_file_submissions: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    order_item_id: string | null  // FK to order_items
+                    file_id: string | null  // FK to files
+                    original_filename: string  // Original uploaded filename
+                    file_url: string  // Storage URL
+                    file_type: string  // File type (AI, PDF, PSD, etc.)
+                    file_size_bytes: number | null  // File size in bytes
+                    submission_number: number  // Sequential submission number per order (1, 2, 3, ...)
+                    is_current: boolean  // TRUE = active submission, FALSE = replaced
+                    replaced_at: string | null  // When this submission was replaced
+                    replaced_by: string | null  // FK to profiles (user who replaced)
+                    previous_submission_id: string | null  // FK to customer_file_submissions (previous version)
+                    uploaded_by: string  // FK to profiles (user who uploaded)
+                    uploaded_at: string  // Upload timestamp
+                }
+                Insert: Omit<Database['public']['Tables']['customer_file_submissions']['Row'], 'id' | 'uploaded_at'>
+                Update: Partial<Database['public']['Tables']['customer_file_submissions']['Row']>
+            }
+
+            // Revision Notifications table - リビジョン通知管理 (Design Revision Workflow v2)
+            revision_notifications: {
+                Row: {
+                    id: string
+                    revision_id: string  // FK to design_revisions
+                    notification_type: 'uploaded' | 'approved' | 'rejected' | 'reminder'  // Type of notification
+                    recipient_email: string  // Recipient email address
+                    recipient_role: 'customer' | 'designer' | 'admin'  // Recipient role
+                    status: 'pending' | 'sent' | 'failed'  // Notification status
+                    sent_at: string | null  // When notification was sent
+                    error_message: string | null  // Error message if failed
+                    subject: string | null  // Email subject
+                    body_html: string | null  // Email body HTML
+                    created_at: string  // Creation timestamp
+                }
+                Insert: Omit<Database['public']['Tables']['revision_notifications']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['revision_notifications']['Row']>
             }
 
             // Order Status History table - ステータス変更履歴
