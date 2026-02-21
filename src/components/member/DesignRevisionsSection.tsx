@@ -35,8 +35,8 @@ interface DesignRevision {
   original_file_url: string | null;
   partner_comment: string | null;
   // Bilingual comment fields
-  partner_comment_ko?: string | null;
-  partner_comment_ja?: string | null;
+  comment_ko?: string | null;
+  comment_ja?: string | null;
   translation_status?: 'pending' | 'translated' | 'failed' | 'manual' | null;
   // Designer upload tracking
   uploaded_by_type?: 'admin' | 'korea_designer' | null;
@@ -424,14 +424,14 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                 {isExpanded && (
                   <div className="p-4 pt-0 space-y-4 border-t border-border-secondary">
                     {/* Partner comment - Bilingual Display */}
-                    {(revision.partner_comment || revision.partner_comment_ko || revision.partner_comment_ja) && (
+                    {(revision.partner_comment || revision.comment_ko || revision.comment_ja) && (
                       <div>
                         <p className="text-sm font-medium mb-2">パートナーコメント:</p>
                         {/* Bilingual display for Korean designer uploads */}
                         {revision.uploaded_by_type === 'korea_designer' ? (
                           <BilingualCommentDisplay
-                            commentKo={revision.partner_comment_ko || revision.partner_comment || ''}
-                            commentJa={revision.partner_comment_ja || ''}
+                            commentKo={revision.comment_ko || revision.partner_comment || ''}
+                            commentJa={revision.comment_ja || ''}
                             translationStatus={revision.translation_status || 'pending'}
                             showStatus={false}
                             defaultLanguage="ja"

@@ -177,7 +177,7 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
         </div>
 
         {/* Partner Comment - Bilingual Display */}
-        {(revision.partner_comment || revision.partner_comment_ko || revision.partner_comment_ja) && (
+        {(revision.partner_comment || revision.comment_ko || revision.comment_ja) && (
           <div>
             <div className="flex items-center gap-2 mb-2">
               <MessageSquare className="w-4 h-4 text-gray-500" />
@@ -194,8 +194,8 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
             {/* Bilingual display for Korean designer uploads */}
             {revision.uploaded_by_type === 'korea_designer' ? (
               <BilingualCommentDisplay
-                commentKo={revision.partner_comment_ko || revision.partner_comment || ''}
-                commentJa={revision.partner_comment_ja || ''}
+                commentKo={revision.comment_ko || revision.partner_comment || ''}
+                commentJa={revision.comment_ja || ''}
                 translationStatus={revision.translation_status || 'pending'}
                 showStatus={false}
                 defaultLanguage="ja"

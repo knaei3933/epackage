@@ -14,8 +14,8 @@ export interface DesignRevision {
   original_file_url?: string;
   partner_comment?: string | null;
   // Bilingual comment fields for Korean designer uploads
-  partner_comment_ko?: string | null;
-  partner_comment_ja?: string | null;
+  comment_ko?: string | null;
+  comment_ja?: string | null;
   translation_status?: 'pending' | 'translated' | 'failed' | 'manual' | null;
   // Designer upload tracking
   uploaded_by_type?: 'admin' | 'korea_designer' | null;
