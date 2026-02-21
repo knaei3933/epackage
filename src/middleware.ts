@@ -178,6 +178,26 @@ function createMiddlewareClient(request: NextRequest) {
 // Helper: Check User Status from Profile
 // =====================================================
 
+/**
+ * Check if user's email is in the korea_designer_emails whitelist
+ */
+async function checkDesignerEmailList(supabase: any, email: string): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('notification_settings')
+      .select('value')
+      .eq('key', 'korea_designer_emails')
+      .maybeSingle();
+
+    if (!data?.value) return false;
+
+    const emailList = data.value as string[];
+    return emailList.includes(email);
+  } catch {
+    return false;
+  }
+}
+
 async function getUserProfile(supabase: any, userId: string) {
   const { data, error } = await supabase
     .from('profiles')
@@ -799,19 +819,22 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Processing /designer route:', pathname);
     }
 
-    // Check for KOREA_DESIGNER role
-    if (normalizedRole !== 'korea_designer') {
-      // Not a designer - redirect based on their actual role
+    // Check for KOREA_DESIGNER role OR being in the korea_designer_emails list
+    // Designers with the role OR admins/designers in the email whitelist can access
+    const isInDesignerEmailList = await checkDesignerEmailList(supabase, user.email);
+
+    if (normalizedRole !== 'korea_designer' && !isInDesignerEmailList) {
+      // Not a designer and not in the whitelist - redirect based on their actual role
       if (normalizedRole === 'admin') {
-        // Admins should use admin routes, not designer routes
+        // Admins can also access designer routes for management purposes
+        console.log('[Middleware] Admin accessing designer route - allowing access');
+        // Continue to set headers below
+      } else {
+        // Members and others - redirect to designer login
         return addSecurityHeaders(
-          NextResponse.redirect(new URL('/admin', request.url))
+          NextResponse.redirect(new URL('/designer/login', request.url))
         );
       }
-      // Members and others - redirect to designer login
-      return addSecurityHeaders(
-        NextResponse.redirect(new URL('/designer/login', request.url))
-      );
     }
 
     // Check designer status (must be ACTIVE)
