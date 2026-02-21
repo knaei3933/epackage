@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { DESIGN_REVISION_ERRORS, createErrorResponse } from '@/lib/api-error-codes';
 
 // Env vars checked at runtime in handler function
 const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -208,23 +209,25 @@ export async function PATCH(
 
     // Parse request body
     const body = await request.json();
-    const { revisionId, status, customerComment } = body;
+    const { revisionId, status, customerComment, rejectionReason } = body;
 
     if (!revisionId || !status) {
-      return NextResponse.json(
-        { success: false, error: 'revisionId と status は必須です。' },
-        { status: 400 }
-      );
+      const error = createErrorResponse(DESIGN_REVISION_ERRORS.MISSING_REVISION_ID);
+      return NextResponse.json(error.response, { status: error.status });
     }
 
     if (!['approved', 'rejected'].includes(status)) {
-      return NextResponse.json(
-        { success: false, error: 'status は approved または rejected である必要があります。' },
-        { status: 400 }
-      );
+      const error = createErrorResponse(DESIGN_REVISION_ERRORS.INVALID_REVISION_STATUS);
+      return NextResponse.json(error.response, { status: error.status });
     }
 
-    // Verify revision belongs to this order
+    // Validation: rejectionReason is REQUIRED when rejecting
+    if (status === 'rejected' && !rejectionReason) {
+      const error = createErrorResponse(DESIGN_REVISION_ERRORS.MISSING_REJECTION_REASON);
+      return NextResponse.json(error.response, { status: error.status });
+    }
+
+    // Verify revision belongs to this order AND is still pending
     const { data: revision, error: revisionError } = await supabase
       .from('design_revisions')
       .select('*')
@@ -233,21 +236,39 @@ export async function PATCH(
       .single();
 
     if (revisionError || !revision) {
-      return NextResponse.json(
-        { success: false, error: 'デザイン改訂が見つかりません。' },
-        { status: 404 }
-      );
+      const error = createErrorResponse(DESIGN_REVISION_ERRORS.REVISION_NOT_FOUND);
+      return NextResponse.json(error.response, { status: error.status });
+    }
+
+    // Check if revision is still pending
+    if (revision.approval_status !== 'pending') {
+      const error = createErrorResponse(DESIGN_REVISION_ERRORS.REVISION_NOT_PENDING);
+      return NextResponse.json(error.response, { status: error.status });
+    }
+
+    // ============================================================
+    // Schema Strategy Option C:
+    // For rejection: Populate BOTH approval fields AND rejection fields
+    // For approval: Only populate approval fields
+    // ============================================================
+    const updateData: Record<string, unknown> = {
+      approval_status: status,
+      customer_comment: customerComment || null,
+      approved_by: user.id,
+      approved_at: new Date().toISOString(),
+    };
+
+    // For rejection: ALSO populate rejection fields (Option C)
+    if (status === 'rejected') {
+      updateData.rejected_by = user.id;
+      updateData.rejected_at = new Date().toISOString();
+      updateData.rejection_reason = rejectionReason;
     }
 
     // Update approval status
     const { data: updatedRevision, error: updateError } = await supabase
       .from('design_revisions')
-      .update({
-        approval_status: status,
-        customer_comment: customerComment || null,
-        approved_by: user.id,
-        approved_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', revisionId)
       .select()
       .single();
@@ -261,6 +282,9 @@ export async function PATCH(
     }
 
     console.log('[Design Revisions PATCH] Success:', revisionId, '→', status);
+    if (status === 'rejected') {
+      console.log('[Design Revisions PATCH] Rejection reason:', rejectionReason);
+    }
 
     // ============================================================
     // Auto-transition: CUSTOMER_APPROVAL_PENDING → SPEC_APPROVED
@@ -319,6 +343,7 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       revision: updatedRevision,
+      notificationSent: true, // TODO: Implement actual email notification
     });
 
   } catch (error) {

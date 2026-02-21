@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { CheckCircle, XCircle, FileImage, FileText, Download, Clock, User } from 'lucide-react';
 import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
 import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
+import { RejectionReasonModal } from '@/components/member/RejectionReasonModal';
 
 // =====================================================
 // Types
@@ -70,6 +71,10 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Rejection modal state
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [rejectingRevisionId, setRejectingRevisionId] = useState<string | null>(null);
+  const [rejectingRevisionName, setRejectingRevisionName] = useState<string | null>(null);
 
   // Load revisions and order items
   const loadRevisions = useCallback(async () => {
@@ -131,6 +136,16 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
 
   // Respond to revision (approve/reject)
   const handleRespond = useCallback(async (revisionId: string, status: 'approved' | 'rejected') => {
+    // For rejection: open modal instead of direct submission
+    if (status === 'rejected') {
+      const revision = revisions.find(r => r.id === revisionId);
+      setRejectingRevisionId(revisionId);
+      setRejectingRevisionName(revision?.revision_name || null);
+      setShowRejectionModal(true);
+      return;
+    }
+
+    // For approval: direct submission
     try {
       setSubmitting(revisionId);
       setError(null);
@@ -152,9 +167,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
       const result = await response.json();
 
       if (result.success) {
-        setSuccessMessage(
-          status === 'approved' ? '校正データを承認しました。' : '校正データを却下しました。'
-        );
+        setSuccessMessage('校正データを承認しました。');
         setCustomerComment('');
         setExpandedId(null);
         await loadRevisions(); // Reload list
@@ -170,7 +183,61 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     } finally {
       setSubmitting(null);
     }
-  }, [orderId, customerComment, loadRevisions]);
+  }, [orderId, customerComment, loadRevisions, revisions]);
+
+  // Handle rejection submission from modal
+  const handleRejectionSubmit = useCallback(async (reason: string, translatedReason: string) => {
+    if (!rejectingRevisionId) return;
+
+    try {
+      setSubmitting(rejectingRevisionId);
+      setError(null);
+      setSuccessMessage(null);
+
+      const response = await fetch(
+        `/api/member/orders/${orderId}/design-revisions`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId: rejectingRevisionId,
+            status: 'rejected',
+            rejectionReason: reason,
+            customerComment: customerComment || undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccessMessage('校正データを却下しました。');
+        setCustomerComment('');
+        setExpandedId(null);
+        setShowRejectionModal(false);
+        setRejectingRevisionId(null);
+        setRejectingRevisionName(null);
+        await loadRevisions(); // Reload list
+
+        // Callback to notify parent component
+        onRevisionResponded?.();
+      } else {
+        setError(result.error || '却下の送信に失敗しました。');
+      }
+    } catch (err) {
+      console.error('[DesignRevisionsSection] Rejection error:', err);
+      setError('予期しないエラーが発生しました。');
+    } finally {
+      setSubmitting(null);
+    }
+  }, [orderId, rejectingRevisionId, customerComment, loadRevisions, onRevisionResponded]);
+
+  // Handle rejection modal close
+  const handleRejectionModalClose = useCallback(() => {
+    setShowRejectionModal(false);
+    setRejectingRevisionId(null);
+    setRejectingRevisionName(null);
+  }, []);
 
   // Load revisions on mount
   useEffect(() => {
@@ -502,6 +569,15 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
           })}
         </div>
       )}
+
+      {/* Rejection Reason Modal */}
+      <RejectionReasonModal
+        isOpen={showRejectionModal}
+        onClose={handleRejectionModalClose}
+        onSubmit={handleRejectionSubmit}
+        submitting={submitting !== null}
+        revisionName={rejectingRevisionName || undefined}
+      />
     </Card>
   );
 }
