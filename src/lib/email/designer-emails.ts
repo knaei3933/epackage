@@ -22,6 +22,144 @@ export interface DesignerDataUploadNotificationData {
   uploadedAt: string;
   productName?: string;
   fileType?: string;
+  specifications?: {
+    dimensions?: string;
+    bagType?: string;
+    material?: string;
+    materialDetail?: string;
+    weight?: string;
+    thickness?: string;
+    thicknessDetail?: string;
+    printingType?: string;
+    colors?: string;
+    urgency?: string;
+    deliveryLocation?: string;
+    postProcessing?: string[];
+  };
+  // Token-based authentication for designer order access
+  accessToken?: string;
+  useTokenUrl?: boolean;
+}
+
+// ============================================================
+// Korean Translation Mappings
+// ============================================================
+
+const SPEC_TRANSLATIONS = {
+  // Bag types
+  'stand_up': '스탠드 파우치',
+  'flat_pouch': '플랫 파우치',
+  'zipper': '지퍼백',
+
+  // Materials
+  'pet_al': 'PET/AL (알루미늄 박 라미네이트)',
+  'pet': 'PET',
+  'ppe': 'PPE',
+  'paper': '종이',
+
+  // Material details
+  'medium': '표준 타입 (~500g)',
+  'light': '경량 (~300g)',
+  'heavy': '중량 (~1kg)',
+
+  // Printing types
+  'digital': '디지털 인쇄',
+  'gravure': '그라비아 인쇄',
+  'flexo': '플렉소 인쇄',
+
+  // Colors
+  'full_color': '풀 컬러',
+  '1': '1색',
+  '2': '2색',
+  '4': '4색',
+
+  // Urgency
+  'standard': '표준',
+  'urgent': '긴급',
+  'express': '특급',
+
+  // Delivery location
+  'domestic': '국내',
+  'international': '해외',
+
+  // Post processing options
+  'corner-round': '모서리 둥글게',
+  'glossy': '광택 처리',
+  'matte': '무광 처리',
+  'hang-hole-6mm': '걸이 구멍 6mm',
+  'hang-hole-4mm': '걸이 구멍 4mm',
+  'machi-printing-yes': '마치 인쇄 있음',
+  'machi-printing-no': '마치 인쇄 없음',
+  'notch-yes': 'V 노치',
+  'notch-no': 'V 노치 없음',
+  'sealing-width-5mm': '밀봉폭 5mm',
+  'sealing-width-8mm': '밀봉폭 8mm',
+  'sealing-width-10mm': '밀봉폭 10mm',
+  'top-open': '상단 개봉',
+  'bottom-open': '하단 개봉',
+  'side-open': '측면 개봉',
+  'valve-yes': '밸브 있음',
+  'valve-no': '밸브 없음',
+  'zipper-yes': '지퍼 있음',
+  'zipper-no': '지퍼 없음',
+};
+
+/**
+ * Translate specification value to Korean
+ */
+function translateSpec(key: string, value: any): string {
+  if (typeof value === 'string') {
+    return SPEC_TRANSLATIONS[value as keyof typeof SPEC_TRANSLATIONS] || value;
+  }
+  return value;
+}
+
+/**
+ * Format specifications for email display
+ */
+function formatSpecifications(specs?: DesignerDataUploadNotificationData['specifications']): string {
+  if (!specs) return '';
+
+  const lines: string[] = [];
+
+  if (specs.dimensions) {
+    lines.push(`사이즈：${specs.dimensions}`);
+  }
+  if (specs.bagType) {
+    lines.push(`봉투 타입：${specs.bagType}`);
+  }
+  if (specs.material) {
+    lines.push(`소재：${specs.material}`);
+  }
+  if (specs.materialDetail) {
+    lines.push(`소재 상세：${specs.materialDetail}`);
+  }
+  if (specs.weight) {
+    lines.push(`중량：${specs.weight}`);
+  }
+  if (specs.thickness) {
+    lines.push(`두께：${specs.thickness}`);
+  }
+  if (specs.thicknessDetail) {
+    lines.push(`두께 상세：${specs.thicknessDetail}`);
+  }
+  if (specs.printingType) {
+    lines.push(`인쇄：${specs.printingType}`);
+  }
+  if (specs.colors) {
+    lines.push(`색수：${specs.colors}`);
+  }
+  if (specs.urgency) {
+    lines.push(`납기：${specs.urgency}`);
+  }
+  if (specs.deliveryLocation) {
+    lines.push(`배송처：${specs.deliveryLocation}`);
+  }
+  if (specs.postProcessing && specs.postProcessing.length > 0) {
+    lines.push(`후가공：${specs.postProcessing.join(', ')}`);
+  }
+
+  return lines.join('\n');
 }
 
 // ============================================================
@@ -39,6 +177,19 @@ export async function sendDesignerDataUploadNotification(
 ): Promise<{ success: boolean; error?: string }> {
   const subject = `[EPackage Lab] 데이터 업로드 알림: ${data.orderNumber}`;
 
+  // Generate token-based URL if useTokenUrl is true
+  // useTokenUrlがtrueの場合、トークンベースURLを生成
+  let uploadUrl = data.uploadUrl;
+  if (data.useTokenUrl && data.accessToken) {
+    // Extract base URL from the provided uploadUrl
+    // uploadUrlからベースURLを抽出
+    const url = new URL(data.uploadUrl);
+    const baseUrl = `${url.protocol}//${url.host}`;
+    // Use token-based designer order URL
+    // トークンベースのデザイナー注文URLを使用
+    uploadUrl = `${baseUrl}/designer-order/${data.accessToken}`;
+  }
+
   // Korean plain text email
   const plainText = `
 ${data.customerName} 고객님께서 새로운 데이터를 업로드하셨습니다.
@@ -53,12 +204,17 @@ ${data.productName ? `제품명：${data.productName}` : ''}
 파일명：${data.fileName}
 ${data.fileType ? `파일 타입：${data.fileType}` : ''}
 업로드 일시：${data.uploadedAt}
+${data.specifications ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【디자인 스펙】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${formatSpecifications(data.specifications)}` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 아래 링크에서 업로드된 파일을 확인하실 수 있습니다.
 
-${data.uploadUrl}
+${uploadUrl}
 
 파일을 다운로드하여 검토해 주시기 바랍니다.
 검토 후 필요한 수정 사항이 있다면 관리자에게 알려주십시오.
@@ -202,8 +358,31 @@ Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.
         </div>
       </div>
 
+      ${data.specifications && Object.keys(data.specifications).length > 0 ? `
+      <div class="info-box">
+        <h3>디자인 스펙</h3>
+        ${Object.entries({
+          '사이즈': data.specifications.dimensions,
+          '봉투 타입': data.specifications.bagType,
+          '소재': data.specifications.material,
+          '소재 상세': data.specifications.materialDetail,
+          '중량': data.specifications.weight,
+          '두께': data.specifications.thickness,
+          '두께 상세': data.specifications.thicknessDetail,
+          '인쇄': data.specifications.printingType,
+          '색수': data.specifications.colors,
+          '납기': data.specifications.urgency,
+          '배송처': data.specifications.deliveryLocation,
+          '후가공': data.specifications.postProcessing?.join(', '),
+        }).filter(([_, value]) => value !== undefined && value !== '').map(([label, value]) => `
+        <div class="info-row">
+          <span class="info-label">${label}</span>
+          <span class="info-value">${value}</span>
+        </div>`).join('')}
+      </div>` : ''}
+
       <div class="button-container">
-        <a href="${data.uploadUrl}" class="button">파일 확인하기</a>
+        <a href="${uploadUrl}" class="button">파일 확인하기</a>
       </div>
 
       <div class="alert">
