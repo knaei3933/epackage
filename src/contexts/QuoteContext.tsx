@@ -1059,15 +1059,30 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
         quantityMode: state.quantityMode,
         skuCount: state.skuCount,
         skuQuantities: state.skuQuantities,
-        quantity: state.quantity
+        quantity: state.quantity,
+        twoColumnOptionApplied: state.twoColumnOptionApplied,
+        fixedTotalQuantity: state.fixedTotalQuantity
       });
       if (state.quantityMode === 'sku') {
         // SKU mode: all SKUs must have valid quantities
-        const isValid = state.skuCount > 0 &&
+        const basicValid = state.skuCount > 0 &&
                state.skuQuantities.length === state.skuCount &&
                state.skuQuantities.every(qty => qty >= 100);
-        console.log('[checkStepComplete] sku-quantity SKU mode valid:', isValid);
-        return isValid;
+
+        // 2列生産オプション適用時の総数量チェック
+        if (state.twoColumnOptionApplied && state.fixedTotalQuantity !== undefined) {
+          const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
+          const totalQuantityValid = currentTotalQuantity === state.fixedTotalQuantity;
+          console.log('[checkStepComplete] 2列生産総数量チェック:', {
+            currentTotalQuantity,
+            fixedTotalQuantity: state.fixedTotalQuantity,
+            totalQuantityValid
+          });
+          return basicValid && totalQuantityValid;
+        }
+
+        console.log('[checkStepComplete] sku-quantity SKU mode valid:', basicValid);
+        return basicValid;
       }
       // Single quantity mode
       const singleValid = state.quantity >= 100;

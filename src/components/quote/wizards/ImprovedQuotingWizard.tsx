@@ -4062,6 +4062,23 @@ export function ImprovedQuotingWizard() {
   const canProceed = currentStepId ? isStepComplete(currentStepId) : false;
   const isLastStep = currentStep === STEPS.length - 1;
 
+  // Compute validation error message for 2-column production total quantity mismatch
+  // This is displayed when canProceed is false due to total quantity validation failure
+  const getNavigationBlockReason = (): string | null => {
+    if (currentStepId !== 'sku-quantity') return null;
+    if (state.quantityMode !== 'sku') return null;
+    if (!state.twoColumnOptionApplied || state.fixedTotalQuantity === undefined) return null;
+
+    const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
+    if (currentTotalQuantity !== state.fixedTotalQuantity) {
+      const diff = currentTotalQuantity - state.fixedTotalQuantity;
+      return `総数量が${diff > 0 ? '+' : ''}${diff.toLocaleString()}個です。総数量${state.fixedTotalQuantity.toLocaleString()}個を維持してください`;
+    }
+    return null;
+  };
+
+  const navigationBlockReason = getNavigationBlockReason();
+
   // Keyboard navigation
   useKeyboardNavigation({
     onNext: canProceed ? handleNext : undefined,
@@ -4212,6 +4229,27 @@ export function ImprovedQuotingWizard() {
               {currentStepId === 'post-processing' && <PostProcessingStep />}
               {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep />}
               {currentStepId === 'result' && result && <ResultStep result={result} onReset={handleReset} onResultUpdate={setResult} />}
+
+              {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
+              {!canProceed && navigationBlockReason && currentStepId === 'sku-quantity' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-800">
+                        {navigationBlockReason}
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        総数量を調整してから次へ進んでください
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Navigation Buttons */}
               {currentStepId !== 'result' && (
