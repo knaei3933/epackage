@@ -81,11 +81,11 @@ export async function POST(
 
     // Bank information (from environment or default)
     const bankInfo = {
-      bankName: process.env.BANK_NAME || '〇〇銀行',
-      branchName: process.env.BANK_BRANCH || '〇〇支店',
-      accountType: process.env.BANK_ACCOUNT_TYPE || '普通',
-      accountNumber: process.env.BANK_ACCOUNT_NUMBER || '1234567',
-      accountHolder: process.env.BANK_ACCOUNT_HOLDER || '株式会社Epackage Lab',
+      bankName: process.env.BANK_NAME || '三井住友銀行',
+      branchName: process.env.BANK_BRANCH || '明石支店',
+      accountType: process.env.BANK_ACCOUNT_TYPE || '普通(425)',
+      accountNumber: process.env.BANK_ACCOUNT_NUMBER || '7346221',
+      accountHolder: process.env.BANK_ACCOUNT_HOLDER || '金井貿易株式会社',
     };
 
     const response: InvoiceResponse = {

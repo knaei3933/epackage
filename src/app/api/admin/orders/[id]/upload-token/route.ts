@@ -135,7 +135,7 @@ export async function POST(
     });
 
     // Build upload URL
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://epackage-lab.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
     const uploadUrl = `${siteUrl}/upload/${rawToken}`;
 
     // Insert token record into database
