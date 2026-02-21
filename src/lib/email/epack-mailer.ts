@@ -95,6 +95,9 @@ export interface EpackAttachment {
   disposition?: 'attachment' | 'inline'
 }
 
+// Re-export EpackEmailData for convenience
+export type { EpackEmailData } from './epack-templates'
+
 // ============================================================
 // Core Mailer Functions
 // ============================================================
@@ -242,6 +245,7 @@ export async function sendEpackEmailBatch(
         ...baseData,
         customer_email: recipient.email,
         customer_name: recipient.name || baseData.customer_name,
+        view_url: baseData.view_url || '',
       }
 
       const subject = template.subject(data)
@@ -602,6 +606,13 @@ export async function sendDataReceivedEmail(data: EpackEmailData): Promise<Epack
 }
 
 /**
+ * 部分SKU入稿警告メール
+ */
+export async function sendPartialSKUSubmissionEmail(data: EpackEmailData): Promise<EpackSendResult> {
+  return sendEpackEmail('partialSKUSubmission', data)
+}
+
+/**
  * 修正承認依頼メール
  */
 export async function sendModificationRequestEmail(data: EpackEmailData): Promise<EpackSendResult> {
@@ -922,6 +933,7 @@ export const epackMailer = {
   quoteApproved: sendQuoteApprovedEmail,
   dataUploadRequest: sendDataUploadRequestEmail,
   dataReceived: sendDataReceivedEmail,
+  partialSKUSubmission: sendPartialSKUSubmissionEmail,
   modificationRequest: sendModificationRequestEmail,
   modificationApproved: sendModificationApprovedEmail,
   modificationRejected: sendModificationRejectedEmail,

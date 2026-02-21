@@ -16,7 +16,8 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { quickValidateFile } from '@/lib/file-validator/security-validator';
 import { notifyDataReceipt } from '@/lib/admin-notifications';
-import { notifyDataReceived as notifyDataReceivedEmail } from '@/lib/email/order-status-emails';
+import { notifyDataReceived as notifyDataReceivedEmail, notifyPartialSKUSubmission } from '@/lib/email/order-status-emails';
+import { sendDesignerDataUploadNotificationBatch } from '@/lib/email/designer-emails';
 import {
   getAdminAccessTokenForUpload,
   uploadFileToDrive,
@@ -458,7 +459,7 @@ export async function POST(
 
       // 顧客へ受領確認メールを送信
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://epackage-lab.com';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
         const customerEmail = user.email;
 
         if (customerEmail) {
@@ -483,6 +484,138 @@ export async function POST(
         }
       } catch (emailError) {
         console.error('[Data Receipt Upload] Customer email notification failed:', emailError);
+      }
+
+      // ============================================================
+      // 韓国デザイナーへ通知メールを送信
+      // ============================================================
+      try {
+        // notification_settingsテーブルからデザイナーメールアドレスを取得
+        const { data: notificationSettings, error: settingsError } = await adminClient
+          .from('notification_settings')
+          .select('value')
+          .eq('key', 'korea_designer_emails')
+          .maybeSingle();
+
+        if (settingsError) {
+          console.error('[Data Receipt Upload] Failed to fetch designer emails:', settingsError);
+        } else if (notificationSettings?.value) {
+          // JSONB配列からメールアドレスを抽出
+          const designerEmails: string[] = Array.isArray(notificationSettings.value)
+            ? notificationSettings.value
+            : [];
+
+          if (designerEmails.length > 0) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+            const uploadedAt = new Date().toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+
+            const results = await sendDesignerDataUploadNotificationBatch(
+              designerEmails,
+              {
+                orderNumber: order.order_number,
+                customerName: order.customer_name || 'お客様',
+                fileName: file.name,
+                fileType: fileType,
+                uploadUrl: `${baseUrl}/member/orders/${orderId}`,
+                uploadedAt,
+                productName: productName || undefined,
+              }
+            );
+
+            // 結果をログ
+            const successCount = results.filter(r => r.success).length;
+            const failCount = results.filter(r => !r.success).length;
+
+            console.log('[Data Receipt Upload] Designer notification results:', {
+              total: results.length,
+              success: successCount,
+              failed: failCount,
+            });
+
+            // 失敗したメールの詳細をログ
+            results.forEach(result => {
+              if (!result.success) {
+                console.error(`[Data Receipt Upload] Failed to send notification to ${result.email}:`, result.error);
+              }
+            });
+          } else {
+            console.log('[Data Receipt Upload] No designer emails configured, skipping designer notification');
+          }
+        } else {
+          console.log('[Data Receipt Upload] No notification settings found for korea_designer_emails');
+        }
+      } catch (designerEmailError) {
+        console.error('[Data Receipt Upload] Designer email notification failed:', designerEmailError);
+      }
+
+      // ============================================================
+      // Check for partial SKU submission and send warning email
+      // ============================================================
+      try {
+        // Get all order items and current files to calculate SKU submission status
+        const [orderItemsResult, filesResult] = await Promise.all([
+          adminClient
+            .from('order_items')
+            .select('id, product_name, quantity')
+            .eq('order_id', orderId),
+          adminClient
+            .from('files')
+            .select('order_item_id')
+            .eq('order_id', orderId)
+        ]);
+
+        const orderItems = orderItemsResult.data || [];
+        const files = filesResult.data || [];
+
+        if (orderItems.length > 1) {
+          // Multiple SKUs - check for partial submission
+          const filesWithItems = files.filter(f => f.order_item_id);
+          const uniqueSubmittedSkus = new Set(filesWithItems.map(f => f.order_item_id));
+          const pendingSkus = orderItems.filter(item => !uniqueSubmittedSkus.has(item.id));
+
+          if (pendingSkus.length > 0) {
+            // Partial submission detected - send warning email
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+            const customerEmail = user.email;
+
+            if (customerEmail) {
+              await notifyPartialSKUSubmission(
+                {
+                  orderId,
+                  orderNumber: order.order_number,
+                  customerEmail,
+                  customerName: order.customer_name || 'お客様',
+                  viewUrl: `${baseUrl}/member/orders/${orderId}`,
+                },
+                {
+                  totalSkus: orderItems.length,
+                  submittedSkus: uniqueSubmittedSkus.size,
+                  pendingSkus: pendingSkus.map(item => ({
+                    id: item.id,
+                    productName: item.product_name,
+                    quantity: item.quantity,
+                  })),
+                }
+              );
+
+              console.log('[Data Receipt Upload] Partial SKU submission warning email sent:', {
+                orderId: order.order_number,
+                email: customerEmail,
+                submittedSkus: uniqueSubmittedSkus.size,
+                totalSkus: orderItems.length,
+              });
+            }
+          }
+        }
+      } catch (skuCheckError) {
+        console.error('[Data Receipt Upload] Partial SKU check failed:', skuCheckError);
+        // Don't fail the upload if this check fails
       }
 
       // ============================================================
@@ -656,8 +789,9 @@ export async function GET(
     }
 
     // 5. Transform to expected format
-    const orderItemsMap = new Map(
-      (orderItemsResult.data || []).map(item => [item.id, item])
+    type OrderItemType = { id: string; product_name: string; quantity: number; specifications?: any };
+    const orderItemsMap = new Map<string, OrderItemType>(
+      (orderItemsResult.data || []).map(item => [item.id, item as OrderItemType])
     );
 
     const transformedFiles = (filesResult.data || []).map(file => {
@@ -681,12 +815,29 @@ export async function GET(
       };
     });
 
+    // Calculate SKU submission status
+    const orderItems = (orderItemsResult.data || []) as Array<{ id: string; product_name: string; quantity: number }>;
+    const filesWithItems = transformedFiles.filter(f => f.order_item_id);
+    const uniqueSubmittedSkus = new Set(filesWithItems.map(f => f.order_item_id));
+
+    const skuSubmissionStatus = {
+      totalSkus: orderItems.length,
+      submittedSkus: uniqueSubmittedSkus.size,
+      isComplete: orderItems.length > 0 && uniqueSubmittedSkus.size === orderItems.length,
+      pendingSkus: orderItems.filter(item => !uniqueSubmittedSkus.has(item.id)).map(item => ({
+        id: item.id,
+        productName: item.product_name,
+        quantity: item.quantity,
+      })),
+    };
+
     return NextResponse.json(
       {
         success: true,
         data: {
           files: transformedFiles,
           orderItems: orderItemsResult.data || [],  // NEW: For SKU selector
+          skuSubmissionStatus,  // NEW: SKU submission tracking
         },
       },
       { status: 200 }

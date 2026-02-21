@@ -125,6 +125,34 @@ export async function notifyDataReceived(
 }
 
 /**
+ * 部分SKU入稿警告メール送信
+ *
+ * ワークフロー: 一部SKUのみ入稿された場合に警告
+ */
+export async function notifyPartialSKUSubmission(
+  config: OrderStatusEmailConfig,
+  skuStatus: {
+    totalSkus: number
+    submittedSkus: number
+    pendingSkus: Array<{ id: string; productName: string; quantity: number }>
+  }
+): Promise<boolean> {
+  const data: EpackEmailData = {
+    order_id: config.orderId,
+    order_number: config.orderNumber,
+    customer_email: config.customerEmail,
+    customer_name: config.customerName,
+    submitted_skus: skuStatus.submittedSkus,
+    total_skus: skuStatus.totalSkus,
+    pending_skus: skuStatus.pendingSkus,
+    view_url: config.viewUrl,
+  }
+
+  const result = await epackMailer.partialSKUSubmission(data)
+  return result.success
+}
+
+/**
  * 修正依頼メール送信
  *
  * ワークフロー: データ確認 → 修正必要
@@ -563,6 +591,7 @@ export const orderStatusEmails = {
   // Data & Production Workflow
   requestDataUpload,
   notifyDataReceived,
+  notifyPartialSKUSubmission,
   requestModification,
   notifyModificationApproved,
   notifyModificationRejected,
