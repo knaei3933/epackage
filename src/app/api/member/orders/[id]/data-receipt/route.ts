@@ -23,6 +23,7 @@ import {
   uploadFileToDrive,
   getUploadFolderId
 } from '@/lib/google-drive';
+import { generateUploadToken } from '@/lib/designer-tokens';
 
 export const dynamic = 'force-dynamic';
 
@@ -506,6 +507,138 @@ export async function POST(
             : [];
 
           if (designerEmails.length > 0) {
+            // ============================================================
+            // Get or create designer task assignment with access token
+            // ============================================================
+            let taskAssignment = await adminClient
+              .from('designer_task_assignments')
+              .select('id, access_token_hash, access_token_expires_at')
+              .eq('order_id', orderId)
+              .maybeSingle();
+
+            let accessToken: string | undefined;
+
+            if (!taskAssignment.data) {
+              // No assignment exists - create one
+              console.log('[Data Receipt Upload] Creating designer task assignment...');
+
+              // Get any active profile as placeholder
+              const { data: anyProfile } = await adminClient
+                .from('profiles')
+                .select('id')
+                .eq('status', 'ACTIVE')
+                .limit(1)
+                .maybeSingle();
+
+              if (anyProfile) {
+                const { error: insertError } = await adminClient
+                  .from('designer_task_assignments')
+                  .insert({
+                    designer_id: anyProfile.id,
+                    order_id: orderId,
+                    assigned_by: anyProfile.id,
+                    status: 'in_progress',
+                  })
+                  .select('id')
+                  .single();
+
+                if (!insertError) {
+                  const { data: newAssignment } = await adminClient
+                    .from('designer_task_assignments')
+                    .select('id')
+                    .eq('order_id', orderId)
+                    .single();
+                  taskAssignment = { data: newAssignment };
+                }
+              }
+            }
+
+            // Generate new access token
+            if (taskAssignment.data) {
+              const { rawToken, tokenHash, expiresAt } = generateUploadToken(30);
+
+              await adminClient
+                .from('designer_task_assignments')
+                .update({
+                  access_token_hash: tokenHash,
+                  access_token_expires_at: expiresAt.toISOString(),
+                })
+                .eq('id', taskAssignment.data.id);
+
+              accessToken = rawToken;
+              console.log('[Data Receipt Upload] Generated access token for designer');
+            }
+
+            // ============================================================
+            // Fetch order items with specifications
+            // ============================================================
+            const { data: orderItems } = await adminClient
+              .from('order_items')
+              .select('id, product_name, specifications')
+              .eq('order_id', orderId);
+
+            // ============================================================
+            // Translate specifications to Korean
+            // ============================================================
+            const translateSpecs = (specs: any) => {
+              if (!specs) return undefined;
+              return {
+                dimensions: specs.dimensions,
+                bagType: specs.bagTypeId === 'stand_up' ? '스탠드 파우치' :
+                         specs.bagTypeId === 'flat_pouch' ? '플랫 파우치' : specs.bagTypeId,
+                material: specs.materialId === 'pet_al' ? 'PET/AL (알루미늄 박 라미네이트)' :
+                          specs.materialId === 'pet' ? 'PET' : specs.materialId,
+                materialDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
+                weight: specs.thicknessSelection === 'medium' ? '~500g' :
+                         specs.thicknessSelection === 'light' ? '~300g' :
+                         specs.thicknessSelection === 'heavy' ? '~1kg' : undefined,
+                thickness: specs.thicknessSelection === 'medium' ? '표준 타입 (~500g)' :
+                           specs.thicknessSelection === 'light' ? '경량 (~300g)' :
+                           specs.thicknessSelection === 'heavy' ? '중량 (~1kg)' : undefined,
+                thicknessDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
+                printingType: specs.printingType === 'digital' ? '디지털 인쇄' :
+                              specs.printingType === 'gravure' ? '그라비아 인쇄' : specs.printingType,
+                colors: specs.printingColors === 1 ? '1색' :
+                        specs.printingColors === 2 ? '2색' :
+                        specs.printingColors === 4 ? '4색' : '풀 컬러',
+                urgency: specs.urgency === 'standard' ? '표준' :
+                          specs.urgency === 'urgent' ? '긴급' :
+                          specs.urgency === 'express' ? '특급' : specs.urgency,
+                deliveryLocation: specs.deliveryLocation === 'domestic' ? '국내' :
+                                  specs.deliveryLocation === 'international' ? '해외' : specs.deliveryLocation,
+                postProcessing: specs.postProcessingOptions?.map((opt: string) => {
+                  const map: Record<string, string> = {
+                    'corner-round': '모서리 둥글게',
+                    'glossy': '광택 처리',
+                    'matte': '무광 처리',
+                    'hang-hole-6mm': '걸이 구멍 6mm',
+                    'hang-hole-4mm': '걸이 구멍 4mm',
+                    'machi-printing-yes': '마치 인쇄 있음',
+                    'machi-printing-no': '마치 인쇄 없음',
+                    'notch-yes': 'V 노치',
+                    'notch-no': 'V 노치 없음',
+                    'sealing-width-5mm': '밀봉폭 5mm',
+                    'sealing-width-8mm': '밀봉폭 8mm',
+                    'sealing-width-10mm': '밀봉폭 10mm',
+                    'top-open': '상단 개봉',
+                    'bottom-open': '하단 개봉',
+                    'side-open': '측면 개봉',
+                    'valve-yes': '밸브 있음',
+                    'valve-no': '밸브 없음',
+                    'zipper-yes': '지퍼 있음',
+                    'zipper-no': '지퍼 없음',
+                  };
+                  return map[opt] || opt;
+                }),
+              };
+            };
+
+            const specs = orderItems && orderItems.length > 0 ? orderItems[0].specifications : undefined;
+            const translatedSpecs = specs ? translateSpecs(specs) : undefined;
+
+            // ============================================================
+            // Send notification with specs and token
+            // ============================================================
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
             const uploadedAt = new Date().toLocaleString('ko-KR', {
               year: 'numeric',
@@ -519,12 +652,16 @@ export async function POST(
               designerEmails,
               {
                 orderNumber: order.order_number,
-                customerName: order.customer_name || 'お客様',
+                customerName: order.customer_name || '고객',
                 fileName: file.name,
                 fileType: fileType,
-                uploadUrl: `${baseUrl}/member/orders/${orderId}`,
+                uploadUrl: `${baseUrl}/member/orders/${orderId}`, // Fallback URL
                 uploadedAt,
-                productName: productName || undefined,
+                productName: productName || (orderItems && orderItems.length > 0 ? orderItems[0].product_name : undefined),
+                specifications: translatedSpecs,
+                // Use token-based URL for Korean designers
+                useTokenUrl: !!accessToken,
+                accessToken: accessToken,
               }
             );
 
@@ -536,6 +673,8 @@ export async function POST(
               total: results.length,
               success: successCount,
               failed: failCount,
+              hasToken: !!accessToken,
+              hasSpecs: !!translatedSpecs,
             });
 
             // 失敗したメールの詳細をログ
