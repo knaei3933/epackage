@@ -4029,11 +4029,11 @@ export function ImprovedQuotingWizard() {
             // Roll film specific parameters (materialWidthはQuoteContextで動的に決定)
             materialWidth: state.materialWidth,
             filmLayers: state.filmLayers,
-            // FIX: 2列生産オプションパラメータを渡さない - SKU Stepと同じ基本価格を計算するため
-            // twoColumnOptionApplied: state.twoColumnOptionApplied,
-            // discountedUnitPrice: state.discountedUnitPrice,
-            // discountedTotalPrice: state.discountedTotalPrice,
-            // originalUnitPrice: state.originalUnitPrice
+            // 2列生産オプションパラメータ
+            twoColumnOptionApplied: state.twoColumnOptionApplied,
+            discountedUnitPrice: state.discountedUnitPrice,
+            discountedTotalPrice: state.discountedTotalPrice,
+            originalUnitPrice: state.originalUnitPrice
           });
 
           console.log('[handleNext] 価格計算完了 - 総額:', quoteResult.totalPrice, '円, markupRate:', markupRate, 'ユーザーID:', user?.id);
