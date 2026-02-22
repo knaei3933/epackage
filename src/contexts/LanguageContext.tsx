@@ -21,31 +21,26 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children, defaultLang }: LanguageProviderProps) {
-  const [isClient, setIsClient] = useState(false)
   const [language, setLanguageState] = useState<Language>(defaultLang || defaultLanguage)
   const [isChanging, setIsChanging] = useState(false)
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
   // Japanese only - no language detection needed
   useEffect(() => {
-    if (!isClient || typeof window === 'undefined') return
+    if (typeof window === 'undefined') return
 
     const storedLanguage = getStoredLanguage()
 
     if (storedLanguage !== language) {
       setLanguageState(storedLanguage)
     }
-  }, [isClient, language])
+  }, [language])
 
   // Update HTML lang attribute when language changes
   useEffect(() => {
-    if (typeof document !== 'undefined' && isClient) {
+    if (typeof document !== 'undefined') {
       document.documentElement.lang = language
     }
-  }, [language, isClient])
+  }, [language])
 
   const setLanguage = (newLanguage: Language) => {
     // Japanese only - no actual language change
@@ -58,7 +53,7 @@ export function LanguageProvider({ children, defaultLang }: LanguageProviderProp
   }
 
   const t = <K extends keyof TranslationKeys>(key: K): TranslationKeys[K] => {
-    const currentLanguage = isClient ? language : (defaultLang || defaultLanguage)
+    const currentLanguage = language
 
     if (translations[currentLanguage] && translations[currentLanguage][key]) {
       return translations[currentLanguage][key]
@@ -75,7 +70,7 @@ export function LanguageProvider({ children, defaultLang }: LanguageProviderProp
     section: K,
     path: P
   ): string => {
-    const currentLanguage = isClient ? language : (defaultLang || defaultLanguage)
+    const currentLanguage = language
 
     try {
       const sectionData = translations[currentLanguage]?.[section] || translations[defaultLanguage]?.[section]
