@@ -91,12 +91,22 @@ interface DesignReviewComment {
   created_at: string;
 }
 
+interface CustomerFileUpload {
+  id: string;
+  file_name: string;
+  file_type: string;
+  drive_view_link: string | null;
+  drive_content_link: string | null;
+  uploaded_at: string;
+}
+
 interface DesignerOrderTokenClientProps {
   token: string;
   assignmentData: DesignerTaskAssignment;
   order: Order;
   initialRevisions: DesignRevision[];
   initialComments: DesignReviewComment[];
+  initialCustomerUploads: CustomerFileUpload[];
 }
 
 // =====================================================
@@ -133,6 +143,7 @@ export function DesignerOrderTokenClient({
   order,
   initialRevisions,
   initialComments,
+  initialCustomerUploads,
 }: DesignerOrderTokenClientProps): ReactNode {
   const { tn } = useTranslation();
   const previewInputRef = useRef<HTMLInputElement>(null);
@@ -416,6 +427,59 @@ export function DesignerOrderTokenClient({
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Customer Upload Files */}
+        {initialCustomerUploads.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-green-600" />
+              고객 입고 데이터 ({initialCustomerUploads.length})
+            </h2>
+
+            <div className="space-y-3">
+              {initialCustomerUploads.map((file) => (
+                <div
+                  key={file.id}
+                  className="p-4 bg-green-50 rounded-lg border border-green-200 flex items-center justify-between"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-green-600" />
+                      <span className="font-medium text-slate-900">{file.file_name}</span>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {formatDate(file.uploaded_at)}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {file.drive_view_link && (
+                      <a
+                        href={file.drive_view_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        미리보기
+                      </a>
+                    )}
+                    {file.drive_content_link && (
+                      <a
+                        href={file.drive_content_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        다운로드
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

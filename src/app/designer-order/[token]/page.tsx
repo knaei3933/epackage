@@ -76,6 +76,15 @@ interface DesignReviewComment {
   created_at: string;
 }
 
+interface CustomerFileUpload {
+  id: string;
+  file_name: string;
+  file_type: string;
+  drive_view_link: string | null;
+  drive_content_link: string | null;
+  uploaded_at: string;
+}
+
 // ============================================================
 // Server-Side Data Fetching
 // ============================================================
@@ -153,6 +162,14 @@ async function getDesignerOrderData(token: string) {
     .eq('order_id', assignmentData.order_id)
     .order('created_at', { ascending: true });
 
+  // Get customer uploaded files for this order
+  const { data: customerUploads, error: uploadsError } = await supabase
+    .from('order_file_uploads')
+    .select('id, file_name, file_type, drive_view_link, drive_content_link, uploaded_at')
+    .eq('order_id', assignmentData.order_id)
+    .eq('file_type', 'upload')
+    .order('uploaded_at', { ascending: false });
+
   return {
     assignmentData: {
       ...assignmentData,
@@ -164,6 +181,7 @@ async function getDesignerOrderData(token: string) {
     },
     revisions: revisions || [],
     comments: comments || [],
+    customerUploads: customerUploads || [],
   };
 }
 
@@ -197,7 +215,7 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
     redirect('/designer-order/invalid?reason=expired');
   }
 
-  const { assignmentData, order, revisions, comments } = data;
+  const { assignmentData, order, revisions, comments, customerUploads } = data;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -207,6 +225,7 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
         order={order}
         initialRevisions={revisions}
         initialComments={comments}
+        initialCustomerUploads={customerUploads}
       />
     </div>
   );
