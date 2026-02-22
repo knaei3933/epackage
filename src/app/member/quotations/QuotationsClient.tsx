@@ -748,49 +748,49 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                     </div>
                   )}
 
-                  <div className="text-sm text-text-muted space-y-2 mb-3">
-                    {safeMap((quotation.items || []).slice(0, 3), (item) => (
-                      <div key={item.id} className="p-3 rounded-lg bg-bg-secondary/50">
-                        {/* 상품명, 수량, 가격 */}
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-text-primary font-medium">{item.productName}</span>
-                            <span className="text-border-secondary">x{item.quantity}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-text-primary font-semibold">
-                              {(item.unitPrice * item.quantity).toLocaleString()}円
-                            </span>
-                            {/* 注文済み인 경우: 注文詳細 링크 표시, 未注文인 경우: 미표시 */}
-                            {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
-                              item.orderId ? (
-                                <a
-                                  href={`/member/orders/${item.orderId}`}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    window.location.href = `/member/orders/${item.orderId}`;
-                                  }}
-                                  className="text-xs text-primary hover:underline cursor-pointer"
-                                >
-                                  注文を確認
-                                </a>
-                              ) : (
-                                <span className="text-xs text-text-muted">注文詳細で確認</span>
-                              )
-                            ) : (
-                              <>
-                                <Badge variant="secondary" size="sm">未注文</Badge>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                  {/* Common Specifications - Display once for all items */}
+                  {quotation.items?.[0]?.specifications && (
+                    <div className="mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100">
+                      <div className="text-xs font-medium text-text-primary mb-2">製品仕様（共通）</div>
+                      <SpecificationDisplay item={quotation.items[0]} />
+                    </div>
+                  )}
 
-                        {/* 상세 사양 */}
-                        <SpecificationDisplay item={item} />
+                  {/* SKU Items - Simplified display */}
+                  <div className="text-sm text-text-muted space-y-1 mb-3">
+                    {safeMap((quotation.items || []).slice(0, 3), (item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 rounded bg-bg-secondary/30">
+                        <div className="flex items-center gap-2">
+                          <span className="text-text-primary font-medium">{item.productName || `SKU ${item.id}`}</span>
+                          <span className="text-border-secondary">x{item.quantity}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-text-primary font-semibold">
+                            {(item.unitPrice * item.quantity).toLocaleString()}円
+                          </span>
+                          {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
+                            item.orderId ? (
+                              <a
+                                href={`/member/orders/${item.orderId}`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  window.location.href = `/member/orders/${item.orderId}`;
+                                }}
+                                className="text-xs text-primary hover:underline cursor-pointer"
+                              >
+                                注文を確認
+                              </a>
+                            ) : (
+                              <span className="text-xs text-text-muted">注文詳細で確認</span>
+                            )
+                          ) : (
+                            <Badge variant="secondary" size="sm">未注文</Badge>
+                          )}
+                        </div>
                       </div>
                     ))}
                     {quotation.items && quotation.items.length > 3 && (
-                      <p className="text-text-muted">
+                      <p className="text-text-muted text-center">
                         他 {quotation.items.length - 3} 点
                       </p>
                     )}

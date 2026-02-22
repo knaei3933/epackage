@@ -1090,6 +1090,15 @@ export class PouchCostCalculator {
     // 7. 販売マージン適用 - DB設定から販売マージン率を取得（デフォルト20%）
     const SALES_MARGIN = await this.getSetting('pricing', 'default_markup_rate', 0.2);
     console.log('[PouchCostCalculator] salesMargin:', SALES_MARGIN);
+
+    console.log('[calculateCostBreakdown] PRICE CALC:', {
+      baseCostKRW: filmCostResult.totalCostKRW + pouchProcessingCostKRW,
+      salesMargin: SALES_MARGIN,
+      customerMarkupRate: markupRate,
+      quantity: quantity,
+      deliveryJPY: deliveryJPY,
+    });
+
     const priceAfterSalesMargin = subtotalJPY * (1 + SALES_MARGIN);
     const salesMarginJPY = priceAfterSalesMargin - subtotalJPY;
 

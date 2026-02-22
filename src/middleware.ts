@@ -571,6 +571,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/member')) {
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] Processing /api/member route:', pathname);
+      // Debug logging for save-pdf route
+      if (pathname.includes('/save-pdf')) {
+        console.log('[Middleware] save-pdf route detected, path:', pathname);
+      }
     }
 
     const response = NextResponse.next();

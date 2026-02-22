@@ -333,6 +333,16 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       try {
         // 重要：常に基本価格（2列生産オプション未適用時の価格）を計算する
         // 2列生産オプション適用時の割引価格は、QuoteContextのdiscountedUnitPriceを使用
+        console.log('[SKU Step] DIAGNOSTIC - calculateQuote PARAMS:', {
+          bagTypeId: quoteState.bagTypeId,
+          materialId: quoteState.materialId,
+          skuCount: quoteState.skuCount,
+          skuQuantities: quoteState.skuQuantities,
+          totalQuantity: totalQuantity,
+          markupRate: 'NOT PASSED (will use default)',
+          deliveryLocation: quoteState.deliveryLocation || 'UNDEFINED',
+          urgency: quoteState.urgency || 'UNDEFINED',
+        });
         const quoteResult = await unifiedPricingEngine.calculateQuote({
           bagTypeId: quoteState.bagTypeId,
           materialId: quoteState.materialId,
@@ -383,6 +393,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     calculatePrice();
   }, [
     totalQuantity,
+    quoteState.skuCount,
     quoteState.materialId,
     quoteState.bagTypeId,
     quoteState.width,
