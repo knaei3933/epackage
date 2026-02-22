@@ -789,9 +789,6 @@ function SpecsStep() {
                       <div className="font-medium text-gray-900">{type.nameJa}</div>
                       <span className="text-gray-500 text-xs">{(type as any).description || ''}</span>
                       <div className="text-sm text-gray-600 mt-1">{type.descriptionJa}</div>
-                      <div className="text-xs text-navy-600 font-medium bg-navy-50 inline-block px-2 py-1 rounded mt-2">
-                        基本価格: ¥{type.basePrice.toLocaleString()}/個
-                      </div>
                     </div>
                   </div>
                 </button>
