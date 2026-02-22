@@ -3,10 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 import { generateCorrectionFilename } from '@/lib/file-naming';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Create Supabase client lazily to avoid build-time environment variable check
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 /**
  * Translate Korean text to Japanese
@@ -134,6 +137,9 @@ export async function POST(
 
     // Hash the token with SHA-256
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Get Supabase client
+    const supabase = getSupabaseClient();
 
     // Validate token first
     const { data: tokenData, error: tokenError } = await supabase
