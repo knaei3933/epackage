@@ -460,7 +460,7 @@ export async function POST(
 
       // 顧客へ受領確認メールを送信
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
         const customerEmail = user.email;
 
         if (customerEmail) {
@@ -639,7 +639,7 @@ export async function POST(
             // ============================================================
             // Send notification with specs and token
             // ============================================================
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
             const uploadedAt = new Date().toLocaleString('ko-KR', {
               year: 'numeric',
               month: '2-digit',
@@ -720,7 +720,7 @@ export async function POST(
 
           if (pendingSkus.length > 0) {
             // Partial submission detected - send warning email
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
             const customerEmail = user.email;
 
             if (customerEmail) {
