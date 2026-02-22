@@ -14,10 +14,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Create Supabase client lazily to avoid build-time environment variable check
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 // ============================================================
 // GET: Fetch comments
@@ -40,6 +43,9 @@ export async function GET(
 
     // Hash the token with SHA-256
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Get Supabase client
+    const supabase = getSupabaseClient();
 
     // Get designer upload token record
     const { data: tokenData, error: tokenError } = await supabase
@@ -123,6 +129,9 @@ export async function POST(
 
     // Hash the token with SHA-256
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Get Supabase client
+    const supabase = getSupabaseClient();
 
     // Get designer upload token record with order user_id
     const { data: tokenData, error: tokenError } = await supabase
