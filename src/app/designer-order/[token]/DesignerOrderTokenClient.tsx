@@ -254,7 +254,7 @@ export function DesignerOrderTokenClient({
       const formData = new FormData();
       formData.append('preview_image', previewFile);
       formData.append('original_file', originalFile);
-      formData.append('korean_designer_comment', koreanComment);
+      formData.append('comment_ko', koreanComment);
       formData.append('token', token); // Token authentication
 
       if (selectedOrderItemId) {
@@ -262,7 +262,7 @@ export function DesignerOrderTokenClient({
       }
 
       // Upload with progress simulation
-      const uploadPromise = fetch(`/api/designer/upload-correction`, {
+      const uploadPromise = fetch(`/api/designer/orders/${order.id}/correction`, {
         method: 'POST',
         body: formData,
         // No credentials: 'include' needed - token only authentication
@@ -297,7 +297,7 @@ export function DesignerOrderTokenClient({
         setKoreanComment('');
 
         // Reload revisions
-        const revisionsResponse = await fetch(`/api/designer/revisions?token=${token}`);
+        const revisionsResponse = await fetch(`/api/designer/orders/${order.id}/revisions?token=${token}`);
         if (revisionsResponse.ok) {
           const revisionsData = await revisionsResponse.json();
           setRevisions(revisionsData.revisions || []);

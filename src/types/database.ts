@@ -1480,6 +1480,12 @@ export type Database = {
                     assigned_at: string  // TIMESTAMPTZ
                     completed_at: string | null  // TIMESTAMPTZ
                     notes: string | null  // Assignment notes
+                    upload_token_id: string | null  // FK to upload_tokens
+                    token_email_sent_at: string | null  // TIMESTAMPTZ
+                    token_email_status: 'pending' | 'sent' | 'failed' | null  // Token email status
+                    access_token_hash: string | null  // SHA-256 hash of access token for token-based order access
+                    access_token_expires_at: string | null  // TIMESTAMPTZ - Token expiration timestamp
+                    last_accessed_at: string | null  // TIMESTAMPTZ - Last time the token was used
                 }
                 Insert: Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>
                 Update: Partial<Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>>

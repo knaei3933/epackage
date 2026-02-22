@@ -11,8 +11,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email';
 import { translateKoreanToJapanese } from '@/lib/translation';
 import {
@@ -20,9 +18,9 @@ import {
   uploadFileToDrive,
   getCorrectionFolderId
 } from '@/lib/google-drive';
+import { getAuthenticatedDesignerOrToken } from '@/lib/designer-auth';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
@@ -46,72 +44,6 @@ interface CorrectionUploadResponse {
 // =====================================================
 // Helper Functions
 // =====================================================
-
-/**
- * Get authenticated designer
- * Supports both middleware-based auth (KOREA_DESIGNER role) and email list fallback
- */
-async function getAuthenticatedDesigner(request: NextRequest) {
-  // Try middleware-based auth first (x-user-role header)
-  const userIdFromMiddleware = request.headers.get('x-user-id');
-  const roleFromMiddleware = request.headers.get('x-user-role');
-  const statusFromMiddleware = request.headers.get('x-user-status');
-  const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
-
-  if (userIdFromMiddleware && roleFromMiddleware === 'KOREA_DESIGNER' && isFromMiddleware) {
-    // Get email from profile
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('email, status')
-      .eq('id', userIdFromMiddleware)
-      .single();
-
-    return {
-      user: { id: userIdFromMiddleware, email: profile?.email || '' },
-      email: profile?.email || '',
-      userId: userIdFromMiddleware,
-      status: profile?.status || statusFromMiddleware || 'ACTIVE',
-    };
-  }
-
-  // Fallback to cookie-based auth with email list
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user?.email) {
-    return null;
-  }
-
-  // 韓国デザイナーメールアドレスリストを取得
-  const { data: setting } = await supabase
-    .from('notification_settings')
-    .select('value')
-    .eq('key', 'korea_designer_emails')
-    .maybeSingle();
-
-  const designerEmails = (setting?.value as string[]) || [];
-
-  if (!designerEmails.includes(user.email)) {
-    return null;
-  }
-
-  return { user, email: user.email, userId: user.id, status: 'ACTIVE' };
-}
 
 /**
  * Get next revision number for an order
@@ -139,12 +71,24 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Authenticate and verify designer role
-    const authResult = await getAuthenticatedDesigner(request);
+    console.log('[Designer Correction POST] Starting upload...');
 
-    if (!authResult) {
+    const { id: orderId } = await params;
+
+    // Parse form data first to extract token
+    const formData = await request.formData();
+    const token = formData.get('token') as string | null;
+
+    // Authenticate using middleware OR token
+    const authResult = await getAuthenticatedDesignerOrToken(request, orderId, token || undefined);
+
+    if (!authResult.success) {
       return NextResponse.json(
-        { success: false, error: '認証されていません。', errorEn: 'Authentication required' },
+        {
+          success: false,
+          error: authResult.errorKo || authResult.error || 'Authentication required',
+          errorEn: authResult.error || 'Authentication required',
+        },
         { status: 401 }
       );
     }
@@ -156,10 +100,6 @@ export async function POST(
         persistSession: false,
       },
     });
-
-    console.log('[Designer Correction POST] Starting upload...');
-
-    const { id: orderId } = await params;
 
     // Verify order exists
     const { data: order, error: orderError } = await supabase
@@ -175,8 +115,14 @@ export async function POST(
       );
     }
 
-    // Parse form data
-    const formData = await request.formData();
+    // Get designer email for logging and notifications
+    const { data: designerProfile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', authResult.designerId!)
+      .single();
+    const designerEmail = designerProfile?.email || 'Unknown';
+
     const previewImage = formData.get('preview_image') as File;
     const originalFile = formData.get('original_file') as File;
     const partnerComment = formData.get('partner_comment') as string;
@@ -312,7 +258,7 @@ export async function POST(
         preview_image_url: previewImageDriveUrl,
         original_file_url: originalFileUrl,
         uploaded_by_type: 'korea_designer',
-        uploaded_by_id: authResult.userId,
+        uploaded_by_id: authResult.designerId!,
       })
       .select()
       .single();
@@ -379,7 +325,7 @@ export async function POST(
               order_id: orderId,
               from_status: 'CORRECTION_IN_PROGRESS',
               to_status: 'CORRECTION_COMPLETED',
-              changed_by: authResult.email,
+              changed_by: designerEmail,
               changed_at: new Date().toISOString(),
               reason: `教正データアップロード (リビジョン${revisionNumber}) - Step 1`,
             })
@@ -407,7 +353,7 @@ export async function POST(
                 order_id: orderId,
                 from_status: 'CORRECTION_COMPLETED',
                 to_status: 'CUSTOMER_APPROVAL_PENDING',
-                changed_by: authResult.email,
+                changed_by: designerEmail,
                 changed_at: new Date().toISOString(),
                 reason: `教正データアップロード完了、顧客承認待ち (リビジョン${revisionNumber}) - Step 2`,
               })
@@ -430,7 +376,7 @@ export async function POST(
           status: 'completed',
           completed_at: new Date().toISOString(),
         })
-        .eq('designer_id', authResult.userId)
+        .eq('designer_id', authResult.designerId!)
         .eq('order_id', orderId);
 
       if (assignmentUpdateError) {

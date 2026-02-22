@@ -11,88 +11,11 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import { getAuthenticatedDesignerOrToken } from '@/lib/designer-auth';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-// =====================================================
-// Helper: Get authenticated designer info
-// =====================================================
-
-interface DesignerAuth {
-  userId: string;
-  role: string;
-  status: string;
-  email: string;
-}
-
-async function getAuthenticatedDesigner(request: NextRequest): Promise<DesignerAuth | null> {
-  // Try to get user from middleware header first (more reliable)
-  const userIdFromMiddleware = request.headers.get('x-user-id');
-  const roleFromMiddleware = request.headers.get('x-user-role');
-  const statusFromMiddleware = request.headers.get('x-user-status');
-  const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
-
-  if (userIdFromMiddleware && roleFromMiddleware && isFromMiddleware) {
-    // Verify it's a KOREA_DESIGNER role
-    if (roleFromMiddleware !== 'KOREA_DESIGNER') {
-      return null;
-    }
-
-    return {
-      userId: userIdFromMiddleware,
-      role: roleFromMiddleware,
-      status: statusFromMiddleware || 'ACTIVE',
-      email: '', // Will be fetched from profile if needed
-    };
-  }
-
-  // Fallback to SSR client auth
-  const response = NextResponse.json({ success: false });
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set() {},
-      remove() {},
-    },
-  });
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    console.error('[Designer Order Detail] Auth error:', authError);
-    return null;
-  }
-
-  // Get user profile to check role
-  const supabaseAdmin = createAuthenticatedServiceClient({
-    operation: 'get_designer_profile',
-    userId: user.id,
-    route: '/api/designer/orders/[id]',
-  });
-
-  const { data: profile, error: profileError } = await supabaseAdmin
-    .from('profiles')
-    .select('role, status, email')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !profile || profile.role !== 'KOREA_DESIGNER') {
-    console.error('[Designer Order Detail] Profile error or not a designer:', profileError);
-    return null;
-  }
-
-  return {
-    userId: user.id,
-    role: profile.role,
-    status: profile.status || 'ACTIVE',
-    email: profile.email || user.email || '',
-  };
-}
 
 // =====================================================
 // Types
@@ -155,72 +78,39 @@ export async function GET(
   try {
     console.log('[Designer Order Detail] GET request received');
 
-    const designer = await getAuthenticatedDesigner(request);
+    const { id: orderId } = await params;
 
-    if (!designer) {
+    // Extract token from URL query parameter
+    const url = new URL(request.url);
+    const token = url.searchParams.get('token') || undefined;
+
+    // Authenticate using middleware OR token
+    const authResult = await getAuthenticatedDesignerOrToken(request, orderId, token);
+
+    if (!authResult.success) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized - Designer access required', errorEn: 'Unauthorized - Designer access required' },
+        {
+          success: false,
+          error: authResult.errorKo || authResult.error || 'Authentication required',
+          errorEn: authResult.error || 'Authentication required',
+        },
         { status: 401 }
       );
     }
 
-    if (designer.status !== 'ACTIVE') {
-      return NextResponse.json(
-        { success: false, error: 'Account is not active', errorEn: 'Account is not active' },
-        { status: 403 }
-      );
-    }
-
-    const { id: orderId } = await params;
-
     const supabase = createAuthenticatedServiceClient({
       operation: 'get_designer_order_detail',
-      userId: designer.userId,
+      userId: authResult.designerId!,
       route: '/api/designer/orders/[id]',
     });
 
-    // 1. Check if designer is assigned to this order
+    // 1. Get assignment details (already verified by getAuthenticatedDesignerOrToken)
     const { data: assignment, error: assignmentError } = await supabase
       .from('designer_task_assignments')
       .select('id, status, assigned_at, notes')
-      .eq('designer_id', designer.userId)
+      .eq('designer_id', authResult.designerId!)
       .eq('order_id', orderId)
       .maybeSingle();
-
-    // If not assigned via designer_task_assignments, fall back to checking designer email list
-    // This maintains backward compatibility during transition
-    let isAuthorized = !!assignment;
-
-    if (!isAuthorized) {
-      // Fallback: Check if user email is in korea_designer_emails list
-      const { data: setting } = await supabase
-        .from('notification_settings')
-        .select('value')
-        .eq('key', 'korea_designer_emails')
-        .maybeSingle();
-
-      const designerEmails = (setting?.value as string[]) || [];
-      isAuthorized = designer.email && designerEmails.includes(designer.email);
-
-      // Also check if order status is correction-related
-      if (isAuthorized) {
-        const { data: orderStatusCheck } = await supabase
-          .from('orders')
-          .select('status')
-          .eq('id', orderId)
-          .single();
-
-        isAuthorized = orderStatusCheck?.status &&
-          ['CORRECTION_IN_PROGRESS', 'CUSTOMER_APPROVAL_PENDING'].includes(orderStatusCheck.status);
-      }
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { success: false, error: 'Not assigned to this order', errorEn: 'Not assigned to this order' },
-        { status: 403 }
-      );
-    }
 
     // 2. Get order details
     const { data: order, error: orderError } = await supabase

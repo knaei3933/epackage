@@ -187,6 +187,14 @@ export interface TranslationKeys {
       sku: string
       quantity: string
       dueDate: string
+      assignmentStatus: string
+      orderItems: string
+      orderInfo: string
+      createdAt: string
+      customerEmail: string
+      revisionData: string
+      lastAccess: string
+      completedAt: string
     }
     upload: {
       title: string

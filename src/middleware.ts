@@ -91,6 +91,7 @@ const PUBLIC_ROUTES = [
   '/auth/suspended', // Public page for suspended accounts
   '/designer/login', // Phase 3: Designer login page (public)
   '/upload', // Phase 4: Token-based designer upload (public, no auth required)
+  '/designer-order', // Phase 5: Token-based designer order access (no auth required)
 ];
 
 // =====================================================

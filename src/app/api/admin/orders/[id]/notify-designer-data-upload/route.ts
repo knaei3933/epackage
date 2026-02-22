@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendDesignerDataUploadNotification, sendDesignerDataUploadNotificationBatch } from '@/lib/email/designer-emails';
 import { generateUploadToken } from '@/lib/designer-tokens';
+import { randomUUID } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,15 +45,68 @@ export async function POST(
     let needsTokenUpdate = false;
 
     if (!taskAssignment.data) {
-      // No assignment exists - create one (we need a designer_id for this)
-      // アサインメントが存在しない - 作成する（designer_idが必要）
-      // For now, we'll skip token generation if no assignment exists
-      // 今のところ、アサインメントがない場合はトークン生成をスキップ
-      console.warn('[Designer Notify] No task assignment found for order:', orderId);
-    } else if (
+      // No assignment exists - create one for the first Korean designer
+      // アサインメントが存在しない - 最初の韓国人デザイナー用に作成
+      console.log('[Designer Notify] No task assignment found, creating one...');
+
+      // Get the first Korean designer profile, or create a placeholder
+      let designerProfile = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'KOREA_DESIGNER')
+        .limit(1)
+        .maybeSingle();
+
+      // If no KOREA_DESIGNER profile exists, try to find any active profile to use as placeholder
+      // KOREA_DESIGNERプロファイルが存在しない場合、プレースホルダーとして使用する有効なプロファイルを探す
+      if (!designerProfile.data) {
+        console.log('[Designer Notify] No KOREA_DESIGNER profile found, looking for any active profile...');
+        const { data: anyProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('status', 'ACTIVE')
+          .limit(1)
+          .maybeSingle();
+
+        if (anyProfile) {
+          console.log('[Designer Notify] Using existing profile as placeholder:', anyProfile.id);
+          designerProfile = { data: anyProfile };
+        }
+      }
+
+      if (designerProfile.data) {
+        const { error: insertError } = await supabase
+          .from('designer_task_assignments')
+          .insert({
+            designer_id: designerProfile.data.id,
+            order_id: orderId,
+            assigned_by: designerProfile.data.id, // Self-assigned
+            status: 'in_progress',
+          })
+          .select('id')
+          .single();
+
+        if (!insertError) {
+          console.log('[Designer Notify] Created task assignment for order:', orderId);
+          // Fetch the created assignment
+          const { data: newAssignment } = await supabase
+            .from('designer_task_assignments')
+            .select('id')
+            .eq('order_id', orderId)
+            .single();
+          taskAssignment = { data: newAssignment };
+        } else {
+          console.error('[Designer Notify] Failed to create task assignment:', insertError);
+        }
+      } else {
+        console.error('[Designer Notify] No designer profile available');
+      }
+    }
+
+    if (taskAssignment.data && (
       !taskAssignment.data.access_token_hash ||
       new Date(taskAssignment.data.access_token_expires_at || 0) < new Date()
-    ) {
+    )) {
       // No valid token exists - generate new one
       // 有効なトークンがない - 新しいトークンを生成
       const { rawToken, tokenHash, expiresAt } = generateUploadToken(30);
