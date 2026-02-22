@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getAuthenticatedDesignerOrToken } from '@/lib/designer-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,46 +26,6 @@ interface RevisionsResponse {
 }
 
 // =====================================================
-// Helper: Get authenticated designer
-// =====================================================
-
-async function getAuthenticatedDesigner(request: NextRequest) {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user?.email) {
-    return null;
-  }
-
-  // 韓国デザイナーメールアドレスリストを取得
-  const { data: setting } = await supabase
-    .from('notification_settings')
-    .select('value')
-    .eq('key', 'korea_designer_emails')
-    .maybeSingle();
-
-  const designerEmails = (setting?.value as string[]) || [];
-
-  if (!designerEmails.includes(user.email)) {
-    return null;
-  }
-
-  return { user, email: user.email };
-}
-
-// =====================================================
 // GET Handler - Get Revisions
 // =====================================================
 
@@ -77,17 +38,24 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Authenticate and verify designer role
-    const authResult = await getAuthenticatedDesigner(request);
+    const { id: orderId } = await params;
 
-    if (!authResult) {
+    // Extract token from URL query parameter
+    const token = request.nextUrl.searchParams.get('token');
+
+    // Authenticate using middleware OR token
+    const authResult = await getAuthenticatedDesignerOrToken(request, orderId, token || undefined);
+
+    if (!authResult.success) {
       return NextResponse.json(
-        { success: false, error: '認証されていません。', errorEn: 'Authentication required' },
+        {
+          success: false,
+          error: authResult.errorKo || authResult.error || 'Authentication required',
+          errorEn: authResult.error || 'Authentication required',
+        },
         { status: 401 }
       );
     }
-
-    const { id: orderId } = await params;
 
     const cookieStore = await cookies();
     const supabase = createServerClient(
