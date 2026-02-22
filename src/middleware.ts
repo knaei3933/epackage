@@ -48,6 +48,7 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/categories', // Public categories API
   '/api/member', // Member API - handles its own auth via SSR
   '/api/comparison', // Comparison API - handles client-side data
+  '/api/upload', // Phase 4: Token-based designer upload API (public, token-based auth)
 ];
 
 // =====================================================
@@ -57,6 +58,7 @@ const CSRF_EXEMPT_API_PATHS = [
 const PROTECTED_ROUTES = {
   member: ['/member', '/quote-simulator'],
   admin: ['/admin'],
+  designer: ['/designer'],  // NEW: Designer routes (Phase 3 - Korean Designer Workflow)
 };
 
 const PUBLIC_ROUTES = [
@@ -87,6 +89,9 @@ const PUBLIC_ROUTES = [
   '/auth/reset-password',
   '/auth/pending', // Public page shown after registration
   '/auth/suspended', // Public page for suspended accounts
+  '/designer/login', // Phase 3: Designer login page (public)
+  '/upload', // Phase 4: Token-based designer upload (public, no auth required)
+  '/designer-order', // Phase 5: Token-based designer order access (no auth required)
 ];
 
 // =====================================================
@@ -173,6 +178,26 @@ function createMiddlewareClient(request: NextRequest) {
 // =====================================================
 // Helper: Check User Status from Profile
 // =====================================================
+
+/**
+ * Check if user's email is in the korea_designer_emails whitelist
+ */
+async function checkDesignerEmailList(supabase: any, email: string): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('notification_settings')
+      .select('value')
+      .eq('key', 'korea_designer_emails')
+      .maybeSingle();
+
+    if (!data?.value) return false;
+
+    const emailList = data.value as string[];
+    return emailList.includes(email);
+  } catch {
+    return false;
+  }
+}
 
 async function getUserProfile(supabase: any, userId: string) {
   const { data, error } = await supabase
@@ -398,6 +423,14 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
+  // /api/debug routes for debugging (no auth required)
+  if (pathname.startsWith('/api/debug')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] EARLY EXEMPTION for /api/debug route:', pathname);
+    }
+    return addSecurityHeaders(NextResponse.next());
+  }
+
   // /api/admin routes handle their own authentication in each route
   // But we still need to add auth headers for the API to use
   if (pathname.startsWith('/api/admin')) {
@@ -453,6 +486,49 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(authResponse);
   }
 
+  // =====================================================
+  // /api/designer routes - Designer role required
+  // =====================================================
+  // Phase 3: Korean Designer Correction Workflow
+  if (pathname.startsWith('/api/designer')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] Processing /api/designer route:', pathname);
+    }
+
+    const response = NextResponse.next();
+
+    // Normal auth: extract user info and add to headers
+    const { supabase, response: authResponse } = createMiddlewareClient(request);
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (user && !error) {
+      const profile = await getUserProfile(supabase, user.id);
+
+      // Only add headers for designer users
+      if (profile?.role === 'KOREA_DESIGNER') {
+        authResponse.headers.set('x-user-id', user.id);
+        authResponse.headers.set('x-user-role', profile.role);
+        authResponse.headers.set('x-user-status', profile.status || 'ACTIVE');
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] Added auth headers for /api/designer:', user.id, profile?.role, profile?.status);
+        }
+      } else {
+        // Not a designer - return 403
+        return addSecurityHeaders(
+          NextResponse.json({ error: 'Forbidden', message: 'Designer access required' }, { status: 403 })
+        );
+      }
+    } else {
+      // No auth - return 401
+      return addSecurityHeaders(
+        NextResponse.json({ error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
+      );
+    }
+
+    return addSecurityHeaders(authResponse);
+  }
+
   // /admin/* page routes - DEV_MODE support for testing
   if (pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
     if (process.env.NODE_ENV === 'development') {
@@ -495,6 +571,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/member')) {
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] Processing /api/member route:', pathname);
+      // Debug logging for save-pdf route
+      if (pathname.includes('/save-pdf')) {
+        console.log('[Middleware] save-pdf route detected, path:', pathname);
+      }
     }
 
     const response = NextResponse.next();
@@ -729,6 +809,56 @@ export async function middleware(request: NextRequest) {
         NextResponse.redirect(new URL('/auth/signin', request.url))
       );
     }
+  }
+
+  // =====================================================
+  // Designer Routes - KOREA_DESIGNER role required
+  // =====================================================
+  // Phase 3: Korean Designer Correction Workflow
+  const isDesignerRoute = PROTECTED_ROUTES.designer?.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  if (isDesignerRoute && !pathname.startsWith('/designer/login')) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] Processing /designer route:', pathname);
+    }
+
+    // Check for KOREA_DESIGNER role OR being in the korea_designer_emails list
+    // Designers with the role OR admins/designers in the email whitelist can access
+    const isInDesignerEmailList = await checkDesignerEmailList(supabase, user.email);
+
+    if (normalizedRole !== 'korea_designer' && !isInDesignerEmailList) {
+      // Not a designer and not in the whitelist - redirect based on their actual role
+      if (normalizedRole === 'admin') {
+        // Admins can also access designer routes for management purposes
+        console.log('[Middleware] Admin accessing designer route - allowing access');
+        // Continue to set headers below
+      } else {
+        // Members and others - redirect to designer login
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL('/designer/login', request.url))
+        );
+      }
+    }
+
+    // Check designer status (must be ACTIVE)
+    if (profile.status !== 'ACTIVE') {
+      return addSecurityHeaders(
+        NextResponse.redirect(new URL('/designer/login?error=account_inactive', request.url))
+      );
+    }
+
+    // Designer is authenticated and active - allow access
+    authResponse.headers.set('x-user-id', user.id);
+    authResponse.headers.set('x-user-role', profile.role);
+    authResponse.headers.set('x-user-status', profile.status);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Middleware] Designer authenticated and active, allowing access');
+    }
+
+    return addSecurityHeaders(authResponse);
   }
 
   // Member routes - require ACTIVE status

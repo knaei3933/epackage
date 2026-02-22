@@ -411,6 +411,117 @@ ${FOOTER}
 }
 
 // ============================================================
+// Template 4.5: Partial SKU Submission Warning (一部SKU入稿警告)
+// ============================================================
+
+export const partialSKUSubmissionEmail = {
+  subject: (data: EpackEmailData): string => {
+    return `【Epackage Lab】一部SKUの入稿データが不足しています (${data.order_number})`
+  },
+
+  plainText: (data: EpackEmailData): string => {
+    const submittedSkus = data.submitted_skus || 0
+    const totalSkus = data.total_skus || 0
+    const pendingSkusList = data.pending_skus || []
+
+    return `
+${data.customer_name} 様
+
+平素より格別のご愛顧を賜り、厚く御礼申し上げます。
+Epackage Labでございます。
+
+先ほどご入稿いただいたデータを受領いたしましたが、
+注文に含まれる一部SKUの入稿データがまだ不足しております。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【入稿進捗状況】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+注文番号：${data.order_number}
+入稿済みSKU：${submittedSkus} / ${totalSkus}
+未入稿SKU：${totalSkus - submittedSkus}件
+
+${pendingSkusList.length > 0 ? `【未入稿のSKU一覧】
+${pendingSkusList.map((sku: any) => `  - ${sku.productName} (数量: ${sku.quantity})`).join('\n')}
+` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+つきましては、お手数ですが不足しているSKUの入稿データも
+ご提供いただけますようお願い申し上げます。
+
+すべてのSKUのデータが揃い次第、製造工程に進ませていただきます。
+
+詳細は以下のURLよりご確認いただけます。
+${data.view_url}
+
+何卒よろしくお願い申し上げます。
+
+${FOOTER()}
+`.trim()
+  },
+
+  html: (data: EpackEmailData): string => {
+    const submittedSkus = data.submitted_skus || 0
+    const totalSkus = data.total_skus || 0
+    const pendingSkusList = data.pending_skus || []
+    const progressPercent = totalSkus > 0 ? Math.round((submittedSkus / totalSkus) * 100) : 0
+
+    const pendingSkuRows = pendingSkusList.map((sku: any) => `
+      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+        <span class="info-label" style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;">製品名</span>
+        <span class="info-value" style="font-weight: bold; color: #dc2626;">${sku.productName}</span>
+      </div>
+      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+        <span class="info-label" style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;">数量</span>
+        <span class="info-value">${sku.quantity}枚</span>
+      </div>
+    `).join('')
+
+    const content = `
+      ${createHeader('一部SKUの入稿データが不足しています', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+      <div class="content">
+        <p style="margin-top: 0;">${data.customer_name} 様</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
+        <p>先ほどご入稿いただいたデータを受領いたしましたが、<br>注文に含まれる一部SKUの入稿データがまだ不足しております。</p>
+
+        ${createInfoBox('入稿進捗状況', [
+          { label: '注文番号', value: data.order_number || '' },
+          { label: '入稿済みSKU', value: `${submittedSkus} / ${totalSkus}`, highlight: true },
+          { label: '未入稿SKU', value: `${totalSkus - submittedSkus}件`, highlight: true },
+        ])}
+
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+          <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold; color: #92400e;">進捗状況</h3>
+          <div style="background: white; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+            <div style="background: #e5e7eb; border-radius: 4px; height: 24px; overflow: hidden;">
+              <div style="background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); height: 100%; width: ${progressPercent}%; transition: width 0.3s;"></div>
+            </div>
+            <p style="text-align: center; margin: 8px 0 0 0; font-size: 14px; color: #666;">${progressPercent}% 完了</p>
+          </div>
+          ${pendingSkusList.length > 0 ? `
+            <h4 style="margin: 15px 0 10px 0; font-size: 14px; font-weight: bold; color: #92400e;">未入稿のSKU一覧</h4>
+            ${pendingSkuRows}
+          ` : ''}
+        </div>
+
+        <div class="info" style="background: white; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+          <strong>⚠️ 残りのSKUデータをご入稿ください</strong><br>
+          つきましては、お手数ですが不足しているSKUの入稿データも<br>
+          ご提供いただけますようお願い申し上げます。<br>
+          すべてのSKUのデータが揃い次第、製造工程に進ませていただきます。
+        </div>
+
+        ${createButton('注文詳細を確認', data.view_url, 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+
+        <p style="margin-bottom: 0;">何卒よろしくお願い申し上げます。</p>
+      </div>
+    `
+    return createBaseHtml(content, 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')
+  }
+}
+
+// ============================================================
 // Template 5: Modification Request (修正承認依頼)
 // ============================================================
 
@@ -1187,6 +1298,7 @@ export const epackEmailTemplates = {
   quoteApproved: quoteApprovedEmail,
   dataUploadRequest: dataUploadRequestEmail,
   dataReceived: dataReceivedEmail,
+  partialSKUSubmission: partialSKUSubmissionEmail,
   modificationRequest: modificationRequestEmail,
   modificationApproved: modificationApprovedEmail,
   modificationRejected: modificationRejectedEmail,

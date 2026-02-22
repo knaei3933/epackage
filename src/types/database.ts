@@ -333,8 +333,13 @@ export type Database = {
                     city: string | null
                     street: string | null
                     building: string | null  // 建物名
-                    role: 'ADMIN' | 'MEMBER'
-                    status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'
+                    role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER'
+                    status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
+                    // Designer-specific fields
+                    designer_name_ko: string | null  // Korean name
+                    designer_name_en: string | null  // English name
+                    preferred_language: 'ja' | 'ko' | 'en'  // Preferred language for UI
+                    notification_settings: Json | null  // Notification preferences
                     // B2B追加フィールド
                     founded_year: string | null  // 設立年
                     capital: string | null  // 資本金
@@ -395,6 +400,7 @@ export type Database = {
                     unit_price: number
                     total_price: number
                     specifications: Json | null
+                    sku_name: string | null  // SKU name for the product item (e.g., EPAC-001)
                     created_at: string
                 }
                 Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id' | 'created_at'>
@@ -793,9 +799,12 @@ export type Database = {
                     quotation_id: string | null  // FK to quotations
                     work_order_id: string | null  // FK to work_orders
                     production_log_id: string | null  // FK to production_logs
+                    order_item_id: string | null  // FK to order_items
+                    sku_name: string | null  // SKU name snapshot (denormalized for performance)
                     uploaded_by: string  // アップロード者 (user_id)
                     file_type: 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER'
-                    file_name: string  // 元のファイル名
+                    file_name: string  // 元のファイル名 (also used as original_filename for compatibility)
+                    original_filename: string | null  // Google Drive file name
                     file_url: string  // Storage URL
                     file_size: number  // ファイルサイズ (bytes)
                     version: number  // バージョン番号
@@ -814,6 +823,90 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>
                 Update: Partial<Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>>
+            }
+
+            // Design Revisions table - デザイン修正・承認管理
+            design_revisions: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    revision_number: number  // 修正回数
+                    revision_name: string | null  // 修正名（例：「第1回修正」）
+                    order_item_id: string | null  // FK to order_items (特定アイテムの修正のみ)
+                    sku_name: string | null  // SKU name snapshot (denormalized for performance)
+                    customer_files: Json | null  // 顧客アップロードファイル情報（filesテーブル参照）
+                    corrected_files: Json | null  // パートナー修正ファイル情報（filesテーブル参照）
+                    preview_image_url: string | null  // プレビュー画像URL
+                    original_file_url: string | null  // 元ファイルURL
+                    customer_comment: string | null  // 顧客コメント
+                    partner_comment: string | null  // パートナーコメント (deprecated)
+                    // Korean designer bilingual support
+                    comment_ko: string | null  // Korean designer's original comment
+                    comment_ja: string | null  // Japanese translation
+                    translation_status: 'pending' | 'translated' | 'failed' | 'manual'  // Translation status
+                    translation_requested_at: string | null  // When translation was requested
+                    translation_completed_at: string | null  // When translation completed
+                    // Uploader tracking
+                    uploaded_by_type: 'admin' | 'korea_designer' | 'member'  // Who uploaded
+                    uploaded_by_id: string | null  // FK to profiles (uploader)
+                    approval_status: 'pending' | 'approved' | 'rejected'  // 承認ステータス
+                    approved_by: string | null  // 承認者 (user_id)
+                    approved_at: string | null  // 承認日時
+                    // Design Revision Workflow v2 - Customer file submission tracking
+                    original_customer_filename: string | null  // Original customer uploaded filename
+                    generated_correction_filename: string | null  // Generated correction filename (e.g., ORD-001_SkuName_R1_correction.ai)
+                    customer_submission_id: string | null  // FK to customer_file_submissions
+                    // Rejection tracking
+                    rejection_reason: string | null  // Reason for rejection
+                    rejected_at: string | null  // Rejection timestamp
+                    rejected_by: string | null  // FK to profiles (user who rejected)
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>>
+            }
+
+            // Customer File Submissions table - カスタマーファイル提出管理 (Design Revision Workflow v2)
+            customer_file_submissions: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    order_item_id: string | null  // FK to order_items
+                    file_id: string | null  // FK to files
+                    original_filename: string  // Original uploaded filename
+                    file_url: string  // Storage URL
+                    file_type: string  // File type (AI, PDF, PSD, etc.)
+                    file_size_bytes: number | null  // File size in bytes
+                    submission_number: number  // Sequential submission number per order (1, 2, 3, ...)
+                    is_current: boolean  // TRUE = active submission, FALSE = replaced
+                    replaced_at: string | null  // When this submission was replaced
+                    replaced_by: string | null  // FK to profiles (user who replaced)
+                    previous_submission_id: string | null  // FK to customer_file_submissions (previous version)
+                    uploaded_by: string  // FK to profiles (user who uploaded)
+                    uploaded_at: string  // Upload timestamp
+                }
+                Insert: Omit<Database['public']['Tables']['customer_file_submissions']['Row'], 'id' | 'uploaded_at'>
+                Update: Partial<Database['public']['Tables']['customer_file_submissions']['Row']>
+            }
+
+            // Revision Notifications table - リビジョン通知管理 (Design Revision Workflow v2)
+            revision_notifications: {
+                Row: {
+                    id: string
+                    revision_id: string  // FK to design_revisions
+                    notification_type: 'uploaded' | 'approved' | 'rejected' | 'reminder'  // Type of notification
+                    recipient_email: string  // Recipient email address
+                    recipient_role: 'customer' | 'designer' | 'admin'  // Recipient role
+                    status: 'pending' | 'sent' | 'failed'  // Notification status
+                    sent_at: string | null  // When notification was sent
+                    error_message: string | null  // Error message if failed
+                    subject: string | null  // Email subject
+                    body_html: string | null  // Email body HTML
+                    created_at: string  // Creation timestamp
+                }
+                Insert: Omit<Database['public']['Tables']['revision_notifications']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['revision_notifications']['Row']>
             }
 
             // Order Status History table - ステータス変更履歴
@@ -1356,65 +1449,46 @@ export type Database = {
             }
 
             // ============================================================
-            // BLOG CMS SYSTEM NEW TABLES (Phase 1)
+            // KOREAN DESIGNER WORKFLOW TABLES
             // ============================================================
 
-            // Blog Posts table - ブログ記事
-            blog_posts: {
+            // Translation Cache table - 翻訳キャッシュ
+            translation_cache: {
                 Row: {
                     id: string
-                    title: string
-                    slug: string
-                    content: string  // Markdown content
-                    excerpt: string | null  // Short description (max 160 chars)
-                    category: string  // 'news', 'technical', 'industry', 'company'
-                    tags: string[]  // Array of tag strings
-                    meta_title: string | null  // Override title for SEO (max 60 chars)
-                    meta_description: string | null  // Override description (max 160 chars)
-                    og_image_path: string | null  // Path in Supabase Storage
-                    canonical_url: string | null  // Optional canonical URL
-                    author_id: string | null  // FK to profiles
-                    status: 'draft' | 'review' | 'published' | 'archived'
-                    published_at: string | null
-                    created_at: string
-                    updated_at: string
-                    view_count: number
-                    reading_time_minutes: number | null
+                    source_text: string  // Original text to translate
+                    source_language: 'ko' | 'ja' | 'en'  // Source language
+                    target_language: 'ko' | 'ja' | 'en'  // Target language
+                    translated_text: string  // Translated text
+                    translation_provider: 'google' | 'manual'  // Translation provider
+                    quality_score: number | null  // Translation quality score
+                    created_at: string  // TIMESTAMPTZ
+                    expires_at: string  // TIMESTAMPTZ (default 30 days)
                 }
-                Insert: Omit<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'created_at'>>
+                Insert: Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>>
             }
 
-            // Blog Images table - ブログ画像
-            blog_images: {
+            // Designer Task Assignments table - デザイナータスク割り当て
+            designer_task_assignments: {
                 Row: {
                     id: string
-                    post_id: string | null  // FK to blog_posts
-                    storage_path: string  // Full path in Supabase Storage
-                    original_filename: string
-                    mime_type: string
-                    file_size: number
-                    width: number | null
-                    height: number | null
-                    alt_text: string | null
-                    created_at: string
-                    created_by: string | null  // FK to profiles
+                    designer_id: string  // FK to profiles (KOREA_DESIGNER)
+                    order_id: string  // FK to orders
+                    assigned_by: string | null  // FK to profiles (admin who assigned)
+                    status: 'pending' | 'in_progress' | 'completed' | 'cancelled'  // Assignment status
+                    assigned_at: string  // TIMESTAMPTZ
+                    completed_at: string | null  // TIMESTAMPTZ
+                    notes: string | null  // Assignment notes
+                    upload_token_id: string | null  // FK to upload_tokens
+                    token_email_sent_at: string | null  // TIMESTAMPTZ
+                    token_email_status: 'pending' | 'sent' | 'failed' | null  // Token email status
+                    access_token_hash: string | null  // SHA-256 hash of access token for token-based order access
+                    access_token_expires_at: string | null  // TIMESTAMPTZ - Token expiration timestamp
+                    last_accessed_at: string | null  // TIMESTAMPTZ - Last time the token was used
                 }
-                Insert: Omit<Database['public']['Tables']['blog_images']['Row'], 'id' | 'created_at'>
-                Update: Partial<Database['public']['Tables']['blog_images']['Row']>
-            }
-
-            // Blog Categories table - ブログカテゴリ
-            blog_categories: {
-                Row: {
-                    id: string  // 'news', 'technical', 'industry', 'company'
-                    name_ja: string  // Japanese display name
-                    name_en: string  // English display name
-                    description: string | null
-                    sort_order: number
-                }
-                Insert: Omit<Database['public']['Tables']['blog_categories']['Row'], 'id'>
-                Update: Partial<Database['public']['Tables']['blog_categories']['Row']>
+                Insert: Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>
+                Update: Partial<Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>>
             }
         }
         Views: {
@@ -1429,9 +1503,9 @@ export type Database = {
             // Product categories
             product_category: 'COSMETICS' | 'CLOTHING' | 'ELECTRONICS' | 'KITCHEN' | 'FURNITURE' | 'OTHER'
             // User roles
-            user_role: 'ADMIN' | 'MEMBER'
+            user_role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER'
             // User status
-            user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'
+            user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
             // Order status
             order_status: 'pending' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'delivered' | 'cancelled'
             // Quotation status
@@ -1535,14 +1609,23 @@ export type Database = {
             coupon_status: 'active' | 'inactive' | 'expired' | 'scheduled'
 
             // ============================================================
-            // BLOG CMS SYSTEM NEW ENUMS (Phase 1)
+            // KOREAN DESIGNER WORKFLOW ENUMS
             // ============================================================
 
-            // Blog post status
-            blog_post_status: 'draft' | 'review' | 'published' | 'archived'
+            // Translation status for designer comments
+            translation_status: 'pending' | 'translated' | 'failed' | 'manual'
 
-            // Blog category
-            blog_category: 'news' | 'technical' | 'industry' | 'company'
+            // Translation provider
+            translation_provider: 'google' | 'manual'
+
+            // Language codes for translation
+            language_code: 'ko' | 'ja' | 'en'
+
+            // Uploader type for design revisions
+            uploader_type: 'admin' | 'korea_designer' | 'member'
+
+            // Designer task assignment status
+            designer_task_status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
         }
         CompositeTypes: {
             [_ in never]: never

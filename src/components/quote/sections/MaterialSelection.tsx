@@ -26,10 +26,10 @@ const MATERIALS = [
     popular: true,
     ecoFriendly: false,
     thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL 7μ + PET 12μ + PE 60μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + AL 7μ + PET 12μ + PE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL 7μ + PET 12μ + PE 100μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (800g~)', nameJa: '超耐久タイプ (800g~)', specification: 'PET 12μ + AL 7μ + PET 12μ + PE 110μ', weightRange: '800g~', multiplier: 1.2 }
+      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ', weightRange: '~100g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 },
+      { id: 'ultra', name: '超耐久タイプ (800g~)', nameJa: '超耐久タイプ (800g~)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ', weightRange: '800g~', multiplier: 1.2 }
     ]
   },
   {
@@ -44,9 +44,9 @@ const MATERIALS = [
     popular: false,
     ecoFriendly: false,
     thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + PE 60μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + PE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + PE 100μ', weightRange: '~800g', multiplier: 1.1 }
+      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 60μ', weightRange: '~100g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 }
     ]
   },
   {
@@ -78,9 +78,9 @@ const MATERIALS = [
     popular: false,
     ecoFriendly: false,
     thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + NY 16μ + AL 7μ + PE 60μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + NY 16μ + AL 7μ + PE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + NY 16μ + AL 7μ + PE 100μ', weightRange: '~800g', multiplier: 1.1 }
+      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 60μ', weightRange: '~100g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 }
     ]
   }
 ];

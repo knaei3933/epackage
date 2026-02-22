@@ -16,7 +16,9 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { FileText, Download, Trash2, MessageSquare, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { FileText, Download, Trash2, MessageSquare, CheckCircle, Clock, XCircle, User } from 'lucide-react';
+import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
+import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
 import type { DesignRevision } from './types';
 
 interface RevisionCardProps {
@@ -97,13 +99,33 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
       <div className="space-y-4">
         {/* Header */}
         <div className="flex justify-between items-start">
-          <div>
-            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-              {revision.revision_number}次校正
-            </h4>
-            <p className="text-sm text-gray-500 mt-1">
-              {new Date(revision.created_at).toLocaleString('ja-JP')}
-            </p>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold text-gray-900">
+                {revision.revision_number}次校正
+              </h4>
+              {revision.sku_name && (
+                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                  {revision.sku_name}
+                </span>
+              )}
+              {/* Designer badge */}
+              {revision.uploaded_by_type === 'korea_designer' && (
+                <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  韓国デザイナー
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-sm text-gray-500">
+              <span>{new Date(revision.created_at).toLocaleString('ja-JP')}</span>
+              {revision.uploaded_by_name && (
+                <span className="flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  {revision.uploaded_by_name}
+                </span>
+              )}
+            </div>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${getStatusColor(revision.approval_status)}`}>
             {getStatusIcon(revision.approval_status)}
@@ -154,16 +176,38 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
           )}
         </div>
 
-        {/* Partner Comment */}
-        {revision.partner_comment && (
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-start gap-2">
-              <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-gray-700">パートナーコメント</p>
-                <p className="text-sm text-gray-600 mt-1">{revision.partner_comment}</p>
-              </div>
+        {/* Partner Comment - Bilingual Display */}
+        {(revision.partner_comment || revision.comment_ko || revision.comment_ja) && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="w-4 h-4 text-gray-500" />
+              <p className="text-sm font-medium text-gray-700">パートナーコメント</p>
+              {/* Show translation status badge if available */}
+              {revision.translation_status && (revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) && (
+                <TranslationStatusBadge
+                  status={revision.translation_status}
+                  size="sm"
+                  animated={false}
+                />
+              )}
             </div>
+            {/* Use bilingual display when bilingual data is available OR uploaded by Korean designer */}
+            {(revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) ? (
+              <BilingualCommentDisplay
+                commentKo={revision.comment_ko || revision.partner_comment || ''}
+                commentJa={revision.comment_ja || ''}
+                translationStatus={revision.translation_status || 'pending'}
+                showStatus={false}
+                defaultLanguage="ja"
+                variant="default"
+                isAdmin={true}
+              />
+            ) : (
+              /* Legacy display for admin uploads without bilingual data */
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-600">{revision.partner_comment}</p>
+              </div>
+            )}
           </div>
         )}
 

@@ -700,213 +700,207 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
         </dl>
       </Card>
 
+      {/* Common Specifications - Display once for all items */}
+      {quotation.items?.[0]?.specifications && typeof quotation.items[0].specifications === 'object' && Object.keys(quotation.items[0].specifications).length > 0 && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-text-primary mb-4">製品仕様（共通）</h2>
+          <div className="bg-bg-secondary p-4 rounded-lg space-y-3">
+            {/* Contents */}
+            {quotation.items[0].specifications && (
+              <div className="text-sm">
+                <span className="text-text-muted">内容物:</span>
+                <span className="ml-2 text-text-primary">
+                  {getContentsDisplay(quotation.items[0].specifications)}
+                </span>
+              </div>
+            )}
+
+            {/* Size */}
+            {quotation.items[0].specifications && (
+              <div className="text-sm">
+                <span className="text-text-muted">サイズ:</span>
+                <span className="ml-2 text-text-primary">
+                  {(() => {
+                    const specs = quotation.items[0].specifications;
+                    if (specs?.bagTypeId === 'roll_film' || specs?.bagTypeId === 'standup_pouch') {
+                      return (
+                        <>
+                          幅: {specs?.width}mm
+                          {specs?.pitch && `、ピッチ: ${specs.pitch}mm`}
+                        </>
+                      );
+                    }
+                    const existingDimensions = specs?.dimensions;
+                    const sideWidth = specs?.sideWidth;
+                    if (existingDimensions) {
+                      if (sideWidth && !existingDimensions.includes('側面')) {
+                        return existingDimensions.replace(' mm', `×側面${sideWidth} mm`);
+                      } else {
+                        return existingDimensions;
+                      }
+                    } else {
+                      return (
+                        <>
+                          {specs?.width}mm × {specs?.height}mm
+                          {specs?.depth && ` × ${specs?.depth}mm`}
+                          {specs?.sideWidth && ` × 側面${specs?.sideWidth}mm`}
+                        </>
+                      );
+                    }
+                  })()}
+                </span>
+              </div>
+            )}
+
+            {/* Bag Type */}
+            {quotation.items[0].specifications?.bagTypeId && (
+              <div className="text-sm">
+                <span className="text-text-muted">袋タイプ:</span>
+                <span className="ml-2 text-text-primary">
+                  {getBagTypeName(quotation.items[0].specifications?.bagTypeId)}
+                </span>
+              </div>
+            )}
+
+            {/* Material */}
+            {quotation.items[0].specifications?.materialId && (
+              <div className="text-sm">
+                <span className="text-text-muted">素材:</span>
+                <span className="ml-2 text-text-primary">
+                  {getMaterialName(quotation.items[0].specifications?.materialId)}
+                </span>
+              </div>
+            )}
+
+            {/* Thickness */}
+            {quotation.items[0].specifications?.thicknessSelection && (
+              <div className="text-sm">
+                <span className="text-text-muted">厚さ:</span>
+                <span className="ml-2 text-text-primary">
+                  {getThicknessName(
+                    quotation.items[0].specifications?.materialId,
+                    quotation.items[0].specifications?.thicknessSelection
+                  )}
+                </span>
+              </div>
+            )}
+
+            {/* Printing */}
+            {(quotation.items[0].specifications?.printingType || quotation.items[0].specifications?.printingColors) && (
+              <div className="text-sm">
+                <span className="text-text-muted">印刷:</span>
+                <span className="ml-2 text-text-primary">
+                  {quotation.items[0].specifications?.printingType === 'digital' && 'デジタル印刷（フルカラー）'}
+                  {quotation.items[0].specifications?.printingType === 'gravure' && 'グラビア印刷（フルカラー）'}
+                </span>
+              </div>
+            )}
+
+            {/* Post Processing Options */}
+            {quotation.items[0].specifications?.postProcessingOptions && Array.isArray(quotation.items[0].specifications?.postProcessingOptions) && quotation.items[0].specifications?.postProcessingOptions.length > 0 && (() => {
+              const bagTypeId = quotation.items[0].specifications?.bagTypeId as string;
+              const isLimitedPostProcessing = bagTypeId === 'roll_film' || bagTypeId === 'standup_pouch';
+              const allowedOptions = isLimitedPostProcessing
+                ? quotation.items[0].specifications?.postProcessingOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
+                : quotation.items[0].specifications?.postProcessingOptions;
+
+              if (allowedOptions.length === 0) return null;
+
+              return (
+                <div className="text-sm">
+                  <span className="text-text-muted">後加工:</span>
+                  <div className="ml-2 mt-1 flex flex-wrap gap-2">
+                    {allowedOptions.map((opt: string) => {
+                      const labelMap: Record<string, string> = {
+                        'corner-round': '角丸',
+                        'corner-square': '角直角',
+                        'glossy': '光沢仕上げ',
+                        'matte': 'マット仕上げ',
+                        'notch-yes': 'Vノッチ',
+                        'notch-straight': '直線ノッチ',
+                        'notch-no': 'ノッチなし',
+                        'hang-hole-6mm': '吊り穴(6mm)',
+                        'hang-hole-8mm': '吊り下げ穴 (8mm)',
+                        'hang-hole-no': '吊り穴なし',
+                        'valve-yes': 'バルブ付き',
+                        'valve-no': 'バルブなし',
+                        'zipper-yes': 'ジッパー付き',
+                        'zipper-no': 'ジッパーなし',
+                        'zipper-position-any': 'ジッパー位置 (お任せ)',
+                        'zipper-position-specified': 'ジッパー位置 (指定)',
+                        'top-open': '上部解放',
+                        'bottom-open': '下端解放',
+                        'top-sealed': '上部密封',
+                        'sealing-width-5mm': 'シール幅 5mm',
+                        'sealing-width-7.5mm': 'シール幅 7.5mm',
+                        'sealing-width-10mm': 'シール幅 10mm',
+                        'machi-printing-yes': 'マチ印刷あり',
+                        'machi-printing-no': 'マチ印刷なし',
+                      };
+                      return (
+                        <span
+                          key={opt}
+                          className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
+                        >
+                          {labelMap[opt] || opt}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Delivery Location */}
+            {quotation.items[0].specifications?.deliveryLocation && (
+              <div className="text-sm">
+                <span className="text-text-muted">配送先:</span>
+                <span className="ml-2 text-text-primary">
+                  {quotation.items[0].specifications?.deliveryLocation === 'domestic' && '国内'}
+                  {quotation.items[0].specifications?.deliveryLocation === 'international' && '海外'}
+                </span>
+              </div>
+            )}
+
+            {/* Urgency */}
+            {quotation.items[0].specifications?.urgency && (
+              <div className="text-sm">
+                <span className="text-text-muted">納期:</span>
+                <span className="ml-2 text-text-primary">
+                  {quotation.items[0].specifications?.urgency === 'urgent' && '急ぎ'}
+                  {quotation.items[0].specifications?.urgency === 'standard' && '標準'}
+                </span>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Line Items */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-4">品目明細</h2>
-        <div className="space-y-6">
-          {quotation.items?.map((item) => (
+        <div className="space-y-4">
+          {quotation.items?.map((item, index) => (
             <div
               key={item.id}
-              className="border border-border-secondary rounded-lg p-4 space-y-4"
+              className="border border-border-secondary rounded-lg p-4 flex items-center justify-between"
             >
-              {/* Product Name */}
+              {/* SKU Name and Quantity */}
               <div>
-                <h3 className="text-lg font-semibold text-text-primary">
-                  {item.productName}
+                <h3 className="text-base font-semibold text-text-primary">
+                  {item.productName || `SKU ${index + 1}`}
                 </h3>
                 <p className="text-sm text-text-muted mt-1">
                   数量: {item.quantity.toLocaleString()}個 × {(item.unitPrice || 0).toLocaleString()}円
                 </p>
               </div>
 
-              {/* Detailed Specifications */}
-              {item?.specifications && typeof item?.specifications === 'object' && Object.keys(item?.specifications).length > 0 && (
-                <div className="bg-bg-secondary p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-text-primary text-sm border-b border-border-secondary pb-2">
-                    詳細仕様
-                  </h4>
-
-                  {/* Contents */}
-                  {item?.specifications && (
-                    <div className="text-sm">
-                      <span className="text-text-muted">内容物:</span>
-                      <span className="ml-2 text-text-primary">
-                        {getContentsDisplay(item?.specifications)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Size */}
-                  {item?.specifications && (
-                    <div className="text-sm">
-                      <span className="text-text-muted">サイズ:</span>
-                      <span className="ml-2 text-text-primary">
-                        {(() => {
-                          if (item?.specifications?.bagTypeId === 'roll_film' || item?.specifications?.bagTypeId === 'standup_pouch') {
-                            return (
-                              <>
-                                幅: {item?.specifications?.width}mm
-                                {item?.specifications?.pitch && `、ピッチ: ${item?.specifications.pitch}mm`}
-                              </>
-                            );
-                          }
-                          // 既存のdimensionsとsideWidthをチェック
-                          const existingDimensions = item?.specifications?.dimensions;
-                          const sideWidth = item?.specifications?.sideWidth;
-                          if (existingDimensions) {
-                            // dimensionsに側面が含まれていない場合、追加する
-                            if (sideWidth && !existingDimensions.includes('側面')) {
-                              return existingDimensions.replace(' mm', `×側面${sideWidth} mm`);
-                            } else {
-                              return existingDimensions;
-                            }
-                          } else {
-                            // dimensionsがない場合は個別フィールドから構築
-                            return (
-                              <>
-                                {item?.specifications?.width}mm × {item?.specifications?.height}mm
-                                {item?.specifications?.depth && ` × ${item?.specifications?.depth}mm`}
-                                {item?.specifications?.sideWidth && ` × 側面${item?.specifications?.sideWidth}mm`}
-                              </>
-                            );
-                          }
-                        })()}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Bag Type */}
-                  {item?.specifications?.bagTypeId && (
-                    <div className="text-sm">
-                      <span className="text-text-muted">袋タイプ:</span>
-                      <span className="ml-2 text-text-primary">
-                        {getBagTypeName(item?.specifications?.bagTypeId)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Material */}
-                  {item?.specifications?.materialId && (
-                    <div className="text-sm">
-                      <span className="text-text-muted">素材:</span>
-                      <span className="ml-2 text-text-primary">
-                        {getMaterialName(item?.specifications?.materialId)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Thickness */}
-                  {item?.specifications?.thicknessSelection && (
-                    <div className="text-sm">
-                      <span className="text-text-muted">厚さ:</span>
-                      <span className="ml-2 text-text-primary">
-                        {getThicknessName(
-                          item?.specifications?.materialId,
-                          item?.specifications?.thicknessSelection
-                        )}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Printing */}
-                  {(item?.specifications?.printingType || item?.specifications?.printingColors) && (
-                    <div className="text-sm">
-                      <span className="text-text-muted">印刷:</span>
-                      <span className="ml-2 text-text-primary">
-                        {item?.specifications?.printingType === 'digital' && 'デジタル印刷（フルカラー）'}
-                        {item?.specifications?.printingType === 'gravure' && 'グラビア印刷（フルカラー）'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Post Processing Options */}
-                  {item?.specifications?.postProcessingOptions && Array.isArray(item?.specifications?.postProcessingOptions) && item?.specifications?.postProcessingOptions.length > 0 && (() => {
-                    // ロールフィルム・スタンドパウチの場合は表面処理のみ表示
-                    const bagTypeId = item?.specifications?.bagTypeId as string;
-                    const isLimitedPostProcessing = bagTypeId === 'roll_film' || bagTypeId === 'standup_pouch';
-                    const allowedOptions = isLimitedPostProcessing
-                      ? item?.specifications?.postProcessingOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
-                      : item?.specifications?.postProcessingOptions;
-
-                    // フィルタリング後に表示するオプションがある場合のみ表示
-                    if (allowedOptions.length === 0) return null;
-
-                    return (
-                      <div className="text-sm">
-                        <span className="text-text-muted">後加工:</span>
-                        <div className="ml-2 mt-1 flex flex-wrap gap-2">
-                          {allowedOptions.map((opt: string) => {
-                            const labelMap: Record<string, string> = {
-                              // コーナー加工
-                              'corner-round': '角丸',
-                              'corner-square': '角直角',
-                              // 表面処理
-                              'glossy': '光沢仕上げ',
-                              'matte': 'マット仕上げ',
-                              // ノッチ (Vノッチ/直線ノッチ構分)
-                              'notch-yes': 'Vノッチ',
-                              'notch-straight': '直線ノッチ',
-                              'notch-no': 'ノッチなし',
-                              // 吊り下げ穴
-                              'hang-hole-6mm': '吊り穴(6mm)',
-                              'hang-hole-8mm': '吊り下げ穴 (8mm)',
-                              'hang-hole-no': '吊り穴なし',
-                              // バルブ
-                              'valve-yes': 'バルブ付き',
-                              'valve-no': 'バルブなし',
-                              // ジッパー
-                              'zipper-yes': 'ジッパー付き',
-                              'zipper-no': 'ジッパーなし',
-                              'zipper-position-any': 'ジッパー位置 (お任せ)',
-                              'zipper-position-specified': 'ジッパー位置 (指定)',
-                              // 封印処理
-                              'top-open': '上部解放',
-                              'bottom-open': '下端解放',
-                              'top-sealed': '上部密封',
-                              // シール幅
-                              'sealing-width-5mm': 'シール幅 5mm',
-                              'sealing-width-7.5mm': 'シール幅 7.5mm',
-                              'sealing-width-10mm': 'シール幅 10mm',
-                              // マチ印刷
-                              'machi-printing-yes': 'マチ印刷あり',
-                              'machi-printing-no': 'マチ印刷なし',
-                            };
-                            return (
-                              <span
-                                key={opt}
-                                className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
-                              >
-                                {labelMap[opt] || opt}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* Additional Info */}
-              {item?.specifications?.urgency && (
-                <div className="text-sm">
-                  <span className="text-text-muted">納期:</span>
-                  <span className="ml-2 text-text-primary">
-                    {item?.specifications?.urgency === 'urgent' && '急ぎ'}
-                    {item?.specifications?.urgency === 'standard' && '標準'}
-                  </span>
-                </div>
-              )}
-
-              {item?.specifications?.deliveryLocation && (
-                <div className="text-sm">
-                  <span className="text-text-muted">配送先:</span>
-                  <span className="ml-2 text-text-primary">
-                    {item?.specifications?.deliveryLocation === 'domestic' && '国内'}
-                    {item?.specifications?.deliveryLocation === 'international' && '海外'}
-                  </span>
-                </div>
-              )}
+              {/* Item Total */}
+              <div className="text-right">
+                <p className="text-lg font-semibold text-text-primary">
+                  ¥{(item.totalPrice || item.unitPrice * item.quantity || 0).toLocaleString()}
+                </p>
+              </div>
             </div>
           ))}
         </div>

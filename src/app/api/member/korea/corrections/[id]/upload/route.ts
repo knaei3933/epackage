@@ -2,7 +2,7 @@
  * API Route: Upload Corrected Files for Korea Corrections
  *
  * 韓国パートナー修正ファイルアップロードAPI
- * - POST: 修正されたファイルのアップロード
+ * - POST: 修正されたファイルのアップロード（Google Drive使用）
  *
  * /api/member/korea/corrections/[id]/upload
  *
@@ -15,6 +15,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import {
+  getAdminAccessTokenForUpload,
+  uploadFileToDrive,
+  getCorrectionFolderId
+} from '@/lib/google-drive';
 
 // ============================================================
 // Constants
@@ -147,25 +152,24 @@ export async function POST(
       }
 
       try {
-        // Upload to Supabase Storage
+        // Upload to Google Drive
         const fileName = `${Date.now()}-${file.name}`;
-        const filePath = `korea-corrections/${correction.order_id}/${correctionId}/${fileName}`;
+        const correctionFolderId = getCorrectionFolderId();
 
-        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-          .from('production-files')
-          .upload(filePath, file);
-
-        if (uploadError) {
-          errors.push(`${file.name}: Upload failed - ${uploadError.message}`);
+        if (!correctionFolderId) {
+          errors.push(`${file.name}: Google Drive correction folder not configured`);
           continue;
         }
 
-        // Get public URL
-        const { data: { publicUrl } } = supabaseAdmin.storage
-          .from('production-files')
-          .getPublicUrl(filePath);
+        const uploadedFile = await uploadFileToDrive(
+          file,
+          fileName,
+          file.type || 'application/octet-stream',
+          correctionFolderId,
+          await getAdminAccessTokenForUpload()
+        );
 
-        uploadedFiles.push(publicUrl);
+        uploadedFiles.push(uploadedFile.webViewLink);
       } catch (err: any) {
         errors.push(`${file.name}: ${err.message}`);
       }

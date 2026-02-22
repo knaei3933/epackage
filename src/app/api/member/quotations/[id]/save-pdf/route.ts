@@ -22,6 +22,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Route entry-point debug logging
+  console.log('[save-pdf API] Route hit, quotationId will be extracted from params');
+
   try {
     // Get x-user-id header from middleware (already authenticated)
     const userId = request.headers.get('x-user-id');

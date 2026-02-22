@@ -33,6 +33,14 @@ interface UploadedFile {
   file_url: string;
   uploaded_at: string;
   validation_status: 'PENDING' | 'VALID' | 'INVALID';
+  order_item_id?: string | null;  // NEW: SKU association
+  sku_name?: string | null;  // NEW: SKU name snapshot
+}
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
 }
 
 interface ValidationError {
@@ -60,15 +68,40 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [description, setDescription] = useState('');
+  const [productName, setProductName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [pendingDeleteFile, setPendingDeleteFile] = useState<{ id: string; name: string } | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
+  const [skuSubmissionStatus, setSkuSubmissionStatus] = useState<{
+    totalSkus: number;
+    submittedSkus: number;
+    isComplete: boolean;
+    pendingSkus: Array<{ id: string; productName: string; quantity: number }>;
+  } | null>(null);
 
   // Load existing files on mount
   useEffect(() => {
     loadUploadedFiles();
   }, [order.id]);
+
+  // Initialize order items from order prop
+  useEffect(() => {
+    if (order.items && order.items.length > 0) {
+      const items: OrderItem[] = order.items.map(item => ({
+        id: item.id,
+        product_name: item.productName,
+        quantity: item.quantity,
+      }));
+      setOrderItems(items);
+      // Auto-select first item if only one item exists
+      if (items.length === 1) {
+        setSelectedOrderItemId(items[0].id);
+      }
+    }
+  }, [order.items]);
 
   // Load uploaded files
   const loadUploadedFiles = async () => {
@@ -79,6 +112,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       if (response.ok) {
         const data = await response.json();
         setUploadedFiles(data.data.files || []);
+        setSkuSubmissionStatus(data.data.skuSubmissionStatus || null);
       }
     } catch (err) {
       console.error('Failed to load uploaded files:', err);
@@ -140,6 +174,12 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const handleUpload = async () => {
     if (!selectedFile) return;
 
+    // Validate product name is required
+    if (!productName.trim()) {
+      setError('製品名を入力してください');
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
@@ -147,10 +187,15 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
+      formData.append('product_name', productName.trim());
       // Always use production_data for AI files
       formData.append('data_type', 'production_data');
       if (description) {
         formData.append('description', description);
+      }
+      // Add order_item_id if SKU is selected
+      if (selectedOrderItemId) {
+        formData.append('order_item_id', selectedOrderItemId);
       }
 
       // Upload with progress simulation
@@ -177,7 +222,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || errorData.errorEn || 'アップロードに失敗しました');
+        const details = errorData.details ? ` (${errorData.details})` : '';
+        const code = errorData.code ? ` [${errorData.code}]` : '';
+        throw new Error((errorData.error || errorData.errorEn || 'アップロードに失敗しました') + code + details);
       }
 
       const result = await response.json();
@@ -186,6 +233,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         setSuccessMessage('入稿データをアップロードしました。韓国担当者に送信されました。');
         setSelectedFile(null);
         setDescription('');
+        setProductName('');
         loadUploadedFiles();
 
         // Callback to notify parent component
@@ -267,6 +315,19 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     );
   };
 
+  // Get SKU name helper function for files
+  const getFileSkuName = (file: UploadedFile) => {
+    // Use sku_name snapshot if available (most accurate)
+    if (file.sku_name) {
+      return file.sku_name;
+    }
+
+    // Fallback to order_item_id lookup
+    if (!file.order_item_id) return 'すべてのSKU (All SKUs)';
+    const item = orderItems.find(i => i.id === file.order_item_id);
+    return item ? `${item.product_name} (${item.quantity}枚)` : 'Unknown SKU';
+  };
+
   return (
     <>
       <Card className="p-6">
@@ -312,6 +373,47 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
                 <p className="text-sm text-blue-700 mt-1">
                   生産を開始するために、必ず入稿データ（AI）をアップロードしてください。
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Partial SKU Submission Warning */}
+        {skuSubmissionStatus && skuSubmissionStatus.totalSkus > 1 && !skuSubmissionStatus.isComplete && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <svg
+                className="h-5 w-5 text-amber-600 mr-3 flex-shrink-0 mt-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-amber-800">
+                  すべてのSKUの入稿データをアップロードしてください
+                </h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  {skuSubmissionStatus.submittedSkus} / {skuSubmissionStatus.totalSkus} SKUのデータがアップロードされています。
+                </p>
+                {skuSubmissionStatus.pendingSkus.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs font-medium text-amber-800 mb-1">未アップロードのSKU:</p>
+                    <ul className="text-xs text-amber-700 list-disc list-inside">
+                      {skuSubmissionStatus.pendingSkus.map((sku) => (
+                        <li key={sku.id}>
+                          {sku.productName} (数量: {sku.quantity})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -386,6 +488,51 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
         {/* Upload Form */}
         <div className="space-y-4">
+          {/* Product Name (Required) */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              製品名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="例: EPAC-001"
+              className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              disabled={isUploading}
+              required
+            />
+            <p className="text-xs text-text-muted mt-1">
+              ※ ファイル名に使用されます（例: 製品名_入稿データ_注文番号_日付）
+            </p>
+          </div>
+
+          {/* SKU Selector (conditional - only show when orderItems.length > 1) */}
+          {orderItems.length > 1 && (
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                SKU選択 <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedOrderItemId || ''}
+                onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
+                className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
+                disabled={isUploading}
+                required
+              >
+                <option value="">選択してください</option>
+                {orderItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.product_name} (数量: {item.quantity})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-text-muted mt-1">
+                ※ 複数のSKUがある場合は、該当するSKUを選択してください
+              </p>
+            </div>
+          )}
+
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
@@ -558,6 +705,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
                             ✓ 必須データ
                           </span>
                         )}
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {getFileSkuName(file)}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-3 mt-1 text-sm text-text-muted">
                         <span>入稿データ</span>

@@ -1,8 +1,10 @@
 import { jaTranslations } from './ja'
+import { koTranslations } from './ko'
 import type { TranslationKeys, Language } from '@/lib/i18n'
 
 export const translations: Record<Language, TranslationKeys> = {
   ja: jaTranslations,
+  ko: koTranslations,
 }
 
 // Helper function to get nested translation keys

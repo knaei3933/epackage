@@ -609,6 +609,18 @@ export class UnifiedPricingEngine {
    * SKUモードのみ対応（일반 모드는 삭제）
    */
   async calculateQuote(params: UnifiedQuoteParams): Promise<UnifiedQuoteResult> {
+    // ADD THIS DIAGNOSTIC BLOCK
+    console.log('[calculateQuote] DIAGNOSTIC ENTRY:', {
+      timestamp: new Date().toISOString(),
+      useSKUCalculation: params.useSKUCalculation,
+      skuQuantities: params.skuQuantities,
+      totalSKUQuantity: params.skuQuantities?.reduce((a, b) => a + b, 0),
+      quantity: params.quantity,
+      markupRate: params.markupRate,
+      bagTypeId: params.bagTypeId,
+      twoColumnOptionApplied: params.twoColumnOptionApplied,
+    });
+
     // 2列生産オプションが適用されている場合は、割引価格を直接返す
     if (params.twoColumnOptionApplied && params.discountedUnitPrice && params.discountedTotalPrice) {
       logPriceCalculationDetail('2列生産割引適用', {
@@ -631,10 +643,18 @@ export class UnifiedPricingEngine {
     // キャッシュキー生成
     const cacheKey = this.generateCacheKey(params)
 
+    console.log('[calculateQuote] CACHE CHECK:', {
+      cacheKey: cacheKey,
+      hasCache: this.cache.has(cacheKey),
+    });
+
     // キャッシュ確認
     if (this.cache.has(cacheKey)) {
+      console.log('[calculateQuote] CACHE HIT - returning cached result');
       return { ...this.cache.get(cacheKey)! }
     }
+
+    console.log('[calculateQuote] CACHE MISS - performing calculation');
 
     // 무조건 SKU 모드로 계산（일반 모드는 삭제됨）
     const skuResult = await this.performSKUCalculation(params)
@@ -1227,13 +1247,18 @@ export class UnifiedPricingEngine {
     // unitPrice * totalQuantity === totalPrice を保証
     // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     // 小数点以下を含む場合: 168400.646... → 168500
+    // totalPrice を先に丸めてから unitPrice を計算することで、
+    // unitPrice * totalQuantity === totalPrice を保証
+    // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
+    // 小数点以下を含む場合: 168400.646... → 168500
+    const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
+
     // Security: Rounding details only logged in development
     if (process.env.NODE_ENV === 'development') {
       console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
       console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
       console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
     }
-    const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
     // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
     // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
     // 100円単位で切り上げた totalPrice から unitPrice を再計算
@@ -1287,6 +1312,12 @@ export class UnifiedPricingEngine {
    * ロス400m固定、最小確保量ルール適用
    */
   private async performSKUCalculation(params: UnifiedQuoteParams): Promise<UnifiedQuoteResult> {
+    console.log('[performSKUCalculation] ENTRY:', {
+      markupRate_param: params.markupRate,
+      markupRate_will_default_to: params.markupRate ?? 0.0,
+      skuQuantities: params.skuQuantities,
+    });
+
     const {
       bagTypeId,
       width,
@@ -1303,6 +1334,10 @@ export class UnifiedPricingEngine {
       materialWidth = CONSTANTS.DEFAULT_MATERIAL_WIDTH,
       filmLayers
     } = params
+
+    console.log('[performSKUCalculation] AFTER DESTRUCTURING:', {
+      markupRate_used: markupRate,
+    });
 
     // パラメータ検証
     this.validateParams(params)
@@ -1464,13 +1499,18 @@ export class UnifiedPricingEngine {
     // unitPrice * totalQuantity === totalPrice を保証
     // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
     // 小数点以下を含む場合: 168400.646... → 168500
+    // totalPrice を先に丸めてから unitPrice を計算することで、
+    // unitPrice * totalQuantity === totalPrice を保証
+    // 100円単位で切り上げ（反り上げ）例：176930 → 177000、165042 → 165100
+    // 小数点以下を含む場合: 168400.646... → 168500
+    const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
+
     // Security: Rounding details only logged in development
     if (process.env.NODE_ENV === 'development') {
       console.log('[100円丸め] 丸め前 totalPrice:', totalPrice, '(型:', typeof totalPrice, ')');
       console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
       console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
     }
-    const roundedTotalPrice = Math.ceil(totalPrice / 100) * 100;
     // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
     // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
     const unitPrice = roundedTotalPrice / totalQuantity;
@@ -2376,6 +2416,8 @@ export class UnifiedPricingEngine {
       params.height?.toString() || '0', // heightがundefinedの場合（ロールフィルム等）は'0'を使用
       params.depth?.toString() || '0',
       params.quantity.toString(),
+      // CRITICAL: キャッシュキーにskuQuantitiesを含める - SKUモードで正しい価格を計算するため
+      JSON.stringify(params.skuQuantities || []),
       params.thicknessSelection || 'default',
       params.thicknessMultiplier?.toString() || '1.0',
       params.isUVPrinting?.toString() || 'false',

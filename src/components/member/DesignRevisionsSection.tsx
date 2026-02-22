@@ -14,7 +14,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, XCircle, FileImage, FileText, Download, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, FileImage, FileText, Download, Clock, User } from 'lucide-react';
+import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
+import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
+import { RejectionReasonModal } from '@/components/member/RejectionReasonModal';
 
 // =====================================================
 // Types
@@ -24,15 +27,30 @@ interface DesignRevision {
   id: string;
   order_id: string;
   revision_number: number;
-  revision_name: string;
+  revision_name: string | null;
+  order_item_id?: string | null;  // NEW: SKU association
+  sku_name?: string | null;  // NEW: SKU name snapshot
   approval_status: 'pending' | 'approved' | 'rejected';
-  preview_image_url: string;
-  original_file_url: string;
+  preview_image_url: string | null;
+  original_file_url: string | null;
   partner_comment: string | null;
+  // Bilingual comment fields
+  comment_ko?: string | null;
+  comment_ja?: string | null;
+  translation_status?: 'pending' | 'translated' | 'failed' | 'manual' | null;
+  // Designer upload tracking
+  uploaded_by_type?: 'admin' | 'korea_designer' | null;
+  uploaded_by_name?: string | null;
   customer_comment: string | null;
   approved_by: string | null;
   approved_at: string | null;
   created_at: string;
+}
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
 }
 
 interface DesignRevisionsSectionProps {
@@ -46,24 +64,65 @@ interface DesignRevisionsSectionProps {
 
 export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignRevisionsSectionProps) {
   const [revisions, setRevisions] = useState<DesignRevision[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [customerComment, setCustomerComment] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Rejection modal state
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [rejectingRevisionId, setRejectingRevisionId] = useState<string | null>(null);
+  const [rejectingRevisionName, setRejectingRevisionName] = useState<string | null>(null);
 
-  // Load revisions
+  // Load revisions and order items
   const loadRevisions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch revisions
       const response = await fetch(`/api/member/orders/${orderId}/design-revisions`);
       const result = await response.json();
 
       if (result.success) {
         setRevisions(result.revisions || []);
+
+        // Fetch order items from the revisions data
+        // We'll extract unique order items from the revisions
+        const uniqueOrderItems = new Map<string, OrderItem>();
+        result.revisions?.forEach((revision: DesignRevision) => {
+          if (revision.order_item_id && !uniqueOrderItems.has(revision.order_item_id)) {
+            // We'll need to fetch order item details separately
+            // For now, store the ID and fetch details below
+            uniqueOrderItems.set(revision.order_item_id, {
+              id: revision.order_item_id,
+              product_name: 'Loading...', // Will be updated
+              quantity: 0,
+            });
+          }
+        });
+
+        // If we have order_item_ids, fetch their details
+        if (uniqueOrderItems.size > 0) {
+          try {
+            const itemsResponse = await fetch(`/api/member/orders/${orderId}/items`);
+            const itemsResult = await itemsResponse.json();
+            if (itemsResult.success && itemsResult.items) {
+              const itemsMap = new Map(itemsResult.items.map((item: OrderItem) => [item.id, item]));
+              uniqueOrderItems.forEach((value, key) => {
+                const detailedItem = itemsMap.get(key);
+                if (detailedItem) {
+                  uniqueOrderItems.set(key, detailedItem);
+                }
+              });
+              setOrderItems(Array.from(uniqueOrderItems.values()));
+            }
+          } catch (err) {
+            console.error('[DesignRevisionsSection] Failed to load order items:', err);
+          }
+        }
       } else {
         setError(result.error || 'デザイン改訂データの読み込みに失敗しました。');
       }
@@ -77,6 +136,16 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
 
   // Respond to revision (approve/reject)
   const handleRespond = useCallback(async (revisionId: string, status: 'approved' | 'rejected') => {
+    // For rejection: open modal instead of direct submission
+    if (status === 'rejected') {
+      const revision = revisions.find(r => r.id === revisionId);
+      setRejectingRevisionId(revisionId);
+      setRejectingRevisionName(revision?.revision_name || null);
+      setShowRejectionModal(true);
+      return;
+    }
+
+    // For approval: direct submission
     try {
       setSubmitting(revisionId);
       setError(null);
@@ -98,9 +167,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
       const result = await response.json();
 
       if (result.success) {
-        setSuccessMessage(
-          status === 'approved' ? '校正データを承認しました。' : '校正データを却下しました。'
-        );
+        setSuccessMessage('校正データを承認しました。');
         setCustomerComment('');
         setExpandedId(null);
         await loadRevisions(); // Reload list
@@ -116,7 +183,61 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     } finally {
       setSubmitting(null);
     }
-  }, [orderId, customerComment, loadRevisions]);
+  }, [orderId, customerComment, loadRevisions, revisions]);
+
+  // Handle rejection submission from modal
+  const handleRejectionSubmit = useCallback(async (reason: string, translatedReason: string) => {
+    if (!rejectingRevisionId) return;
+
+    try {
+      setSubmitting(rejectingRevisionId);
+      setError(null);
+      setSuccessMessage(null);
+
+      const response = await fetch(
+        `/api/member/orders/${orderId}/design-revisions`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId: rejectingRevisionId,
+            status: 'rejected',
+            rejectionReason: reason,
+            customerComment: customerComment || undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccessMessage('校正データを却下しました。');
+        setCustomerComment('');
+        setExpandedId(null);
+        setShowRejectionModal(false);
+        setRejectingRevisionId(null);
+        setRejectingRevisionName(null);
+        await loadRevisions(); // Reload list
+
+        // Callback to notify parent component
+        onRevisionResponded?.();
+      } else {
+        setError(result.error || '却下の送信に失敗しました。');
+      }
+    } catch (err) {
+      console.error('[DesignRevisionsSection] Rejection error:', err);
+      setError('予期しないエラーが発生しました。');
+    } finally {
+      setSubmitting(null);
+    }
+  }, [orderId, rejectingRevisionId, customerComment, loadRevisions, onRevisionResponded]);
+
+  // Handle rejection modal close
+  const handleRejectionModalClose = useCallback(() => {
+    setShowRejectionModal(false);
+    setRejectingRevisionId(null);
+    setRejectingRevisionName(null);
+  }, []);
 
   // Load revisions on mount
   useEffect(() => {
@@ -166,6 +287,19 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
       rejected: { text: '却下', className: 'bg-red-100 text-red-800' },
     };
     return labels[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
+  };
+
+  // Get SKU name helper function
+  const getSkuName = (revision: DesignRevision) => {
+    // Use sku_name snapshot if available (most accurate)
+    if (revision.sku_name) {
+      return revision.sku_name;
+    }
+
+    // Fallback to order_item_id lookup
+    if (!revision.order_item_id) return 'すべてのSKU (All SKUs)';
+    const item = orderItems.find(i => i.id === revision.order_item_id);
+    return item ? `${item.product_name} (${item.quantity}枚)` : 'Unknown SKU';
   };
 
   // Filter pending revisions
@@ -238,17 +372,46 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-medium">
                           {revision.revision_name}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded ${statusInfo.className}`}>
                           {statusInfo.text}
                         </span>
+                        {/* Designer badge */}
+                        {revision.uploaded_by_type === 'korea_designer' && (
+                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            韓国デザイナー
+                          </span>
+                        )}
+                        {/* Translation status badge */}
+                        {revision.uploaded_by_type === 'korea_designer' && revision.translation_status && (
+                          <TranslationStatusBadge
+                            status={revision.translation_status}
+                            size="sm"
+                            animated={false}
+                          />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {getSkuName(revision)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="w-3 h-3" />
                         {formatDate(revision.created_at)}
+                        {revision.uploaded_by_name && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {revision.uploaded_by_name}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                     <Button variant="ghost" size="sm">
@@ -260,13 +423,33 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                 {/* Expanded content */}
                 {isExpanded && (
                   <div className="p-4 pt-0 space-y-4 border-t border-border-secondary">
-                    {/* Partner comment */}
-                    {revision.partner_comment && (
+                    {/* Partner comment - Bilingual Display */}
+                    {(revision.partner_comment || revision.comment_ko || revision.comment_ja) && (
                       <div>
-                        <p className="text-sm font-medium mb-1">パートナーコメント:</p>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
-                          {revision.partner_comment}
-                        </p>
+                        <p className="text-sm font-medium mb-2">パートナーコメント:</p>
+                        {/* Use bilingual display when bilingual data is available OR uploaded by Korean designer */}
+                        {(revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) ? (
+                          <BilingualCommentDisplay
+                            commentKo={revision.comment_ko || revision.partner_comment || ''}
+                            commentJa={revision.comment_ja || ''}
+                            translationStatus={revision.translation_status || 'pending'}
+                            showStatus={false}
+                            defaultLanguage="ja"
+                            variant="bordered"
+                            isAdmin={false}
+                          />
+                        ) : (
+                          /* Legacy display for admin uploads without bilingual data */
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                            {revision.partner_comment}
+                          </p>
+                        )}
+                        {/* Failed translation notice for member */}
+                        {revision.translation_status === 'failed' && (
+                          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                            翻訳エラーが発生しました。韓国語の原文のみ表示されています。
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -386,6 +569,15 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
           })}
         </div>
       )}
+
+      {/* Rejection Reason Modal */}
+      <RejectionReasonModal
+        isOpen={showRejectionModal}
+        onClose={handleRejectionModalClose}
+        onSubmit={handleRejectionSubmit}
+        submitting={submitting !== null}
+        revisionName={rejectingRevisionName || undefined}
+      />
     </Card>
   );
 }

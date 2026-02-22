@@ -56,11 +56,9 @@ export function CertificationBadges({ className = '' }: CertificationBadgesProps
       icon: CheckCircle,
       status: 'certified',
       category: '日本法規制',
-      score: 98
-    },
+      score: 98,
       issuedBy: '厚生労働省',
-      jpnEquivalent: '食品衛生法第11条',
-      score: 100
+      jpnEquivalent: '食品衛生法第11条'
     },
     {
       id: 'pharma_act',

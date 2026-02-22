@@ -17,6 +17,7 @@ import { createCommentSchema, safeParseRequestBody } from '@/types/api-validatio
 import { getAuditLogger } from '@/lib/audit-logger';
 import { withAdminAuth } from '@/lib/api-auth';
 import { generateOrderCommentEmailHtml } from '@/lib/email-templates/order-comment-notification';
+import { translateJapaneseToKorean } from '@/lib/translation';
 
 // ============================================================
 // Constants
@@ -250,12 +251,36 @@ export const POST = withAdminAuth(async (
     ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
     : profile?.company_name || '管理者';
 
-  // Create admin comment
+  // ============================================================
+  // Translate Japanese to Korean for admin/customer comments
+  // ============================================================
+  let contentTranslated: string | null = null;
+  let translationStatus: 'pending' | 'translated' | 'failed' | 'not_needed' = 'not_needed';
+
+  // Only translate non-internal comments
+  if (comment_type !== 'internal') {
+    console.log('[Admin Order Comments POST] Translating Japanese to Korean...');
+    try {
+      const translationResult = await translateJapaneseToKorean(content);
+      contentTranslated = translationResult.translatedText;
+      translationStatus = 'translated';
+      console.log('[Admin Order Comments POST] Translation successful');
+    } catch (translationError) {
+      console.error('[Admin Order Comments POST] Translation failed:', translationError);
+      translationStatus = 'failed';
+      // Continue without translation - Korean designer can ask for clarification
+    }
+  }
+
+  // Create admin comment with bilingual support
   const { data: newComment, error: createError } = await supabase
     .from('order_comments')
     .insert({
       order_id: orderId,
       content: content.trim(),
+      content_translated: contentTranslated,
+      original_language: 'ja',
+      translation_status: translationStatus,
       comment_type,
       author_id: auth.userId,
       author_role: 'admin',

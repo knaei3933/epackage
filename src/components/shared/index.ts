@@ -63,3 +63,35 @@ export type {
 export { ProfileCancelButton } from './ProfileCancelButton';
 export type { ProfileCancelButtonProps } from './ProfileCancelButton';
 
+// ============================================================================
+// Bilingual Components (Phase 6)
+// ============================================================================
+
+// Translation Status Badge
+export {
+  TranslationStatusBadge,
+  badgeVariants,
+  TranslationStatus,
+} from './TranslationStatusBadge';
+
+export type {
+  TranslationStatusBadgeProps,
+  TranslationStatusType
+} from './TranslationStatusBadge';
+
+// Bilingual Comment Display
+export {
+  BilingualCommentDisplay,
+  BilingualCommentPresets,
+} from './BilingualCommentDisplay';
+
+export type { BilingualCommentDisplayProps } from './BilingualCommentDisplay';
+
+// Real-time Translation
+export {
+  RealTimeTranslation,
+  useRealTimeTranslation,
+} from './RealTimeTranslation';
+
+export type { RealTimeTranslationProps } from './RealTimeTranslation';
+

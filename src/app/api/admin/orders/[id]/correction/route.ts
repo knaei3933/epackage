@@ -2,7 +2,7 @@
  * Admin Correction Data Upload API
  *
  * 教正データ保存API
- * - プレビュー画像・原版ファイルをSupabase Storageに保存
+ * - プレビュー画像・原版ファイルをGoogle Driveに保存（補正データフォルダ）
  * - design_revisionsテーブルにレコード作成
  * - 顧客に承認依頼メール送信
  *
@@ -14,6 +14,11 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email';
+import {
+  getAdminAccessTokenForUpload,
+  uploadFileToDrive,
+  getCorrectionFolderId
+} from '@/lib/google-drive';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -98,12 +103,20 @@ export async function GET(
 
     const { id: orderId } = await params;
 
-    // Get revisions
-    const { data: revisions, error } = await supabase
-      .from('design_revisions')
-      .select('*')
-      .eq('order_id', orderId)
-      .order('created_at', { ascending: false });
+    // Get revisions AND order items in parallel
+    const [revisionsResult, orderItemsResult] = await Promise.all([
+      supabase
+        .from('design_revisions')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('order_items')
+        .select('id, product_name, quantity, specifications')
+        .eq('order_id', orderId),
+    ]);
+
+    const { data: revisions, error } = revisionsResult;
 
     if (error) {
       console.error('[Correction GET] Error:', error);
@@ -115,17 +128,33 @@ export async function GET(
 
     console.log('[Correction GET] Success:', revisions?.length || 0, 'revisions');
 
-    // Transform data to match expected format
-    const transformedRevisions = (revisions || []).map((rev: any) => ({
-      ...rev,
-      // Use actual database columns
-      revision_number: rev.revision_number,
-      approval_status: rev.approval_status || 'pending',
-    }));
+    // Create a map of order items for quick lookup
+    const orderItemsMap = new Map(
+      (orderItemsResult.data || []).map(item => [item.id, item])
+    );
+
+    // Add sku_name to each revision
+    const transformedRevisions = (revisions || []).map((rev: any) => {
+      let skuName = null;
+      if (rev.order_item_id) {
+        const item = orderItemsMap.get(rev.order_item_id);
+        if (item) {
+          skuName = `${item.product_name} (${item.quantity}枚)`;
+        }
+      }
+      return {
+        ...rev,
+        // Use actual database columns
+        revision_number: rev.revision_number,
+        approval_status: rev.approval_status || 'pending',
+        sku_name: skuName,
+      };
+    });
 
     return NextResponse.json({
       success: true,
       revisions: transformedRevisions,
+      orderItems: orderItemsResult.data || [],  // For SKU selector
     });
 
   } catch (error) {
@@ -202,12 +231,45 @@ export async function POST(
     const partnerComment = formData.get('partner_comment') as string;
     const notifyCustomer = formData.get('notify_customer') === 'true';
     const revisionNumberParam = formData.get('revision_number');
+    const orderItemId = formData.get('order_item_id') as string | null;
 
     if (!previewImage || !originalFile) {
       return NextResponse.json(
         {
           success: false,
           error: 'プレビュー画像と原版ファイルの両方が必須です。',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get product name from order item (SKU) - customer already entered this
+    // No need for admin to enter product name manually
+    let productName = '';
+    if (orderItemId) {
+      // Get product name from selected order item
+      const { data: orderItem } = await supabase
+        .from('order_items')
+        .select('product_name')
+        .eq('id', orderItemId)
+        .single();
+      productName = orderItem?.product_name || '';
+    } else {
+      // No SKU selected - get first order item's product name
+      const { data: firstItem } = await supabase
+        .from('order_items')
+        .select('product_name')
+        .eq('order_id', orderId)
+        .limit(1)
+        .single();
+      productName = firstItem?.product_name || '';
+    }
+
+    if (!productName) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '製品情報が見つかりません。',
         },
         { status: 400 }
       );
@@ -221,83 +283,88 @@ export async function POST(
       revisionNumber = await getNextRevisionNumber(supabase, orderId);
     }
 
-    // Upload files to Supabase Storage
-    const previewPath = generateStoragePath(orderId, revisionNumber, previewImage.name, 'preview');
-    const originalPath = generateStoragePath(orderId, revisionNumber, originalFile.name, 'original');
+    // ============================================================
+    // Upload files to Google Drive (補正データフォルダ)
+    // ============================================================
+    const correctionFolderId = getCorrectionFolderId();
 
-    const previewBuffer = Buffer.from(await previewImage.arrayBuffer());
-    const originalBuffer = Buffer.from(await originalFile.arrayBuffer());
-
-    const [previewUpload, originalUpload] = await Promise.all([
-      supabase.storage
-        .from('correction-files')
-        .upload(previewPath, previewBuffer, {
-          contentType: previewImage.type,
-          upsert: false,
-        }),
-      supabase.storage
-        .from('correction-files')
-        .upload(originalPath, originalBuffer, {
-          contentType: originalFile.type,
-          upsert: false,
-        }),
-    ]);
-
-    if (previewUpload.error || originalUpload.error) {
-      console.error('[Correction Upload] Storage error:', {
-        preview: previewUpload.error,
-        original: originalUpload.error,
-      });
+    if (!correctionFolderId) {
       return NextResponse.json(
-        { success: false, error: 'ファイルアップロードに失敗しました。' },
+        { success: false, error: 'Google Driveフォルダが設定されていません。' },
         { status: 500 }
       );
     }
 
-    // Get public URLs
-    const { data: previewUrlData } = supabase.storage
-      .from('correction-files')
-      .getPublicUrl(previewPath);
+    // Get admin access token for Google Drive
+    const accessToken = await getAdminAccessTokenForUpload();
 
-    const { data: originalUrlData } = supabase.storage
-      .from('correction-files')
-      .getPublicUrl(originalPath);
+    // Generate file names: {製品名}_校正データ_{注文番号}_{日付}
+    const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const sanitizedProductName = productName.trim().replace(/[^a-zA-Z0-9-_가-힣]/g, '_');
+
+    // Get file extensions
+    const previewExt = previewImage.name.substring(previewImage.name.lastIndexOf('.'));
+    const originalExt = originalFile.name.substring(originalFile.name.lastIndexOf('.'));
+
+    const previewFileName = `${sanitizedProductName}_校正データ_${order.order_number}_${dateStr}${previewExt}`;
+    const originalFileName = `${sanitizedProductName}_校正データ_${order.order_number}_${dateStr}${originalExt}`;
+
+    console.log('[Correction Upload] Uploading to Google Drive:', {
+      preview: previewFileName,
+      original: originalFileName,
+      folder: correctionFolderId,
+    });
+
+    // Upload both files to Google Drive
+    const [previewDriveFile, originalDriveFile] = await Promise.all([
+      uploadFileToDrive(previewImage, previewFileName, previewImage.type, correctionFolderId, accessToken),
+      uploadFileToDrive(originalFile, originalFileName, originalFile.type, correctionFolderId, accessToken),
+    ]);
+
+    // Store Google Drive URLs
+    const previewImageDriveUrl = previewDriveFile.webViewLink;
+    const originalFileUrl = originalDriveFile.webViewLink;
+
+    console.log('[Correction Upload] Google Drive upload successful:', {
+      preview: previewDriveFile.id,
+      original: originalDriveFile.id,
+    });
 
     // Create design revision record - using actual database schema
     const { data: revision, error: dbError } = await supabase
       .from('design_revisions')
       .insert({
         order_id: orderId,
+        order_item_id: orderItemId || null,  // NEW
         revision_number: revisionNumber,
-        revision_name: `Revision ${revisionNumber}`,
+        revision_name: `Revision ${revisionNumber}`,  // Already set
         approval_status: 'pending',
         partner_comment: partnerComment || null,
-        preview_image_url: previewUrlData.publicUrl,
-        original_file_url: originalUrlData.publicUrl,
+        preview_image_url: previewImageDriveUrl,
+        original_file_url: originalFileUrl,
       })
       .select()
       .single();
 
     if (dbError) {
       console.error('[Correction Upload] DB error:', dbError);
-      // Cleanup uploaded files
-      await Promise.all([
-        supabase.storage.from('correction-files').remove([previewPath]),
-        supabase.storage.from('correction-files').remove([originalPath]),
-      ]);
       return NextResponse.json(
         { success: false, error: 'データベース保存に失敗しました: ' + dbError.message },
         { status: 500 }
       );
     }
 
+    // NOTE: preview_image_url should keep the original Google Drive URL
+    // The preview proxy endpoint will fetch from there
+    // DO NOT overwrite with proxy URL as it causes redirect loops
+
     // ============================================================
-    // Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING
-    // 新しいワークフロー: デザイナーが教正データをアップロードすると、顧客承認待ちへ
+    // Auto-transition: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
+    // 新しいワークフロー: デザイナーが教正データをアップロードすると、2段階で顧客承認待ちへ
     // ※ 通知送信の有無に関わらず常に実行
     // ============================================================
     try {
-      console.log('[Correction Upload] Auto-transition: CORRECTION_IN_PROGRESS → CUSTOMER_APPROVAL_PENDING');
+      console.log('[Correction Upload] Auto-transition: TWO-STEP process');
 
       // 現在のステータスを取得
       const { data: currentOrder } = await supabase
@@ -308,35 +375,66 @@ export async function POST(
 
       const currentStatus = currentOrder?.status;
 
-      // 顧客承認待ちに遷移（現在のステータスがCORRECTION_IN_PROGRESSの場合のみ）
+      // 2段階遷移（現在のステータスがCORRECTION_IN_PROGRESSの場合のみ）
       if (currentStatus === 'CORRECTION_IN_PROGRESS') {
-        const { error: statusError } = await supabase
+        // Step 1: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED
+        const { error: step1Error } = await supabase
           .from('orders')
           .update({
-            status: 'CUSTOMER_APPROVAL_PENDING',
+            status: 'CORRECTION_COMPLETED',
             updated_at: new Date().toISOString(),
           })
           .eq('id', orderId);
 
-        if (statusError) {
-          console.error('[Correction Upload] Status update error (CUSTOMER_APPROVAL_PENDING):', statusError);
-          console.warn('[Correction Upload] Status update failed, but revision was saved. Manual update required.');
+        if (step1Error) {
+          console.error('[Correction Upload] Step 1 error (CORRECTION_COMPLETED):', step1Error);
+          console.warn('[Correction Upload] Step 1 failed. Manual update required.');
         } else {
-          console.log('[Correction Upload] Auto-transition completed to CUSTOMER_APPROVAL_PENDING');
+          console.log('[Correction Upload] Step 1 completed: CORRECTION_IN_PROGRESS → CORRECTION_COMPLETED');
 
-          // 履歴を記録
+          // 履歴を記録 (Step 1)
           await supabase
             .from('order_status_history')
             .insert({
               order_id: orderId,
-              from_status: currentStatus,
-              to_status: 'CUSTOMER_APPROVAL_PENDING',
+              from_status: 'CORRECTION_IN_PROGRESS',
+              to_status: 'CORRECTION_COMPLETED',
               changed_by: 'ADMIN',
               changed_at: new Date().toISOString(),
-              reason: `教正データアップロード (リビジョン${revisionNumber})`,
+              reason: `教正データアップロード (リビジョン${revisionNumber}) - Step 1`,
             })
-            .then(() => console.log('[Correction Upload] Status history logged'))
-            .catch((err) => console.error('[Correction Upload] History logging error:', err));
+            .then(() => console.log('[Correction Upload] Step 1 history logged'))
+            .catch((err) => console.error('[Correction Upload] Step 1 history error:', err));
+
+          // Step 2: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
+          const { error: step2Error } = await supabase
+            .from('orders')
+            .update({
+              status: 'CUSTOMER_APPROVAL_PENDING',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', orderId);
+
+          if (step2Error) {
+            console.error('[Correction Upload] Step 2 error (CUSTOMER_APPROVAL_PENDING):', step2Error);
+            console.warn('[Correction Upload] Step 2 failed. Order is in CORRECTION_COMPLETED state.');
+          } else {
+            console.log('[Correction Upload] Step 2 completed: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING');
+
+            // 履歴を記録 (Step 2)
+            await supabase
+              .from('order_status_history')
+              .insert({
+                order_id: orderId,
+                from_status: 'CORRECTION_COMPLETED',
+                to_status: 'CUSTOMER_APPROVAL_PENDING',
+                changed_by: 'ADMIN',
+                changed_at: new Date().toISOString(),
+                reason: `教正データアップロード完了、顧客承認待ち (リビジョン${revisionNumber}) - Step 2`,
+              })
+              .then(() => console.log('[Correction Upload] Step 2 history logged'))
+              .catch((err) => console.error('[Correction Upload] Step 2 history error:', err));
+          }
         }
       } else {
         console.log('[Correction Upload] Skipping auto-transition, current status:', currentStatus);

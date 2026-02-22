@@ -789,9 +789,6 @@ function SpecsStep() {
                       <div className="font-medium text-gray-900">{type.nameJa}</div>
                       <span className="text-gray-500 text-xs">{(type as any).description || ''}</span>
                       <div className="text-sm text-gray-600 mt-1">{type.descriptionJa}</div>
-                      <div className="text-xs text-navy-600 font-medium bg-navy-50 inline-block px-2 py-1 rounded mt-2">
-                        基本価格: ¥{type.basePrice.toLocaleString()}/個
-                      </div>
                     </div>
                   </div>
                 </button>
@@ -2605,12 +2602,33 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       } => {
         // SKUモードの場合はskuCostDetailsから、通常モードはresultから計算
         let totalCostBreakdown: any = null;
-        let itemsWithCost: any[] = [];
+        let itemsWithCost: any[] = quotationData.items;
 
         if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
           // 複数SKUモード: 各SKUの原価を合計
           console.log('[calculateCostBreakdown] SKU mode detected, calculating from skuCostDetails');
           const skuCosts = result.skuCostDetails.costPerSKU;
+
+          // DIAGNOSTIC: Log array lengths and values to identify root cause
+          console.log('[DIAGNOSTIC] === Cost Breakdown Analysis ===');
+          console.log('[DIAGNOSTIC] quotationData.items.length:', quotationData.items.length);
+          console.log('[DIAGNOSTIC] skuCosts.length:', skuCosts.length);
+          console.log('[DIAGNOSTIC] state.skuQuantities:', state.skuQuantities);
+          console.log('[DIAGNOSTIC] skuCosts costBreakdown values:', skuCosts.map((sku: any, i: number) => ({
+            index: i,
+            quantity: sku.quantity,
+            hasCostBreakdown: !!sku.costBreakdown,
+            costBreakdownKeys: sku.costBreakdown ? Object.keys(sku.costBreakdown) : null
+          })));
+          console.log('[DIAGNOSTIC] === End Analysis ===');
+
+          console.log('[calculateCostBreakdown] skuCosts length:', skuCosts.length);
+          console.log('[calculateCostBreakdown] skuCosts:', skuCosts.map((sku: any, i: number) => ({
+            index: i,
+            quantity: sku.quantity,
+            hasCostBreakdown: !!sku.costBreakdown,
+            costBreakdown: sku.costBreakdown
+          })));
 
           totalCostBreakdown = {
             materialCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
@@ -2624,10 +2642,36 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           };
 
           // 各SKUアイテムにcost_breakdownを追加
-          itemsWithCost = quotationData.items.map((item: any, index: number) => ({
-            ...item,
-            cost_breakdown: skuCosts[index]?.costBreakdown || null
-          }));
+          // Calculate total quantity for proportional distribution (CORRECTED fallback formula)
+          const totalQuantity = quotationData.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+
+          itemsWithCost = quotationData.items.map((item: any, index: number) => {
+            let costBreakdown = skuCosts[index]?.costBreakdown || null;
+
+            // Fallback: If costBreakdown is null but we have valid totalCostBreakdown, calculate proportionally
+            // Formula: item's share = (item.quantity / totalQuantity) * totalCostBreakdown field
+            // CORRECTED: Use quantity ratio, not price ratio
+            if (!costBreakdown && totalCostBreakdown && item.quantity && totalQuantity > 0) {
+              const proportion = item.quantity / totalQuantity;
+              costBreakdown = {
+                materialCost: Math.round((totalCostBreakdown.materialCost || 0) * proportion),
+                printingCost: Math.round((totalCostBreakdown.printingCost || 0) * proportion),
+                laminationCost: Math.round((totalCostBreakdown.laminationCost || 0) * proportion),
+                slitterCost: Math.round((totalCostBreakdown.slitterCost || 0) * proportion),
+                surfaceTreatmentCost: Math.round((totalCostBreakdown.surfaceTreatmentCost || 0) * proportion),
+                pouchProcessingCost: Math.round((totalCostBreakdown.pouchProcessingCost || 0) * proportion),
+                duty: Math.round((totalCostBreakdown.duty || 0) * proportion),
+                delivery: Math.round((totalCostBreakdown.delivery || 0) * proportion),
+              };
+              console.log(`[calculateCostBreakdown] Item ${index} using FALLBACK cost_breakdown (proportion: ${proportion.toFixed(4)})`);
+            }
+
+            console.log(`[calculateCostBreakdown] Item ${index} cost_breakdown:`, costBreakdown);
+            return {
+              ...item,
+              cost_breakdown: costBreakdown
+            };
+          });
 
         } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
           // result.breakdownから直接計算
@@ -2680,6 +2724,10 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
 
         console.log('[calculateCostBreakdown] totalCostBreakdown:', totalCostBreakdown);
         console.log('[calculateCostBreakdown] itemsWithCost length:', itemsWithCost.length);
+        // 各アイテムのcost_breakdownをログ出力
+        itemsWithCost.forEach((item: any, index: number) => {
+          console.log(`[calculateCostBreakdown] itemsWithCost[${index}].cost_breakdown:`, item.cost_breakdown);
+        });
 
         return { total_cost_breakdown: totalCostBreakdown, itemsWithCostBreakdown: itemsWithCost };
       };
@@ -3634,7 +3682,7 @@ function RealTimePriceDisplay() {
             rollCount: state.rollCount, // 롤 필름 시 롤 개수
             // SKU計算を使用（handleNextと同じ計算方法）
             useSKUCalculation: true,
-            skuQuantities: [quantity],
+            skuQuantities: state.skuCount > 1 ? state.skuQuantities : [quantity],
             // Roll film specific parameters
             materialWidth: state.materialWidth,
             filmLayers: state.filmLayers,
@@ -3943,6 +3991,17 @@ export function ImprovedQuotingWizard() {
             }
           }
 
+          console.log('[handleNext] DIAGNOSTIC - calculateQuote PARAMS:', {
+            bagTypeId: state.bagTypeId,
+            materialId: state.materialId,
+            skuCount: state.skuCount,
+            skuQuantities: state.skuQuantities,
+            totalQuantity: totalQuantity,
+            markupRate: markupRate,
+            deliveryLocation: state.deliveryLocation || 'domestic',
+            urgency: state.urgency || 'standard',
+          });
+
           // Calculate quote with SKU mode if applicable
           const quoteResult = await unifiedPricingEngine.calculateQuote({
             bagTypeId: state.bagTypeId,
@@ -3967,7 +4026,7 @@ export function ImprovedQuotingWizard() {
             // Roll film specific parameters (materialWidthはQuoteContextで動的に決定)
             materialWidth: state.materialWidth,
             filmLayers: state.filmLayers,
-            // 2列生産オプション関連パラメータ
+            // 2列生産オプションパラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
             discountedTotalPrice: state.discountedTotalPrice,
@@ -4061,6 +4120,23 @@ export function ImprovedQuotingWizard() {
 
   const canProceed = currentStepId ? isStepComplete(currentStepId) : false;
   const isLastStep = currentStep === STEPS.length - 1;
+
+  // Compute validation error message for 2-column production total quantity mismatch
+  // This is displayed when canProceed is false due to total quantity validation failure
+  const getNavigationBlockReason = (): string | null => {
+    if (currentStepId !== 'sku-quantity') return null;
+    if (state.quantityMode !== 'sku') return null;
+    if (!state.twoColumnOptionApplied || state.fixedTotalQuantity === undefined) return null;
+
+    const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
+    if (currentTotalQuantity !== state.fixedTotalQuantity) {
+      const diff = currentTotalQuantity - state.fixedTotalQuantity;
+      return `総数量が${diff > 0 ? '+' : ''}${diff.toLocaleString()}個です。総数量${state.fixedTotalQuantity.toLocaleString()}個を維持してください`;
+    }
+    return null;
+  };
+
+  const navigationBlockReason = getNavigationBlockReason();
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -4212,6 +4288,27 @@ export function ImprovedQuotingWizard() {
               {currentStepId === 'post-processing' && <PostProcessingStep />}
               {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep />}
               {currentStepId === 'result' && result && <ResultStep result={result} onReset={handleReset} onResultUpdate={setResult} />}
+
+              {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
+              {!canProceed && navigationBlockReason && currentStepId === 'sku-quantity' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-800">
+                        {navigationBlockReason}
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        総数量を調整してから次へ進んでください
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Navigation Buttons */}
               {currentStepId !== 'result' && (

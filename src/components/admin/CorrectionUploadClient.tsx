@@ -30,6 +30,17 @@ const FILE_SIZE_LIMITS = {
 } as const;
 
 // =====================================================
+// Types
+// =====================================================
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+  specifications: Record<string, any> | null;
+}
+
+// =====================================================
 // Props
 // =====================================================
 
@@ -49,12 +60,15 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
   // State
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [productName, setProductName] = useState('');
   const [partnerComment, setPartnerComment] = useState('');
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
 
   // Load previous revisions
   const [previousRevisions, setPreviousRevisions] = useState<Array<{
@@ -64,11 +78,30 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
     created_at: string;
     partner_comment: string | null;
     preview_image_url?: string;
+    order_item_id?: string | null;
+    sku_name?: string | null;
   }>>([]);
 
   useEffect(() => {
     loadPreviousRevisions();
   }, [order.id]);
+
+  // Initialize order items from order prop
+  useEffect(() => {
+    if (order.items && order.items.length > 0) {
+      const items: OrderItem[] = order.items.map(item => ({
+        id: item.id,
+        product_name: item.productName,
+        quantity: item.quantity,
+        specifications: item.specifications || null,
+      }));
+      setOrderItems(items);
+      // Auto-select first item if only one item exists
+      if (items.length === 1) {
+        setSelectedOrderItemId(items[0].id);
+      }
+    }
+  }, [order.items]);
 
   const loadPreviousRevisions = async () => {
     try {
@@ -171,6 +204,12 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
       return;
     }
 
+    // Validate product name
+    if (!productName.trim()) {
+      setError('製品名を入力してください');
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
@@ -179,8 +218,13 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
       const formData = new FormData();
       formData.append('preview_image', previewFile);
       formData.append('original_file', originalFile);
+      formData.append('product_name', productName.trim());
       formData.append('partner_comment', partnerComment);
       formData.append('notify_customer', notifyCustomer ? 'true' : 'false');
+      // Add order_item_id if SKU is selected
+      if (selectedOrderItemId) {
+        formData.append('order_item_id', selectedOrderItemId);
+      }
 
       // Upload with progress simulation
       const uploadPromise = fetch(`/api/admin/orders/${order.id}/correction`, {
@@ -215,6 +259,7 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
         setSuccessMessage('教正データをアップロードしました');
         setPreviewFile(null);
         setOriginalFile(null);
+        setProductName('');
         setPartnerComment('');
         loadPreviousRevisions();
       }
@@ -414,6 +459,61 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           パートナーコメント
         </h3>
+        {/* Product Name Input */}
+        <div className="mb-4">
+          <label htmlFor="product-name" className="block text-sm font-medium text-gray-900 mb-2">
+            製品名 <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="product-name"
+            type="text"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            placeholder="例: EPAC-001"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={isUploading}
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            ※ ファイル名に使用されます（例: 製品名_校正データ_注文番号_日付）
+          </p>
+        </div>
+
+        {/* SKU Context - Always Visible */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            SKU {orderItems.length > 1 ? <span className="text-red-500">*</span> : ''}
+          </label>
+          {orderItems.length === 1 ? (
+            <div className="flex items-center">
+              <span className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-md text-sm font-medium">
+                {orderItems[0].product_name} (数量: {orderItems[0].quantity})
+              </span>
+              <input type="hidden" name="order_item_id" value={orderItems[0].id} />
+            </div>
+          ) : (
+            <div>
+              <select
+                id="sku-select"
+                value={selectedOrderItemId || ''}
+                onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                disabled={isUploading}
+                required
+              >
+                <option value="">選択してください</option>
+                {orderItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.product_name} (数量: {item.quantity})
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-gray-500 mt-1">
+                ※ 複数のSKUがある場合は、該当するSKUを選択してください
+              </p>
+            </div>
+          )}
+        </div>
         <textarea
           id="partner-comment"
           value={partnerComment}
@@ -506,10 +606,17 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
                 key={revision.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
-                <div>
-                  <p className="font-medium text-gray-900">
-                    リビジョン #{revision.revision_number}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">
+                      リビジョン #{revision.revision_number}
+                    </p>
+                    {revision.sku_name && (
+                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                        {revision.sku_name}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-600">
                     {new Date(revision.created_at).toLocaleString('ja-JP')}
                   </p>

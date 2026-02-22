@@ -16,6 +16,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { createApiRateLimiter, checkRateLimit, createRateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limiter';
 import { createCommentSchema, safeParseRequestBody } from '@/types/api-validation';
 import { getAuditLogger } from '@/lib/audit-logger';
+import { translateJapaneseToKorean } from '@/lib/translation';
 
 // ============================================================
 // Constants
@@ -394,12 +395,36 @@ export async function POST(
       }
     }
 
-    // Create comment
+    // ============================================================
+    // Translate Japanese to Korean for customer comments
+    // ============================================================
+    let contentTranslated: string | null = null;
+    let translationStatus: 'pending' | 'translated' | 'failed' | 'not_needed' = 'not_needed';
+
+    // Only translate non-internal customer comments
+    if (!shouldMarkInternal && authorRole === 'customer') {
+      console.log('[Order Comments POST] Translating Japanese to Korean...');
+      try {
+        const translationResult = await translateJapaneseToKorean(content);
+        contentTranslated = translationResult.translatedText;
+        translationStatus = 'translated';
+        console.log('[Order Comments POST] Translation successful');
+      } catch (translationError) {
+        console.error('[Order Comments POST] Translation failed:', translationError);
+        translationStatus = 'failed';
+        // Continue without translation - Korean designer can ask for clarification
+      }
+    }
+
+    // Create comment with bilingual support
     const { data: newComment, error: createError } = await dataClient
       .from('order_comments')
       .insert({
         order_id: orderId,
         content: content.trim(),
+        content_translated: contentTranslated,
+        original_language: 'ja',
+        translation_status: translationStatus,
         comment_type,
         author_id: userId,
         author_role: authorRole,
