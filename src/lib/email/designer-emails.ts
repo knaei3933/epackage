@@ -37,8 +37,12 @@ export interface DesignerDataUploadNotificationData {
     postProcessing?: string[];
   };
   // Token-based authentication for designer order access
+  // トークンベースのデザイナー注文アクセス用
   accessToken?: string;
   useTokenUrl?: boolean;
+  // 本番環境のベースURL（トークンURL生成用）
+  // Production base URL (for token URL generation)
+  baseUrl?: string;
 }
 
 // ============================================================
@@ -181,10 +185,13 @@ export async function sendDesignerDataUploadNotification(
   // useTokenUrlがtrueの場合、トークンベースURLを生成
   let uploadUrl = data.uploadUrl;
   if (data.useTokenUrl && data.accessToken) {
-    // Extract base URL from the provided uploadUrl
-    // uploadUrlからベースURLを抽出
-    const url = new URL(data.uploadUrl);
-    const baseUrl = `${url.protocol}//${url.host}`;
+    // Use provided baseUrl first, otherwise extract from uploadUrl
+    // まず提供されたbaseUrlを使用し、なければuploadUrlから抽出
+    let baseUrl = data.baseUrl;
+    if (!baseUrl) {
+      const url = new URL(data.uploadUrl);
+      baseUrl = `${url.protocol}//${url.host}`;
+    }
     // Use token-based designer order URL
     // トークンベースのデザイナー注文URLを使用
     uploadUrl = `${baseUrl}/designer-order/${data.accessToken}`;

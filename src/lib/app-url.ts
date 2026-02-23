@@ -22,8 +22,8 @@ export function getAppUrlFromRequest(request: Request): string {
  * 環境変数またはリクエストからアプリケーションURLを取得
  *
  * 優先順位:
- * 1. リクエストから動的に取得（最優先）
- * 2. NEXT_PUBLIC_SITE_URL 環境変数
+ * 1. NEXT_PUBLIC_SITE_URL 環境変数（本番環境用）
+ * 2. リクエストから動的に取得
  * 3. NEXT_PUBLIC_APP_URL 環境変数
  * 4. デフォルト値
  *
@@ -31,14 +31,20 @@ export function getAppUrlFromRequest(request: Request): string {
  * @returns アプリケーションのベースURL
  */
 export function getAppUrl(request?: Request): string {
+  // 本番環境用の環境変数を最優先
+  // 管理者がローカルからAPIを呼び出す場合でも正しい本番URLを返す
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    return siteUrl;
+  }
+
   // リクエストがある場合は動的に取得
   if (request) {
     return getAppUrlFromRequest(request);
   }
 
-  // フォールバック: 環境変数を使用
+  // フォールバック
   return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     'https://package-lab.com'
   );

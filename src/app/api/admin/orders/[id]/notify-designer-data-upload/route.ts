@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendDesignerDataUploadNotification, sendDesignerDataUploadNotificationBatch } from '@/lib/email/designer-emails';
 import { generateUploadToken } from '@/lib/designer-tokens';
+import { getAppUrl } from '@/lib/app-url';
 import { randomUUID } from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -181,7 +182,9 @@ export async function POST(
     }
 
     // Send notifications to all designers
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+    // リクエストから動的にベースURLを取得（本番環境で正しいURLを取得するため）
+    const baseUrl = getAppUrl(request);
+    console.log('[Designer Notify] Using baseUrl:', baseUrl);
     const results = [];
 
     // Get specifications from first order item (or combine all)
@@ -260,6 +263,7 @@ export async function POST(
           // 韓国人デザイナーにはトークンベースURLを使用
           useTokenUrl: !!accessToken,
           accessToken: accessToken,
+          baseUrl: baseUrl, // 本番環境のベースURLを渡す
         });
 
         results.push({
