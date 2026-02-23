@@ -7,7 +7,6 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedPostBySlug, getRelatedPosts, incrementViewCount } from '@/lib/blog/queries';
 import { parseMarkdown } from '@/lib/blog/markdown';
-import { seoUtils } from '@/lib/blog/seo';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { TableOfContents } from '@/components/blog/TableOfContents';
 import { ShareButtons } from '@/components/blog/ShareButtons';
