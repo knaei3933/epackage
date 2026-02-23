@@ -186,14 +186,14 @@ export function OrderAddressInfo({ order, isAdmin = false }: OrderAddressInfoPro
           <h3 className="font-semibold text-text-primary">住所情報</h3>
         </div>
 
-        {/* 2列グリッドレイアウト: モバイル1列、タブレット以上2列 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 1列レイアウト: 縦並びで見やすく */}
+        <div className="space-y-6">
           {/* 納品先 */}
           {orderData.deliveryAddress && Object.keys(orderData.deliveryAddress).length > 0 ? (
-            <div>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-border-secondary">
-                <h4 className="font-medium text-text-primary flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
+            <div className="bg-muted/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border-secondary">
+                <h4 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" />
                   納品先
                   {isDeliveryFromProfile && (
                     <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">プロフィール由来</span>
@@ -257,10 +257,10 @@ export function OrderAddressInfo({ order, isAdmin = false }: OrderAddressInfoPro
 
           {/* 請求先 */}
           {orderData.billingAddress && Object.keys(orderData.billingAddress).length > 0 ? (
-            <div>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-border-secondary">
-                <h4 className="font-medium text-text-primary flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
+            <div className="bg-muted/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border-secondary">
+                <h4 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-primary" />
                   請求先
                   {isBillingFromProfile && (
                     <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">プロフィール由来</span>
