@@ -163,8 +163,8 @@ export function OrderStatusTimeline({
 
   const normalizedHistory = statusHistory.map(normalizeHistory);
 
-  // 3개 초과 시 접기/펼치기
-  const SHOW_LIMIT = 3;
+  // 1件以上で接ぎ/展開
+  const SHOW_LIMIT = 1;
   const shouldShowToggle = normalizedHistory.length > SHOW_LIMIT;
   const visibleItems = isExpanded ? normalizedHistory : normalizedHistory.slice(0, SHOW_LIMIT);
 
