@@ -939,14 +939,15 @@ export default function AdminSettingsPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {settingCount === 0 ? (
+            {/* For special tabs (designer, email, pricing), skip the "no settings" message */}
+            {!['designer', 'email', 'pricing'].includes(activeTab) && settingCount === 0 ? (
               <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                 <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">
                   {searchQuery ? '검색 결과가 없습니다.' : '이 카테고리에는 설정이 없습니다.'}
                 </p>
               </div>
-            ) : (
+            ) : !['designer', 'email', 'pricing'].includes(activeTab) ? (
               <div className="space-y-6">
                 {Array.from(groupedSettings.entries()).map(([groupTitle, groupData]) => {
                   const groupConfig = currentTabConfig.groups.find(g => g.title === groupTitle);
