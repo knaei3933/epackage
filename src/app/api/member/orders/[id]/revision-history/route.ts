@@ -31,7 +31,10 @@ const getServiceClient = () => createClient(supabaseUrl(), supabaseServiceKey(),
 // Types
 // =====================================================
 
+type EntryType = 'revision' | 'submission';
+
 interface RevisionHistoryEntry {
+  entry_type: EntryType;
   revision: {
     id: string;
     revision_number: number;
@@ -46,12 +49,13 @@ interface RevisionHistoryEntry {
     comment_ja: string | null;
     translation_status: string | null;
     customer_comment: string | null;
-  };
+  } | null;
   submission: {
     id: string | null;
     original_filename: string | null;
     submission_number: number | null;
     file_url: string | null;  // 入稿ファイルのURL
+    uploaded_at: string | null;
   } | null;
   rejection: {
     reason: string | null;
@@ -121,6 +125,21 @@ export async function GET(
       );
     }
 
+    // Get ALL customer submissions for this order (not just linked ones)
+    const { data: allSubmissions, error: submissionsError } = await supabase
+      .from('customer_file_submissions')
+      .select('id, original_filename, submission_number, file_url, uploaded_at')
+      .eq('order_id', orderId)
+      .order('submission_number', { ascending: true });
+
+    if (submissionsError) {
+      console.error('[Revision History GET] Submissions error:', submissionsError);
+      return NextResponse.json(
+        { success: false, error: '顧客入稿データの取得に失敗しました。' },
+        { status: 500 }
+      );
+    }
+
     // Get design revisions with submission data
     const { data: revisions, error: revisionsError } = await supabase
       .from('design_revisions')
@@ -155,22 +174,10 @@ export async function GET(
       );
     }
 
-    // Get customer submissions data (include file_url for download)
-    const submissionIds = (revisions || [])
-      .map(r => r.customer_submission_id)
-      .filter(Boolean) as string[];
-
-    let submissionsMap = new Map<string, any>();
-    if (submissionIds.length > 0) {
-      const { data: submissions } = await supabase
-        .from('customer_file_submissions')
-        .select('id, original_filename, submission_number, file_url')
-        .in('id', submissionIds);
-
-      if (submissions) {
-        submissionsMap = new Map(submissions.map(s => [s.id, s]));
-      }
-    }
+    // Create submissions map for lookup
+    const submissionsMap = new Map(
+      (allSubmissions || []).map(s => [s.id, s])
+    );
 
     // Get user names for rejection and approval
     const userIds = [
@@ -190,8 +197,18 @@ export async function GET(
       }
     }
 
-    // Build history entries
-    const history: RevisionHistoryEntry[] = (revisions || []).map(revision => {
+    // Track which submissions are linked to revisions
+    const linkedSubmissionIds = new Set(
+      (revisions || [])
+        .map(r => r.customer_submission_id)
+        .filter(Boolean) as string[]
+    );
+
+    // Build unified history entries with entry_type
+    const historyEntries: RevisionHistoryEntry[] = [];
+
+    // Add revision entries
+    for (const revision of revisions || []) {
       const submission = revision.customer_submission_id
         ? submissionsMap.get(revision.customer_submission_id)
         : null;
@@ -207,7 +224,8 @@ export async function GET(
         approved_by_name: revision.approved_by ? userNamesMap.get(revision.approved_by) || null : null,
       } : null;
 
-      return {
+      historyEntries.push({
+        entry_type: 'revision',
         revision: {
           id: revision.id,
           revision_number: revision.revision_number,
@@ -228,17 +246,44 @@ export async function GET(
           original_filename: submission.original_filename,
           submission_number: submission.submission_number,
           file_url: submission.file_url,
+          uploaded_at: submission.uploaded_at || null,
         } : null,
         rejection: rejectionEntry,
         approval: approvalEntry,
-      };
+      });
+    }
+
+    // Add standalone submission entries (not linked to any revision)
+    for (const submission of allSubmissions || []) {
+      if (!linkedSubmissionIds.has(submission.id)) {
+        historyEntries.push({
+          entry_type: 'submission',
+          revision: null,
+          submission: {
+            id: submission.id,
+            original_filename: submission.original_filename,
+            submission_number: submission.submission_number,
+            file_url: submission.file_url,
+            uploaded_at: submission.uploaded_at,
+          },
+          rejection: null,
+          approval: null,
+        });
+      }
+    }
+
+    // Sort by created_at/uploaded_at descending (newest first)
+    historyEntries.sort((a, b) => {
+      const dateA = a.revision?.created_at || a.submission?.uploaded_at || '';
+      const dateB = b.revision?.created_at || b.submission?.uploaded_at || '';
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
 
-    console.log('[Revision History GET] Success:', history.length, 'entries');
+    console.log('[Revision History GET] Success:', historyEntries.length, 'entries');
 
     return NextResponse.json({
       success: true,
-      history,
+      history: historyEntries,
     });
 
   } catch (error) {

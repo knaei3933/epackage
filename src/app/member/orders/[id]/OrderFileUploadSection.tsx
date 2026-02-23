@@ -14,6 +14,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui';
 import { ConfirmModal, useConfirmModal } from '@/components/ui/ConfirmModal';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Order } from '@/types/dashboard';
 
 // =====================================================
@@ -53,6 +55,12 @@ interface ValidationError {
 type FileType = 'production_data' | 'reference' | 'other';
 
 // =====================================================
+// Constants
+// =====================================================
+
+const ITEMS_PER_PAGE = 5;
+
+// =====================================================
 // Main Component
 // =====================================================
 
@@ -64,6 +72,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
   // State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -356,6 +365,12 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     }
     return 'Unknown SKU';
   };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(uploadedFiles.length / ITEMS_PER_PAGE);
+  const startIndex = currentPage * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, uploadedFiles.length);
+  const displayFiles = uploadedFiles.slice(startIndex, endIndex);
 
   return (
     <>
@@ -680,7 +695,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
               アップロード済みファイル ({uploadedFiles.length})
             </h3>
             <div className="space-y-2">
-              {uploadedFiles.map((file) => {
+              {displayFiles.map((file) => {
                 const isAIFile = file.file_type.toLowerCase() === 'production_data';
                 return (
                   <div
@@ -731,6 +746,37 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
                 );
               })}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 py-3">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                  disabled={currentPage === 0}
+                  className={cn(
+                    "p-2 rounded-md transition-colors",
+                    "hover:bg-muted",
+                    "disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-sm text-text-muted min-w-[60px] text-center">
+                  {currentPage + 1} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                  disabled={currentPage >= totalPages - 1}
+                  className={cn(
+                    "p-2 rounded-md transition-colors",
+                    "hover:bg-muted",
+                    "disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
 
             {/* Show completion message when AI file is uploaded */}
             {hasAIFile && (

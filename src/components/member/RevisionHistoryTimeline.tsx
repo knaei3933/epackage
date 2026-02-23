@@ -6,6 +6,7 @@
  * - 顧客ファイル提出、校正データ、承認/拒否情報を表示
  * - 展開可能な詳細セクション
  * - ファイルダウンロードリンク
+ * - ページネーション対応 (最大5件)
  *
  * @client
  */
@@ -14,14 +15,23 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
-import { FileImage, FileText, Download, Clock, User, CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { FileImage, FileText, Download, Clock, User, CheckCircle, XCircle, ChevronDown, ChevronRight, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// =====================================================
+// Constants
+// =====================================================
+
+const ITEMS_PER_PAGE = 5;
 
 // =====================================================
 // Types
 // =====================================================
 
+type EntryType = 'revision' | 'submission';
+
 interface RevisionHistoryEntry {
+  entry_type: EntryType;
   revision: {
     id: string;
     revision_number: number;
@@ -33,12 +43,13 @@ interface RevisionHistoryEntry {
     original_file_url: string | null;
     partner_comment: string | null;
     customer_comment: string | null;
-  };
+  } | null;
   submission: {
     id: string | null;
     original_filename: string | null;
     submission_number: number | null;
     file_url: string | null;  // 入稿ファイルのURL
+    uploaded_at: string | null;
   } | null;
   rejection: {
     reason: string | null;
@@ -70,6 +81,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Get preview URL via proxy to avoid CORS issues
   const getPreviewUrl = (revisionId: string) => {
@@ -116,6 +128,11 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  // Reset page on history change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [history]);
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -171,6 +188,28 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
     );
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const displayEntries = history.slice(startIndex, endIndex);
+
+  // Get entry ID for expansion tracking
+  const getEntryId = (entry: RevisionHistoryEntry): string => {
+    if (entry.entry_type === 'revision' && entry.revision) {
+      return `revision-${entry.revision.id}`;
+    }
+    if (entry.entry_type === 'submission' && entry.submission?.id) {
+      return `submission-${entry.submission.id}`;
+    }
+    return `entry-${Math.random()}`;
+  };
+
+  // Get entry date for sorting
+  const getEntryDate = (entry: RevisionHistoryEntry): string => {
+    return entry.revision?.created_at || entry.submission?.uploaded_at || '';
+  };
+
   return (
     <Card className="p-6">
       {/* Header */}
@@ -204,296 +243,365 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
           <p>まだデータ履歴がありません。</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {history.map((entry) => {
-            const isExpanded = expandedIds.has(entry.revision.id);
+        <>
+          <div className="space-y-4">
+            {displayEntries.map((entry) => {
+              const entryId = getEntryId(entry);
+              const isExpanded = expandedIds.has(entryId);
+              const isSubmission = entry.entry_type === 'submission';
 
-            return (
-              <div
-                key={entry.revision.id}
-                className="border rounded-lg overflow-hidden border-border-secondary"
-              >
-                {/* Header - Always Visible */}
+              return (
                 <div
-                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => toggleExpanded(entry.revision.id)}
+                  key={entryId}
+                  className="border rounded-lg overflow-hidden border-border-secondary"
                 >
-                  <div className="flex items-start gap-3">
-                    {/* Expand/Collapse Icon */}
-                    <button
-                      className="flex-shrink-0 mt-1 text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleExpanded(entry.revision.id);
-                      }}
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5" />
-                      )}
-                    </button>
-
-                    {/* Timeline Icon */}
-                    <div className="flex-shrink-0">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center border-2",
-                        entry.revision.approval_status === 'pending' && "bg-yellow-100 border-yellow-400",
-                        entry.revision.approval_status === 'approved' && "bg-green-100 border-green-400",
-                        entry.revision.approval_status === 'rejected' && "bg-red-100 border-red-400"
-                      )}>
-                        <span className="text-sm font-bold">
-                          R{entry.revision.revision_number}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-medium">
-                          リビジョン {entry.revision.revision_number}
-                        </h3>
-                        {getStatusBadge(entry.revision.approval_status)}
-                      </div>
-
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(entry.revision.created_at)}
-                      </div>
-
-                      {/* Quick Summary */}
-                      <div className="text-sm space-y-1">
-                        {entry.submission && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="font-medium">入稿ファイル:</span>
-                            <span className="truncate">{entry.submission.original_filename}</span>
-                          </div>
+                  {/* Header - Always Visible */}
+                  <div
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => toggleExpanded(entryId)}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Expand/Collapse Icon */}
+                      <button
+                        className="flex-shrink-0 mt-1 text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpanded(entryId);
+                        }}
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="w-5 h-5" />
+                        ) : (
+                          <ChevronRight className="w-5 h-5" />
                         )}
-                        {entry.revision.generated_correction_filename && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="font-medium">校正ファイル:</span>
-                            <span className="truncate">{entry.revision.generated_correction_filename}</span>
-                          </div>
-                        )}
-                      </div>
+                      </button>
 
-                      {/* Status Summary */}
-                      {entry.rejection && (
-                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                          <div className="flex items-start gap-2">
-                            <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-red-900">却下されました</p>
-                              {entry.rejection.reason && (
-                                <p className="text-red-700 text-xs mt-1 line-clamp-2">{entry.rejection.reason}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {entry.approval && (
-                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
-                          <div className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-green-900">承認されました</p>
-                              {entry.approval.approved_by_name && (
-                                <p className="text-green-700 text-xs mt-1">
-                                  承認者: {entry.approval.approved_by_name}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded Content */}
-                {isExpanded && (
-                  <div className="p-4 pt-0 border-t border-border-secondary space-y-4">
-                    {/* Customer Submission Details */}
-                    {entry.submission && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-blue-600" />
-                          入稿ファイル
-                        </h4>
-                        <div className="bg-muted/50 p-3 rounded-lg space-y-1 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">ファイル名:</span>
-                            <span className="font-medium">{entry.submission.original_filename}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">提出番号:</span>
-                            <span className="font-medium">#{entry.submission.submission_number}</span>
-                          </div>
-                        </div>
-                        {/* 入稿ファイルダウンロードリンク */}
-                        {entry.submission.file_url && (
-                          <a
-                            href={entry.submission.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
-                          >
+                      {/* Timeline Icon */}
+                      <div className="flex-shrink-0">
+                        {isSubmission ? (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-blue-100 border-blue-400">
                             <FileText className="w-5 h-5 text-blue-600" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">入稿ファイルをダウンロード</p>
-                              <p className="text-xs text-muted-foreground">クリックして開く</p>
-                            </div>
-                            <Download className="w-4 h-4 text-muted-foreground" />
-                          </a>
+                          </div>
+                        ) : entry.revision && (
+                          <div className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center border-2",
+                            entry.revision.approval_status === 'pending' && "bg-yellow-100 border-yellow-400",
+                            entry.revision.approval_status === 'approved' && "bg-green-100 border-green-400",
+                            entry.revision.approval_status === 'rejected' && "bg-red-100 border-red-400"
+                          )}>
+                            <span className="text-sm font-bold">
+                              R{entry.revision.revision_number}
+                            </span>
+                          </div>
                         )}
                       </div>
-                    )}
 
-                    {/* Correction File Details */}
-                    {entry.revision.generated_correction_filename && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <FileImage className="w-4 h-4 text-purple-600" />
-                          校正データ
-                        </h4>
-                        <div className="bg-muted/50 p-3 rounded-lg space-y-1 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">ファイル名:</span>
-                            <span className="font-medium">{entry.revision.generated_correction_filename}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">作成日時:</span>
-                            <span className="font-medium">{formatDateTime(entry.revision.created_at)}</span>
-                          </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="font-medium">
+                            {isSubmission
+                              ? `入稿データ提出 #${entry.submission?.submission_number || '-'}`
+                              : `リビジョン ${entry.revision?.revision_number}`
+                            }
+                          </h3>
+                          {!isSubmission && entry.revision && getStatusBadge(entry.revision.approval_status)}
+                          {isSubmission && (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full border bg-blue-100 text-blue-800 border-blue-200">
+                              <FileText className="w-3 h-3" />
+                              入稿
+                            </span>
+                          )}
                         </div>
-                      </div>
-                    )}
 
-                    {/* File Download Links */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {entry.revision.preview_image_url && (
-                        <a
-                          href={getPreviewUrl(entry.revision.id)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
-                        >
-                          <FileImage className="w-5 h-5 text-blue-600" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">プレビュー画像</p>
-                            <p className="text-xs text-muted-foreground">クリックして開く</p>
-                          </div>
-                          <Download className="w-4 h-4 text-muted-foreground" />
-                        </a>
-                      )}
-                      {entry.revision.original_file_url && (
-                        <a
-                          href={entry.revision.original_file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
-                        >
-                          <FileText className="w-5 h-5 text-purple-600" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">原版ファイル</p>
-                            <p className="text-xs text-muted-foreground">クリックして開く</p>
-                          </div>
-                          <Download className="w-4 h-4 text-muted-foreground" />
-                        </a>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                          <Clock className="w-3 h-3" />
+                          {formatDate(getEntryDate(entry))}
+                        </div>
 
-                    {/* Partner Comment */}
-                    {entry.revision.partner_comment && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <User className="w-4 h-4 text-orange-600" />
-                          パートナーコメント
-                        </h4>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
-                          {entry.revision.partner_comment}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Customer Comment */}
-                    {entry.revision.customer_comment && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <User className="w-4 h-4 text-green-600" />
-                          顧客コメント
-                        </h4>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
-                          {entry.revision.customer_comment}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Rejection Details */}
-                    {entry.rejection && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <XCircle className="w-4 h-4 text-red-600" />
-                          却下詳細
-                        </h4>
-                        <div className="bg-red-50 border border-red-200 p-3 rounded-lg space-y-2">
-                          {entry.rejection.reason && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">却下理由:</p>
-                              <p className="text-sm text-red-900">{entry.rejection.reason}</p>
+                        {/* Quick Summary */}
+                        <div className="text-sm space-y-1">
+                          {entry.submission && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <span className="font-medium">入稿ファイル:</span>
+                              <span className="truncate">{entry.submission.original_filename}</span>
                             </div>
                           )}
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {entry.rejection.rejected_at && (
-                              <div>
-                                <span className="text-muted-foreground">却下日時:</span>
-                                <p className="font-medium">{formatDateTime(entry.rejection.rejected_at)}</p>
-                              </div>
-                            )}
-                            {entry.rejection.rejected_by_name && (
-                              <div>
-                                <span className="text-muted-foreground">却下者:</span>
-                                <p className="font-medium">{entry.rejection.rejected_by_name}</p>
-                              </div>
-                            )}
-                          </div>
+                          {!isSubmission && entry.revision?.generated_correction_filename && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <span className="font-medium">校正ファイル:</span>
+                              <span className="truncate">{entry.revision.generated_correction_filename}</span>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
 
-                    {/* Approval Details */}
-                    {entry.approval && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          承認詳細
-                        </h4>
-                        <div className="bg-green-50 border border-green-200 p-3 rounded-lg space-y-2">
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {entry.approval.approved_at && (
-                              <div>
-                                <span className="text-muted-foreground">承認日時:</span>
-                                <p className="font-medium">{formatDateTime(entry.approval.approved_at)}</p>
+                        {/* Status Summary - only for revisions */}
+                        {!isSubmission && entry.rejection && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
+                            <div className="flex items-start gap-2">
+                              <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-red-900">却下されました</p>
+                                {entry.rejection.reason && (
+                                  <p className="text-red-700 text-xs mt-1 line-clamp-2">{entry.rejection.reason}</p>
+                                )}
                               </div>
-                            )}
-                            {entry.approval.approved_by_name && (
-                              <div>
-                                <span className="text-muted-foreground">承認者:</span>
-                                <p className="font-medium">{entry.approval.approved_by_name}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {!isSubmission && entry.approval && (
+                          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                            <div className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-green-900">承認されました</p>
+                                {entry.approval.approved_by_name && (
+                                  <p className="text-green-700 text-xs mt-1">
+                                    承認者: {entry.approval.approved_by_name}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="p-4 pt-0 border-t border-border-secondary space-y-4">
+                      {/* Customer Submission Details */}
+                      {entry.submission && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-blue-600" />
+                            入稿ファイル
+                          </h4>
+                          <div className="bg-muted/50 p-3 rounded-lg space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">ファイル名:</span>
+                              <span className="font-medium">{entry.submission.original_filename}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">提出番号:</span>
+                              <span className="font-medium">#{entry.submission.submission_number}</span>
+                            </div>
+                            {entry.submission.uploaded_at && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">入稿日時:</span>
+                                <span className="font-medium">{formatDateTime(entry.submission.uploaded_at)}</span>
                               </div>
                             )}
                           </div>
+                          {/* 入稿ファイルダウンロードリンク */}
+                          {entry.submission.file_url && (
+                            <a
+                              href={entry.submission.file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
+                            >
+                              <FileText className="w-5 h-5 text-blue-600" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">入稿ファイルをダウンロード</p>
+                                <p className="text-xs text-muted-foreground">クリックして開く</p>
+                              </div>
+                              <Download className="w-4 h-4 text-muted-foreground" />
+                            </a>
+                          )}
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+
+                      {/* Correction File Details - only for revisions */}
+                      {!isSubmission && entry.revision?.generated_correction_filename && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <FileImage className="w-4 h-4 text-purple-600" />
+                            校正データ
+                          </h4>
+                          <div className="bg-muted/50 p-3 rounded-lg space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">ファイル名:</span>
+                              <span className="font-medium">{entry.revision.generated_correction_filename}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">作成日時:</span>
+                              <span className="font-medium">{formatDateTime(entry.revision.created_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* File Download Links - only for revisions */}
+                      {!isSubmission && entry.revision && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {entry.revision.preview_image_url && (
+                            <a
+                              href={getPreviewUrl(entry.revision.id)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
+                            >
+                              <FileImage className="w-5 h-5 text-blue-600" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">プレビュー画像</p>
+                                <p className="text-xs text-muted-foreground">クリックして開く</p>
+                              </div>
+                              <Download className="w-4 h-4 text-muted-foreground" />
+                            </a>
+                          )}
+                          {entry.revision.original_file_url && (
+                            <a
+                              href={entry.revision.original_file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
+                            >
+                              <FileText className="w-5 h-5 text-purple-600" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">原版ファイル</p>
+                                <p className="text-xs text-muted-foreground">クリックして開く</p>
+                              </div>
+                              <Download className="w-4 h-4 text-muted-foreground" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Partner Comment - only for revisions */}
+                      {!isSubmission && entry.revision?.partner_comment && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <User className="w-4 h-4 text-orange-600" />
+                            パートナーコメント
+                          </h4>
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                            {entry.revision.partner_comment}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Customer Comment */}
+                      {((!isSubmission && entry.revision?.customer_comment) || isSubmission) && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <User className="w-4 h-4 text-green-600" />
+                            {isSubmission ? '入稿メモ' : '顧客コメント'}
+                          </h4>
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                            {isSubmission ? '入稿データが提出されました。' : entry.revision?.customer_comment}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Rejection Details - only for revisions */}
+                      {!isSubmission && entry.rejection && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <XCircle className="w-4 h-4 text-red-600" />
+                            却下詳細
+                          </h4>
+                          <div className="bg-red-50 border border-red-200 p-3 rounded-lg space-y-2">
+                            {entry.rejection.reason && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">却下理由:</p>
+                                <p className="text-sm text-red-900">{entry.rejection.reason}</p>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {entry.rejection.rejected_at && (
+                                <div>
+                                  <span className="text-muted-foreground">却下日時:</span>
+                                  <p className="font-medium">{formatDateTime(entry.rejection.rejected_at)}</p>
+                                </div>
+                              )}
+                              {entry.rejection.rejected_by_name && (
+                                <div>
+                                  <span className="text-muted-foreground">却下者:</span>
+                                  <p className="font-medium">{entry.rejection.rejected_by_name}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Approval Details - only for revisions */}
+                      {!isSubmission && entry.approval && (
+                        <div>
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            承認詳細
+                          </h4>
+                          <div className="bg-green-50 border border-green-200 p-3 rounded-lg space-y-2">
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {entry.approval.approved_at && (
+                                <div>
+                                  <span className="text-muted-foreground">承認日時:</span>
+                                  <p className="font-medium">{formatDateTime(entry.approval.approved_at)}</p>
+                                </div>
+                              )}
+                              {entry.approval.approved_by_name && (
+                                <div>
+                                  <span className="text-muted-foreground">承認者:</span>
+                                  <p className="font-medium">{entry.approval.approved_by_name}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className={cn(
+                  "flex items-center gap-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                  currentPage === 1
+                    ? "text-muted-foreground cursor-not-allowed bg-muted/30"
+                    : "hover:bg-muted/50"
                 )}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                前へ
+              </button>
+
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {startIndex + 1} - {Math.min(endIndex, history.length)} / {history.length} 件
+                </span>
+                <span className="text-muted-foreground">
+                  ({currentPage} / {totalPages} ページ)
+                </span>
               </div>
-            );
-          })}
-        </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className={cn(
+                  "flex items-center gap-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                  currentPage === totalPages
+                    ? "text-muted-foreground cursor-not-allowed bg-muted/30"
+                    : "hover:bg-muted/50"
+                )}
+              >
+                次へ
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </Card>
   );
