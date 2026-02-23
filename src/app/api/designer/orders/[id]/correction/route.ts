@@ -141,31 +141,46 @@ export async function POST(
       );
     }
 
-    // Get product name from order item
-    let productName = '';
+    // Get product/SKU info from order item
+    let skuCode = '';
     if (orderItemId) {
       const { data: orderItem } = await supabase
         .from('order_items')
-        .select('product_name')
+        .select('product_name, specifications')
         .eq('id', orderItemId)
         .single();
-      productName = orderItem?.product_name || '';
+
+      // Extract SKU code from specifications.sku_info or product_name
+      if (orderItem?.specifications?.sku_info?.sku_code) {
+        skuCode = orderItem.specifications.sku_info.sku_code;
+      } else {
+        // Fallback: extract SKU code from product_name (e.g., "SKU-2_..." -> "SKU-2")
+        const match = orderItem?.product_name?.match(/^(SKU-\d+)/);
+        skuCode = match ? match[1] : '';
+      }
     } else {
+      // Get first order item if no specific item selected
       const { data: firstItem } = await supabase
         .from('order_items')
-        .select('product_name')
+        .select('product_name, specifications')
         .eq('order_id', orderId)
         .limit(1)
         .single();
-      productName = firstItem?.product_name || '';
+
+      if (firstItem?.specifications?.sku_info?.sku_code) {
+        skuCode = firstItem.specifications.sku_info.sku_code;
+      } else {
+        const match = firstItem?.product_name?.match(/^(SKU-\d+)/);
+        skuCode = match ? match[1] : '';
+      }
     }
 
-    if (!productName) {
+    if (!skuCode) {
       return NextResponse.json(
         {
           success: false,
-          error: '製品情報が見つかりません。',
-          errorEn: 'Product information not found.',
+          error: 'SKU情報が見つかりません。',
+          errorEn: 'SKU information not found.',
         },
         { status: 400 }
       );
@@ -193,15 +208,14 @@ export async function POST(
     // Get admin access token for Google Drive
     const accessToken = await getAdminAccessTokenForUpload();
 
-    // Generate file names
+    // Generate file names using SKU code (matching upload data format)
     const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const sanitizedProductName = productName.trim().replace(/[^a-zA-Z0-9-_가-힣]/g, '_');
 
     const previewExt = previewImage.name.substring(previewImage.name.lastIndexOf('.'));
     const originalExt = originalFile.name.substring(originalFile.name.lastIndexOf('.'));
 
-    const previewFileName = `${sanitizedProductName}_校正データ_${order.order_number}_${dateStr}${previewExt}`;
-    const originalFileName = `${sanitizedProductName}_校正データ_${order.order_number}_${dateStr}${originalExt}`;
+    const previewFileName = `${skuCode}_校正データ_${order.order_number}_${dateStr}${previewExt}`;
+    const originalFileName = `${skuCode}_校正データ_${order.order_number}_${dateStr}${originalExt}`;
 
     console.log('[Designer Correction Upload] Uploading to Google Drive:', {
       preview: previewFileName,
