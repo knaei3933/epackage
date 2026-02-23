@@ -172,8 +172,8 @@ export async function uploadFileToDrive(
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      // Node.js fetch는 Uint8Array를 직접 지원
-      body: new Uint8Array(fullBody)
+      // Vercel環境ではBuffer.buffer (ArrayBuffer) を使用
+      body: fullBody.buffer || fullBody
     }
   );
 
