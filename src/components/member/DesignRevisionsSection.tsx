@@ -14,7 +14,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, XCircle, FileImage, FileText, Download, Clock, User } from 'lucide-react';
+import { CheckCircle, XCircle, FileImage, FileText, Download, Clock, User, RefreshCw } from 'lucide-react';
 import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
 import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
 import { RejectionReasonModal } from '@/components/member/RejectionReasonModal';
@@ -75,6 +75,8 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectingRevisionId, setRejectingRevisionId] = useState<string | null>(null);
   const [rejectingRevisionName, setRejectingRevisionName] = useState<string | null>(null);
+  // Retry translation state
+  const [retryingTranslationId, setRetryingTranslationId] = useState<string | null>(null);
 
   // Load revisions and order items
   const loadRevisions = useCallback(async () => {
@@ -239,6 +241,37 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     setRejectingRevisionName(null);
   }, []);
 
+  // Handle retry translation
+  const handleRetryTranslation = useCallback(async (revisionId: string) => {
+    try {
+      setRetryingTranslationId(revisionId);
+      setError(null);
+      setSuccessMessage(null);
+
+      const response = await fetch(
+        `/api/member/orders/${orderId}/design-revisions/${revisionId}/retry-translation`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccessMessage('翻訳を再試行しました。');
+        await loadRevisions(); // Reload list
+      } else {
+        setError(result.error || '翻訳の再試行に失敗しました。');
+      }
+    } catch (err) {
+      console.error('[DesignRevisionsSection] Retry translation error:', err);
+      setError('予期しないエラーが発生しました。');
+    } finally {
+      setRetryingTranslationId(null);
+    }
+  }, [orderId, loadRevisions]);
+
   // Load revisions on mount
   useEffect(() => {
     loadRevisions();
@@ -299,7 +332,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     // Fallback to order_item_id lookup
     if (!revision.order_item_id) return 'すべてのSKU (All SKUs)';
     const item = orderItems.find(i => i.id === revision.order_item_id);
-    return item ? `${item.product_name} (${item.quantity}枚)` : 'Unknown SKU';
+    return item ? `SKU-${item.id}_${item.product_name}_${item.quantity}` : 'Unknown SKU';
   };
 
   // Filter pending revisions
@@ -446,8 +479,31 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                         )}
                         {/* Failed translation notice for member */}
                         {revision.translation_status === 'failed' && (
-                          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-                            翻訳エラーが発生しました。韓国語の原文のみ表示されています。
+                          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-xs text-amber-800">
+                                翻訳エラーが発生しました。韓国語の原文のみ表示されています。
+                              </p>
+                              <Button
+                                onClick={() => handleRetryTranslation(revision.id)}
+                                disabled={retryingTranslationId === revision.id}
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-xs border-amber-300 text-amber-700 hover:bg-amber-100 whitespace-nowrap"
+                              >
+                                {retryingTranslationId === revision.id ? (
+                                  <>
+                                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                    再試行中...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RefreshCw className="w-3 h-3 mr-1" />
+                                    再翻訳
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </div>
