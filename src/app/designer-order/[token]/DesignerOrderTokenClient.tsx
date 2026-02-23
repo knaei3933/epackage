@@ -71,7 +71,7 @@ interface DesignRevision {
   preview_image_url: string | null;
   original_file_url: string | null;
   korean_designer_comment: string | null;
-  korean_designer_comment_ja: string | null;
+  comment_ja: string | null;
   approval_status: string;
   created_at: string;
   original_customer_filename?: string | null;
@@ -752,8 +752,8 @@ export function DesignerOrderTokenClient({
                       {revision.korean_designer_comment && (
                         <div className="p-3 bg-white rounded border border-slate-200 mb-3">
                           <p className="text-sm text-slate-700">{revision.korean_designer_comment}</p>
-                          {revision.korean_designer_comment_ja && (
-                            <p className="text-sm text-slate-500 mt-2">{revision.korean_designer_comment_ja}</p>
+                          {revision.comment_ja && (
+                            <p className="text-sm text-slate-500 mt-2">{revision.comment_ja}</p>
                           )}
                         </div>
                       )}

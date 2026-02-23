@@ -58,7 +58,7 @@ interface DesignRevision {
   preview_image_url: string | null;
   original_file_url: string | null;
   korean_designer_comment: string | null;
-  korean_designer_comment_ja: string | null;
+  comment_ja: string | null;
   approval_status: string;
   created_at: string;
   original_customer_filename?: string | null;

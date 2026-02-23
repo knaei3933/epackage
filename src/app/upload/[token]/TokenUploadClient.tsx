@@ -74,7 +74,7 @@ interface DesignRevision {
   preview_image_url: string | null;
   original_file_url: string | null;
   korean_designer_comment: string | null;
-  korean_designer_comment_ja: string | null;
+  comment_ja: string | null;
   approval_status: string;
   created_at: string;
   original_customer_filename?: string | null;
@@ -430,7 +430,7 @@ export function TokenUploadClient({
                       <div className="mt-2 p-2 bg-white rounded text-sm">
                         <BilingualText
                           content={revision.korean_designer_comment}
-                          content_translated={revision.korean_designer_comment_ja}
+                          content_translated={revision.comment_ja}
                           original_language="ko"
                         />
                       </div>
