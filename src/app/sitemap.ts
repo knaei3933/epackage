@@ -2,6 +2,10 @@ import { MetadataRoute } from 'next'
 import { getAllProducts } from '@/lib/product-data'
 import { createServiceClient } from '@/lib/supabase'
 
+// Force dynamic to avoid RSC 404 errors
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 // サイト設定
 const SITE_URL = 'https://package-lab.com'
 
