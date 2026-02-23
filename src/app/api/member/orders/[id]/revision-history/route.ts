@@ -51,6 +51,7 @@ interface RevisionHistoryEntry {
     id: string | null;
     original_filename: string | null;
     submission_number: number | null;
+    file_url: string | null;  // 入稿ファイルのURL
   } | null;
   rejection: {
     reason: string | null;
@@ -154,7 +155,7 @@ export async function GET(
       );
     }
 
-    // Get customer submissions data
+    // Get customer submissions data (include file_url for download)
     const submissionIds = (revisions || [])
       .map(r => r.customer_submission_id)
       .filter(Boolean) as string[];
@@ -163,7 +164,7 @@ export async function GET(
     if (submissionIds.length > 0) {
       const { data: submissions } = await supabase
         .from('customer_file_submissions')
-        .select('id, original_filename, submission_number')
+        .select('id, original_filename, submission_number, file_url')
         .in('id', submissionIds);
 
       if (submissions) {
@@ -226,6 +227,7 @@ export async function GET(
           id: submission.id,
           original_filename: submission.original_filename,
           submission_number: submission.submission_number,
+          file_url: submission.file_url,
         } : null,
         rejection: rejectionEntry,
         approval: approvalEntry,

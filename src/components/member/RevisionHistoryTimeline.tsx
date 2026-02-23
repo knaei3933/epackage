@@ -1,8 +1,8 @@
 /**
- * Revision History Timeline Component
+ * Data History Timeline Component
  *
- * リビジョン履歴タイムラインコンポーネント
- * - デザインリビジョンの履歴を時系列表示
+ * データ履歴タイムラインコンポーネント
+ * - 入稿データ〜校正データの時系列履歴を表示
  * - 顧客ファイル提出、校正データ、承認/拒否情報を表示
  * - 展開可能な詳細セクション
  * - ファイルダウンロードリンク
@@ -38,6 +38,7 @@ interface RevisionHistoryEntry {
     id: string | null;
     original_filename: string | null;
     submission_number: number | null;
+    file_url: string | null;  // 入稿ファイルのURL
   } | null;
   rejection: {
     reason: string | null;
@@ -70,6 +71,12 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
   const [error, setError] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
+  // Get preview URL via proxy to avoid CORS issues
+  const getPreviewUrl = (revisionId: string) => {
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
+    return `${appUrl}/api/designer/orders/${orderId}/correction/${revisionId}/preview`;
+  };
+
   // Load revision history
   const loadHistory = useCallback(async () => {
     try {
@@ -82,10 +89,10 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
       if (result.success && result.history) {
         setHistory(result.history);
       } else {
-        setError(result.error || 'リビジョン履歴の読み込みに失敗しました。');
+        setError(result.error || 'データ履歴の読み込みに失敗しました。');
       }
     } catch (err) {
-      console.error('[RevisionHistoryTimeline] Load error:', err);
+      console.error('[DataHistoryTimeline] Load error:', err);
       setError('予期しないエラーが発生しました。');
     } finally {
       setLoading(false);
@@ -170,7 +177,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Clock className="w-5 h-5" />
-          リビジョン履歴
+          データ履歴
         </h2>
         {history.length > 0 && (
           <span className="text-sm text-muted-foreground">
@@ -194,7 +201,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
       ) : history.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Clock className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p>まだリビジョン履歴がありません。</p>
+          <p>まだデータ履歴がありません。</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -259,7 +266,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                       <div className="text-sm space-y-1">
                         {entry.submission && (
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="font-medium">顧客ファイル:</span>
+                            <span className="font-medium">入稿ファイル:</span>
                             <span className="truncate">{entry.submission.original_filename}</span>
                           </div>
                         )}
@@ -313,7 +320,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                       <div>
                         <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                           <FileText className="w-4 h-4 text-blue-600" />
-                          顧客ファイル提出
+                          入稿ファイル
                         </h4>
                         <div className="bg-muted/50 p-3 rounded-lg space-y-1 text-sm">
                           <div className="flex justify-between">
@@ -325,6 +332,22 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                             <span className="font-medium">#{entry.submission.submission_number}</span>
                           </div>
                         </div>
+                        {/* 入稿ファイルダウンロードリンク */}
+                        {entry.submission.file_url && (
+                          <a
+                            href={entry.submission.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
+                          >
+                            <FileText className="w-5 h-5 text-blue-600" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">入稿ファイルをダウンロード</p>
+                              <p className="text-xs text-muted-foreground">クリックして開く</p>
+                            </div>
+                            <Download className="w-4 h-4 text-muted-foreground" />
+                          </a>
+                        )}
                       </div>
                     )}
 
@@ -352,7 +375,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {entry.revision.preview_image_url && (
                         <a
-                          href={entry.revision.preview_image_url}
+                          href={getPreviewUrl(entry.revision.id)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
@@ -387,7 +410,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                       <div>
                         <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                           <User className="w-4 h-4 text-orange-600" />
-                          デザイナーコメント
+                          パートナーコメント
                         </h4>
                         <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
                           {entry.revision.partner_comment}
