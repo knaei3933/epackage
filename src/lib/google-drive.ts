@@ -165,8 +165,8 @@ export async function uploadFileToDrive(
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      // Vercel環境ではBufferを直接渡す
-      body: fullBody
+      // Vercel環境ではUint8Arrayに変換が必要
+      body: new Uint8Array(fullBody)
     }
   );
 
