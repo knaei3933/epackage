@@ -125,42 +125,36 @@ export async function uploadFileToDrive(
     parents: [folderId]
   };
 
-  // multipart/related 생성 (Google Drive API 표준)
+  // multipart/related 생성 (Google Drive API v3 표준 형식)
   const boundary = '-------boundary_' + Math.random().toString(36).substring(2);
 
-  // 메타데이터 파트
-  const metadataPart = [
+  // メタデータJSON（末尾にCRLFを含めない）
+  const metadataJson = JSON.stringify(metadata);
+
+  // multipartボディを文字列として構築（ファイルデータは除く）
+  const bodyPrefix = [
     `--${boundary}`,
     'Content-Type: application/json; charset=UTF-8',
     '',
-    JSON.stringify(metadata),
-    ''
-  ].join('\r\n');
-
-  // 파일 파트
-  const filePartHeader = [
+    metadataJson,
     `--${boundary}`,
     `Content-Type: ${mimeType}`,
-    ''
+    '',
+    ''  // ファイルデータの前の空行
   ].join('\r\n');
 
-  // 전체 바디 조합 (파일 헤더와 내용 사이에 빈 줄 필요)
-  const metadataBuffer = Buffer.from(metadataPart, 'utf-8');
-  const fileHeaderBuffer = Buffer.from(filePartHeader, 'utf-8');
-  const fileBlankLine = Buffer.from('\r\n', 'utf-8');  // 빈 줄 추가
-  const fileBuffer = fileContent;
-  const closingBuffer = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
+  const bodySuffix = `\r\n--${boundary}--\r\n`;
 
-  const fullBody = Buffer.concat([
-    metadataBuffer,
-    fileHeaderBuffer,
-    fileBlankLine,  // 헤더와 내용 사이의 빈 줄
-    fileBuffer,
-    closingBuffer
-  ]);
+  // プレフィックスをBufferに変換
+  const prefixBuffer = Buffer.from(bodyPrefix, 'utf-8');
+  const suffixBuffer = Buffer.from(bodySuffix, 'utf-8');
+
+  // 全体を結合
+  const fullBody = Buffer.concat([prefixBuffer, fileContent, suffixBuffer]);
 
   console.log('[uploadFileToDrive] Request body size:', fullBody.length, 'bytes');
   console.log('[uploadFileToDrive] Content-Type:', `multipart/related; boundary=${boundary}`);
+  console.log('[uploadFileToDrive] Boundary:', boundary);
 
   // 업로드 요청 (webViewLinkとwebContentLink를取得するためfieldsパ라メータ追加)
   // Node.js 환경에서 fetch가 Buffer를 처리할 수 있도록 Uint8Array로 변환
@@ -172,8 +166,8 @@ export async function uploadFileToDrive(
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      // Vercel環境ではBuffer.buffer (ArrayBuffer) を使用
-      body: fullBody.buffer || fullBody
+      // Vercel環境ではBufferを直接渡す
+      body: fullBody
     }
   );
 
