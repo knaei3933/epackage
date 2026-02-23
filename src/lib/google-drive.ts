@@ -139,8 +139,7 @@ export async function uploadFileToDrive(
     metadataJson,
     `--${boundary}`,
     `Content-Type: ${mimeType}`,
-    '',
-    ''  // ファイルデータの前の空行
+    ''  // ファイルヘッダーの後の空行（これでファイルデータが開始）
   ].join('\r\n');
 
   const bodySuffix = `\r\n--${boundary}--\r\n`;
