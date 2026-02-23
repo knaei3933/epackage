@@ -358,6 +358,139 @@ export type TemplateDataMap = {
 export type GetTemplateData<T extends EmailTemplateId> = TemplateDataMap[T]
 
 // ============================================================
+// Email Settings Types (Comprehensive Email Settings System)
+// ============================================================
+
+/**
+ * SMTP設定
+ */
+export interface SmtpConfig {
+  host: string;
+  port: number;
+  user: string;
+  password?: string; // 暗号化して保存
+  from_email: string;
+  reply_to: string;
+  admin_email: string;
+}
+
+/**
+ * メール機能トグル設定
+ */
+export interface EmailToggles {
+  order_confirmation: boolean;
+  shipping_notification: boolean;
+  quote_approval: boolean;
+  production_status: boolean;
+  admin_notifications: boolean;
+  designer_notifications: boolean;
+  data_upload_reminders: boolean;
+  approval_reminders: boolean;
+}
+
+/**
+ * 会社情報（メール署名用）
+ */
+export interface CompanyInfo {
+  company_name_ja: string;
+  company_name_en: string;
+  support_email: string;
+  support_phone: string;
+  postal_code: string;
+  address: string;
+}
+
+/**
+ * 銀行口座情報
+ */
+export interface BankInfo {
+  bank_name: string;
+  branch_name: string;
+  account_type: string;
+  account_number: string;
+  account_holder: string;
+}
+
+/**
+ * 通知受信者設定
+ */
+export interface NotificationRecipients {
+  admin_emails: string[];
+  sales_emails: string[];
+  production_emails: string[];
+}
+
+/**
+ * 包括的メール設定
+ */
+export interface EmailSettings {
+  smtp: SmtpConfig;
+  toggles: EmailToggles;
+  companyInfo: CompanyInfo;
+  bankInfo: BankInfo;
+  recipients: NotificationRecipients;
+}
+
+/**
+ * デフォルトSMTP設定
+ */
+export const DEFAULT_SMTP_CONFIG: SmtpConfig = {
+  host: process.env.XSERVER_SMTP_HOST || '',
+  port: parseInt(process.env.XSERVER_SMTP_PORT || '587'),
+  user: process.env.XSERVER_SMTP_USER || '',
+  password: process.env.XSERVER_SMTP_PASSWORD,
+  from_email: process.env.FROM_EMAIL || 'noreply@package-lab.com',
+  reply_to: process.env.REPLY_TO_EMAIL || 'support@package-lab.com',
+  admin_email: process.env.ADMIN_EMAIL || 'admin@package-lab.com',
+};
+
+/**
+ * デフォルトメールトグル設定
+ */
+export const DEFAULT_EMAIL_TOGGLES: EmailToggles = {
+  order_confirmation: true,
+  shipping_notification: true,
+  quote_approval: true,
+  production_status: true,
+  admin_notifications: true,
+  designer_notifications: true,
+  data_upload_reminders: true,
+  approval_reminders: true,
+};
+
+/**
+ * デフォルト会社情報
+ */
+export const DEFAULT_COMPANY_INFO: CompanyInfo = {
+  company_name_ja: 'イーパックラボ',
+  company_name_en: 'EPackage Lab',
+  support_email: 'support@epackage-lab.com',
+  support_phone: 'XX-XXXX-XXXX',
+  postal_code: '000-0000',
+  address: '東京都〇〇区〇〇1-2-3',
+};
+
+/**
+ * デフォルト銀行口座情報
+ */
+export const DEFAULT_BANK_INFO: BankInfo = {
+  bank_name: 'PayPay銀行',
+  branch_name: 'ビジネス営業部支店(005)',
+  account_type: '普通',
+  account_number: '5630235',
+  account_holder: 'カネイボウエキ（カ',
+};
+
+/**
+ * デフォルト通知受信者
+ */
+export const DEFAULT_NOTIFICATION_RECIPIENTS: NotificationRecipients = {
+  admin_emails: ['admin@package-lab.com'],
+  sales_emails: ['sales@package-lab.com'],
+  production_emails: ['production@package-lab.com'],
+};
+
+// ============================================================
 // Epackage Lab Email Types
 // ============================================================
 

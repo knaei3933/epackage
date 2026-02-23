@@ -28,36 +28,84 @@ export interface EpackEmailData {
 // Bank Information (振込先銀行口座)
 // ============================================================
 
-const BANK_INFO = `
+import { getBankInfoText, getBankInfoHtml, getFooterText } from './email-settings';
+import type { BankInfo, CompanyInfo } from '@/types/email';
+
+// Synchronous fallback for bank info text (used in templates)
+const DEFAULT_BANK_INFO: BankInfo = {
+  bank_name: 'PayPay銀行',
+  branch_name: 'ビジネス営業部支店(005)',
+  account_type: '普通',
+  account_number: '5630235',
+  account_holder: 'カネイボウエキ（カ',
+};
+
+const DEFAULT_COMPANY_INFO: CompanyInfo = {
+  company_name_ja: 'イーパックラボ',
+  company_name_en: 'EPackage Lab',
+  support_email: 'support@epackage-lab.com',
+  support_phone: 'XX-XXXX-XXXX',
+  postal_code: '000-0000',
+  address: '東京都〇〇区〇〇1-2-3',
+};
+
+// Generate bank info text synchronously (with optional bankInfo parameter)
+function getBankInfoTextSync(bankInfo: BankInfo = DEFAULT_BANK_INFO): string {
+  return `
 振込先銀行口座
 ━━━━━━━━━━━━━━━━━━━━
-銀行名：PayPay銀行
-支店名：ビジネス営業部支店(005)
-預金種目：普通
-口座番号：5630235
-口座名義：カネイボウエキ（カ
+銀行名：${bankInfo.bank_name}
+支店名：${bankInfo.branch_name}
+預金種目：${bankInfo.account_type}
+口座番号：${bankInfo.account_number}
+口座名義：${bankInfo.account_holder}
 ━━━━━━━━━━━━━━━━━━━━
-`
+`.trim();
+}
+
+// Generate bank info HTML synchronously (with optional bankInfo parameter)
+function getBankInfoHtmlSync(bankInfo: BankInfo = DEFAULT_BANK_INFO): string {
+  return `
+      <div style="background: #f3f4f6; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 13px;">
+        <strong style="display: block; margin-bottom: 10px;">振込先銀行口座</strong>
+        <div style="line-height: 1.8;">
+          銀行名：${bankInfo.bank_name}<br>
+          支店名：${bankInfo.branch_name}<br>
+          預金種目：${bankInfo.account_type}<br>
+          口座番号：${bankInfo.account_number}<br>
+          口座名義：${bankInfo.account_holder}
+        </div>
+      </div>
+  `.trim();
+}
+
+// Legacy constant for backward compatibility (uses default values)
+const BANK_INFO = getBankInfoTextSync()
 
 // ============================================================
 // Common Email Components
 // ============================================================
 
-const FOOTER = (year: number = new Date().getFullYear()) => `
+// Generate footer text synchronously (with optional companyInfo parameter)
+function getFooterTextSync(year: number = new Date().getFullYear(), companyInfo: CompanyInfo = DEFAULT_COMPANY_INFO): string {
+  return `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Epackage Lab (EPackage Lab)
-〒000-0000
-東京都〇〇区〇〇1-2-3
-TEL: XX-XXXX-XXXX
-Email: support@epackage-lab.com
+${companyInfo.company_name_en} (${companyInfo.company_name_ja})
+〒${companyInfo.postal_code}
+${companyInfo.address}
+TEL: ${companyInfo.support_phone}
+Email: ${companyInfo.support_email}
 URL: https://epackage-lab.com
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 本メールはシステムにより自動送信されています。
-お問い合わせ: support@epackage-lab.com
-Copyright © ${year} Epackage Lab. All rights reserved.
-`.trim()
+お問い合わせ: ${companyInfo.support_email}
+Copyright © ${year} ${companyInfo.company_name_en}. All rights reserved.
+`.trim();
+}
+
+const FOOTER = (year: number = new Date().getFullYear()) => getFooterTextSync(year)
 
 const createHeader = (title: string, gradient: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)') => `
   <div class="header" style="background: ${gradient}; color: white; padding: 30px; border-radius: 8px 8px 0 0;">
@@ -1159,16 +1207,7 @@ ${FOOTER}
         </div>
       </div>
 
-      <div style="background: #f3f4f6; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 13px;">
-        <strong style="display: block; margin-bottom: 10px;">振込先銀行口座</strong>
-        <div style="line-height: 1.8;">
-          銀行名：PayPay銀行<br>
-          支店名：ビジネス営業部支店(005)<br>
-          預金種目：普通<br>
-          口座番号：5630235<br>
-          口座名義：カネイボウエキ（カ
-        </div>
-      </div>
+      ${getBankInfoHtmlSync()}
     ` : ''
 
     const content = `

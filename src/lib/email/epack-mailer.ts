@@ -9,6 +9,8 @@
 
 import * as nodemailer from 'nodemailer'
 import { epackEmailTemplates, type EpackEmailData, type EpackTemplateId } from './epack-templates'
+import { getSmtpConfig, getEmailToggles, isEmailEnabled } from './email-settings'
+import type { SmtpConfig } from '@/types/email'
 
 // ============================================================
 // Configuration
@@ -29,24 +31,28 @@ let transportType: 'xserver' | 'console' = 'console'
 /**
  * Xserver SMTP Transporter 생성
  */
-function createXServerTransporter() {
-  // Support both XSERVER_SMTP_* and SUPABASE_SMTP_* variable names
-  const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST || process.env.SUPABASE_SMTP_HOST
-  const XSERVER_SMTP_PORT = parseInt(process.env.XSERVER_SMTP_PORT || process.env.SUPABASE_SMTP_PORT || '587')
-  const XSERVER_SMTP_USER = process.env.XSERVER_SMTP_USER || process.env.SUPABASE_SMTP_USER
-  const XSERVER_SMTP_PASSWORD = process.env.XSERVER_SMTP_PASSWORD || process.env.SUPABASE_SMTP_PASSWORD
+function createXServerTransporter(smtpConfig?: SmtpConfig) {
+  // Use provided config or fall back to environment variables
+  const config = smtpConfig || {
+    host: process.env.XSERVER_SMTP_HOST || process.env.SUPABASE_SMTP_HOST,
+    port: parseInt(process.env.XSERVER_SMTP_PORT || process.env.SUPABASE_SMTP_PORT || '587'),
+    user: process.env.XSERVER_SMTP_USER || process.env.SUPABASE_SMTP_USER,
+    password: process.env.XSERVER_SMTP_PASSWORD || process.env.SUPABASE_SMTP_PASSWORD,
+  }
 
-  if (!XSERVER_SMTP_HOST || !XSERVER_SMTP_USER || !XSERVER_SMTP_PASSWORD) {
+  const { host, port, user, password } = config
+
+  if (!host || !user || !password) {
     return null
   }
 
   return nodemailer.createTransport({
-    host: XSERVER_SMTP_HOST,
-    port: XSERVER_SMTP_PORT,
-    secure: XSERVER_SMTP_PORT === 465,
+    host,
+    port,
+    secure: port === 465,
     auth: {
-      user: XSERVER_SMTP_USER,
-      pass: XSERVER_SMTP_PASSWORD,
+      user,
+      pass: password,
     },
     tls: {
       rejectUnauthorized: false
@@ -62,20 +68,53 @@ function createXServerTransporter() {
 
 // 초기화
 async function initializeTransporter() {
-  // 1. Xserver SMTP
-  transporter = createXServerTransporter()
-  if (transporter) {
-    transportType = 'xserver'
-    console.log('[EpackMailer] Xserver SMTP initialized')
-    return
-  }
+  try {
+    // Try to load SMTP config from database
+    const smtpConfig = await getSmtpConfig()
 
-  // Fallback: Console
-  console.warn('[EpackMailer] No SMTP configured - using console fallback')
-  transportType = 'console'
+    // 1. Xserver SMTP with database config
+    transporter = createXServerTransporter(smtpConfig)
+    if (transporter) {
+      transportType = 'xserver'
+      console.log('[EpackMailer] Xserver SMTP initialized with database config')
+      return
+    }
+
+    // 2. Try environment variables as fallback
+    transporter = createXServerTransporter()
+    if (transporter) {
+      transportType = 'xserver'
+      console.log('[EpackMailer] Xserver SMTP initialized with env vars')
+      return
+    }
+
+    // Fallback: Console
+    console.warn('[EpackMailer] No SMTP configured - using console fallback')
+    transportType = 'console'
+  } catch (error) {
+    console.error('[EpackMailer] Error initializing transporter:', error)
+    // Fallback to env vars
+    transporter = createXServerTransporter()
+    if (transporter) {
+      transportType = 'xserver'
+      console.log('[EpackMailer] Xserver SMTP initialized with env vars (fallback)')
+    } else {
+      transportType = 'console'
+    }
+  }
 }
 
 initializeTransporter()
+
+/**
+ * Reinitialize transporter with new settings
+ * Called after email settings are updated
+ */
+export async function reinitializeTransporter(): Promise<void> {
+  console.log('[EpackMailer] Reinitializing transporter...')
+  transporter = null
+  await initializeTransporter()
+}
 
 // ============================================================
 // Type Definitions
@@ -955,4 +994,7 @@ export const epackMailer = {
   formatDate: formatJapaneseDate,
   encodeBase64,
   createAttachment,
+
+  // Settings management
+  reinitializeTransporter,
 }
