@@ -136,7 +136,7 @@ export async function POST(
 
     // Update design_revisions table
     const updateData: Record<string, unknown> = {
-      korean_designer_comment_ja: translatedText,
+      comment_ja: translatedText,
       translation_status: translationSuccess ? 'translated' : 'failed',
       translation_completed_at: new Date().toISOString(),
     };

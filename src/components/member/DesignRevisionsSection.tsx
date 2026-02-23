@@ -335,6 +335,17 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     return item ? `SKU-${item.id}_${item.product_name}_${item.quantity}` : 'Unknown SKU';
   };
 
+  // Get preview URL - use proxy endpoint for proper authentication
+  const getPreviewUrl = (revision: DesignRevision) => {
+    // For Korean designer uploads, use the designer preview proxy endpoint
+    if (revision.uploaded_by_type === 'korea_designer') {
+      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
+      return `${appUrl}/api/designer/orders/${orderId}/correction/${revision.id}/preview`;
+    }
+    // For admin uploads, use the original URL or admin proxy
+    return revision.preview_image_url;
+  };
+
   // Filter pending revisions
   const pendingRevisions = revisions.filter((r) => r.approval_status === 'pending');
   const hasPendingRevisions = pendingRevisions.length > 0;
@@ -514,13 +525,13 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                       <div>
                         <p className="text-sm font-medium mb-2">プレビュー画像:</p>
                         <a
-                          href={revision.preview_image_url}
+                          href={getPreviewUrl(revision)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block"
                         >
                           <img
-                            src={revision.preview_image_url}
+                            src={getPreviewUrl(revision)}
                             alt="プレビュー"
                             className="max-w-full h-auto rounded-lg border border-border-secondary hover:opacity-80 transition-opacity"
                           />
@@ -532,7 +543,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {revision.preview_image_url && (
                         <a
-                          href={revision.preview_image_url}
+                          href={getPreviewUrl(revision)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
