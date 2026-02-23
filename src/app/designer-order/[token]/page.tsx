@@ -83,6 +83,7 @@ interface CustomerFileUpload {
   file_type: string;
   drive_view_link: string | null;
   drive_content_link: string | null;
+  drive_file_name: string | null;
   uploaded_at: string;
 }
 
@@ -166,7 +167,7 @@ async function getDesignerOrderData(token: string) {
   // Get customer uploaded files for this order
   const { data: customerUploads, error: uploadsError } = await supabase
     .from('order_file_uploads')
-    .select('id, file_name, file_type, drive_view_link, drive_content_link, uploaded_at')
+    .select('id, file_name, file_type, drive_view_link, drive_content_link, drive_file_name, uploaded_at')
     .eq('order_id', assignmentData.order_id)
     .eq('file_type', 'upload')
     .order('uploaded_at', { ascending: false });

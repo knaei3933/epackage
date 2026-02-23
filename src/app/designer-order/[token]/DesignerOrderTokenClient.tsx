@@ -98,6 +98,7 @@ interface CustomerFileUpload {
   file_type: string;
   drive_view_link: string | null;
   drive_content_link: string | null;
+  drive_file_name: string | null;
   uploaded_at: string;
 }
 
@@ -186,6 +187,39 @@ export function DesignerOrderTokenClient({
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  // Format SKU name: SKU-{番号}_{商品名/미입력}_{製品タイプ}_{数量}
+  const formatSkuName = (item: OrderItem, index: number): string => {
+    // Extract sequential number from sku_name (e.g., "1" from "(SKU 1)")
+    const skuMatch = item.sku_name?.match(/\(SKU\s*(\d+)\)/);
+    const skuNumber = skuMatch ? skuMatch[1] : String(index + 1);
+
+    // Extract product type from sku_name (e.g., "スタンドパウチ" from "スタンドパウチ - ...")
+    let productType = '';
+    if (item.sku_name) {
+      const typeMatch = item.sku_name.match(/^([^-]+)/);
+      if (typeMatch) {
+        productType = typeMatch[1].trim();
+        // Map Japanese product types
+        const typeMap: Record<string, string> = {
+          'スタンドパウチ': 'スタンドパウチ',
+          '三方パウチ': '三方パウチ',
+          'チャック付き袋': 'チャック付き袋',
+          'ガセット袋': 'ガセット袋',
+          '平袋': '平袋',
+        };
+        productType = typeMap[productType] || productType;
+      }
+    }
+
+    // Get product name (or "미입력" if empty)
+    const productName = item.product_name?.trim() || '미입력';
+
+    // Get quantity
+    const quantity = item.quantity;
+
+    return `SKU-${skuNumber}_${productName}_${productType}_${quantity}`;
   };
 
   // Handle file selection
@@ -420,9 +454,9 @@ export function DesignerOrderTokenClient({
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-4">{tn('designer', 'order.orderItems')}</h2>
             <ul className="space-y-2">
-              {order.items.map((item) => (
+              {order.items.map((item, index) => (
                 <li key={item.id} className="border-b pb-2">
-                  {item.sku_name || `SKU-${item.id}_${item.product_name}_${item.quantity}`}
+                  {formatSkuName(item, index)}
                 </li>
               ))}
             </ul>
@@ -446,7 +480,7 @@ export function DesignerOrderTokenClient({
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <FileText className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-slate-900">{file.file_name}</span>
+                      <span className="font-medium text-slate-900">{file.drive_file_name || file.file_name}</span>
                     </div>
                     <p className="text-sm text-slate-500 mt-1">
                       {formatDate(file.uploaded_at)}
@@ -503,9 +537,9 @@ export function DesignerOrderTokenClient({
                 required
               >
                 <option value="">선택해주세요</option>
-                {order.items.map((item) => (
+                {order.items.map((item, index) => (
                   <option key={item.id} value={item.id}>
-                    {item.sku_name || `SKU-${item.id}_${item.product_name}_${item.quantity}`}
+                    {formatSkuName(item, index)}
                   </option>
                 ))}
               </select>
@@ -727,9 +761,10 @@ export function DesignerOrderTokenClient({
                         </h3>
                         {revision.order_item_id && (() => {
                           const item = order.items.find(i => i.id === revision.order_item_id);
+                          const index = order.items.findIndex(i => i.id === revision.order_item_id);
                           return item ? (
                             <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
-                              {item.sku_name || `SKU-${item.id}_${item.product_name}_${item.quantity}`}
+                              {formatSkuName(item, index)}
                             </span>
                           ) : null;
                         })()}
