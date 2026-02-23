@@ -75,6 +75,14 @@ function formatReason(reason: string | null | undefined): string {
     'Delivered': '配送完了',
     'Cancelled by customer': '顧客によるキャンセル',
     'Cancelled by admin': '管理者によるキャンセル',
+    // 新しいワークフロー理由
+    '教正データアップロード': '校正データアップロード',
+    '教正データアップロード完了': '校正データアップロード完了',
+    'Step 1': 'ステップ1',
+    'Step 2': 'ステップ2',
+    '教正データアップロード (リビジョン': '校正データアップロード (リビジョン',
+    '教正データアップロード完了、顧客承認待ち': '校正データアップロード完了、顧客承認待ち',
+    '顧客承認待ち': '顧客承認待ち',
   };
 
   // 정확히 일치하는 경우 먼저 확인
@@ -88,6 +96,14 @@ function formatReason(reason: string | null | undefined): string {
     if (key.toLowerCase() === lowerReason) {
       return value;
     }
+  }
+
+  // 교정 데이터 관련 패턴 매칭
+  if (reason.includes('教正データアップロード')) {
+    return reason.replace('教正データアップロード', '校正データアップロード');
+  }
+  if (reason.includes('教正データ')) {
+    return reason.replace('教正データ', '校正データ');
   }
 
   // 변환할 수 없는 경우 원본 반환
@@ -108,6 +124,17 @@ const getStatusLabel = (status: string): string => {
     SHIPPED: '出荷完了',
     DELIVERED: '配送完了',
     CANCELLED: 'キャンセル',
+    // 新しいワークフローステータス
+    SPEC_APPROVAL_PENDING: '仕様承認待ち',
+    MODIFICATION_REQUESTED: '修正承認待ち',
+    MODIFICATION_APPROVED: '修正承認済み',
+    MODIFICATION_REJECTED: '修正拒否',
+    CORRECTION_IN_PROGRESS: '校正作業中',
+    CORRECTION_COMPLETED: '校正完了',
+    CUSTOMER_APPROVAL_PENDING: '顧客承認待ち',
+    CUSTOMER_APPROVED: '顧客承認済み',
+    DESIGN_REVISION_PENDING: 'デザイン改訂待ち',
+    DESIGN_REVISION_COMPLETED: 'デザイン改訂完了',
   };
   return labels[status?.toUpperCase()] || status || '不明';
 };
