@@ -221,3 +221,100 @@ export function getUploadFolderId(): string {
 export function getCorrectionFolderId(): string {
   return process.env.GOOGLE_DRIVE_CORRECTION_FOLDER_ID || '';
 }
+
+// ============================================================
+// Google OAuth Helper Functions
+// ============================================================
+
+/**
+ * Google OAuth 인증 URL 생성
+ *
+ * @param userId - 사용자 ID
+ * @returns Google OAuth 인증 URL
+ */
+export function getGoogleAuthUrl(userId: string): string {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+
+  const scopes = [
+    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive'
+  ].join(' ');
+
+  const state = userId;
+
+  const params = new URLSearchParams({
+    client_id: clientId || '',
+    redirect_uri: redirectUri || '',
+    response_type: 'code',
+    scope: scopes,
+    access_type: 'offline',
+    prompt: 'consent',
+    state: state
+  });
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+/**
+ * 인증 코드를 액세스 토큰으로 교환
+ *
+ * @param code - 인증 코드
+ * @returns 토큰 응답 (access_token, refresh_token, etc.)
+ */
+export async function exchangeCodeForToken(code: string): Promise<{
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}> {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId || '',
+      client_secret: clientSecret || '',
+      code,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri || ''
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to exchange code for token: ${error}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * 리프레시 토큰을 데이터베이스에 저장
+ *
+ * @param userId - 사용자 ID
+ * @param refreshToken - 리프레시 토큰
+ */
+export async function saveRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase credentials not configured');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  const { error } = await supabase
+    .from('user_google_tokens')
+    .upsert({
+      user_id: userId,
+      refresh_token: refreshToken,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id'
+    });
+
+  if (error) {
+    throw new Error(`Failed to save refresh token: ${error.message}`);
+  }
+}
