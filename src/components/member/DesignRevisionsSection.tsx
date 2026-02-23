@@ -345,27 +345,37 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const parseAndFormatSkuName = (skuName: string): string => {
     // Extract SKU number from existing format: "SKU-{uuid}_スタンドパウチ - アルミ箔ラミネートによる高バリア性 (SKU 1)_1000"
     const skuNumberMatch = skuName.match(/\(SKU\s+(\d+)\)/);
-    const skuNumber = skuNumberMatch ? skuNumberMatch[1] : extractNumberFromId(skuName);
+    const skuNumber = skuNumberMatch ? skuNumberMatch[1] : '1';
 
     // Extract product type (スタンドパウチ, 三方詰, etc.)
     const productType = extractProductType(skuName);
 
     // Extract quantity from end of string
-    const quantityMatch = skuName.match(/_(\d+)$/);
+    const quantityMatch = skuName.match(/_(\d+)(?:枚)?$/);
     const quantity = quantityMatch ? quantityMatch[1] : '0';
 
-    // Extract product name (everything between product type and quantity, excluding SKU number)
-    let productName = '商品';
-    const typeIndex = skuName.indexOf(productType);
-    if (typeIndex !== -1) {
-      const afterType = skuName.substring(typeIndex + productType.length);
-      // Remove leading separators and SKU number info
-      const cleanedName = afterType
-        .replace(/^[\s_-]+/, '')
-        .replace(/\s*\(SKU\s+\d+\)\s*$/, '')
-        .replace(/_[\d]+$/, '')
-        .trim();
-      productName = cleanedName || '商品';
+    // Extract product name:
+    // 1. Remove the initial "SKU-{uuid}_" or "SKU-" prefix
+    // 2. Find and extract the product type name
+    // 3. Get everything between the first underscore and " (SKU n)"
+    let productName = '미입력';
+
+    // Remove "SKU-{uuid}_" prefix first
+    const withoutPrefix = skuName.replace(/^SKU-[\w-]+_/, '');
+
+    // Now extract product name (between first occurrence and " (SKU n)")
+    const skuNumberIndex = withoutPrefix.indexOf(' (SKU ');
+    if (skuNumberIndex !== -1) {
+      let rawName = withoutPrefix.substring(0, skuNumberIndex);
+      // Remove product type from the name
+      rawName = rawName.replace(new RegExp(`^${productType}\\s*[-–]?\\s*`, 'i'), '');
+      // Clean up
+      rawName = rawName.trim().replace(/^[-–]?\s*/, '');
+      productName = rawName || '미입력';
+    } else {
+      // Fallback: try to extract something meaningful
+      const withoutQuantity = withoutPrefix.replace(/_\d+$/, '');
+      productName = withoutQuantity || '미입력';
     }
 
     return `SKU-${skuNumber}_${productName}_${productType}_${quantity}`;
