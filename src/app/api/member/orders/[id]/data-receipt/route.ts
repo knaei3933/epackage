@@ -397,11 +397,12 @@ export async function POST(
         .from('order_file_uploads')
         .insert({
           order_id: orderId,
-          file_name: file.name,
+          file_name: driveFileName,  // Use Google Drive filename
           file_type: 'upload',
           drive_file_id: googleDriveFile.id,
           drive_view_link: googleDriveFile.webViewLink,
           drive_content_link: googleDriveFile.webContentLink,
+          drive_file_name: driveFileName,  // Store the actual Google Drive filename
           uploaded_at: new Date().toISOString(),
         });
     } catch (logError) {

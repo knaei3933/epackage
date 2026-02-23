@@ -126,6 +126,7 @@ export async function POST(
         drive_file_id: uploadedFile.id,
         drive_view_link: uploadedFile.webViewLink,
         drive_content_link: uploadedFile.webContentLink,
+        drive_file_name: uploadedFile.name,
         uploaded_at: new Date().toISOString()
       });
 
