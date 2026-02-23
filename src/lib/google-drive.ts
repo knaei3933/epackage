@@ -96,8 +96,7 @@ export async function getAdminAccessTokenForUpload(): Promise<string> {
  * 구글 드라이브에 파일 업로드
  *
  * Google Drive API v3 multipart upload 방식 사용
- * - uploadType=multipart: 메타데이터와 파일을 함께 전송
- * - Content-Type: multipart/related 사용 (Google API 표준)
+ * FormData를 사용하여 multipart/related 요청을 자동으로 구성
  */
 export async function uploadFileToDrive(
   file: File | Buffer,
@@ -108,65 +107,43 @@ export async function uploadFileToDrive(
 ): Promise<UploadedFile> {
   console.log('[uploadFileToDrive] Starting upload:', { fileName, mimeType, folderId });
 
-  // 파일 내용을 Buffer로 변환
-  let fileContent: Buffer;
-  if (file instanceof Buffer) {
-    fileContent = file;
-  } else {
-    const arrayBuffer = await file.arrayBuffer();
-    fileContent = Buffer.from(arrayBuffer);
-  }
+  // FormData를 사용하여 multipart/related 요청 구성
+  const formData = new FormData();
 
-  console.log('[uploadFileToDrive] File size:', fileContent.length, 'bytes');
-
-  // 메타데이터 생성
+  // 메타데이터 파트
   const metadata = {
     name: fileName,
     parents: [folderId]
   };
 
-  // multipart/related 생성 (Google Drive API v3 표준 형식)
-  const boundary = '-------boundary_' + Math.random().toString(36).substring(2);
+  // Google Drive API는 multipart 업로드 시 특정 형식 요구
+  // 첫 번째 파트: JSON 메타데이터
+  formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json; charset=UTF-8' }));
 
-  // メタデータJSON（末尾にCRLFを含めない）
-  const metadataJson = JSON.stringify(metadata);
+  // 두 번째 파트: 파일 데이터
+  let fileBlob: Blob;
+  if (file instanceof Blob) {
+    fileBlob = file;
+  } else if (file instanceof Buffer) {
+    fileBlob = new Blob([file], { type: mimeType });
+  } else {
+    const arrayBuffer = await file.arrayBuffer();
+    fileBlob = new Blob([arrayBuffer], { type: mimeType });
+  }
+  formData.append('file', fileBlob, fileName);
 
-  // multipartボディを文字列として構築（ファイルデータは除く）
-  const bodyPrefix = [
-    `--${boundary}`,
-    'Content-Type: application/json; charset=UTF-8',
-    '',
-    metadataJson,
-    `--${boundary}`,
-    `Content-Type: ${mimeType}`,
-    ''  // ファイルヘッダーの後の空行（これでファイルデータが開始）
-  ].join('\r\n');
+  console.log('[uploadFileToDrive] File size:', fileBlob.size, 'bytes');
 
-  const bodySuffix = `\r\n--${boundary}--\r\n`;
-
-  // プレフィックスをBufferに変換
-  const prefixBuffer = Buffer.from(bodyPrefix, 'utf-8');
-  const suffixBuffer = Buffer.from(bodySuffix, 'utf-8');
-
-  // 全体を結合
-  const fullBody = Buffer.concat([prefixBuffer, fileContent, suffixBuffer]);
-
-  console.log('[uploadFileToDrive] Request body size:', fullBody.length, 'bytes');
-  console.log('[uploadFileToDrive] Content-Type:', `multipart/related; boundary=${boundary}`);
-  console.log('[uploadFileToDrive] Boundary:', boundary);
-
-  // 업로드 요청 (webViewLinkとwebContentLink를取得するためfieldsパ라メータ追加)
-  // Node.js 환경에서 fetch가 Buffer를 처리할 수 있도록 Uint8Array로 변환
+  // Google Drive API v3에 업로드
   const response = await fetch(
     `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink`,
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': `multipart/related; boundary=${boundary}`
+        'Authorization': `Bearer ${accessToken}`
+        // Content-Type은 FormData에 의해 자동으로 설정됨 (multipart/form-data)
       },
-      // Vercel環境ではUint8Arrayに変換が必要
-      body: new Uint8Array(fullBody)
+      body: formData
     }
   );
 
