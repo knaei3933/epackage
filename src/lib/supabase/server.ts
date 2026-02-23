@@ -18,9 +18,8 @@ import type { Database } from '@/types/database';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase environment variables');
-}
+// Check if Supabase is configured (may not be during build)
+export const isSupabaseConfigured = !!SUPABASE_URL && !!SUPABASE_ANON_KEY;
 
 /**
  * Create a Supabase client for Server Components and Server Actions
@@ -36,13 +35,18 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
  * ```
  */
 export async function createClient() {
+  // Return mock client if Supabase is not configured (e.g., during build)
+  if (!isSupabaseConfigured) {
+    return createMockClient();
+  }
+
   // CRITICAL: Dynamic import to avoid build-time hang
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
+    SUPABASE_URL!,
+    SUPABASE_ANON_KEY!,
     {
       cookies: {
         // ✅ Use getAll() pattern recommended by Supabase SSR
@@ -64,13 +68,44 @@ export async function createClient() {
 }
 
 /**
+ * Create a mock Supabase client for build-time or when Supabase is not configured
+ */
+function createMockClient() {
+  return {
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+    },
+    from: () => ({
+      select: () => ({
+        order: () => ({
+        limit: () => ({
+          data: null,
+          error: { message: 'Supabase not configured' },
+        }),
+        }),
+      }),
+    }),
+  } as any;
+}
+
+/**
  * Get authenticated user from request
  *
  * @returns User object or null if not authenticated
  */
 export async function getAuthenticatedUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // Return null if Supabase is not configured (e.g., during build)
+  if (!isSupabaseConfigured) {
+    return null;
+  }
 
-  return user;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    return user;
+  } catch (error) {
+    console.error('[getAuthenticatedUser] Error:', error);
+    return null;
+  }
 }
