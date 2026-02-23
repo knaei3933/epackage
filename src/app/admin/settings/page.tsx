@@ -1064,6 +1064,8 @@ export default function AdminSettingsPage() {
                     </motion.div>
                   );
                 })}
+              </div>
+            )}
 
                 {/* Customer Markup Rate Management */}
                 {activeTab === 'pricing' && (
