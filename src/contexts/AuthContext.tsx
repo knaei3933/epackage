@@ -36,6 +36,27 @@ interface AuthProviderProps {
 }
 
 // =====================================================
+// Auth Boundaries for Route-Aware Session Refresh
+// =====================================================
+
+const AUTH_BOUNDARIES = {
+  public: ['/', '/about', '/contact', '/catalog', '/auth', '/samples', '/pricing', '/inquiry', '/compare', '/service', '/cart', '/legal', '/csr', '/privacy', '/terms', '/design-system', '/blog', '/news', '/premium-content', '/archives', '/guide', '/industry', '/print', '/flow'],
+  member: ['/member', '/quote-simulator'],
+  admin: ['/admin'],
+  designer: ['/designer'],
+  designerOrder: ['/designer-order'],
+} as const
+
+function getAuthZone(pathname: string): string {
+  for (const [zone, prefixes] of Object.entries(AUTH_BOUNDARIES)) {
+    if (prefixes.some(p => pathname.startsWith(p))) {
+      return zone
+    }
+  }
+  return 'public'
+}
+
+// =====================================================
 // Helper Functions
 // =====================================================
 
@@ -276,19 +297,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Detect route changes by comparing current and previous pathnames
     const routeChanged = pathname !== previousPathname.current
+    const previousZone = getAuthZone(previousPathname.current || '')
+    const currentZone = getAuthZone(pathname)
 
-    if (routeChanged) {
-      console.log('[AuthContext] Route changed, refreshing auth state:', {
-        from: previousPathname.current,
-        to: pathname,
+    // Only refresh when crossing auth boundaries OR entering protected zone from public
+    if (routeChanged && previousZone !== currentZone) {
+      console.log('[AuthContext] Auth boundary crossed, refreshing session:', {
+        from: `${previousZone} (${previousPathname.current})`,
+        to: `${currentZone} (${pathname})`,
+        previousZone,
+        currentZone,
       })
 
-      // Refresh session on route change to ensure auth state is current
-      // Pass a new fetch ID to track this specific request
+      // Refresh session on auth boundary crossing
       const fetchId = ++pendingFetchId.current
       fetchSessionAndUpdateState(fetchId)
 
       // Update previous values
+      previousPathname.current = pathname
+    } else if (routeChanged) {
+      // Same zone navigation - just update pathname without session refresh
+      console.log('[AuthContext] Same zone navigation, skipping session refresh:', {
+        from: previousPathname.current,
+        to: pathname,
+        zone: currentZone,
+      })
       previousPathname.current = pathname
     }
   }, [pathname, fetchSessionAndUpdateState])

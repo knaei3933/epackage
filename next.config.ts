@@ -16,6 +16,17 @@ const nextConfig: NextConfig = {
     } : false,
   },
   // =====================================================
+  // Bundle Optimization - Tree shaking for large packages
+  // =====================================================
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+    'date-fns': {
+      transform: 'date-fns/{{member}}',
+    },
+  },
+  // =====================================================
   // Rewrites to fix trailing slash redirect loops
   // =====================================================
   async rewrites() {

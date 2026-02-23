@@ -69,11 +69,12 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     isLoading,
     mutate,
   } = useSWR<Notification[]>(url, fetcher, {
-    refreshInterval,
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-    shouldRetryOnError: false,
-    dedupingInterval: 5000, // 5秒以内の重複リクエストを防止
+    refreshInterval: 120000,          // 120秒間隔で自動更新（60秒 -> 120秒に増加）
+    revalidateOnFocus: false,         // フォーカス時の再検証を無効化
+    revalidateOnReconnect: true,      // 再接続時は再検証
+    shouldRetryOnError: false,        // エラー時のリトライを無効化
+    dedupingInterval: 10000,          // 10秒以内の重複リクエストを防止（5秒 -> 10秒に増加）
+    keepPreviousData: true,           // データ更新中も前回のデータを保持
   });
 
   // 未読カウント計算

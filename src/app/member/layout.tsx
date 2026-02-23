@@ -13,13 +13,29 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { SidebarNavigation } from '@/components/dashboard/SidebarNavigation';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import dynamic from 'next/dynamic';
 import { menuItems } from '@/components/dashboard/menuItems';
 import { Loader2 } from 'lucide-react';
 import { ErrorBoundaryWrapper } from '@/components/error/ErrorBoundary';
 import type { NotificationBadge } from '@/types/dashboard';
 import { useNotifications } from '@/hooks/useNotifications';
+
+// Dynamic imports for navigation components
+const SidebarNavigation = dynamic(
+  () => import('@/components/dashboard/SidebarNavigation').then(m => m.SidebarNavigation),
+  {
+    ssr: false,
+    loading: () => <div className="w-52 h-screen bg-gray-100 animate-pulse" />
+  }
+);
+
+const DashboardHeader = dynamic(
+  () => import('@/components/dashboard/DashboardHeader').then(m => m.DashboardHeader),
+  {
+    ssr: false,
+    loading: () => <div className="h-16 bg-gray-100 animate-pulse" />
+  }
+);
 
 // =====================================================
 // Layout Component

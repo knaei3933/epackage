@@ -319,6 +319,32 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host');
 
   // =====================================================
+  // EARLY RETURN: Static Assets (BEFORE any Supabase client creation)
+  // =====================================================
+  const STATIC_PATHS = [
+    '/_next',
+    '/static',
+    '/favicon',
+    '/images',
+    '/fonts',
+    '/api/static',
+  ];
+
+  const isStaticPath = STATIC_PATHS.some(p => pathname.startsWith(p)) ||
+    pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2)$/);
+
+  if (isStaticPath) {
+    return addSecurityHeaders(NextResponse.next());
+  }
+
+  // =====================================================
+  // EARLY RETURN: Auth API routes (let them handle their own logic)
+  // =====================================================
+  if (pathname.startsWith('/api/auth')) {
+    return addSecurityHeaders(NextResponse.next());
+  }
+
+  // =====================================================
   // Domain Redirect: www → non-www (一時無効化)
   // =====================================================
   // TODO: Vercel側のドメイン設定が修正されたら有効化する
