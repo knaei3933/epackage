@@ -2,15 +2,15 @@ settings:1  GET http://localhost:3009/admin/settings 500 (Internal Server Error)
 main.js:1497 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
 index.js:616 Uncaught ModuleBuildError: Module build failed (from ./node_modules/next/dist/build/webpack/loaders/next-swc-loader.js):
 Error:   x Expected '</', got '}'
-      ,-[C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\admin\settings\page.tsx:1068:1]
- 1065 |                   );
- 1066 |                 })}
- 1067 |               </div>
- 1068 |             )}
+      ,-[C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\admin\settings\page.tsx:1973:1]
+ 1970 |                   </motion.div>
+ 1971 |                 )}
+ 1972 |               </div>
+ 1973 |             )}
       :              ^
- 1069 | 
- 1070 |                 {/* Customer Markup Rate Management */}
- 1070 |                 {activeTab === 'pricing' && (
+ 1974 |           </div>
+ 1975 |         )}
+ 1975 |       </div>
       `----
 
 
@@ -40,15 +40,15 @@ webpackJsonpCallback @ webpack.js:1
 forward-logs-shared.js:28 [HMR] connected
 pages-dev-overlay-setup.js:71 ./src/app/admin/settings/page.tsx
 Error:   x Expected '</', got '}'
-      ,-[C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\admin\settings\page.tsx:1068:1]
- 1065 |                   );
- 1066 |                 })}
- 1067 |               </div>
- 1068 |             )}
+      ,-[C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\src\app\admin\settings\page.tsx:1973:1]
+ 1970 |                   </motion.div>
+ 1971 |                 )}
+ 1972 |               </div>
+ 1973 |             )}
       :              ^
- 1069 | 
- 1070 |                 {/* Customer Markup Rate Management */}
- 1070 |                 {activeTab === 'pricing' && (
+ 1974 |           </div>
+ 1975 |         )}
+ 1975 |       </div>
       `----
 
 Caused by:

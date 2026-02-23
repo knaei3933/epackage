@@ -146,6 +146,8 @@ export async function PUT(request: NextRequest) {
         value: emails,
         description: '韓国デザイナーのメールアドレスリスト',
         updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'key'
       })
       .select('value')
       .single();

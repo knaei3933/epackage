@@ -1064,6 +1064,8 @@ export default function AdminSettingsPage() {
                     </motion.div>
                   );
                 })}
+                </div>
+              ) : null}
 
                 {/* Customer Markup Rate Management */}
                 {activeTab === 'pricing' && (
@@ -1969,11 +1971,6 @@ export default function AdminSettingsPage() {
                     )}
                   </motion.div>
                 )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
 
       {/* Unsaved Changes Warning */}
       {hasUnsavedChanges && (
@@ -1993,6 +1990,9 @@ export default function AdminSettingsPage() {
           </div>
         </motion.div>
       )}
+      </div>
+      )}
+      </div>
     </div>
   );
 }
