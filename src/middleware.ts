@@ -83,6 +83,7 @@ const PUBLIC_ROUTES = [
   '/privacy',
   '/terms',
   '/design-system',
+  '/flow', // 製造工程ページ（公開）
   '/auth/signin',
   '/auth/register',
   '/auth/forgot-password',

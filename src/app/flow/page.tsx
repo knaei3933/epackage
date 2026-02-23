@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function FlowPage() {
   return (
-    <Layout>
+    <Layout showFooter={false}>
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-brixa-50 via-white to-brixa-secondary-50">
         <Container size="6xl">

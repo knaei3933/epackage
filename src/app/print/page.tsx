@@ -280,7 +280,7 @@ export default function PrintPage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="justify-center px-8 py-4 text-lg font-medium border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white transition-all duration-300"
+                    className="justify-center px-8 py-4 text-lg font-medium border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-300"
                   >
                     <Package className="mr-2 h-5 w-5" />
                     製品一覧を見る
@@ -325,7 +325,7 @@ export default function PrintPage() {
               <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 30年のノウハウが詰まった生産技術
               </h3>
-              <p className="text-navy-600 text-lg mb-8 max-w-3xl mx-auto">
+              <p className="text-white text-lg mb-8 max-w-3xl mx-auto">
                 継続的な技術開発と設備投資により、お客様の期待を超える
                 最高の包装材を作り続けています
               </p>
