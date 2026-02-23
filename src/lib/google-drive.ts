@@ -162,8 +162,8 @@ export async function uploadFileToDrive(
   console.log('[uploadFileToDrive] Request body size:', fullBody.length, 'bytes');
   console.log('[uploadFileToDrive] Content-Type:', `multipart/related; boundary=${boundary}`);
 
-  // 업로드 요청 (webViewLinkとwebContentLink를取得するためfieldsパ라메ータ追加)
-  // Node.js 18+ fetch는 ArrayBuffer를 지원하므로 Buffer의 .buffer 속성 사용
+  // 업로드 요청 (webViewLinkとwebContentLink를取得するためfieldsパ라メータ追加)
+  // Node.js 환경에서 fetch가 Buffer를 처리할 수 있도록 Uint8Array로 변환
   const response = await fetch(
     `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink`,
     {
@@ -172,7 +172,8 @@ export async function uploadFileToDrive(
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      body: fullBody.buffer
+      // Node.js fetch는 Uint8Array를 직접 지원
+      body: new Uint8Array(fullBody)
     }
   );
 

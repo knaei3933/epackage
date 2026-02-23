@@ -103,40 +103,30 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     }
   }, [order.items]);
 
-  // Format SKU display name: "SKU번호_스탠드파우치(제품명만)_1000枚"
+  // Format SKU display name: "SKU번호_메인제품명_수량"
   const formatSkuDisplayName = (productName: string, quantity: number): string => {
     // Extract SKU number from pattern like "(SKU 1)" or "SKU 1"
     const skuMatch = productName.match(/[（(]SKU\s*(\d+)[）)]/i);
     const skuNumber = skuMatch ? skuMatch[1] : '?';
 
-    // Extract main product name and description
+    // Extract main product name only
     // Format: "스탠드 파우치 - 알루미늄 박 라미네이트 (SKU 1)"
     // or "スタンドパウチ - アルミ箔ラミネートによる高バリア性 (SKU 1)"
     let mainProduct = '';
-    let description = '';
 
     // Try to split by " - " or " -" or "-"
     if (productName.includes(' - ')) {
       const parts = productName.split(' - ');
       mainProduct = parts[0].trim();
-      description = parts[1]?.replace(/\s*[（(]SKU\s*\d+[）)]/i, '').trim() || '';
     } else {
       mainProduct = productName.split(/\s+[（(]SKU/i)[0].trim();
     }
 
-    // Simplify main product name (remove extra spaces, get first meaningful part)
+    // Get first word only (main product name)
     const simplifiedProduct = mainProduct.split(/\s+/)[0];
 
-    // Simplify description (remove common suffixes)
-    const simplifiedDesc = description
-      .replace(/による.*$/, '')  // Remove "による高バリア性" etc.
-      .replace(/高バリア性$/, '')
-      .replace(/ laminate$/i, '')
-      .trim();
-
-    // Build format: "SKU번호_스탠드파우치(알루미늄박)_1000枚"
-    const productPart = simplifiedDesc ? `${simplifiedProduct}(${simplifiedDesc})` : simplifiedProduct;
-    return `${skuNumber}_${productPart}_${quantity}枚`;
+    // Build format: "SKU번호_메인제품명_수량枚"
+    return `${skuNumber}_${simplifiedProduct}_${quantity}枚`;
   };
 
   // Load uploaded files
