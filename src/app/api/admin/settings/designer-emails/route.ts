@@ -11,11 +11,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
-
-// =====================================================
-// Environment Variables
-// =====================================================
+import { createServiceClient } from '@/lib/supabase';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 // =====================================================
 // Types
@@ -29,34 +26,6 @@ interface DesignerEmailsResponse {
 }
 
 // =====================================================
-// Helper: Get authenticated admin
-// =====================================================
-
-async function getAuthenticatedAdmin(request: NextRequest) {
-  const { client: supabase } = await createSupabaseSSRClient(request);
-  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !authUser?.id) {
-    return null;
-  }
-
-  const userId = authUser.id;
-
-  // Verify admin role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .single();
-
-  if (!profile || profile.role !== 'admin') {
-    return null;
-  }
-
-  return { userId, user: authUser };
-}
-
-// =====================================================
 // GET Handler - Get Designer Emails
 // =====================================================
 
@@ -65,18 +34,13 @@ async function getAuthenticatedAdmin(request: NextRequest) {
  * Get Korea designer email addresses
  */
 export async function GET(request: NextRequest) {
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   try {
-    // Authenticate and verify admin role
-    const authResult = await getAuthenticatedAdmin(request);
-
-    if (!authResult) {
-      return NextResponse.json(
-        { success: false, error: '認証されていません。', errorEn: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const { client: supabase } = await createSupabaseSSRClient(request);
+    const supabase = createServiceClient();
 
     // Get notification settings
     const { data: setting, error } = await supabase
@@ -135,18 +99,13 @@ export async function GET(request: NextRequest) {
  * }
  */
 export async function PUT(request: NextRequest) {
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   try {
-    // Authenticate and verify admin role
-    const authResult = await getAuthenticatedAdmin(request);
-
-    if (!authResult) {
-      return NextResponse.json(
-        { success: false, error: '認証されていません。', errorEn: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const { client: supabase } = await createSupabaseSSRClient(request);
+    const supabase = createServiceClient();
 
     // Parse request body
     const body = await request.json();
