@@ -576,10 +576,10 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                         {(revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) ? (
                           <BilingualCommentDisplay
                             commentKo={revision.comment_ko || revision.partner_comment || ''}
-                            commentJa={revision.comment_ja || ''}
+                            commentJa={revision.comment_ja || revision.partner_comment || ''}
                             translationStatus={revision.translation_status || 'pending'}
                             showStatus={false}
-                            defaultLanguage="ja"
+                            defaultLanguage={revision.comment_ja ? 'ja' : 'ko'}
                             variant="bordered"
                             isAdmin={false}
                           />
