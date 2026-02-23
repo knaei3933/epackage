@@ -6,8 +6,8 @@ import { createServiceClient } from '@/lib/supabase'
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-// サイト設定
-const SITE_URL = 'https://package-lab.com'
+// サイト設定 (www付きで統一)
+const SITE_URL = 'https://www.package-lab.com'
 
 // 製品データを取得
 const allProducts = getAllProducts(null, 'ja')

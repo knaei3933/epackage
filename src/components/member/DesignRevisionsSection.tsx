@@ -436,15 +436,12 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     return simplified || '商品';
   };
 
-  // Get preview URL - use proxy endpoint for proper authentication
+  // Get preview URL - use proxy endpoint to avoid CORS issues
   const getPreviewUrl = (revision: DesignRevision) => {
-    // For Korean designer uploads, use the designer preview proxy endpoint
-    if (revision.uploaded_by_type === 'korea_designer') {
-      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
-      return `${appUrl}/api/designer/orders/${orderId}/correction/${revision.id}/preview`;
-    }
-    // For admin uploads, use the original URL or admin proxy
-    return revision.preview_image_url;
+    // Always use the proxy endpoint for all uploads to avoid CORS issues
+    // This works for both Korean designer uploads and admin uploads
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
+    return `${appUrl}/api/designer/orders/${orderId}/correction/${revision.id}/preview`;
   };
 
   // Filter pending revisions
