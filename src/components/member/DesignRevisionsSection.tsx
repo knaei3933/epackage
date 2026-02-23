@@ -524,21 +524,6 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                         <span className={`px-2 py-1 text-xs font-medium rounded ${statusInfo.className}`}>
                           {statusInfo.text}
                         </span>
-                        {/* Designer badge */}
-                        {revision.uploaded_by_type === 'korea_designer' && (
-                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            韓国デザイナー
-                          </span>
-                        )}
-                        {/* Translation status badge */}
-                        {revision.uploaded_by_type === 'korea_designer' && revision.translation_status && (
-                          <TranslationStatusBadge
-                            status={revision.translation_status}
-                            size="sm"
-                            animated={false}
-                          />
-                        )}
                       </div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
@@ -588,35 +573,6 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                           <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
                             {revision.partner_comment}
                           </p>
-                        )}
-                        {/* Failed translation notice for member */}
-                        {revision.translation_status === 'failed' && (
-                          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-xs text-amber-800">
-                                翻訳エラーが発生しました。韓国語の原文のみ表示されています。
-                              </p>
-                              <Button
-                                onClick={() => handleRetryTranslation(revision.id)}
-                                disabled={retryingTranslationId === revision.id}
-                                variant="outline"
-                                size="sm"
-                                className="h-7 px-2 text-xs border-amber-300 text-amber-700 hover:bg-amber-100 whitespace-nowrap"
-                              >
-                                {retryingTranslationId === revision.id ? (
-                                  <>
-                                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-                                    再試行中...
-                                  </>
-                                ) : (
-                                  <>
-                                    <RefreshCw className="w-3 h-3 mr-1" />
-                                    再翻訳
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </div>
                         )}
                       </div>
                     )}
