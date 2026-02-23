@@ -167,9 +167,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       return;
     }
 
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('ファイルサイズは10MB以下にしてください');
+    // Validate file size (100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      setError('ファイルサイズは100MB以下にしてください');
       setSelectedFile(null);
       return;
     }
@@ -367,45 +367,13 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
             <h2 className="text-lg font-semibold text-text-primary">
               入稿データ
             </h2>
-            <p className="text-sm text-text-muted mt-1">
-              入稿データ（AI）をアップロードすると、韓国担当者に送信されます
-            </p>
           </div>
           {uploadedFiles.length > 0 && (
             <div className="text-sm text-text-muted">
-              {uploadedFiles.length}件のファイル
+              {uploadedFiles.length}/10
             </div>
           )}
         </div>
-
-        {/* AI Required Warning */}
-        {!hasAIFile && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <svg
-                className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-blue-800">
-                  入稿データ（AI）のアップロードが必須です
-                </h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  生産を開始するために、必ず入稿データ（AI）をアップロードしてください。
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Partial SKU Submission Warning */}
         {skuSubmissionStatus && skuSubmissionStatus.totalSkus > 1 && !skuSubmissionStatus.isComplete && (
@@ -699,12 +667,8 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
               入稿データアップロードガイドライン
             </h3>
             <ul className="text-sm space-y-1 text-gray-700">
-              <li>• <strong>入稿データ（AI）は必須です</strong> - 生産開始前に必ずアップロードしてください</li>
-              <li>• 対応ファイル形式: AI (Adobe Illustrator), EPS, PDF</li>
-              <li>• 最大ファイルサイズ: 10MB</li>
-              <li>• ファイルはセキュリティチェックが行われます</li>
-              <li>• アップロード後、韓国担当者に自動送信されます</li>
-              <li>• 間違ったファイルをアップロードした場合は、削除して再アップロードしてください</li>
+              <li>• 対応ファイル形式: AI (Adobe Illustrator)</li>
+              <li>• 最大ファイルサイズ: 100MB</li>
             </ul>
           </div>
         </div>

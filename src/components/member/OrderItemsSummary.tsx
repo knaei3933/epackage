@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { ChevronDown, ChevronUp, Package, Building2, Tag, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Package, Building2, Tag, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order, AppliedCoupon } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
@@ -43,6 +43,12 @@ interface InvoiceResponse {
   };
   error?: string;
 }
+
+// =====================================================
+// Constants
+// =====================================================
+
+const ITEMS_PER_PAGE = 5;
 
 // =====================================================
 // Helper Functions
@@ -274,6 +280,9 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(0);
+
   // 은행 정보 가져오기
   useEffect(() => {
     if (!quotationId) return;
@@ -364,6 +373,13 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
   const originalTotal = subtotal ? subtotal + (taxAmount || 0) : totalAmount;
   const finalTotal = discountAmount > 0 ? originalTotal - discountAmount : totalAmount;
 
+  // ページネーション計算
+  const items = order.items || [];
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const startIndex = currentPage * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, items.length);
+  const displayItems = items.slice(startIndex, endIndex);
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -378,10 +394,41 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
 
       {/* Items list */}
       <div className="divide-y divide-border-secondary border-y border-border-secondary mb-4">
-        {order.items?.map((item) => (
+        {displayItems.map((item) => (
           <OrderItemRow key={item.id} item={item} />
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 py-3">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+            disabled={currentPage === 0}
+            className={cn(
+              "p-2 rounded-md transition-colors",
+              "hover:bg-muted",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-sm text-text-muted min-w-[60px] text-center">
+            {currentPage + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+            disabled={currentPage >= totalPages - 1}
+            className={cn(
+              "p-2 rounded-md transition-colors",
+              "hover:bg-muted",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
 
       {/* Total */}
       <div className="space-y-2 pt-4">
