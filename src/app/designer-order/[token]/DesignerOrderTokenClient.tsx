@@ -70,8 +70,9 @@ interface DesignRevision {
   revision_number: number;
   preview_image_url: string | null;
   original_file_url: string | null;
-  korean_designer_comment: string | null;
+  comment_ko: string | null;
   comment_ja: string | null;
+  translation_status: string | null;
   approval_status: string;
   created_at: string;
   original_customer_filename?: string | null;
@@ -169,16 +170,15 @@ export function DesignerOrderTokenClient({
     return () => clearTimeout(timer);
   }, [successMessage]);
 
-  // Format date
+  // Format date (deterministic to avoid hydration errors)
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
   };
 
   // Format file size
@@ -749,9 +749,9 @@ export function DesignerOrderTokenClient({
                         {formatDate(revision.created_at)}
                       </p>
 
-                      {revision.korean_designer_comment && (
+                      {revision.comment_ko && (
                         <div className="p-3 bg-white rounded border border-slate-200 mb-3">
-                          <p className="text-sm text-slate-700">{revision.korean_designer_comment}</p>
+                          <p className="text-sm text-slate-700">{revision.comment_ko}</p>
                           {revision.comment_ja && (
                             <p className="text-sm text-slate-500 mt-2">{revision.comment_ja}</p>
                           )}
