@@ -24,7 +24,9 @@ import {
   Tag,
   RotateCcw,
   PercentIcon,
-  Plus
+  Plus,
+  Mail,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -55,7 +57,7 @@ interface CustomerMarkupData {
   createdAt: string;
 }
 
-type TabKey = 'film_material' | 'pouch_processing' | 'printing' | 'lamination' | 'slitter' | 'exchange_rate' | 'delivery' | 'production' | 'pricing';
+type TabKey = 'film_material' | 'pouch_processing' | 'printing' | 'lamination' | 'slitter' | 'exchange_rate' | 'delivery' | 'production' | 'pricing' | 'designer';
 
 interface SettingGroup {
   title: string;
@@ -143,6 +145,14 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     groups: [
       { title: '마진율', description: '가격 정책 설정', icon: TrendingUp, keywords: ['마진', 'MARGIN', '마크업', 'MARKUP', '기본', '제조업체', '최소', '판매'] },
       { title: '고객별 할인율', description: '고객별 할인율 관리 (0% ~ -50%)', icon: PercentIcon, keywords: ['__CUSTOMER_MARKUP__'] },
+    ]
+  },
+  designer: {
+    name: '디자이너',
+    nameJa: 'デザイナー設定',
+    icon: Mail,
+    groups: [
+      { title: '메일 주소 관리', description: '한국 디자이너의 이메일 주소 설정', icon: Mail, keywords: ['DESIGNER', 'EMAIL', '메일'] },
     ]
   },
 };
@@ -236,6 +246,13 @@ export default function AdminSettingsPage() {
   const [totalCustomers, setTotalCustomers] = useState(0);
   const perPage = 20;
 
+  // Designer emails management
+  const [designerEmails, setDesignerEmails] = useState<string[]>([]);
+  const [loadingDesignerEmails, setLoadingDesignerEmails] = useState(false);
+  const [savingDesignerEmails, setSavingDesignerEmails] = useState(false);
+  const [newDesignerEmail, setNewDesignerEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+
   // Load settings
   useEffect(() => {
     loadSettings();
@@ -254,7 +271,18 @@ export default function AdminSettingsPage() {
 
       if (result.success) {
         // Store original values for change detection
-        const settingsWithOriginals: Record<TabKey, CategoryData> = {};
+        const settingsWithOriginals: Record<TabKey, CategoryData> = {
+          film_material: {},
+          pouch_processing: {},
+          printing: {},
+          lamination: {},
+          slitter: {},
+          exchange_rate: {},
+          delivery: {},
+          production: {},
+          pricing: {},
+          designer: {}
+        };
         Object.entries(result.data).forEach(([category, data]: [string, any]) => {
           settingsWithOriginals[category as TabKey] = {};
           // data is an array, use forEach with the item's key property
@@ -512,6 +540,13 @@ export default function AdminSettingsPage() {
     }
   }, [activeTab]);
 
+  // Load designer emails when designer tab is activated
+  useEffect(() => {
+    if (activeTab === 'designer' && designerEmails.length === 0) {
+      loadDesignerEmails();
+    }
+  }, [activeTab]);
+
   const handleStartEdit = (customer: CustomerMarkupData) => {
     setEditingCustomerId(customer.id);
     setEditFormData({
@@ -557,6 +592,80 @@ export default function AdminSettingsPage() {
     } finally {
       setSavingCustomer(null);
     }
+  };
+
+  // Designer emails management functions
+  const loadDesignerEmails = async () => {
+    setLoadingDesignerEmails(true);
+    try {
+      const response = await fetch('/api/admin/settings/designer-emails');
+      const result = await response.json();
+
+      if (result.success) {
+        setDesignerEmails(result.emails || []);
+      } else {
+        showMessage('error', result.error || '디자이너 메일을 불러오지 못했습니다');
+      }
+    } catch (error) {
+      console.error('Failed to load designer emails:', error);
+      showMessage('error', '디자이너 메일을 불러오지 못했습니다');
+    } finally {
+      setLoadingDesignerEmails(false);
+    }
+  };
+
+  const saveDesignerEmails = async (emails: string[]) => {
+    setSavingDesignerEmails(true);
+    try {
+      const response = await fetch('/api/admin/settings/designer-emails', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setDesignerEmails(result.emails || []);
+        showMessage('success', '디자이너 메일을 저장했습니다');
+      } else {
+        showMessage('error', result.error || '저장에 실패했습니다');
+      }
+    } catch (error) {
+      console.error('Failed to save designer emails:', error);
+      showMessage('error', '저장에 실패했습니다');
+    } finally {
+      setSavingDesignerEmails(false);
+    }
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleAddDesignerEmail = async () => {
+    if (!newDesignerEmail.trim()) return;
+
+    if (!validateEmail(newDesignerEmail)) {
+      setEmailError('유효한 이메일 주소를 입력해주세요');
+      return;
+    }
+
+    if (designerEmails.includes(newDesignerEmail.trim())) {
+      setEmailError('이미 등록된 이메일 주소입니다');
+      return;
+    }
+
+    setEmailError(null);
+    const updatedEmails = [...designerEmails, newDesignerEmail.trim()];
+    await saveDesignerEmails(updatedEmails);
+    setNewDesignerEmail('');
+  };
+
+  const handleRemoveDesignerEmail = async (email: string) => {
+    const updatedEmails = designerEmails.filter(e => e !== email);
+    await saveDesignerEmails(updatedEmails);
   };
 
   // Filter customers based on search
@@ -896,7 +1005,7 @@ export default function AdminSettingsPage() {
                         </div>
                       </div>
                       <button
-                        onClick={loadCustomers}
+                        onClick={() => loadCustomers()}
                         disabled={loadingCustomers}
                         className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors flex items-center gap-2"
                       >
@@ -1095,6 +1204,127 @@ export default function AdminSettingsPage() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Designer Email Management */}
+                {activeTab === 'designer' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                  >
+                    {/* Header */}
+                    <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Mail className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">디자이너 이메일 주소</h3>
+                          <p className="text-sm text-gray-500">데이터 입고 알림의 수신 이메일 주소</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={loadDesignerEmails}
+                        disabled={loadingDesignerEmails}
+                        className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors flex items-center gap-2"
+                      >
+                        {loadingDesignerEmails ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <RotateCcw className="w-4 h-4" />
+                        )}
+                        새로고침
+                      </button>
+                    </div>
+
+                    {/* Add Email Form */}
+                    <div className="px-6 py-4 border-b border-gray-100">
+                      <div className="flex gap-3">
+                        <div className="flex-1">
+                          <input
+                            type="email"
+                            placeholder="이메일 주소를 입력하세요..."
+                            value={newDesignerEmail}
+                            onChange={(e) => {
+                              setNewDesignerEmail(e.target.value);
+                              setEmailError(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddDesignerEmail();
+                              }
+                            }}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                          {emailError && (
+                            <p className="text-xs text-red-600 mt-1">{emailError}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={handleAddDesignerEmail}
+                          disabled={savingDesignerEmails || !newDesignerEmail.trim()}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+                        >
+                          {savingDesignerEmails ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Plus className="w-4 h-4" />
+                          )}
+                          추가
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Email List */}
+                    <div className="divide-y divide-gray-100">
+                      {loadingDesignerEmails ? (
+                        <div className="px-6 py-12 text-center">
+                          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">로딩 중...</p>
+                        </div>
+                      ) : designerEmails.length === 0 ? (
+                        <div className="px-6 py-12 text-center">
+                          <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                          <p className="text-sm text-gray-500">등록된 이메일 주소가 없습니다</p>
+                          <p className="text-xs text-gray-400 mt-1">위의 양식에서 이메일 주소를 추가하세요</p>
+                        </div>
+                      ) : (
+                        designerEmails.map((email) => (
+                          <div
+                            key={email}
+                            className="px-6 py-4 hover:bg-gray-50/50 transition-colors flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-gray-100 rounded-lg">
+                                <Mail className="w-4 h-4 text-gray-600" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-900">{email}</span>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveDesignerEmail(email)}
+                              disabled={savingDesignerEmails}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                              title="삭제"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="px-6 py-4 bg-blue-50 border-t border-blue-100">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium">알림 정보</p>
+                          <p className="mt-1">여기에 설정된 이메일 주소로 고객이 데이터를 업로드할 때 알림이 발송됩니다.</p>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 )}
