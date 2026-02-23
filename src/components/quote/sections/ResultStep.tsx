@@ -192,7 +192,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     const descriptions: Record<string, string> = {
       'flat_3_side': '三方シール平袋',
       'stand_up': 'スタンドパウチ',
-      'box': 'BOX型パウチ',
+      'box': 'ガゼットパウチ',
       'spout_pouch': 'スパウトパウチ',
       'roll_film': 'ロールフィルム'
     };
@@ -204,7 +204,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     const labels: Record<string, string> = {
       'flat_3_side': '三方シール平袋',
       'stand_up': 'スタンドパウチ',
-      'box': 'BOX型パウチ',
+      'box': 'ガゼットパウチ',
       'spout_pouch': 'スパウトパウチ',
       'roll_film': 'ロールフィルム'
     };
@@ -520,7 +520,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       zipperPosition: state.postProcessingOptions?.includes('zipper-yes') ? '指定位置' : undefined,
       cornerR: state.postProcessingOptions?.includes('corner-round') ? 'R5' :
                state.postProcessingOptions?.includes('corner-square') ? 'R0' : undefined,
-      // マチ印刷（スタンドパウチ、合掌パウチ、三方シール、BOX型パウチのみ）
+      // マチ印刷（スタンドパウチ、合掌パウチ、三方シール、ガゼットパウチのみ）
       machiPrinting: (state.bagTypeId === 'stand_up' ||
                       state.bagTypeId === 'lap_seal' ||
                       state.bagTypeId === 'flat_3_side' ||

@@ -98,7 +98,7 @@ interface InteractiveQuoteSystemProps {
 const productTypes: ProductType[] = [
   { value: 'flat_3_side', label: '三方シール平袋', description: '基本形状のパウチ', basePrice: 15, popular: true },
   { value: 'stand_up', label: 'スタンドパウチ', description: '底マチ付きで安定性が高い', basePrice: 25, popular: true },
-  { value: 'box', label: 'BOX型パウチ', description: '箱型形状で保護性に優れる', basePrice: 30 },
+  { value: 'box', label: 'ガゼットパウチ', description: '箱型形状で保護性に優れる', basePrice: 30 },
   { value: 'spout_pouch', label: 'スパウトパウチ', description: '液体製品に最適な注ぎ口付き', basePrice: 35 },
   { value: 'roll_film', label: 'ロールフィルム', description: '自動包装機対応のフィルム', basePrice: 8 }
 ]

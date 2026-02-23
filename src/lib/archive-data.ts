@@ -160,22 +160,22 @@ export const sampleRecords: TradeRecord[] = [
   },
   {
     id: "pouch-003",
-    title: "健康食品サプリメントBOX型パウチ採用",
+    title: "健康食品サプリメントガゼットパウチ採用",
     clientName: "C社（健康食品メーカー）",
     industry: "pharmaceutical",
     projectType: "custom_manufacturing",
-    description: "BOX型パウチを採用し、錠剤や粉末の安全性と利便性を向上。自立性と高い保護性能を実現。",
-    technicalSpec: "BOX型パウチ| 素材: PET/AL/PE | 高バリアー性 | チャイルドレジスタンス付き",
+    description: "ガゼットパウチを採用し、錠剤や粉末の安全性と利便性を向上。自立性と高い保護性能を実現。",
+    technicalSpec: "ガゼットパウチ| 素材: PET/AL/PE | 高バリアー性 | チャイルドレジスタンス付き",
     results: ["製品安全性向上", "開封しやすさ改善", "輸送コスト25%削減", "ブランド信頼性向上"],
     images: [
-      { id: "pouch-003-1", url: "/images/archives/gusset-pouch-1.jpg", alt: "健康食品用BOX型パウチ", isMain: true, sortOrder: 1 },
+      { id: "pouch-003-1", url: "/images/archives/gusset-pouch-1.jpg", alt: "健康食品用ガゼットパウチ", isMain: true, sortOrder: 1 },
       { id: "pouch-003-2", url: "/images/archives/standing-pouch-1.jpg", alt: "サプリメントパウチ詳細", isMain: false, sortOrder: 2 },
     ],
     startDate: "2023-11-01",
     endDate: "2024-02-28",
     featured: false,
     sortOrder: 3,
-    tags: ["BOX型パウチ", "健康食品", "サプリメント", "安全性"],
+    tags: ["ガゼットパウチ", "健康食品", "サプリメント", "安全性"],
     createdAt: "2024-03-01T14:20:00Z",
     updatedAt: "2024-03-01T14:20:00Z",
     content: `
@@ -192,7 +192,7 @@ export const sampleRecords: TradeRecord[] = [
 </ul>
 
 <h2>選定理由</h2>
-<p>当社のBOX型パウチが選ばれた理由：</p>
+<p>当社のガゼットパウチが選ばれた理由：</p>
 <ul>
 <li><strong>高バリアー性能</strong>：湿気や酸素を遮断し、品質を長期間維持</li>
 <li><strong>チャイルドレジスタンス</strong>：子供による誤開封を防止する安全機構</li>

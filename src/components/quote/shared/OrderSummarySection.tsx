@@ -27,7 +27,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
     const labels: Record<string, string> = {
       'flat_3_side': '三方シール平袋',
       'stand_up': 'スタンドパウチ',
-      'box': 'BOX型パウチ',
+      'box': 'ガゼットパウチ',
       'spout_pouch': 'スパウトパウチ',
       'roll_film': 'ロールフィルム',
       'flat_pouch': '平袋',

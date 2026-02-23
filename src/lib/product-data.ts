@@ -25,7 +25,7 @@ export const PRODUCT_CATEGORIES = {
         features: ['自立設計', '再封可能', '陳列性に優れる']
     },
     box: {
-        name_ja: 'BOX型パウチ',
+        name_ja: 'ガゼットパウチ',
         name_en: 'Box Pouch',
         description_ja: '箱型形状で自立性が高く、内容物の保護性に優れた立体パッケージ。',
         description_en: 'Box-shaped pouch with excellent self-standing properties and superior protection for contents.',
@@ -444,12 +444,12 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             ]
         },
 
-        // 3. Box Pouch (BOX型パウチ)
+        // 3. Box Pouch (ガゼットパウチ)
         {
             id: 'box-pouch-001',
             category: 'box' as const,
-            name: 'BOX型パウチ',
-            name_ja: 'BOX型パウチ',
+            name: 'ガゼットパウチ',
+            name_ja: 'ガゼットパウチ',
             name_en: 'Box Pouch',
             name_ko: 'Box Pouch',
             description_ja: '箱型形状で自立性が高く、内容物の保護性に優れた立体パッケージ。',
@@ -487,7 +487,7 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 {
                     question_ja: 'ギフト包装に対応していますか?',
                     question_en: 'Do you support gift packaging?',
-                    answer_ja: 'はい、高級ギフト包装に最適なBOX型パウチをご用意しています。',
+                    answer_ja: 'はい、高級ギフト包装に最適なガゼットパウチをご用意しています。',
                     answer_en: 'Yes, our box pouch is ideal for premium gift packaging.',
                     category: 'general'
                 }

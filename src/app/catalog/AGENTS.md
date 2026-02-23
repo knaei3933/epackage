@@ -90,7 +90,7 @@ interface Product {
 | `flat_3_side` | 平袋 | Three-Side Seal Bag | package |
 | `gassho` | 合掌袋 | Pillow Pouch | box |
 | `stand_up` | スタンドパウチ | Stand Pouch | shopping-bag |
-| `box` | BOX型パウチ | Box Pouch | package |
+| `box` | ガゼットパウチ | Box Pouch | package |
 | `spout_pouch` | スパウトパウチ | Spout Pouch | package-2 |
 | `roll_film` | ロールフィルム | Roll Film | archive |
 

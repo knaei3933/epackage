@@ -7,7 +7,7 @@
 export const BAG_TYPE_JA = {
   'flat_3_side': '三方シール平袋',
   'stand_up': 'スタンドパウチ',
-  'box': 'BOX型パウチ',
+  'box': 'ガゼットパウチ',
   'spout_pouch': 'スパウトパウチ',
   'roll_film': 'ロールフィルム',
   'flat_gusset': 'ガセット平袋',

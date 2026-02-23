@@ -51,7 +51,7 @@ export function SampleItemsSection({ control, errors }: SampleItemsSectionProps)
             {[
               { id: 'three-seal', name: '平袋', nameEn: 'Three-Side Seal' },
               { id: 'stand-pouch', name: 'スタンドパウチ', nameEn: 'Stand Pouch' },
-              { id: 'box-pouch', name: 'BOX型パウチ', nameEn: 'Box Pouch' },
+              { id: 'box-pouch', name: 'ガゼットパウチ', nameEn: 'Box Pouch' },
               { id: 'spout-pouch', name: 'スパウトパウチ', nameEn: 'Spout Pouch' },
               { id: 'roll-film', name: 'ロールフィルム', nameEn: 'Roll Film' },
               { id: 'gassho', name: '合掌袋', nameEn: 'Gassho Bag' }

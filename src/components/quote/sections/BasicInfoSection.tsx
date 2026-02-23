@@ -40,8 +40,8 @@ const BAG_TYPES: BagTypeOption[] = [
   },
   {
     id: 'box',
-    name: 'BOX型パウチ',
-    nameJa: 'BOX型パウチ',
+    name: 'ガゼットパウチ',
+    nameJa: 'ガゼットパウチ',
     description: '箱型形状で保護性に優れる',
     descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
     basePrice: 30,

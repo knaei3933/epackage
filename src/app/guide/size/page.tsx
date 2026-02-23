@@ -64,7 +64,7 @@ export default function SizeGuide() {
       },
       {
         name: 'パッケージタイプを選択',
-        text: '三方シール袋、スタンドパウチ、BOX型パウチなどから用途に合わせて選択します。'
+        text: '三方シール袋、スタンドパウチ、ガゼットパウチなどから用途に合わせて選択します。'
       },
       {
         name: '展開図を作成',
@@ -214,7 +214,7 @@ export default function SizeGuide() {
                     <td className="py-3">底部マチ: 30-50mm</td>
                   </tr>
                   <tr className="border-b border-border-light">
-                    <td className="py-3">BOX型パウチ</td>
+                    <td className="py-3">ガゼットパウチ</td>
                     <td className="py-3">100 × 150mm</td>
                     <td className="py-3">250 × 300mm</td>
                     <td className="py-3">側面マチ: 40-80mm</td>

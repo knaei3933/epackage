@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       },
       box: {
         id: 'box',
-        name_ja: 'BOX型パウチ',
+        name_ja: 'ガゼットパウチ',
         name_en: 'Box Pouch',
         name_ko: 'ボックスパウチ',
         description_ja: '箱型形状で自立性が高く、内容物の保護性に優れた立体パッケージ。',

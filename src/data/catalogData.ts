@@ -3,7 +3,7 @@ import type { PackageProduct } from '@/types/catalog'
 // Product categories mapped to pouch types according to requirements
 // 1. Three-side seal pouch (三方シール袋)
 // 2. Stand pouch (スタンドパウチ)
-// 3. Box pouch (BOX型パウチ)
+// 3. Box pouch (ガゼットパウチ)
 // 4. Spout pouch (スパウトパウチ)
 // 5. Roll film (ロールフィルム)
 
@@ -188,15 +188,15 @@ export const catalogProducts: PackageProduct[] = [
     sortOrder: 1 // Stand pouch should be 1st in main page
   },
 
-  // 3. Box pouch - BOX型パウチ
+  // 3. Box pouch - ガゼットパウチ
   {
     id: 'box-pouch-001',
-    name: 'BOX型パウチ',
+    name: 'ガゼットパウチ',
     nameEn: 'Box Pouch',
-    nameKo: 'ボックス型パウチ',
+    nameKo: '가제트 파우치',
     type: 'luxury', // Mapped to luxury for premium feel
     category: {
-      type: 'BOX型パウチ',
+      type: 'ガゼットパウチ',
       material: ['PET', 'アルミニウム', 'PE', 'ナイロン'],
       size: ['中型', '大型'],
       industry: ['高級食品', 'プレミアム製品', 'ギフト包装', '化粧品']
@@ -247,7 +247,7 @@ export const catalogProducts: PackageProduct[] = [
       {
         id: 'box-pouch-001-1',
         url: '/images/products/gusset-bag-coffee.webp',
-        alt: 'BOX型パウチ - 箱型立体パッケージ',
+        alt: 'ガゼットパウチ - 箱型立体パッケージ',
         isPrimary: true,
         width: 800,
         height: 600

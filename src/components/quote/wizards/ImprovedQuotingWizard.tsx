@@ -1454,7 +1454,7 @@ function getBagTypeLabel(bagTypeId: string): string {
   const bagTypeLabels: Record<string, string> = {
     'flat_3_side': '三方シール平袋',
     'stand_up': 'スタンドパウチ',
-    'box': 'BOX型パウチ',
+    'box': 'ガゼットパウチ',
     'spout_pouch': 'スパウトパウチ',
     'roll_film': 'ロールフィルム'
   };
@@ -2902,7 +2902,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         // 角加工: state.postProcessingOptionsから抽出
         cornerR: state.postProcessingOptions.includes('corner-round') ? 'R5' :
                  state.postProcessingOptions.includes('corner-square') ? 'R0' : 'R5',
-        // マチ印刷（スタンドパウチ、合掌パウチ、BOX型パウチのみ）
+        // マチ印刷（スタンドパウチ、合掌パウチ、ガゼットパウチのみ）
         machiPrinting: (state.bagTypeId === 'stand_up' ||
                         state.bagTypeId === 'lap_seal' ||
                         state.bagTypeId === 'flat_3_side' ||

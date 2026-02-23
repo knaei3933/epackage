@@ -51,14 +51,14 @@ export const templateData: Record<string, Template[]> = {
   ],
   box_with_valve: [
     {
-      filename: 'ガス抜きバルブ付きBOX型パウチ_テンプレート.ai',
-      displayName: 'ガス抜きバルブ付きBOX型パウチ デザインテンプレート',
+      filename: 'ガス抜きバルブ付きガゼットパウチ_テンプレート.ai',
+      displayName: 'ガス抜きバルブ付きガゼットパウチ デザインテンプレート',
       downloadUrl: '/templates/box-valve-pouch.ai',
       fileType: 'AI'
     },
     {
-      filename: 'ガス抜きバルブ付きBOX型パウチ_テンプレート.pdf',
-      displayName: 'ガス抜きバルブ付きBOX型パウチ デザインガイドライン',
+      filename: 'ガス抜きバルブ付きガゼットパウチ_テンプレート.pdf',
+      displayName: 'ガス抜きバルブ付きガゼットパウチ デザインガイドライン',
       downloadUrl: '/templates/box-valve-pouch.pdf',
       fileType: 'PDF'
     }

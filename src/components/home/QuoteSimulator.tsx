@@ -70,7 +70,7 @@ export function QuoteSimulator() {
     { value: 'flat_3_side', label: '三方シール平袋', description: 'コスト効率に優れた基本形状' },
     { value: 'flat_with_zip', label: 'チャック付き平袋', description: '反復使用可能な便利な形状' },
     { value: 'gusset', label: 'ガゼットパウチ', description: '容量拡張可能な大型対応' },
-    { value: 'box', label: 'BOX型パウチ', description: '立体形状で高級感を演出' },
+    { value: 'box', label: 'ガゼットパウチ', description: '立体形状で高級感を演出' },
     { value: 'soft_pouch', label: 'ソフトパウチ', description: '柔軟性の高い液体向け' },
     { value: 'special', label: '特殊仕様', description: '完全オーダーメイド対応' }
   ]
