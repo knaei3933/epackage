@@ -289,14 +289,92 @@ export async function translateText(
   };
 }
 
+// =====================================================
+// Fallback Translation (Simple dictionary-based)
+// =====================================================
+
 /**
- * Translate Korean text to Japanese
+ * Simple fallback translation for Korean to Japanese
+ * Used when Google Translation API is not available
+ */
+function fallbackKoToJa(text: string): string {
+  // Common design corrections phrases
+  const fallbackDictionary: Record<string, string> = {
+    // Greetings
+    '안녕하세요': 'こんにちは',
+    '안녕요': 'こんにちは',
+    '감사합니다': 'ありがとうございます',
+    '수고하셨습니다': 'お疲れ様でした',
+
+    // Design corrections
+    '수정': '修正',
+    '교정': '校正',
+    '변경': '変更',
+    '수정했습니다': '修正しました',
+    '수정 부탁드립니다': '修正お願いします',
+    '수정해주세요': '修正してください',
+
+    // Colors
+    '색상': '色',
+    '인쇄 색상': '印刷色',
+    '색상이 이상한데요?': '色がおかしいですが？',
+    '색상을 수정해주세요': '色を修正してください',
+
+    // Common phrases
+    '확인': '確認',
+    '확인해주세요': '確認してください',
+    '부탁드립니다': 'お願いします',
+    '완료': '完了',
+    '진행': '進行',
+    '대기': '待機',
+
+    // Files
+    '파일': 'ファイル',
+    '원본': '原本',
+    '수정본': '修正版',
+    '최종본': '最終版',
+  };
+
+  // Try direct match first
+  if (fallbackDictionary[text]) {
+    return fallbackDictionary[text];
+  }
+
+  // Try partial matches (replace known phrases)
+  let result = text;
+  for (const [ko, ja] of Object.entries(fallbackDictionary)) {
+    result = result.replace(new RegExp(ko, 'g'), ja);
+  }
+
+  // If no translation found, add a note
+  if (result === text) {
+    return `${text}（韓国語原文）`;
+  }
+
+  return result;
+}
+
+/**
+ * Translate Korean text to Japanese with fallback
  *
  * @param text - Korean text to translate
  * @returns Translation result
  */
 export async function translateKoreanToJapanese(text: string): Promise<TranslationResult> {
-  return translateText(text, 'ko', 'ja');
+  try {
+    return await translateText(text, 'ko', 'ja');
+  } catch (error) {
+    console.warn('[Translation] API failed, using fallback translation:', error);
+    // Use fallback translation when API fails
+    const translatedText = fallbackKoToJa(text);
+
+    return {
+      translatedText,
+      sourceLanguage: 'ko',
+      targetLanguage: 'ja',
+      cached: false,
+    };
+  }
 }
 
 /**
