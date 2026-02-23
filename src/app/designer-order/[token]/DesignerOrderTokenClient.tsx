@@ -422,8 +422,7 @@ export function DesignerOrderTokenClient({
             <ul className="space-y-2">
               {order.items.map((item) => (
                 <li key={item.id} className="border-b pb-2">
-                  {item.product_name} x {item.quantity}
-                  {item.sku_name && <span className="text-gray-500 ml-2">({item.sku_name})</span>}
+                  {item.sku_name || `SKU-${item.id}_${item.product_name}_${item.quantity}`}
                 </li>
               ))}
             </ul>
@@ -506,7 +505,7 @@ export function DesignerOrderTokenClient({
                 <option value="">선택해주세요</option>
                 {order.items.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.product_name} (수량: {item.quantity})
+                    {item.sku_name || `SKU-${item.id}_${item.product_name}_${item.quantity}`}
                   </option>
                 ))}
               </select>
@@ -726,11 +725,14 @@ export function DesignerOrderTokenClient({
                         <h3 className="font-semibold text-slate-900">
                           리비전 #{revision.revision_number}
                         </h3>
-                        {revision.order_item_id && (
-                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
-                            {order.items.find(i => i.id === revision.order_item_id)?.product_name}
-                          </span>
-                        )}
+                        {revision.order_item_id && (() => {
+                          const item = order.items.find(i => i.id === revision.order_item_id);
+                          return item ? (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                              {item.sku_name || `SKU-${item.id}_${item.product_name}_${item.quantity}`}
+                            </span>
+                          ) : null;
+                        })()}
                         <span className={`
                           px-2 py-1 rounded-full text-xs font-medium
                           ${revision.approval_status === 'approved' ? 'bg-green-100 text-green-800' : ''}
