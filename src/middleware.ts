@@ -490,7 +490,18 @@ export async function middleware(request: NextRequest) {
   // /api/designer routes - Designer role required
   // =====================================================
   // Phase 3: Korean Designer Correction Workflow
+  //
+  // NOTE: /api/designer/orders/[id]/correction uses token-based auth
+  // and handles its own authentication. Skip middleware auth for this endpoint.
   if (pathname.startsWith('/api/designer')) {
+    // Skip middleware for token-based correction upload endpoint
+    if (pathname.match(/^\/api\/designer\/orders\/[^\/]+\/correction/)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] Skipping auth for token-based correction endpoint:', pathname);
+      }
+      return addSecurityHeaders(NextResponse.next());
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] Processing /api/designer route:', pathname);
     }

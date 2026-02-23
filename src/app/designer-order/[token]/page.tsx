@@ -198,21 +198,30 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
 
   // Validate token format first
   const tokenFormatValid = /^[A-Za-z0-9_-]{43}$/.test(token);
-  if (!tokenFormatValid) {
-    redirect('/designer-order/invalid');
-  }
 
-  // Fetch data
-  const data = await getDesignerOrderData(token);
+  // Fetch data only if token format is valid
+  const data = tokenFormatValid ? await getDesignerOrderData(token) : null;
 
-  // Handle invalid token
-  if (!data) {
-    redirect('/designer-order/invalid');
-  }
-
-  // Handle expired token
-  if ('expired' in data) {
-    redirect('/designer-order/invalid?reason=expired');
+  // Handle invalid/expired tokens by rendering inline instead of redirect
+  // This avoids RSC streaming issues with redirect()
+  if (!data || 'expired' in data) {
+    const isExpired = data && 'expired' in data;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">
+            링크가 유효하지 않습니다
+          </h1>
+          <p className="text-slate-600">
+            {isExpired
+              ? '링크가 만료되었습니다. 새 링크를 요청해 주세요.'
+              : tokenFormatValid
+                ? '올바른 링크인지 확인해 주세요.'
+                : '잘못된 토큰 형식입니다.'}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const { assignmentData, order, revisions, comments, customerUploads } = data;
