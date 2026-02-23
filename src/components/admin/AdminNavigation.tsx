@@ -20,15 +20,13 @@ import {
 
 const navigation = [
   { name: 'ダッシュボード', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: '注文管理', href: '/admin/orders', icon: ShoppingCart },
-  { name: '見積管理', href: '/admin/quotations', icon: FileText },
-  // 生産管理は非表示
-  // { name: '生産管理', href: '/admin/production', icon: Package },
-  { name: '配送管理', href: '/admin/shipments', icon: Truck },
-  { name: '契約管理', href: '/admin/contracts', icon: FileText },
   { name: '会員承認', href: '/admin/approvals', icon: UserCheck },
-  { name: '顧客管理', href: '/admin/customers/management', icon: Users },
+  { name: '見積管理', href: '/admin/quotations', icon: FileText },
+  { name: '注文管理', href: '/admin/orders', icon: ShoppingCart },
+  { name: '配送管理', href: '/admin/shipments', icon: Truck },
   { name: 'ブログ管理', href: '/admin/blog', icon: FileText },
+  { name: '顧客管理', href: '/admin/customers/management', icon: Users },
+  { name: '契約管理', href: '/admin/contracts', icon: FileText },
   { name: 'お知らせ管理', href: '/admin/notifications', icon: Bell },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },
   { name: 'システム設定', href: '/admin/settings', icon: DollarSign },
