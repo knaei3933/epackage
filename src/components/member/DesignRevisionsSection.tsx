@@ -324,15 +324,106 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
 
   // Get SKU name helper function
   const getSkuName = (revision: DesignRevision) => {
-    // Use sku_name snapshot if available (most accurate)
+    // Use sku_name snapshot if available, parse and reformat it
     if (revision.sku_name) {
-      return revision.sku_name;
+      return parseAndFormatSkuName(revision.sku_name);
     }
 
     // Fallback to order_item_id lookup
     if (!revision.order_item_id) return 'すべてのSKU (All SKUs)';
     const item = orderItems.find(i => i.id === revision.order_item_id);
-    return item ? `SKU-${item.id}_${item.product_name}_${item.quantity}` : 'Unknown SKU';
+    if (!item) return 'Unknown SKU';
+
+    // Extract product type from product_name or use a default
+    const productType = extractProductType(item.product_name);
+    const simplifiedName = simplifyProductName(item.product_name);
+
+    return `SKU-${revision.order_item_id}_${simplifiedName}_${productType}_${item.quantity}`;
+  };
+
+  // Parse and reformat existing SKU name to new format
+  const parseAndFormatSkuName = (skuName: string): string => {
+    // Extract SKU number from existing format: "SKU-{uuid}_スタンドパウチ - アルミ箔ラミネートによる高バリア性 (SKU 1)_1000"
+    const skuNumberMatch = skuName.match(/\(SKU\s+(\d+)\)/);
+    const skuNumber = skuNumberMatch ? skuNumberMatch[1] : extractNumberFromId(skuName);
+
+    // Extract product type (スタンドパウチ, 三方詰, etc.)
+    const productType = extractProductType(skuName);
+
+    // Extract quantity from end of string
+    const quantityMatch = skuName.match(/_(\d+)$/);
+    const quantity = quantityMatch ? quantityMatch[1] : '0';
+
+    // Extract product name (everything between product type and quantity, excluding SKU number)
+    let productName = '商品';
+    const typeIndex = skuName.indexOf(productType);
+    if (typeIndex !== -1) {
+      const afterType = skuName.substring(typeIndex + productType.length);
+      // Remove leading separators and SKU number info
+      const cleanedName = afterType
+        .replace(/^[\s_-]+/, '')
+        .replace(/\s*\(SKU\s+\d+\)\s*$/, '')
+        .replace(/_[\d]+$/, '')
+        .trim();
+      productName = cleanedName || '商品';
+    }
+
+    return `SKU-${skuNumber}_${productName}_${productType}_${quantity}`;
+  };
+
+  // Extract SKU number from UUID or generate a sequential number
+  const extractNumberFromId = (id: string): string => {
+    // Try to extract a number from the string
+    const match = id.match(/(\d+)/);
+    return match ? match[1] : '1';
+  };
+
+  // Extract product type from string
+  const extractProductType = (str: string): string => {
+    const types = [
+      'スタンドパウチ',
+      '三方詰',
+      'ピローパウチ',
+      'ギューズマウチ',
+      'チャック付き平袋',
+      'レトルトパウチ'
+    ];
+
+    for (const type of types) {
+      if (str.includes(type)) {
+        return type;
+      }
+    }
+
+    return 'パウチ';
+  };
+
+  // Simplify product name by removing type suffixes
+  const simplifyProductName = (productName: string): string => {
+    let simplified = productName;
+
+    // Remove product type from name to avoid duplication
+    const types = [
+      'スタンドパウチ',
+      '三方詰',
+      'ピローパウチ',
+      'ギューズマウチ',
+      'チャック付き平袋',
+      'レトルトパウチ'
+    ];
+
+    types.forEach(type => {
+      simplified = simplified.replace(new RegExp(`${type}`, 'g'), '');
+    });
+
+    // Clean up separators and extra spaces
+    simplified = simplified
+      .replace(/^[\s\-_]+/, '')
+      .replace(/[\s\-_]+$/, '')
+      .replace(/[\s\-_]{2,}/, ' ')
+      .trim();
+
+    return simplified || '商品';
   };
 
   // Get preview URL - use proxy endpoint for proper authentication
