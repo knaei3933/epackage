@@ -136,6 +136,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: page.priority,
       alternates: {
         languages: {
+          'x-default': `${SITE_URL}${page.url}`,
           ja: `${SITE_URL}${page.url}`,
           en: `${SITE_URL}/en${page.url || ''}`,
           ko: `${SITE_URL}/ko${page.url || ''}`
@@ -154,6 +155,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
       alternates: {
         languages: {
+          'x-default': `${SITE_URL}${productUrl}`,
           ja: `${SITE_URL}${productUrl}`,
           en: `${SITE_URL}/en${productUrl}`,
           ko: `${SITE_URL}/ko${productUrl}`
@@ -172,6 +174,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
       alternates: {
         languages: {
+          'x-default': `${SITE_URL}${guideUrl}`,
           ja: `${SITE_URL}${guideUrl}`,
           en: `${SITE_URL}/en${guideUrl}`,
           ko: `${SITE_URL}/ko${guideUrl}`
@@ -199,6 +202,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.7,
           alternates: {
             languages: {
+              'x-default': `${SITE_URL}${postUrl}`,
               ja: `${SITE_URL}${postUrl}`,
               en: `${SITE_URL}/en${postUrl}`,
               ko: `${SITE_URL}/ko${postUrl}`
@@ -218,6 +222,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
         alternates: {
           languages: {
+            'x-default': `${SITE_URL}${categoryUrl}`,
             ja: `${SITE_URL}${categoryUrl}`,
             en: `${SITE_URL}/en${categoryUrl}`,
             ko: `${SITE_URL}/ko${categoryUrl}`
