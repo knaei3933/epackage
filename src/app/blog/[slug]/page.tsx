@@ -12,6 +12,7 @@ import { TableOfContents } from '@/components/blog/TableOfContents';
 import { ShareButtons } from '@/components/blog/ShareButtons';
 import { RelatedPosts } from '@/components/blog/RelatedPosts';
 import { getCategoryLabel } from '@/lib/types/blog';
+import { seoUtils } from '@/lib/blog/seo';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -20,15 +21,16 @@ import Link from 'next/link';
 // =====================================================
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(
   { params }: BlogPostPageProps
 ): Promise<Metadata> {
-  const post = await getPublishedPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     return {
@@ -86,7 +88,8 @@ export async function generateMetadata(
 // =====================================================
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = await getPublishedPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -120,23 +123,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     wordCount,
   });
 
-  const breadcrumbSchema = seoUtils.generateBreadcrumbSchema({
-    title: post.title,
-    slug: post.slug,
-    excerpt: post.excerpt || null,
-    content: post.content,
-    category: post.category,
-    tags: post.tags,
-    publishedAt: post.published_at || null,
-    updatedAt: post.updated_at,
-    author: post.author ? { name: post.author.name } : null,
-    ogImagePath: post.og_image_path || null,
-    metaTitle: post.meta_title || null,
-    metaDescription: post.meta_description || null,
-    canonicalUrl: post.canonical_url || null,
-    readingTime,
-    wordCount,
-  });
+  const breadcrumbSchema = seoUtils.generateBreadcrumbSchema([
+    { name: 'ホーム', url: '/' },
+    { name: 'ブログ', url: '/blog' },
+    { name: post.title, url: `/blog/${post.slug}` },
+  ]);
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
 
@@ -152,37 +143,37 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#F7F7FF]">
         {/* Breadcrumb */}
-        <nav className="bg-white border-b" aria-label="パンくずリスト">
+        <nav className="bg-white border-b border-gray-100" aria-label="パンくずリスト">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <ol className="flex items-center gap-2 text-sm">
               <li>
-                <Link href="/" className="text-gray-500 hover:text-gray-700">
+                <Link href="/" className="text-gray-500 hover:text-[#8380FF] transition-colors">
                   ホーム
                 </Link>
               </li>
               <li className="text-gray-400">/</li>
               <li>
-                <Link href="/blog" className="text-gray-500 hover:text-gray-700">
-                  ブログ
+                <Link href="/blog" className="text-gray-500 hover:text-[#8380FF] transition-colors">
+                  導入事例
                 </Link>
               </li>
               <li className="text-gray-400">/</li>
-              <li className="text-gray-900">{post.title}</li>
+              <li className="text-gray-900 line-clamp-1">{post.title}</li>
             </ol>
           </div>
         </nav>
 
         {/* Back Button */}
-        <div className="bg-white border-b">
+        <div className="bg-white border-b border-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 text-[#8380FF] hover:text-[#6b5dd6] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              ブログ一覧に戻る
+              導入事例一覧に戻る
             </Link>
           </div>
         </div>
@@ -197,14 +188,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <div className="mb-4">
                   <Link
                     href={`/blog/category/${post.category}`}
-                    className="inline-block px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
+                    className="inline-block px-3 py-1 text-sm font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20 hover:bg-[#8380FF]/20 transition-colors"
                   >
                     {getCategoryLabel(post.category, 'ja')}
                   </Link>
                 </div>
 
                 {/* Title */}
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                <h1 className="text-3xl md:text-5xl font-bold text-[#1D1D1F] mb-6 leading-tight">
                   {post.title}
                 </h1>
 
@@ -243,7 +234,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                       <Link
                         key={tag}
                         href={`/blog/tag/${encodeURIComponent(tag)}`}
-                        className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
+                        className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200"
                       >
                         #{tag}
                       </Link>
@@ -254,7 +245,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
               {/* Featured Image */}
               {post.og_image_path && (
-                <div className="mb-8 rounded-lg overflow-hidden shadow-md">
+                <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
                   <img
                     src={post.og_image_path}
                     alt={post.title}
@@ -265,7 +256,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
               {/* Article Content */}
               <div
-                className="prose prose-lg max-w-none"
+                className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
 
@@ -280,8 +271,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
               {/* Author Bio */}
               {post.author && (
-                <div className="mt-12 p-6 bg-gray-100 rounded-lg">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">著者について</h3>
+                <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-bold text-[#1D1D1F] mb-2">著者について</h3>
                   <p className="text-gray-700">{post.author.name}</p>
                 </div>
               )}

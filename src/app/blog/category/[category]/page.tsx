@@ -16,18 +16,18 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 // =====================================================
 
 interface BlogCategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(
   { params }: BlogCategoryPageProps
 ): Promise<Metadata> {
-  const category = params.category as any;
+  const { category } = await params;
   const categoryName = getCategoryLabel(category, 'ja');
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
 
@@ -61,8 +61,9 @@ export default async function BlogCategoryPage({
   params,
   searchParams,
 }: BlogCategoryPageProps) {
-  const category = params.category as any;
-  const page = parseInt(searchParams.page || '1', 10);
+  const { category } = await params;
+  const search = await searchParams;
+  const page = parseInt(search.page || '1', 10);
 
   // Validate category
   if (!BLOG_CATEGORIES.find(c => c.id === category)) {

@@ -73,6 +73,7 @@ const PUBLIC_ROUTES = [
   '/news',
   '/premium-content',
   '/archives',
+  '/blog', // ブログページ（公開）
   '/inquiry',
   '/compare',
   '/service',

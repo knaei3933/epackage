@@ -57,6 +57,11 @@ export function Header() {
         { label: '品質管理', href: '/guide' },
       ]
     },
+    {
+      label: '導入事例',
+      href: '/blog',
+      description: '包装資材・印刷の最新情報'
+    },
     // 一時的に無効化（ページが存在しないため404エラー）
     // {
     //   label: '導入事例',

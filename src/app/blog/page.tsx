@@ -52,19 +52,20 @@ export async function generateMetadata(): Promise<Metadata> {
 // =====================================================
 
 interface BlogPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     category?: string;
     tag?: string;
     q?: string;
-  };
+  }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const page = parseInt(searchParams.page || '1', 10);
-  const category = searchParams.category;
-  const tag = searchParams.tag;
-  const search = searchParams.q;
+  const params = await searchParams;
+  const page = parseInt(params.page || '1', 10);
+  const category = params.category;
+  const tag = params.tag;
+  const search = params.q;
 
   // Fetch posts
   const postsData = await getPublishedPosts({
@@ -79,12 +80,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const categories = await getCategoriesWithCounts();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">ブログ</h1>
-          <p className="text-lg text-gray-600">
+    <div className="min-h-screen bg-[#F7F7FF]">
+      {/* Header - Brixa style */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#1D1D1F] mb-4">
+            導入事例
+          </h1>
+          <p className="text-lg text-gray-600 leading-relaxed">
             包装資材・印刷の最新情報、技術情報、業界動向をお届けします
           </p>
         </div>
@@ -94,7 +97,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="lg:w-3/4">
-            {/* Category Filter */}
+            {/* Category Filter - Brixa style pill buttons */}
             <Suspense fallback={<CategoryFilterSkeleton />}>
               <CategoryFilter
                 categories={categories}
@@ -105,8 +108,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             {/* Posts Grid */}
             <div className="mt-8">
               {search && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-blue-800">
+                <div className="mb-6 p-4 bg-[#8380FF]/10 border border-[#8380FF]/20 rounded-lg">
+                  <p className="text-[#8380FF]">
                     検索結果: <strong>&quot;{search}&quot;</strong>
                     <span className="ml-2">({postsData.total}件)</span>
                   </p>
@@ -157,10 +160,10 @@ function CategoryFilter({ categories, activeCategory }: CategoryFilterProps) {
     <div className="flex flex-wrap gap-2">
       <Link
         href="/blog"
-        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+        className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
           !activeCategory
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            ? 'bg-[#8380FF] text-white border-[#8380FF]'
+            : 'bg-white text-gray-700 border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF]'
         }`}
       >
         すべて ({categories.reduce((sum, cat) => sum + cat.count, 0)})
@@ -170,10 +173,10 @@ function CategoryFilter({ categories, activeCategory }: CategoryFilterProps) {
         <Link
           key={cat.category}
           href={`/blog/category/${cat.category}`}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
             activeCategory === cat.category
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-[#8380FF] text-white border-[#8380FF]'
+              : 'bg-white text-gray-700 border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF]'
           }`}
         >
           {cat.name_ja} ({cat.count})
@@ -223,10 +226,10 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
       {/* Previous Button */}
       <Link
         href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
           currentPage > 1
-            ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            ? 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF] shadow-sm'
+            : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'
         }`}
         aria-disabled={currentPage <= 1}
       >
@@ -257,10 +260,10 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
               <Link
                 key={page}
                 href={buildUrl(page)}
-                className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium ${
+                className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium border transition-all ${
                   page === currentPage
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                    ? 'bg-[#8380FF] text-white border-[#8380FF]'
+                    : 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF] shadow-sm'
                 }`}
               >
                 {page}
@@ -272,10 +275,10 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
       {/* Next Button */}
       <Link
         href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
           currentPage < totalPages
-            ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            ? 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF] shadow-sm'
+            : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'
         }`}
         aria-disabled={currentPage >= totalPages}
       >
@@ -303,16 +306,16 @@ function Sidebar({ categories }: SidebarProps) {
   return (
     <div className="space-y-6">
       {/* Categories */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">カテゴリ</h3>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-bold text-[#1D1D1F] mb-4">カテゴリ</h3>
         <ul className="space-y-2">
           <li>
             <Link
               href="/blog"
-              className="flex items-center justify-between text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center justify-between text-gray-600 hover:text-[#8380FF] transition-colors group"
             >
-              <span>すべて</span>
-              <span className="text-sm text-gray-400">
+              <span className="group-hover:translate-x-1 transition-transform">すべて</span>
+              <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                 {categories.reduce((sum, cat) => sum + cat.count, 0)}
               </span>
             </Link>
@@ -321,10 +324,10 @@ function Sidebar({ categories }: SidebarProps) {
             <li key={cat.category}>
               <Link
                 href={`/blog/category/${cat.category}`}
-                className="flex items-center justify-between text-gray-600 hover:text-blue-600 transition-colors"
+                className="flex items-center justify-between text-gray-600 hover:text-[#8380FF] transition-colors group"
               >
-                <span>{cat.name_ja}</span>
-                <span className="text-sm text-gray-400">{cat.count}</span>
+                <span className="group-hover:translate-x-1 transition-transform">{cat.name_ja}</span>
+                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{cat.count}</span>
               </Link>
             </li>
           ))}
@@ -332,8 +335,8 @@ function Sidebar({ categories }: SidebarProps) {
       </div>
 
       {/* About */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">このブログについて</h3>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-bold text-[#1D1D1F] mb-4">このブログについて</h3>
         <p className="text-sm text-gray-600 leading-relaxed">
           Epackage Labのブログでは、包装資材・印刷に関する最新情報、技術情報、業界動向をお届けします。
           小ロットパッケージ製造の専門家として、実践的な情報を提供します。

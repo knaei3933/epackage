@@ -24,14 +24,14 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
   const imageUrl = post.og_image_path || '/images/blog-placeholder.jpg';
 
   return (
-    <article className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+    <article className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8380FF]/30 transition-all duration-300">
       <Link href={`/blog/${post.slug}`} className="block">
         {/* Image */}
-        <div className="aspect-video overflow-hidden bg-gray-200">
+        <div className="aspect-video overflow-hidden bg-gray-100">
           <img
             src={imageUrl}
             alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         </div>
@@ -40,13 +40,13 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
         <div className="p-6">
           {/* Category Badge */}
           <div className="mb-3">
-            <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+            <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20">
               {categoryLabel}
             </span>
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="text-xl font-bold text-[#1D1D1F] mb-2 line-clamp-2 group-hover:text-[#8380FF] transition-colors">
             {post.title}
           </h3>
 
@@ -63,7 +63,7 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
               {post.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
+                  className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-md border border-gray-200"
                 >
                   #{tag}
                 </span>
@@ -123,7 +123,7 @@ interface BlogGridProps {
 export function BlogGrid({ posts, showAuthor, showViews }: BlogGridProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
         <p className="text-gray-500">記事が見つかりませんでした。</p>
       </div>
     );
@@ -156,7 +156,7 @@ interface BlogListProps {
 export function BlogList({ posts, showAuthor, showViews }: BlogListProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
         <p className="text-gray-500">記事が見つかりませんでした。</p>
       </div>
     );
@@ -165,14 +165,14 @@ export function BlogList({ posts, showAuthor, showViews }: BlogListProps) {
   return (
     <div className="space-y-6">
       {posts.map((post) => (
-        <article key={post.id} className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <article key={post.id} className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8380FF]/30 transition-all duration-300">
           <Link href={`/blog/${post.slug}`} className="block md:flex">
             {/* Image */}
-            <div className="md:w-1/3 aspect-video md:aspect-square overflow-hidden bg-gray-200">
+            <div className="md:w-1/3 aspect-video md:aspect-square overflow-hidden bg-gray-100">
               <img
                 src={post.og_image_path || '/images/blog-placeholder.jpg'}
                 alt={post.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
             </div>
@@ -181,13 +181,13 @@ export function BlogList({ posts, showAuthor, showViews }: BlogListProps) {
             <div className="md:w-2/3 p-6">
               {/* Category Badge */}
               <div className="mb-2">
-                <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20">
                   {getCategoryLabel(post.category, 'ja')}
                 </span>
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+              <h3 className="text-xl font-bold text-[#1D1D1F] mb-2 line-clamp-2 group-hover:text-[#8380FF] transition-colors">
                 {post.title}
               </h3>
 
