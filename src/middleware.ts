@@ -928,7 +928,7 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  const finalResponse = addSecurityHeaders(authResponse);
+  const finalResponse = addSecurityHeaders(authResponse, pathname);
 
   if (process.env.NODE_ENV === 'development') {
     console.log('[Middleware] Final response headers (auth):', {
@@ -948,7 +948,7 @@ export async function middleware(request: NextRequest) {
 // Security Headers
 // =====================================================
 
-function addSecurityHeaders(response: NextResponse) {
+function addSecurityHeaders(response: NextResponse, pathname?: string) {
   // Prevent clickjacking - DENYはすべてのフレームをブロック
   response.headers.set('X-Frame-Options', 'DENY');
 
@@ -962,29 +962,33 @@ function addSecurityHeaders(response: NextResponse) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   // Content Security Policy - 強化されたバージョン
-  const isDev = process.env.NODE_ENV === 'development';
+  // Next.jsの静的ファイル（/_next/）にはCSPを適用しない
+  // Google Search ConsoleでCSP違反エラーが報告されるため除外
+  if (!pathname || !pathname.startsWith('/_next/')) {
+    const isDev = process.env.NODE_ENV === 'development';
 
-  const cspDirectives = [
-    "default-src 'self' blob:",
-    // React 19 and Framer Motion require unsafe-inline for hydration and animations
-    // Both dev and production need 'unsafe-inline' for client-side rendering
-    isDev
-      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com"
-      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com",
-    isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https: blob:",
-    "font-src 'self' data: blob:",
-    "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co",
-    "frame-src 'none'",
-    // form-actionを'self'に制限してCSRF防御
-    "form-action 'self'",
-    // base-uriも制限
-    "base-uri 'self'",
-    // object-srcをブロック
-    "object-src 'none'",
-  ];
+    const cspDirectives = [
+      "default-src 'self' blob:",
+      // React 19 and Framer Motion require unsafe-inline for hydration and animations
+      // Both dev and production need 'unsafe-inline' for client-side rendering
+      isDev
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com",
+      isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' data: blob:",
+      "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co",
+      "frame-src 'none'",
+      // form-actionを'self'に制限してCSRF防御
+      "form-action 'self'",
+      // base-uriも制限
+      "base-uri 'self'",
+      // object-srcをブロック
+      "object-src 'none'",
+    ];
 
-  response.headers.set('Content-Security-Policy', cspDirectives.join('; '));
+    response.headers.set('Content-Security-Policy', cspDirectives.join('; '));
+  }
 
   // HSTS (HTTP Strict Transport Security) - production only
   if (process.env.NODE_ENV === 'production') {
