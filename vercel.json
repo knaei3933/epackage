@@ -54,15 +54,6 @@
           "value": "private, no-cache, no-store, must-revalidate"
         }
       ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
     }
   ]
 }
