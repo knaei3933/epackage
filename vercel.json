@@ -1,6 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "package-lab.com"
+        }
+      ],
+      "destination": "https://www.package-lab.com/:path*",
+      "statusCode": 308
+    }
+  ],
   "headers": [
     {
       "source": "/sitemap.xml",
