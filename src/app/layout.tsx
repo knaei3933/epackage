@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://package-lab.com'),
+  metadataBase: new URL('https://www.package-lab.com'),
   title: {
     default: "Epackage Lab | 500枚から28日納品 | 小ロットパッケージ製造",
     template: "%s | Epackage Lab"
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
-    url: 'https://package-lab.com',
+    url: 'https://www.package-lab.com',
     siteName: 'Epackage Lab',
     title: 'Epackage Lab | パッケージングソリューション',
     description: 'パッケージングの専門会社。革新的な包装ソリューション、自動見積もり、豊富な製品カタログを提供。',
