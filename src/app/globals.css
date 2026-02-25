@@ -397,53 +397,263 @@
     outline-color: var(--error-500);
   }
 
-  /* Chrome Autofill Styles */
-  /* Standard autofill - uses bg-primary background */
+  /* ============================================================
+   * Comprehensive Form Element Styling
+   * Handles autofill, dark mode, and cross-browser compatibility
+   * ============================================================ */
+
+  /* Base styles for all form elements */
+  input,
+  textarea,
+  select {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    /* Prevent automatic styling by browsers */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+
+  /* Dark mode base styles for form elements */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Chrome/Edge/Safari Autofill Styles - Comprehensive Coverage */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  input:-webkit-autofill::first-line,
   textarea:-webkit-autofill,
   textarea:-webkit-autofill:hover,
-  textarea:-webkit-autofill:focus {
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
+  textarea:-webkit-autofill::first-line,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
     /* Preserve background color from design system */
     -webkit-box-shadow: 0 0 0 1000px var(--bg-primary) inset !important;
     -webkit-text-fill-color: var(--text-primary) !important;
-    transition: background-color 5000s ease-in-out 0s;
+    /* Very long transition to prevent flash of wrong color */
+    transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+    caret-color: var(--text-primary);
   }
 
-  /* For filled variant inputs (bg-secondary) */
-  input[data-variant="filled"]:-webkit-autofill,
-  input[data-variant="filled"]:-webkit-autofill:hover,
-  input[data-variant="filled"]:-webkit-autofill:focus {
+  /* Dark mode autofill - Chrome/Edge/Safari */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active,
+  .dark input:-webkit-autofill::first-line,
+  .dark textarea:-webkit-autofill,
+  .dark textarea:-webkit-autofill:hover,
+  .dark textarea:-webkit-autofill:focus,
+  .dark textarea:-webkit-autofill:active,
+  .dark textarea:-webkit-autofill::first-line,
+  .dark select:-webkit-autofill,
+  .dark select:-webkit-autofill:hover,
+  .dark select:-webkit-autofill:focus,
+  .dark select:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
-  }
-
-  /* For ghost variant (transparent background) - minimal styling */
-  input[data-variant="ghost"]:-webkit-autofill,
-  input[data-variant="ghost"]:-webkit-autofill:hover,
-  input[data-variant="ghost"]:-webkit-autofill:focus {
-    -webkit-box-shadow: none !important;
-    background-color: transparent !important;
     -webkit-text-fill-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+    caret-color: var(--text-primary);
   }
 
-  /* Dark mode autofill support */
+  /* System prefers dark mode autofill */
   @media (prefers-color-scheme: dark) {
     input:-webkit-autofill,
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     textarea:-webkit-autofill,
     textarea:-webkit-autofill:hover,
-    textarea:-webkit-autofill:focus {
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
       -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
       -webkit-text-fill-color: var(--text-primary) !important;
     }
+  }
 
-    input[data-variant="filled"]:-webkit-autofill,
-    input[data-variant="filled"]:-webkit-autofill:hover,
-    input[data-variant="filled"]:-webkit-autofill:focus {
-      -webkit-box-shadow: 0 0 0 1000px var(--bg-muted) inset !important;
-    }
+  /* Variant-specific autofill styles */
+  /* Filled variant (bg-secondary) */
+  input[data-variant="filled"]:-webkit-autofill,
+  input[data-variant="filled"]:-webkit-autofill:hover,
+  input[data-variant="filled"]:-webkit-autofill:focus,
+  input.filled:-webkit-autofill,
+  input.filled:-webkit-autofill:hover,
+  input.filled:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+  }
+
+  .dark input[data-variant="filled"]:-webkit-autofill,
+  .dark input[data-variant="filled"]:-webkit-autofill:hover,
+  .dark input[data-variant="filled"]:-webkit-autofill:focus,
+  .dark input.filled:-webkit-autofill,
+  .dark input.filled:-webkit-autofill:hover,
+  .dark input.filled:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-muted) inset !important;
+  }
+
+  /* Ghost variant (transparent background) */
+  input[data-variant="ghost"]:-webkit-autofill,
+  input[data-variant="ghost"]:-webkit-autofill:hover,
+  input[data-variant="ghost"]:-webkit-autofill:focus,
+  input.ghost:-webkit-autofill,
+  input.ghost:-webkit-autofill:hover,
+  input.ghost:-webkit-autofill:focus,
+  textarea[data-variant="ghost"]:-webkit-autofill,
+  textarea[data-variant="ghost"]:-webkit-autofill:hover,
+  textarea[data-variant="ghost"]:-webkit-autofill:focus {
+    -webkit-box-shadow: none !important;
+    background-color: transparent !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+  }
+
+  /* Firefox Autofill Styles */
+  input:-moz-autofill,
+  input:-moz-autofill:hover,
+  input:-moz-autofill:focus,
+  textarea:-moz-autofill,
+  textarea:-moz-autofill:hover,
+  textarea:-moz-autofill:focus,
+  select:-moz-autofill,
+  select:-moz-autofill:hover,
+  select:-moz-autofill:focus {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .dark input:-moz-autofill,
+  .dark input:-moz-autofill:hover,
+  .dark input:-moz-autofill:focus,
+  .dark textarea:-moz-autofill,
+  .dark textarea:-moz-autofill:hover,
+  .dark textarea:-moz-autofill:focus,
+  .dark select:-moz-autofill,
+  .dark select:-moz-autofill:hover,
+  .dark select:-moz-autofill:focus {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Standard autofill pseudo-element (future-proof) */
+  input::autofill,
+  textarea::autofill,
+  select::autofill {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .dark input::autofill,
+  .dark textarea::autofill,
+  .dark select::autofill {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Prevent date/time pickers from unwanted styling */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .dark input[type="date"],
+  .dark input[type="time"],
+  .dark input[type="datetime-local"],
+  .dark input[type="month"],
+  .dark input[type="week"] {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Calendar icon color fix for date inputs */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator,
+  input[type="week"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+    cursor: pointer;
+  }
+
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator,
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  .dark input[type="month"]::-webkit-calendar-picker-indicator,
+  .dark input[type="week"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
+
+  /* File input styling */
+  input[type="file"]::file-selector-button {
+    background-color: var(--brixa-primary-600);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    margin-right: 1rem;
+    transition: background-color 0.2s;
+  }
+
+  input[type="file"]::file-selector-button:hover {
+    background-color: var(--brixa-primary-700);
+  }
+
+  /* Search input clear button */
+  input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--text-tertiary);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  input[type="search"]::-webkit-search-cancel-button:hover {
+    background-color: var(--text-secondary);
+  }
+
+  /* Number input spin button styling */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+  }
+
+  /* Placeholder styling consistency */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
+  }
+
+  /* Focus visible enhancement with autofill consideration */
+  input:focus-visible:-webkit-autofill,
+  textarea:focus-visible:-webkit-autofill,
+  select:focus-visible:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-primary) inset, 0 0 0 2px var(--brixa-primary-500) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+  }
+
+  .dark input:focus-visible:-webkit-autofill,
+  .dark textarea:focus-visible:-webkit-autofill,
+  .dark select:focus-visible:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset, 0 0 0 2px var(--brixa-primary-500) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
   }
 
   /* Navigation Styles */

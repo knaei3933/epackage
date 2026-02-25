@@ -487,6 +487,7 @@ export function DesignerOrderTokenClient({
                     </p>
                   </div>
                   <div className="flex gap-2">
+                    {/* Google Drive Preview (if available) */}
                     {file.drive_view_link && (
                       <a
                         href={file.drive_view_link}
@@ -498,17 +499,14 @@ export function DesignerOrderTokenClient({
                         미리보기
                       </a>
                     )}
-                    {file.drive_content_link && (
-                      <a
-                        href={file.drive_content_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                      >
-                        <Download className="w-4 h-4" />
-                        다운로드
-                      </a>
-                    )}
+                    {/* Direct Download (always available via API) */}
+                    <a
+                      href={`/api/designer/download-file/${file.id}?token=${encodeURIComponent(token)}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      다운로드
+                    </a>
                   </div>
                 </div>
               ))}

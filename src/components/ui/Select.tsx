@@ -330,7 +330,8 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                     value={searchTerm}
                     onChange={handleSearch}
                     placeholder="検索..."
-                    className="w-full px-3 py-2 text-sm border border-[var(--border-medium)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brixa-primary-500)] focus:border-[var(--brixa-primary-500)]"
+                    autoComplete="off"
+                    className="w-full px-3 py-2 text-sm border border-[var(--border-medium)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brixa-primary-500)] focus:border-[var(--brixa-primary-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]"
                   />
                 </div>
               )}
