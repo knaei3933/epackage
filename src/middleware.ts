@@ -336,7 +336,7 @@ export async function middleware(request: NextRequest) {
     pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2)$/);
 
   if (isStaticPath) {
-    return addSecurityHeaders(NextResponse.next());
+    return addSecurityHeaders(NextResponse.next(), pathname);
   }
 
   // =====================================================
