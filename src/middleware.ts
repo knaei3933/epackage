@@ -336,7 +336,8 @@ export async function middleware(request: NextRequest) {
     pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2)$/);
 
   if (isStaticPath) {
-    return addSecurityHeaders(NextResponse.next(), pathname);
+    // Static assets don't need security headers - prevents CSP on static chunks
+    return NextResponse.next();
   }
 
   // =====================================================
@@ -735,17 +736,9 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/static') ||
       pathname.includes('.') // favicon, images, etc.
     ) {
-      return addSecurityHeaders(NextResponse.next());
+      // Static assets don't need security headers
+      return NextResponse.next();
     }
-  }
-
-  // Skip middleware for static files
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/static') ||
-    pathname.includes('.') // favicon, images, etc.
-  ) {
-    return addSecurityHeaders(NextResponse.next());
   }
 
   // Public routes - no authentication required
@@ -964,7 +957,7 @@ function addSecurityHeaders(response: NextResponse, pathname?: string) {
   // Content Security Policy - 強化されたバージョン
   // Next.jsの静的ファイル（/_next/）にはCSPを適用しない
   // Google Search ConsoleでCSP違反エラーが報告されるため除外
-  if (!pathname || !pathname.startsWith('/_next/')) {
+  if (!pathname || !pathname.startsWith('/_next')) {
     const isDev = process.env.NODE_ENV === 'development';
 
     const cspDirectives = [
