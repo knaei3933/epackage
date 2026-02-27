@@ -7,13 +7,15 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedPostBySlug, getRelatedPosts, incrementViewCount } from '@/lib/blog/queries';
 import { parseMarkdown } from '@/lib/blog/markdown';
+import { insertCTAPlaceholders, splitContentByCTA, CTA_PLACEHOLDERS } from '@/lib/blog/cta';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { TableOfContents } from '@/components/blog/TableOfContents';
 import { ShareButtons } from '@/components/blog/ShareButtons';
 import { RelatedPosts } from '@/components/blog/RelatedPosts';
+import { ArticleCTA } from '@/components/blog/ArticleCTA';
 import { getCategoryLabel } from '@/lib/types/blog';
 import { seoUtils } from '@/lib/blog/seo';
-import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 // =====================================================
@@ -101,8 +103,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Parse markdown content
   const { html, headings, wordCount, readingTime } = await parseMarkdown(post.content);
 
-  // Get related posts
-  const relatedPosts = await getRelatedPosts(post.id, post.category, 3);
+  // Insert CTA placeholders into HTML
+  const htmlWithCTAs = insertCTAPlaceholders(html, {
+    midPosition: 0.5,
+    enabled: true,
+  });
+
+  // Split content by CTA placeholders
+  const { beforeMid, afterMid, hasMidCTA } = splitContentByCTA(htmlWithCTAs);
+
+  // Get related posts (use more posts to find matches)
+  const relatedPosts = await getRelatedPosts(post.id, post.category, 10);
 
   // Generate structured data
   const blogPostingSchema = seoUtils.generateBlogPostingSchema({
@@ -178,10 +189,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col lg:flex-row gap-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
-            <article className="flex-1">
+            <article className="lg:col-span-2 min-w-0">
               {/* Article Header */}
               <header className="mb-8">
                 {/* Category Badge */}
@@ -255,10 +266,37 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               )}
 
               {/* Article Content */}
-              <div
-                className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
+              <div className="space-y-8">
+                {/* First part - before mid-article CTA */}
+                <div
+                  className="prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: beforeMid }}
+                />
+
+                {/* Mid-article CTA */}
+                {hasMidCTA && (
+                  <div className="my-12">
+                    <ArticleCTA variant="mid-article" />
+                  </div>
+                )}
+
+                {/* Second part - after mid-article CTA (includes end-article CTA) */}
+                {afterMid && (
+                  <div className="relative">
+                    <div
+                      className="prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"
+                      dangerouslySetInnerHTML={{
+                        __html: afterMid.replace(CTA_PLACEHOLDERS.END, ''),
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* End-article CTA */}
+                <div className="my-12">
+                  <ArticleCTA variant="end-article" />
+                </div>
+              </div>
 
               {/* Share Buttons */}
               <div className="mt-12">
@@ -279,7 +317,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </article>
 
             {/* Sidebar */}
-            <aside className="lg:w-80">
+            <aside className="lg:col-span-1">
               {/* Table of Contents */}
               {headings.length > 0 && (
                 <div className="mb-6">
@@ -288,13 +326,27 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               )}
 
               {/* Related Posts */}
-              {relatedPosts.length > 0 && (
+              {relatedPosts.length > 0 ? (
                 <div>
                   <RelatedPosts
                     posts={relatedPosts}
                     currentPostId={post.id}
                     category={post.category}
                   />
+                </div>
+              ) : (
+                /* Fallback: Category link if no related posts */
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    <span className="text-blue-600">{getCategoryLabel(post.category, 'ja')}</span>の記事をもっと見る
+                  </h3>
+                  <Link
+                    href={`/blog/category/${post.category}`}
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                  >
+                    すべての{getCategoryLabel(post.category, 'ja')}記事を見る
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </div>
               )}
             </aside>

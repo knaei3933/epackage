@@ -122,6 +122,10 @@ function generateRSSItem(post: any, siteUrl: string): string {
     technical: '技術情報',
     industry: '業界情報',
     company: '会社情報',
+    'product-intro': '製品紹介',
+    'printing-tech': '印刷技術',
+    'practical-tips': '実践的ノウハウ',
+    'customer-stories': '導入事例',
   }
   const categoryName = categoryNames[post.category] || post.category
 

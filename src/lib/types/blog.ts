@@ -9,12 +9,13 @@
 // Blog Post Status
 // ============================================================
 
-export type BlogPostStatus = 'draft' | 'review' | 'published' | 'archived';
+export type BlogPostStatus = 'draft' | 'review' | 'published' | 'scheduled' | 'archived';
 
 export const BLOG_POST_STATUS_LABELS: Record<BlogPostStatus, { ja: string; en: string }> = {
   draft: { ja: '下書き', en: 'Draft' },
   review: { ja: 'レビュー中', en: 'In Review' },
   published: { ja: '公開済み', en: 'Published' },
+  scheduled: { ja: '予約公開', en: 'Scheduled' },
   archived: { ja: 'アーカイブ', en: 'Archived' },
 };
 
@@ -22,7 +23,7 @@ export const BLOG_POST_STATUS_LABELS: Record<BlogPostStatus, { ja: string; en: s
 // Blog Category
 // ============================================================
 
-export type BlogCategoryId = 'news' | 'technical' | 'industry' | 'company';
+export type BlogCategoryId = 'news' | 'technical' | 'industry' | 'company' | 'product-intro' | 'practical-tips' | 'customer-stories' | 'printing-tech';
 
 export interface BlogCategory {
   id: BlogCategoryId;
@@ -37,9 +38,13 @@ export const BLOG_CATEGORIES: BlogCategory[] = [
   { id: 'technical', name_ja: '技術情報', name_en: 'Technical', sort_order: 2 },
   { id: 'industry', name_ja: '業界情報', name_en: 'Industry', sort_order: 3 },
   { id: 'company', name_ja: '会社情報', name_en: 'Company', sort_order: 4 },
+  { id: 'product-intro', name_ja: '製品紹介', name_en: 'Product Introduction', sort_order: 10 },
+  { id: 'practical-tips', name_ja: '実践的ノウハウ', name_en: 'Practical Tips', sort_order: 11 },
+  { id: 'customer-stories', name_ja: '導入事例', name_en: 'Customer Stories', sort_order: 12 },
+  { id: 'printing-tech', name_ja: '印刷技術', name_en: 'Printing Technology', sort_order: 13 },
 ];
 
-export function getCategoryLabel(id: BlogCategoryId, locale: 'ja' | 'en' = 'ja'): string {
+export function getCategoryLabel(id: BlogCategoryId | string, locale: 'ja' | 'en' = 'ja'): string {
   const category = BLOG_CATEGORIES.find(c => c.id === id);
   return locale === 'ja' ? category?.name_ja || id : category?.name_en || id;
 }
@@ -115,6 +120,9 @@ export interface BlogPostListItem {
   slug: string;
   excerpt?: string;
   category: BlogCategoryId;
+  tags?: string[];
+  og_image_path?: string;
+  reading_time_minutes?: number;
   status: BlogPostStatus;
   author?: {
     name: string;
@@ -151,7 +159,8 @@ export interface BlogListParams {
   page?: number;
   limit?: number;
   status?: BlogPostStatus | 'all';
-  category?: BlogCategoryId;
+  category?: BlogCategoryId | string;
+  tag?: string;
   search?: string;
   sortBy?: 'created_at' | 'published_at' | 'title' | 'view_count';
   sortOrder?: 'asc' | 'desc';

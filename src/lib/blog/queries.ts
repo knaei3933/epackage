@@ -4,7 +4,7 @@
  */
 
 import { createServiceClient } from '@/lib/supabase';
-import { BlogPost, BlogPostListItem, BlogListParams, BlogListResponse, BlogCategoryId, BlogPostStatus } from '@/lib/types/blog';
+import { BlogPost, BlogPostListItem, BlogListParams, BlogListResponse, BlogCategoryId, BlogPostStatus, BLOG_CATEGORIES } from '@/lib/types/blog';
 
 // =====================================================
 // Public Queries (for blog pages)
@@ -102,6 +102,9 @@ export async function getPublishedPosts(params: BlogListParams = {}): Promise<Bl
     slug: post.slug,
     excerpt: post.excerpt,
     category: post.category,
+    tags: post.tags,
+    og_image_path: post.og_image_path,
+    reading_time_minutes: post.reading_time_minutes,
     status: 'published',
     published_at: post.published_at,
     created_at: post.created_at,
@@ -201,6 +204,9 @@ export async function getRelatedPosts(
     slug: post.slug,
     excerpt: post.excerpt,
     category: post.category,
+    tags: post.tags,
+    og_image_path: post.og_image_path,
+    reading_time_minutes: post.reading_time_minutes,
     status: 'published',
     published_at: post.published_at,
     created_at: post.created_at,
@@ -238,19 +244,16 @@ export async function getCategoriesWithCounts(): Promise<Array<{
     counts[post.category] = (counts[post.category] || 0) + 1;
   });
 
-  // Map to category labels
-  const categoryLabels: Record<BlogCategoryId, { ja: string; en: string }> = {
-    news: { ja: 'ニュース', en: 'News' },
-    technical: { ja: '技術情報', en: 'Technical' },
-    industry: { ja: '業界情報', en: 'Industry' },
-    company: { ja: '会社情報', en: 'Company' },
-  };
-
-  return Object.entries(counts).map(([category, count]) => ({
-    category: category as BlogCategoryId,
-    ...categoryLabels[category as BlogCategoryId],
-    count,
-  }));
+  // Map to category labels from BLOG_CATEGORIES
+  return Object.entries(counts).map(([category, count]) => {
+    const cat = BLOG_CATEGORIES.find(c => c.id === category);
+    return {
+      category: category as BlogCategoryId,
+      name_ja: cat?.name_ja || category,
+      name_en: cat?.name_en || category,
+      count,
+    };
+  });
 }
 
 /**
@@ -285,23 +288,15 @@ export async function getTagsWithCounts(): Promise<Array<{ tag: string; count: n
 
 /**
  * Increment view count for a post
+ * Uses PostgreSQL RPC to avoid race conditions
  */
 export async function incrementViewCount(postId: string): Promise<void> {
   const supabase = createServiceClient();
 
-  // First get current count
-  const { data: currentPost } = await supabase
-    .from('blog_posts')
-    .select('view_count')
-    .eq('id', postId)
-    .single();
-
-  if (currentPost) {
-    await supabase
-      .from('blog_posts')
-      .update({ view_count: (currentPost.view_count || 0) + 1 })
-      .eq('id', postId);
-  }
+  // Use RPC to increment atomically (handles race conditions)
+  await supabase.rpc('increment_blog_view_count', {
+    post_id: postId,
+  });
 }
 
 // =====================================================
@@ -388,6 +383,9 @@ export async function getAllPosts(params: BlogListParams = {}): Promise<BlogList
     slug: post.slug,
     excerpt: post.excerpt,
     category: post.category,
+    tags: post.tags,
+    og_image_path: post.og_image_path,
+    reading_time_minutes: post.reading_time_minutes,
     status: post.status,
     published_at: post.published_at,
     created_at: post.created_at,
