@@ -360,7 +360,8 @@ export async function sendCustomEmail(
   content: { html?: string; text?: string },
   attachments?: EpackAttachment[],
   cc?: Array<{ email: string; name?: string }>,
-  from?: string
+  from?: string,
+  replyTo?: string
 ): Promise<EpackSendResult> {
   // 受信者を標準化
   let recipients: Array<{ email: string; name?: string }>
@@ -416,7 +417,7 @@ export async function sendCustomEmail(
         const msg: nodemailer.SendMailOptions = {
           from: fromAddress,
           to: recipient.name ? `${recipient.name} <${recipient.email}>` : recipient.email,
-          replyTo: REPLY_TO_EMAIL,
+          replyTo: replyTo || REPLY_TO_EMAIL,
           subject,
           // Spam対策のためのヘッダー設定
           headers: {
@@ -925,14 +926,15 @@ ${new Date().toLocaleString('ja-JP')}
       errors.push({ to: data.email, error: customerResult.error || '送信失敗' })
     }
 
-    // 管理者へメール送信（送信元は顧客のメールアドレス）
+    // 管理者へメール送信（送信元は info@package-lab.com、返信先は顧客のメールアドレス）
     const adminResult = await sendCustomEmail(
       ADMIN_EMAIL,
       adminSubject,
       { html: adminHtml, text: adminText },
       undefined, // attachments
       undefined, // cc
-      data.email // from: 顧客のメールアドレス
+      undefined, // from: デフォルトの info@package-lab.com を使用
+      data.email // replyTo: 顧客のメールアドレス
     )
 
     if (!adminResult.success) {
