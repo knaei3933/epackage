@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Share2, Link as LinkIcon, Check, Twitter, Facebook } from 'lucide-react';
 
 interface ShareButtonsProps {
@@ -16,6 +16,12 @@ interface ShareButtonsProps {
 
 export function ShareButtons({ url, title, description }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
+  const [hasNativeShare, setHasNativeShare] = useState(false);
+
+  // Check for native share on client side only to prevent hydration mismatch
+  useEffect(() => {
+    setHasNativeShare(typeof navigator !== 'undefined' && navigator.share !== undefined);
+  }, []);
 
   // Get current URL if not provided
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
@@ -69,8 +75,8 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       <h3 className="text-lg font-bold text-gray-900 mb-4">シェア</h3>
 
       <div className="flex flex-wrap gap-3">
-        {/* Native Share (mobile only) */}
-        {typeof navigator !== 'undefined' && navigator.share && (
+        {/* Native Share (mobile only) - rendered only on client after hydration */}
+        {hasNativeShare && (
           <button
             onClick={nativeShare}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"

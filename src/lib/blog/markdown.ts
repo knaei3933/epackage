@@ -34,6 +34,35 @@ export interface Heading {
 }
 
 // =====================================================
+// Image Optimization Configuration
+// =====================================================
+
+type ImageType = 'hero' | 'product' | 'thumb' | 'section' | 'comparison' | 'default';
+
+const IMAGE_DIMENSIONS: Record<ImageType, { width: number; height: number }> = {
+  hero: { width: 1200, height: 630 },
+  product: { width: 800, height: 600 },
+  thumb: { width: 400, height: 300 },
+  section: { width: 1000, height: 500 },
+  comparison: { width: 800, height: 600 },
+  default: { width: 800, height: 600 },
+};
+
+function detectImageType(filename: string): ImageType {
+  const lowerName = filename.toLowerCase();
+  if (lowerName.includes('hero')) return 'hero';
+  if (lowerName.includes('product')) return 'product';
+  if (lowerName.includes('thumb')) return 'thumb';
+  if (lowerName.includes('section')) return 'section';
+  if (lowerName.includes('comparison')) return 'comparison';
+  return 'default';
+}
+
+function getWebPPath(originalPath: string): string {
+  return originalPath.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+}
+
+// =====================================================
 // Configure marked
 // =====================================================
 
@@ -43,6 +72,25 @@ marked.setOptions({
   headerIds: true,
   mangle: false,
 });
+
+// Custom renderer for image optimization
+const customRenderer = {
+  image({ href, title, text }: { href: string; title: string | null; text: string }): string {
+    if (!href) return '';
+    const webpSrc = getWebPPath(href);
+    const imageType = detectImageType(href);
+    const dims = IMAGE_DIMENSIONS[imageType];
+    const altText = (text || title || '').replace(/"/g, '&quot;');
+    const titleAttr = title ? ` title="${title.replace(/"/g, '&quot;')}"` : '';
+
+    return `<picture>
+  <source srcset="${webpSrc}" type="image/webp">
+  <img src="${href}" alt="${altText}"${titleAttr} loading="lazy" width="${dims.width}" height="${dims.height}" style="max-width: 100%; height: auto;">
+</picture>`;
+  },
+};
+
+marked.use({ renderer: customRenderer });
 
 // =====================================================
 // Main Parser Function
@@ -77,10 +125,12 @@ export async function parseMarkdown(
         'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'pre', 'code', 'blockquote', 'dl', 'dt', 'dd',
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
+        'picture', 'source',
       ]),
       allowedAttributes: {
         ...sanitizeHtml.defaults.allowedAttributes,
-        'img': ['src', 'alt', 'title', 'width', 'height'],
+        'img': ['src', 'alt', 'title', 'width', 'height', 'loading', 'style'],
+        'source': ['srcset', 'type'],
         'a': ['href', 'title', 'target'],
         'code': ['class'],
         'pre': ['class'],

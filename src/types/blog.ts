@@ -12,14 +12,13 @@ export type BlogStatus = 'draft' | 'published' | 'archived';
 
 /**
  * Blog post category
+ * Matches database blog_categories table: news, technical, industry, company
  */
 export type BlogCategory =
-  | 'technical'
-  | 'case-study'
   | 'news'
-  | 'tutorial'
-  | 'announcement'
-  | 'industry';
+  | 'technical'
+  | 'industry'
+  | 'company';
 
 /**
  * Frontmatter metadata from markdown files

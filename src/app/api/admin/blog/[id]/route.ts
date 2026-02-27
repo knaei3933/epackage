@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
-import type { UpdatePostRequest, generateSlug, calculateReadingTime } from '@/lib/types/blog';
+import type { UpdatePostRequest } from '@/lib/types/blog';
+import { generateSlug, calculateReadingTime } from '@/lib/types/blog';
 
 // ============================================================
 // GET /api/admin/blog/[id] - Get single blog post
@@ -20,7 +21,7 @@ import type { UpdatePostRequest, generateSlug, calculateReadingTime } from '@/li
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
@@ -40,7 +41,7 @@ export async function GET(
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const postId = params.id;
+    const { id: postId } = await params;
 
     // Fetch post
     const { data: post, error } = await supabase
@@ -76,7 +77,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
@@ -96,7 +97,7 @@ export async function PUT(
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const postId = params.id;
+    const { id: postId } = await params;
 
     // Check if post exists
     const { data: existingPost, error: fetchError } = await supabase
@@ -225,7 +226,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
@@ -245,7 +246,7 @@ export async function DELETE(
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const postId = params.id;
+    const { id: postId } = await params;
 
     // Check if post exists
     const { data: existingPost, error: fetchError } = await supabase

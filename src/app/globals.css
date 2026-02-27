@@ -372,6 +372,21 @@
     transform: translateY(-0.25rem);
   }
 
+  /* Blog Article Typography Customization */
+  .prose-blog h2,
+  .prose-blog h3 {
+    color: #8380FF;
+  }
+
+  .prose-blog h1 {
+    color: #1D1D1F;
+  }
+
+  /* Hide H1 in prose content to avoid duplication with article header */
+  .prose-blog h1:first-child {
+    display: none;
+  }
+
   /* Form Styles */
   .input-field {
     width: 100%;
