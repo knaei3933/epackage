@@ -40,6 +40,7 @@ function StatusBadge({ status }: { status: BlogPostStatus }) {
     draft: { variant: 'secondary' as const, label: BLOG_POST_STATUS_LABELS.draft.ja },
     review: { variant: 'default' as const, label: BLOG_POST_STATUS_LABELS.review.ja },
     published: { variant: 'default' as const, label: BLOG_POST_STATUS_LABELS.published.ja },
+    scheduled: { variant: 'warning' as const, label: BLOG_POST_STATUS_LABELS.scheduled.ja },
     archived: { variant: 'outline' as const, label: BLOG_POST_STATUS_LABELS.archived.ja },
   };
 
