@@ -49,6 +49,8 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/member', // Member API - handles its own auth via SSR
   '/api/comparison', // Comparison API - handles client-side data
   '/api/upload', // Phase 4: Token-based designer upload API (public, token-based auth)
+  '/api/chat', // Chatbot API - public customer support chat (LM Studio via Cloudflare Tunnel)
+  '/api/health', // Health check API - public LM Studio availability check
 ];
 
 // =====================================================

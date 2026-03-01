@@ -11,6 +11,7 @@ import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -173,6 +174,7 @@ export default function RootLayout({
                   <BreadcrumbList />
                   <main>{children}</main>
                   <Footer />
+                  <ChatWidget />
                 </LanguageProvider>
               </CatalogProvider>
             </AuthProvider>
