@@ -152,6 +152,15 @@ export default function RootLayout({
           gtag('config', 'G-VBCB77P21T');`}
         </Script>
 
+        {/* Google Ads gtag.js */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17981675917"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-init" strategy="afterInteractive">
+          {`gtag('config', 'AW-17981675917');`}
+        </Script>
+
         {/* Performance optimization: preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

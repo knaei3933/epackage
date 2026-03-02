@@ -45,3 +45,25 @@ export const trackLineAdd = () => {
     click_type: 'line_friend_add',
   });
 };
+
+// Google Adsコンバージョン追跡
+// Google Ads ID: AW-17981675917
+// コンバージョンラベル: iBi-CJv-44EcEI2zqv5C
+
+export const trackGoogleAdsConversion = (value: number = 1.0, currency: string = 'JPY') => {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', 'conversion', {
+      'send_to': 'AW-17981675917/iBi-CJv-44EcEI2zqv5C',
+      'value': value,
+      'currency': currency
+    });
+  }
+};
+
+export const trackGoogleAdsPageView = () => {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', 'page_view', {
+      'send_to': 'AW-17981675917'
+    });
+  }
+};
