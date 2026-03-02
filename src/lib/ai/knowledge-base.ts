@@ -253,11 +253,18 @@ function getRelevantFileIds(keywords: string[]): Set<string> {
 // Public API
 // =====================================================
 
+// Constants for knowledge base limits
+const MAX_KNOWLEDGE_FILES = 2;
+const MAX_CHARS_PER_FILE = 500;
+const MAX_TOTAL_CHARS = 1000;
+const SEPARATOR = '\n\n---\n\n';
+const TRUNCATION_MARKER = '...\n[要約済み]';
+
 /**
  * Get relevant knowledge base content based on user query
  *
  * @param query - User's question/input
- * @returns Merged relevant knowledge content
+ * @returns Merged relevant knowledge content (truncated to fit context)
  *
  * @example
  * ```ts
@@ -266,31 +273,39 @@ function getRelevantFileIds(keywords: string[]): Set<string> {
  * ```
  */
 export function getRelevantKnowledge(query: string): string {
-  // Initialize knowledge base
   const knowledgeBase = loadKnowledgeBase();
-
-  // Extract keywords from query
   const keywords = extractKeywords(query);
-
-  // Get relevant file IDs
   const relevantFileIds = getRelevantFileIds(keywords);
 
-  // If no keywords found, return empty string (fallback to system prompt only)
   if (relevantFileIds.size === 0) {
     return '';
   }
 
-  // Merge relevant file contents
-  const mergedContent: string[] = [];
+  // Build result efficiently without intermediate array allocation
+  let result = '';
+  let fileCount = 0;
 
-  Array.from(relevantFileIds).forEach((fileId) => {
+  for (const fileId of relevantFileIds) {
+    if (fileCount >= MAX_KNOWLEDGE_FILES) break;
+
     const knowledgeFile = knowledgeBase.get(fileId);
     if (knowledgeFile) {
-      mergedContent.push(knowledgeFile.content);
-    }
-  });
+      const content = knowledgeFile.content.length > MAX_CHARS_PER_FILE
+        ? knowledgeFile.content.substring(0, MAX_CHARS_PER_FILE) + TRUNCATION_MARKER
+        : knowledgeFile.content;
 
-  return mergedContent.join('\n\n---\n\n');
+      if (result) {
+        result += SEPARATOR;
+      }
+      result += content;
+      fileCount++;
+    }
+  }
+
+  // Single final truncation check
+  return result.length > MAX_TOTAL_CHARS
+    ? result.substring(0, MAX_TOTAL_CHARS) + TRUNCATION_MARKER
+    : result;
 }
 
 /**

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
 import { sendHandoffEmail } from '@/lib/chatbot-email';
 import { PHONE_REGEX, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
+import { loggers } from '@/lib/logger';
 import type { UIMessage } from 'ai';
 
 // Allow streaming responses up to 30 seconds
@@ -11,6 +12,8 @@ interface HandoffRequest {
   phoneNumber: string;
   conversationHistory: UIMessage[];
 }
+
+const logger = loggers.api('/api/chat/human-handoff');
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Parse request body
     const body: HandoffRequest = await req.json();
     const { phoneNumber, conversationHistory } = body;
 
@@ -89,7 +93,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!emailResult.success) {
-      console.error('Failed to send handoff email:', emailResult.error);
+      logger.error('Failed to send handoff email', { error: emailResult.error });
       return NextResponse.json(
         { error: 'メール送信に失敗しました。しばらく待ってから再試行してください。' },
         { status: 500 }
@@ -103,7 +107,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Human handoff API error:', error);
+    logger.error('Human handoff API error', { error });
     return NextResponse.json(
       { error: 'エラーが発生しました。しばらく待ってから再試行してください。' },
       { status: 500 }
