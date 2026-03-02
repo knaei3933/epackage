@@ -85,7 +85,7 @@ export function getChatModel() {
 
   return {
     provider: lmstudio,
-    modelId: 'zai-org/glm-4.6v-flash',
+    modelId: 'qwen/qwen3-vl-4b',
     baseURL: baseURL,
     name: env.isDevelopment ? 'LM Studio (Local)' : 'LM Studio (Cloudflare Tunnel)',
   };

@@ -235,3 +235,47 @@ export const isFormComplete = (data: Partial<SimulationFormData>): boolean => {
     return value !== undefined && value !== null && value !== '';
   });
 };
+
+/**
+ * Handoff trigger keywords for chatbot
+ */
+export const HANDOFF_TRIGGER_KEYWORDS = [
+  '担当者',
+  '専門家',
+  '相談',
+  '電話',
+  'オペレーター',
+  '詳しい人',
+  '直接話したい',
+  '複雑な仕様',
+] as const;
+
+/**
+ * Japanese phone number regex
+ * Supports formats: 0X-XXXX-XXXX, 0X-XXX-XXXX, 0XXXXXXXXX
+ */
+export const PHONE_REGEX = /^(0\d{1,4}-\d{1,4}-\d{3,4}|0\d{9,10})$/;
+
+/**
+ * Validate Japanese phone number
+ * @param phone - Phone number string
+ * @returns true if valid, false otherwise
+ */
+export function validatePhoneNumber(phone: string): boolean {
+  return PHONE_REGEX.test(phone);
+}
+
+/**
+ * Get phone number validation error message
+ * @param phone - Phone number string
+ * @returns Error message or null if valid
+ */
+export function getPhoneNumberError(phone: string): string | null {
+  if (!phone) {
+    return '電話番号を入力してください';
+  }
+  if (!validatePhoneNumber(phone)) {
+    return '電話番号の形式が正しくありません（例: 050-1793-6500）';
+  }
+  return null;
+}

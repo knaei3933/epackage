@@ -11,6 +11,8 @@ import { useState, useEffect, useRef, FormEvent } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { MessageCircle, X, Send, Minimize2, Loader2 } from 'lucide-react';
+import { markdownToHtml } from '@/lib/markdown-renderer';
+import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 
 // ============================================================
 // Types
@@ -28,11 +30,21 @@ export function ChatWidget() {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking');
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [renderedHtml, setRenderedHtml] = useState<Record<string, string>>({});
+  // 有人切り替え関連の状態
+  const [showHandoffButton, setShowHandoffButton] = useState(false);
+  const [showPhoneInput, setShowPhoneInput] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [handoffSuccess, setHandoffSuccess] = useState(false);
 
   // チャットフック（AI SDK v6 - DefaultChatTransport）
-  const { messages, sendMessage, isLoading, error } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
   });
+
+  // ステータスからローディング状態を判定
+  const isLoading = status === 'submitted' || status === 'streaming';
 
   // メッセージ送信ハンドラー
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -68,6 +80,68 @@ export function ChatWidget() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // メッセージが更新されたらHTMLを生成
+  useEffect(() => {
+    const generateHtml = async () => {
+      const htmlMap: Record<string, string> = {};
+
+      for (const message of messages) {
+        if (message.role === 'assistant') {
+          const content = getMessageContent(message);
+          htmlMap[message.id] = await markdownToHtml(content);
+        }
+      }
+
+      setRenderedHtml(htmlMap);
+    };
+
+    generateHtml();
+  }, [messages]);
+
+  // 有人切り替えボタン表示ロジック
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === 'assistant') {
+      const content = getMessageContent(lastMessage);
+      const shouldShow = HANDOFF_TRIGGER_KEYWORDS.some(kw => content.includes(kw));
+      setShowHandoffButton(shouldShow);
+    }
+  }, [messages]);
+
+  // 有人切り替え送信ハンドラー
+  const handleHandoffSubmit = async () => {
+    setPhoneError('');
+
+    // 共通関数を使用
+    const error = getPhoneNumberError(phoneNumber);
+    if (error) {
+      setPhoneError(error);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/chat/human-handoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber,
+          conversationHistory: messages,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setHandoffSuccess(true);
+        setShowPhoneInput(false);
+      } else {
+        setPhoneError(data.error || 'エラーが発生しました');
+      }
+    } catch (error) {
+      setPhoneError('エラーが発生しました。しばらく待ってから再試行してください。');
+    }
+  };
 
   // 接続ステータスの色
   const getStatusColor = () => {
@@ -196,7 +270,14 @@ export function ChatWidget() {
                           : 'bg-gray-100 text-gray-900'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words">{getMessageContent(message)}</p>
+                      {message.role === 'assistant' ? (
+                        <div
+                          className="prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: renderedHtml[message.id] || '' }}
+                        />
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words">{getMessageContent(message)}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -224,6 +305,72 @@ export function ChatWidget() {
                     <p>
                       現在チャットサービスは利用できません。しばらく待ってから再試行してください。
                     </p>
+                  </div>
+                )}
+
+                {/* 有人切り替えボタン */}
+                {showHandoffButton && !handoffSuccess && !showPhoneInput && (
+                  <div className="flex justify-start">
+                    <button
+                      onClick={() => setShowPhoneInput(true)}
+                      className="px-4 py-2 bg-brixa text-white rounded-lg hover:bg-brixa-600 transition-colors"
+                    >
+                      担当者に相談する
+                    </button>
+                  </div>
+                )}
+
+                {/* 電話番号入力フォーム */}
+                {showPhoneInput && !handoffSuccess && (
+                  <div className="bg-gray-100 px-4 py-3 rounded-lg">
+                    <p className="text-sm text-gray-700 mb-2">電話番号をご入力ください（例: 050-1793-6500）</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="050-1793-6500"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brixa"
+                      />
+                      <button
+                        onClick={handleHandoffSubmit}
+                        className="px-4 py-2 bg-brixa text-white rounded-lg hover:bg-brixa-600"
+                      >
+                        送信
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowPhoneInput(false);
+                          setPhoneNumber('');
+                          setPhoneError('');
+                        }}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                    {phoneError && (
+                      <p className="text-red-600 text-sm mt-2">{phoneError}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* 送信成功メッセージ */}
+                {handoffSuccess && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm">
+                    承知いたしました。担当者より折り返しご連絡いたします。
+                  </div>
+                )}
+
+                {/* 有人切り替え完了後の終了ボタン */}
+                {handoffSuccess && (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      閉じる
+                    </button>
                   </div>
                 )}
 
