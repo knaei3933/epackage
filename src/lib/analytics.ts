@@ -28,6 +28,15 @@ export const sendEvent = (eventName: string, parameters?: Record<string, any>) =
   }
 };
 
+// Phone click tracking for conversion optimization
+export const trackPhoneClick = (phoneNumber: string, location: string) => {
+  sendEvent('phone_click', {
+    phone_number: phoneNumber,
+    location: location,
+    page_url: window.location.href,
+  });
+};
+
 // Custom events for Epackage Lab
 export const analyticsEvents = {
   // Contact form events
@@ -43,6 +52,11 @@ export const analyticsEvents = {
   SAMPLE_FORM_SUBMIT: 'sample_form_submit',
   SAMPLE_FORM_SUCCESS: 'sample_form_success',
   SAMPLE_FORM_ERROR: 'sample_form_error',
+
+  // Phone click events
+  PHONE_CLICK_HEADER: 'phone_click_header',
+  PHONE_CLICK_CTA: 'phone_click_cta',
+  PHONE_CLICK_FOOTER: 'phone_click_footer',
 
   // Catalog events
   CATALOG_VIEW: 'catalog_view',

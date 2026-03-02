@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X, ChevronDown, Phone } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { UserMenu, AuthModal } from '@/components/auth'
+import { trackPhoneClick } from '@/lib/analytics'
 
 // Add suppressHydrationWarning to prevent console errors in development
 const suppressHydrationWarning = process.env.NODE_ENV === 'development'
@@ -276,6 +277,19 @@ export function Header() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
+          {/* Phone Number - Desktop */}
+          <a
+            href="tel:050-1793-6500"
+            onClick={() => trackPhoneClick('050-1793-6500', 'header')}
+            className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-brixa-50 to-blue-50 rounded-lg border border-brixa-200 hover:border-brixa-300 hover:shadow-md transition-all group"
+            aria-label="電話をかける: 050-1793-6500"
+          >
+            <Phone className="w-4 h-4 text-brixa-700 group-hover:text-brixa-600 transition-colors" />
+            <span className="text-sm font-semibold text-brixa-900 group-hover:text-brixa-800 transition-colors">
+              050-1793-6500
+            </span>
+          </a>
+
           {/* Auth UI - Desktop */}
           {isMounted && !isLoading && (
             <div className="hidden md:flex items-center space-x-2">
@@ -306,7 +320,7 @@ export function Header() {
                 size="sm"
                 className="font-medium"
               >
-                お問い合わせ
+                今すぐ相談
               </Button>
             </Link>
           </div>

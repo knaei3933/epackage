@@ -12,6 +12,9 @@ import { QuoteProvider } from '@/contexts/QuoteContext'
 import { MultiQuantityQuoteProvider } from '@/contexts/MultiQuantityQuoteContext'
 import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
+import { TrustSignals } from '@/components/lp/TrustSignals'
+import { StrongCTA } from '@/components/lp/StrongCTA'
+import { trackPhoneClick } from '@/lib/analytics'
 
 // バンドル最適化: 重いコンポーネントを動的インポート
 const ImprovedQuotingWizard = dynamic(
@@ -91,9 +94,25 @@ export default function QuoteSimulatorPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
                 統合見積もりシステム
               </h1>
-              <p className="text-navy-100 text-lg">
+              <p className="text-navy-100 text-lg mb-4">
                 AI-poweredでお客様のニーズに合わせた最適な包装ソリューションをご提案します
               </p>
+
+              {/* Trust Indicators */}
+              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-navy-200">
+                <div className="flex items-center space-x-2">
+                  <Calculator className="w-4 h-4 text-green-400" />
+                  <span>即座に価格算出</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <BarChart3 className="w-4 h-4 text-green-400" />
+                  <span>数量で比較検討</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Target className="w-4 h-4 text-green-400" />
+                  <span>最適数量を提案</span>
+                </div>
+              </div>
             </MotionWrapper>
           </Container>
         </section>
@@ -174,7 +193,7 @@ export default function QuoteSimulatorPage() {
                   </Card>
                 </Link>
 
-                <a href="tel:050-1793-6500" className="group hover-glow">
+                <a href="tel:050-1793-6500" onClick={() => trackPhoneClick('050-1793-6500', 'cta')} className="group hover-glow">
                   <Card className="quick-actions-card p-6 hover:border-purple-400 bg-white">
                     <div className="relative z-10">
                       <div className="flex items-start space-x-3 sm:space-x-4 mb-4">
@@ -206,6 +225,23 @@ export default function QuoteSimulatorPage() {
                 </a>
               </div>
             </MotionWrapper>
+          </Container>
+        </section>
+
+        {/* Trust Signals Section */}
+        <TrustSignals variant="default" showCertifications={true} />
+
+        {/* Strong CTA Section */}
+        <section className="py-12 bg-gradient-to-br from-gray-50 via-white to-brixa-50">
+          <Container size="6xl">
+            <StrongCTA
+              title="ご不明点がございましたらお気軽にご相談ください"
+              description="専門スタッフが最適な包装ソリューションをご提案します。電話・メール・チャットで迅速に対応いたします。"
+              primaryText="今すぐお電話で相談"
+              primaryHref="tel:050-1793-6500"
+              secondaryText="お問い合わせフォーム"
+              secondaryHref="/contact"
+            />
           </Container>
         </section>
 

@@ -4,10 +4,11 @@ import { useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
-import { ArrowRight, Package, CheckCircle, Clock, Calculator, TrendingUp, Shield, Zap, Truck } from 'lucide-react'
+import { ArrowRight, Package, CheckCircle, Clock, Calculator, TrendingUp, Shield, Zap, Truck, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { heroVariants, statVariants, ctaVariants, numberVariants } from './animations'
+import { trackPhoneClick } from '@/lib/analytics'
 
 export function HeroSection() {
   const ref = useRef(null)
@@ -246,6 +247,25 @@ export function HeroSection() {
                 </span>
               </Button>
             </Link>
+
+            {/* Phone CTA */}
+            <a
+              href="tel:050-1793-6500"
+              onClick={() => trackPhoneClick('050-1793-6500', 'hero')}
+              className="inline-flex group"
+            >
+              <Button
+                variant="outline"
+                size="lg"
+                className="justify-center px-8 py-5 text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-700 border-2 border-purple-400 text-white hover:from-purple-700 hover:to-purple-800 transition-all duration-300"
+              >
+                <span className="flex items-center">
+                  <Phone className="mr-3 h-5 w-5" />
+                  <span className="hidden sm:inline">050-1793-6500</span>
+                  <span className="sm:hidden">お電話</span>
+                </span>
+              </Button>
+            </a>
           </motion.div>
 
           {/* Enhanced Data-Driven Trust Factors */}
