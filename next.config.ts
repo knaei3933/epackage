@@ -49,6 +49,8 @@ const nextConfig: NextConfig = {
     '@fontsource/noto-sans-jp',
     '@supabase/supabase-js',
     '@supabase/ssr',
+    'playwright',
+    'playwright-core',
   ],
   images: {
     unoptimized: false,
