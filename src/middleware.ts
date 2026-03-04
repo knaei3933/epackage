@@ -1,60 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
- * Lightweight middleware for security headers and redirects.
- * No DB queries or Supabase client creation - defers auth to API routes.
+ * Lightweight middleware for redirects only.
+ * Security headers moved to next.config.ts to reduce CPU usage.
  */
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-
-  // =====================================================
-  // Security Headers
-  // =====================================================
-  const securityHeaders = new Headers(res.headers);
-
-  // Content Security Policy - restricts sources of content
-  securityHeaders.set(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://www.google.co.jp https://www.google.co.kr https://www.google.adservicemse.com https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
-      "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.jp https://www.google.co.kr https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
-      "frame-src 'self' https://www.googletagmanager.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "upgrade-insecure-requests",
-    ].join('; ')
-  );
-
-  // Prevent XSS attacks
-  securityHeaders.set('X-Content-Type-Options', 'nosniff');
-  securityHeaders.set('X-Frame-Options', 'DENY');
-  securityHeaders.set('X-XSS-Protection', '1; mode=block');
-
-  // Referrer Policy
-  securityHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-  // Permissions Policy (formerly Feature Policy)
-  securityHeaders.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(), interest-cohort=()'
-  );
-
-  // Strict Transport Security (HTTPS only)
-  if (process.env.NODE_ENV === 'production') {
-    securityHeaders.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  }
-
-  // Apply security headers to response
-  Object.entries(Object.fromEntries(securityHeaders)).forEach(([key, value]) => {
-    res.headers.set(key, value);
-  });
-
   // =====================================================
   // Redirects
   // =====================================================
@@ -80,6 +30,26 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // Add CSP headers for Google Analytics/Ads (only for matched routes)
+  const res = NextResponse.next();
+  res.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://www.google.co.jp https://www.google.co.kr https://www.google.adservicemse.com https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.jp https://www.google.co.kr https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
+      "frame-src 'self' https://www.googletagmanager.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join('; ')
+  );
+
   return res;
 }
 
@@ -93,15 +63,29 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match only public pages - NOT member/admin/protected routes
-     * Exclude:
-     * - api routes (handled separately)
-     * - member routes (use API authentication)
-     * - admin routes (use API authentication)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Match only public pages - minimize middleware execution
+     * Exclude all API, protected routes, and static assets
      */
-    '/((?!api|member|admin|designer|auth|api/|member/|admin/|designer/|auth/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Positive matches - only these paths run middleware
+    '/',
+    '/about',
+    '/contact',
+    '/catalog/:path*',
+    '/blog/:path*',
+    '/guide/:path*',
+    '/industry/:path*',
+    '/pricing',
+    '/cart',
+    '/compare/:path*',
+    '/quote-simulator',
+    '/samples',
+    '/service',
+    '/inquiry/:path*',
+    '/data-templates',
+    '/flow',
+    '/print',
+    '/design-system',
+    '/robots.txt',
+    '/sitemap.xml',
   ],
 };

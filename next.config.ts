@@ -3,7 +3,19 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone', // Force server mode, disable static export
   // =====================================================
-  // Webpack configuration
+  // Turbopack configuration
+  // =====================================================
+  turbopack: {
+    // Exclude Playwright from bundling
+    rules: {
+      '*.node': {
+        loaders: ['node-loader'],
+        as: '*.js',
+      },
+    },
+  },
+  // =====================================================
+  // Webpack configuration (fallback for --webpack flag)
   // =====================================================
   webpack: (config, { isServer }) => {
     // Exclude Playwright from bundling
@@ -28,15 +40,17 @@ const nextConfig: NextConfig = {
   },
   // =====================================================
   // Bundle Optimization - Tree shaking for large packages
+  // NOTE: modularizeImports disabled for Turbopack compatibility
+  // Turbopack has its own tree-shaking and optimization
   // =====================================================
-  modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
-    },
-    'date-fns': {
-      transform: 'date-fns/{{member}}',
-    },
-  },
+  // modularizeImports: {
+  //   'lucide-react': {
+  //     transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+  //   },
+  //   'date-fns': {
+  //     transform: 'date-fns/{{member}}',
+  //   },
+  // },
   // =====================================================
   // Rewrites to fix trailing slash redirect loops
   // =====================================================
@@ -49,6 +63,48 @@ const nextConfig: NextConfig = {
       {
         source: '/api/auth/session/:path*',
         destination: '/api/auth/session/:path*',
+      },
+    ];
+  },
+  // =====================================================
+  // Security Headers (applies to all routes)
+  // NOTE: Moved from middleware to reduce middleware CPU usage
+  // =====================================================
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+        ],
+      },
+      {
+        source: '/:path*',
+        headers: process.env.NODE_ENV === 'production' ? [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+        ] : [],
       },
     ];
   },
