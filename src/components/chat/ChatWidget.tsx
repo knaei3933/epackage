@@ -62,7 +62,7 @@ export function ChatWidget() {
     }
   }, [messages, isLoading]);
 
-  // メンテナンスチェック（30秒ごとにポーリング）
+  // メンテナンスチェック（5分ごとにポーリング - CPU使用量削減）
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
@@ -100,13 +100,13 @@ export function ChatWidget() {
 
     initializeStatus();
 
-    // 30秒ごとにメンテナンス状態をチェック
+    // 5分ごとにメンテナンス状態をチェック（APIキャッシュ60秒と合わせてCPU削減）
     const intervalId = setInterval(async () => {
       const isMaintenance = await checkMaintenance();
       if (isMaintenance) {
         setConnectionStatus('maintenance');
       }
-    }, 30000);
+    }, 300000); // 5分 = 300秒 = 300000ms
 
     return () => clearInterval(intervalId);
   }, []);

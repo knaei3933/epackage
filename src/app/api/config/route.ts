@@ -12,8 +12,9 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 
-// Disable caching for fresh config data
-export const dynamic = 'force-dynamic';
+// Enable 60-second caching to reduce CPU usage and database queries
+// Config changes rarely, so this is safe
+export const revalidate = 60;
 
 // =====================================================
 // Type Definitions
