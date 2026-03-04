@@ -92,6 +92,9 @@ importers:
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
@@ -125,6 +128,12 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.18.0
+      playwright:
+        specifier: ^1.58.2
+        version: 1.58.2
+      playwright-core:
+        specifier: ^1.58.2
+        version: 1.58.2
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -149,6 +158,9 @@ importers:
       remark-html:
         specifier: ^16.0.1
         version: 16.0.1
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0
       remark-rehype:
         specifier: ^11.1.2
         version: 11.1.2
