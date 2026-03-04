@@ -44,22 +44,21 @@ export async function GET() {
         }
       );
     } else {
+      // Return 200 with offline status instead of 503
       return new Response(
         JSON.stringify({
-          status: 'error',
+          status: 'offline',
           message: 'LM Studio returned an error',
           service: 'lmstudio',
           baseURL: baseURL,
         }),
         {
-          status: 503,
+          status: 200,
           headers: { 'Content-Type': 'application/json' },
         }
       );
     }
   } catch (error) {
-    console.error('Health check error:', error);
-
     const isTimeout = error instanceof Error && error.name === 'AbortError';
     const errorMessage = isTimeout
       ? 'LM Studio connection timeout'
@@ -67,15 +66,16 @@ export async function GET() {
         ? error.message
         : 'Unknown error';
 
+    // Return 200 with offline status instead of 503
     return new Response(
       JSON.stringify({
-        status: 'error',
+        status: 'offline',
         message: errorMessage,
         service: 'lmstudio',
         baseURL: baseURL,
       }),
       {
-        status: 503,
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       }
     );
