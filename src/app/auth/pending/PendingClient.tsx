@@ -11,6 +11,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { GoogleAdsConversion } from '@/components/analytics/GoogleAdsConversion';
 
 // Initialize Supabase client for browser
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -324,6 +325,7 @@ export default function PendingClient({
   // Pending approval
   return (
     <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
+      <GoogleAdsConversion />
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-bg-secondary rounded-lg shadow-lg p-8 text-center">
           {/* アイコン */}
