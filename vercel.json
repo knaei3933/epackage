@@ -3,6 +3,11 @@
   "framework": "nextjs",
   "redirects": [
     {
+      "source": "/:path*/",
+      "destination": "/:path",
+      "statusCode": 308
+    },
+    {
       "source": "/:path*",
       "has": [
         {
