@@ -8,6 +8,9 @@
 
 import * as nodemailer from 'nodemailer';
 import type { UIMessage } from 'ai';
+import { loggers } from '@/lib/logger';
+
+const logger = loggers.app().withContext({ module: 'chatbot-email' });
 
 // =====================================================
 // Type Definitions
@@ -62,11 +65,36 @@ function initializeTransporter(): void {
       },
     });
     transportType = 'xserver';
+    logger.info('Using XServer SMTP');
     return;
   }
 
-  // Fallback to console mode for development
+  // Development: Use Ethereal for testing
+  if (isDevelopment) {
+    // Create test account for development
+    nodemailer.createTestAccount().then((account) => {
+      transporter = nodemailer.createTransport({
+        host: account.smtp.host,
+        port: account.smtp.port,
+        secure: account.smtp.secure,
+        auth: {
+          user: account.user,
+          pass: account.pass,
+        },
+      });
+      transportType = 'ethereal';
+      logger.info('Using Ethereal test account');
+      logger.debug('Ethereal URL:', nodemailer.getTestMessageUrl({} as any));
+    }).catch(() => {
+      transportType = 'console';
+      logger.warn('Failed to create Ethereal account, using console mode');
+    });
+    return;
+  }
+
+  // Fallback to console mode
   transportType = 'console';
+  logger.info('Using console mode');
 }
 
 // =====================================================
@@ -170,13 +198,11 @@ ${formatConversationForEmail(data.conversationHistory)}
 
   // Console mode (Fallback)
   if (transportType === 'console' || !transporter) {
-    console.log('[ChatbotEmail] Console mode - Email content:');
-    console.log('='.repeat(60));
-    console.log(`To: ${ADMIN_EMAIL}`);
-    console.log(`Subject: 【チャットボット】有人切り替えリクエスト`);
-    console.log('Text:', emailBody);
-    console.log('HTML:', htmlBody);
-    console.log('='.repeat(60));
+    logger.info('Console mode - Email content', {
+      to: ADMIN_EMAIL,
+      subject: '【チャットボット】有人切り替えリクエスト',
+      emailBody
+    });
     return {
       success: true,
       error: undefined,
@@ -201,7 +227,7 @@ ${formatConversationForEmail(data.conversationHistory)}
       previewUrl: nodemailer.getTestMessageUrl(info) || undefined,
     };
   } catch (error: any) {
-    console.error('[ChatbotEmail] Send error:', error);
+    logger.error('Send error', { error });
     return {
       success: false,
       error: error.message || 'Unknown error',

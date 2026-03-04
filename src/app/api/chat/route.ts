@@ -8,6 +8,9 @@
 import { streamText, type UIMessage, type CoreMessage } from 'ai';
 import { getChatModel } from '@/lib/ai/providers';
 import { getRelevantKnowledge } from '@/lib/ai/knowledge-base';
+import { loggers } from '@/lib/logger';
+
+const logger = loggers.api('/api/chat');
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -85,45 +88,21 @@ export async function POST(req: Request) {
 
     const relevantKnowledge = getRelevantKnowledge(userQuery);
 
-    // システムプロンプト（コンシェルジュ型）
-    const systemPrompt = `あなたは包装材料メーカー「Epackage Lab」のコンシェルジュです。
+    // システムプロンプト（コンシェルジュ型・短縮版）
+    const systemPrompt = `Epackage Labコンシェルジュです。1〜2文で簡潔に回答。
 
-【絶対遵守】
-- 1〜2文で簡潔に回答。思考プロセスや推論は一切出力しないでください
-- 回答の冒頭に挨拶を付けず、本題から始めてください
+【CTA】
+- 見積もり→[見積もりツール](https://package-lab.com/quote-simulator)をご利用ください
+- 詳細問い合わせ→担当者切り替え提案
 
-【誘導ガイドライン】
-- 見積もり関連 → 統合見積もりツール(/quote-simulator)を紹介
-- 会員ページ関連 → 適切なURLを案内
-- 製品選定に迷っている → 製品選択ガイドを参照
-- 複雑な問い合わせ → 担当者への切り替えを提案
+【有人切り替え】
+"担当者""専門家""相談""電話"含まれる場合、担当者へ案内
 
-【有人切り替えトリガー】
-以下のキーワードが含まれる場合、担当者への切り替えを提案：
-"担当者", "専門家", "相談", "電話", "オペレーター", "詳しい人", "直接話したい", "複雑な仕様"
+【基本】
+- 電話:050-1793-6500
+- ウェブ:https://package-lab.com
 
-【会社情報】
-- 会社名: Epackage Lab
-- 電話: 050-1793-6500（月〜金 9:00-18:00）
-- ウェブ: https://package-lab.com
-
-【見積もりシステム】
-- 統合見積もりツール: /quote-simulator - AIが即座に価格計算、複数数量比較可能
-- 詳細見積もり: /contact - 営業日1〜2日以内に返信
-- 電話相談: 050-1793-6500
-
-【会員ページ主要機能】
-- ダッシュボード: /member/dashboard
-- 見積管理: /member/quotations
-- 注文管理: /member/orders
-- サンプル依頼: /member/samples
-- プロフィール編集: /member/profile
-- アカウント設定: /member/settings
-
-【認証】
-- ログイン: /auth/signin
-- 会員登録: /auth/register
-- パスワード再設定: /auth/forgot-password`;
+【重要】URLは必ずマークダウンリンク形式[テキスト](URL)で記述してください。`;
 
     // ナレッジベースをシステムプロンプトに追加
     const finalSystemPrompt = relevantKnowledge
@@ -155,7 +134,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error('Chat API error:', error);
+    logger.error('Chat API error', { error });
     const errorMessage = getErrorMessage(error, isLocal);
 
     // エラーレスポンス
