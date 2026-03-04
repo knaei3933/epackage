@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
+      "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
       "frame-src 'self' https://www.googletagmanager.com",
       "object-src 'none'",
       "base-uri 'self'",
