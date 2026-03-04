@@ -3,7 +3,7 @@
   "framework": "nextjs",
   "redirects": [
     {
-      "source": "/:path*/",
+      "source": "/:path+/",
       "destination": "/:path",
       "statusCode": 308
     },
