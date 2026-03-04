@@ -55,11 +55,5 @@
         }
       ]
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/publish-scheduled-posts",
-      "schedule": "0 * * * *"
-    }
   ]
 }
