@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 import { getAllProducts } from '@/lib/product-data'
 import { createServiceClient } from '@/lib/supabase'
 
-// Force dynamic to avoid RSC 404 errors
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+// Revalidate sitemap every hour to reduce CPU usage while keeping data fresh
+// This prevents RSC 404 errors and reduces database queries
+export const revalidate = 3600; // 1 hour
 
 // サイト設定 (www付きで統一)
 const SITE_URL = 'https://www.package-lab.com'
