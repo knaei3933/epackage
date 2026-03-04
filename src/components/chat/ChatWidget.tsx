@@ -62,7 +62,7 @@ export function ChatWidget() {
     }
   }, [messages, isLoading]);
 
-  // ヘルスチェック
+  // ヘルスチェック（マウント時のみ実行）
   useEffect(() => {
     const checkHealth = async () => {
       try {
@@ -76,9 +76,6 @@ export function ChatWidget() {
     };
 
     checkHealth();
-    const interval = setInterval(checkHealth, 30000); // 30秒ごとに確認
-
-    return () => clearInterval(interval);
   }, []);
 
   // メッセージが更新されたらHTMLを生成
