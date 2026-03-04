@@ -2,6 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone', // Force server mode, disable static export
+  // =====================================================
+  // Webpack configuration
+  // =====================================================
+  webpack: (config, { isServer }) => {
+    // Exclude Playwright from bundling
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('playwright', 'playwright-core');
+    }
+    return config;
+  },
   skipTrailingSlashRedirect: true,
   productionBrowserSourceMaps: false,
   typescript: {
