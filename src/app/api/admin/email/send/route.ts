@@ -466,12 +466,5 @@ async function handleBatchEmail(
 // ============================================================
 // Configuration
 // ============================================================
-
-/**
- * エラーハンドリング設定
- */
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
+// Note: Next.js 15+ uses individual exports instead of export const config
+// bodyParser: true is the default behavior
