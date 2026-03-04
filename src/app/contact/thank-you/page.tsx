@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, Clock } from 'lucide-react'
+import { GoogleAdsConversion } from '@/components/analytics/GoogleAdsConversion'
 
 export const metadata: Metadata = {
   title: 'お問い合わせありがとうございます | Epackage Lab',
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
 
 export default function ContactThankYouPage() {
   return (
+    <>
+      <GoogleAdsConversion />
+      <div className="min-h-screen bg-gray-50 py-12">
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -142,5 +146,6 @@ export default function ContactThankYouPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
