@@ -10,9 +10,8 @@ export const metadata: Metadata = {
 
 export default function SamplesThankYouPage() {
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 py-12">
       <GoogleAdsConversion />
-      <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* ヘッダー */}
@@ -210,6 +209,5 @@ export default function SamplesThankYouPage() {
         </div>
       </div>
     </div>
-    </>
   )
 }
