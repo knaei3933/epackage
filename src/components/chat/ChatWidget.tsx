@@ -18,7 +18,7 @@ import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation'
 // Types
 // ============================================================
 
-type ConnectionStatus = 'checking' | 'online' | 'offline';
+type ConnectionStatus = 'checking' | 'online' | 'offline' | 'maintenance';
 
 // ============================================================
 // Component
@@ -49,7 +49,7 @@ export function ChatWidget() {
   // メッセージ送信ハンドラー
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || connectionStatus === 'offline' || isLoading) return;
+    if (!input.trim() || connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading) return;
 
     sendMessage({ text: input });
     setInput('');
@@ -62,8 +62,23 @@ export function ChatWidget() {
     }
   }, [messages, isLoading]);
 
-  // ヘルスチェック（マウント時のみ実行）
+  // メンテナンスチェック（30秒ごとにポーリング）
   useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        if (data.success && data.data?.maintenance_mode?.enabled) {
+          setConnectionStatus('maintenance');
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('Maintenance check failed:', error);
+        return false;
+      }
+    };
+
     const checkHealth = async () => {
       try {
         const response = await fetch('/api/health');
@@ -75,7 +90,25 @@ export function ChatWidget() {
       }
     };
 
-    checkHealth();
+    // 初回チェック
+    const initializeStatus = async () => {
+      const isMaintenance = await checkMaintenance();
+      if (!isMaintenance) {
+        await checkHealth();
+      }
+    };
+
+    initializeStatus();
+
+    // 30秒ごとにメンテナンス状態をチェック
+    const intervalId = setInterval(async () => {
+      const isMaintenance = await checkMaintenance();
+      if (isMaintenance) {
+        setConnectionStatus('maintenance');
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   // メッセージが更新されたらHTMLを生成
@@ -147,6 +180,8 @@ export function ChatWidget() {
         return 'bg-green-500';
       case 'offline':
         return 'bg-red-500';
+      case 'maintenance':
+        return 'bg-orange-500';
       default:
         return 'bg-yellow-500';
     }
@@ -159,6 +194,8 @@ export function ChatWidget() {
         return 'オンライン';
       case 'offline':
         return 'オフライン';
+      case 'maintenance':
+        return 'メンテナンス中';
       default:
         return '確認中...';
     }
@@ -305,6 +342,29 @@ export function ChatWidget() {
                   </div>
                 )}
 
+                {/* メンテナンス時のメッセージ */}
+                {connectionStatus === 'maintenance' && (
+                  <div className="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded-lg text-sm">
+                    <p className="font-medium mb-3">
+                      現在メンテナンス中です。復旧までしばらくお待ちください。
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <a
+                        href="/contact"
+                        className="text-brixa hover:underline inline-flex items-center gap-1"
+                      >
+                        お問い合わせフォームはこちら
+                      </a>
+                      <a
+                        href="/products"
+                        className="text-brixa hover:underline inline-flex items-center gap-1"
+                      >
+                        製品ページはこちら
+                      </a>
+                    </div>
+                  </div>
+                )}
+
                 {/* 有人切り替えボタン */}
                 {showHandoffButton && !handoffSuccess && !showPhoneInput && (
                   <div className="flex justify-start">
@@ -385,12 +445,12 @@ export function ChatWidget() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="メッセージを入力..."
-                    disabled={connectionStatus === 'offline' || isLoading}
+                    disabled={connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brixa focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                   <button
                     type="submit"
-                    disabled={!input.trim() || connectionStatus === 'offline' || isLoading}
+                    disabled={!input.trim() || connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
                     className="px-4 py-2 bg-brixa text-white rounded-lg hover:bg-brixa-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     aria-label="送信"
                   >

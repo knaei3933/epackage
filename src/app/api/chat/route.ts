@@ -6,7 +6,7 @@
  */
 
 import { streamText, type UIMessage, type CoreMessage } from 'ai';
-import { getChatModel } from '@/lib/ai/providers';
+import { getChatModelWithFailover, getSystemPrompt } from '@/lib/ai/providers';
 import { getRelevantKnowledge } from '@/lib/ai/knowledge-base';
 import { loggers } from '@/lib/logger';
 
@@ -75,9 +75,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // チャットモデル設定を取得
-    const modelConfig = getChatModel();
-    isLocal = modelConfig.baseURL.includes('localhost');
+    // チャットモデル設定を取得（フェイルオーバー対応）
+    const modelConfig = await getChatModelWithFailover({
+      sessionId: crypto.randomUUID(),
+      logFailover: true
+    });
+    isLocal = !modelConfig.isFailover && modelConfig.baseURL.includes('localhost');
 
     // ユーザーの最新メッセージからナレッジベースを取得
     const lastUserMessage = messages.filter(m => m.role === 'user').pop();
@@ -88,24 +91,11 @@ export async function POST(req: Request) {
 
     const relevantKnowledge = getRelevantKnowledge(userQuery);
 
-    // システムプロンプト（コンシェルジュ型・短縮版）
-    const systemPrompt = `Epackage Labコンシェルジュです。1〜2文で簡潔に回答。
+    // システムプロンプト取得（フェイルオーバー時は短縮版）
+    const systemPrompt = getSystemPrompt(modelConfig.isFailover);
 
-【CTA】
-- 見積もり→[見積もりツール](https://package-lab.com/quote-simulator)をご利用ください
-- 詳細問い合わせ→担当者切り替え提案
-
-【有人切り替え】
-"担当者""専門家""相談""電話"含まれる場合、担当者へ案内
-
-【基本】
-- 電話:050-1793-6500
-- ウェブ:https://package-lab.com
-
-【重要】URLは必ずマークダウンリンク形式[テキスト](URL)で記述してください。`;
-
-    // ナレッジベースをシステムプロンプトに追加
-    const finalSystemPrompt = relevantKnowledge
+    // ナレッジベースをシステムプロンプトに追加（フェイルオーバー時は追加しない）
+    const finalSystemPrompt = relevantKnowledge && !modelConfig.isFailover
       ? `${systemPrompt}\n\n${relevantKnowledge}`
       : systemPrompt;
 

@@ -34,6 +34,8 @@
     "sync:blog:verbose": "ts-node scripts/sync-blog.ts --verbose"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.54",
+    "@ai-sdk/openai": "^3.0.39",
     "@ai-sdk/openai-compatible": "^2.0.31",
     "@ai-sdk/react": "^3.0.107",
     "@emotion/is-prop-valid": "^1.4.0",
