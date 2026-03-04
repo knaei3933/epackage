@@ -127,6 +127,7 @@ const nextConfig: NextConfig = {
   },
   // =====================================================
   // Server external packages
+  // NOTE: Turbopack requires explicit listing of transitive dependencies
   // =====================================================
   serverExternalPackages: [
     '@react-pdf/renderer',
@@ -135,6 +136,22 @@ const nextConfig: NextConfig = {
     '@supabase/ssr',
     'playwright',
     'playwright-core',
+    // PDF generation dependencies
+    'handlebars',
+    'chrome-aws-lambda',
+    'puppeteer-core',
+    // Markdown rendering dependencies (for Turbopack)
+    'remark',
+    'remark-parse',
+    'remark-rehype',
+    'remark-gfm',
+    'rehype-stringify',
+    'unified',
+    'mdast-util-to-string',
+    'micromark',
+    'unist-util-is',
+    'unist-util-visit',
+    'zwitch',
   ],
   images: {
     unoptimized: false,
