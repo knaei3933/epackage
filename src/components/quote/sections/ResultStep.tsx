@@ -528,8 +528,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                      state.depth > 0
                      ? (state.postProcessingOptions?.includes('machi-printing-yes') ? 'あり' : 'なし')
                      : undefined,
-      // スパウトパウチ用: スパウト位置
+      // スパウトパウチ用: スパウト位置、スパウトサイズ、マチ有無
       spoutPosition: state.bagTypeId === 'spout_pouch' && state.spoutPosition ? translateSpoutPosition(state.spoutPosition) : undefined,
+      spoutSize: state.bagTypeId === 'spout_pouch' && state.spoutSize ? `${state.spoutSize}パイ（φ${state.spoutSize}mm）` : undefined,
+      hasGusset: state.bagTypeId === 'spout_pouch' && state.hasGusset !== undefined ? (state.hasGusset ? 'マチあり（スタンドパウチ準用）' : 'マチなし（平袋準用）') : undefined,
       // ロールフィルム用: 原反幅、総長さ、ロール数、ピッチ
       rollFilmSpecs: state.bagTypeId === 'roll_film' ? {
         materialWidth: state.materialWidth,

@@ -35,7 +35,7 @@ export default defineConfig({
   // Shared settings for all tests
   use: {
     // Base URL for tests
-    baseURL: process.env.BASE_URL || 'http://localhost:3002',
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
 
     // Collect trace when retrying
     trace: 'on-first-retry',
@@ -103,13 +103,14 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
-  // TEMPORARILY DISABLED - Using existing server on port 3000
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3002',
-  //   timeout: 120000,
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    timeout: 120000,
+    reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
 
   // Output directory for test artifacts
   outputDir: 'test-results/artifacts',

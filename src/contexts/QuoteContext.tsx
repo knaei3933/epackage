@@ -23,6 +23,22 @@ import {
 } from '@/components/quote/shared/processingConfig';
 import { getAvailableGussetSizes, getDefaultGussetSize, validateWidthStep } from '@/lib/gusset-data';
 
+// スパウトパウチ専用フィルム幅計算関数
+// docs/reports/calcultae/02-필름폭_계산공식.md 基準
+function calculateSpoutPouchFilmWidth(
+  height: number,
+  hasGusset: boolean,
+  depth?: number
+): number {
+  if (hasGusset && depth) {
+    // マチあり: スタンドパウチ準用 (H × 2) + G + 35
+    return (height * 2) + depth + 35;
+  } else {
+    // マチなし: 平袋（三封）準用 (H × 2) + 41
+    return (height * 2) + 41;
+  }
+}
+
 // Quote state interface
 export interface QuoteState {
   bagTypeId: string;
@@ -47,6 +63,8 @@ export interface QuoteState {
   deliveryLocation?: 'domestic' | 'international';
   urgency?: 'standard' | 'express';
   spoutPosition?: 'top-left' | 'top-right' | 'center-left' | 'center-right' | 'bottom-left' | 'bottom-right';
+  spoutSize?: 9 | 15 | 18 | 22 | 28; // スパウトサイズ（パイ径）- スパウトパウチ専用
+  hasGusset?: boolean; // マチ有無 - スパウトパウチ専用（true=スタンドパウチ準用、false=平袋準用）
   // Roll film specific fields
   pitch?: number;                 // Design pitch/repeat (mm) - for roll_film (デザインの繰り返し周期)
   totalLength?: number;           // Total length (m) - for roll_film
@@ -79,7 +97,7 @@ export interface QuoteState {
 
 // Action types
 type QuoteAction =
-  | { type: 'SET_BASIC_SPECS'; payload: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'thicknessSelection' | 'pitch'>> }
+  | { type: 'SET_BASIC_SPECS'; payload: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'thicknessSelection' | 'pitch' | 'spoutSize' | 'hasGusset'>> }
   | { type: 'SET_QUANTITY_OPTIONS'; payload: Partial<Pick<QuoteState, 'quantities' | 'quantity' | 'isUVPrinting' | 'printingType' | 'printingColors' | 'doubleSided'>> & { isUVPrinting?: boolean } }
   | { type: 'SET_POST_PROCESSING'; payload: { options: string[]; multiplier: number } }
   | { type: 'SET_DELIVERY'; payload: { location: 'domestic' | 'international'; urgency: 'standard' | 'express' } }
@@ -195,6 +213,9 @@ const initialState: QuoteState = {
   doubleSided: false,
   deliveryLocation: 'domestic',
   urgency: 'standard',
+  spoutPosition: undefined,
+  spoutSize: undefined, // スパウトサイズ（パイ径）- スパウトパウチ専用
+  hasGusset: undefined, // マチ有無 - スパウトパウチ専用
   // Roll film specific fields
   pitch: undefined,               // Design pitch (mm) - 入力必須
   totalLength: undefined,
@@ -289,7 +310,17 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
 
       // 幅変更またはbagTypeId変更時に原反幅を再計算（ただし幅が有効な場合のみ）
       let newMaterialWidth = state.materialWidth;
-      if ((widthChanged && newWidth >= 70) || (newBagTypeId !== state.bagTypeId && newBagTypeId === 'roll_film' && newWidth >= 70)) {
+      const newHasGusset = 'hasGusset' in action.payload ? action.payload.hasGusset : state.hasGusset;
+
+      if (newBagTypeId === 'spout_pouch' && action.payload.height) {
+        // スパウトパウチ: hasGussetフラグに基づいてフィルム幅計算
+        const filmWidthMM = calculateSpoutPouchFilmWidth(
+          action.payload.height,
+          newHasGusset === true,
+          newHasGusset === true ? (action.payload.depth || state.depth) : undefined
+        );
+        newMaterialWidth = determineMaterialWidth(filmWidthMM);
+      } else if ((widthChanged && newWidth >= 70) || (newBagTypeId !== state.bagTypeId && newBagTypeId === 'roll_film' && newWidth >= 70)) {
         newMaterialWidth = determineMaterialWidth(newWidth);
       }
 

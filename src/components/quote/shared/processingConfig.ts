@@ -11,7 +11,7 @@ export interface ProcessingOptionConfig {
   features: string[]
   featuresJa: string[]
   compatibleWith: string[]
-  category: 'opening-sealing' | 'surface-treatment' | 'shape-structure' | 'functionality'
+  category: 'opening-sealing' | 'surface-treatment' | 'shape-structure' | 'functionality' | 'spout-size'
   processingTime: string // in business days
   processingTimeJa: string
   minimumQuantity: number
@@ -643,6 +643,136 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefitsJa: ['ブランド露出向上', 'デザイン統一性', '高級感'],
     applications: ['プレミアム製品', 'ブランド製品', 'プロモーション包装'],
     applicationsJa: ['プレミアム製品', 'ブランド製品', 'プロモーション包装']
+  },
+
+  // =====================================================
+  // SPOUT SIZE (スパウトサイズ) - スパウトパウチ専用
+  // =====================================================
+
+  {
+    id: 'spout-size-9',
+    name: '9パイ（φ9mm）',
+    nameJa: '9パイ（φ9mm）',
+    nameKo: '9파이 (φ9mm)',
+    category: 'spout-size' as const,
+    description: '小型スパウト - 小容量液体用',
+    descriptionJa: '小型スパウト - 小容量液体用',
+    descriptionKo: '소형 스파우트 - 소용량 액체용',
+    icon: '🔹',
+    compatibleWith: ['spout_pouch'],
+    priceMultiplier: 1.0,
+    features: ['小型', 'コスト効率', '小容量対応'],
+    featuresJa: ['小型', 'コスト効率', '小容量対応'],
+    isDefault: true,
+    processingTime: 'Standard production time',
+    processingTimeJa: '標準生産時間',
+    minimumQuantity: 5000,
+    technicalNotes: '9mm diameter spout',
+    technicalNotesJa: '9パイ径スパウト',
+    benefits: ['コスト効率', '小容量製品対応'],
+    benefitsJa: ['コスト効率', '小容量製品対応'],
+    applications: ['小容量液体', 'サプリメント', '调味料'],
+    applicationsJa: ['小容量液体', 'サプリメント', '調味料']
+  },
+  {
+    id: 'spout-size-15',
+    name: '15パイ（φ15mm）',
+    nameJa: '15パイ（φ15mm）',
+    nameKo: '15파이 (φ15mm)',
+    category: 'spout-size' as const,
+    description: '標準小型スパウト',
+    descriptionJa: '標準小型スパウト',
+    descriptionKo: '표준 소형 스파우트',
+    icon: '🔸',
+    compatibleWith: ['spout_pouch'],
+    priceMultiplier: 1.0,
+    features: ['標準サイズ', '汎用性'],
+    featuresJa: ['標準サイズ', '汎用性'],
+    isDefault: false,
+    processingTime: 'Standard production time',
+    processingTimeJa: '標準生産時間',
+    minimumQuantity: 5000,
+    technicalNotes: '15mm diameter spout',
+    technicalNotesJa: '15パイ径スパウト',
+    benefits: ['汎用性', '標準サイズ'],
+    benefitsJa: ['汎用性', '標準サイズ'],
+    applications: ['一般液体', 'ドレッシング', 'ソース'],
+    applicationsJa: ['一般液体', 'ドレッシング', 'ソース']
+  },
+  {
+    id: 'spout-size-18',
+    name: '18パイ（φ18mm）',
+    nameJa: '18パイ（φ18mm）',
+    nameKo: '18파이 (φ18mm)',
+    category: 'spout-size' as const,
+    description: '標準スパウト - 最も汎用的',
+    descriptionJa: '標準スパウト - 最も汎用的',
+    descriptionKo: '표준 스파우트 - 가장 범용적',
+    icon: '🔷',
+    compatibleWith: ['spout_pouch'],
+    priceMultiplier: 1.0,
+    features: ['標準', '最も汎用的', 'バランス'],
+    featuresJa: ['標準', '最も汎用的', 'バランス'],
+    isDefault: false,
+    processingTime: 'Standard production time',
+    processingTimeJa: '標準生産時間',
+    minimumQuantity: 5000,
+    technicalNotes: '18mm diameter spout',
+    technicalNotesJa: '18パイ径スパウト',
+    benefits: ['最も汎用的', 'バランス良好'],
+    benefitsJa: ['最も汎用的', 'バランス良好'],
+    applications: ['各種液体', '化粧品', '食品'],
+    applicationsJa: ['各種液体', '化粧品', '食品']
+  },
+  {
+    id: 'spout-size-22',
+    name: '22パイ（φ22mm）',
+    nameJa: '22パイ（φ22mm）',
+    nameKo: '22파이 (φ22mm)',
+    category: 'spout-size' as const,
+    description: '大型スパウト - 高粘度液体用',
+    descriptionJa: '大型スパウト - 高粘度液体用',
+    descriptionKo: '대형 스파우트 - 고점도 액체용',
+    icon: '🔶',
+    compatibleWith: ['spout_pouch'],
+    priceMultiplier: 1.0,
+    features: ['大型', '高粘度対応', '高速充填'],
+    featuresJa: ['大型', '高粘度対応', '高速充填'],
+    isDefault: false,
+    processingTime: 'Standard production time',
+    processingTimeJa: '標準生産時間',
+    minimumQuantity: 5000,
+    technicalNotes: '22mm diameter spout',
+    technicalNotesJa: '22パイ径スパウト',
+    benefits: ['高速充填', '高粘度対応'],
+    benefitsJa: ['高速充填', '高粘度対応'],
+    applications: ['高粘度液体', 'ジャム', '蜂蜜'],
+    applicationsJa: ['高粘度液体', 'ジャム', '蜂蜜']
+  },
+  {
+    id: 'spout-size-28',
+    name: '28パイ（φ28mm）',
+    nameJa: '28パイ（φ28mm）',
+    nameKo: '28파이 (φ28mm)',
+    category: 'spout-size' as const,
+    description: '超大型スパウト - 特殊用途',
+    descriptionJa: '超大型スパウト - 特殊用途',
+    descriptionKo: '초대형 스파우트 - 특수 용도',
+    icon: '🔻',
+    compatibleWith: ['spout_pouch'],
+    priceMultiplier: 1.0,
+    features: ['超大型', '特殊用途', '最大流量'],
+    featuresJa: ['超大型', '特殊用途', '最大流量'],
+    isDefault: false,
+    processingTime: '+1-2 business days',
+    processingTimeJa: '+1-2営業日',
+    minimumQuantity: 5000,
+    technicalNotes: '28mm diameter spout',
+    technicalNotesJa: '28パイ径スパウト',
+    benefits: ['最大流量', '特殊用途対応'],
+    benefitsJa: ['最大流量', '特殊用途対応'],
+    applications: ['特殊工業用', '大容量充填'],
+    applicationsJa: ['特殊工業用', '大容量充填']
   }
 ]
 
@@ -693,6 +823,14 @@ export const PROCESSING_CATEGORIES = [
     icon: '⚡',
     description: 'Additional functional capabilities',
     descriptionJa: '追加機能性'
+  },
+  {
+    id: 'spout-size',
+    name: 'スパウトサイズ',
+    nameJa: 'スパウトサイズ',
+    icon: '🔧',
+    description: 'スパウトパウチのサイズ選択',
+    descriptionJa: 'スパウトパウチのサイズ選択'
   }
 ] as const
 

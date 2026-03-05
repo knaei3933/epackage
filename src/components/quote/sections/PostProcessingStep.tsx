@@ -217,6 +217,52 @@ const SEALING_WIDTH_OPTIONS: PostProcessingOption[] = [
     detailedDescription: '重袋や工業用途に適した最強の10mmシール幅。',
     previewImage: '/images/post-processing/シール幅10mm.png',
     features: ['最強シール', '重袋対応', '最大耐久性']
+  },
+  // スパウトサイズオプション（スパウトパウチ専用）
+  {
+    id: 'spout-size-9',
+    name: '9パイ（φ9mm）',
+    multiplier: 1.0,
+    description: '小型スパウト - 小容量液体用',
+    detailedDescription: '9mm径の小型スパウト。小容量液体やサプリメントに最適。',
+    previewImage: '/images/post-processing/spout-9mm.png',
+    features: ['小型', 'コスト効率', '小容量対応']
+  },
+  {
+    id: 'spout-size-15',
+    name: '15パイ（φ15mm）',
+    multiplier: 1.0,
+    description: '標準小型スパウト',
+    detailedDescription: '15mm径の標準小型スパウト。汎用性の高いサイズ。',
+    previewImage: '/images/post-processing/spout-15mm.png',
+    features: ['標準サイズ', '汎用性']
+  },
+  {
+    id: 'spout-size-18',
+    name: '18パイ（φ18mm）',
+    multiplier: 1.0,
+    description: '標準スパウト - 最も汎用的',
+    detailedDescription: '18mm径の標準スパウト。最も汎用的でバランス良好。',
+    previewImage: '/images/post-processing/spout-18mm.png',
+    features: ['標準', '最も汎用的', 'バランス']
+  },
+  {
+    id: 'spout-size-22',
+    name: '22パイ（φ22mm）',
+    multiplier: 1.0,
+    description: '大型スパウト - 高粘度液体用',
+    detailedDescription: '22mm径の大型スパウト。高粘度液体や高速充填に対応。',
+    previewImage: '/images/post-processing/spout-22mm.png',
+    features: ['大型', '高粘度対応', '高速充填']
+  },
+  {
+    id: 'spout-size-28',
+    name: '28パイ（φ28mm）',
+    multiplier: 1.0,
+    description: '超大型スパウト - 特殊用途',
+    detailedDescription: '28mm径の超大型スパウト。特殊工業用途や大容量充填に。',
+    previewImage: '/images/post-processing/spout-28mm.png',
+    features: ['超大型', '特殊用途', '最大流量']
   }
 ];
 
@@ -243,7 +289,13 @@ const EXCLUSIVE_GROUPS: Record<string, string[]> = {
   // シール幅（排他グループ）
   'sealing-width-5mm': ['sealing-width-7-5mm', 'sealing-width-10mm'],
   'sealing-width-7-5mm': ['sealing-width-5mm', 'sealing-width-10mm'],
-  'sealing-width-10mm': ['sealing-width-5mm', 'sealing-width-7-5mm']
+  'sealing-width-10mm': ['sealing-width-5mm', 'sealing-width-7-5mm'],
+  // スパウトサイズ（排他グループ）
+  'spout-size-9': ['spout-size-15', 'spout-size-18', 'spout-size-22', 'spout-size-28'],
+  'spout-size-15': ['spout-size-9', 'spout-size-18', 'spout-size-22', 'spout-size-28'],
+  'spout-size-18': ['spout-size-9', 'spout-size-15', 'spout-size-22', 'spout-size-28'],
+  'spout-size-22': ['spout-size-9', 'spout-size-15', 'spout-size-18', 'spout-size-28'],
+  'spout-size-28': ['spout-size-9', 'spout-size-15', 'spout-size-18', 'spout-size-22']
 };
 
 // オプションIDをカテゴリーにマッピング
@@ -269,7 +321,13 @@ const OPTION_CATEGORIES: Record<string, string> = {
   // シール幅
   'sealing-width-5mm': 'sealing-width',
   'sealing-width-7-5mm': 'sealing-width',
-  'sealing-width-10mm': 'sealing-width'
+  'sealing-width-10mm': 'sealing-width',
+  // スパウトサイズ
+  'spout-size-9': 'spout-size',
+  'spout-size-15': 'spout-size',
+  'spout-size-18': 'spout-size',
+  'spout-size-22': 'spout-size',
+  'spout-size-28': 'spout-size'
 };
 
 interface PostProcessingStepProps {
@@ -283,15 +341,23 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
   const state = useQuoteState();
   const { updatePostProcessing, setSealWidth } = useQuote();
 
-  // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示
+  // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示（スパウトパウチはスパウトサイズも追加）
   const getVisibleOptions = (): PostProcessingOption[] => {
     console.log('[PostProcessingStep] getVisibleOptions called, bagTypeId:', state.bagTypeId);
-    if (state.bagTypeId === 'spout_pouch' || state.bagTypeId === 'roll_film') {
+    if (state.bagTypeId === 'spout_pouch') {
+      // 表面処理（glossy, matte）+ スパウトサイズオプション
+      const filtered = POST_PROCESSING_OPTIONS.filter(opt =>
+        opt.id === 'glossy' || opt.id === 'matte' || opt.id.startsWith('spout-size-')
+      );
+      console.log('[PostProcessingStep] spout_pouch detected, filtered options:', filtered.map(o => o.id));
+      return filtered;
+    }
+    if (state.bagTypeId === 'roll_film') {
       // 表面処理のみ（glossy, matte）
       const filtered = POST_PROCESSING_OPTIONS.filter(opt =>
         opt.id === 'glossy' || opt.id === 'matte'
       );
-      console.log('[PostProcessingStep]', state.bagTypeId, 'detected, filtered options:', filtered.map(o => o.id));
+      console.log('[PostProcessingStep] roll_film detected, filtered options:', filtered.map(o => o.id));
       return filtered;
     }
     console.log('[PostProcessingStep] Not spout_pouch/roll_film, returning all options');

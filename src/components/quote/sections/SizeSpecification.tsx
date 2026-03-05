@@ -712,6 +712,33 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
           </div>
         )}
 
+        {/* スパウトパウチ専用: マチ有無選択 */}
+        {state.bagTypeId === 'spout_pouch' && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">マチ有無</label>
+            <select
+              value={state.hasGusset ? 'has-gusset' : 'no-gusset'}
+              onChange={(e) => {
+                const hasGussetValue = e.target.value === 'has-gusset';
+                updateBasicSpecs({
+                  hasGusset: hasGussetValue,
+                  depth: hasGussetValue ? (state.depth || 30) : 0
+                });
+              }}
+              className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+              aria-label="スパウトパウチのマチ有無"
+            >
+              <option value="no-gusset">マチなし（平袋準用）</option>
+              <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-400">
+              {state.hasGusset
+                ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
+                : 'マチなし: 平袋計算式を適用 (H×2+41)'}
+            </p>
+          </div>
+        )}
+
         {/* 側面 - 合掌袋とボックス型パウチのみ */}
         {needsSideWidth && (
           <div>

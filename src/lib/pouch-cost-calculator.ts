@@ -974,17 +974,60 @@ export class PouchCostCalculator {
     // ジッパーオションによる最低価格調整
     const hasZipper = postProcessingOptions?.includes('zipper-yes');
 
+    // スパウトサイズ取得（オプションから）
+    const spoutSizeOption = postProcessingOptions?.find(opt => opt.startsWith('spout-size-'));
+    const spoutSize = spoutSizeOption ? parseInt(spoutSizeOption.replace('spout-size-', '')) : null;
+
+    // スパウトパウチ専用計算
+    if (basePouchType === 'spout') {
+      // docs/reports/calcultae/05-가공비용_계산.md 基準
+      // スパウト加工費(ウォン) = (スパウト単価 × 数量) + 往復配送料
+      // 最小注文数量: 5,000個
+
+      const SPOUT_PRICES = {
+        9: 70,    // 9パイ（φ9mm）: 70ウォン
+        15: 80,   // 15パイ（φ15mm）: 80ウォン
+        18: 110,  // 18パイ（φ18mm）: 110ウォン
+        22: 130,  // 22パイ（φ22mm）: 130ウォン
+        28: 200   // 28パイ（φ28mm）: 200ウォン
+      } as const;
+
+      const ROUND_TRIP_SHIPPING = 150000; // 往復配送料: 150,000ウォン
+      const MIN_SPOUT_QUANTITY = 5000;    // 最小注文数量: 5,000個
+
+      // スパウト単価を取得（デフォルトは18パイ）
+      const spoutPrice = spoutSize ? (SPOUT_PRICES[spoutSize as keyof typeof SPOUT_PRICES] || 110) : 110;
+
+      // 実際の数量（最小数量適用）
+      const actualQuantity = Math.max(quantity, MIN_SPOUT_QUANTITY);
+
+      // スパウト加工費計算
+      const spoutCost = spoutPrice * actualQuantity;
+      const spoutProcessingCostKRW = spoutCost + ROUND_TRIP_SHIPPING;
+
+      console.log('[Spout Processing Cost]', {
+        spoutSize,
+        spoutPrice,
+        quantity,
+        actualQuantity,
+        spoutCost,
+        roundTripShipping: ROUND_TRIP_SHIPPING,
+        totalCost: spoutProcessingCostKRW
+      });
+
+      return spoutProcessingCostKRW;
+    }
+
     // 基本価格設定（ジッパーなし）- 数量比例方式
     // docs/reports/calcultae/05-가공비용_계산.md 基準
     // 基本加工費(ウォン) = パウチ横幅(cm) × 単価(ウォン/cm) × 数量
     // 製袋加工費(ウォン) = MAX(基本加工費, 最小単価)
     const POUCH_PROCESSING_COSTS_BASE = {
       'flat_3_side': { pricePerCm: 0.4, minimumPrice: 200000 },    // 平袋: 0.4ウォン/cm, 最小200,000ウォン
-      'stand_up': { pricePerCm: 1.2, minimumPrice: 250000 },    // スタンドアップ: 1.2ウォン/cm, 最小250,000ウォン
+      'stand_up': { pricePerCm: 1.2, minimumPrice: 250000 },    // スタンドパウチ: 1.2ウォン/cm, 最小250,000ウォン
       't_shape': { pricePerCm: 1.2, minimumPrice: 440000 },      // 合掌袋: 1.2ウォン/cm, 最小440,000ウォン
       'm_shape': { pricePerCm: 1.2, minimumPrice: 440000 },      // M封: 1.2ウォン/cm, 最小440,000ウォン
-      'box': { pricePerCm: 1.2, minimumPrice: 440000 },          // ボックス: 1.2ウォン/cm, 最小440,000ウォン
-      'spout': { pricePerCm: 1.8, minimumPrice: 500000 },        // スパウトパウチ: 1.8ウォン/cm, 最小500,000ウォン (別部品・追加加工が必要)
+      'box': { pricePerCm: 1.2, minimumPrice: 440000 },          // ガゼットパウチ: 1.2ウォン/cm, 最小440,000ウォン
       'other': { pricePerCm: 1.2, minimumPrice: 200000 }         // その他: 1.2ウォン/cm, 最小200,000ウォン
     } as const;
 
@@ -996,6 +1039,9 @@ export class PouchCostCalculator {
       'm_shape': 0,           // 440,000 → 440,000 (변화 없음)
       'box': 0                // 440,000 → 440,000 (변화 없음)
     } as const;
+
+    // 外注配送料（合掌袋とガゼットパウチは外注処理）
+    const OUTSOURCING_SHIPPING = 150000; // 150,000ウォン
 
     const finalPouchType = basePouchType;
 
@@ -1017,6 +1063,15 @@ export class PouchCostCalculator {
     if (hasZipper) {
       const surcharge = ZIPPER_SURCHARGE[finalPouchType as keyof typeof ZIPPER_SURCHARGE] || 0;
       finalCostKRW += surcharge;
+    }
+
+    // 外注配送料追加（合掌袋とガゼットパウチ）
+    if (finalPouchType === 't_shape' || finalPouchType === 'm_shape' || finalPouchType === 'box') {
+      finalCostKRW += OUTSOURCING_SHIPPING;
+      console.log('[Outsourcing Shipping]', {
+        pouchType: finalPouchType,
+        shippingCost: OUTSOURCING_SHIPPING
+      });
     }
 
     console.log('[Pouch Processing Cost]', {

@@ -1,223 +1,78 @@
-js?id=AW-17981675917:158  GET https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17981675917/?random=1772613178382&cv=11&fst=1772613178382&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6321za200xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~115938466~115938468~116024733~117484252&u_w=1440&u_h=960&url=https%3A%2F%2Fwww.package-lab.com%2F&frm=0&tiba=Epackage%20Lab%20-%20%E5%B0%8F%E3%83%AD%E3%83%83%E3%83%88%E3%81%8B%E3%82%89%E5%A4%A7%E3%83%AD%E3%83%83%E3%83%88%E3%81%BE%E3%81%A7%E7%B5%8C%E6%B8%88%E7%9A%84%20%7C%20%E6%9C%80%E5%B0%8F500%E6%9E%9A%E3%83%BB%E6%9C%80%E7%9F%AD28%E6%97%A5%E7%B4%8D%E5%93%81&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=142599107.1772604595&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.117%7CChromium%3B145.0.7632.117&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&data=event%3Dgtag.config&rfmt=3&fmt=4 net::ERR_BLOCKED_BY_CLIENT
-dd @ js?id=AW-17981675917:158
-mm @ js?id=AW-17981675917:345
-wm @ js?id=AW-17981675917:346
-qv.J @ js?id=AW-17981675917:505
-ov.sendRequest @ js?id=AW-17981675917:504
-q @ js?id=AW-17981675917:588
-wb @ js?id=AW-17981675917:506
-dz @ js?id=AW-17981675917:589
-u @ js?id=AW-17981675917:586
-q @ js?id=AW-17981675917:586
-cz @ js?id=AW-17981675917:586
-gz @ js?id=AW-17981675917:589
-oz @ js?id=AW-17981675917:595
-qz @ js?id=AW-17981675917:592
-(익명) @ js?id=AW-17981675917:601
-d @ js?id=AW-17981675917:599
-Cz @ js?id=AW-17981675917:600
-Dz @ js?id=AW-17981675917:600
-$J @ js?id=AW-17981675917:762
-ZL @ js?id=AW-17981675917:793
-f @ js?id=AW-17981675917:794
-(익명) @ js?id=AW-17981675917:796
-Nm @ js?id=AW-17981675917:356
-Ho @ js?id=AW-17981675917:374
-aM @ js?id=AW-17981675917:796
-v @ js?id=AW-17981675917:395
-Wm @ js?id=AW-17981675917:358
-Aq @ js?id=AW-17981675917:395
-zq.flush @ js?id=AW-17981675917:399
-zq.push @ js?id=AW-17981675917:397
-pq @ js?id=AW-17981675917:391
-VB.config @ js?id=AW-17981675917:644
-pC @ js?id=AW-17981675917:657
-rC @ js?id=AW-17981675917:660
-setTimeout
-kd @ js?id=AW-17981675917:160
-sC @ js?id=AW-17981675917:663
-wn @ js?id=AW-17981675917:864
-(익명) @ js?id=AW-17981675917:867
-c @ js?id=AW-17981675917:865
-(익명) @ js?id=AW-17981675917:867
-(익명) @ js?id=AW-17981675917:867
-(익명) @ js?id=AW-17981675917:869
-PendingScript
-h @ 1b572a5829fd6380.js:1
-(익명) @ 1b572a5829fd6380.js:1
-ih @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-sE @ 94d2ff09155f3aac.js:1
-(익명) @ 94d2ff09155f3aac.js:1
-z @ 94d2ff09155f3aac.js:1이 오류 이해하기
-googleads.g.doubleclick.net/pagead/viewthroughconversion/17981675917/?random=1772613178382&cv=11&fst=1772613178382&fmt=3&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6321za200xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~115938466~115938468~116024733~117484252&u_w=1440&u_h=960&url=https%3A%2F%2Fwww.package-lab.com%2F&frm=0&tiba=Epackage%20Lab%20-%20%E5%B0%8F%E3%83%AD%E3%83%83%E3%83%88%E3%81%8B%E3%82%89%E5%A4%A7%E3%83%AD%E3%83%83%E3%83%88%E3%81%BE%E3%81%A7%E7%B5%8C%E6%B8%88%E7%9A%84%20%7C%20%E6%9C%80%E5%B0%8F500%E6%9E%9A%E3%83%BB%E6%9C%80%E7%9F%AD28%E6%97%A5%E7%B4%8D%E5%93%81&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=142599107.1772604595&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.117%7CChromium%3B145.0.7632.117&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&data=event%3Dgtag.config:1  GET https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17981675917/?random=1772613178382&cv=11&fst=1772613178382&fmt=3&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6321za200xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~115938466~115938468~116024733~117484252&u_w=1440&u_h=960&url=https%3A%2F%2Fwww.package-lab.com%2F&frm=0&tiba=Epackage%20Lab%20-%20%E5%B0%8F%E3%83%AD%E3%83%83%E3%83%88%E3%81%8B%E3%82%89%E5%A4%A7%E3%83%AD%E3%83%83%E3%83%88%E3%81%BE%E3%81%A7%E7%B5%8C%E6%B8%88%E7%9A%84%20%7C%20%E6%9C%80%E5%B0%8F500%E6%9E%9A%E3%83%BB%E6%9C%80%E7%9F%AD28%E6%97%A5%E7%B4%8D%E5%93%81&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=142599107.1772604595&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CGoogle%2520Chrome%3B145.0.7632.117%7CChromium%3B145.0.7632.117&uamb=0&uam=&uap=Windows&uapv=19.0.0&uaw=0&data=event%3Dgtag.config net::ERR_BLOCKED_BY_CLIENT
-Image
-hd @ js?id=AW-17981675917:167
-gd @ js?id=AW-17981675917:160
-sm @ js?id=AW-17981675917:345
-pv.J @ js?id=AW-17981675917:505
-ov.sendRequest @ js?id=AW-17981675917:504
-q @ js?id=AW-17981675917:588
-wb @ js?id=AW-17981675917:506
-dz @ js?id=AW-17981675917:589
-u @ js?id=AW-17981675917:586
-(익명) @ js?id=AW-17981675917:588
-(익명) @ js?id=AW-17981675917:505
-(익명) @ js?id=AW-17981675917:345
-script
-dd @ js?id=AW-17981675917:158
-mm @ js?id=AW-17981675917:345
-wm @ js?id=AW-17981675917:346
-qv.J @ js?id=AW-17981675917:505
-ov.sendRequest @ js?id=AW-17981675917:504
-q @ js?id=AW-17981675917:588
-wb @ js?id=AW-17981675917:506
-dz @ js?id=AW-17981675917:589
-u @ js?id=AW-17981675917:586
-q @ js?id=AW-17981675917:586
-cz @ js?id=AW-17981675917:586
-gz @ js?id=AW-17981675917:589
-oz @ js?id=AW-17981675917:595
-qz @ js?id=AW-17981675917:592
-(익명) @ js?id=AW-17981675917:601
-d @ js?id=AW-17981675917:599
-Cz @ js?id=AW-17981675917:600
-Dz @ js?id=AW-17981675917:600
-$J @ js?id=AW-17981675917:762
-ZL @ js?id=AW-17981675917:793
-f @ js?id=AW-17981675917:794
-(익명) @ js?id=AW-17981675917:796
-Nm @ js?id=AW-17981675917:356
-Ho @ js?id=AW-17981675917:374
-aM @ js?id=AW-17981675917:796
-v @ js?id=AW-17981675917:395
-Wm @ js?id=AW-17981675917:358
-Aq @ js?id=AW-17981675917:395
-zq.flush @ js?id=AW-17981675917:399
-zq.push @ js?id=AW-17981675917:397
-pq @ js?id=AW-17981675917:391
-VB.config @ js?id=AW-17981675917:644
-pC @ js?id=AW-17981675917:657
-rC @ js?id=AW-17981675917:660
-setTimeout
-kd @ js?id=AW-17981675917:160
-sC @ js?id=AW-17981675917:663
-wn @ js?id=AW-17981675917:864
-(익명) @ js?id=AW-17981675917:867
-c @ js?id=AW-17981675917:865
-(익명) @ js?id=AW-17981675917:867
-(익명) @ js?id=AW-17981675917:867
-(익명) @ js?id=AW-17981675917:869
-PendingScript
-h @ 1b572a5829fd6380.js:1
-(익명) @ 1b572a5829fd6380.js:1
-ih @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-uc @ 94d2ff09155f3aac.js:1
-uf @ 94d2ff09155f3aac.js:1
-sE @ 94d2ff09155f3aac.js:1
-(익명) @ 94d2ff09155f3aac.js:1
-z @ 94d2ff09155f3aac.js:1이 오류 이해하기
-a123a8b3e0a1bbe1.js:53  GET https://www.package-lab.com/api/health 503 (Service Unavailable)
+equest URL
+https://www.package-lab.com/api/config
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+64.29.17.1:443
+Referrer Policy
+strict-origin-when-cross-origin
+age
+0
+cache-control
+private, no-cache, no-store, must-revalidate
+content-encoding
+br
+content-security-policy
+default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://www.google.co.jp https://www.google.co.kr https://www.google.adservicemse.com https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.jp https://www.google.co.kr https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net; frame-src 'self' https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+content-type
+application/json
+date
+Wed, 04 Mar 2026 19:37:28 GMT
+permissions-policy
+camera=(), microphone=(), geolocation=(), interest-cohort=()
+referrer-policy
+strict-origin-when-cross-origin
+server
+Vercel
+strict-transport-security
+max-age=31536000; includeSubDomains; preload
+vary
+rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+x-content-type-options
+nosniff
+x-frame-options
+DENY
+x-matched-path
+/api/config
+x-vercel-cache
+MISS
+x-vercel-id
+kix1::iad1::rl4st-1772653047866-dffa0afec86e
+x-xss-protection
+1; mode=block
+:authority
+www.package-lab.com
+:method
+GET
+:path
+/api/config
+:scheme
+https
+accept
+*/*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+ko-KR,ko;q=0.9,ja-JP;q=0.8,ja;q=0.7,en-US;q=0.6,en;q=0.5
+cookie
+sb-ijlgpzjdfipzmjvawofp-auth-token=base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpVM09URm1aREUxTFRBNVkyUXROREZqTWkwNVpUUXhMV1ZtWTJJM1pEWTJPRE0zWWlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmxxYkdkd2VtcGtabWx3ZW0xcWRtRjNiMlp3TG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lJMU5HWmtOMkl6TVMxaU9EQTFMVFF6WTJZdFlqa3laUzA0T1Roa1pHUXdOalk0TnpVaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemN5TkRnNE56STNMQ0pwWVhRaU9qRTNOekkwT0RVeE1qY3NJbVZ0WVdsc0lqb2lZV1J0YVc1QVpYQmhZMnRoWjJVdGJHRmlMbU52YlNJc0luQm9iMjVsSWpvaUlpd2lZWEJ3WDIxbGRHRmtZWFJoSWpwN0luQnliM1pwWkdWeUlqb2laVzFoYVd3aUxDSndjbTkyYVdSbGNuTWlPbHNpWlcxaGFXd2lYWDBzSW5WelpYSmZiV1YwWVdSaGRHRWlPbnNpWlcxaGFXeGZkbVZ5YVdacFpXUWlPblJ5ZFdVc0ltWjFiR3hmYm1GdFpTSTZJa0ZrYldsdUlGVnpaWElpZlN3aWNtOXNaU0k2SW1GMWRHaGxiblJwWTJGMFpXUWlMQ0poWVd3aU9pSmhZV3d4SWl3aVlXMXlJanBiZXlKdFpYUm9iMlFpT2lKd1lYTnpkMjl5WkNJc0luUnBiV1Z6ZEdGdGNDSTZNVGMzTWpRNE1EQXlPSDFkTENKelpYTnphVzl1WDJsa0lqb2lNVGczWkdObU1UUXRNR1F4WlMwME1EaGxMV0k1WmpndE9XWm1ZMk16TVRkbVpEZGtJaXdpYVhOZllXNXZibmx0YjNWeklqcG1ZV3h6WlgwLjE5cGFkZDg3ZjZZb2xkQlh4SWhzRXFEcVFZalBqWE9CNVlzXzlPNGwwdjB6T0M2MXFYRXhncWR2WThhaXpHTHl2dWp2Rm12cnNCcjNENUQtdllUQ3VRIiwidG9rZW5fdHlwZSI6ImJlYXJlciIsImV4cGlyZXNfaW4iOjM2MDAsImV4cGlyZXNfYXQiOjE3NzI0ODg3MjcsInJlZnJlc2hfdG9rZW4iOiJjZW55bmQ0cXh1dGoiLCJ1c2VyIjp7ImlkIjoiNTRmZDdiMzEtYjgwNS00M2NmLWI5MmUtODk4ZGRkMDY2ODc1IiwiYXVkIjoiYXV0aGVudGljYXRlZCIsInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiZW1haWwiOiJhZG1pbkBlcGFja2FnZS1sYWIuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wMi0xMFQxMzowNjo0Ni43NTY2NzNaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTAyLTEwVDEzOjA2OjQ2Ljc1NjY3M1oiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTAzLTAyVDE5OjMzOjQ4LjI3Mzc5OFoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQWRtaW4gVXNlciJ9LCJpZGVudGl0aWVzIjpbeyJpZGVudGl0eV9pZCI6IjdmZjE1Mzk4LTFhOGYtNGU0My05MGExLTc2ZWViOTg1YzM4YyIsImlkIjoiNTRmZDdiMzEtYjgwNS00M2NmLWI5MmUtODk4ZGRkMDY2ODc1IiwidXNlcl9pZCI6IjU0ZmQ3YjMxLWI4MDUtNDNjZi1iOTJlLTg5OGRkZDA2Njg3NSIsImlkZW50aXR5X2RhdGEiOnsiZW1haWwiOiJhZG1pbkBlcGFja2FnZS1sYWIuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInN1YiI6IjU0ZmQ3YjMxLWI4MDUtNDNjZi1iOTJlLTg5OGRkZDA2Njg3NSJ9LCJwcm92aWRlciI6ImVtYWlsIiwibGFzdF9zaWduX2luX2F0IjoiMjAyNi0wMS0wM1QxMTozMjoxNS41NTY0MTVaIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDEtMDNUMTE6MzI6MTUuNTU2NDgxWiIsInVwZGF0ZWRfYXQiOiIyMDI2LTAxLTAzVDExOjMyOjE1LjU1NjQ4MVoiLCJlbWFpbCI6ImFkbWluQGVwYWNrYWdlLWxhYi5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI2LTAxLTAzVDExOjMyOjE1LjU1MDgwOVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wMy0wMlQyMDo1ODo0Ny4yODIxNjZaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19; _ga=GA1.1.2138300700.1772626882; _gcl_au=1.1.443889732.1772626882; _ga_VBCB77P21T=GS2.1.s1772652897$o2$g1$t1772653020$j42$l0$h185838088
+priority
+u=1, i
+referer
+https://www.package-lab.com/blog
+sec-ch-ua
+"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
