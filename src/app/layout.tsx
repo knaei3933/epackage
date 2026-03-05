@@ -13,6 +13,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
+import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -206,6 +207,7 @@ export default function RootLayout({
                   <main>{children}</main>
                   <Footer />
                   <ChatWidget />
+                  <InactivityWarningModal />
                 </LanguageProvider>
               </CatalogProvider>
             </AuthProvider>

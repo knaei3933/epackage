@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase-browser'
 import { auth, type Profile } from '@/lib/supabase'
 import type { User, Session, RegistrationFormData } from '@/types/auth'
 import type { User as SupabaseUser, Session as SupabaseSession } from '@supabase/supabase-js'
+import { useActivityTracker } from '@/hooks/useActivityTracker'
 
 // =====================================================
 // Type Definitions
@@ -27,6 +28,9 @@ interface AuthContextType {
   // Password reset
   resetPassword: (email: string) => Promise<void>
   updatePassword: (newPassword: string) => Promise<void>
+  // Inactivity tracking
+  showInactivityWarning: boolean
+  dismissInactivityWarning: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -120,6 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showInactivityWarning, setShowInactivityWarning] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -242,42 +247,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession()
 
-    // =====================================================
-    // ✅ Session Refresh Logic (30分セッション維持)
-    // =====================================================
-    // 15分ごとにセッションを確認し、期限切れ10分前に自動リフレッシュ
-
-    const refreshInterval = setInterval(async () => {
-      if (!mounted || !session) return;
-
-      try {
-        // セッション有効期限をチェック
-        const expiresAt = new Date(session.expires).getTime();
-        const now = Date.now();
-        const timeUntilExpiry = expiresAt - now;
-
-        // 期限切れ5分前（300,000ms）または既に期限切れの場合にリフレッシュ
-        if (timeUntilExpiry <= 10 * 60 * 1000) {
-          console.log('[AuthContext] Session expiring soon, refreshing...')
-
-          // Use the shared fetch session function
-          await fetchSessionAndUpdateState()
-        }
-      } catch (error) {
-        console.error('[AuthContext] Session refresh error:', error);
-      }
-    }, 15 * 60 * 1000); // 15分ごとにチェック
-
-    // NOTE: onAuthStateChange listener removed because:
-    // 1. Client-side supabase client uses localStorage, but we're using httpOnly cookies
-    // 2. Auth state changes are handled by page navigation (full reload after login)
-    // 3. The session API endpoint is called on page load to get the current state
-    //
-    // ✅ セッションリフレッシュ: 15分ごとにチェックし、10分前に自動リフレッシュ
-
     return () => {
       mounted = false
-      clearInterval(refreshInterval) // ✅ インターバルをクリア
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -443,7 +414,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSession(null)
       setProfile(null)
       setUser(null)
-      router.push('/')
+      // Redirect to login page (not home) after logout
+      router.push('/auth/signin')
     }
   }, [router])
 
@@ -529,6 +501,61 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Normalize role to lowercase for consistency with rbac-helpers.ts normalizeRole()
   const isAdmin = user?.role?.toLowerCase() === 'admin'
 
+  // Dismiss inactivity warning and reset activity timer
+  const dismissInactivityWarning = useCallback(() => {
+    setShowInactivityWarning(false)
+  }, [])
+
+  // =====================================================
+  // Activity-Based Session Management (No Periodic Polling)
+  // =====================================================
+  // Uses activity tracker to detect user inactivity and auto-logout
+  // Session is only refreshed when user is active (not on a timer)
+  // This reduces API calls significantly compared to periodic polling
+  //
+  // NOTE: This code is placed AFTER signOut and isAuthenticated are defined
+  // to avoid "used before declaration" errors
+
+  const handleInactivityWarning = useCallback(() => {
+    console.log('[AuthContext] Inactivity warning triggered')
+    setShowInactivityWarning(true)
+  }, [])
+
+  const handleInactivityTimeout = useCallback(async () => {
+    console.log('[AuthContext] Inactivity timeout reached, signing out')
+    setShowInactivityWarning(false)
+    await signOut()
+    // Redirect to login page with session_expired flag
+    router.push('/auth/signin?session_expired=true')
+  }, [signOut, router])
+
+  // Activity-based session refresh (only when user is active)
+  const handleActivity = useCallback(async () => {
+    // Only refresh if user is authenticated
+    if (!isAuthenticated) return
+
+    // Throttle: check if we need to refresh (only if session is expiring soon)
+    if (session) {
+      const expiresAt = new Date(session.expires).getTime()
+      const now = Date.now()
+      const timeUntilExpiry = expiresAt - now
+
+      // Only refresh if session expires in less than 10 minutes
+      if (timeUntilExpiry <= 10 * 60 * 1000) {
+        console.log('[AuthContext] Activity detected, refreshing session...')
+        await fetchSessionAndUpdateState()
+      }
+    }
+  }, [isAuthenticated, session, fetchSessionAndUpdateState])
+
+  useActivityTracker({
+    enabled: isAuthenticated,
+    userRole: user?.role,
+    onInactivityWarning: handleInactivityWarning,
+    onInactivityTimeout: handleInactivityTimeout,
+    onActivity: handleActivity,
+  })
+
   const value: AuthContextType = {
     user,
     session,
@@ -544,6 +571,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     updateProfile,
     resetPassword,
     updatePassword,
+    // Inactivity tracking
+    showInactivityWarning,
+    dismissInactivityWarning,
   }
 
   return (
