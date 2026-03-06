@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 // Site configuration constants
 export const SITE_CONFIG = {
   name: 'Epackage Lab',
-  url: 'https://epackage-lab.com',
+  url: 'https://www.package-lab.com',
   locale: 'ja_JP',
   defaultTitle: 'Epackage Lab | 韓国品質の包装材料で日本のものづくりを支援',
   description:

@@ -15,9 +15,9 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'Epackage Lab',
-          alternateName: 'Eパッケージラボ',
-          url: 'https://package-lab.com',
-          logo: 'https://package-lab.com/logo.png',
+          alternateName: 'イーパッケージラボ',
+          url: 'https://www.package-lab.com',
+          logo: 'https://www.package-lab.com/logo.png',
           description: '韓国品質の包装材料で日本のものづくりを支援するパッケージング専門会社',
           foundingDate: '2010',
           areaServed: [
@@ -122,7 +122,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@type': 'LocalBusiness',
           name: 'Epackage Lab Japan',
           description: '韓国品質の包装材料で日本のものづくりを支援',
-          url: 'https://package-lab.com',
+          url: 'https://www.package-lab.com',
           telephone: '+81-50-1793-6500',
           address: {
             '@type': 'PostalAddress',
