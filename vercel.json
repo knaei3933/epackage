@@ -7,30 +7,12 @@
       "destination": "/:path",
       "statusCode": 308
     },
-    // Exclude _next/* from www redirect to avoid image optimization redirect loop
-    {
-      "source": "/_next/:path*",
-      "missing": [
-        {
-          "type": "host",
-          "value": "www.package-lab.com"
-        }
-      ],
-      "destination": "https://www.package-lab.com/:path*",
-      "statusCode": 308
-    },
     {
       "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "package-lab.com"
-        }
-      ],
-      "missing": [
-        {
-          "type": "path",
-          "value": "/_next/:path*"
         }
       ],
       "destination": "https://www.package-lab.com/:path*",
