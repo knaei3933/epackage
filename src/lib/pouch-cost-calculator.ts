@@ -776,11 +776,12 @@ export class PouchCostCalculator {
         return columnCount === 1 ? (H * 2) + G + 35 : (H * 4) + (G * 2) + 40;
 
       case 't_shape':
-        return (W * 2) + 22;
+        // 合掌袋（T封）: 1列=(W×2)+22, 2列=(W×4)+64 (2×A+20, A=(W×2)+22)
+        return columnCount === 1 ? (W * 2) + 22 : (W * 4) + 64;
 
-      case 'm_shape':
       case 'box':
-        return (G + W) * 2 + 32;
+        // M字袋(マチ袋)とボックス型パウチ: 1列=(G+W)×2+32, 2列=(G+W)×4+84 (2×A+20, A=(G+W)×2+32)
+        return columnCount === 1 ? (G + W) * 2 + 32 : (G + W) * 4 + 84;
 
       default:
         return columnCount === 1 ? (H * 2) + 41 : (H * 4) + 71;

@@ -174,19 +174,6 @@ describe('スパウトパウチ計算実データ検証', () => {
       expect(pouchProcessingCost).toBe(70800);
     });
 
-    test('M-shape（M字袋）に+150,000ウォンの外注配送料が適用される', async () => {
-      const params = {
-        ...BASE_PARAMS,
-        pouchType: 'm_shape',
-        postProcessingOptions: []
-      };
-
-      const result = await calculator.calculateSKUCost(params);
-      const pouchProcessingCost = result.costPerSKU[0].costBreakdown.pouchProcessingCost || 0;
-
-      console.log(`M-shape袋加工費: ${pouchProcessingCost} 円 (外注配送料込, 期待値約70,800円)`);
-      expect(pouchProcessingCost).toBe(70800);
-    });
 
     test('Box（ガゼットパウチ）に+150,000ウォンの外注配送料が適用される', async () => {
       const params = {

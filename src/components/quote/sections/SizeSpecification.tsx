@@ -713,31 +713,60 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
         )}
 
         {/* スパウトパウチ専用: マチ有無選択 */}
+    console.log('[SizeSpecification] bagTypeId:', state.bagTypeId, '=== spout_pouch:', state.bagTypeId === 'spout_pouch');
         {state.bagTypeId === 'spout_pouch' && (
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">マチ有無</label>
-            <select
-              value={state.hasGusset ? 'has-gusset' : 'no-gusset'}
-              onChange={(e) => {
-                const hasGussetValue = e.target.value === 'has-gusset';
-                updateBasicSpecs({
-                  hasGusset: hasGussetValue,
-                  depth: hasGussetValue ? (state.depth || 30) : 0
-                });
-              }}
-              className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
-              aria-label="スパウトパウチのマチ有無"
-            >
-              <option value="no-gusset">マチなし（平袋準用）</option>
-              <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-400">
-              {state.hasGusset
-                ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
-                : 'マチなし: 平袋計算式を適用 (H×2+41)'}
-            </p>
-          </div>
+        <div className="space-y-4">
+        {/* スパウトサイズ選択 */}
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">スパウトサイズ <span className="text-red-500">*</span></label>
+          <select
+            value={state.spoutSize || ''}
+            onChange={(e) => {
+              const spoutSize = e.target.value as '9' | '15' | '18' | '22' | '28' | undefined;
+              updateBasicSpecs({ spoutSize });
+            }}
+            className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+            required
+          >
+            <option value="">選択してください</option>
+            <option value="9">9パイ（φ9mm）- 小型</option>
+            <option value="15">15パイ（φ15mm）- 標準小型</option>
+            <option value="18">18パイ（φ18mm）- 標準</option>
+            <option value="22">22パイ（φ22mm）- 大型</option>
+            <option value="28">28パイ（φ28mm）- 特大</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-400">
+            液体製品に最適な注ぎ口サイズを選択してください
+          </p>
+        </div>
+
+        {/* マチ有無選択 */}
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">マチ有無</label>
+          <select
+            value={state.hasGusset ? 'has-gusset' : 'no-gusset'}
+            onChange={(e) => {
+              const hasGussetValue = e.target.value === 'has-gusset';
+              updateBasicSpecs({
+                hasGusset: hasGussetValue,
+                depth: hasGussetValue ? (state.depth || 30) : 0
+              });
+            }}
+            className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+            aria-label="スパウトパウチのマチ有無"
+          >
+            <option value="no-gusset">マチなし（平袋準用）</option>
+            <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-400">
+            {state.hasGusset
+              ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
+              : 'マチなし: 平袋計算式を適用 (H×2+41)'}
+          </p>
+        </div>
+        </div>
         )}
+
 
         {/* 側面 - 合掌袋とボックス型パウチのみ */}
         {needsSideWidth && (

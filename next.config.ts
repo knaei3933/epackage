@@ -114,15 +114,17 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: '/:path*',
-        headers: process.env.NODE_ENV === 'production' ? [
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
-          },
-        ] : [],
-      },
+      ...(process.env.NODE_ENV === 'production' ? [
+        {
+          source: '/:path*',
+          headers: [
+            {
+              key: 'Strict-Transport-Security',
+              value: 'max-age=31536000; includeSubDomains; preload',
+            },
+          ],
+        },
+      ] : []),
     ];
   },
   // =====================================================

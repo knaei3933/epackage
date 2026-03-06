@@ -83,8 +83,8 @@ export interface QuoteData {
     cornerR?: string;
     // スパウトパウチ用
     spoutPosition?: string;
-  spoutSize?: string;
-  hasGusset?: string;
+    spoutSize?: string;      // スパウトサイズ（例: 18パイ（φ18mm））
+    hasGusset?: string;      // マチ有無（例: マチあり（スタンドパウチ準用）
     // ロールフィルム用
     rollFilmSpecs?: {
       materialWidth?: number;
@@ -1833,17 +1833,17 @@ function generateQuoteHTML(
         <tr>
           <td class="spec-label">スパウト位置</td>
           <td>${specs.spoutPosition}</td>
-        </tr>` : ''}
         ${specs.spoutSize ? `
         <tr>
           <td class="spec-label">スパウトサイズ</td>
           <td>${specs.spoutSize}</td>
-        </tr>` : ""}
+        </tr>` : '}
         ${specs.hasGusset ? `
         <tr>
           <td class="spec-label">マチ有無</td>
           <td>${specs.hasGusset}</td>
-        </tr>` : ""}
+        </tr>` : '}
+        </tr>` : ''}
         ${specs.rollFilmSpecs ? `
         <tr>
           <td class="spec-label">原反幅</td>

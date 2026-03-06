@@ -411,6 +411,8 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           // 投稿加工オプションを更新
           postProcessingOptions: newPostProcessingOptions,
           postProcessingMultiplier: newPostProcessingMultiplier,
+          // スパウトパウチの場合はデフォルトでマチあり（hasGusset: true）
+          ...(newBagTypeId === 'spout_pouch' ? { hasGusset: true, depth: state.depth || 30 } : {}),
           // Update filmLayers when materialId or thicknessSelection changes
           ...(materialIdChanged || thicknessSelectionChanged ? {
             filmLayers: getDefaultFilmLayers(newMaterialId, newThicknessSelection)
@@ -1004,7 +1006,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
 // Context interface - only functions, no state
 interface QuoteContextType {
   dispatch: React.Dispatch<QuoteAction>;
-  updateBasicSpecs: (specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'pitch' | 'thicknessSelection'>>) => void;
+  updateBasicSpecs: (specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'pitch' | 'thicknessSelection' | 'spoutSize' | 'hasGusset'>>) => void;
   updateQuantityOptions: (options: Partial<Pick<QuoteState, 'quantities' | 'quantity' | 'isUVPrinting' | 'printingType' | 'printingColors' | 'doubleSided'>> & { isUVPrinting?: boolean }) => void;
   updatePostProcessing: (options: string[], multiplier: number) => void;
   updateDelivery: (location: 'domestic' | 'international', urgency: 'standard' | 'express') => void;
@@ -1469,7 +1471,7 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
 
   // Action helpers - wrapped in useCallback with NO state dependencies
   // The reducer handles merging with existing state
-  const updateBasicSpecs = useCallback((specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'thicknessSelection'>>) => {
+  const updateBasicSpecs = useCallback((specs: Partial<Pick<QuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'sideWidth' | 'thicknessSelection' | 'pitch' | 'spoutSize' | 'hasGusset'>>) => {
     console.log('[updateBasicSpecs] Called with specs:', specs);
     console.log('[updateBasicSpecs] sideWidth in payload:', specs.sideWidth);
     dispatch({

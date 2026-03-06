@@ -148,7 +148,7 @@ function SpecsStep() {
       }
     }
 
-    // ボックス型パウチ: 横＋側面 350mm以下（側面＝depth/2）
+    // ガゼットパウチ: 横＋側面 350mm以下（側面＝depth/2）
     if (bagTypeId === 'box' && width && depth) {
       const widthWithSide = width + (depth / 2);
       if (widthWithSide > 350) {
@@ -161,8 +161,8 @@ function SpecsStep() {
 
   // Determine if gusset (マチ) should be shown based on bag type
   const shouldShowGusset = () => {
-    // Don't show gusset for flat_3_side and roll_film
-    return state.bagTypeId !== 'flat_3_side' && state.bagTypeId !== 'roll_film';
+    // Don't show gusset for flat_3_side, roll_film, lap_seal (合掌袋), box (ガゼットパウチ), and spout_pouch (spout_pouch uses hasGusset state instead)
+    return state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset';
   };
 
   // Calculate available gusset sizes based on current width
@@ -213,8 +213,8 @@ function SpecsStep() {
     },
     {
       id: 'box',
-      name: 'ボックス型パウチ',
-      nameJa: 'ボックス型パウチ',
+      name: 'ガゼットパウチ',
+      nameJa: 'ガゼットパウチ',
       description: '箱型形状で保護性に優れる',
       descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
       basePrice: 30,
@@ -929,6 +929,97 @@ function SpecsStep() {
                   </div>
                 )
               )}
+                {/* Spout Gusset (底) input - Only for spout_pouch with hasGusset, placed right after height */}
+                {state.bagTypeId === 'spout_pouch' && state.hasGusset && (
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">マチ (底)</label>
+                    {(() => {
+                      const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
+                      return hasValidGusset ? (
+                        <select
+                          value={state.depth || availableGussetSizes[0] || 30}
+                          onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) || 30 })}
+                          className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                        >
+                          {availableGussetSizes.map((size) => (
+                            <option key={size} value={size}>
+                              {size}mm
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="number"
+                          min="0"
+                          value={state.depth ?? ''}
+                          onChange={(e) => updateBasicSpecs({ depth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                          placeholder="0"
+                        />
+                      );
+                    })()}
+                    {state.width && state.width >= 70 && availableGussetSizes.length > 0 && (
+                      <p className="mt-1 text-xs text-gray-400">
+                        幅{state.width}mmで選択可能なマチサイズ
+                      </p>
+                    )}
+                  </div>
+                )}
+
+              {/* Spout Size & Gusset Selection - Only for spout_pouch */}
+              {state.bagTypeId === 'spout_pouch' && (
+                <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Spout Size */}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">スパウトサイズ <span className="text-red-500">*</span></label>
+                    <select
+                      value={state.spoutSize || ''}
+                      onChange={(e) => {
+                        const spoutSize = e.target.value;
+                        updateField('spoutSize', spoutSize);
+                      }}
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                      required
+                    >
+                      <option value="">選択してください</option>
+                      <option value="9">9パイ（φ9mm）- 小型</option>
+                      <option value="15">15パイ（φ15mm）- 標準小型</option>
+                      <option value="18">18パイ（φ18mm）- 標準</option>
+                      <option value="22">22パイ（φ22mm）- 大型</option>
+                      <option value="28">28パイ（φ28mm）- 特大</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-400">
+                      液体製品に最適な注ぎ口サイズを選択してください
+                    </p>
+                  </div>
+
+                  {/* Gusset Selection */}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">マチ有無</label>
+                    <select
+                      value={state.hasGusset ? 'has-gusset' : 'no-gusset'}
+                      onChange={(e) => {
+                        const hasGussetValue = e.target.value === 'has-gusset';
+                        updateField('hasGusset', hasGussetValue);
+                        updateBasicSpecs({
+                          hasGusset: hasGussetValue,
+                          depth: hasGussetValue ? (state.depth || 30) : 0
+                        });
+                      }}
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                    >
+                      <option value="no-gusset">マチなし（平袋準用）</option>
+                      <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {state.hasGusset
+                        ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
+                        : 'マチなし: 平袋計算式を適用 (H×2+41)'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {shouldShowGusset() && state.bagTypeId !== 'roll_film' && (
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">マチ (底)</label>
@@ -964,7 +1055,7 @@ function SpecsStep() {
                   )}
                 </div>
               )}
-              {/* 側面 (よこめん) - 合掌袋とボックス型パウチのみ */}
+              {/* 側面 (よこめん) - 合掌袋とガゼットパウチのみ */}
               {(state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') && (
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">側面</label>
@@ -1219,8 +1310,8 @@ function PostProcessingStep() {
   ];
 
   // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示
-  // スタンドパウチ、ボックス型パウチ、スパウトパウチの場合は開封位置を上端開封のみに制限
-  // スタンドパウチ、ボックス型パウチの場合のみマチ印刷オプションを表示
+  // スタンドパウチ、ガゼットパウチ、スパウトパウチの場合は開封位置を上端開封のみに制限
+  // スタンドパウチ、ガゼットパウチの場合のみマチ印刷オプションを表示
   const forceTopOpen = state.bagTypeId === 'stand_up' || state.bagTypeId === 'box' || state.bagTypeId === 'spout_pouch';
   const showMachiPrinting = state.bagTypeId === 'stand_up' || state.bagTypeId === 'box';
 
