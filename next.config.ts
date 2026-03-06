@@ -171,8 +171,6 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: false,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    // Use custom loader to ensure www prefix for image optimization
-    loaderFile: './src/lib/image-loader.ts',
   },
   compress: true,
   poweredByHeader: false,
