@@ -5,21 +5,30 @@ export enum MaterialType {
   PET_AL = 'pet_al',
   PET_VMPET = 'pet_vmpet',
   PET_LLDPE = 'pet_ldpe',
-  PET_NY_AL = 'pet_ny_al'
+  PET_NY_AL = 'pet_ny_al',
+  NY_LLDPE = 'ny_lldpe',
+  KRAFT_VMPET_LLDPE = 'kraft_vmpet_lldpe',
+  KRAFT_PET_LLDPE = 'kraft_pet_lldpe'
 }
 
 export const MATERIAL_TYPE_LABELS = {
   [MaterialType.PET_AL]: 'PET AL',
   [MaterialType.PET_VMPET]: 'PET VMPET',
   [MaterialType.PET_LLDPE]: 'PET LLDPE',
-  [MaterialType.PET_NY_AL]: 'PET NY AL'
+  [MaterialType.PET_NY_AL]: 'PET NY AL',
+  [MaterialType.NY_LLDPE]: 'NY LLDPE',
+  [MaterialType.KRAFT_VMPET_LLDPE]: 'Kraft VMPET LLDPE',
+  [MaterialType.KRAFT_PET_LLDPE]: 'Kraft PET LLDPE'
 } as const;
 
 export const MATERIAL_TYPE_LABELS_JA = {
   [MaterialType.PET_AL]: 'PET AL',
   [MaterialType.PET_VMPET]: 'PET VMPET',
   [MaterialType.PET_LLDPE]: 'PET LLDPE',
-  [MaterialType.PET_NY_AL]: 'PET NY AL'
+  [MaterialType.PET_NY_AL]: 'PET NY AL',
+  [MaterialType.NY_LLDPE]: 'NY LLDPE',
+  [MaterialType.KRAFT_VMPET_LLDPE]: 'クラフト VMPET LLDPE',
+  [MaterialType.KRAFT_PET_LLDPE]: 'クラフト PET LLDPE'
 } as const;
 
 export const MATERIAL_DESCRIPTIONS = {
@@ -38,6 +47,18 @@ export const MATERIAL_DESCRIPTIONS = {
   [MaterialType.PET_NY_AL]: {
     en: 'High strength nylon with aluminum foil',
     ja: '高強度ナイロンとアルミ箔の組み合わせ'
+  },
+  [MaterialType.NY_LLDPE]: {
+    en: 'Microwave defrostable, transparent window available',
+    ja: '電子レンジ解凍可能、透明窓表現可能'
+  },
+  [MaterialType.KRAFT_VMPET_LLDPE]: {
+    en: 'Natural kraft with vapor deposited PET barrier',
+    ja: '自然素材風の外観、アルミ蒸着による優れたバリア性能'
+  },
+  [MaterialType.KRAFT_PET_LLDPE]: {
+    en: 'Natural kraft paper appearance with short-term barrier',
+    ja: '自然素材風の外観、短期バリア性能'
   }
 } as const;
 
@@ -106,6 +127,30 @@ export const FILM_STRUCTURE_LABELS: Record<string, Record<string, string>> = {
     medium: 'PET 12 / NY 15 / AL 9',
     heavy: 'PET 12 / NY 15 / AL 12',
     ultra: 'PET 12 / NY 15 / AL 15'
+  },
+  // NY+LLDPE: 2-layer structure
+  ny_lldpe: {
+    light_50: 'NY 15 / LLDPE 50',
+    standard_70: 'NY 15 / LLDPE 70',
+    heavy_90: 'NY 15 / LLDPE 90',
+    ultra_100: 'NY 15 / LLDPE 100',
+    maximum_110: 'NY 15 / LLDPE 110'
+  },
+  // Kraft+VMPET+LLDPE: 3-layer structure
+  kraft_vmpet_lldpe: {
+    light_50: 'Kraft 50g/m² / VMPET 12 / LLDPE 50',
+    standard_70: 'Kraft 50g/m² / VMPET 12 / LLDPE 70',
+    heavy_90: 'Kraft 50g/m² / VMPET 12 / LLDPE 90',
+    ultra_100: 'Kraft 50g/m² / VMPET 12 / LLDPE 100',
+    maximum_110: 'Kraft 50g/m² / VMPET 12 / LLDPE 110'
+  },
+  // Kraft+PET+LLDPE: 3-layer structure
+  kraft_pet_lldpe: {
+    light_50: 'Kraft 50g/m² / PET 12 / LLDPE 50',
+    standard_70: 'Kraft 50g/m² / PET 12 / LLDPE 70',
+    heavy_90: 'Kraft 50g/m² / PET 12 / LLDPE 90',
+    ultra_100: 'Kraft 50g/m² / PET 12 / LLDPE 100',
+    maximum_110: 'Kraft 50g/m² / PET 12 / LLDPE 110'
   }
 };
 

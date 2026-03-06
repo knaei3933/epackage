@@ -49,7 +49,9 @@ export class RollFilmStrategy extends BasePricingStrategy {
     for (const layer of adjustedLayers) {
       const materialInfo = MATERIAL_PRICES_KRW[layer.materialId]
       if (materialInfo) {
-        const thicknessMm = layer.thickness / 1000
+        // grammageから計算した有効厚さを使用（Kraft等の坪量指定材料対応）
+        const effectiveThickness = this.getLayerEffectiveThickness(layer)
+        const thicknessMm = effectiveThickness / 1000
         const weight = thicknessMm * widthM * totalMeters * materialInfo.density
         const cost = weight * materialInfo.unitPrice
         materialCostKRW += cost
@@ -131,7 +133,9 @@ export class RollFilmStrategy extends BasePricingStrategy {
     for (const layer of adjustedLayers) {
       const materialInfo = MATERIAL_PRICES_KRW[layer.materialId]
       if (materialInfo) {
-        const thicknessMm = layer.thickness / 1000
+        // grammageから計算した有効厚さを使用（Kraft等の坪量指定材料対応）
+        const effectiveThickness = this.getLayerEffectiveThickness(layer)
+        const thicknessMm = effectiveThickness / 1000
         const weight = thicknessMm * filmWidthM * deliveryMeters * materialInfo.density
         deliveryWeightKg += weight
       }
@@ -208,9 +212,26 @@ export class RollFilmStrategy extends BasePricingStrategy {
       errors.push(`Minimum roll film quantity is ${PRICING_CONSTANTS.ROLL_FILM_MIN_QUANTITY}m`)
     }
 
+    // Kraft材料のMOQ検証（1000m）
+    if (this.isKraftMaterial(params.materialId) && params.quantity < PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS) {
+      errors.push(`Kraft materials minimum order quantity is ${PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS}m`)
+    }
+
+    // NY+LLDPEのMOQ検証（ロールフィルムは1000m適用）
+    if (params.materialId === 'ny_lldpe' && params.quantity < PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS) {
+      errors.push(`NY+LLDPE minimum roll film quantity is ${PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS}m`)
+    }
+
     // ロールフィルムはheightが0でも有効（幅のみで決定）
     // height検証をスキップするため、base-strategyの検証をオーバーライド
     return errors
+  }
+
+  /**
+   * Kraft材料か判定
+   */
+  private isKraftMaterial(materialId: string): boolean {
+    return materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe'
   }
 
   /**

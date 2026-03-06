@@ -133,10 +133,13 @@ export interface CalculationParams {
 
 /**
  * フィルム構造レイヤー
+ * thickness（μm）または grammage（g/m²）のいずれか必須
+ * 両方が提供された場合はthicknessを優先
  */
 export interface FilmStructureLayer {
   materialId: string
-  thickness: number // μm
+  thickness?: number // μm
+  grammage?: number  // g/m² (Kraft等、坪量で指定される材料用)
 }
 
 /**

@@ -593,6 +593,253 @@ function SpecsStep() {
             { materialId: 'LLDPE', thickness: 110 }
           ]
         }
+      ],
+    },
+    {
+      id: 'ny_lldpe',
+      name: MATERIAL_TYPE_LABELS.ny_lldpe,
+      nameJa: MATERIAL_TYPE_LABELS_JA.ny_lldpe,
+      description: MATERIAL_DESCRIPTIONS.ny_lldpe.en,
+      descriptionJa: MATERIAL_DESCRIPTIONS.ny_lldpe.ja,
+      multiplier: 1.1,
+      features: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
+      featuresJa: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
+      popular: false,
+      ecoFriendly: false,
+      thicknessOptions: [
+        {
+          id: 'light_50',
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'NY 15μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'standard_70',
+          name: '標準タイプ (~200g)',
+          nameJa: '標準タイプ (~200g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'NY 15μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 70 }
+          ]
+        },
+        {
+          id: 'heavy_90',
+          name: '高耐久タイプ (~500g)',
+          nameJa: '高耐久タイプ (~500g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'NY 15μ + LLDPE 90μ',
+          weightRange: '~500g',
+          multiplier: 1.0,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 90 }
+          ]
+        },
+        {
+          id: 'ultra_100',
+          name: '超耐久タイプ (~800g)',
+          nameJa: '超耐久タイプ (~800g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'NY 15μ + LLDPE 100μ',
+          weightRange: '~800g',
+          multiplier: 1.1,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 100 }
+          ]
+        },
+        {
+          id: 'maximum_110',
+          name: 'マキシマムタイプ (800g~)',
+          nameJa: 'マキシマムタイプ (800g~)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'NY 15μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'kraft_vmpet_lldpe',
+      name: MATERIAL_TYPE_LABELS.kraft_vmpet_lldpe,
+      nameJa: MATERIAL_TYPE_LABELS_JA.kraft_vmpet_lldpe,
+      description: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.en,
+      descriptionJa: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.ja,
+      multiplier: 1.4,
+      features: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
+      featuresJa: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
+      popular: false,
+      ecoFriendly: true,
+      thicknessOptions: [
+        {
+          id: 'light_50',
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'standard_70',
+          name: '標準タイプ (~200g)',
+          nameJa: '標準タイプ (~200g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 70 }
+          ]
+        },
+        {
+          id: 'heavy_90',
+          name: '高耐久タイプ (~500g)',
+          nameJa: '高耐久タイプ (~500g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+          weightRange: '~500g',
+          multiplier: 1.0,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 90 }
+          ]
+        },
+        {
+          id: 'ultra_100',
+          name: '超耐久タイプ (~800g)',
+          nameJa: '超耐久タイプ (~800g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
+          weightRange: '~800g',
+          multiplier: 1.1,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 100 }
+          ]
+        },
+        {
+          id: 'maximum_110',
+          name: 'マキシマムタイプ (800g~)',
+          nameJa: 'マキシマムタイプ (800g~)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'kraft_pet_lldpe',
+      name: MATERIAL_TYPE_LABELS.kraft_pet_lldpe,
+      nameJa: MATERIAL_TYPE_LABELS_JA.kraft_pet_lldpe,
+      description: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.en,
+      descriptionJa: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.ja,
+      multiplier: 1.3,
+      features: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
+      featuresJa: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
+      popular: false,
+      ecoFriendly: true,
+      thicknessOptions: [
+        {
+          id: 'light_50',
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'standard_70',
+          name: '標準タイプ (~200g)',
+          nameJa: '標準タイプ (~200g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 70 }
+          ]
+        },
+        {
+          id: 'heavy_90',
+          name: '高耐久タイプ (~500g)',
+          nameJa: '高耐久タイプ (~500g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
+          weightRange: '~500g',
+          multiplier: 1.0,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 90 }
+          ]
+        },
+        {
+          id: 'ultra_100',
+          name: '超耐久タイプ (~800g)',
+          nameJa: '超耐久タイプ (~800g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
+          weightRange: '~800g',
+          multiplier: 1.1,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 100 }
+          ]
+        },
+        {
+          id: 'maximum_110',
+          name: 'マキシマムタイプ (800g~)',
+          nameJa: 'マキシマムタイプ (800g~)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
+        }
       ]
     }
   ];

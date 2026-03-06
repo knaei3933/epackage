@@ -128,7 +128,7 @@ type QuoteAction =
 
 // Helper function to get default film layers based on material ID and thickness selection
 // LLDPE thickness varies based on thicknessSelection: light=50, medium=70, standard=90, heavy=100, ultra=110
-function getDefaultFilmLayers(materialId: string, thicknessSelection: string = 'standard'): FilmStructureLayer[] {
+function getDefaultFilmLayers(materialId: string, thicknessSelection: string = 'standard'): Array<{ materialId: string; thickness: number }> {
   // LLDPE base thickness for each thickness selection - 50, 70, 90, 100, 110μm
   const lldpeBaseThickness: Record<string, number> = {
     'light': 50,
@@ -140,7 +140,7 @@ function getDefaultFilmLayers(materialId: string, thicknessSelection: string = '
 
   const lldpeThickness = lldpeBaseThickness[thicknessSelection] ?? 90;
 
-  const layerMap: Record<string, (lldpe: number) => FilmStructureLayer[]> = {
+  const layerMap: Record<string, (lldpe: number) => Array<{ materialId: string; thickness: number }>> = {
     'pet_al': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
       { materialId: 'AL', thickness: 7 },
@@ -180,23 +180,6 @@ function getDefaultFilmLayers(materialId: string, thicknessSelection: string = '
     'pet_al_pet': (lldpe: number) => [
       { materialId: 'PET', thickness: 12 },
       { materialId: 'AL', thickness: 7 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    // NY+LLDPE: 2-layer structure
-    'ny_lldpe': (lldpe: number) => [
-      { materialId: 'NY', thickness: 15 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    // Kraft+VMPET+LLDPE: 3-layer structure (Kraft uses grammage)
-    'kraft_vmpet_lldpe': (lldpe: number) => [
-      { materialId: 'KRAFT', grammage: 50 },
-      { materialId: 'VMPET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    // Kraft+PET+LLDPE: 3-layer structure (Kraft uses grammage)
-    'kraft_pet_lldpe': (lldpe: number) => [
-      { materialId: 'KRAFT', grammage: 50 },
       { materialId: 'PET', thickness: 12 },
       { materialId: 'LLDPE', thickness: lldpe }
     ]

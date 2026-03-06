@@ -17,6 +17,7 @@ export interface FilmCostSettings {
   LLDPE_unit_price?: number
   NY_unit_price?: number
   VMPET_unit_price?: number
+  KRAFT_unit_price?: number
 
   // 필름 재료 밀도 (kg/m³)
   PET_density?: number
@@ -24,6 +25,7 @@ export interface FilmCostSettings {
   LLDPE_density?: number
   NY_density?: number
   VMPET_density?: number
+  KRAFT_density?: number
 
   // 파우치 가공비 (원화)
   flat_3_side_cost?: number
@@ -64,7 +66,8 @@ export interface FilmMaterial {
 
 export interface FilmStructureLayer {
   materialId: string;
-  thickness: number; // 미크론 (μ)
+  thickness?: number; // 미크론 (μ)
+  grammage?: number;  // g/m² (Kraft等、坪量で指定される材料用)
 }
 
 export interface FilmCostCalculationParams {
@@ -190,6 +193,15 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     density: 1.40,
     unitPrice: 3600
   },
+  // KRAFT 재질 추가
+  'KRAFT': {
+    id: 'KRAFT',
+    name: 'Kraft Paper',
+    nameJa: 'クラフト紙',
+    thickness: 50, // grammage 50g/m²
+    density: 0.9,
+    unitPrice: 10000
+  },
   // KP_PE 재질용 추가
   'KP': {
     id: 'KP',
@@ -235,6 +247,29 @@ const SLITTER_MIN_COST = 30000; // 최소 슬리터 비용 (원)
 
 export class FilmCostCalculator {
   private cache: Map<string, FilmCostResult> = new Map();
+
+  /**
+   * grammage에서 thickness로 변환 (μm)
+   * @param grammage - g/m²
+   * @param density - kg/m³
+   * @returns thickness (μm)
+   */
+  private calculateThicknessFromGrammage(grammage: number, density: number): number {
+    return (grammage / density) * 1_000_000
+  }
+
+  /**
+   * 레이어의 유효 두께를 가져옵니다 (grammage 또는 thickness)
+   * @param layer - 필름 구조 레이어
+   * @param density - 재료 밀도
+   * @returns 유효 두께 (μm)
+   */
+  private getLayerEffectiveThickness(layer: FilmStructureLayer, density: number): number {
+    if (layer.grammage !== undefined) {
+      return this.calculateThicknessFromGrammage(layer.grammage, density)
+    }
+    return layer.thickness || 0
+  }
 
   /**
    * 필름 원가 계산 메인 메서드 (기존 호환성 유지)
@@ -492,6 +527,11 @@ export class FilmCostCalculator {
         density: dbSettings?.VMPET_density ?? FILM_MATERIALS.VMPET.density,
         nameJa: FILM_MATERIALS.VMPET.nameJa
       },
+      'KRAFT': {
+        unitPrice: dbSettings?.KRAFT_unit_price ?? FILM_MATERIALS.KRAFT.unitPrice,
+        density: dbSettings?.KRAFT_density ?? FILM_MATERIALS.KRAFT.density,
+        nameJa: FILM_MATERIALS.KRAFT.nameJa
+      },
       // KP_PE 재질용 추가
       'KP': {
         unitPrice: FILM_MATERIALS.KP.unitPrice,
@@ -511,8 +551,9 @@ export class FilmCostCalculator {
       const material = filmMaterials[layer.materialId];
       if (!material) continue;
 
-      // 두께를 mm로 변환 (미크론 → mm)
-      const thicknessMm = layer.thickness / 1000;
+      // grammage에서 계산한 유효 두께를 사용 (Kraft等の坪量指定材料対応)
+      const effectiveThickness = this.getLayerEffectiveThickness(layer, material.density);
+      const thicknessMm = effectiveThickness / 1000;
 
       // 원단 가격 계산
       const cost = thicknessMm * widthM * lengthWithLoss * material.density * material.unitPrice;
@@ -522,7 +563,9 @@ export class FilmCostCalculator {
 
       console.log('[calculateMaterialCost] LAYER:', {
         materialId: layer.materialId,
+        grammage: layer.grammage,
         thickness: layer.thickness,
+        effectiveThickness,
         thicknessMm,
         widthM,
         lengthWithLoss,

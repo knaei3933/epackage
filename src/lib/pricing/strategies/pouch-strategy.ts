@@ -56,7 +56,9 @@ export class PouchStrategy extends BasePricingStrategy {
     for (const layer of adjustedLayers) {
       const materialInfo = MATERIAL_PRICES_KRW[layer.materialId]
       if (materialInfo) {
-        const thicknessMm = layer.thickness / 1000
+        // grammageから計算した有効厚さを使用（Kraft等の坪量指定材料対応）
+        const effectiveThickness = this.getLayerEffectiveThickness(layer)
+        const thicknessMm = effectiveThickness / 1000
         const weight = thicknessMm * widthM * totalMeters * materialInfo.density
         const cost = weight * materialInfo.unitPrice
         materialCostKRW += cost
@@ -129,6 +131,11 @@ export class PouchStrategy extends BasePricingStrategy {
     // パウチ固有の検証ルール
     if (params.depth !== undefined && params.depth < 0) {
       errors.push('Depth cannot be negative')
+    }
+
+    // NY+LLDPEのMOQ検証（500個）
+    if (params.materialId === 'ny_lldpe' && params.quantity < PRICING_CONSTANTS.NY_LLDPE_MIN_QUANTITY) {
+      errors.push(`NY+LLDPE minimum order quantity is ${PRICING_CONSTANTS.NY_LLDPE_MIN_QUANTITY} pieces`)
     }
 
     return errors
