@@ -120,23 +120,10 @@ const nextConfig: NextConfig = {
     ];
 
     return [
-      // Static files - minimal headers, NO CSP
+      // All routes - full security headers including CSP
+      // Use negative lookahead to exclude _next and images paths
       {
-        source: '/_next/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      // Images - minimal headers, NO CSP
-      {
-        source: '/images/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      // All other routes - full security headers including CSP
-      {
-        source: '/:path*',
+        source: '/:path((?!_next|images).)*',
         headers: securityHeaders,
       },
       ...(process.env.NODE_ENV === 'production' ? [
