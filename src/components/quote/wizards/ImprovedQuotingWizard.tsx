@@ -649,13 +649,13 @@ function SpecsStep() {
 
         {/* Contents Dropdowns - 4 dropdowns in a row */}
         <div className="mb-6" data-section="contents-dropdowns">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-lg font-semibold text-gray-900 mb-3">
             内容物 <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Product Category */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">製品タイプ</label>
+              <label className="block text-base text-gray-700 mb-1">製品タイプ</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
@@ -675,7 +675,7 @@ function SpecsStep() {
 
             {/* Contents Type */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">内容物の形態</label>
+              <label className="block text-base text-gray-700 mb-1">内容物の形態</label>
               <select
                 value={selectedType}
                 onChange={(e) => updateField('contentsType', e.target.value as typeof selectedType)}
@@ -695,7 +695,7 @@ function SpecsStep() {
 
             {/* Main Ingredient */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">主成分</label>
+              <label className="block text-base text-gray-700 mb-1">主成分</label>
               <select
                 value={selectedIngredient}
                 onChange={(e) => updateField('mainIngredient', e.target.value as typeof selectedIngredient)}
@@ -715,7 +715,7 @@ function SpecsStep() {
 
             {/* Distribution Environment */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">流通環境</label>
+              <label className="block text-base text-gray-700 mb-1">流通環境</label>
               <select
                 value={selectedEnvironment}
                 onChange={(e) => updateField('distributionEnvironment', e.target.value as typeof selectedEnvironment)}
@@ -746,13 +746,13 @@ function SpecsStep() {
         <div className="space-y-6">
           {/* Bag Type Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">袋のタイプ</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="block text-lg font-semibold text-gray-900 mb-3">袋のタイプ</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {bagTypes.map(type => (
                 <button
                   key={type.id}
                   onClick={() => updateBasicSpecs({ bagTypeId: type.id })}
-                  className={`p-4 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.bagTypeId === type.id
+                  className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.bagTypeId === type.id
                     ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
                     : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
                     }`}
@@ -764,32 +764,27 @@ function SpecsStep() {
                       </div>
                     </div>
                   )}
-                  <div className="flex items-start space-x-4">
-                    <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-200">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="w-48 h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border-2 border-gray-200 shadow-lg">
                       <img
                         src={type.image}
                         alt={type.nameJa}
-                        className="w-full h-full object-contain p-3"
+                        className="w-full h-full object-contain p-1"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           const parent = target.parentElement;
                           if (parent) {
-                            // Create fallback icon
                             parent.innerHTML = `
-                              <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg class="w-32 h-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                               </svg>
                             `;
-                            parent.classList.add('bg-gray-50');
+                            parent.classList.add('bg-white');
                           }
                         }}
                       />
                     </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{type.nameJa}</div>
-                      <span className="text-gray-500 text-xs">{(type as any).description || ''}</span>
-                      <div className="text-sm text-gray-600 mt-1">{type.descriptionJa}</div>
-                    </div>
+                    <div className="font-bold text-gray-900 text-base text-center">{type.nameJa}</div>
                   </div>
                 </button>
               ))}
@@ -799,13 +794,13 @@ function SpecsStep() {
           {/* Spout Position Selector - Only show for spout_pouch */}
           {state.bagTypeId === 'spout_pouch' && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">スパウト位置</label>
+              <label className="block text-lg font-semibold text-gray-900 mb-3">スパウト位置</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {spoutPositions.map((position) => (
                   <button
                     key={position.id}
                     onClick={() => updateField('spoutPosition', position.id)}
-                    className={`p-4 border-2 rounded-lg transition-all relative ${state.spoutPosition === position.id
+                    className={`p-2 border-2 rounded-lg transition-all relative ${state.spoutPosition === position.id
                       ? 'border-green-500 bg-green-50 shadow-md'
                       : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
                       }`}
@@ -848,14 +843,14 @@ function SpecsStep() {
 
           {/* Size Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">サイズ (mm)</label>
+            <label className="block text-lg font-semibold text-gray-900 mb-3">サイズ (mm)</label>
             <div className={`grid grid-cols-1 gap-4 ${
               state.bagTypeId === 'roll_film' ? 'sm:grid-cols-2' :
               state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box' ? 'sm:grid-cols-4' :
               'sm:grid-cols-3'
             }`}>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">幅</label>
+                <label className="block text-base text-gray-700 mb-1">幅</label>
                 <input
                   type="number"
                   min="50"
@@ -868,7 +863,7 @@ function SpecsStep() {
               {/* Height input - HIDE for roll_film, SHOW pitch instead */}
               {state.bagTypeId === 'roll_film' ? (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">ピッチ (デザイン周期)</label>
+                  <label className="block text-base text-gray-700 mb-1">ピッチ (デザイン周期)</label>
                   <input
                     type="number"
                     min="50"
@@ -891,7 +886,7 @@ function SpecsStep() {
               ) : (
                 state.bagTypeId !== 'roll_film' && (
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">高さ</label>
+                    <label className="block text-base text-gray-700 mb-1">高さ</label>
                     <input
                       type="number"
                       min="50"
@@ -932,7 +927,7 @@ function SpecsStep() {
                 {/* Spout Gusset (底) input - Only for spout_pouch with hasGusset, placed right after height */}
                 {state.bagTypeId === 'spout_pouch' && state.hasGusset && (
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">マチ (底)</label>
+                    <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                     {(() => {
                       const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
                       return hasValidGusset ? (
@@ -971,7 +966,7 @@ function SpecsStep() {
                 <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Spout Size */}
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">スパウトサイズ <span className="text-red-500">*</span></label>
+                    <label className="block text-base text-gray-700 mb-1">スパウトサイズ <span className="text-red-500">*</span></label>
                     <select
                       value={state.spoutSize || ''}
                       onChange={(e) => {
@@ -995,7 +990,7 @@ function SpecsStep() {
 
                   {/* Gusset Selection */}
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">マチ有無</label>
+                    <label className="block text-base text-gray-700 mb-1">マチ有無</label>
                     <select
                       value={state.hasGusset ? 'has-gusset' : 'no-gusset'}
                       onChange={(e) => {
@@ -1022,7 +1017,7 @@ function SpecsStep() {
 
               {shouldShowGusset() && state.bagTypeId !== 'roll_film' && (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">マチ (底)</label>
+                  <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                   {(() => {
                     const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
                     return hasValidGusset ? (
@@ -1058,7 +1053,7 @@ function SpecsStep() {
               {/* 側面 (よこめん) - 合掌袋とガゼットパウチのみ */}
               {(state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') && (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">側面</label>
+                  <label className="block text-base text-gray-700 mb-1">側面</label>
                   <input
                     type="number"
                     min="0"
@@ -1077,13 +1072,13 @@ function SpecsStep() {
 
           {/* Material Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">素材</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="block text-lg font-semibold text-gray-900 mb-3">素材</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {materials.map(material => (
                 <button
                   key={material.id}
                   onClick={() => updateBasicSpecs({ materialId: material.id })}
-                  className={`p-4 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.materialId === material.id
+                  className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.materialId === material.id
                     ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
                     : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
                     }`}
@@ -1112,19 +1107,6 @@ function SpecsStep() {
                       </div>
                       <div className="text-sm text-gray-600 mt-1">{material.descriptionJa}</div>
 
-                      {/* Features */}
-                      <div className="mt-2">
-                        <div className="flex flex-wrap gap-1">
-                          {material.featuresJa.slice(0, 3).map((feature, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                            >
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </button>
@@ -1161,37 +1143,27 @@ function SpecsStep() {
                   </span>
                 )}
               </div>
-              <div className="space-y-3">
-                {selectedMaterial.thicknessOptions.map(thickness => (
-                  <button
-                    key={thickness.id}
-                    onClick={() => updateBasicSpecs({ thicknessSelection: thickness.id })}
-                    className={`w-full p-4 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.thicknessSelection === thickness.id
-                      ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
-                      : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
-                      }`}
-                  >
-                    {state.thicknessSelection === thickness.id && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                          <Check className="w-4 h-4 text-white" />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm text-gray-600 pr-8">{thickness.nameJa}</div>
-                        <div className="font-medium text-gray-900 mt-1">{thickness.specificationEn || thickness.specification}</div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <span className="inline-block px-2 py-1 text-xs bg-info-50 text-info-700 rounded">
-                            重量: {thickness.weightRange}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              <div>
+                <select
+                  value={state.thicknessSelection || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    updateBasicSpecs({ thicknessSelection: value });
+                  }}
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                >
+                  <option value="">選択してください</option>
+                  {selectedMaterial.thicknessOptions.map(thickness => (
+                    <option key={thickness.id} value={thickness.id}>
+                      {thickness.nameJa} - {thickness.specificationEn || thickness.specification}
+                    </option>
+                  ))}
+                </select>
+                {state.thicknessSelection && selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection) && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    規格: {selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection)?.specificationEn || ''}
+                  </p>
+                )}
               </div>
               <p className="mt-2 text-xs text-gray-500">
                 推奨: 中間タイプで最適なバランスです
