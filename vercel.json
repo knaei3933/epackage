@@ -8,6 +8,17 @@
       "statusCode": 308
     },
     {
+      "source": "/_next/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "package-lab.com"
+        }
+      ],
+      "destination": "https://www.package-lab.com/_next/:path*",
+      "statusCode": 308
+    },
+    {
       "source": "/:path*",
       "has": [
         {
