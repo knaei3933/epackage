@@ -1297,8 +1297,8 @@ function SpecsStep() {
                   )}
                 </div>
               )}
-              {/* 側面 (よこめん) - 合掌袋とガゼットパウチのみ */}
-              {(state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') && (
+              {/* 側面 (よこめん) - ガゼットパウチのみ */}
+              {state.bagTypeId === 'box' && (
                 <div>
                   <label className="block text-base text-gray-700 mb-1">側面</label>
                   <input
@@ -1310,7 +1310,7 @@ function SpecsStep() {
                     placeholder="例: 50"
                   />
                   <p className="mt-1 text-xs text-gray-400">
-                    {state.bagTypeId === 'lap_seal' ? '※ 175mm以下で入力してください' : '※ 側面を入力してください（オプション）'}
+                    '※ 側面を入力してください（オプション）'
                   </p>
                 </div>
               )}
