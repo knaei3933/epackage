@@ -100,12 +100,15 @@
 - ✅ 5つの厚さバリエーション
 
 ### 修正完了項目
-- ✅ **Kraft grammageバグ（優先度: 高）**
+- ✅ **Kraft grammageバグ（優先度: 高）** - **完全修正完了**
   - 修正ファイル:
     - `src/lib/pricing/strategies/base-strategy.ts` (配送料計算)
     - `src/lib/pricing/strategies/pouch-strategy.ts` (素材費計算)
     - `src/lib/pricing/strategies/roll-film-strategy.ts` (素材費・配送料計算)
+    - `src/lib/unified-pricing-engine.ts` (5箇所: 素材費×2, コンソールログ, 総重量, 配送重量)
   - 修正方法: grammageプロパティチェック時にdensityをバイパス
+  - 実施日: 2026-03-09
+  - ステータス: ✅ すべての修正完了、動作確認済み
 
 ### 要対応項目
 - 🟡 **合掌袋の側面入力表示（優先度: 中）**

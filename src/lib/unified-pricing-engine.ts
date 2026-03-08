@@ -825,8 +825,14 @@ export class UnifiedPricingEngine {
       );
 
       if (unitPrice > 0) {
-        const thicknessMm = layer.thickness / 1000;
-        const weight = thicknessMm * widthM * totalUsedMeters * density;
+        let weight: number;
+        // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
+        if (layer.grammage !== undefined) {
+          weight = (layer.grammage / 1000) * widthM * totalUsedMeters;  // g/m² → kg/m²
+        } else {
+          const thicknessMm = layer.thickness / 1000;
+          weight = thicknessMm * widthM * totalUsedMeters * density;
+        }
         const cost = weight * unitPrice;
         materialCostKRW += cost;
       }
@@ -933,7 +939,7 @@ export class UnifiedPricingEngine {
       lengthInMeters?: number;
       filmWidthM?: number;
       totalThickness?: number;
-      layers?: Array<{ thickness: number, materialId: string }>;
+      layers?: FilmStructureLayer[];
     } | undefined;
 
     if (bagTypeId === 'roll_film') {
@@ -1837,9 +1843,15 @@ export class UnifiedPricingEngine {
         );
 
         if (unitPrice > 0) {
-          // 厚み(mm) × 幅(m) × 総長さ(m + ロス) × 比重 × 単価(ウォン/kg)
-          const thicknessMm = layer.thickness / 1000; // μm→mm変換
-          const weight = thicknessMm * widthM * totalMeters * density; // kg
+          let weight: number;
+          // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
+          if (layer.grammage !== undefined) {
+            weight = (layer.grammage / 1000) * widthM * totalMeters;  // g/m² → kg/m²
+          } else {
+            // 厚み(mm) × 幅(m) × 総長さ(m + ロス) × 比重 × 単価(ウォン/kg)
+            const thicknessMm = layer.thickness / 1000; // μm→mm変換
+            weight = thicknessMm * widthM * totalMeters * density; // kg
+          }
           const cost = weight * unitPrice; // ウォン
           materialCostKRW += cost;
         }
@@ -1868,8 +1880,14 @@ export class UnifiedPricingEngine {
             defaultMaterialInfo?.density || 1.0
           );
           if (unitPrice > 0) {
-            const thicknessMm = layer.thickness / 1000;
-            const weight = thicknessMm * widthM * totalMeters * density;
+            let weight: number;
+            // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
+            if (layer.grammage !== undefined) {
+              weight = (layer.grammage / 1000) * widthM * totalMeters;  // g/m² → kg/m²
+            } else {
+              const thicknessMm = layer.thickness / 1000;
+              weight = thicknessMm * widthM * totalMeters * density;
+            }
             const cost = weight * unitPrice;
             return {
               materialId: layer.materialId,
@@ -2079,10 +2097,10 @@ export class UnifiedPricingEngine {
       lengthInMeters?: number    // ロールフィルムの長さ（m）
       filmWidthM?: number        // フィルム幅
       totalThickness?: number    // 総厚さ（μm）
-      layers?: Array<{ thickness: number, materialId: string }>  // 各層の情報
+      layers?: FilmStructureLayer[]  // 各層の情報
     },
     pouchParams?: {
-      filmLayers?: Array<{ materialId: string; thickness: number }>;
+      filmLayers?: FilmStructureLayer[];
       materialWidth?: 590 | 760;
     }
   ): Promise<number> {
@@ -2108,11 +2126,16 @@ export class UnifiedPricingEngine {
             defaultMaterialInfo?.density || 1.0
           );
 
+          // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
+        if (layer.grammage !== undefined) {
+          deliveryWeightKg += (layer.grammage / 1000) * filmWidthM * deliveryMeters;  // g/m² → kg/m²
+        } else {
           // 重量(kg) = 厚さ(mm) × 幅(m) × 長さ(m) × 比重
           // 配送料は納品数量（deliveryMeters）で計算
           const thicknessMm = layer.thickness / 1000; // μm→mm変換
           const weight = thicknessMm * filmWidthM * deliveryMeters * density;
           deliveryWeightKg += weight;
+        }
         }
       } else {
         // レイヤー情報がない場合、簡易計算（総厚さ100μmとして）
@@ -2155,10 +2178,15 @@ export class UnifiedPricingEngine {
           defaultMaterialInfo?.density || 1.0
         );
 
-        const thicknessMm = layer.thickness / 1000; // μm→mm変換
-        totalThicknessMm += thicknessMm;
-        // 重量(kg/m²) = 厚さ(mm) × 比重
-        totalWeightPerM2 += thicknessMm * density;
+        // 重量計算
+        if (layer.grammage !== undefined) {
+          totalWeightPerM2 += layer.grammage / 1000;
+        } else {
+          const thicknessMm = layer.thickness / 1000; // μm→mm変換
+          totalThicknessMm += thicknessMm;
+          // 重量(kg/m²) = 厚さ(mm) × 比重
+          totalWeightPerM2 += thicknessMm * density;
+        }
       }
 
       // 1個あたりの重量（kg）
