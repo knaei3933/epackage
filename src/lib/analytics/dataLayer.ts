@@ -67,3 +67,15 @@ export const trackGoogleAdsPageView = () => {
     });
   }
 };
+
+// ===== GTM & Analytics 設定定数 =====
+
+// GTMコンテナID
+export const GTM_ID = 'GTM-T4PL5XMC';
+
+// GA4測定ID（既存のanalytics.tsと整合性）
+export const GA4_MEASUREMENT_ID = 'G-VBCB77P21T';
+
+// Google Ads ID（既存のコードと整合性）
+export const GOOGLE_ADS_ID = 'AW-17981675917';
+export const GOOGLE_ADS_CONVERSION_LABEL = 'iBi-CJv-44EcEI2zqv5C';

@@ -142,34 +142,27 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* GTM Head */}
+        {/* GTM Head - gtag関数定義方式（GTMと共存） */}
         <Script id="gtm-head" strategy="beforeInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer','GTM-T4PL5XMC');`}
-        </Script>
+          {`
+    // ===== dataLayer初期化 =====
+    window.dataLayer = window.dataLayer || [];
 
-        {/* GA4 gtag.js */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-VBCB77P21T"
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-VBCB77P21T');`}
-        </Script>
+    // ===== gtag関数定義（GTMと共存可能）=====
+    function gtag(){dataLayer.push(arguments);}
 
-        {/* Google Ads gtag.js */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17981675917"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-init" strategy="afterInteractive">
-          {`gtag('config', 'AW-17981675917');`}
+    // ===== GTMの読み込み =====
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-T4PL5XMC');
+
+    // ===== GA4とGoogle Adsの設定（gtag経由）=====
+    gtag('js', new Date());
+    gtag('config', 'G-VBCB77P21T');
+    gtag('config', 'AW-17981675917');
+  `}
         </Script>
 
         {/* Performance optimization: preload critical resources */}
