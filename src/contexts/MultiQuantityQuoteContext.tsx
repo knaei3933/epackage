@@ -14,13 +14,19 @@ function getFilmLayersForMaterial(
   thicknessSelection?: string
 ): FilmStructureLayer[] {
   const lldpeBaseThickness: Record<string, number> = {
+    'light_50': 50,
+    'standard_70': 70,
+    'heavy_90': 90,
+    'ultra_100': 100,
+    'maximum_110': 110,
+    // fallback mappings
     'light': 50,
     'medium': 70,
     'standard': 90,
     'heavy': 100,
     'ultra': 110
   };
-  const baseLldpeThickness = lldpeBaseThickness[thicknessSelection || 'standard'] || 90;
+  const baseLldpeThickness = lldpeBaseThickness[thicknessSelection || 'standard_70'] || 70;
 
   const defaultLayers: Record<string, FilmStructureLayer[]> = {
     'pet_al': [
@@ -53,6 +59,20 @@ function getFilmLayersForMaterial(
     'kraft_pe': [
       { materialId: 'KRAFT', thickness: 80 },
       { materialId: 'PE', thickness: 40 }
+    ],
+    'ny_lldpe': [
+      { materialId: 'NY', thickness: 15 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'kraft_vmpet_lldpe': [
+      { materialId: 'KRAFT', grammage: 50 },
+      { materialId: 'VMPET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'kraft_pet_lldpe': [
+      { materialId: 'KRAFT', grammage: 50 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
     ]
   };
 

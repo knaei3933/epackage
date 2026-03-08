@@ -127,10 +127,16 @@ type QuoteAction =
   | { type: 'SET_CONTENTS'; payload: { productCategory: QuoteState['productCategory']; contentsType: QuoteState['contentsType']; mainIngredient: QuoteState['mainIngredient']; distributionEnvironment: QuoteState['distributionEnvironment'] } }; // 내용물 설정
 
 // Helper function to get default film layers based on material ID and thickness selection
-// LLDPE thickness varies based on thicknessSelection: light=50, medium=70, standard=90, heavy=100, ultra=110
-function getDefaultFilmLayers(materialId: string, thicknessSelection: string = 'standard'): FilmStructureLayer[] {
+// LLDPE thickness varies based on thicknessSelection: light_50=50, standard_70=70, heavy_90=90, ultra_100=100, maximum_110=110
+function getDefaultFilmLayers(materialId: string, thicknessSelection: string = 'standard_70'): FilmStructureLayer[] {
   // LLDPE base thickness for each thickness selection - 50, 70, 90, 100, 110μm
   const lldpeBaseThickness: Record<string, number> = {
+    'light_50': 50,
+    'standard_70': 70,
+    'heavy_90': 90,
+    'ultra_100': 100,
+    'maximum_110': 110,
+    // fallback mappings
     'light': 50,
     'medium': 70,
     'standard': 90,
@@ -138,7 +144,7 @@ function getDefaultFilmLayers(materialId: string, thicknessSelection: string = '
     'ultra': 110
   };
 
-  const lldpeThickness = lldpeBaseThickness[thicknessSelection] ?? 90;
+  const lldpeThickness = lldpeBaseThickness[thicknessSelection] ?? 70;
 
   const layerMap: Record<string, (lldpe: number) => FilmStructureLayer[]> = {
     'pet_al': (lldpe: number) => [

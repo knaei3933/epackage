@@ -254,10 +254,14 @@ export abstract class BasePricingStrategy implements PricingStrategy {
     for (const layer of adjustedLayers) {
       const materialInfo = MATERIAL_PRICES_KRW[layer.materialId]
       if (materialInfo) {
-        // grammageから計算した有効厚さを使用（Kraft等の坪量指定材料対応）
-        const effectiveThickness = this.getLayerEffectiveThickness(layer)
-        const thicknessMm = effectiveThickness / 1000
-        totalWeightPerM2 += thicknessMm * materialInfo.density
+        // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
+        if (layer.grammage !== undefined) {
+          totalWeightPerM2 += layer.grammage / 1000  // g/m² → kg/m²
+        } else {
+          // プラスチック材料: thickness × density
+          const thicknessMm = (layer.thickness || 0) / 1000
+          totalWeightPerM2 += thicknessMm * materialInfo.density
+        }
       }
     }
 

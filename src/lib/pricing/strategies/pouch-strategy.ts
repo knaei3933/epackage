@@ -56,10 +56,16 @@ export class PouchStrategy extends BasePricingStrategy {
     for (const layer of adjustedLayers) {
       const materialInfo = MATERIAL_PRICES_KRW[layer.materialId]
       if (materialInfo) {
-        // grammageから計算した有効厚さを使用（Kraft等の坪量指定材料対応）
-        const effectiveThickness = this.getLayerEffectiveThickness(layer)
-        const thicknessMm = effectiveThickness / 1000
-        const weight = thicknessMm * widthM * totalMeters * materialInfo.density
+        let weight: number
+        // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
+        if (layer.grammage !== undefined) {
+          weight = (layer.grammage / 1000) * widthM * totalMeters  // g/m² → kg/m²
+        } else {
+          // プラスチック材料: thickness × density
+          const effectiveThickness = this.getLayerEffectiveThickness(layer)
+          const thicknessMm = effectiveThickness / 1000
+          weight = thicknessMm * widthM * totalMeters * materialInfo.density
+        }
         const cost = weight * materialInfo.unitPrice
         materialCostKRW += cost
       }
