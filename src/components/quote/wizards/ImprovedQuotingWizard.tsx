@@ -1367,7 +1367,7 @@ function SpecsStep() {
           const selectedMaterial = materials.find(m => m.id === state.materialId);
           if (!selectedMaterial?.thicknessOptions) return null;
 
-          const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
+          const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al', 'ny_lldpe', 'kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
           const isRequired = materialsWithThickness.includes(state.materialId);
           const isSelected = !!state.thicknessSelection;
 
@@ -4283,15 +4283,17 @@ export function ImprovedQuotingWizard() {
           let markupRate = 0.0; // Default 0% (no discount) - 顧客別割引率のみ適用
           console.log('[handleNext] デフォルトmarkupRate:', markupRate, 'ユーザーID:', user?.id);
           // CRITICAL: Wait for auth to complete before checking user
+          // 認証が完了するまで計算を待機し、正しい顧客別割引を適用する
           if (isAuthLoading) {
-            console.log('[handleNext] Auth still loading, using default markup rate: 0.2');
+            console.log('[handleNext] Auth loading, WAITING for auth to complete...');
+            return; // 計算を中断して認証完了を待つ
           } else if (user?.id) {
             try {
               // Fetch customer markup rate from API
               const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
               if (response.ok) {
                 const result = await response.json();
-                markupRate = result.data?.markupRate ?? 0.2;
+                markupRate = result.data?.markupRate ?? 0.0; // デフォルトは割引なし（0%）
                 console.log('[handleNext] Customer markup rate:', markupRate);
               } else {
                 console.warn('[handleNext] Failed to fetch markup rate, using default 20%');
