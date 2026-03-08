@@ -43,6 +43,8 @@ export const PRICING_CONSTANTS = {
   /** 後加工デフォルト乗数 */
   DEFAULT_POST_PROCESSING_MULTIPLIER: 1.0,
 
+  /** Spout Pouch 最小注文数量（個） */
+  SPOUT_POUCH_MIN_QUANTITY: 5000,
   /** NY+LLDPE 最小注文数量（個） */
   NY_LLDPE_MIN_QUANTITY: 500,
   /** Kraft材料 最小注文数量（m） - ロールフィルムのみ */
