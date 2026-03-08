@@ -1,12 +1,19 @@
-import { OrganizationSchema, LocalBusinessSchema, FAQSchema } from '@/components/seo/StructuredData'
-import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingProcessShowcase'
+import dynamic from 'next/dynamic'
+import { OrganizationSchema, LocalBusinessSchema, FAQSchema, ProductSchema } from '@/components/seo/StructuredData'
 import { HeroSection, ProductShowcaseSection, BeforeAfterSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts } from '@/lib/products'
 
+const ManufacturingProcessShowcase = dynamic(
+  () => import('@/components/home/ManufacturingProcessShowcase').then(m => ({ default: m.ManufacturingProcessShowcase })),
+  {
+    loading: () => <div className="min-h-[600px] flex items-center justify-center bg-gray-50" aria-label="제조 공정 로딩 중" />,
+    ssr: true
+  }
+)
+
 // ISR for better performance - revalidate every 5 minutes
 export const revalidate = 300;
-export const dynamic = 'force-static';
 
 // FAQ Schema data for homepage
 const faqData = [
@@ -37,12 +44,25 @@ export default async function Home() {
   // Fetch featured products from Supabase (cached)
   const featuredProducts = await getFeaturedProducts(6)
 
+  // Supabase 제품 데이터를 Product 스키마 props로 매핑
+  const productSchemas = featuredProducts.map(product => ({
+    name: product.name_ja || product.name_en,
+    description: product.description_ja || product.description_en,
+    category: product.category,
+    material: product.material_type,
+    foodGrade: product.specifications?.food_grade === true,
+    pharmaGrade: product.specifications?.pharma_grade === true
+  }))
+
   return (
     <>
       {/* Structured Data for SEO */}
       <OrganizationSchema />
       <LocalBusinessSchema />
       <FAQSchema faqs={faqData} />
+      {productSchemas.map(props => (
+        <ProductSchema key={props.name} {...props} />
+      ))}
 
       <div className="min-h-screen">
         {/* Announcement Banner - Client-side auth check */}
