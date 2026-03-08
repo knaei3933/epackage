@@ -1,16 +1,39 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { AlertCircle, Info, Megaphone, Wrench } from 'lucide-react'
 import type { Announcement } from '@/lib/products'
 import { getAnnouncementCategoryLabel, formatAnnouncementDate } from '@/lib/products'
+import { useAuth } from '@/contexts/AuthContext'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 
 interface AnnouncementBannerProps {
-  announcements: Announcement[]
+  announcements?: Announcement[] // Optional for backward compatibility
 }
 
-export function AnnouncementBanner({ announcements }: AnnouncementBannerProps) {
-  if (announcements.length === 0) {
+export function AnnouncementBanner({ announcements: initialAnnouncements }: AnnouncementBannerProps) {
+  const { user } = useAuth()
+  const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements || [])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // Delay rendering for LCP performance
+    const timer = setTimeout(() => setMounted(true), 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    // Only fetch announcements if user is authenticated
+    if (user && !initialAnnouncements) {
+      fetch('/api/announcements')
+        .then(res => res.json())
+        .then(data => setAnnouncements(data.announcements || []))
+        .catch(() => setAnnouncements([]))
+    }
+  }, [user, initialAnnouncements])
+
+  // Don't render if not mounted yet (for LCP), no announcements, or user not authenticated
+  if (!mounted || announcements.length === 0) {
     return null
   }
 

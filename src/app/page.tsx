@@ -2,12 +2,11 @@ import { OrganizationSchema, LocalBusinessSchema, FAQSchema } from '@/components
 import { ManufacturingProcessShowcase } from '@/components/home/ManufacturingProcessShowcase'
 import { HeroSection, ProductShowcaseSection, BeforeAfterSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
-import { getFeaturedProducts, getLatestAnnouncements } from '@/lib/products'
-import { getAuthenticatedUser } from '@/lib/supabase/server'
+import { getFeaturedProducts } from '@/lib/products'
 
-// 動的レンダリングを明示的に指定（cookies使用のため）
-export const dynamic = 'force-dynamic'
-export const revalidate = 300; // ISR: revalidate every 5 minutes
+// ISR for better performance - revalidate every 5 minutes
+export const revalidate = 300;
+export const dynamic = 'force-static';
 
 // FAQ Schema data for homepage
 const faqData = [
@@ -35,13 +34,8 @@ const faqData = [
 
 // Main Home Page Component with Performance Monitoring and SEO
 export default async function Home() {
-  // Check if user is authenticated
-  const user = await getAuthenticatedUser()
-
-  // Fetch dynamic data from Supabase
-  // Only fetch announcements if user is authenticated
+  // Fetch featured products from Supabase (cached)
   const featuredProducts = await getFeaturedProducts(6)
-  const announcements = user ? await getLatestAnnouncements(3) : []
 
   return (
     <>
@@ -51,10 +45,8 @@ export default async function Home() {
       <FAQSchema faqs={faqData} />
 
       <div className="min-h-screen">
-        {/* Announcement Banner - Only for authenticated users */}
-        {user && announcements.length > 0 && (
-          <AnnouncementBanner announcements={announcements} />
-        )}
+        {/* Announcement Banner - Client-side auth check */}
+        <AnnouncementBanner />
 
         <HeroSection />
         <IndustryShowcase />

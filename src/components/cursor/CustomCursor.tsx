@@ -15,16 +15,21 @@ export function CustomCursor() {
   const [isClicking, setIsClicking] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [delayedRender, setDelayedRender] = useState(false);
 
   // クライアントサイドでのみマウント
   useEffect(() => {
     setIsMounted(true);
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+    // Delay rendering for LCP performance
+    const timer = setTimeout(() => setDelayedRender(true), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    // タッチデバイスの場合はカスタムカーソルを無効化
-    if (isTouchDevice) {
+    // タッチデバイスまたは遅延レンダリング前はカスタムカーソルを無効化
+    if (isTouchDevice || !delayedRender) {
       return;
     }
 
@@ -85,11 +90,11 @@ export function CustomCursor() {
       document.removeEventListener('mouseleave', handleMouseLeaveWindow);
       document.removeEventListener('mouseenter', handleMouseEnterWindow);
     };
-  }, [isTouchDevice]);
+  }, [isTouchDevice, delayedRender]);
 
   // フォロワー円のアニメーション（少し遅れて追従）
   useEffect(() => {
-    if (!isMounted || isTouchDevice) return;
+    if (!isMounted || isTouchDevice || !delayedRender) return;
 
     const animationFrame = requestAnimationFrame(() => {
       setFollowerPosition((prev) => ({
@@ -99,10 +104,10 @@ export function CustomCursor() {
     });
 
     return () => cancelAnimationFrame(animationFrame);
-  }, [position, isMounted, isTouchDevice]);
+  }, [position, isMounted, isTouchDevice, delayedRender]);
 
-  // SSR中またはタッチデバイスでは何も表示しない
-  if (!isMounted || isTouchDevice) {
+  // SSR中、タッチデバイス、または遅延レンダリング前は何も表示しない
+  if (!isMounted || isTouchDevice || !delayedRender) {
     return null;
   }
 

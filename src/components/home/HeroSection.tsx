@@ -23,7 +23,7 @@ export function HeroSection() {
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       variants={heroVariants}
       initial="hidden"
-      animate={inView ? "visible" : "hidden"}
+      animate="visible"
       ref={ref}
     >
       {/* Enhanced Background with Professional Images */}
@@ -43,19 +43,8 @@ export function HeroSection() {
           />
         </div>
 
-        {/* Multi-layer gradient overlay for enhanced visual depth */}
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/70 via-gray-900/50 to-gray-900/70"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-brixa-secondary-900/30 via-transparent to-brixa-900/20"></div>
-
-        {/* Professional pattern overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px)`,
-            }}
-          />
-        </div>
+        {/* Single optimized gradient overlay for LCP performance */}
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/75 to-gray-900/60"></div>
 
         {/* Floating product images - WebP optimized with lazy loading */}
         <div className="absolute top-1/4 right-1/4 w-64 h-48 hidden lg:block">
@@ -383,59 +372,6 @@ export function HeroSection() {
           </motion.div>
         </div>
       </Container>
-
-      {/* Enhanced floating elements for visual interest */}
-      <motion.div
-        className="absolute top-20 left-10 w-32 h-32 bg-brixa-400/20 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.6, 0.3]
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div
-        className="absolute bottom-20 right-10 w-48 h-48 bg-brixa-secondary-400/15 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.2, 0.4, 0.2]
-        }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1
-        }}
-      />
-      <motion.div
-        className="absolute top-1/3 right-1/4 w-24 h-24 bg-brixa-300/10 rounded-full blur-2xl"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.5, 0.2]
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 0.5
-        }}
-      />
-      <motion.div
-        className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-brixa-secondary-300/10 rounded-full blur-2xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.2, 0.4, 0.2]
-        }}
-        transition={{
-          duration: 3.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 0.7
-        }}
-      />
     </motion.section>
   )
 }
