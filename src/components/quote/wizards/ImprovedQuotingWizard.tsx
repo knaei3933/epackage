@@ -998,7 +998,7 @@ function SpecsStep() {
               {bagTypes.map(type => (
                 <button
                   key={type.id}
-                  onClick={() => updateBasicSpecs({ bagTypeId: type.id })}
+                  onClick={() => {                    updateBasicSpecs({                      bagTypeId: type.id,                      ...(type.id === 'lap_seal' ? { depth: 0 } : {})                    })                  }}
                   className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.bagTypeId === type.id
                     ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
                     : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
