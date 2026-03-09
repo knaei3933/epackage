@@ -144,7 +144,22 @@ export class PouchStrategy extends BasePricingStrategy {
       errors.push(`NY+LLDPE minimum order quantity is ${PRICING_CONSTANTS.NY_LLDPE_MIN_QUANTITY} pieces`)
     }
 
+    // クラフト材料の1000m MOQ検証
+    if (this.isKraftMaterial(params.materialId)) {
+      const totalMeters = this.calculateTotalMetersWithLoss(params)
+      if (totalMeters < PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS) {
+        errors.push(`Kraft materials minimum usage: ${PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS}m (current: ${Math.ceil(totalMeters)}m)`)
+      }
+    }
+
     return errors
+  }
+
+  /**
+   * クラフト材料か判定
+   */
+  private isKraftMaterial(materialId: string): boolean {
+    return materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe'
   }
 
   // ========================================
