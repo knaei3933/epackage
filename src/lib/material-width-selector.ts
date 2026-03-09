@@ -87,9 +87,9 @@ export function calculatePouchFilmWidth(
       // 2列では各列にマチが必要なためG×2
       return columns === 1 ? (height * 2) + depth + 35 : (height * 4) + (depth * 2) + 40;
 
-    case 'center_seal':
-      // 合掌袋: W × 2 + 側面×2 + 余白
-      return columns === 1 ? (width * 2) + (sideWidth * 2) + 22 : (width * 4) + (sideWidth * 4) + 44;
+    case 'lap_seal':
+      // 合掌袋: W × 2 + 余白(ドキュメント: 02-필름폭_계산공식.md)
+      return columns === 1 ? (width * 2) + 22 : (width * 2) + 22 + 20 + (width * 2) + 22;
 
     case 'box_pouch':
       // ボックス型: (G + W) × 2 + 側面×2 + 余白

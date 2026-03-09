@@ -46,7 +46,7 @@ export interface QuoteState {
   width: number | undefined;
   height: number | undefined;
   depth: number | undefined;
-  sideWidth?: number; // Side width (よこめん) - for center_seal and box_pouch
+  sideWidth?: number; // Side width (よこめん) - for box_pouch (ガゼットパウチ)
   quantities: number[]; // Multiple quantity patterns
   quantity: number; // Selected quantity for calculation
   isUVPrinting: boolean;
@@ -219,7 +219,7 @@ const initialState: QuoteState = {
   width: 200,
   height: 300,
   depth: 0,
-  sideWidth: undefined, // Side width (よこめん) - for center_seal and box_pouch
+  sideWidth: undefined, // Side width (よこめん) - for box_pouch (ガゼットパウチ)
   quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
   quantity: 500,
   isUVPrinting: false,
