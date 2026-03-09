@@ -27,7 +27,7 @@ const manufacturingProcesses = [
     step: '01',
     title: 'デジタル印刷',
     titleEn: 'Digital Printing',
-    image: '/images/print.png',
+    image: '/images/print.webp',
     description: 'HP Indigo 25000を活用した高品質デジタル印刷。小ロットから大量生産まで迅速なリードタイムと正確な色再現を実現します。',
     features: ['HP Indigo 25000', '高鮮明カラー', '迅速リードタイム', 'カスタム印刷'],
     icon: Settings
@@ -37,7 +37,7 @@ const manufacturingProcesses = [
     step: '02',
     title: 'ラミネート加工',
     titleEn: 'Laminating',
-    image: '/images/rami.png',
+    image: '/images/rami.webp',
     description: 'NON-VOC環境配慮型ラミネート工法。有機溶媒を使用しない環境配慮型設備で安全で清潔な包装材を生産します。',
     features: ['NON-VOC工法', '溶剤フリー(Solvent Free)', '環境配慮材料', '安全性確保'],
     icon: Shield
@@ -47,7 +47,7 @@ const manufacturingProcesses = [
     step: '03',
     title: 'スリッティング/切断',
     titleEn: 'Slitting/Cutting',
-    image: '/images/cut.png',
+    image: '/images/cut.webp',
     description: '精密スリッティング及び切断技術。島打刃を活用しμm単位の精密な加工精度を維持します。',
     features: ['島打刃設備', 'μm単位精度', '自動品質検査', '一貫した規格'],
     icon: Settings
@@ -57,7 +57,7 @@ const manufacturingProcesses = [
     step: '04',
     title: 'パウチ加工',
     titleEn: 'Pouch Forming',
-    image: '/images/pouch.png',
+    image: '/images/pouch.webp',
     description: '一貫した生産ラインシステム。印刷、ラミネート、スリッティング、パウチ加工まで一つのシステムで管理し品質の一貫性を保証します。',
     features: ['統合生産ライン', '品質一貫性', '工期短縮', '費用効率性'],
     icon: Package
