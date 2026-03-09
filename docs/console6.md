@@ -371,3 +371,73 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
 [getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
  GET /api/user/markup-rate 200 in 655ms (compile: 1951µs, render: 653ms)
  GET /api/pricing/settings 200 in 227ms (compile: 1494µs, render: 225ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 750ms (compile: 1737µs, render: 748ms)
+ GET /quote-simulator 200 in 93ms (compile: 55ms, render: 38ms)
+ GET /quote-simulator 200 in 27ms (compile: 3ms, render: 24ms)
+ GET /quote-simulator 200 in 18ms (compile: 2ms, render: 16ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 795ms (compile: 2ms, render: 793ms)
+[Signout] Found Supabase cookies: [ 'sb-ijlgpzjdfipzmjvawofp-auth-token' ]
+[Signout] Deleting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token
+[Signout] All cookies deleted, sending 2 Set-Cookie headers
+ POST /api/auth/signout/ 200 in 449ms (compile: 444ms, render: 5ms)
+ GET /auth/signin 200 in 742ms (compile: 700ms, render: 42ms)
+ GET /auth/signin?session_expired=true 200 in 675ms (compile: 663ms, render: 13ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 601ms (compile: 1548µs, render: 600ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 802ms (compile: 1478µs, render: 800ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 938ms (compile: 1486µs, render: 937ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 897ms (compile: 1431µs, render: 895ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 567ms (compile: 1609µs, render: 565ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 572ms (compile: 1695µs, render: 570ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 1010ms (compile: 1946µs, render: 1008ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 1250ms (compile: 1656µs, render: 1249ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 577ms (compile: 1552µs, render: 575ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 910ms (compile: 1378µs, render: 909ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 527ms (compile: 1437µs, render: 525ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 520ms (compile: 1436µs, render: 519ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 913ms (compile: 2ms, render: 911ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 912ms (compile: 1644µs, render: 911ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 746ms (compile: 2ms, render: 744ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 906ms (compile: 1542µs, render: 905ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 901ms (compile: 1889µs, render: 899ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 697ms (compile: 1488µs, render: 695ms)
+ ✓ Compiled in 254ms

@@ -689,7 +689,12 @@ export default function RegistrationForm({
             <input
               {...register('privacyConsent')}
               type="checkbox"
-              className="w-4 h-4 mt-1 text-brixa-500"
+              className="w-5 h-5 mt-0.5 text-brixa-500 border-2 border-gray-300 rounded focus:ring-brixa-500 focus:ring-2 cursor-pointer appearance-none checked:bg-brixa-500 checked:border-brixa-500 relative transition-colors"
+              style={{
+                WebkitAppearance: 'none',
+                appearance: 'none',
+                backgroundColor: 'white',
+              }}
             />
             <span className="text-sm text-text-primary">
               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brixa-500 hover:underline">
