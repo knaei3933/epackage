@@ -685,17 +685,19 @@ export default function RegistrationForm({
             SECTION 10: プライバシーポリシー同意
             ===================================================== */}
         <div className="mb-8">
-          <label className="flex items-start space-x-3 cursor-pointer">
-            <input
-              {...register('privacyConsent')}
-              type="checkbox"
-              className="w-5 h-5 mt-0.5 text-brixa-500 border-2 border-gray-300 rounded focus:ring-brixa-500 focus:ring-2 cursor-pointer appearance-none checked:bg-brixa-500 checked:border-brixa-500 relative transition-colors"
-              style={{
-                WebkitAppearance: 'none',
-                appearance: 'none',
-                backgroundColor: 'white',
-              }}
-            />
+          <label className="flex items-start space-x-3 cursor-pointer group">
+            <div className="relative">
+              <input
+                {...register('privacyConsent')}
+                type="checkbox"
+                className="peer sr-only"
+              />
+              <div className="w-5 h-5 mt-0.5 border-2 border-gray-300 rounded bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 flex items-center justify-center group-hover:border-brixa-400">
+                <svg className="w-3 h-3 text-white hidden peer-checked:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
             <span className="text-sm text-text-primary">
               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brixa-500 hover:underline">
                 プライバシーポリシー
