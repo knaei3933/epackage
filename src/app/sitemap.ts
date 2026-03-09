@@ -63,12 +63,6 @@ const staticPages = [
     lastmod: new Date()
   },
   {
-    url: '/quote-simulator',
-    changefreq: 'monthly' as const,
-    priority: 0.8,
-    lastmod: new Date()
-  },
-  {
     url: '/news',
     changefreq: 'weekly' as const,
     priority: 0.5,

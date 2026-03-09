@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: 'ブログ | Epackage Lab',
-    description: '包装資材・印刷の最新情報、技術情報、業界動向をお届けします。パッケージングの専門家による信頼できる情報発信。',
+    description: '包装資材・印刷の最新情報、技術情報、業界動向をお届けします。パッケージングの専門家による信頼できる情報発信。ソフトパウチ、スタンドパウチ、ガゼットパウチなどの軟包裝材に関するノウハウ、選び方、導入事例を詳しくご紹介。小ロットから大ロットまで、最適な包装ソリューションを見つけるための実践的な情報を提供。',
     openGraph: {
       title: 'ブログ | Epackage Lab',
       description: '包装資材・印刷の最新情報、技術情報、業界動向をお届けします。',

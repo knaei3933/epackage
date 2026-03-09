@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: 'パウチ製品カタログ | Epackage Lab',
       template: '%s | Epackage Lab'
     },
-    description: 'Epackage Labのパウチ製品カタログ。6種類のパウチ製品をご覧ください。ソフトパウチ、スタンドパウチ、ガゼットパウチなど、あらゆる連包裝材ニーズにお応えします。',
+    description: 'Epackage Labのパウチ製品カタログ。6種類のパウチ製品をご覧ください。ソフトパウチ、スタンドパウチ、ガゼットパウチ、ピローパウチ、三角パウチ、スパウトパウチなど、あらゆる軟包裝材ニーズにお応えします。小ロット500枚から大ロット大量生産まで対応。化粧品・食品・医薬品業界向け最適な包装ソリューション。今すぐ無料見積もりでコスト削減を実現。',
     keywords: [
       'パウチ',
       '連包裝材',

@@ -12,7 +12,46 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: '会社概要 | Epackage Lab',
-  description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。',
+  description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。小ロット500枚から大ロット大量生産まで対応するパッケージ製造のリーディングカンパニー。食品安全規格完全対応、最短28日納品。化粧品・食品・医薬品業界向け最適な包装資材をご提供。',
+  keywords: [
+    'Epackage Lab',
+    '会社概要',
+    '会社情報',
+    'パッケージ製造',
+    '包装資材',
+    '小ロット対応',
+    '大ロット対応',
+    '韓国品質',
+    '食品安全規格',
+    '最短28日納品',
+    'パウチ製造',
+    'スタンドパウチ',
+    'ガゼットパウチ',
+    'ソフトパウチ',
+  ],
+  openGraph: {
+    title: '会社概要 | Epackage Lab',
+    description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。',
+    type: 'website',
+    url: 'https://www.package-lab.com/about',
+    images: [
+      {
+        url: 'https://www.package-lab.com/images/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Epackage Lab 会社概要',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '会社概要 | Epackage Lab',
+    description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。',
+    images: ['https://www.package-lab.com/images/og-image.jpg'],
+  },
+  alternates: {
+    canonical: '/about',
+  },
 };
 
 export default function AboutPage() {

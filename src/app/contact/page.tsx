@@ -5,11 +5,44 @@ import { StrongCTA } from '@/components/lp/StrongCTA'
 
 export const metadata: Metadata = {
   title: 'パウチお問い合わせ | Epackage Lab',
-  description: 'パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。',
-  keywords: ['パウチお問い合わせ', '連包裝材', 'パウチ専門', '包装相談', 'Epackage Lab'],
+  description: 'パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチ、ガゼットパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。小ロット500枚から大ロット大量生産まで対応。最短28日納品、食品安全規格完全対応。化粧品・食品・医薬品業界向け最適な包装ソリューションのご提案。24時間以内にご回答、無料サンプル対応可能。',
+  keywords: [
+    'パウチお問い合わせ',
+    '軟包裝材',
+    'パウチ専門',
+    '包装相談',
+    'Epackage Lab',
+    'スタンドパウチ',
+    'ガゼットパウチ',
+    'ソフトパウチ',
+    'ピローパウチ',
+    '三角パウチ',
+    'スパウトパウチ',
+    '包装資材見積もり',
+    '小ロットパウチ',
+  ],
   openGraph: {
     title: 'パウチお問い合わせ | Epackage Lab',
-    description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム',
+    description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム。24時間以内にご回答、無料サンプル対応可能。',
+    type: 'website',
+    url: 'https://www.package-lab.com/contact',
+    images: [
+      {
+        url: 'https://www.package-lab.com/images/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Epackage Lab お問い合わせ',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'パウチお問い合わせ | Epackage Lab',
+    description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム。24時間以内にご回答。',
+    images: ['https://www.package-lab.com/images/og-image.jpg'],
+  },
+  alternates: {
+    canonical: '/contact',
   },
 }
 

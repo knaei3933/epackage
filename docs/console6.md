@@ -235,3 +235,139 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
  GET /api/comparison/save 200 in 4ms (compile: 1646µs, render: 2ms)
  ✓ Compiled in 17ms
  ✓ Compiled in 19ms
+[getDefaultPostProcessingOptions] Selected defaults: [
+  'zipper-yes',
+  'glossy',
+  'notch-yes',
+  'hang-hole-6mm',
+  'corner-round',
+  'valve-no',
+  'top-open',
+  'sealing-width-5mm'
+]
+[QuoteContext] initialState created: {
+  materialWidth: 590,
+  filmLayers: [
+    { materialId: 'PET', thickness: 12 },
+    { materialId: 'AL', thickness: 7 },
+    { materialId: 'PET', thickness: 12 },
+    { materialId: 'LLDPE', thickness: 70 }
+  ],
+  filmLayersCount: 4
+}
+ GET /quote-simulator 200 in 310ms (compile: 81ms, render: 229ms)
+ GET /api/comparison/save 200 in 7ms (compile: 3ms, render: 4ms)
+[Session API] All cookies: []
+[Session API] Supabase cookies: []
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[Session API] getUser result: { hasUser: false, userId: undefined, error: 'Auth session missing!' }
+[Session API] No valid user found Auth session missing!
+ GET /api/auth/current-user 200 in 8ms (compile: 2ms, render: 5ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 989ms (compile: 2ms, render: 986ms)
+[Config API] Fetching remote config...
+ GET /api/health 200 in 63ms (compile: 1484µs, render: 62ms)
+ GET /api/pricing/settings 200 in 838ms (compile: 2ms, render: 836ms)
+[Config API] Config fetched successfully
+ GET /api/config 200 in 307ms (compile: 1712µs, render: 306ms)
+ GET /api/health 200 in 7ms (compile: 1557µs, render: 5ms)
+ GET /quote-simulator 200 in 124ms (compile: 64ms, render: 60ms)
+ GET /quote-simulator 200 in 19ms (compile: 2ms, render: 17ms)
+ GET /quote-simulator 200 in 19ms (compile: 2ms, render: 16ms)
+ GET /api/comparison/save 200 in 6ms (compile: 3ms, render: 3ms)
+[Session API] All cookies: [
+  { name: '_ga', hasValue: true },
+  { name: '_gcl_au', hasValue: true },
+  { name: 'sb-ijlgpzjdfipzmjvawofp-auth-token', hasValue: true },
+  { name: '_ga_VBCB77P21T', hasValue: true },
+  { name: '__next_hmr_refresh_hash__', hasValue: true }
+]
+[Session API] Supabase cookies: [ 'sb-ijlgpzjdfipzmjvawofp-auth-token' ]
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[supabase-ssr] setAll called with 1 cookies
+[supabase-ssr] Setting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token value length: 2611
+[supabase-ssr] Set-Cookie header set for: sb-ijlgpzjdfipzmjvawofp-auth-token
+[supabase-ssr] Final response has 1 Set-Cookie headers
+[Config API] Fetching remote config...
+[Session API] getUser result: {
+  hasUser: true,
+  userId: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  error: undefined
+}
+[Session API] NEXT_PUBLIC_SUPABASE_URL: https://ijlgpzjdfipzmjvawofp.supabase.co
+[Session API] SUPABASE_SERVICE_ROLE_KEY exists: true
+[Config API] Config fetched successfully
+ GET /api/config 200 in 243ms (compile: 1990µs, render: 241ms)
+[Config API] Fetching remote config...
+ GET /api/health 200 in 8ms (compile: 1664µs, render: 7ms)
+[Session API] User found for: admin@epackage-lab.com Profile: Found
+[Session API] Profile data: {
+  id: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  email: 'admin@epackage-lab.com',
+  kanji_last_name: '管理',
+  kanji_first_name: '者',
+  kana_last_name: 'かんり',
+  kana_first_name: 'しゃ',
+  corporate_phone: '03-1234-5678',
+  personal_phone: '090-1234-5678',
+  business_type: 'INDIVIDUAL',
+  company_name: 'EPackage Lab',
+  legal_entity_number: null,
+  position: null,
+  department: null,
+  company_url: null,
+  product_category: 'OTHER',
+  acquisition_channel: null,
+  postal_code: null,
+  prefecture: null,
+  city: null,
+  street: null,
+  role: 'ADMIN',
+  status: 'ACTIVE',
+  created_at: '2026-01-03T11:32:15.549776+00:00',
+  updated_at: '2026-02-16T14:14:16.20664+00:00',
+  last_login_at: null,
+  user_type: null,
+  corporate_number: null,
+  founded_year: null,
+  capital: null,
+  representative_name: null,
+  building: null,
+  business_document_path: null,
+  verification_token: null,
+  verification_expires_at: null,
+  settings: {
+    language: 'ja',
+    timezone: 'Asia/Tokyo',
+    notifications: {
+      order_updates: true,
+      security_alerts: true,
+      marketing_emails: false,
+      quotation_updates: true,
+      production_updates: true,
+      email_notifications: true,
+      login_notifications: true,
+      shipment_notifications: true
+    }
+  },
+  markup_rate: 0,
+  markup_rate_note: null,
+  designer_name_ko: null,
+  designer_name_en: null,
+  preferred_language: 'ja',
+  notification_settings: {}
+}
+ GET /api/auth/current-user 200 in 958ms (compile: 1640µs, render: 956ms)
+[Config API] Config fetched successfully
+ GET /api/config 200 in 225ms (compile: 1577µs, render: 223ms)
+ GET /api/health 200 in 7ms (compile: 1748µs, render: 5ms)
+[supabase-ssr] setAll called with 1 cookies
+[supabase-ssr] Setting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token value length: 2611
+[supabase-ssr] Set-Cookie header set for: sb-ijlgpzjdfipzmjvawofp-auth-token
+[supabase-ssr] Final response has 1 Set-Cookie headers
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 655ms (compile: 1951µs, render: 653ms)
+ GET /api/pricing/settings 200 in 227ms (compile: 1494µs, render: 225ms)
