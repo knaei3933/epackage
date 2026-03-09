@@ -604,6 +604,9 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   // Validation helpers - wrapped in useCallback
   const isStepComplete = useCallback((step: string): boolean => {
     const isRollFilm = state.bagTypeId === 'roll_film';
+    const kraftMaterials = ['kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
+    const isKraftMaterial = kraftMaterials.includes(state.materialId);
+    const kraftMinQuantity = 1000;
 
     switch (step) {
       case 'specs':
@@ -614,8 +617,9 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
         const hasThickness = !!state.thicknessSelection;
         return hasBasicSpecs && (!requiresThickness || hasThickness);
       case 'quantity':
-        // Both roll film and pouches have 500 minimum
-        const hasQuantities = state.comparisonQuantities.length > 0 && state.comparisonQuantities.every(q => q >= 500);
+        // Kraft materials require 1000m minimum
+        const minQuantity = isKraftMaterial ? kraftMinQuantity : 500;
+        const hasQuantities = state.comparisonQuantities.length > 0 && state.comparisonQuantities.every(q => q >= minQuantity);
         if (!hasQuantities) return false;
 
         // For roll film, check 29kg weight limit
@@ -687,7 +691,9 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
 
   const canCalculateMultiQuantity = useCallback((): boolean => {
     const isRollFilm = state.bagTypeId === 'roll_film';
-    const minQuantity = 500; // Both roll film and pouches have 500 minimum
+    const kraftMaterials = ['kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
+    const isKraftMaterial = kraftMaterials.includes(state.materialId);
+    const minQuantity = isKraftMaterial ? 1000 : 500; // Kraft materials have 1000m minimum
 
     return !!(
       state.bagTypeId &&

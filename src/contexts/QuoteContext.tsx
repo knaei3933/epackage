@@ -318,8 +318,22 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       const materialIdChanged = newMaterialId !== state.materialId;
       let newWidth = 'width' in action.payload ? action.payload.width : state.width;
       const widthChanged = newWidth !== state.width;
-      const newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
+      let newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
       const newThicknessSelection = action.payload.thicknessSelection ?? state.thicknessSelection;
+
+      // Kraft材料はロールフィルムのみ対応
+      // Kraft materials only available for roll film
+      const kraftMaterials = ['kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
+      const isKraftMaterial = kraftMaterials.includes(newMaterialId);
+
+      if (isKraftMaterial && newBagTypeId !== 'roll_film' && !action.payload.bagTypeId) {
+        // Kraft材料が選択された場合、自動的にロールフィルムに切り替え
+        console.log('[SET_BASIC_SPECS] Kraft material selected - auto-switching to roll_film mode');
+        newBagTypeId = 'roll_film';
+      } else if (!isKraftMaterial && newBagTypeId === 'roll_film' && materialIdChanged && kraftMaterials.includes(state.materialId)) {
+        // Kraft材料から他の材料に変更された場合、ロールフィルムモードを維持
+        console.log('[SET_BASIC_SPECS] Switched from Kraft to another material - staying in roll_film mode');
+      }
 
       // スタンドパウチ、ボックスパウチ、スパウトパウチの場合、幅を5mm単位に自動調整
       const needsWidthStep = ['stand_up', 'gusset', 'box', 't_shape', 'm_shape', 'lap_seal', 'spout'].includes(newBagTypeId);
