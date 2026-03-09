@@ -325,6 +325,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       // Kraft materials only available for roll film
       const kraftMaterials = ['kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
       const isKraftMaterial = kraftMaterials.includes(newMaterialId);
+      const wasKraftMaterial = kraftMaterials.includes(state.materialId);
 
       if (isKraftMaterial && newBagTypeId !== 'roll_film' && !action.payload.bagTypeId) {
         // Kraft材料が選択された場合、自動的にロールフィルムに切り替え
@@ -333,6 +334,40 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       } else if (!isKraftMaterial && newBagTypeId === 'roll_film' && materialIdChanged && kraftMaterials.includes(state.materialId)) {
         // Kraft材料から他の材料に変更された場合、ロールフィルムモードを維持
         console.log('[SET_BASIC_SPECS] Switched from Kraft to another material - staying in roll_film mode');
+      }
+
+      // クラフト材料専用設定：数量オプションを1000m単位にし、並列生産を無効化
+      let kraftQuantities: number[] | undefined;
+      let kraftSkuCount: number | undefined;
+      let kraftSkuQuantities: number[] | undefined;
+      let kraftQuantityMode: 'single' | 'sku' | undefined;
+      let kraftUseSKUCalculation: boolean | undefined;
+      let kraftTwoColumnOptionApplied: 'same' | 'double' | null | undefined;
+      let kraftAppliedOption: any;
+      let kraftFixedTotalQuantity: number | undefined;
+
+      if (isKraftMaterial && materialIdChanged) {
+        // クラフト材料が選択された場合：数量オプションを1000m単位に設定
+        console.log('[SET_BASIC_SPECS] Kraft material selected - setting quantities to 1000m units');
+        kraftQuantities = [1000, 2000, 3000, 5000, 10000];
+        kraftSkuCount = 1;
+        kraftSkuQuantities = [1000];
+        kraftQuantityMode = 'single';
+        kraftUseSKUCalculation = false;
+        kraftTwoColumnOptionApplied = null;
+        kraftAppliedOption = null;
+        kraftFixedTotalQuantity = undefined;
+      } else if (!isKraftMaterial && wasKraftMaterial && materialIdChanged) {
+        // クラフト材料から他の材料に変更された場合：数量オプションをデフォルトに戻す
+        console.log('[SET_BASIC_SPECS] Switched from Kraft to another material - resetting quantities to default');
+        kraftQuantities = [500, 1000, 2000, 5000, 10000];
+        kraftSkuCount = 1;
+        kraftSkuQuantities = [500];
+        kraftQuantityMode = 'single';
+        kraftUseSKUCalculation = false;
+        kraftTwoColumnOptionApplied = null;
+        kraftAppliedOption = null;
+        kraftFixedTotalQuantity = undefined;
       }
 
       // スタンドパウチ、ボックスパウチ、スパウトパウチの場合、幅を5mm単位に自動調整
@@ -436,15 +471,16 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           thicknessSelection: newThicknessSelection,
           materialWidth: newMaterialWidth,
           pitch: newPitch,
-          // SKU数量をリセット
-          skuCount: 1,
-          skuQuantities: [defaultQuantity],
-          quantityMode: 'single' as const,
-          useSKUCalculation: false,
+          // クラフト材料専用設定を適用
+          quantities: kraftQuantities ?? state.quantities,
+          skuCount: kraftSkuCount ?? 1,
+          skuQuantities: kraftSkuQuantities ?? [defaultQuantity],
+          quantityMode: kraftQuantityMode ?? 'single' as const,
+          useSKUCalculation: kraftUseSKUCalculation ?? false,
           // 割引関連状態も初期化
-          twoColumnOptionApplied: false,
-          appliedOption: null,
-          fixedTotalQuantity: undefined,
+          twoColumnOptionApplied: kraftTwoColumnOptionApplied ?? null,
+          appliedOption: kraftAppliedOption ?? null,
+          fixedTotalQuantity: kraftFixedTotalQuantity,
           // 投稿加工オプションを更新
           postProcessingOptions: newPostProcessingOptions,
           postProcessingMultiplier: newPostProcessingMultiplier,
@@ -470,6 +506,15 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         thicknessSelection: newThicknessSelection,
         materialWidth: newMaterialWidth,
         pitch: action.payload.pitch ?? state.pitch,
+        // クラフト材料専用設定を適用
+        ...(kraftQuantities !== undefined ? { quantities: kraftQuantities } : {}),
+        ...(kraftSkuCount !== undefined ? { skuCount: kraftSkuCount } : {}),
+        ...(kraftSkuQuantities !== undefined ? { skuQuantities: kraftSkuQuantities } : {}),
+        ...(kraftQuantityMode !== undefined ? { quantityMode: kraftQuantityMode } : {}),
+        ...(kraftUseSKUCalculation !== undefined ? { useSKUCalculation: kraftUseSKUCalculation } : {}),
+        ...(kraftTwoColumnOptionApplied !== undefined ? { twoColumnOptionApplied: kraftTwoColumnOptionApplied } : {}),
+        ...(kraftAppliedOption !== undefined ? { appliedOption: kraftAppliedOption } : {}),
+        ...(kraftFixedTotalQuantity !== undefined ? { fixedTotalQuantity: kraftFixedTotalQuantity } : {}),
         // Update filmLayers when materialId or thicknessSelection changes
         ...(materialIdChanged || thicknessSelectionChanged ? {
           filmLayers: getDefaultFilmLayers(newMaterialId, newThicknessSelection)
