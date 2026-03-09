@@ -99,7 +99,7 @@ const nextConfig: NextConfig = {
           "default-src 'self'",
           "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://www.google.co.jp https://www.google.co.kr https://www.google.adservicemse.com https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
+          "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://www.google.co.jp https://www.google.co.kr https://www.google.adservicemse.com https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net https://www.googletagmanager.com",
           "font-src 'self' data:",
           "connect-src 'self' https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.jp https://www.google.co.kr https://adservice.google.com https://adservice.google.co.jp https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
           "frame-src 'self' https://www.googletagmanager.com",
