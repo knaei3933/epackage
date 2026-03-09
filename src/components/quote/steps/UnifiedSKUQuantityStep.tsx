@@ -14,6 +14,7 @@ import {
 import { useQuoteState, useQuote } from '@/contexts/QuoteContext';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { unifiedPricingEngine } from '@/lib/unified-pricing-engine';
+import { validateMOQ, isKraftMaterial } from '@/lib/pricing/validators/moq-validator';
 import { EconomicQuantityProposal } from '../shared/EconomicQuantityProposal';
 import { StatusIndicator } from '../shared/StatusIndicator';
 import { CurrentStateSummary } from '../shared/CurrentStateSummary';
@@ -54,7 +55,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     clearAppliedOption
   } = useQuote();
 
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -501,6 +502,27 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
    */
   const handleSKUQuantityChange = (index: number, value: string) => {
     const parsedValue = value === '' ? '' : parseInt(value);
+
+    // MOQ検証: Kraft材料 + ロールフィルム (既存処理の前に追加)
+    if (quoteState.bagTypeId === 'roll_film' &&
+        isKraftMaterial(quoteState.materialId || '')) {
+
+      const moqTempQuantities = [...(quoteState.skuQuantities || [])];
+      moqTempQuantities[index] = typeof parsedValue === 'number' ? parsedValue : 0;
+      const totalQuantity = moqTempQuantities.reduce((sum, q) => sum + (q || 0), 0);
+
+      const validation = validateMOQ(
+        quoteState.materialId || '',
+        quoteState.bagTypeId || '',
+        totalQuantity
+      );
+
+      if (!validation.valid) {
+        showError(validation.error!);
+        return; // 更新を中止
+      }
+    }
+
     const newTempQuantities = [...tempQuantities];
     newTempQuantities[index] = parsedValue;
     setTempQuantities(newTempQuantities);
@@ -1154,6 +1176,13 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                   ✕
                 </button>
               </div>
+            </div>
+          )}
+
+          {quoteState.skuQuantityValidationError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-4">
+              <p className="font-medium">数量エラー</p>
+              <p className="text-sm">{quoteState.skuQuantityValidationError}</p>
             </div>
           )}
 

@@ -22,6 +22,7 @@ import {
   validateCategorySelection
 } from '@/components/quote/shared/processingConfig';
 import { getAvailableGussetSizes, getDefaultGussetSize, validateWidthStep } from '@/lib/gusset-data';
+import { validateMOQ } from '@/lib/pricing/validators/moq-validator';
 
 // スパウトパウチ専用フィルム幅計算関数
 // docs/reports/calcultae/02-필름폭_계산공식.md 基準
@@ -88,6 +89,8 @@ export interface QuoteState {
   originalUnitPrice?: number;     // オプション適用前の元の単価
   fixedTotalQuantity?: number;     // 2列生産オプション適用後の固定総数量（SKU数量変更時に維持）
   sealWidth?: string;              // Seal width option ('5mm', '7.5mm', '10mm')
+  // SKU数量MOQ検証エラー (Kraft材料ロールフィルム用)
+  skuQuantityValidationError?: string;
   // 내용물 (Contents) 필드 - 기본값 없음 (사용자 선택 필수)
   productCategory?: 'food' | 'health_supplement' | 'cosmetic' | 'quasi_drug' | 'drug' | ''; // 제품 유형
   contentsType?: 'solid' | 'powder' | 'liquid' | ''; // 내용물 형태
@@ -107,6 +110,7 @@ type QuoteAction =
   | { type: 'ADD_POST_PROCESSING_OPTION'; payload: { optionId: string; allOptions?: Array<{ id: string; category: string; compatibility?: string[]; priority: number; impact: number }> } }
   | { type: 'REMOVE_POST_PROCESSING_OPTION'; payload: string }
   | { type: 'REPLACE_POST_PROCESSING_OPTION'; payload: { oldOptionId: string; newOptionId: string } }
+  | { type: 'SET_POST_PROCESSING_VALIDATION_ERROR'; payload: PostProcessingValidationError }
   | { type: 'CLEAR_POST_PROCESSING_VALIDATION_ERROR' }
   | { type: 'SET_ROLL_FILM_QUANTITY'; payload: { totalLength: number; rollCount: number } }
   | { type: 'SET_DISTRIBUTED_QUANTITIES'; payload: number[] }
@@ -123,8 +127,12 @@ type QuoteAction =
   | { type: 'APPLY_TWO_COLUMN_OPTION'; payload: { optionType: 'same' | 'double'; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number } }
   | { type: 'APPLY_SKU_SPLIT'; payload: { skuCount: number; quantities: number[] } }
   | { type: 'CLEAR_APPLIED_OPTION' } // 옵션 적용 상태를 클리어
+  | { type: 'RESET_SKU_QUANTITIES_ON_PRODUCT_CHANGE'; payload: { defaultQuantity: number } }
   | { type: 'SET_SEAL_WIDTH'; payload: string } // Seal width setting
-  | { type: 'SET_CONTENTS'; payload: { productCategory: QuoteState['productCategory']; contentsType: QuoteState['contentsType']; mainIngredient: QuoteState['mainIngredient']; distributionEnvironment: QuoteState['distributionEnvironment'] } }; // 내용물 설정
+  | { type: 'SET_CONTENTS'; payload: { productCategory: QuoteState['productCategory']; contentsType: QuoteState['contentsType']; mainIngredient: QuoteState['mainIngredient']; distributionEnvironment: QuoteState['distributionEnvironment'] } } // 내용물 설정
+  // SKU数量MOQ検証エラー管理
+  | { type: 'SET_SKU_QUANTITY_VALIDATION_ERROR'; payload: string }
+  | { type: 'CLEAR_SKU_QUANTITY_VALIDATION_ERROR' };
 
 // Helper function to get default film layers based on material ID and thickness selection
 // LLDPE thickness varies based on thicknessSelection: light_50=50, standard_70=70, heavy_90=90, ultra_100=100, maximum_110=110
@@ -898,19 +906,55 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
     case 'UPDATE_SKU_QUANTITY': {
       const { index, value } = action.payload;
       const currentQuantities = state.skuQuantities || [];
-      console.log('[UPDATE_SKU_QUANTITY] Updating index:', index, 'to value:', value);
-      console.log('[UPDATE_SKU_QUANTITY] Current quantities:', currentQuantities);
-      // Ensure array is long enough for the index
-      const newSkuQuantities = [...currentQuantities];
-      while (newSkuQuantities.length <= index) {
-        newSkuQuantities.push(100); // Fill with default quantity
+
+      // 配列を確保
+      const newQuantities = [...currentQuantities];
+      while (newQuantities.length <= index) {
+        newQuantities.push(100);
       }
-      newSkuQuantities[index] = value;
-      console.log('[UPDATE_SKU_QUANTITY] New quantities:', newSkuQuantities);
+      newQuantities[index] = value;
+
+      // 合計数量を計算
+      const totalQuantity = newQuantities.reduce((sum, q) => sum + (q || 0), 0);
+
+      // MOQ検証: Kraft材料 + ロールフィルム
+      const validation = validateMOQ(
+        state.materialId || '',
+        state.bagTypeId || '',
+        totalQuantity
+      );
+
+      if (!validation.valid) {
+        console.warn(`[UPDATE_SKU_QUANTITY] ${validation.error}`);
+        return {
+          ...state,
+          skuQuantityValidationError: validation.error
+        };
+      }
+
+      // エラーをクリアして正常更新
+      const newState = {
+        ...state,
+        skuQuantities: newQuantities
+      };
+      if (state.skuQuantityValidationError) {
+        delete newState.skuQuantityValidationError;
+      }
+
+      return newState;
+    }
+
+    case 'SET_SKU_QUANTITY_VALIDATION_ERROR': {
       return {
         ...state,
-        skuQuantities: newSkuQuantities
+        skuQuantityValidationError: action.payload
       };
+    }
+
+    case 'CLEAR_SKU_QUANTITY_VALIDATION_ERROR': {
+      const newState = { ...state };
+      delete newState.skuQuantityValidationError;
+      return newState;
     }
 
     case 'TOGGLE_SKU_CALCULATION': {

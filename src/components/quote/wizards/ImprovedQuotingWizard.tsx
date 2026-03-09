@@ -4433,6 +4433,15 @@ export function ImprovedQuotingWizard() {
   const canProceed = currentStepId ? isStepComplete(currentStepId) : false;
   const isLastStep = currentStep === STEPS.length - 1;
 
+  // SKU数量MOQエラーがある場合は進行不可
+  const canProceedWithValidation = useMemo(() => {
+    if (!canProceed) return false;
+    if (currentStepId === 'sku-quantity' && state.skuQuantityValidationError) {
+      return false;
+    }
+    return true;
+  }, [canProceed, currentStepId, state.skuQuantityValidationError]);
+
   // Compute validation error message for 2-column production total quantity mismatch
   // This is displayed when canProceed is false due to total quantity validation failure
   const getNavigationBlockReason = (): string | null => {
@@ -4452,13 +4461,13 @@ export function ImprovedQuotingWizard() {
 
   // Keyboard navigation
   useKeyboardNavigation({
-    onNext: canProceed ? handleNext : undefined,
+    onNext: canProceedWithValidation ? handleNext : undefined,
     onPrevious: currentStep > 0 ? handleBack : undefined,
     onDismiss: () => {
       toasts.forEach(toast => dismissToast(toast.id));
     },
-    onConfirm: canProceed ? handleNext : undefined,
-    canProceed,
+    onConfirm: canProceedWithValidation ? handleNext : undefined,
+    canProceed: canProceedWithValidation,
     canGoBack: currentStep > 0,
   });
 

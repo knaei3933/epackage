@@ -148,7 +148,7 @@ function SpecsStep() {
       }
     }
 
-    // ボックス型パウチ: 横＋側面 350mm以下（側面＝depth/2）
+    // ガゼットパウチ: 横＋側面 350mm以下（側面＝depth/2）
     if (bagTypeId === 'box' && width && depth) {
       const widthWithSide = width + (depth / 2);
       if (widthWithSide > 350) {
@@ -161,8 +161,8 @@ function SpecsStep() {
 
   // Determine if gusset (マチ) should be shown based on bag type
   const shouldShowGusset = () => {
-    // Don't show gusset for flat_3_side and roll_film
-    return state.bagTypeId !== 'flat_3_side' && state.bagTypeId !== 'roll_film';
+    // Don't show gusset for flat_3_side, roll_film, lap_seal (合掌袋), box (ガゼットパウチ), and spout_pouch (spout_pouch uses hasGusset state instead)
+    return state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset';
   };
 
   // Calculate available gusset sizes based on current width
@@ -213,8 +213,8 @@ function SpecsStep() {
     },
     {
       id: 'box',
-      name: 'ボックス型パウチ',
-      nameJa: 'ボックス型パウチ',
+      name: 'ガゼットパウチ',
+      nameJa: 'ガゼットパウチ',
       description: '箱型形状で保護性に優れる',
       descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
       basePrice: 30,
@@ -593,6 +593,253 @@ function SpecsStep() {
             { materialId: 'LLDPE', thickness: 110 }
           ]
         }
+      ],
+    },
+    {
+      id: 'ny_lldpe',
+      name: MATERIAL_TYPE_LABELS.ny_lldpe,
+      nameJa: MATERIAL_TYPE_LABELS_JA.ny_lldpe,
+      description: MATERIAL_DESCRIPTIONS.ny_lldpe.en,
+      descriptionJa: MATERIAL_DESCRIPTIONS.ny_lldpe.ja,
+      multiplier: 1.1,
+      features: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
+      featuresJa: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
+      popular: false,
+      ecoFriendly: false,
+      thicknessOptions: [
+        {
+          id: 'light_50',
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'NY 15μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'standard_70',
+          name: '標準タイプ (~200g)',
+          nameJa: '標準タイプ (~200g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'NY 15μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 70 }
+          ]
+        },
+        {
+          id: 'heavy_90',
+          name: '高耐久タイプ (~500g)',
+          nameJa: '高耐久タイプ (~500g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'NY 15μ + LLDPE 90μ',
+          weightRange: '~500g',
+          multiplier: 1.0,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 90 }
+          ]
+        },
+        {
+          id: 'ultra_100',
+          name: '超耐久タイプ (~800g)',
+          nameJa: '超耐久タイプ (~800g)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'NY 15μ + LLDPE 100μ',
+          weightRange: '~800g',
+          multiplier: 1.1,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 100 }
+          ]
+        },
+        {
+          id: 'maximum_110',
+          name: 'マキシマムタイプ (800g~)',
+          nameJa: 'マキシマムタイプ (800g~)',
+          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'NY 15μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'NY', thickness: 15 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'kraft_vmpet_lldpe',
+      name: MATERIAL_TYPE_LABELS.kraft_vmpet_lldpe,
+      nameJa: MATERIAL_TYPE_LABELS_JA.kraft_vmpet_lldpe,
+      description: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.en,
+      descriptionJa: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.ja,
+      multiplier: 1.4,
+      features: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
+      featuresJa: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
+      popular: false,
+      ecoFriendly: true,
+      thicknessOptions: [
+        {
+          id: 'light_50',
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'standard_70',
+          name: '標準タイプ (~200g)',
+          nameJa: '標準タイプ (~200g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 70 }
+          ]
+        },
+        {
+          id: 'heavy_90',
+          name: '高耐久タイプ (~500g)',
+          nameJa: '高耐久タイプ (~500g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+          weightRange: '~500g',
+          multiplier: 1.0,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 90 }
+          ]
+        },
+        {
+          id: 'ultra_100',
+          name: '超耐久タイプ (~800g)',
+          nameJa: '超耐久タイプ (~800g)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
+          weightRange: '~800g',
+          multiplier: 1.1,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 100 }
+          ]
+        },
+        {
+          id: 'maximum_110',
+          name: 'マキシマムタイプ (800g~)',
+          nameJa: 'マキシマムタイプ (800g~)',
+          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'VMPET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'kraft_pet_lldpe',
+      name: MATERIAL_TYPE_LABELS.kraft_pet_lldpe,
+      nameJa: MATERIAL_TYPE_LABELS_JA.kraft_pet_lldpe,
+      description: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.en,
+      descriptionJa: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.ja,
+      multiplier: 1.3,
+      features: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
+      featuresJa: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
+      popular: false,
+      ecoFriendly: true,
+      thicknessOptions: [
+        {
+          id: 'light_50',
+          name: '軽量タイプ (~50g)',
+          nameJa: '軽量タイプ (~50g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
+          weightRange: '~50g',
+          multiplier: 0.85,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 50 }
+          ]
+        },
+        {
+          id: 'standard_70',
+          name: '標準タイプ (~200g)',
+          nameJa: '標準タイプ (~200g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+          weightRange: '~200g',
+          multiplier: 0.95,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 70 }
+          ]
+        },
+        {
+          id: 'heavy_90',
+          name: '高耐久タイプ (~500g)',
+          nameJa: '高耐久タイプ (~500g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
+          weightRange: '~500g',
+          multiplier: 1.0,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 90 }
+          ]
+        },
+        {
+          id: 'ultra_100',
+          name: '超耐久タイプ (~800g)',
+          nameJa: '超耐久タイプ (~800g)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
+          weightRange: '~800g',
+          multiplier: 1.1,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 100 }
+          ]
+        },
+        {
+          id: 'maximum_110',
+          name: 'マキシマムタイプ (800g~)',
+          nameJa: 'マキシマムタイプ (800g~)',
+          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
+          weightRange: '800g~',
+          multiplier: 1.2,
+          filmLayers: [
+            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'PET', thickness: 12 },
+            { materialId: 'LLDPE', thickness: 110 }
+          ]
+        }
       ]
     }
   ];
@@ -649,13 +896,13 @@ function SpecsStep() {
 
         {/* Contents Dropdowns - 4 dropdowns in a row */}
         <div className="mb-6" data-section="contents-dropdowns">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-lg font-semibold text-gray-900 mb-3">
             内容物 <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Product Category */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">製品タイプ</label>
+              <label className="block text-base text-gray-700 mb-1">製品タイプ</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
@@ -675,7 +922,7 @@ function SpecsStep() {
 
             {/* Contents Type */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">内容物の形態</label>
+              <label className="block text-base text-gray-700 mb-1">内容物の形態</label>
               <select
                 value={selectedType}
                 onChange={(e) => updateField('contentsType', e.target.value as typeof selectedType)}
@@ -695,7 +942,7 @@ function SpecsStep() {
 
             {/* Main Ingredient */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">主成分</label>
+              <label className="block text-base text-gray-700 mb-1">主成分</label>
               <select
                 value={selectedIngredient}
                 onChange={(e) => updateField('mainIngredient', e.target.value as typeof selectedIngredient)}
@@ -715,7 +962,7 @@ function SpecsStep() {
 
             {/* Distribution Environment */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">流通環境</label>
+              <label className="block text-base text-gray-700 mb-1">流通環境</label>
               <select
                 value={selectedEnvironment}
                 onChange={(e) => updateField('distributionEnvironment', e.target.value as typeof selectedEnvironment)}
@@ -746,13 +993,13 @@ function SpecsStep() {
         <div className="space-y-6">
           {/* Bag Type Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">袋のタイプ</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="block text-lg font-semibold text-gray-900 mb-3">袋のタイプ</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {bagTypes.map(type => (
                 <button
                   key={type.id}
                   onClick={() => updateBasicSpecs({ bagTypeId: type.id })}
-                  className={`p-4 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.bagTypeId === type.id
+                  className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.bagTypeId === type.id
                     ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
                     : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
                     }`}
@@ -764,35 +1011,27 @@ function SpecsStep() {
                       </div>
                     </div>
                   )}
-                  <div className="flex items-start space-x-4">
-                    <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-200">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="w-48 h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border-2 border-gray-200 shadow-lg">
                       <img
                         src={type.image}
                         alt={type.nameJa}
-                        className="w-full h-full object-contain p-3"
+                        className="w-full h-full object-contain p-1"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           const parent = target.parentElement;
                           if (parent) {
-                            // Create fallback icon
                             parent.innerHTML = `
-                              <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg class="w-32 h-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                               </svg>
                             `;
-                            parent.classList.add('bg-gray-50');
+                            parent.classList.add('bg-white');
                           }
                         }}
                       />
                     </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{type.nameJa}</div>
-                      <span className="text-gray-500 text-xs">{(type as any).description || ''}</span>
-                      <div className="text-sm text-gray-600 mt-1">{type.descriptionJa}</div>
-                      <div className="text-xs text-navy-600 font-medium bg-navy-50 inline-block px-2 py-1 rounded mt-2">
-                        基本価格: ¥{type.basePrice.toLocaleString()}/個
-                      </div>
-                    </div>
+                    <div className="font-bold text-gray-900 text-base text-center">{type.nameJa}</div>
                   </div>
                 </button>
               ))}
@@ -802,13 +1041,13 @@ function SpecsStep() {
           {/* Spout Position Selector - Only show for spout_pouch */}
           {state.bagTypeId === 'spout_pouch' && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">スパウト位置</label>
+              <label className="block text-lg font-semibold text-gray-900 mb-3">スパウト位置</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {spoutPositions.map((position) => (
                   <button
                     key={position.id}
                     onClick={() => updateField('spoutPosition', position.id)}
-                    className={`p-4 border-2 rounded-lg transition-all relative ${state.spoutPosition === position.id
+                    className={`p-2 border-2 rounded-lg transition-all relative ${state.spoutPosition === position.id
                       ? 'border-green-500 bg-green-50 shadow-md'
                       : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
                       }`}
@@ -851,14 +1090,14 @@ function SpecsStep() {
 
           {/* Size Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">サイズ (mm)</label>
+            <label className="block text-lg font-semibold text-gray-900 mb-3">サイズ (mm)</label>
             <div className={`grid grid-cols-1 gap-4 ${
               state.bagTypeId === 'roll_film' ? 'sm:grid-cols-2' :
               state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box' ? 'sm:grid-cols-4' :
               'sm:grid-cols-3'
             }`}>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">幅</label>
+                <label className="block text-base text-gray-700 mb-1">幅</label>
                 <input
                   type="number"
                   min="50"
@@ -871,7 +1110,7 @@ function SpecsStep() {
               {/* Height input - HIDE for roll_film, SHOW pitch instead */}
               {state.bagTypeId === 'roll_film' ? (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">ピッチ (デザイン周期)</label>
+                  <label className="block text-base text-gray-700 mb-1">ピッチ (デザイン周期)</label>
                   <input
                     type="number"
                     min="50"
@@ -894,7 +1133,7 @@ function SpecsStep() {
               ) : (
                 state.bagTypeId !== 'roll_film' && (
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">高さ</label>
+                    <label className="block text-base text-gray-700 mb-1">高さ</label>
                     <input
                       type="number"
                       min="50"
@@ -932,9 +1171,100 @@ function SpecsStep() {
                   </div>
                 )
               )}
+                {/* Spout Gusset (底) input - Only for spout_pouch with hasGusset, placed right after height */}
+                {state.bagTypeId === 'spout_pouch' && state.hasGusset && (
+                  <div>
+                    <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
+                    {(() => {
+                      const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
+                      return hasValidGusset ? (
+                        <select
+                          value={state.depth || availableGussetSizes[0] || 30}
+                          onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) || 30 })}
+                          className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                        >
+                          {availableGussetSizes.map((size) => (
+                            <option key={size} value={size}>
+                              {size}mm
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="number"
+                          min="0"
+                          value={state.depth ?? ''}
+                          onChange={(e) => updateBasicSpecs({ depth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                          placeholder="0"
+                        />
+                      );
+                    })()}
+                    {state.width && state.width >= 70 && availableGussetSizes.length > 0 && (
+                      <p className="mt-1 text-xs text-gray-400">
+                        幅{state.width}mmで選択可能なマチサイズ
+                      </p>
+                    )}
+                  </div>
+                )}
+
+              {/* Spout Size & Gusset Selection - Only for spout_pouch */}
+              {state.bagTypeId === 'spout_pouch' && (
+                <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Spout Size */}
+                  <div>
+                    <label className="block text-base text-gray-700 mb-1">スパウトサイズ <span className="text-red-500">*</span></label>
+                    <select
+                      value={state.spoutSize || ''}
+                      onChange={(e) => {
+                        const spoutSize = e.target.value;
+                        updateField('spoutSize', spoutSize);
+                      }}
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                      required
+                    >
+                      <option value="">選択してください</option>
+                      <option value="9">9パイ（φ9mm）- 小型</option>
+                      <option value="15">15パイ（φ15mm）- 標準小型</option>
+                      <option value="18">18パイ（φ18mm）- 標準</option>
+                      <option value="22">22パイ（φ22mm）- 大型</option>
+                      <option value="28">28パイ（φ28mm）- 特大</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-400">
+                      液体製品に最適な注ぎ口サイズを選択してください
+                    </p>
+                  </div>
+
+                  {/* Gusset Selection */}
+                  <div>
+                    <label className="block text-base text-gray-700 mb-1">マチ有無</label>
+                    <select
+                      value={state.hasGusset ? 'has-gusset' : 'no-gusset'}
+                      onChange={(e) => {
+                        const hasGussetValue = e.target.value === 'has-gusset';
+                        updateField('hasGusset', hasGussetValue);
+                        updateBasicSpecs({
+                          hasGusset: hasGussetValue,
+                          depth: hasGussetValue ? (state.depth || 30) : 0
+                        });
+                      }}
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                    >
+                      <option value="no-gusset">マチなし（平袋準用）</option>
+                      <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {state.hasGusset
+                        ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
+                        : 'マチなし: 平袋計算式を適用 (H×2+41)'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {shouldShowGusset() && state.bagTypeId !== 'roll_film' && (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">マチ (底)</label>
+                  <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                   {(() => {
                     const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
                     return hasValidGusset ? (
@@ -967,10 +1297,10 @@ function SpecsStep() {
                   )}
                 </div>
               )}
-              {/* 側面 (よこめん) - 合掌袋とボックス型パウチのみ */}
-              {(state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') && (
+              {/* 側面 (よこめん) - ガゼットパウチのみ */}
+              {state.bagTypeId === 'box' && (
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">側面</label>
+                  <label className="block text-base text-gray-700 mb-1">側面</label>
                   <input
                     type="number"
                     min="0"
@@ -980,7 +1310,7 @@ function SpecsStep() {
                     placeholder="例: 50"
                   />
                   <p className="mt-1 text-xs text-gray-400">
-                    {state.bagTypeId === 'lap_seal' ? '※ 175mm以下で入力してください' : '※ 側面を入力してください（オプション）'}
+                    '※ 側面を入力してください（オプション）'
                   </p>
                 </div>
               )}
@@ -989,13 +1319,13 @@ function SpecsStep() {
 
           {/* Material Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">素材</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="block text-lg font-semibold text-gray-900 mb-3">素材</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {materials.map(material => (
                 <button
                   key={material.id}
                   onClick={() => updateBasicSpecs({ materialId: material.id })}
-                  className={`p-4 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.materialId === material.id
+                  className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.materialId === material.id
                     ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
                     : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
                     }`}
@@ -1024,19 +1354,6 @@ function SpecsStep() {
                       </div>
                       <div className="text-sm text-gray-600 mt-1">{material.descriptionJa}</div>
 
-                      {/* Features */}
-                      <div className="mt-2">
-                        <div className="flex flex-wrap gap-1">
-                          {material.featuresJa.slice(0, 3).map((feature, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                            >
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </button>
@@ -1050,7 +1367,7 @@ function SpecsStep() {
           const selectedMaterial = materials.find(m => m.id === state.materialId);
           if (!selectedMaterial?.thicknessOptions) return null;
 
-          const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
+          const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al', 'ny_lldpe', 'kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
           const isRequired = materialsWithThickness.includes(state.materialId);
           const isSelected = !!state.thicknessSelection;
 
@@ -1073,37 +1390,27 @@ function SpecsStep() {
                   </span>
                 )}
               </div>
-              <div className="space-y-3">
-                {selectedMaterial.thicknessOptions.map(thickness => (
-                  <button
-                    key={thickness.id}
-                    onClick={() => updateBasicSpecs({ thicknessSelection: thickness.id })}
-                    className={`w-full p-4 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.thicknessSelection === thickness.id
-                      ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
-                      : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
-                      }`}
-                  >
-                    {state.thicknessSelection === thickness.id && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                          <Check className="w-4 h-4 text-white" />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm text-gray-600 pr-8">{thickness.nameJa}</div>
-                        <div className="font-medium text-gray-900 mt-1">{thickness.specificationEn || thickness.specification}</div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <span className="inline-block px-2 py-1 text-xs bg-info-50 text-info-700 rounded">
-                            重量: {thickness.weightRange}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              <div>
+                <select
+                  value={state.thicknessSelection || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    updateBasicSpecs({ thicknessSelection: value });
+                  }}
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                >
+                  <option value="">選択してください</option>
+                  {selectedMaterial.thicknessOptions.map(thickness => (
+                    <option key={thickness.id} value={thickness.id}>
+                      {thickness.nameJa} - {thickness.specificationEn || thickness.specification}
+                    </option>
+                  ))}
+                </select>
+                {state.thicknessSelection && selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection) && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    規格: {selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection)?.specificationEn || ''}
+                  </p>
+                )}
               </div>
               <p className="mt-2 text-xs text-gray-500">
                 推奨: 中間タイプで最適なバランスです
@@ -1222,8 +1529,8 @@ function PostProcessingStep() {
   ];
 
   // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示
-  // スタンドパウチ、ボックス型パウチ、スパウトパウチの場合は開封位置を上端開封のみに制限
-  // スタンドパウチ、ボックス型パウチの場合のみマチ印刷オプションを表示
+  // スタンドパウチ、ガゼットパウチ、スパウトパウチの場合は開封位置を上端開封のみに制限
+  // スタンドパウチ、ガゼットパウチの場合のみマチ印刷オプションを表示
   const forceTopOpen = state.bagTypeId === 'stand_up' || state.bagTypeId === 'box' || state.bagTypeId === 'spout_pouch';
   const showMachiPrinting = state.bagTypeId === 'stand_up' || state.bagTypeId === 'box';
 
@@ -1457,7 +1764,7 @@ function getBagTypeLabel(bagTypeId: string): string {
   const bagTypeLabels: Record<string, string> = {
     'flat_3_side': '三方シール平袋',
     'stand_up': 'スタンドパウチ',
-    'box': 'BOX型パウチ',
+    'box': 'ガゼットパウチ',
     'spout_pouch': 'スパウトパウチ',
     'roll_film': 'ロールフィルム'
   };
@@ -1535,74 +1842,80 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       // パウチの場合、result.filmUsageを使用
       const currentFilmUsageForCalc = state.bagTypeId === 'roll_film' ? state.quantity : (result.filmUsage || 900);
 
-      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
-        state.quantity,
-        { width: state.width, height: state.height, depth: state.depth },
-        state.bagTypeId,
-        currentFilmUsageForCalc,
-        result.unitPrice,
-        {
-          filmLayers: state.filmLayers,
-          materialId: state.materialId,
-          thicknessSelection: state.thicknessSelection,
-          postProcessingOptions: state.postProcessingOptions
+      // async関数を呼び出すためのIIFE
+      (async () => {
+        const suggestion = await pouchCostCalculator.calculateEconomicQuantitySuggestion(
+          state.quantity,
+          { width: state.width, height: state.height, depth: state.depth },
+          state.bagTypeId,
+          currentFilmUsageForCalc,
+          result.unitPrice,
+          {
+            filmLayers: state.filmLayers,
+            materialId: state.materialId,
+            thicknessSelection: state.thicknessSelection,
+            postProcessingOptions: state.postProcessingOptions
+          }
+        );
+
+        if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
+          setParallelProductionOptions(suggestion.parallelProductionOptions);
+          setShowOptimizationSuggestions(true);
         }
-      );
 
-      if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
-        setParallelProductionOptions(suggestion.parallelProductionOptions);
-        setShowOptimizationSuggestions(true);
-      }
-
-      // 経済的数量提案もセット
-      setEconomicQuantitySuggestion({
-        orderQuantity: suggestion.orderQuantity,
-        minimumOrderQuantity: suggestion.minimumOrderQuantity,
-        minimumFilmUsage: suggestion.minimumFilmUsage,
-        pouchesPerMeter: suggestion.pouchesPerMeter,
-        economicQuantity: suggestion.economicQuantity,
-        economicFilmUsage: suggestion.economicFilmUsage,
-        efficiencyImprovement: suggestion.efficiencyImprovement,
-        unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
-        unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
-        costSavings: suggestion.costSavings,
-        costSavingsRate: suggestion.costSavingsRate,
-        recommendedQuantity: suggestion.recommendedQuantity,
-        recommendationReason: suggestion.recommendationReason
-      });
+        // 経済的数量提案もセット
+        setEconomicQuantitySuggestion({
+          orderQuantity: suggestion.orderQuantity,
+          minimumOrderQuantity: suggestion.minimumOrderQuantity,
+          minimumFilmUsage: suggestion.minimumFilmUsage,
+          pouchesPerMeter: suggestion.pouchesPerMeter,
+          economicQuantity: suggestion.economicQuantity,
+          economicFilmUsage: suggestion.economicFilmUsage,
+          efficiencyImprovement: suggestion.efficiencyImprovement,
+          unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
+          unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
+          costSavings: suggestion.costSavings,
+          costSavingsRate: suggestion.costSavingsRate,
+          recommendedQuantity: suggestion.recommendedQuantity,
+          recommendationReason: suggestion.recommendationReason
+        });
+      })();
     } else {
       // パウチ製品（平袋・スタンド）の場合も経済的数量提案を計算
-      const currentFilmUsageForCalc = result.filmUsage || 900;
+      // async関数を呼び出すためのIIFE
+      (async () => {
+        const currentFilmUsageForCalc = result.filmUsage || 900;
 
-      const suggestion = pouchCostCalculator.calculateEconomicQuantitySuggestion(
-        state.quantity,
-        { width: state.width, height: state.height, depth: state.depth },
-        state.bagTypeId,
-        currentFilmUsageForCalc,
-        result.unitPrice,
-        {
-          filmLayers: state.filmLayers,
-          materialId: state.materialId,
-          thicknessSelection: state.thicknessSelection,
-          postProcessingOptions: state.postProcessingOptions
-        }
-      );
+        const suggestion = await pouchCostCalculator.calculateEconomicQuantitySuggestion(
+          state.quantity,
+          { width: state.width, height: state.height, depth: state.depth },
+          state.bagTypeId,
+          currentFilmUsageForCalc,
+          result.unitPrice,
+          {
+            filmLayers: state.filmLayers,
+            materialId: state.materialId,
+            thicknessSelection: state.thicknessSelection,
+            postProcessingOptions: state.postProcessingOptions
+          }
+        );
 
-      setEconomicQuantitySuggestion({
-        orderQuantity: suggestion.orderQuantity,
-        minimumOrderQuantity: suggestion.minimumOrderQuantity,
-        minimumFilmUsage: suggestion.minimumFilmUsage,
-        pouchesPerMeter: suggestion.pouchesPerMeter,
-        economicQuantity: suggestion.economicQuantity,
-        economicFilmUsage: suggestion.economicFilmUsage,
-        efficiencyImprovement: suggestion.efficiencyImprovement,
-        unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
-        unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
-        costSavings: suggestion.costSavings,
-        costSavingsRate: suggestion.costSavingsRate,
-        recommendedQuantity: suggestion.recommendedQuantity,
-        recommendationReason: suggestion.recommendationReason
-      });
+        setEconomicQuantitySuggestion({
+          orderQuantity: suggestion.orderQuantity,
+          minimumOrderQuantity: suggestion.minimumOrderQuantity,
+          minimumFilmUsage: suggestion.minimumFilmUsage,
+          pouchesPerMeter: suggestion.pouchesPerMeter,
+          economicQuantity: suggestion.economicQuantity,
+          economicFilmUsage: suggestion.economicFilmUsage,
+          efficiencyImprovement: suggestion.efficiencyImprovement,
+          unitCostAtOrderQty: suggestion.unitCostAtOrderQty,
+          unitCostAtEconomicQty: suggestion.unitCostAtEconomicQty,
+          costSavings: suggestion.costSavings,
+          costSavingsRate: suggestion.costSavingsRate,
+          recommendedQuantity: suggestion.recommendedQuantity,
+          recommendationReason: suggestion.recommendationReason
+        });
+      })();
     }
   }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result.unitPrice, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);
 
@@ -1737,13 +2050,13 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         updateField('skuQuantities', [newQuantity])
       } else {
         // 顧客別マークアップ率を取得
-        let customerMarkupRate = 0.2; // デフォルト20%
+        let customerMarkupRate = 0.0; // デフォルトは割引なし（0%）
         if (currentUser?.id) {
           try {
-            const response = await fetch('/api/user/markup-rate');
+            const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
             if (response.ok) {
               const result = await response.json();
-              customerMarkupRate = result.data?.markupRate ?? 0.2;
+              customerMarkupRate = result.data?.markupRate ?? 0.0;
             }
           } catch (e) {
             console.warn('[handleQuantityChange] Failed to fetch markup rate:', e);
@@ -2599,12 +2912,33 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       } => {
         // SKUモードの場合はskuCostDetailsから、通常モードはresultから計算
         let totalCostBreakdown: any = null;
-        let itemsWithCost: any[] = [];
+        let itemsWithCost: any[] = quotationData.items;
 
         if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
           // 複数SKUモード: 各SKUの原価を合計
           console.log('[calculateCostBreakdown] SKU mode detected, calculating from skuCostDetails');
           const skuCosts = result.skuCostDetails.costPerSKU;
+
+          // DIAGNOSTIC: Log array lengths and values to identify root cause
+          console.log('[DIAGNOSTIC] === Cost Breakdown Analysis ===');
+          console.log('[DIAGNOSTIC] quotationData.items.length:', quotationData.items.length);
+          console.log('[DIAGNOSTIC] skuCosts.length:', skuCosts.length);
+          console.log('[DIAGNOSTIC] state.skuQuantities:', state.skuQuantities);
+          console.log('[DIAGNOSTIC] skuCosts costBreakdown values:', skuCosts.map((sku: any, i: number) => ({
+            index: i,
+            quantity: sku.quantity,
+            hasCostBreakdown: !!sku.costBreakdown,
+            costBreakdownKeys: sku.costBreakdown ? Object.keys(sku.costBreakdown) : null
+          })));
+          console.log('[DIAGNOSTIC] === End Analysis ===');
+
+          console.log('[calculateCostBreakdown] skuCosts length:', skuCosts.length);
+          console.log('[calculateCostBreakdown] skuCosts:', skuCosts.map((sku: any, i: number) => ({
+            index: i,
+            quantity: sku.quantity,
+            hasCostBreakdown: !!sku.costBreakdown,
+            costBreakdown: sku.costBreakdown
+          })));
 
           totalCostBreakdown = {
             materialCost: Math.round(skuCosts.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
@@ -2618,10 +2952,36 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           };
 
           // 各SKUアイテムにcost_breakdownを追加
-          itemsWithCost = quotationData.items.map((item: any, index: number) => ({
-            ...item,
-            cost_breakdown: skuCosts[index]?.costBreakdown || null
-          }));
+          // Calculate total quantity for proportional distribution (CORRECTED fallback formula)
+          const totalQuantity = quotationData.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+
+          itemsWithCost = quotationData.items.map((item: any, index: number) => {
+            let costBreakdown = skuCosts[index]?.costBreakdown || null;
+
+            // Fallback: If costBreakdown is null but we have valid totalCostBreakdown, calculate proportionally
+            // Formula: item's share = (item.quantity / totalQuantity) * totalCostBreakdown field
+            // CORRECTED: Use quantity ratio, not price ratio
+            if (!costBreakdown && totalCostBreakdown && item.quantity && totalQuantity > 0) {
+              const proportion = item.quantity / totalQuantity;
+              costBreakdown = {
+                materialCost: Math.round((totalCostBreakdown.materialCost || 0) * proportion),
+                printingCost: Math.round((totalCostBreakdown.printingCost || 0) * proportion),
+                laminationCost: Math.round((totalCostBreakdown.laminationCost || 0) * proportion),
+                slitterCost: Math.round((totalCostBreakdown.slitterCost || 0) * proportion),
+                surfaceTreatmentCost: Math.round((totalCostBreakdown.surfaceTreatmentCost || 0) * proportion),
+                pouchProcessingCost: Math.round((totalCostBreakdown.pouchProcessingCost || 0) * proportion),
+                duty: Math.round((totalCostBreakdown.duty || 0) * proportion),
+                delivery: Math.round((totalCostBreakdown.delivery || 0) * proportion),
+              };
+              console.log(`[calculateCostBreakdown] Item ${index} using FALLBACK cost_breakdown (proportion: ${proportion.toFixed(4)})`);
+            }
+
+            console.log(`[calculateCostBreakdown] Item ${index} cost_breakdown:`, costBreakdown);
+            return {
+              ...item,
+              cost_breakdown: costBreakdown
+            };
+          });
 
         } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
           // result.breakdownから直接計算
@@ -2674,6 +3034,10 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
 
         console.log('[calculateCostBreakdown] totalCostBreakdown:', totalCostBreakdown);
         console.log('[calculateCostBreakdown] itemsWithCost length:', itemsWithCost.length);
+        // 各アイテムのcost_breakdownをログ出力
+        itemsWithCost.forEach((item: any, index: number) => {
+          console.log(`[calculateCostBreakdown] itemsWithCost[${index}].cost_breakdown:`, item.cost_breakdown);
+        });
 
         return { total_cost_breakdown: totalCostBreakdown, itemsWithCostBreakdown: itemsWithCost };
       };
@@ -2848,7 +3212,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         // 角加工: state.postProcessingOptionsから抽出
         cornerR: state.postProcessingOptions.includes('corner-round') ? 'R5' :
                  state.postProcessingOptions.includes('corner-square') ? 'R0' : 'R5',
-        // マチ印刷（スタンドパウチ、合掌パウチ、BOX型パウチのみ）
+        // マチ印刷（スタンドパウチ、合掌パウチ、ガゼットパウチのみ）
         machiPrinting: (state.bagTypeId === 'stand_up' ||
                         state.bagTypeId === 'lap_seal' ||
                         state.bagTypeId === 'flat_3_side' ||
@@ -3583,13 +3947,13 @@ function RealTimePriceDisplay() {
       setIsCalculating(true);
       try {
         // 顧客別マークアップ率を取得
-        let customerMarkupRate = 0.2; // デフォルト20%
+        let customerMarkupRate = 0.0; // デフォルトは割引なし
         if (currentUser?.id) {
           try {
-            const response = await fetch('/api/user/markup-rate');
+            const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
             if (response.ok) {
               const result = await response.json();
-              customerMarkupRate = result.data?.markupRate ?? 0.2;
+              customerMarkupRate = result.data?.markupRate ?? 0.0;
             }
           } catch (e) {
             console.warn('[calculatePrice] Failed to fetch markup rate:', e);
@@ -3607,6 +3971,7 @@ function RealTimePriceDisplay() {
         }> = [];
 
         for (const quantity of quantities) {
+          console.log('[RealTimePriceDisplay] 計算開始 - 数量:', quantity, 'markupRate:', customerMarkupRate, 'ユーザーID:', currentUser?.id);
           const quoteResult = await unifiedPricingEngine.calculateQuote({
             bagTypeId: state.bagTypeId,
             materialId: state.materialId,
@@ -3625,12 +3990,19 @@ function RealTimePriceDisplay() {
             // 顧客別マークアップ率
             markupRate: customerMarkupRate,
             rollCount: state.rollCount, // 롤 필름 시 롤 개수
+            // SKU計算を使用（handleNextと同じ計算方法）
+            useSKUCalculation: true,
+            skuQuantities: state.skuCount > 1 ? state.skuQuantities : [quantity],
+            // Roll film specific parameters
+            materialWidth: state.materialWidth,
+            filmLayers: state.filmLayers,
             // 2列生産オプション関連パラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
             discountedTotalPrice: state.discountedTotalPrice,
             originalUnitPrice: state.originalUnitPrice
           });
+          console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '価格:', quoteResult.totalPrice, '円');
 
           // Determine price break and discount rate
           let discountRate = 0;
@@ -3908,17 +4280,20 @@ export function ImprovedQuotingWizard() {
           console.log(`[handleNext] Calculating quote for ${useSKUMode ? 'SKU' : 'single'} mode, total quantity: ${totalQuantity}`);
 
           // Get customer-specific markup rate (if logged in)
-          let markupRate = 0.2; // Default 20% (standard margin)
+          let markupRate = 0.0; // Default 0% (no discount) - 顧客別割引率のみ適用
+          console.log('[handleNext] デフォルトmarkupRate:', markupRate, 'ユーザーID:', user?.id);
           // CRITICAL: Wait for auth to complete before checking user
+          // 認証が完了するまで計算を待機し、正しい顧客別割引を適用する
           if (isAuthLoading) {
-            console.log('[handleNext] Auth still loading, using default markup rate: 0.2');
+            console.log('[handleNext] Auth loading, WAITING for auth to complete...');
+            return; // 計算を中断して認証完了を待つ
           } else if (user?.id) {
             try {
               // Fetch customer markup rate from API
-              const response = await fetch('/api/user/markup-rate');
+              const response = await fetch('/api/user/markup-rate', { cache: 'no-store' });
               if (response.ok) {
                 const result = await response.json();
-                markupRate = result.data?.markupRate ?? 0.2;
+                markupRate = result.data?.markupRate ?? 0.0; // デフォルトは割引なし（0%）
                 console.log('[handleNext] Customer markup rate:', markupRate);
               } else {
                 console.warn('[handleNext] Failed to fetch markup rate, using default 20%');
@@ -3927,6 +4302,17 @@ export function ImprovedQuotingWizard() {
               console.warn('[handleNext] Failed to fetch markup rate, using default 20%:', error);
             }
           }
+
+          console.log('[handleNext] DIAGNOSTIC - calculateQuote PARAMS:', {
+            bagTypeId: state.bagTypeId,
+            materialId: state.materialId,
+            skuCount: state.skuCount,
+            skuQuantities: state.skuQuantities,
+            totalQuantity: totalQuantity,
+            markupRate: markupRate,
+            deliveryLocation: state.deliveryLocation || 'domestic',
+            urgency: state.urgency || 'standard',
+          });
 
           // Calculate quote with SKU mode if applicable
           const quoteResult = await unifiedPricingEngine.calculateQuote({
@@ -3952,14 +4338,14 @@ export function ImprovedQuotingWizard() {
             // Roll film specific parameters (materialWidthはQuoteContextで動的に決定)
             materialWidth: state.materialWidth,
             filmLayers: state.filmLayers,
-            // 2列生産オプション関連パラメータ
+            // 2列生産オプションパラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
             discountedTotalPrice: state.discountedTotalPrice,
             originalUnitPrice: state.originalUnitPrice
           });
 
-          console.log('[handleNext] Quote calculation result:', quoteResult);
+          console.log('[handleNext] 価格計算完了 - 総額:', quoteResult.totalPrice, '円, markupRate:', markupRate, 'ユーザーID:', user?.id);
 
           // Enhance result with mode-specific information
           const enhancedResult = {
@@ -4046,6 +4432,23 @@ export function ImprovedQuotingWizard() {
 
   const canProceed = currentStepId ? isStepComplete(currentStepId) : false;
   const isLastStep = currentStep === STEPS.length - 1;
+
+  // Compute validation error message for 2-column production total quantity mismatch
+  // This is displayed when canProceed is false due to total quantity validation failure
+  const getNavigationBlockReason = (): string | null => {
+    if (currentStepId !== 'sku-quantity') return null;
+    if (state.quantityMode !== 'sku') return null;
+    if (!state.twoColumnOptionApplied || state.fixedTotalQuantity === undefined) return null;
+
+    const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
+    if (currentTotalQuantity !== state.fixedTotalQuantity) {
+      const diff = currentTotalQuantity - state.fixedTotalQuantity;
+      return `総数量が${diff > 0 ? '+' : ''}${diff.toLocaleString()}個です。総数量${state.fixedTotalQuantity.toLocaleString()}個を維持してください`;
+    }
+    return null;
+  };
+
+  const navigationBlockReason = getNavigationBlockReason();
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -4198,6 +4601,27 @@ export function ImprovedQuotingWizard() {
               {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep />}
               {currentStepId === 'result' && result && <ResultStep result={result} onReset={handleReset} onResultUpdate={setResult} />}
 
+              {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
+              {!canProceed && navigationBlockReason && currentStepId === 'sku-quantity' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-800">
+                        {navigationBlockReason}
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        総数量を調整してから次へ進んでください
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Navigation Buttons */}
               {currentStepId !== 'result' && (
                 <div className="pt-8 flex flex-col sm:flex-row justify-between gap-4 border-t border-gray-200">
@@ -4216,55 +4640,68 @@ export function ImprovedQuotingWizard() {
 
                   <motion.button
                     onClick={handleNext}
-                    disabled={!canProceed || isCalculating}
-                    className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center relative shadow-lg w-full sm:w-auto border-2 ${!canProceed || isCalculating
+                    disabled={!canProceed || isCalculating || isAuthLoading}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center relative shadow-lg w-full sm:w-auto border-2 ${!canProceed || isCalculating || isAuthLoading
                       ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed opacity-70'
                       : 'bg-info-700 border-info-800 hover:bg-info-800 hover:border-info-900 hover:shadow-xl'
                       }`}
-                    style={!canProceed || isCalculating ? {} : {
+                    style={!canProceed || isCalculating || isAuthLoading ? {} : {
                       backgroundColor: '#1e3a8a',
                       borderColor: '#1e40af',
                       color: '#FFFFFF !important'
                     }}
                     aria-label={isLastStep ? "見積もりを完了する" : "次のステップに進む"}
-                    whileHover={canProceed && !isCalculating ? {
+                    whileHover={canProceed && !isCalculating && !isAuthLoading ? {
                       scale: 1.02,
                       backgroundColor: '#1e40af',
                       borderColor: '#1e3a8a'
                     } : {}}
-                    whileTap={canProceed && !isCalculating ? { scale: 0.98 } : {}}
+                    whileTap={canProceed && !isCalculating && !isAuthLoading ? { scale: 0.98 } : {}}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
                     <div className="relative flex items-center" style={{
-                      color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF',
+                      color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF',
                       fontWeight: 'bold'
                     }}>
-                      {isCalculating ? (
+                      {isAuthLoading ? (
                         <>
                           <div
                             className="animate-spin rounded-full h-4 w-4 border-2 mr-2"
                             style={{
-                              borderColor: !canProceed || isCalculating ? 'currentColor' : '#FFFFFF',
+                              borderColor: !canProceed || isCalculating || isAuthLoading ? 'currentColor' : '#FFFFFF',
                               borderTopColor: 'transparent'
                             }}
                           />
-                          <span style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }}>
+                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
+                            認証確認中...
+                          </span>
+                        </>
+                      ) : isCalculating ? (
+                        <>
+                          <div
+                            className="animate-spin rounded-full h-4 w-4 border-2 mr-2"
+                            style={{
+                              borderColor: !canProceed || isCalculating || isAuthLoading ? 'currentColor' : '#FFFFFF',
+                              borderTopColor: 'transparent'
+                            }}
+                          />
+                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
                             計算中...
                           </span>
                         </>
                       ) : isLastStep ? (
                         <>
-                          <Check className="w-4 h-4 mr-2" style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }} />
-                          <span style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }}>
+                          <Check className="w-4 h-4 mr-2" style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }} />
+                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
                             見積もりを完了
                           </span>
                         </>
                       ) : (
                         <>
-                          <span style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }}>
+                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
                             次へ
                           </span>
-                          <ChevronRight className="w-4 h-4 ml-2" style={{ color: !canProceed || isCalculating ? 'inherit' : '#FFFFFF' }} />
+                          <ChevronRight className="w-4 h-4 ml-2" style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }} />
                         </>
                       )}
                     </div>
