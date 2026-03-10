@@ -335,15 +335,15 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       const isKraftMaterial = kraftMaterials.includes(newMaterialId);
       const wasKraftMaterial = kraftMaterials.includes(state.materialId);
 
-//       if (isKraftMaterial && newBagTypeId !== 'roll_film' && !action.payload.bagTypeId) {
-//         // Kraft材料が選択された場合、自動的にロールフィルムに切り替え
-//         console.log('[SET_BASIC_SPECS] Kraft material selected - auto-switching to roll_film mode');
-//         newBagTypeId = 'roll_film';
-//       } else if (!isKraftMaterial && newBagTypeId === 'roll_film' && materialIdChanged && kraftMaterials.includes(state.materialId)) {
-//         // Kraft材料から他の材料に変更された場合、ロールフィルムモードを維持
-//         console.log('[SET_BASIC_SPECS] Switched from Kraft to another material - staying in roll_film mode');
-//       }
-// 
+      if (isKraftMaterial && newBagTypeId !== 'roll_film' && !action.payload.bagTypeId) {
+        // Kraft材料が選択された場合、自動的にロールフィルムに切り替え
+        console.log('[SET_BASIC_SPECS] Kraft material selected - auto-switching to roll_film mode');
+        newBagTypeId = 'roll_film';
+      } else if (!isKraftMaterial && newBagTypeId === 'roll_film' && materialIdChanged && kraftMaterials.includes(state.materialId)) {
+        // Kraft材料から他の材料に変更された場合、ロールフィルムモードを維持
+        console.log('[SET_BASIC_SPECS] Switched from Kraft to another material - staying in roll_film mode');
+      }
+
       // クラフト材料専用設定：数量オプションを1000m単位にし、並列生産を無効化
       let kraftQuantities: number[] | undefined;
       let kraftSkuCount: number | undefined;
