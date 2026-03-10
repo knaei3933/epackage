@@ -323,7 +323,7 @@ export default function RegistrationForm({
 
   return (
     <Card className="p-6 md:p-8">
-      <form onSubmit={handleSubmit(onSubmit)} className={className}>
+      <form onSubmit={handleSubmit(onSubmit)} className={`text-base ${className}`}>
         {/* サーバーエラーメッセージ */}
         {serverError && (
           <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
@@ -335,7 +335,7 @@ export default function RegistrationForm({
             SECTION 1: 認証情報
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             認証情報
           </h2>
 
@@ -394,7 +394,7 @@ export default function RegistrationForm({
             SECTION 2: 氏名
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             氏名
           </h2>
 
@@ -413,7 +413,7 @@ export default function RegistrationForm({
             SECTION 3: 連絡先
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             連絡先
           </h2>
 
@@ -439,36 +439,46 @@ export default function RegistrationForm({
             SECTION 4: 事業形態
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             事業形態
           </h2>
 
           <div className="flex gap-6">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                {...register('businessType')}
-                type="radio"
-                value={BusinessType.INDIVIDUAL}
-                className="w-4 h-4 text-brixa-500"
-              />
-              <span className="text-sm text-text-primary">
+            <label className="flex items-center space-x-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  {...register('businessType')}
+                  type="radio"
+                  value={BusinessType.INDIVIDUAL}
+                  className="peer sr-only"
+                />
+                <div className="w-5 h-5 border-2 border-gray-300 rounded-full bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 peer-checked:ring-4 peer-checked:ring-brixa-100 flex items-center justify-center group-hover:border-brixa-400">
+                  <div className="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
+                </div>
+              </div>
+              <span className="text-base text-text-primary">
                 個人
               </span>
             </label>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                {...register('businessType')}
-                type="radio"
-                value={BusinessType.CORPORATION}
-                className="w-4 h-4 text-brixa-500"
-              />
-              <span className="text-sm text-text-primary">
+            <label className="flex items-center space-x-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  {...register('businessType')}
+                  type="radio"
+                  value={BusinessType.CORPORATION}
+                  className="peer sr-only"
+                />
+                <div className="w-5 h-5 border-2 border-gray-300 rounded-full bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 peer-checked:ring-4 peer-checked:ring-brixa-100 flex items-center justify-center group-hover:border-brixa-400">
+                  <div className="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
+                </div>
+              </div>
+              <span className="text-base text-text-primary">
                 法人
               </span>
             </label>
           </div>
           {errors.businessType && (
-            <p className="mt-2 text-sm text-error-500">{errors.businessType.message}</p>
+            <p className="mt-2 text-base text-error-500">{errors.businessType.message}</p>
           )}
         </div>
 
@@ -477,7 +487,7 @@ export default function RegistrationForm({
             ===================================================== */}
         {businessType === BusinessType.CORPORATION && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-text-primary mb-4">
+            <h2 className="text-xl font-semibold text-text-primary mb-4">
               会社情報
             </h2>
 
@@ -570,7 +580,7 @@ export default function RegistrationForm({
             SECTION 6: 住所
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             住所
           </h2>
 
@@ -641,7 +651,7 @@ export default function RegistrationForm({
             SECTION 7: 商品種別
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             商品種別
           </h2>
 
@@ -664,7 +674,7 @@ export default function RegistrationForm({
             SECTION 9: 知ったきっかけ
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             知ったきっかけ
           </h2>
 
@@ -698,7 +708,7 @@ export default function RegistrationForm({
                 </svg>
               </div>
             </div>
-            <span className="text-sm text-text-primary">
+            <span className="text-base text-text-primary">
               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brixa-500 hover:underline">
                 プライバシーポリシー
               </a>
