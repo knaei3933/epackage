@@ -1781,3 +1781,194 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
 [Config API] Fetching remote config...
 [Config API] Config fetched successfully
  GET /api/config 200 in 811ms (compile: 2ms, render: 809ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 835ms (compile: 2ms, render: 833ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 311ms (compile: 1914µs, render: 309ms)
+ ✓ Compiled in 208ms
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 667ms (compile: 1740µs, render: 665ms)
+ GET /quote-simulator 200 in 61ms (compile: 4ms, render: 57ms)
+ GET /api/comparison/save 200 in 5ms (compile: 2ms, render: 2ms)
+[Session API] All cookies: [
+  { name: '_gcl_au', hasValue: true },
+  { name: '_ga', hasValue: true },
+  { name: '_ga_VBCB77P21T', hasValue: true }
+]
+[Session API] Supabase cookies: []
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[Session API] getUser result: { hasUser: false, userId: undefined, error: 'Auth session missing!' }
+[Session API] No valid user found Auth session missing!
+ GET /api/auth/current-user 200 in 7ms (compile: 2ms, render: 5ms)
+[Config API] Fetching remote config...
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 360ms (compile: 6ms, render: 354ms)
+ GET /api/health 200 in 10ms (compile: 2ms, render: 8ms)
+[Config API] Config fetched successfully
+ GET /api/config 200 in 379ms (compile: 2ms, render: 377ms)
+ GET /api/health 200 in 6ms (compile: 1856µs, render: 4ms)
+ GET /api/pricing/settings 200 in 377ms (compile: 2ms, render: 374ms)
+ GET /quote-simulator 200 in 55ms (compile: 3ms, render: 52ms)
+ GET /api/comparison/save 200 in 5ms (compile: 2ms, render: 3ms)
+[Session API] All cookies: [
+  { name: '_gcl_au', hasValue: true },
+  { name: '_ga', hasValue: true },
+  { name: '_ga_VBCB77P21T', hasValue: true }
+]
+[Session API] Supabase cookies: []
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[Session API] getUser result: { hasUser: false, userId: undefined, error: 'Auth session missing!' }
+[Session API] No valid user found Auth session missing!
+ GET /api/auth/current-user 200 in 6ms (compile: 3ms, render: 3ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 444ms (compile: 2ms, render: 442ms)
+[Config API] Fetching remote config...
+ GET /api/health 200 in 6ms (compile: 1362µs, render: 5ms)
+[Config API] Config fetched successfully
+ GET /api/config 200 in 296ms (compile: 3ms, render: 293ms)
+ GET /api/health 200 in 5ms (compile: 1239µs, render: 4ms)
+ GET /api/pricing/settings 200 in 689ms (compile: 1721µs, render: 688ms)
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\shared\lib\turbopack\manifest-loader.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\turbopack-utils.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\hot-reloader-turbopack.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\dev-bundler-service.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\route-matcher-managers\dev-route-matcher-manager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\route-matcher-managers\default-route-matcher-manager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\app\quote-simulator\page\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\.next\\dev\\server\\app\\quote-simulator\\page\\build-manifest.json'
+}
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\shared\lib\turbopack\manifest-loader.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\turbopack-utils.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\hot-reloader-turbopack.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\dev-bundler-service.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\shared\lib\turbopack\manifest-loader.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\turbopack-utils.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\hot-reloader-turbopack.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\dev-bundler-service.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\route-matcher-managers\dev-route-matcher-manager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\route-matcher-managers\default-route-matcher-manager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Error: ENOENT: no such file or directory, open 'C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\app\quote-simulator\page\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\.next\\dev\\server\\app\\quote-simulator\\page\\build-manifest.json'
+}
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\shared\lib\turbopack\manifest-loader.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\turbopack-utils.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\hot-reloader-turbopack.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\dev-bundler-service.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\shared\lib\turbopack\manifest-loader.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\turbopack-utils.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\hot-reloader-turbopack.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\dev-bundler-service.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+Error: ENOENT: no such file or directory, open 'C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\shared\lib\turbopack\manifest-loader.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\turbopack-utils.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\hot-reloader-turbopack.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\dev-bundler-service.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\route-matcher-managers\dev-route-matcher-manager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\route-matcher-managers\default-route-matcher-manager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\app\quote-simulator\page\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\kanei\\claudecode\\02.Homepage_Dev\\02.epac_homepagever1.1\\.next\\dev\\server\\app\\quote-simulator\\page\\build-manifest.json'
+}
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\require-hook.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\require.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\load-components.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\trace\tracer.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\@opentelemetry+api@1.9.0\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\@opentelemetry+api@1.9.0\node_modules\@opentelemetry\api\build\src\api\context.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\@opentelemetry+api@1.9.0\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\@opentelemetry+api@1.9.0\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\pages\_document.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\require.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\load-components.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\build\utils.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\build\swc\options.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\build\swc\index.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\config.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\next.js
+- C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.0.11_@babel+core@7._d74ccc27c1e3aba77c5a486be08e296c\node_modules\next\dist\server\lib\start-server.js
+    at Object.<anonymous> (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\pages\_document.js:1:7) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /quote-simulator 500 in 66ms (compile: 59ms, render: 7ms)

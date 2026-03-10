@@ -45,7 +45,11 @@ import {
   BarChart3,
   Download,
   Save,
-  Send
+  Send,
+  Eye,
+  Shield,
+  Leaf,
+  Lightbulb
 } from 'lucide-react';
 import { ErrorToast, useToast } from '../shared/ErrorToast';
 import { KeyboardShortcutsHint } from '../shared/KeyboardShortcutsHint';
@@ -247,7 +251,14 @@ function SpecsStep() {
     { id: 'top-right', label: '右上', labelJa: '右上' }
   ];
 
-  // Enhanced material options with rich details
+  // 素材カテゴリー定義
+  const materialCategories = [
+    { id: 'transparent', nameJa: '🪟 透明タイプ', descriptionJa: '中身が見える、窓付き表現可能', colorClass: 'from-sky-50 to-blue-50 border-sky-200', headerBg: 'bg-gradient-to-r from-sky-500 to-blue-500' },
+    { id: 'high_barrier', nameJa: '🛡️ 高バリアタイプ', descriptionJa: '長期保存に最適、最高の遮断性', colorClass: 'from-amber-50 to-orange-50 border-amber-200', headerBg: 'bg-gradient-to-r from-amber-500 to-orange-500' },
+    { id: 'kraft', nameJa: '🌿 クラフトタイプ', descriptionJa: '自然素材風、環境に優しい', colorClass: 'from-emerald-50 to-green-50 border-emerald-200', headerBg: 'bg-gradient-to-r from-emerald-500 to-green-500' }
+  ];
+
+  // Enhanced material options with rich details and category
   const materials = [
     {
       id: 'pet_al',
@@ -258,6 +269,8 @@ function SpecsStep() {
       multiplier: 1.5,
       features: ['高バリア性能', '遮光性に優れる', '酸素透過率が低い', '長期保存に適する'],
       featuresJa: ['高バリア性能', '遮光性に優れる', '酸素透過率が低い', '長期保存に適する'],
+      recommendedFor: 'コーヒー豆、茶葉、ナッツ、スパイス、漬物',
+      category: 'high_barrier',
       popular: true,
       ecoFriendly: false,
       thicknessOptions: [
@@ -347,6 +360,8 @@ function SpecsStep() {
       multiplier: 1.4,
       features: ['薄肉設計', '蒸着処理によるバリア性', 'フレキシブル対応', 'コストパフォーマンス'],
       featuresJa: ['薄肉設計', '蒸着処理によるバリア性', 'フレキシブル対応', 'コストパフォーマンス'],
+      recommendedFor: 'スナック菓子、クッキー、煎餅',
+      category: 'high_barrier',
       popular: false,
       ecoFriendly: false,
       thicknessOptions: [
@@ -436,6 +451,8 @@ function SpecsStep() {
       multiplier: 1.0,
       features: ['透明性に優れる', '中身が見える', 'シール性良好', 'コスト経済的'],
       featuresJa: ['透明性に優れる', '中身が見える', 'シール性良好', 'コスト経済的'],
+      recommendedFor: 'お菓子、乾物、パン、小物包装',
+      category: 'transparent',
       popular: false,
       ecoFriendly: false,
       thicknessOptions: [
@@ -515,6 +532,8 @@ function SpecsStep() {
       multiplier: 1.6,
       features: ['高強度・高バリア', '耐ピンホール性', 'ガスバリア性最高', '重包装に最適'],
       featuresJa: ['高強度・高バリア', '耐ピンホール性', 'ガスバリア性最高', '重包装に最適'],
+      recommendedFor: '米、穀物、ペットフード、重包装',
+      category: 'high_barrier',
       popular: false,
       ecoFriendly: false,
       thicknessOptions: [
@@ -604,6 +623,8 @@ function SpecsStep() {
       multiplier: 1.1,
       features: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
       featuresJa: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
+      recommendedFor: '冷凍食品、惣菜、電子レンジ調理品',
+      category: 'transparent',
       popular: false,
       ecoFriendly: false,
       thicknessOptions: [
@@ -683,6 +704,8 @@ function SpecsStep() {
       multiplier: 1.4,
       features: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
       featuresJa: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
+      recommendedFor: 'ナッツ、ドライフルーツ、コーヒー豆、スパイス',
+      category: 'kraft',
       popular: false,
       ecoFriendly: true,
       thicknessOptions: [
@@ -767,6 +790,8 @@ function SpecsStep() {
       multiplier: 1.3,
       features: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
       featuresJa: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
+      recommendedFor: 'パン、菓子、クッキー、短期保存品',
+      category: 'kraft',
       popular: false,
       ecoFriendly: true,
       thicknessOptions: [
@@ -1317,48 +1342,84 @@ function SpecsStep() {
             </div>
           </div>
 
-          {/* Material Selection */}
+          {/* Material Selection by Category */}
           <div className="mb-6">
             <label className="block text-lg font-semibold text-gray-900 mb-3">素材</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {materials.map(material => (
-                <button
-                  key={material.id}
-                  onClick={() => updateBasicSpecs({ materialId: material.id })}
-                  className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.materialId === material.id
-                    ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
-                    : 'border-gray-200 hover:border-navy-300 hover:shadow-sm'
-                    }`}
-                >
-                  {state.materialId === material.id && (
-                    <div className="absolute top-2 right-2">
-                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex items-start pr-8">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <div className="font-medium text-gray-900">{material.nameJa}</div>
-                        {material.popular && (
-                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full font-medium">
-                            人気
-                          </span>
-                        )}
-                        {material.ecoFriendly && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                            環境友好
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">{material.descriptionJa}</div>
 
+            {/* Help Guide */}
+            <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+              <div className="flex items-center space-x-2">
+                <Lightbulb className="w-4 h-4 text-indigo-600" />
+                <span className="text-sm text-indigo-900 font-medium">まず、包装の目的で選択してください</span>
+              </div>
+            </div>
+
+            {/* Categories */}
+            {materialCategories.map(category => {
+              const categoryMaterials = materials.filter(m => m.category === category.id);
+              if (categoryMaterials.length === 0) return null;
+
+              return (
+                <div key={category.id} className={`mb-4 rounded-lg border-2 overflow-hidden ${category.colorClass}`}>
+                  {/* Category Header */}
+                  <div className={`${category.headerBg} px-4 py-2 flex items-center space-x-2 text-white`}>
+                    {category.id === 'transparent' && <Eye className="w-5 h-5" />}
+                    {category.id === 'high_barrier' && <Shield className="w-5 h-5" />}
+                    {category.id === 'kraft' && <Leaf className="w-5 h-5" />}
+                    <span className="font-bold">{category.nameJa}</span>
+                  </div>
+
+                  {/* Materials in this category */}
+                  <div className="p-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {categoryMaterials.map(material => (
+                        <button
+                          key={material.id}
+                          onClick={() => updateBasicSpecs({ materialId: material.id })}
+                          className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${
+                            state.materialId === material.id
+                              ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
+                              : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                          }`}
+                        >
+                          {state.materialId === material.id && (
+                            <div className="absolute top-2 right-2">
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <Check className="w-4 h-4 text-white" />
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex items-start pr-8">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-1">
+                                <div className="font-medium text-gray-900 text-sm">{material.nameJa}</div>
+                                {material.popular && (
+                                  <span className="px-1 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">
+                                    人気
+                                  </span>
+                                )}
+                                {material.ecoFriendly && (
+                                  <span className="px-1 py-0.5 bg-green-100 text-green-800 text-xs rounded">
+                                    環境
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-0.5">{material.descriptionJa}</div>
+                              {material.recommendedFor && (
+                                <div className="text-xs text-indigo-600 mt-1 flex items-center">
+                                  <Lightbulb className="w-3 h-3 mr-0.5" />
+                                  {material.recommendedFor}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
