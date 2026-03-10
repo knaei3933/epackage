@@ -365,6 +365,8 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         kraftTwoColumnOptionApplied = null;
         kraftAppliedOption = null;
         kraftFixedTotalQuantity = undefined;
+        // クラフト材料の最初の厚さオプションを自動選択
+        action.payload.thicknessSelection = 'light_50';
       } else if (!isKraftMaterial && wasKraftMaterial && materialIdChanged) {
         // クラフト材料から他の材料に変更された場合：数量オプションをデフォルトに戻す
         console.log('[SET_BASIC_SPECS] Switched from Kraft to another material - resetting quantities to default');
