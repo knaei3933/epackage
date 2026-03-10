@@ -248,15 +248,6 @@ const SLITTER_MIN_COST = 30000; // 최소 슬리터 비용 (원)
 export class FilmCostCalculator {
   private cache: Map<string, FilmCostResult> = new Map();
 
-  /**
-   * grammage에서 thickness로 변환 (μm)
-   * @param grammage - g/m²
-   * @param density - kg/m³
-   * @returns thickness (μm)
-   */
-  private calculateThicknessFromGrammage(grammage: number, density: number): number {
-    return (grammage / density) * 1_000_000
-  }
 
   /**
    * 레이어의 유효 두께를 가져옵니다 (grammage 또는 thickness)
@@ -266,9 +257,12 @@ export class FilmCostCalculator {
    */
   private getLayerEffectiveThickness(layer: FilmStructureLayer, density: number): number {
     if (layer.grammage !== undefined) {
-      return this.calculateThicknessFromGrammage(layer.grammage, density)
+      // Kraft等のgrammage指定材料: grammage를 직접 사용（thickness는 사용하지 않음）
+      // grammage (g/m²) 를 μm 으로 변환: grammage = thickness (μm)
+      // 예: 50g/m² = 50μm
+      return layer.grammage;
     }
-    return layer.thickness || 0
+    return layer.thickness || 0;
   }
 
   /**
@@ -553,32 +547,43 @@ export class FilmCostCalculator {
 
       // grammage에서 계산한 유효 두께를 사용 (Kraft等の坪量指定材料対応)
       const effectiveThickness = this.getLayerEffectiveThickness(layer, material.density);
-      const thicknessMm = effectiveThickness / 1000;
 
-      // 원단 가격 계산
-      const cost = thicknessMm * widthM * lengthWithLoss * material.density * material.unitPrice;
+      // 原単価計算
+      let cost: number;
+      // 中量計算 (kg)
+      let weight: number;
 
-      // 중량 계산 (kg)
-      const weight = thicknessMm * widthM * lengthWithLoss * material.density;
+      if (layer.grammage !== undefined) {
+        // Kraft等のgrammage指定材料: grammage를 직접 사용（g/m² → kg/m²）
+        // 重量 = (grammage / 1000) * widthM * lengthWithLoss
+        weight = (layer.grammage / 1000) * widthM * lengthWithLoss;
+        const thicknessMm = effectiveThickness / 1000;
+        cost = thicknessMm * widthM * lengthWithLoss * material.density * material.unitPrice;
+      } else {
+        // その他: thickness × density 方式
+        const thicknessMm = effectiveThickness / 1000;
+        cost = thicknessMm * widthM * lengthWithLoss * material.density * material.unitPrice;
+        weight = thicknessMm * widthM * lengthWithLoss * material.density;
+      }
 
       console.log('[calculateMaterialCost] LAYER:', {
         materialId: layer.materialId,
         grammage: layer.grammage,
         thickness: layer.thickness,
         effectiveThickness,
-        thicknessMm,
+        thicknessMm: effectiveThickness / 1000,
         widthM,
         lengthWithLoss,
         density: material.density,
         unitPrice: material.unitPrice,
         cost,
-        weight
+        weight: Math.round(weight * 100) / 100
       });
 
       materials.push({
         materialId: layer.materialId,
         name: material.nameJa,
-        cost: Math.round(cost),
+        cost,
         weight: Math.round(weight * 100) / 100
       });
 

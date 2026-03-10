@@ -350,31 +350,17 @@ export abstract class BasePricingStrategy implements PricingStrategy {
   // ========================================
 
   /**
-   * グラムから厚さを計算（μm）
-   * @param grammage - 坪量 (g/m²)
-   * @param density - 密度 (kg/m³)
-   * @returns 厚さ (μm)
-   * Formula: thickness(μm) = (grammage(g/m²) / density(kg/m³)) × 1,000,000
-   */
-  protected calculateThicknessFromGrammage(grammage: number, density: number): number {
-    return (grammage / density) * 1_000_000
-  }
-
-  /**
    * レイヤーの有効厚さを取得
    * grammageが提供された場合は計算、それ以外はthicknessを直接返す
    * @param layer - フィルム構造レイヤー
    * @returns 有効厚さ (μm)
    */
   protected getLayerEffectiveThickness(layer: FilmStructureLayer): number {
-    // grammageが提供されている場合、densityを使ってthicknessを計算
+    // Kraft等のgrammage指定材料: grammageを直接使用（thicknessは使用しない）
+    // grammage (g/m²) を μm に変換: grammage = thickness (μm)
+    // 例: 50g/m² = 50μm
     if (layer.grammage !== undefined) {
-      const materialInfo = MATERIAL_PRICES_KRW[layer.materialId]
-      if (materialInfo?.density) {
-        return this.calculateThicknessFromGrammage(layer.grammage, materialInfo.density)
-      }
-      // 密度が不明な場合、Kraftのデフォルト密度0.9を使用
-      return this.calculateThicknessFromGrammage(layer.grammage, 0.9)
+      return layer.grammage;
     }
     // thicknessが直接提供されている場合
     return layer.thickness || 0
