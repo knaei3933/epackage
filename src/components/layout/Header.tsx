@@ -277,8 +277,8 @@ export function Header() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
-          {/* Phone Number - Desktop */}
-          <a
+          {/* Phone Number - Desktop - Hidden */}
+          {/* <a
             href="tel:050-1793-6500"
             onClick={() => trackPhoneClick('050-1793-6500', 'header')}
             className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-brixa-50 to-blue-50 rounded-lg border border-brixa-200 hover:border-brixa-300 hover:shadow-md transition-all group"
@@ -288,7 +288,7 @@ export function Header() {
             <span className="text-sm font-semibold text-brixa-900 group-hover:text-brixa-800 transition-colors">
               050-1793-6500
             </span>
-          </a>
+          </a> */}
 
           {/* Auth UI - Desktop */}
           {isMounted && !isLoading && (

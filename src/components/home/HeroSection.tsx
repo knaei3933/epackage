@@ -237,8 +237,8 @@ export function HeroSection() {
               </Button>
             </Link>
 
-            {/* Phone CTA */}
-            <a
+            {/* Phone CTA - Hidden */}
+            {/* <a
               href="tel:050-1793-6500"
               onClick={() => trackPhoneClick('050-1793-6500', 'hero')}
               className="inline-flex group"
@@ -254,7 +254,7 @@ export function HeroSection() {
                   <span className="sm:hidden">お電話</span>
                 </span>
               </Button>
-            </a>
+            </a> */}
           </motion.div>
 
           {/* Enhanced Data-Driven Trust Factors */}
