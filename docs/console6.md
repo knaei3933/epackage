@@ -1224,3 +1224,560 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
 [getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
  GET /api/user/markup-rate 200 in 524ms (compile: 2ms, render: 521ms)
  GET /api/pricing/settings 200 in 311ms (compile: 1491µs, render: 309ms)
+ GET /api/pricing/settings 200 in 409ms (compile: 1818µs, render: 407ms)
+ ✓ Compiled in 95ms
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 986ms (compile: 1818µs, render: 984ms)
+ GET /api/pricing/settings 200 in 316ms (compile: 1510µs, render: 314ms)
+ ✓ Compiled in 31ms
+ GET /api/user/markup-rate 500 in 1023ms (compile: 941ms, render: 82ms)
+ GET /api/pricing/settings 500 in 27ms (compile: 18ms, render: 10ms)
+ GET /api/pricing/settings 500 in 41ms (compile: 14ms, render: 27ms)
+ GET /api/pricing/settings 500 in 21ms (compile: 15ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 17ms (compile: 11ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 11ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 9ms, render: 7ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 9ms, render: 7ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 17ms (compile: 11ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 17ms (compile: 10ms, render: 7ms)
+ GET /api/pricing/settings 500 in 17ms (compile: 12ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 17ms (compile: 12ms, render: 5ms)
+ GET /api/pricing/settings 500 in 19ms (compile: 9ms, render: 10ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 11ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 11ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 5ms)
+ GET /api/pricing/settings 500 in 16ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 17ms (compile: 11ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 13ms (compile: 8ms, render: 5ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 9ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/pricing/settings 500 in 15ms (compile: 10ms, render: 6ms)
+ GET /api/pricing/settings 500 in 14ms (compile: 8ms, render: 6ms)
+ GET /api/config 500 in 17ms (compile: 11ms, render: 6ms)
+ ✓ Compiled in 11ms
+ ✓ Compiled in 10ms
+ GET /quote-simulator 200 in 108ms (compile: 66ms, render: 42ms)
+ GET /quote-simulator 200 in 21ms (compile: 2ms, render: 19ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 1157ms (compile: 1840µs, render: 1155ms)
+ GET /api/pricing/settings 200 in 364ms (compile: 1596µs, render: 362ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 316ms (compile: 1456µs, render: 315ms)
+ ✓ Compiled in 20ms
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 581ms (compile: 1518µs, render: 580ms)
+ GET /api/pricing/settings 200 in 319ms (compile: 1546µs, render: 317ms)
+ ✓ Compiled in 10ms
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 520ms (compile: 2ms, render: 518ms)
+ GET /api/pricing/settings 200 in 319ms (compile: 1444µs, render: 317ms)
+ ✓ Compiled in 11ms
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 548ms (compile: 1559µs, render: 546ms)
+ GET /api/pricing/settings 200 in 306ms (compile: 1252µs, render: 305ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 543ms (compile: 45ms, render: 499ms)
+ GET /api/pricing/settings 200 in 215ms (compile: 1583µs, render: 214ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 1099ms (compile: 1532µs, render: 1097ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 1141ms (compile: 1710µs, render: 1139ms)
+ GET /api/pricing/settings 200 in 415ms (compile: 1341µs, render: 413ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 587ms (compile: 1632µs, render: 586ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 596ms (compile: 1358µs, render: 594ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 418ms (compile: 1313µs, render: 417ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 657ms (compile: 3ms, render: 654ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 531ms (compile: 1823µs, render: 529ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 663ms (compile: 1931µs, render: 661ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 645ms (compile: 2ms, render: 643ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 1165ms (compile: 1646µs, render: 1164ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 620ms (compile: 1374µs, render: 619ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 896ms (compile: 1661µs, render: 894ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 957ms (compile: 1678µs, render: 955ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 609ms (compile: 1468µs, render: 607ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 907ms (compile: 1669µs, render: 906ms)
+[Session API] All cookies: [
+  { name: '_ga', hasValue: true },
+  { name: '_gcl_au', hasValue: true },
+  { name: 'sb-ijlgpzjdfipzmjvawofp-auth-token', hasValue: true },
+  { name: '_ga_VBCB77P21T', hasValue: true },
+  { name: '__next_hmr_refresh_hash__', hasValue: true }
+]
+[Session API] Supabase cookies: [ 'sb-ijlgpzjdfipzmjvawofp-auth-token' ]
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[supabase-ssr] setAll called with 1 cookies
+[supabase-ssr] Setting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token value length: 2615
+[supabase-ssr] Set-Cookie header set for: sb-ijlgpzjdfipzmjvawofp-auth-token
+[supabase-ssr] Final response has 1 Set-Cookie headers
+[Session API] getUser result: {
+  hasUser: true,
+  userId: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  error: undefined
+}
+[Session API] NEXT_PUBLIC_SUPABASE_URL: https://ijlgpzjdfipzmjvawofp.supabase.co
+[Session API] SUPABASE_SERVICE_ROLE_KEY exists: true
+[Session API] User found for: admin@epackage-lab.com Profile: Found
+[Session API] Profile data: {
+  id: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  email: 'admin@epackage-lab.com',
+  kanji_last_name: '管理',
+  kanji_first_name: '者',
+  kana_last_name: 'かんり',
+  kana_first_name: 'しゃ',
+  corporate_phone: '03-1234-5678',
+  personal_phone: '090-1234-5678',
+  business_type: 'INDIVIDUAL',
+  company_name: 'EPackage Lab',
+  legal_entity_number: null,
+  position: null,
+  department: null,
+  company_url: null,
+  product_category: 'OTHER',
+  acquisition_channel: null,
+  postal_code: null,
+  prefecture: null,
+  city: null,
+  street: null,
+  role: 'ADMIN',
+  status: 'ACTIVE',
+  created_at: '2026-01-03T11:32:15.549776+00:00',
+  updated_at: '2026-02-16T14:14:16.20664+00:00',
+  last_login_at: null,
+  user_type: null,
+  corporate_number: null,
+  founded_year: null,
+  capital: null,
+  representative_name: null,
+  building: null,
+  business_document_path: null,
+  verification_token: null,
+  verification_expires_at: null,
+  settings: {
+    language: 'ja',
+    timezone: 'Asia/Tokyo',
+    notifications: {
+      order_updates: true,
+      security_alerts: true,
+      marketing_emails: false,
+      quotation_updates: true,
+      production_updates: true,
+      email_notifications: true,
+      login_notifications: true,
+      shipment_notifications: true
+    }
+  },
+  markup_rate: 0,
+  markup_rate_note: null,
+  designer_name_ko: null,
+  designer_name_en: null,
+  preferred_language: 'ja',
+  notification_settings: {}
+}
+ GET /api/auth/current-user 200 in 1499ms (compile: 1742µs, render: 1497ms)
+[supabase-ssr] setAll called with 1 cookies
+[supabase-ssr] Setting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token value length: 2615
+[supabase-ssr] Set-Cookie header set for: sb-ijlgpzjdfipzmjvawofp-auth-token
+[supabase-ssr] Final response has 1 Set-Cookie headers
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 811ms (compile: 1405µs, render: 809ms)
+[getDefaultPostProcessingOptions] Selected defaults: [
+  'zipper-yes',
+  'glossy',
+  'notch-yes',
+  'hang-hole-6mm',
+  'corner-round',
+  'valve-no',
+  'top-open',
+  'sealing-width-5mm'
+]
+[QuoteContext] initialState created: {
+  materialWidth: 590,
+  filmLayers: [
+    { materialId: 'PET', thickness: 12 },
+    { materialId: 'AL', thickness: 7 },
+    { materialId: 'PET', thickness: 12 },
+    { materialId: 'LLDPE', thickness: 70 }
+  ],
+  filmLayersCount: 4
+}
+ GET /quote-simulator 200 in 419ms (compile: 133ms, render: 286ms)
+ GET /api/comparison/save 200 in 8ms (compile: 2ms, render: 5ms)
+[Session API] All cookies: []
+[Session API] Supabase cookies: []
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[Session API] getUser result: { hasUser: false, userId: undefined, error: 'Auth session missing!' }
+[Session API] No valid user found Auth session missing!
+ GET /api/auth/current-user 200 in 5ms (compile: 1957µs, render: 3ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 406ms (compile: 2ms, render: 404ms)
+[Config API] Fetching remote config...
+ GET /api/health 200 in 10ms (compile: 1569µs, render: 8ms)
+[Config API] Config fetched successfully
+ GET /api/config 200 in 294ms (compile: 1668µs, render: 292ms)
+ GET /api/health 200 in 6ms (compile: 1824µs, render: 4ms)
+ GET /api/pricing/settings 200 in 796ms (compile: 1515µs, render: 795ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 833ms (compile: 4ms, render: 828ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 260ms (compile: 8ms, render: 252ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 504ms (compile: 3ms, render: 501ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 292ms (compile: 1700µs, render: 290ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 358ms (compile: 1978µs, render: 356ms)
+ ✓ Compiled in 25ms
+ GET /api/user/markup-rate 404 in 140ms
+ GET /api/pricing/settings 200 in 410ms (compile: 1798µs, render: 409ms)
+ GET /api/pricing/settings 200 in 458ms (compile: 2ms, render: 455ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 557ms (compile: 1531µs, render: 556ms)
+ ✓ Compiled in 31ms
+ GET /api/user/markup-rate 404 in 18ms
+ GET /api/pricing/settings 200 in 390ms (compile: 1605µs, render: 388ms)
+ GET /api/pricing/settings 200 in 425ms (compile: 3ms, render: 422ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 269ms (compile: 1629µs, render: 267ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 574ms (compile: 1914µs, render: 572ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 265ms (compile: 1885µs, render: 263ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 1020ms (compile: 1580µs, render: 1019ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 285ms (compile: 1527µs, render: 283ms)
+[Session API] All cookies: [
+  { name: '_ga', hasValue: true },
+  { name: '_gcl_au', hasValue: true },
+  { name: 'sb-ijlgpzjdfipzmjvawofp-auth-token', hasValue: true },
+  { name: '_ga_VBCB77P21T', hasValue: true },
+  { name: '__next_hmr_refresh_hash__', hasValue: true }
+]
+[Session API] Supabase cookies: [ 'sb-ijlgpzjdfipzmjvawofp-auth-token' ]
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+[supabase-ssr] setAll called with 1 cookies
+[supabase-ssr] Setting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token value length: 2615
+[supabase-ssr] Set-Cookie header set for: sb-ijlgpzjdfipzmjvawofp-auth-token
+[supabase-ssr] Final response has 1 Set-Cookie headers
+[Session API] getUser result: {
+  hasUser: true,
+  userId: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  error: undefined
+}
+[Session API] NEXT_PUBLIC_SUPABASE_URL: https://ijlgpzjdfipzmjvawofp.supabase.co
+[Session API] SUPABASE_SERVICE_ROLE_KEY exists: true
+[Session API] User found for: admin@epackage-lab.com Profile: Found
+[Session API] Profile data: {
+  id: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  email: 'admin@epackage-lab.com',
+  kanji_last_name: '管理',
+  kanji_first_name: '者',
+  kana_last_name: 'かんり',
+  kana_first_name: 'しゃ',
+  corporate_phone: '03-1234-5678',
+  personal_phone: '090-1234-5678',
+  business_type: 'INDIVIDUAL',
+  company_name: 'EPackage Lab',
+  legal_entity_number: null,
+  position: null,
+  department: null,
+  company_url: null,
+  product_category: 'OTHER',
+  acquisition_channel: null,
+  postal_code: null,
+  prefecture: null,
+  city: null,
+  street: null,
+  role: 'ADMIN',
+  status: 'ACTIVE',
+  created_at: '2026-01-03T11:32:15.549776+00:00',
+  updated_at: '2026-02-16T14:14:16.20664+00:00',
+  last_login_at: null,
+  user_type: null,
+  corporate_number: null,
+  founded_year: null,
+  capital: null,
+  representative_name: null,
+  building: null,
+  business_document_path: null,
+  verification_token: null,
+  verification_expires_at: null,
+  settings: {
+    language: 'ja',
+    timezone: 'Asia/Tokyo',
+    notifications: {
+      order_updates: true,
+      security_alerts: true,
+      marketing_emails: false,
+      quotation_updates: true,
+      production_updates: true,
+      email_notifications: true,
+      login_notifications: true,
+      shipment_notifications: true
+    }
+  },
+  markup_rate: 0,
+  markup_rate_note: null,
+  designer_name_ko: null,
+  designer_name_en: null,
+  preferred_language: 'ja',
+  notification_settings: {}
+}
+ GET /api/auth/current-user 200 in 1247ms (compile: 2ms, render: 1245ms)
+ GET /api/user/markup-rate 404 in 8ms
+ GET /api/user/markup-rate 404 in 8ms
+ GET /api/pricing/settings 200 in 378ms (compile: 1220µs, render: 376ms)
+[getDefaultPostProcessingOptions] Selected defaults: [
+  'zipper-yes',
+  'glossy',
+  'notch-yes',
+  'hang-hole-6mm',
+  'corner-round',
+  'valve-no',
+  'top-open',
+  'sealing-width-5mm'
+]
+[QuoteContext] initialState created: {
+  materialWidth: 590,
+  filmLayers: [
+    { materialId: 'PET', thickness: 12 },
+    { materialId: 'AL', thickness: 7 },
+    { materialId: 'PET', thickness: 12 },
+    { materialId: 'LLDPE', thickness: 70 }
+  ],
+  filmLayersCount: 4
+}
+ GET /quote-simulator 200 in 272ms (compile: 66ms, render: 206ms)
+[Session API] All cookies: [
+  { name: '_ga', hasValue: true },
+  { name: '_gcl_au', hasValue: true },
+  { name: 'sb-ijlgpzjdfipzmjvawofp-auth-token', hasValue: true },
+  { name: '__next_hmr_refresh_hash__', hasValue: true },
+  { name: '_ga_VBCB77P21T', hasValue: true }
+]
+[Session API] Supabase cookies: [ 'sb-ijlgpzjdfipzmjvawofp-auth-token' ]
+[Session API] URL: http://localhost:3000/api/auth/current-user
+[Session API] Referer: http://localhost:3000/quote-simulator
+ GET /api/comparison/save 200 in 12ms (compile: 9ms, render: 2ms)
+[Config API] Fetching remote config...
+[Config API] Fetching remote config...
+[supabase-ssr] setAll called with 1 cookies
+[supabase-ssr] Setting cookie: sb-ijlgpzjdfipzmjvawofp-auth-token value length: 2615
+[supabase-ssr] Set-Cookie header set for: sb-ijlgpzjdfipzmjvawofp-auth-token
+[supabase-ssr] Final response has 1 Set-Cookie headers
+[Session API] getUser result: {
+  hasUser: true,
+  userId: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  error: undefined
+}
+[Session API] NEXT_PUBLIC_SUPABASE_URL: https://ijlgpzjdfipzmjvawofp.supabase.co
+[Session API] SUPABASE_SERVICE_ROLE_KEY exists: true
+[Config API] Config fetched successfully
+ GET /api/config 200 in 339ms (compile: 1717µs, render: 338ms)
+ GET /api/health 200 in 8ms (compile: 1800µs, render: 6ms)
+[Config API] Config fetched successfully
+ GET /api/config 200 in 417ms (compile: 6ms, render: 411ms)
+ GET /api/health 200 in 6ms (compile: 1520µs, render: 4ms)
+[Session API] User found for: admin@epackage-lab.com Profile: Found
+[Session API] Profile data: {
+  id: '54fd7b31-b805-43cf-b92e-898ddd066875',
+  email: 'admin@epackage-lab.com',
+  kanji_last_name: '管理',
+  kanji_first_name: '者',
+  kana_last_name: 'かんり',
+  kana_first_name: 'しゃ',
+  corporate_phone: '03-1234-5678',
+  personal_phone: '090-1234-5678',
+  business_type: 'INDIVIDUAL',
+  company_name: 'EPackage Lab',
+  legal_entity_number: null,
+  position: null,
+  department: null,
+  company_url: null,
+  product_category: 'OTHER',
+  acquisition_channel: null,
+  postal_code: null,
+  prefecture: null,
+  city: null,
+  street: null,
+  role: 'ADMIN',
+  status: 'ACTIVE',
+  created_at: '2026-01-03T11:32:15.549776+00:00',
+  updated_at: '2026-02-16T14:14:16.20664+00:00',
+  last_login_at: null,
+  user_type: null,
+  corporate_number: null,
+  founded_year: null,
+  capital: null,
+  representative_name: null,
+  building: null,
+  business_document_path: null,
+  verification_token: null,
+  verification_expires_at: null,
+  settings: {
+    language: 'ja',
+    timezone: 'Asia/Tokyo',
+    notifications: {
+      order_updates: true,
+      security_alerts: true,
+      marketing_emails: false,
+      quotation_updates: true,
+      production_updates: true,
+      email_notifications: true,
+      login_notifications: true,
+      shipment_notifications: true
+    }
+  },
+  markup_rate: 0,
+  markup_rate_note: null,
+  designer_name_ko: null,
+  designer_name_en: null,
+  preferred_language: 'ja',
+  notification_settings: {}
+}
+ GET /api/auth/current-user 200 in 828ms (compile: 2ms, render: 825ms)
+ GET /api/user/markup-rate 404 in 6ms
+ GET /api/pricing/settings 200 in 324ms (compile: 1225µs, render: 323ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 297ms (compile: 1725µs, render: 295ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 310ms (compile: 1846µs, render: 308ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 811ms (compile: 2ms, render: 809ms)

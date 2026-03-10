@@ -464,13 +464,19 @@ export class PouchCostCalculator {
     const totalSecuredMeters = theoreticalAndSecuredMeters.reduce((sum, item) => sum + item.securedMeters, 0);
 
     // 全体フィルム使用量（ロス込み）
-    const totalWithLossMeters = totalSecuredMeters + FIXED_LOSS_METERS;
+    // Kraft材料: 最低1000mで価格計算（ユーザーが少量注文しても1000m分の価格）
+    const isKraftMaterial = materialId?.includes('kraft');
+    const totalWithLossMeters = isKraftMaterial
+      ? Math.max(totalSecuredMeters + FIXED_LOSS_METERS, 1000)
+      : totalSecuredMeters + FIXED_LOSS_METERS;
 
     console.log('[calculateSKUCost] Total Film Calculation:', {
       totalSecuredMeters,
       lossMeters: FIXED_LOSS_METERS,
       totalWithLossMeters,
-      note: '全量を一度に印刷・加工するため、個別計算ではなく合計で計算'
+      isKraftMaterial,
+      kraftMinimumApplied: isKraftMaterial && totalSecuredMeters + FIXED_LOSS_METERS < 1000,
+      note: isKraftMaterial ? 'Kraft材料: 最低1000m適用' : '全量を一度に印刷・加工するため、個別計算ではなく合計で計算'
     });
 
     // 全体フィルム原価計算（530m全体に対して1回のみ計算）
@@ -1382,7 +1388,14 @@ export class PouchCostCalculator {
     // 現在の最小発注量（500m + 400mロス = 900m）
     // パウチタイプに応じた最小フィルム使用量を設定
     let minimumFilmUsage: number;
-    if (finalPouchType === 't_shape' || finalPouchType === 'box') {
+
+    // Kraft材料の判定
+    const isKraftMaterial = accurateCalculationParams?.materialId?.includes('kraft');
+
+    if (isKraftMaterial) {
+      // Kraft材料: 最低1000mで価格計算（ユーザーが少量注文しても1000m分の価格）
+      minimumFilmUsage = 1000;
+    } else if (pouchType === 't_shape' || pouchType === 'box' || pouchType.includes('lap_seal') || pouchType.includes('T방')) {
       // 合掌袋・ガゼットパウチ: 最小500m使用
       minimumFilmUsage = 500;
     } else {
