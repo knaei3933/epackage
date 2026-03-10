@@ -1163,3 +1163,64 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
  ✓ Compiled in 27ms
 [getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
  GET /api/user/markup-rate 200 in 916ms (compile: 1573µs, render: 914ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 444ms (compile: 1712µs, render: 443ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 641ms (compile: 1727µs, render: 639ms)
+ GET /api/pricing/settings 200 in 317ms (compile: 1875µs, render: 315ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 514ms (compile: 1464µs, render: 512ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 514ms (compile: 1560µs, render: 512ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 483ms (compile: 1678µs, render: 481ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 527ms (compile: 1965µs, render: 525ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 482ms (compile: 1577µs, render: 480ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 479ms (compile: 1492µs, render: 477ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 464ms (compile: 2ms, render: 461ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 564ms (compile: 1886µs, render: 563ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 452ms (compile: 3ms, render: 450ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 447ms (compile: 1807µs, render: 446ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 435ms (compile: 2ms, render: 433ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 442ms (compile: 1439µs, render: 440ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 441ms (compile: 1542µs, render: 439ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 415ms (compile: 1856µs, render: 413ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 441ms (compile: 1648µs, render: 440ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 734ms (compile: 1458µs, render: 732ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 800ms (compile: 1889µs, render: 798ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 639ms (compile: 1889µs, render: 637ms)
+ GET /api/pricing/settings 200 in 365ms (compile: 1529µs, render: 364ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 578ms (compile: 1461µs, render: 576ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 540ms (compile: 1828µs, render: 538ms)
+[Config API] Fetching remote config...
+[Config API] Config fetched successfully
+ GET /api/config 200 in 392ms (compile: 1661µs, render: 391ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 565ms (compile: 3ms, render: 562ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 590ms (compile: 2ms, render: 587ms)
+ GET /api/pricing/settings 200 in 320ms (compile: 1632µs, render: 318ms)
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 531ms (compile: 1869µs, render: 529ms)
+ ✓ Compiled in 25ms
+[getAuthenticatedUser] Found user via cookie auth: 54fd7b31-b805-43cf-b92e-898ddd066875
+ GET /api/user/markup-rate 200 in 524ms (compile: 2ms, render: 521ms)
+ GET /api/pricing/settings 200 in 311ms (compile: 1491µs, render: 309ms)

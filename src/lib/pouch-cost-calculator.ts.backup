@@ -1380,15 +1380,7 @@ export class PouchCostCalculator {
     const pouchesPerMeter = 1000 / pitchMM;
 
     // 現在の最小発注量（500m + 400mロス = 900m）
-    // パウチタイプに応じた最小フィルム使用量を設定
-    let minimumFilmUsage: number;
-    if (finalPouchType === 't_shape' || finalPouchType === 'box') {
-      // 合掌袋・ガゼットパウチ: 最小500m使用
-      minimumFilmUsage = 500;
-    } else {
-      // その他: デフォルト900m（500m + 400mロス）
-      minimumFilmUsage = 900;
-    }
+    const minimumFilmUsage = 900;
     const minimumOrderQuantity = Math.floor(minimumFilmUsage * pouchesPerMeter);
 
     // ========================================
