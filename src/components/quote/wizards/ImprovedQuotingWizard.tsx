@@ -4606,6 +4606,9 @@ export function ImprovedQuotingWizard() {
                 contentsType={state.contentsType}
                 mainIngredient={state.mainIngredient}
                 distributionEnvironment={state.distributionEnvironment}
+                materialId={state.materialId}
+                thicknessSelection={state.thicknessSelection}
+                postProcessingOptions={state.postProcessingOptions}
               />
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

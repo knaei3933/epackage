@@ -1,10 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'
-;
+import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Maximize2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
+
+// 素材ラベルマッピング
+const MATERIAL_TYPE_LABELS_JA: Record<string, string> = {
+  'pet_ldpe': 'PET LLDPE',
+  'pet_al': 'PET AL',
+  'pet_vmpet': 'PET VMPET',
+  'pet_ny_al': 'PET NY AL',
+  'ny_lldpe': 'NY LLDPE',
+  'kraft_vmpet_lldpe': 'クラフト VMPET LLDPE',
+  'kraft_pet_lldpe': 'クラフト PET LLDPE'
+};
+
+// 厚さラベルマッピング
+const THICKNESS_LABELS: Record<string, string> = {
+  'light': '軽量タイプ',
+  'light_50': '軽量タイプ (~50g)',
+  'medium': '標準タイプ',
+  'standard_70': '標準タイプ (~200g)',
+  'standard': 'レギュラータイプ',
+  'heavy_90': '高耐久タイプ (~500g)',
+  'heavy': '高耐久タイプ',
+  'ultra_100': '超耐久タイプ (~800g)',
+  'ultra': '超耐久タイプ',
+  'maximum_110': 'マキシマムタイプ (800g~)'
+};
 
 interface EnvelopeDimensions {
   width: number;
@@ -19,6 +43,9 @@ interface EnvelopePreviewProps {
   contentsType?: string;
   mainIngredient?: string;
   distributionEnvironment?: string;
+  materialId?: string;
+  thicknessSelection?: string;
+  postProcessingOptions?: string[];
 }
 
 // 封筒タイプ別プレビュー設定
@@ -74,7 +101,17 @@ const bagTypeConfigs = {
   }
 };
 
-const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions, productCategory, contentsType, mainIngredient, distributionEnvironment }) => {
+const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
+  bagTypeId,
+  dimensions,
+  productCategory,
+  contentsType,
+  mainIngredient,
+  distributionEnvironment,
+  materialId,
+  thicknessSelection,
+  postProcessingOptions = []
+}) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const config = bagTypeConfigs[bagTypeId as keyof typeof bagTypeConfigs];
 
@@ -203,35 +240,119 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({ bagTypeId, dimensions
         </AnimatePresence>
       </div>
 
-      {/* 封筒情報 */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="grid grid-cols-1 gap-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">タイプ:</span>
-            <span className="font-medium text-gray-900">{config.name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">実寸:</span>
-            <span className="font-medium text-gray-900">
-              {bagTypeId === 'roll_film' ? (
-                `幅: ${dimensions.width}mm`
-              ) : (
-                <>
-                  {dimensions.width}×{dimensions.height}
-                  {dimensions.depth > 0 && `×${dimensions.depth}`}mm
-                </>
-              )}
-            </span>
-          </div>
-          {bagTypeId !== 'roll_film' && dimensions.width > 0 && dimensions.height > 0 && (
+      {/* 仕様情報 */}
+      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+        {/* サイズ情報 */}
+        <div>
+          <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">サイズ</h4>
+          <div className="grid grid-cols-1 gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">面積:</span>
+              <span className="text-gray-600">タイプ:</span>
+              <span className="font-medium text-gray-900">{config.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">実寸:</span>
               <span className="font-medium text-gray-900">
-                {(dimensions.width * dimensions.height / 1000).toFixed(1)}cm²
+                {bagTypeId === 'roll_film' ? (
+                  `幅: ${dimensions.width}mm`
+                ) : (
+                  <>
+                    {dimensions.width}×{dimensions.height}
+                    {dimensions.depth > 0 && `×${dimensions.depth}`}mm
+                  </>
+                )}
               </span>
             </div>
-          )}
+            {bagTypeId !== 'roll_film' && dimensions.width > 0 && dimensions.height > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">面積:</span>
+                <span className="font-medium text-gray-900">
+                  {(dimensions.width * dimensions.height / 1000).toFixed(1)}cm²
+                </span>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* 素材・厚さ情報 */}
+        {(materialId || thicknessSelection) && (
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">素材・厚さ</h4>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              {materialId && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">素材:</span>
+                  <span className="font-medium text-gray-900">
+                    {MATERIAL_TYPE_LABELS_JA[materialId] || materialId}
+                  </span>
+                </div>
+              )}
+              {thicknessSelection && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">厚さ:</span>
+                  <span className="font-medium text-gray-900">
+                    {THICKNESS_LABELS[thicknessSelection] || thicknessSelection}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 後加工オプション */}
+        {postProcessingOptions && postProcessingOptions.length > 0 && (
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">後加工</h4>
+            <div className="flex flex-wrap gap-1">
+              {postProcessingOptions
+                .filter(option => {
+                  // 技術的なオプション（表示しないもの）
+                  const excludeOptions = [
+                    'sealing-width',
+                    'top-open',
+                    'valve-no',
+                    'zipper-yes',
+                    'zipper-no',
+                    'notch-yes',
+                    'notch-no',
+                    'hang-hole-yes',
+                    'hang-hole-no',
+                    'corner-round',
+                    'corner-square',
+                    'easy-cut-yes',
+                    'easy-cut-no',
+                    'matte',
+                    'glossy'
+                  ];
+                  // 表示したいオプションのみを含める
+                  return !excludeOptions.some(exclude => option.startsWith(exclude));
+                })
+                .map((option) => {
+                  const optionLabels: Record<string, string> = {
+                    'zipper': 'ジッパー',
+                    'zipper-top': 'トップジッパー',
+                    'notch-straight': '直線ノッチ',
+                    'hang-hole-6mm': '吊り穴(6mm)',
+                    'hang-hole-8mm': '吊り穴(8mm)',
+                    'valve-yes': 'ガスバルブ',
+                    'corner-r5': '角丸(R5)',
+                    'corner-r0': '角切り(R0)',
+                    'easy-cut': 'イージーカット',
+                    'matte-finish': 'マット仕上げ',
+                    'glossy-finish': '光沢仕上げ'
+                  };
+                  return (
+                    <span
+                      key={option}
+                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-navy-100 text-navy-700 border border-navy-200"
+                    >
+                      {optionLabels[option] || option}
+                    </span>
+                  );
+                })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 通知メッセージ */}
