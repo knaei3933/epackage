@@ -125,7 +125,14 @@ export class PouchStrategy extends BasePricingStrategy {
    * 総メートル数（ロス含む）計算（オーバーライド）
    */
   protected calculateTotalMetersWithLoss(params: CalculationParams): number {
-    return this.calculateMetersForPrinting(params)
+    const actualMeters = this.calculateMetersForPrinting(params)
+
+    // Kraft材料: 最低1000mで価格計算（ユーザーが少量注文しても1000m分の価格）
+    if (this.isKraftMaterial(params.materialId)) {
+      return Math.max(actualMeters, PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS)
+    }
+
+    return actualMeters
   }
 
   /**
@@ -144,13 +151,8 @@ export class PouchStrategy extends BasePricingStrategy {
       errors.push(`NY+LLDPE minimum order quantity is ${PRICING_CONSTANTS.NY_LLDPE_MIN_QUANTITY} pieces`)
     }
 
-    // クラフト材料の1000m MOQ検証
-    if (this.isKraftMaterial(params.materialId)) {
-      const totalMeters = this.calculateTotalMetersWithLoss(params)
-      if (totalMeters < PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS) {
-        errors.push(`Kraft materials minimum usage: ${PRICING_CONSTANTS.KRAFT_MIN_QUANTITY_METERS}m (current: ${Math.ceil(totalMeters)}m)`)
-      }
-    }
+    // クラフト材料: 1000m最低価格ルール適用（注文数は自由、価格は1000m分）
+    // 検証エラーは出さない（calculateTotalMetersWithLossで最低1000mを適用）
 
     return errors
   }
