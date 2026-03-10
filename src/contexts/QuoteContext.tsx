@@ -1180,9 +1180,23 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
       const requiresHeight = state.bagTypeId !== 'roll_film';
       const hasValidHeight = !requiresHeight || (state.height >= 70 && state.height <= 300);
       const hasBasicSpecs = !!(state.bagTypeId && state.materialId && hasValidWidth);
-      const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al'];
+      const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al', 'ny_lldpe', 'kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
       const requiresThickness = materialsWithThickness.includes(state.materialId);
       const hasThickness = !!state.thicknessSelection;
+
+      // スタンドアップパウチ・ガゼットパウチ: depth（袋の深さ/マチ）が必須
+      const requiresDepth = state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset' || state.bagTypeId === 'box';
+      const hasDepth = !requiresDepth || (!!state.depth && state.depth >= 30);
+
+      // ガゼットパウチ: sideWidth（側面幅）が必須
+      const requiresSideWidth = state.bagTypeId === 'gusset' || state.bagTypeId === 'box';
+      const hasSideWidth = !requiresSideWidth || (!!state.sideWidth && state.sideWidth >= 30);
+
+      // スパウトパウチ: spoutSize（スパウトサイズ）とspoutPosition（スパウト位置）が必須
+      const requiresSpout = state.bagTypeId === 'spout';
+      const hasSpoutSize = !requiresSpout || !!state.spoutSize;
+      const hasSpoutPosition = !requiresSpout || !!state.spoutPosition;
+
       // ロールフィルムの場合はピッチ（50-1000mm）も必須
       const isRollFilm = state.bagTypeId === 'roll_film';
       const hasValidPitch = !isRollFilm || (state.pitch && state.pitch >= 50 && state.pitch <= 1000);
@@ -1195,7 +1209,7 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
         state.distributionEnvironment
       );
 
-      const result = hasBasicSpecs && hasValidHeight && hasValidPitch && (!requiresThickness || hasThickness) && hasContents;
+      const result = hasBasicSpecs && hasValidHeight && hasDepth && hasSideWidth && hasSpoutSize && hasSpoutPosition && hasValidPitch && (!requiresThickness || hasThickness) && hasContents;
       console.log('[checkStepComplete] specs result:', {
         hasValidWidth,
         requiresHeight,
@@ -1203,6 +1217,13 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
         hasBasicSpecs,
         requiresThickness,
         hasThickness,
+        requiresDepth,
+        hasDepth,
+        requiresSideWidth,
+        hasSideWidth,
+        requiresSpout,
+        hasSpoutSize,
+        hasSpoutPosition,
         isRollFilm,
         hasValidPitch,
         hasContents,
