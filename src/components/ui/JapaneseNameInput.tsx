@@ -165,7 +165,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
         {/* メインラベル */}
         {label && (
           <div className="flex items-baseline space-x-2">
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-base font-medium text-text-primary">
               {label}
             </label>
             {required && (
@@ -179,13 +179,13 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
         {/* 漢字入力エリア（姓・名） */}
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="text-xs font-medium text-text-muted">漢字</div>
-            <span className="text-xs text-text-secondary">（例：山田 太郎）</span>
+            <div className="text-sm font-medium text-text-muted">漢字</div>
+            <span className="text-sm text-text-secondary">（例：山田 太郎）</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 姓 */}
             <div className="space-y-1">
-              <label className="text-sm text-text-primary block">
+              <label className="text-base text-text-primary block">
                 姓
               </label>
               <Input
@@ -198,6 +198,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 pattern="^[\u4E00-\u9FFF\s]*$"
+                helperTextClassName="text-sm"
                 helperText="漢字で入力してください"
                 onInvalid={(e) => {
                   e.currentTarget.setCustomValidity('漢字のみ入力可能です。');
@@ -210,7 +211,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
 
             {/* 名 */}
             <div className="space-y-1">
-              <label className="text-sm text-text-primary block">
+              <label className="text-base text-text-primary block">
                 名
               </label>
               <Input
@@ -223,6 +224,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 pattern="^[\u4E00-\u9FFF\s]*$"
+                helperTextClassName="text-sm"
                 helperText="漢字で入力してください"
                 onInvalid={(e) => {
                   e.currentTarget.setCustomValidity('漢字のみ入力可能です。');
@@ -238,13 +240,13 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
         {/* ひらがな入力エリア（姓・名） */}
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="text-xs font-medium text-text-muted">ひらがな</div>
-            <span className="text-xs text-text-secondary">（例：やまだ たろう）</span>
+            <div className="text-sm font-medium text-text-muted">ひらがな</div>
+            <span className="text-sm text-text-secondary">（例：やまだ たろう）</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 姓（ひらがな） */}
             <div className="space-y-1">
-              <label className="text-sm text-text-primary block">
+              <label className="text-base text-text-primary block">
                 姓
               </label>
               <Input
@@ -256,13 +258,14 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 disabled={kanaLastNameDisabled}
                 size={size}
                 maxLength={50}
+                helperTextClassName="text-sm"
                 helperText="全角ひらがなで入力してください（読み仮名）"
               />
             </div>
 
             {/* 名（ひらがな） */}
             <div className="space-y-1">
-              <label className="text-sm text-text-primary block">
+              <label className="text-base text-text-primary block">
                 名
               </label>
               <Input
@@ -274,6 +277,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 disabled={kanaFirstNameDisabled}
                 size={size}
                 maxLength={50}
+                helperTextClassName="text-sm"
                 helperText="全角ひらがなで入力してください（読み仮名）"
               />
             </div>
@@ -519,7 +523,7 @@ export function LegacyJapaneseNameInputController<TFieldValues extends FieldValu
       <div className="space-y-4">
         {label && (
           <div className="flex items-baseline space-x-2">
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-base font-medium text-text-primary">
               {label}
             </label>
             {required && (

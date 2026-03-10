@@ -406,6 +406,7 @@ export default function RegistrationForm({
             kanjiFirstNameName="kanjiFirstName"
             kanaLastNameName="kanaLastName"
             kanaFirstNameName="kanaFirstName"
+            label={undefined}
           />
         </div>
 
