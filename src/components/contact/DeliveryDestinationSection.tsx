@@ -236,7 +236,7 @@ function DeliveryDestinationCard({
 
       {/* お客様情報と同じチェックボックス */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-        <label className="flex items-start space-x-3 cursor-pointer group">
+        <label className="flex items-start space-x-3 !cursor-pointer group">
           <div className="relative">
             <input
               type="checkbox"
@@ -254,7 +254,7 @@ function DeliveryDestinationCard({
               </svg>
             </div>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 cursor-pointer">
             <span className="text-sm font-medium text-gray-900">
               お客様情報と同じ
             </span>
