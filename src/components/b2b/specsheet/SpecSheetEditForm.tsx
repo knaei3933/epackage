@@ -246,8 +246,8 @@ export default function SpecSheetEditForm({
   const [otr, setOtr] = useState(initialData?.product?.performance?.otr || '');
 
   // Compliance
-  const [foodSanitationAct, setFoodSanitationAct] = useState(
-    initialData?.product?.compliance?.foodSanitationAct ?? false
+  const [qualityControl, setFoodSanitationAct] = useState(
+    initialData?.product?.compliance?.qualityControl ?? false
   );
   const [jisStandards, setJisStandards] = useState(
     initialData?.product?.compliance?.jisStandards?.join(', ') || ''
@@ -426,12 +426,12 @@ export default function SpecSheetEditForm({
                 }
               : undefined,
           compliance:
-          foodSanitationAct ||
+          qualityControl ||
           jisStandards ||
           isoStandards ||
           otherStandards
               ? {
-                  foodSanitationAct,
+                  qualityControl,
                   jisStandards: jisStandards ? jisStandards.split(',').map(s => s.trim()) : undefined,
                   isoStandards: isoStandards ? isoStandards.split(',').map(s => s.trim()) : undefined,
                   otherStandards: otherStandards ? otherStandards.split(',').map(s => s.trim()) : undefined,
@@ -561,7 +561,7 @@ export default function SpecSheetEditForm({
     sealStrength,
     wvtr,
     otr,
-    foodSanitationAct,
+    qualityControl,
     jisStandards,
     isoStandards,
     otherStandards,
@@ -888,7 +888,7 @@ export default function SpecSheetEditForm({
             setWvtr={setWvtr}
             otr={otr}
             setOtr={setOtr}
-            foodSanitationAct={foodSanitationAct}
+            qualityControl={qualityControl}
             setFoodSanitationAct={setFoodSanitationAct}
             jisStandards={jisStandards}
             setJisStandards={setJisStandards}
@@ -1291,7 +1291,7 @@ interface ProductSpecTabProps {
   setWvtr: (v: string) => void;
   otr: string;
   setOtr: (v: string) => void;
-  foodSanitationAct: boolean;
+  qualityControl: boolean;
   setFoodSanitationAct: (v: boolean) => void;
   jisStandards: string;
   setJisStandards: (v: string) => void;
@@ -1356,7 +1356,7 @@ function ProductSpecTab({
   setWvtr,
   otr,
   setOtr,
-  foodSanitationAct,
+  qualityControl,
   setFoodSanitationAct,
   jisStandards,
   setJisStandards,
@@ -1746,11 +1746,11 @@ function ProductSpecTab({
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={foodSanitationAct}
-              onChange={e => setFoodSanitationAct(e.target.checked)}
+              checked={qualityControl}
+              onChange={e => setQualityControl(e.target.checked)}
               disabled={readOnly}
             />
-            <span className="text-sm">食品衛生法準拠</span>
+            <span className="text-sm">厳格な品質管理準拠</span>
           </label>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -122,8 +122,8 @@ export interface ProductSpec {
 
   /** 規格準拠 / Compliance standards */
   compliance?: {
-    /** 食品衛生法 / Food Sanitation Act */
-    foodSanitationAct?: boolean;
+    /** 厳格な品質管理 / Strict Quality Control */
+    qualityControl?: boolean;
     /** JIS規格 / JIS standards */
     jisStandards?: string[];
     /** ISO規格 / ISO standards */

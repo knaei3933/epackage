@@ -732,7 +732,7 @@ function prepareTemplateData(data: SpecSheetData): SpecSheetTemplateData {
 
   // Build compliance list (if available)
   const compliance: string[] | undefined = data.product.compliance ? [
-    ...(data.product.compliance.foodSanitationAct ? ['食品衛生法準拠'] : []),
+    ...(data.product.compliance.qualityControl ? ['厳格な品質管理準拠'] : []),
     ...(data.product.compliance.jisStandards || []).map(s => `JIS: ${s}`),
     ...(data.product.compliance.isoStandards || []).map(s => `ISO: ${s}`),
     ...(data.product.compliance.otherStandards || []),

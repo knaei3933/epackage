@@ -167,8 +167,8 @@ const commonFAQs = [
     {
         question_ja: '食品安全規格に対応していますか?',
         question_en: 'Do you meet food safety standards?',
-        answer_ja: 'はい、食品衛生法適合、FSSC 22000認証取得済みです。',
-        answer_en: 'Yes, we comply with food sanitation laws and are FSSC 22000 certified.',
+        answer_ja: 'はい、厳格な品質管理体制で食品安全に対応しています。',
+        answer_en: 'Yes, we have strict quality control systems to ensure food safety.',
         category: 'food'
     },
     {
@@ -319,14 +319,9 @@ const commonDownloads = [
 
 const commonCertifications = [
     {
-        name: '食品安全規格',
-        issuer: '日本食品安全基準',
-        description: '日本の食品安全基準に対応'
-    },
-    {
-        name: '食品衛生法適合',
-        issuer: '日本厚生労働省',
-        description: '食品衛生法に基づく適合確認'
+        name: '厳格な品質管理',
+        issuer: '品質保証部門',
+        description: '全工程で品質を担保'
     }
 ];
 
@@ -434,14 +429,7 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 }
             ],
             related_case_studies: ['pouch-001', 'pouch-002'],
-            certifications: [
-                ...commonCertifications,
-                {
-                    name: 'FSSC 22000',
-                    issuer: 'FSSC',
-                    description: '食品安全システム認証'
-                }
-            ]
+            certifications: commonCertifications
         },
 
         // 3. Box Pouch (ガゼットパウチ)

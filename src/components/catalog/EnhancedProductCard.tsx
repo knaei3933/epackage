@@ -71,9 +71,9 @@ export function EnhancedProductCard({
 
   // Trust indicators
   const trustIndicators = [
-    { icon: Award, text: 'ISO9001認証', color: 'emerald' },
-    { icon: Check, text: '品质保証', color: 'blue' },
-    { icon: BarChart3, text: '実績500社', color: 'orange' }
+    { icon: Check, text: '品質保証', color: 'blue' },
+    { icon: BarChart3, text: '実績500社', color: 'orange' },
+    { icon: Star, text: '高品質', color: 'yellow' }
   ]
 
   return (

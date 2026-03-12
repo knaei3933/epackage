@@ -103,9 +103,8 @@ export function groupDownloadsByType(
 export function getCertificationIcon(name: string): string {
   const iconMap: Record<string, string> = {
     '食品安全規格': 'certificate',
-    '食品衛生法': 'award',
+    '品質管理': 'award',
     '薬機法': 'check-circle',
-    'FSSC 22000': 'shield-check',
   }
 
   return iconMap[name] || 'check-circle'

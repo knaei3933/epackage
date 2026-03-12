@@ -25,24 +25,17 @@ const trustSignalsData: TrustSignal[] = [
     description: '長年の実績と信頼'
   },
   {
-    icon: <Award className="w-6 h-6" />,
-    value: 'ISO9001',
-    label: '認証取得',
-    description: '品質マネジメントシステム認証'
+    icon: <Shield className="w-6 h-6" />,
+    value: '厳格な品質管理',
+    label: '品質保証',
+    description: '全工程で品質を担保'
   },
   {
-    icon: <Shield className="w-6 h-6" />,
-    value: '完全対応',
-    label: '食品衛生法',
-    description: '食品安全規格に完全準拠'
+    icon: <CheckCircle className="w-6 h-6" />,
+    value: '迅速対応',
+    label: 'サポート体制',
+    description: '24時間対応・充実のサポート'
   }
-]
-
-const certifications = [
-  { name: 'ISO9001', description: '品質マネジメントシステム' },
-  { name: 'ISO22000', description: '食品安全マネジメント' },
-  { name: 'FSSC22000', description: '食品安全システム認証' },
-  { name: '食品衛生法', description: '日本の食品衛生法に準拠' }
 ]
 
 interface TrustSignalsProps {
@@ -137,54 +130,7 @@ export function TrustSignals({
             </motion.div>
           ))}
         </motion.div>
-
-        {showCertifications && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-            className="mt-8 pt-8 border-t border-gray-200"
-          >
-            <h3 className="text-center text-sm font-semibold text-gray-700 mb-4">
-              安全規格・認証取得
-            </h3>
-            <div className="flex flex-wrap justify-center gap-3">
-              {certifications.map((cert, index) => (
-                <div
-                  key={index}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full"
-                >
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <div>
-                    <span className="text-sm font-semibold text-green-800">{cert.name}</span>
-                    <span className="text-xs text-green-600 ml-1">{cert.description}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </div>
-    </div>
-  )
-}
-
-// Standalone component for certification badges
-export function CertificationBadges({ className = '' }: { className?: string }) {
-  return (
-    <div className={`flex flex-wrap justify-center gap-3 ${className}`}>
-      {certifications.map((cert, index) => (
-        <div
-          key={index}
-          className="inline-flex items-center space-x-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-        >
-          <Shield className="w-4 h-4 text-green-600" />
-          <div>
-            <span className="text-xs font-semibold text-green-800">{cert.name}</span>
-          </div>
-        </div>
-      ))}
     </div>
   )
 }
