@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { BookOpen, Calendar, Building2, ArrowRight, ExternalLink } from 'lucide-react'
+import DOMPurify from 'dompurify'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
@@ -293,7 +294,14 @@ function CaseDetailModal({
           {/* コンテンツ */}
           {record.content && (
             <div className="prose prose-sm max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: record.content }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(record.content, {
+                    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span'],
+                    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                  })
+                }}
+              />
             </div>
           )}
         </div>

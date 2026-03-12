@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, FormEvent } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { MessageCircle, X, Send, Minimize2, Loader2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { markdownToHtml } from '@/lib/markdown-renderer';
 import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 
@@ -307,7 +308,12 @@ export function ChatWidget() {
                       {message.role === 'assistant' ? (
                         <div
                           className="prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: renderedHtml[message.id] || '' }}
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(renderedHtml[message.id] || '', {
+                              ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'div', 'span'],
+                              ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                            })
+                          }}
                         />
                       ) : (
                         <p className="whitespace-pre-wrap break-words">{getMessageContent(message)}</p>

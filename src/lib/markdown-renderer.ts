@@ -8,42 +8,20 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import remarkGfm from 'remark-gfm';
+import DOMPurify from 'isomorphic-dompurify';
 import { loggers } from '@/lib/logger';
 
 const logger = loggers.app().withContext({ module: 'markdown-renderer' });
 
 let processor: any = null;
 
-// Simple HTML sanitizer for server-side (avoids jsdom dependency issues)
-function simpleSanitize(html: string): string {
-  // Remove dangerous tags
-  html = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    .replace(/<link\b[^>]*>/gi, '')
-    .replace(/<meta\b[^>]*>/gi, '');
-
-  // Remove event handlers
-  html = html.replace(/on\w+="[^"]*"/gi, '');
-  html = html.replace(/on\w+='[^']*'/gi, '');
-
-  // Remove javascript: protocol
-  html = html.replace(/javascript:/gi, '');
-
-  // Remove data: attributes (except data-safe-*)
-  html = html.replace(/data-(?!safe-)[^"']*(?==)/gi, '');
-
-  return html;
-}
-
 function getProcessor() {
   if (!processor) {
     processor = unified()
       .use(remarkParse)
       .use(remarkGfm)
-      .use(remarkRehype, { allowDangerousHtml: true })
-      .use(rehypeStringify, { allowDangerousHtml: true });
+      .use(remarkRehype, { allowDangerousHtml: false })
+      .use(rehypeStringify, { allowDangerousHtml: false });
   }
   return processor;
 }
@@ -61,16 +39,12 @@ export async function markdownToHtml(markdown: string): Promise<string> {
     const vfile = await proc.process(markdown);
     const html = String(vfile);
 
-    // Sanitize HTML to prevent XSS (using simple sanitizer to avoid jsdom issues)
-    let cleanHtml = simpleSanitize(html);
-
-    // Additional filtering: only allow safe tags and attributes
-    // Remove unsafe tags but preserve safe ones
-    const unsafeTagPattern = /<(?!\/?(p|br|strong|em|u|a\s|\/a|ul|ol|li|code|pre|blockquote|h[1-6]|div|span)\b)[^>]*>/gi;
-    cleanHtml = cleanHtml.replace(unsafeTagPattern, '');
-
-    // Ensure href attributes only have safe URLs (http, https, mailto)
-    cleanHtml = cleanHtml.replace(/href=["'](javascript:|data:)([^"']*)["']/gi, 'href="#"');
+    // Sanitize HTML with DOMPurify to prevent XSS
+    const cleanHtml = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+      ALLOW_DATA_ATTR: false
+    });
 
     return cleanHtml;
   } catch (error) {
