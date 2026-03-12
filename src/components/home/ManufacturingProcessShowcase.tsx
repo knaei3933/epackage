@@ -68,7 +68,7 @@ const qualityStats = [
   { value: '99.8%', label: '品質合格率', icon: CheckCircle },
   { value: '24時間', label: '生産リードタイム', icon: Clock },
   { value: '15年', label: '平均従業年数', icon: Users },
-  { value: 'ISO9001', label: '国際品質規格', icon: Award }
+  { value: '500社以上', label: '導入実績', icon: Award }
 ]
 
 const certifications = [

@@ -305,7 +305,6 @@ export function HeroSection() {
                 100%
               </motion.div>
               <p className="text-sm text-brixa-100 font-medium">全検査合格</p>
-              <div className="text-xs text-brixa-200 mt-2">ISO9001認証</div>
             </motion.div>
 
             {/* コスト - Enhanced */}
