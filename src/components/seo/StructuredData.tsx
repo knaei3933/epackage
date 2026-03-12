@@ -45,24 +45,12 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             'https://www.linkedin.com/company/epackage-lab',
             'https://twitter.com/epackage_lab'
           ],
-          certification: [
-            {
-              '@type': 'Certification',
-              name: '食品安全規格対応',
-              issuedBy: {
-                '@type': 'Organization',
-                name: '日本の食品安全基準'
-              }
-            }
-          ],
           knowsAbout: [
             'パッケージング',
             '包装資材',
             '食品包装',
             '医薬品包装',
-            '化粧品包装',
-            '食品安全規格',
-            '法規制準拠'
+            '化粧品包装'
           ],
           serviceType: 'B2Bパッケージングソリューション',
           hasOfferCatalog: {
@@ -102,16 +90,6 @@ export function StructuredData({ type, data }: StructuredDataProps) {
               '@type': 'PropertyValue',
               name: 'JIS規格準拠',
               value: 'はい'
-            },
-            {
-              '@type': 'PropertyValue',
-              name: '食品衛生法適合',
-              value: data.foodGrade ? 'はい' : 'いいえ'
-            },
-            {
-              '@type': 'PropertyValue',
-              name: '薬機法適合',
-              value: data.pharmaGrade ? 'はい' : 'いいえ'
             }
           ]
         }

@@ -84,7 +84,7 @@ const premiumProducts = [
 ]
 
 const qualityFeatures = [
-  { icon: Shield, text: '日本規制完全準拠', description: '食品衛生法・食品安全規格対応' },
+  { icon: Shield, text: '厳格な品質管理', description: '高品質包装資材' },
   { icon: Truck, text: '全国無料配送', description: 'ご注文5万円以上で送料無料' },
   { icon: Award, text: '品質管理システム', description: '体系的な品質管理体制' },
   { icon: CheckCircle, text: '完全品質保証', description: '不具合製品は無償再製作' }

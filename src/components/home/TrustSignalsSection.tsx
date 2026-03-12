@@ -4,13 +4,6 @@ import { motion } from 'framer-motion'
 import { Shield, Award, Users, CheckCircle, Clock } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 
-const certifications = [
-  { name: 'ISO 9001', description: '品質マネジメント' },
-  { name: '食品衛生法', description: '適合確認済み' },
-  { name: '薬機法', description: '対応可能' },
-  { name: 'FSSC 22000', description: '食品安全' }
-]
-
 const stats = [
   { value: '500+', label: '導入企業数', icon: Users },
   { value: '100%', label: '全検査合格', icon: CheckCircle },
@@ -38,24 +31,6 @@ export function TrustSignalsSection() {
               <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
             </motion.div>
           ))}
-        </div>
-
-        {/* Certifications */}
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-            取得認証・規格準拠
-          </h3>
-          <div className="flex flex-wrap justify-center gap-4">
-            {certifications.map((cert, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 px-4 py-2 bg-brixa-50 dark:bg-brixa-900/30 text-brixa-700 dark:text-brixa-300 rounded-full text-sm font-medium"
-              >
-                <CheckCircle className="w-4 h-4" />
-                <span>{cert.name}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Client Logos Placeholder */}

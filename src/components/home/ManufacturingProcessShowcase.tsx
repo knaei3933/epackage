@@ -72,8 +72,8 @@ const qualityStats = [
 ]
 
 const certifications = [
-  { name: '食品安全規格', description: '日本の食品安全基準に対応' },
-  { name: '食品衛生法', description: '食品衛生法完全準拠' }
+  { name: '厳格な品質管理', description: '全工程で品質を担保' },
+  { name: 'トレーサビリティ', description: '完全な製造履歴管理' }
 ]
 
 export function ManufacturingProcessShowcase() {

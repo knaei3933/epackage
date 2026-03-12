@@ -106,33 +106,6 @@ export function QualitySection({ className = '' }: QualitySectionProps) {
     }
   ]
 
-  const certifications = [
-    {
-      name: '食品安全規格',
-      description: '日本の食品安全基準に対応',
-      icon: Shield,
-      status: 'active'
-    },
-    {
-      name: '品質管理体制',
-      description: '体系的な品質管理プロセス',
-      icon: Award,
-      status: 'active'
-    },
-    {
-      name: '食品衛生法',
-      description: '食品衛生法対応',
-      icon: CheckCircle,
-      status: 'compliant'
-    },
-    {
-      name: '薬機法',
-      description: '医薬品機器法対応',
-      icon: ClipboardCheck,
-      status: 'compliant'
-    }
-  ]
-
   const qualityTools = [
     {
       tool: '統計的工程管理(SPC)',
@@ -292,54 +265,8 @@ export function QualitySection({ className = '' }: QualitySectionProps) {
           </div>
         </MotionWrapper>
 
-        {/* Certifications */}
-        <MotionWrapper delay={0.5}>
-          <div className="mb-20">
-            <h3 className="text-2xl font-bold text-center text-gray-900 mb-12">
-              品質認証と規格
-            </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {certifications.map((cert, index) => {
-                const Icon = cert.icon
-                return (
-                  <Card
-                    key={index}
-                    className="p-6 text-center hover:shadow-lg transition-all duration-300"
-                  >
-                    <div className={`w-16 h-16 ${
-                      cert.status === 'active' ? 'bg-green-100' :
-                      cert.status === 'compliant' ? 'bg-navy-600' : 'bg-gray-100'
-                    } rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                      <Icon className={`h-8 w-8 ${
-                        cert.status === 'active' ? 'text-green-600' :
-                        cert.status === 'compliant' ? 'text-navy-700' : 'text-gray-600'
-                      }`} />
-                    </div>
-                    <h4 className="text-lg font-bold text-gray-900 mb-2">
-                      {cert.name}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {cert.description}
-                    </p>
-                    {cert.status === 'active' && (
-                      <Badge variant="success" className="mt-3 text-xs">
-                        認証済み
-                      </Badge>
-                    )}
-                    {cert.status === 'compliant' && (
-                      <Badge variant="info" className="mt-3 text-xs">
-                        準拠
-                      </Badge>
-                    )}
-                  </Card>
-                )
-              })}
-            </div>
-          </div>
-        </MotionWrapper>
-
         {/* Quality Tools */}
-        <MotionWrapper delay={0.6}>
+        <MotionWrapper delay={0.5}>
           <div className="mb-20">
             <h3 className="text-2xl font-bold text-center text-gray-900 mb-12">
               品質管理ツール
@@ -370,7 +297,7 @@ export function QualitySection({ className = '' }: QualitySectionProps) {
         </MotionWrapper>
 
         {/* Quality Commitment */}
-        <MotionWrapper delay={0.7}>
+        <MotionWrapper delay={0.6}>
           <div className="bg-gradient-to-r from-navy-700 to-navy-600 rounded-3xl p-8 md:p-12 text-white">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>

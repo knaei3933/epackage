@@ -214,15 +214,6 @@ export function WhyKoreaSection({ className = '' }: WhyKoreaSectionProps) {
                 </h3>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Award className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">食品安全規格対応</div>
-                      <div className="text-sm text-gray-600">日本の食品安全基準に準拠</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-navy-600 rounded-lg flex items-center justify-center">
                       <Shield className="h-5 w-5 text-navy-700" />
                     </div>
