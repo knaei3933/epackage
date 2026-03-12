@@ -236,24 +236,26 @@ function DeliveryDestinationCard({
 
       {/* お客様情報と同じチェックボックス */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-        <label className="flex items-start cursor-pointer hover:bg-gray-100 p-2 rounded -mx-2">
+        <label className="flex items-start space-x-3 cursor-pointer group">
           <div className="relative">
             <input
               type="checkbox"
               {...register(`deliveryDestinations.${index}.sameAsCustomer` as const)}
-              className="peer mt-0.5 w-6 h-6 text-brixa-600 border-gray-300 rounded focus:ring-2 focus:ring-brixa-500 focus:ring-offset-0 cursor-pointer appearance-none checked:bg-brixa-600 checked:border-brixa-600 transition-colors"
+              className="peer sr-only"
               onChange={(e) => {
                 if (e.target.checked) {
                   onCopyCustomerInfo()
                 }
               }}
             />
-            <svg className="w-4 h-4 text-white pointer-events-none absolute top-1.5 left-0.5 peer-checked:block hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-            </svg>
+            <div className="w-5 h-5 mt-0.5 border-2 border-gray-300 rounded bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 flex items-center justify-center group-hover:border-brixa-400">
+              <svg className="w-3 h-3 text-white hidden peer-checked:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
           </div>
-          <div className="ml-3">
-            <span className="text-sm font-medium text-gray-700">
+          <div className="flex-1">
+            <span className="text-sm font-medium text-gray-900">
               お客様情報と同じ
             </span>
             <button
