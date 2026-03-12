@@ -179,29 +179,20 @@ export default function PouchSampleRequestForm() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-brixa-600 rounded-full mb-6">
-          <Package className="w-8 h-8 text-brixa-700" />
-        </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          パウチサンプルご依頼
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          サンプル申し込みフォーム
         </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-          パウチ製品のサンプルをご請求いただけます
+        <p className="text-gray-600">
+          必要事項をご入力ください
         </p>
-        <div className="flex justify-center items-center gap-2 text-sm text-gray-500">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          <span>完全無料</span>
-          <Send className="w-4 h-4 text-navy-600 ml-4" />
-          <span>迅速発送</span>
-        </div>
 
         {/* Draft Restoration Notice */}
         {hasDraft && (
-          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <RotateCcw className="w-5 h-5 text-amber-600" />
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-amber-600" />
                 <div className="text-left">
                   <p className="text-sm font-medium text-amber-800">
                     保存された下書きがあります
@@ -217,14 +208,14 @@ export default function PouchSampleRequestForm() {
                 <button
                   type="button"
                   onClick={handleRestoreDraft}
-                  className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                  className="px-3 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
                 >
-                  復元する
+                  復元
                 </button>
                 <button
                   type="button"
                   onClick={handleClearDraft}
-                  className="px-4 py-2 text-sm border border-amber-600 text-amber-700 rounded-lg hover:bg-amber-50 transition-colors"
+                  className="px-3 py-1 text-sm border border-amber-600 text-amber-700 rounded hover:bg-amber-50 transition-colors"
                 >
                   クリア
                 </button>
@@ -285,7 +276,7 @@ export default function PouchSampleRequestForm() {
           <div className="flex items-center justify-center pt-4">
             <button
               type="submit"
-              disabled={isSubmitting || watch('sampleItems')?.length === 0}
+              disabled={isSubmitting}
               className="px-8 py-4 bg-brixa-600 text-white font-semibold rounded-lg hover:bg-brixa-700 focus:ring-4 focus:ring-brixa-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[200px]"
             >
               {isSubmitting ? (
@@ -294,14 +285,12 @@ export default function PouchSampleRequestForm() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  サンプル依頼を送信中...
+                  送信中...
                 </span>
               ) : (
                 <span className="flex items-center justify-center">
                   <Send className="w-5 h-5 mr-2" />
-                  {watch('sampleItems')?.length === 0
-                    ? 'サンプルを選択してください'
-                    : 'サンプル依頼を送信'}
+                  サンプル依頼を送信
                 </span>
               )}
             </button>

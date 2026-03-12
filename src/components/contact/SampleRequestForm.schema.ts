@@ -34,15 +34,15 @@ export const pouchSampleRequestSchema = z.object({
     .min(1, '名（漢字）を入力してください')
     .max(50, '名（漢字）は50文字以内で入力してください'),
   kanaLastName: z.string()
-    .min(1, '姓（ひらがな）を入力してください')
-    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
-    .max(50, '姓（ひらがな）は50文字以内で入力してください')
-    .refine(val => val.trim().length > 0, '姓（ひらがな）を入力してください'),
+    .min(1, '姓（ふりがな）を入力してください')
+    .regex(/^[\u3040-\u309F\u30A0-\u30FF\s]+$/, 'ひらがなまたはカタカナで入力してください')
+    .max(50, '姓（ふりがな）は50文字以内で入力してください')
+    .refine(val => val.trim().length > 0, '姓（ふりがな）を入力してください'),
   kanaFirstName: z.string()
-    .min(1, '名（ひらがな）を入力してください')
-    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
-    .max(50, '名（ひらがな）は50文字以内で入力してください')
-    .refine(val => val.trim().length > 0, '名（ひらがな）を入力してください'),
+    .min(1, '名（ふりがな）を入力してください')
+    .regex(/^[\u3040-\u309F\u30A0-\u30FF\s]+$/, 'ひらがなまたはカタカナで入力してください')
+    .max(50, '名（ふりがな）は50文字以内で入力してください')
+    .refine(val => val.trim().length > 0, '名（ふりがな）を入力してください'),
   company: z.string()
     .max(100, '会社名は100文字以内で入力してください')
     .optional(),
@@ -76,8 +76,8 @@ export const pouchSampleRequestSchema = z.object({
   // 配送先リスト（複数可能）
   deliveryDestinations: z.array(deliveryDestinationSchema).min(1, '少なくとも1つの配送先を入力してください'),
 
-  // サンプルアイテム（最大5つ）
-  sampleItems: z.array(sampleItemSchema).min(1, '少なくとも1つのサンプルを選択してください').max(5, 'サンプルは最大5点までです')
+  // サンプルアイテム（任意）
+  sampleItems: z.array(sampleItemSchema).optional()
 })
 
 export type PouchSampleRequestFormData = z.infer<typeof pouchSampleRequestSchema>

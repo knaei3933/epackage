@@ -236,17 +236,22 @@ function DeliveryDestinationCard({
 
       {/* お客様情報と同じチェックボックス */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-        <label className="flex items-start cursor-pointer">
-          <input
-            type="checkbox"
-            {...register(`deliveryDestinations.${index}.sameAsCustomer` as const)}
-            className="mt-1 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-            onChange={(e) => {
-              if (e.target.checked) {
-                onCopyCustomerInfo()
-              }
-            }}
-          />
+        <label className="flex items-start cursor-pointer hover:bg-gray-100 p-2 rounded -mx-2">
+          <div className="relative">
+            <input
+              type="checkbox"
+              {...register(`deliveryDestinations.${index}.sameAsCustomer` as const)}
+              className="peer mt-0.5 w-6 h-6 text-brixa-600 border-gray-300 rounded focus:ring-2 focus:ring-brixa-500 focus:ring-offset-0 cursor-pointer appearance-none checked:bg-brixa-600 checked:border-brixa-600 transition-colors"
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onCopyCustomerInfo()
+                }
+              }}
+            />
+            <svg className="w-4 h-4 text-white pointer-events-none absolute top-1.5 left-0.5 peer-checked:block hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
           <div className="ml-3">
             <span className="text-sm font-medium text-gray-700">
               お客様情報と同じ

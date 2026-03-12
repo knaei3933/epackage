@@ -56,13 +56,20 @@ function PrivacySection({ register, errors }: PrivacySectionProps) {
           </div>
         </div>
 
-        <label className="flex items-start cursor-pointer">
-          <input
-            type="checkbox"
-            {...register('agreement')}
-            className="mt-1 w-5 h-5 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-          />
-          <span className="ml-3 text-sm text-gray-700">
+        <label className="flex items-start space-x-3 cursor-pointer group">
+          <div className="relative">
+            <input
+              type="checkbox"
+              {...register('agreement')}
+              className="peer sr-only"
+            />
+            <div className="w-5 h-5 mt-0.5 border-2 border-gray-300 rounded bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 flex items-center justify-center group-hover:border-brixa-400">
+              <svg className="w-3 h-3 text-white hidden peer-checked:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <span className="text-base text-gray-900">
             個人情報保護方針に同意する <span className="text-red-500">*</span>
           </span>
         </label>

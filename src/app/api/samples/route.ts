@@ -89,8 +89,8 @@ const sampleRequestSchema = z.object({
   // Delivery destinations (array)
   deliveryDestinations: z.array(deliveryDestinationSchema).min(1, '少なくとも1つの配送先を入力してください'),
 
-  // Sample items
-  sampleItems: z.array(sampleItemSchema).min(1, '少なくとも1つのサンプルを選択してください').max(5, 'サンプルは最大5点までです'),
+  // Sample items (optional)
+  sampleItems: z.array(sampleItemSchema).optional(),
 
   // Message and agreement
   message: z.string().min(10, 'メッセージを10文字以上で入力してください'),
@@ -211,98 +211,67 @@ const { client: supabaseAuth } = await createSupabaseSSRClient(request);
     const supabase = createServiceClient();
 
     // =====================================================
-    // Create Sample Request Using Direct SQL Transaction
+    // Create Sample Request
     // =====================================================
-    // All operations wrapped in ACID transaction:
     // 1. Create sample_requests record
-    // 2. Create sample_items records (1-5 items)
-    //
-    // If items creation fails, the request record is automatically rolled back
+    // 2. Create sample_items records (if any)
 
-    console.log('[Sample API] Creating sample request with transaction...');
+    console.log('[Sample API] Creating sample request...');
 
-    // Use raw SQL transaction to avoid RPC function ambiguity issues
-    const { data: transactionResult, error: transactionError } = await supabase.rpc('sql', {
-      sql: `
-        DO $$
-        DECLARE
-          v_request_id VARCHAR(50) := $1;
-          v_user_id UUID := $2;
-          v_notes TEXT := $3;
-          v_items_count INT := $4;
-          v_new_request_id UUID;
-        BEGIN
-          -- Create sample request
-          INSERT INTO sample_requests (
-            request_id,
-            user_id,
-            status,
-            items_count,
-            notes,
-            created_at
-          ) VALUES (
-            v_request_id,
-            v_user_id,
-            'pending',
-            v_items_count,
-            v_notes,
-            NOW()
-          ) RETURNING id INTO v_new_request_id;
+    // Create the sample request record (user_id can be null for guest users)
+    const { data: requestData, error: requestError } = await supabase
+      .from('sample_requests')
+      .insert({
+        request_number: requestId,
+        user_id: userId, // null for guest users
+        status: 'received',
+        notes: validatedData.message
+      })
+      .select('id')
+      .single();
 
-          -- The sample items will be inserted separately after this
-          RAISE NOTICE 'Sample request created with ID: %', v_new_request_id;
-
-          -- Return the new request ID
-          SELECT v_new_request_id AS sample_request_id, v_request_id AS request_number;
-        END;
-        $$;
-      `,
-      params: [requestId, userId, validatedData.message, validatedData.sampleItems.length]
-    });
-
-    if (transactionError) {
-      console.error('[Sample API] Transaction Error:', transactionError);
-      throw new Error(`Failed to create sample request: ${transactionError.message}`);
+    if (requestError) {
+      console.error('[Sample API] Error creating sample request:', requestError);
+      throw new Error(`Failed to create sample request: ${requestError.message}`);
     }
 
-    // Check transaction result
-    if (!transactionResult || transactionResult.length === 0) {
-      throw new Error('Unknown error creating sample request');
-    }
+    const sampleRequestId = requestData.id;
 
-    const requestResult = transactionResult[0] as { sample_request_id: UUID; request_number: string };
-
-    // Now insert sample items
-    for (const item of validatedData.sampleItems) {
-      // Validate UUID format for productId
-      let productIdValue: string | null = null;
-      if (item.productId) {
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-        if (uuidRegex.test(item.productId)) {
-          productIdValue = item.productId;
+    // Now insert sample items (if any)
+    if (validatedData.sampleItems && validatedData.sampleItems.length > 0) {
+      for (const item of validatedData.sampleItems) {
+        // Validate UUID format for productId
+        let productIdValue: string | null = null;
+        if (item.productId) {
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+          if (uuidRegex.test(item.productId)) {
+            productIdValue = item.productId;
+          }
         }
-      }
 
-      const { error: itemError } = await supabase
-        .from('sample_items')
-        .insert({
-          sample_request_id: requestResult.sample_request_id,
-          product_id: productIdValue,
-          product_name: item.productName,
-          category: item.productCategory || 'other',
-          quantity: item.quantity
-        });
+        const { error: itemError } = await supabase
+          .from('sample_items')
+          .insert({
+            sample_request_id: sampleRequestId,
+            product_id: productIdValue,
+            product_name: item.productName,
+            category: item.productCategory || 'other',
+            quantity: item.quantity
+          });
 
-      if (itemError) {
-        console.error('[Sample API] Error inserting sample item:', itemError);
-        throw new Error(`Failed to create sample item: ${itemError.message}`);
+        if (itemError) {
+          console.error('[Sample API] Error inserting sample item:', itemError);
+          // Clean up the request record if item insertion fails
+          await supabase.from('sample_requests').delete().eq('id', sampleRequestId);
+          throw new Error(`Failed to create sample item: ${itemError.message}`);
+        }
       }
     }
 
     console.log('[Sample API] Sample request created successfully:', {
-      sampleRequestId: requestResult.sample_request_id,
-      requestNumber: requestResult.request_number,
-      itemsCreated: validatedData.sampleItems.length
+      sampleRequestId,
+      requestNumber: requestId,
+      itemsCreated: validatedData.sampleItems?.length || 0
     });
 
     // =====================================================
@@ -311,12 +280,12 @@ const { client: supabaseAuth } = await createSupabaseSSRClient(request);
 
     // Prepare email data
     const emailData = {
-      requestId: requestResult.request_number,
+      requestId: requestId,
       customerName,
       customerEmail,  // Uses profile email for authenticated users or form email for guests
       customerPhone,
       company: customerCompany,
-      samples: validatedData.sampleItems.map((item) => ({
+      samples: (validatedData.sampleItems || []).map((item) => ({
         productName: item.productName,
         quantity: item.quantity
       })),
@@ -351,9 +320,9 @@ const { client: supabaseAuth } = await createSupabaseSSRClient(request);
     console.log('[Sample API] Creating admin notification...');
 
     const notificationResult = await notifySampleRequest(
-      requestResult.sample_request_id,
+      sampleRequestId,
       customerName,
-      validatedData.sampleItems.length
+      validatedData.sampleItems?.length || 0
     );
 
     if (notificationResult) {
@@ -368,8 +337,8 @@ const { client: supabaseAuth } = await createSupabaseSSRClient(request);
 
     // Log the complete sample request data for debugging
     console.log('[Sample API] Request processed successfully:', {
-      requestId: requestResult.request_number,
-      sampleRequestId: requestResult.sample_request_id,
+      requestId: requestId,
+      sampleRequestId: sampleRequestId,
       authenticated: !!userId,
       userId: userId || 'guest',
       customer: {
@@ -392,9 +361,9 @@ const { client: supabaseAuth } = await createSupabaseSSRClient(request);
       success: true,
       message: 'サンプルリクエストを受け付けました。確認メールをお送りしました。',
       data: {
-        requestId: requestResult.request_number,
-        sampleRequestId: requestResult.sample_request_id,
-        sampleItemsCount: validatedData.sampleItems.length,
+        requestId: requestId,
+        sampleRequestId: sampleRequestId,
+        sampleItemsCount: validatedData.sampleItems?.length || 0,
         emailSent: emailResult.success,
         messageIds: {
           customer: emailResult.customerEmail?.messageId,

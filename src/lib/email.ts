@@ -38,6 +38,7 @@ import {
   type KoreaDesignerDataNotificationEmailData,
   type CorrectionReadyForReviewEmailData,
   type CorrectionRejectedEmailData,
+  type SampleRequestEmailData as TemplateSampleRequestEmailData,
 } from './email-templates';
 
 // Re-export createRecipient for external use
@@ -68,7 +69,7 @@ function sanitizeUserMessage(message: string): string {
 
 // Email Settings
 const FROM_EMAIL = process.env.FROM_EMAIL || 'info@epackage-lab.com';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@package-lab.com';
 
 // 環境別戦略自動選択
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -621,9 +622,9 @@ https://epackage-lab.com
  * Sample Request 管理者通知メール
  */
 const getSampleRequestAdminNotificationEmail = (data: SampleRequestEmailData) => {
-  const samplesList = data.samples.map((s, i) =>
-    `${i + 1}. ${s.productName} x ${s.quantity}点`
-  ).join('\n');
+  const samplesList = data.samples && data.samples.length > 0
+    ? data.samples.map((s, i) => `${i + 1}. ${s.productName} x ${s.quantity}点`).join('\n')
+    : '（標準サンプルセット）';
 
   return {
     to: ADMIN_EMAIL,
@@ -697,11 +698,11 @@ ${data.message || 'なし'}
 
     <div class="info-box">
       <h3>ご依頼内容</h3>
-      ${data.samples.map((s, i) => `
+      ${data.samples && data.samples.length > 0 ? data.samples.map((s, i) => `
         <div class="sample-item">
           <strong>${i + 1}. ${s.productName}</strong> x ${s.quantity}点
         </div>
-      `).join('')}
+      `).join('') : '<div class="sample-item">標準サンプルセット（6種類）</div>'}
     </div>
 
     <div class="info-box">
@@ -768,8 +769,12 @@ async function sendEmail(
       from: FROM_EMAIL,
       to,
       subject,
-      text,
-      html
+      // Only send HTML part to avoid encoding issues with text/plain
+      html,
+      // Explicit UTF-8 headers for Japanese character support
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8'
+      }
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
@@ -870,6 +875,7 @@ export async function sendContactEmail(data: ContactEmailData & { requestId: str
 
 /**
  * Sample Request メール送信（顧客 + 管理者）
+ * テンプレートシステムを使用して日本語エンコーディングを正しく処理
  */
 export async function sendSampleRequestEmail(data: SampleRequestEmailData): Promise<{
   success: boolean;
@@ -884,14 +890,22 @@ export async function sendSampleRequestEmail(data: SampleRequestEmailData): Prom
     adminEmail?: { success: boolean; messageId?: string; previewUrl?: string };
   } = {};
 
-  // 顧客確認メール
-  const customerEmailParams = getSampleRequestConfirmationEmail(data);
-  const customerResult = await sendEmail(
-    customerEmailParams.to,
-    customerEmailParams.subject,
-    customerEmailParams.text,
-    customerEmailParams.html
-  );
+  // 顧客確認メール - テンプレートシステムを使用
+  const customerRecipient: EmailRecipient = {
+    name: data.customerName,
+    email: data.customerEmail,
+    company: data.company
+  };
+
+  const customerData: TemplateSampleRequestEmailData = {
+    recipient: customerRecipient,
+    requestId: data.requestId,
+    samples: data.samples,
+    deliveryDestinations: data.deliveryDestinations,
+    message: data.message
+  };
+
+  const customerResult = await sendTemplatedEmail('sample_request_customer', customerData, customerRecipient);
   results.customerEmail = {
     success: customerResult.success,
     messageId: customerResult.messageId,
@@ -902,14 +916,21 @@ export async function sendSampleRequestEmail(data: SampleRequestEmailData): Prom
     errors.push(`顧客メール送信失敗: ${customerResult.error}`);
   }
 
-  // 管理者通知メール
-  const adminEmailParams = getSampleRequestAdminNotificationEmail(data);
-  const adminResult = await sendEmail(
-    adminEmailParams.to,
-    adminEmailParams.subject,
-    adminEmailParams.text,
-    adminEmailParams.html
-  );
+  // 管理者通知メール - テンプレートシステムを使用
+  const adminRecipient: EmailRecipient = {
+    name: '管理者',
+    email: ADMIN_EMAIL
+  };
+
+  const adminData: TemplateSampleRequestEmailData = {
+    recipient: adminRecipient,
+    requestId: data.requestId,
+    samples: data.samples,
+    deliveryDestinations: data.deliveryDestinations,
+    message: data.message
+  };
+
+  const adminResult = await sendTemplatedEmail('sample_request_admin', adminData, adminRecipient);
   results.adminEmail = {
     success: adminResult.success,
     messageId: adminResult.messageId,
@@ -1329,7 +1350,8 @@ export async function sendTemplatedEmail(
     | SpecSheetApprovalEmailData
     | SpecSheetRejectionEmailData
     | InvoiceEmailData
-    | (InvoiceEmailData & { daysOverdue?: number }),
+    | (InvoiceEmailData & { daysOverdue?: number })
+    | TemplateSampleRequestEmailData,
   recipient: EmailRecipient
 ): Promise<{
   success: boolean;

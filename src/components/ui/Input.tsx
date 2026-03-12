@@ -45,6 +45,7 @@ export interface InputProps
   label?: string;
   error?: string;
   helperText?: string;
+  helperTextClassName?: string;
   required?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -65,6 +66,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     label,
     error,
     helperText,
+    helperTextClassName,
     required,
     leftIcon,
     rightIcon,
@@ -244,7 +246,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
             {/* Helper Text */}
             {helperText && !error && (
-              <p id={helperId} className="text-text-muted">
+              <p id={helperId} className={cn('text-text-muted', helperTextClassName)}>
                 {helperText}
               </p>
             )}
