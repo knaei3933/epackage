@@ -67,6 +67,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           name: data.name,
           description: data.description,
           category: data.category,
+          image: data.image || 'https://www.package-lab.com/images/products/default-product.jpg',
           brand: {
             '@type': 'Brand',
             name: 'Epackage Lab'
@@ -79,19 +80,52 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           offers: {
             '@type': 'Offer',
             availability: 'https://schema.org/InStock',
+            price: data.price || '0',
+            priceCurrency: 'JPY',
+            priceValidUntil: data.priceValidUntil || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             priceSpecification: {
               '@type': 'PriceSpecification',
+              price: data.price || '0',
               priceCurrency: 'JPY',
               valueAddedTaxIncluded: true
+            },
+            seller: {
+              '@type': 'Organization',
+              name: 'Epackage Lab',
+              url: 'https://www.package-lab.com'
+            },
+            hasMerchantReturnPolicy: {
+              '@type': 'MerchantReturnPolicy',
+              returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+              merchantReturnDays: 14,
+              returnMethod: 'https://schema.org/ReturnByMail'
+            },
+            shippingDetails: {
+              '@type': 'OfferShippingDetails',
+              shippingRate: {
+                '@type': 'MonetaryAmount',
+                currency: 'JPY',
+                value: '0'
+              },
+              deliveryTime: {
+                '@type': 'ShippingDeliveryTime',
+                businessDays: {
+                  '@type': 'OpeningHoursSpecification',
+                  dayOfWeek: ['https://schema.org/Monday', 'https://schema.org/Tuesday', 'https://schema.org/Wednesday', 'https://schema.org/Thursday', 'https://schema.org/Friday'],
+                  opens: '09:00',
+                  closes: '18:00'
+                },
+                handlingTime: {
+                  '@type': 'QuantitativeValue',
+                  minValue: 10,
+                  maxValue: 21,
+                  unitCode: 'DAY'
+                }
+              }
             }
           },
-          additionalProperty: [
-            {
-              '@type': 'PropertyValue',
-              name: 'JIS規格準拠',
-              value: 'はい'
-            }
-          ]
+          aggregateRating: data.aggregateRating || undefined,
+          review: data.review || undefined
         }
 
       case 'LocalBusiness':
@@ -185,18 +219,59 @@ export function LocalBusinessSchema() {
   return <StructuredData type="LocalBusiness" data={{}} />
 }
 
-export function ProductSchema({ name, description, category, material, foodGrade, pharmaGrade }: {
+export function ProductSchema({
+  name,
+  description,
+  category,
+  material,
+  image,
+  price,
+  priceValidUntil,
+  aggregateRating,
+  review
+}: {
   name: string
   description: string
   category: string
   material: string
+  image?: string
+  price?: string
+  priceValidUntil?: string
+  aggregateRating?: {
+    '@type': 'AggregateRating'
+    ratingValue: number
+    reviewCount: number
+    bestRating: number
+  }
+  review?: Array<{
+    '@type': 'Review'
+    reviewRating: {
+      '@type': 'Rating'
+      ratingValue: number
+    }
+    author: {
+      '@type': 'Person'
+      name: string
+    }
+    reviewBody: string
+  }>
   foodGrade?: boolean
   pharmaGrade?: boolean
 }) {
   return (
     <StructuredData
       type="Product"
-      data={{ name, description, category, material, foodGrade, pharmaGrade }}
+      data={{
+        name,
+        description,
+        category,
+        material,
+        image,
+        price,
+        priceValidUntil,
+        aggregateRating,
+        review
+      }}
     />
   )
 }
