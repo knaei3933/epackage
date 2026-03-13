@@ -18,7 +18,7 @@ function IndustryNavigationInner({ activeIndustry }: IndustryNavigationProps) {
       name: '食品製造業',
       href: '/industry/food-manufacturing',
       icon: '🍎',
-      description: '食品衛生法対応・コスト削減'
+      description: '厳格な品質管理・コスト削減'
     },
     {
       key: 'cosmetics',

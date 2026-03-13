@@ -50,17 +50,6 @@ export function CertificationBadges({ className = '' }: CertificationBadgesProps
       score: 95
     },
     {
-      id: 'food_hygiene',
-      name: '食品衛生法',
-      description: '食品包装材適合証明',
-      icon: CheckCircle,
-      status: 'certified',
-      category: '日本法規制',
-      score: 98,
-      issuedBy: '厚生労働省',
-      jpnEquivalent: '食品衛生法第11条'
-    },
-    {
       id: 'pharma_act',
       name: '薬機法',
       description: '医薬品・医療機器包装材',

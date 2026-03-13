@@ -93,7 +93,7 @@ export const premiumContents: PremiumContent[] = [
   {
     id: 'regulatory-compliance-checklist',
     title: '食品包装規制適合チェックリスト',
-    description: '食品衛生法、PL法など関連法規の遵守要件を網羅したチェックリスト。',
+    description: '品質管理、PL法など関連法規の遵守要件を網羅したチェックリスト。',
     category: 'コンプライアンス',
     fileSize: '2.5MB',
     pageCount: 28,

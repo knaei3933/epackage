@@ -63,7 +63,7 @@ export interface QuoteState {
   doubleSided?: boolean;
   deliveryLocation?: 'domestic' | 'international';
   urgency?: 'standard' | 'express';
-  spoutPosition?: 'top-left' | 'top-right' | 'center-left' | 'center-right' | 'bottom-left' | 'bottom-right';
+  spoutPosition?: 'top-left' | 'top-center' | 'top-right';
   spoutSize?: 9 | 15 | 18 | 22 | 28; // スパウトサイズ（パイ径）- スパウトパウチ専用
   hasGusset?: boolean; // マチ有無 - スパウトパウチ専用（true=スタンドパウチ準用、false=平袋準用）
   // Roll film specific fields
@@ -231,7 +231,7 @@ const initialState: QuoteState = {
   quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
   quantity: 500,
   isUVPrinting: false,
-  postProcessingOptions: getDefaultPostProcessingOptions('flat_3_side'), // デフォルト値を設定（processingConfig.tsから）
+  postProcessingOptions: [], // 初期状態では後加工オプション未選択
   postProcessingMultiplier: 1.0, // 初期値は1.0（PostProcessingStepで更新）
   postProcessingLimit: {
     selectedItems: [],
@@ -1195,7 +1195,7 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
       const hasSideWidth = !requiresSideWidth || (!!state.sideWidth && state.sideWidth >= 30);
 
       // スパウトパウチ: spoutSize（スパウトサイズ）とspoutPosition（スパウト位置）が必須
-      const requiresSpout = state.bagTypeId === 'spout';
+      const requiresSpout = state.bagTypeId === 'spout_pouch';
       const hasSpoutSize = !requiresSpout || !!state.spoutSize;
       const hasSpoutPosition = !requiresSpout || !!state.spoutPosition;
 

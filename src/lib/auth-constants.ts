@@ -28,12 +28,13 @@ export const SUPABASE_REFRESH_TOKEN_COOKIE = `sb-${SUPABASE_PROJECT_REF}-auth-to
 // ============================================================
 
 /**
- * Session maximum age in seconds (24 hours)
+ * Session maximum age in seconds
  * - Used for cookie maxAge in middleware and SSR client
  * - Ensures consistent session timeout across all auth components
- * - 86400 seconds = 24 hours
+ * - 3600 seconds = 60 minutes (1 hour) - matches admin timeout
+ * - This ensures client-side auto-logout works correctly
  */
-export const SESSION_MAX_AGE = 86400;
+export const SESSION_MAX_AGE = 3600;
 
 /**
  * Session max age in milliseconds (for JavaScript Date operations)

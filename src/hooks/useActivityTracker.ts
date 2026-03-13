@@ -14,12 +14,12 @@ const ACTIVITY_EVENTS = [
 const STORAGE_KEY = 'epac_last_activity'
 
 // Role-based timeout configuration
-// NOTE: Client timeout must be SHORTER than server session (30 min)
-// For 1-hour inactivity timeout, we need to extend server session to 60+ min
-const DEFAULT_TIMEOUT_MS = 55 * 60 * 1000      // 55 minutes (before server 60min expiry)
-const DEFAULT_WARNING_MS = 50 * 60 * 1000      // 50 minutes (5 min warning)
-const ADMIN_TIMEOUT_MS = 55 * 60 * 1000        // 55 minutes for admins (can be adjusted)
-const ADMIN_WARNING_MS = 50 * 60 * 1000        // 50 minutes (5 min warning)
+// NOTE: Client timeout must be SHORTER than server session
+// Configured for optimal balance between security and user experience
+const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000      // 30 minutes (standard session timeout)
+const DEFAULT_WARNING_MS = 25 * 60 * 1000      // 25 minutes (5 min warning before timeout)
+const ADMIN_TIMEOUT_MS = 60 * 60 * 1000        // 60 minutes for admins (1 hour)
+const ADMIN_WARNING_MS = 55 * 60 * 1000        // 55 minutes (5 min warning)
 
 interface UseActivityTrackerOptions {
   enabled: boolean

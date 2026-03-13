@@ -15,15 +15,13 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
         '食品接触用PE（ポリエチレン）',
         '食品接触用PP（ポリプロピレン）',
         'アルミ箔複合材',
-        '抗菌性樹脂',
-        '食品衛生法適合素材'
+        '抗菌性樹脂'
       ],
       certifications: [
-        '食品衛生法適合',
+        '厳格な品質管理',
         'FDA認証',
         'EU食品接触物質規則',
-        'HACCP認証',
-        'ISO 22000'
+        'HACCP認証'
       ],
       features: [
         'マイクロ波対応',
@@ -33,7 +31,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
         '透明ウィンドウ対応'
       ],
       standards: [
-        '食品衛生法第11条',
+        '品質管理基準',
         '食品、添加物等の規格基準',
         '容器包装リサイクル法',
         'PL法（製品責任法）'

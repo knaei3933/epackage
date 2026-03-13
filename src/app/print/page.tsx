@@ -236,7 +236,7 @@ export default function PrintPage() {
     },
     {
       name: '法規制準拠',
-      description: '食品衛生法・薬機法対応',
+      description: '厳格な品質管理対応',
       icon: CheckCircle
     }
   ]

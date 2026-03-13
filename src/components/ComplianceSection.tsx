@@ -32,16 +32,16 @@ export function ComplianceSection({ className = '' }: ComplianceSectionProps) {
   const japaneseRegulations = [
     {
       icon: Scale,
-      title: '食品衛生法',
-      description: '食品包装材としての安全性と衛生基準を完全準拠',
+      title: '食品安全管理',
+      description: '食品包装材としての安全性と衛生基準を厳格に管理',
       details: [
-        '食品衛生法第11条適合',
         'ポリオレフィン系材質使用',
         '移行試験合格',
-        '食品安全委員会基準遵守'
+        '自主安全管理基準',
+        '品質記録管理'
       ],
       status: 'compliant',
-      certificate: '食品衛生証明書'
+      certificate: '品質管理証明書'
     },
     {
       icon: BookOpen,
@@ -58,16 +58,16 @@ export function ComplianceSection({ className = '' }: ComplianceSectionProps) {
     },
     {
       icon: Certificate,
-      title: '食品安全規格',
-      description: '日本の食品安全基準に準拠した品質保証体制',
+      title: '品質保証システム',
+      description: '厳格な品質管理システムで安定した製品品質を保証',
       details: [
-        '食品衛生法対応',
-        '薬機法対応',
         '安全管理手順書完備',
-        'トレーサビリティシステム'
+        'トレーサビリティシステム',
+        '継続的改善活動',
+        '工程内検査実施'
       ],
       status: 'certified',
-      certificate: '食品安全規格適合証明書'
+      certificate: '品質保証証明書'
     },
     {
       icon: CheckShield,
@@ -144,11 +144,11 @@ export function ComplianceSection({ className = '' }: ComplianceSectionProps) {
       category: '品質管理'
     },
     {
-      title: '食品安全手順書',
-      description: '食品衛生法対応の安全管理手順書',
+      title: '品質管理手順書',
+      description: '安全管理手順書',
       size: '1.8MB',
       format: 'PDF',
-      category: '食品安全'
+      category: '品質管理'
     },
     {
       title: 'トレーサビリティシステム',

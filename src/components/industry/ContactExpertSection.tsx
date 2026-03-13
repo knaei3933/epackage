@@ -43,7 +43,7 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
         name: '田中 食品',
         title: '食品包装専門コンサルタント',
         experience: '15年',
-        specialties: ['食品衛生法', '鮮度保持技術', 'コスト削減'],
+        specialties: ['厳格な品質管理', '鮮度保持技術', 'コスト削減'],
         achievements: '150社以上の導入支援',
         rating: 4.9,
         projects: '200+'
@@ -143,7 +143,7 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
   }
 
   const specialtiesList = {
-    'food-manufacturing': ['食品衛生法対応', '鮮度保持技術', 'コスト削減30%', '安全認証取得'],
+    'food-manufacturing': ['厳格な品質管理', '鮮度保持技術', 'コスト削減30%', '安全認証取得'],
     'cosmetics': ['プレミアム包装', 'ブランド価値向上', '欧日認証', '持続可能性'],
     'pharmaceutical': ['GMP準拠', '薬機法対応', '小児安全包装', '保護機能強化'],
     'electronics': ['ESD防止', '衝撃吸収', '部品保護', '供給網安定']

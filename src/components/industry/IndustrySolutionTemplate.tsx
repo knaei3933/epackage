@@ -31,7 +31,7 @@ export function IndustrySolutionTemplate({
       name: '食品製造業',
       color: 'green',
       icon: '🍎',
-      features: ['食品衛生法対応', '鮮度保持技術', 'コスト削減30%', '安全認証'],
+      features: ['厳格な品質管理', '鮮度保持技術', 'コスト削減30%', '安全認証'],
       stats: {
         satisfaction: '98%',
         roi: '30%',

@@ -4592,15 +4592,16 @@ export function ImprovedQuotingWizard() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
           {/* Sidebar Navigation - Desktop */}
-          <div className="xl:col-span-1 lg:block">
-            <div className="sticky top-6 space-y-4">
+          <div className="xl:col-span-1 lg:block h-full">
+            <div className="sticky top-6 space-y-4" style={{ zIndex: 10 }}>
               {/* Envelope Preview */}
               <EnvelopePreview
                 bagTypeId={state.bagTypeId}
                 dimensions={{
                   width: state.width,
                   height: state.height,
-                  depth: state.depth
+                  depth: state.depth,
+                  pitch: state.pitch
                 }}
                 productCategory={state.productCategory}
                 contentsType={state.contentsType}
@@ -4609,6 +4610,7 @@ export function ImprovedQuotingWizard() {
                 materialId={state.materialId}
                 thicknessSelection={state.thicknessSelection}
                 postProcessingOptions={state.postProcessingOptions}
+                spoutPosition={state.spoutPosition}
               />
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

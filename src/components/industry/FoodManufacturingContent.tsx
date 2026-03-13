@@ -12,16 +12,16 @@ export function FoodManufacturingContent() {
   const features = [
     {
       id: 'hygiene',
-      title: '食品衛生法対応',
-      description: '食品衛生法の全ての要件を満たす専門的パッケージングソリューション',
+      title: '厳格な品質管理',
+      description: '高い安全性と衛生基準を満たす専門的パッケージングソリューション',
       icon: Shield,
       benefits: [
-        '食品衛生法第11条完全対応',
+        '厳格な品質管理体制',
         'HACCP認証取得済み資材',
         '異物混入防止設計',
         '清掃・殺菌しやすい構造'
       ],
-      certifications: ['ISO 22000', 'HACCP', '食品衛生法認証']
+      certifications: ['HACCP', '品質管理認証']
     },
     {
       id: 'preservation',
@@ -98,7 +98,7 @@ export function FoodManufacturingContent() {
       '抗菌性樹脂'
     ],
     certifications: [
-      '食品衛生法適合',
+      '厳格な品質管理',
       'FDA認証',
       'EU食品接触物質規則',
       'HACCP認証'
@@ -120,7 +120,7 @@ export function FoodManufacturingContent() {
           <span className="text-green-600">専門ソリューション</span>
         </h2>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          食品衛生法対応、鮮度保持技術、コスト削減を実現。
+          厳格な品質管理、鮮度保持技術、コスト削減を実現。
           150社以上の食品メーカーが導入済みの実績あるパッケージングソリューション。
         </p>
       </div>

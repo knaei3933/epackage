@@ -54,13 +54,13 @@ const serviceCategories = [
   {
     id: "quality",
     title: "品質保証システム",
-    description: "ISO9001規格に基づいた品質管理システムで、安定した高品質な製品を保証します。",
+    description: "厳格な品質管理システムで、安定した高品質な製品を保証します。",
     icon: Shield,
     features: [
-      "ISO9001認証取得",
       "工程内検査",
       "品質記録管理",
-      "継続的改善"
+      "継続的改善",
+      "トレーサビリティ体制"
     ],
     color: "green"
   },
@@ -123,27 +123,6 @@ const technicalCapabilities = [
       "追跡システム",
       "梱包最適化"
     ]
-  }
-];
-
-const qualityStandards = [
-  {
-    title: "ISO9001",
-    description: "品質マネジメントシステムの国際規格を取得しています。",
-    icon: Award,
-    color: "blue"
-  },
-  {
-    title: "食品安全",
-    description: "食品衛生法に準拠した衛生的な製造環境を整備しています。",
-    icon: Shield,
-    color: "green"
-  },
-  {
-    title: "環境対応",
-    description: "環境配慮型素材と持続可能な製造プロセスを採用しています。",
-    icon: Star,
-    color: "orange"
   }
 ];
 
@@ -275,40 +254,6 @@ export function ServicePageContent() {
                         ))}
                       </div>
                     </div>
-                  </Card>
-                </MotionWrapper>
-              ))}
-            </div>
-          </MotionWrapper>
-        </Container>
-      </section>
-
-      {/* Quality Standards */}
-      <section className="py-20 bg-white">
-        <Container size="6xl">
-          <MotionWrapper delay={0.4}>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                品質基準と認証
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                国際基準の品質管理体制で、安心・安全な製品を提供します
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {qualityStandards.map((standard, index) => (
-                <MotionWrapper key={standard.title} delay={0.1 * (index + 1)}>
-                  <Card className="p-8 text-center hover:shadow-lg transition-all duration-300">
-                    <div className="w-20 h-20 bg-gradient-to-br from-navy-600 to-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <standard.icon className={`h-10 w-10 text-${standard.color}-600`} />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                      {standard.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {standard.description}
-                    </p>
                   </Card>
                 </MotionWrapper>
               ))}

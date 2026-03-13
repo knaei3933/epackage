@@ -30,10 +30,101 @@ const THICKNESS_LABELS: Record<string, string> = {
   'maximum_110': 'マキシマムタイプ (800g~)'
 };
 
+// フィルム構成を取得する関数
+const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
+  const materials = [
+    {
+      id: 'pet_al',
+      thicknessOptions: [
+        { id: 'light', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ' },
+        { id: 'medium', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ' },
+        { id: 'standard', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ' },
+        { id: 'heavy', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ' },
+        { id: 'ultra', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ' }
+      ]
+    },
+    {
+      id: 'pet_vmpet',
+      thicknessOptions: [
+        { id: 'light', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ' },
+        { id: 'medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ' },
+        { id: 'heavy', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' },
+        { id: 'ultra', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ' },
+        { id: 'maximum', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ' }
+      ]
+    },
+    {
+      id: 'pet_ldpe',
+      thicknessOptions: [
+        { id: 'light', specificationEn: 'PET 12μ + LLDPE 50μ' },
+        { id: 'medium', specificationEn: 'PET 12μ + LLDPE 70μ' },
+        { id: 'standard', specificationEn: 'PET 12μ + LLDPE 90μ' },
+        { id: 'heavy', specificationEn: 'PET 12μ + LLDPE 100μ' },
+        { id: 'ultra', specificationEn: 'PET 12μ + LLDPE 110μ' }
+      ]
+    },
+    {
+      id: 'pet_ny_al',
+      thicknessOptions: [
+        { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ' },
+        { id: 'light_medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ' },
+        { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' },
+        { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ' },
+        { id: 'ultra', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ' }
+      ]
+    },
+    {
+      id: 'ny_lldpe',
+      thicknessOptions: [
+        { id: 'light', specificationEn: 'NY 15μ + LLDPE 50μ' },
+        { id: 'medium', specificationEn: 'NY 15μ + LLDPE 70μ' },
+        { id: 'heavy', specificationEn: 'NY 15μ + LLDPE 90μ' }
+      ]
+    },
+    {
+      id: 'kraft_vmpet_lldpe',
+      thicknessOptions: [
+        { id: 'light_50', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ' },
+        { id: 'standard_70', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ' },
+        { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ' },
+        { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ' },
+        { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ' }
+      ]
+    },
+    {
+      id: 'kraft_pet_lldpe',
+      thicknessOptions: [
+        { id: 'light_50', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ' },
+        { id: 'standard_70', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ' },
+        { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ' },
+        { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ' },
+        { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ' }
+      ]
+    }
+  ];
+
+  const material = materials.find(m => m.id === materialId);
+  if (material) {
+    const thickness = material.thicknessOptions.find(t => t.id === thicknessId);
+    if (thickness) {
+      return thickness.specificationEn;
+    }
+  }
+  return '指定なし';
+};
+
+// スパウト位置ラベル
+const SPOUT_POSITION_LABELS: Record<string, string> = {
+  'top-left': '左上',
+  'top-center': '上中央',
+  'top-right': '右上'
+};
+
 interface EnvelopeDimensions {
   width: number;
   height: number;
   depth: number;
+  pitch?: number;
 }
 
 interface EnvelopePreviewProps {
@@ -46,6 +137,7 @@ interface EnvelopePreviewProps {
   materialId?: string;
   thicknessSelection?: string;
   postProcessingOptions?: string[];
+  spoutPosition?: string;
 }
 
 // 封筒タイプ別プレビュー設定
@@ -110,7 +202,8 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
   distributionEnvironment,
   materialId,
   thicknessSelection,
-  postProcessingOptions = []
+  postProcessingOptions = [],
+  spoutPosition
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const config = bagTypeConfigs[bagTypeId as keyof typeof bagTypeConfigs];
@@ -129,27 +222,22 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
     ? dimensions.width / dimensions.height
     : config.aspectRatio;
 
-  // プレビューサイズ計算 (最大300px幅基準)
+  // プレビューサイズ計算 (常に最大幅で表示)
   const maxPreviewWidth = 300;
-  const previewWidth = Math.min(maxPreviewWidth, config.baseWidth);
+  const previewWidth = maxPreviewWidth; // 常に最大幅を使用
   const previewHeight = previewWidth / actualRatio;
 
   return (
-    <motion.div
-      className="bg-white rounded-xl shadow-lg border border-gray-200 p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
       {/* プレビューヘッダー */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <Package className="w-5 h-5 text-navy-600" />
-          <h3 className="font-semibold text-gray-900">袋のプレビュー</h3>
+        <div className="flex items-center space-x-2 min-w-0">
+          <Package className="w-5 h-5 text-navy-600 flex-shrink-0" />
+          <h3 className="font-semibold text-gray-900 whitespace-nowrap">袋のプレビュー</h3>
         </div>
-        <div className="flex items-center space-x-1 text-xs text-gray-500">
+        <div className="flex items-center space-x-1 text-xs text-gray-500 flex-shrink-0">
           <Maximize2 className="w-3 h-3" />
-          <span>リアルタイム</span>
+          <span className="whitespace-nowrap">リアルタイム</span>
         </div>
       </div>
 
@@ -167,12 +255,12 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
               scale: { type: "spring", stiffness: 300, damping: 30 }
             }}
           >
-            {/* 封筒プレビュー */}
+            {/* 封筒プレビュー - 固定サイズコンテナ */}
             <div
               className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-white"
               style={{
-                width: `${previewWidth}px`,
-                height: `${previewHeight}px`,
+                width: '300px',
+                height: '300px',
                 borderColor: config.color
               }}
             >
@@ -202,56 +290,23 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 }}
               />
 
-              {/* サイズ情報オーバーレイ */}
-              <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white rounded px-2 py-1">
-                <div className="text-xs font-semibold text-center leading-tight">
-                  {bagTypeId === 'roll_film' ? (
-                    <>幅: {dimensions.width}mm</>
-                  ) : (
-                    <>
-                      幅: {dimensions.width}mm<br />
-                      高さ: {dimensions.height}mm
-                      {dimensions.depth > 0 && <><br />奥行: {dimensions.depth}mm</>}
-                    </>
-                  )}
-                </div>
-              </div>
             </div>
-
-            {/* 改善されたサイズライン表示 */}
-            <motion.div
-              className="absolute -top-12 left-0 right-0 flex justify-center text-xs text-gray-600"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isAnimating ? [1, 0.5, 1] : 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
-                {bagTypeId === 'roll_film' ? (
-                  `幅: ${dimensions.width}mm`
-                ) : (
-                  <>
-                    幅: {dimensions.width}mm | 高さ: {dimensions.height}mm
-                    {dimensions.depth > 0 && ` | 奥行: ${dimensions.depth}mm`}
-                  </>
-                )}
-              </div>
-            </motion.div>
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* 仕様情報 */}
-      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
         {/* サイズ情報 */}
         <div>
-          <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">サイズ</h4>
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">サイズ</h4>
           <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">タイプ:</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">タイプ</span>
               <span className="font-medium text-gray-900">{config.name}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">実寸:</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">実寸</span>
               <span className="font-medium text-gray-900">
                 {bagTypeId === 'roll_film' ? (
                   `幅: ${dimensions.width}mm`
@@ -263,9 +318,25 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 )}
               </span>
             </div>
+            {/* ロールフィルム: ピッチ表示 */}
+            {bagTypeId === 'roll_film' && dimensions.pitch && (
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">ピッチ</span>
+                <span className="font-medium text-gray-900">{dimensions.pitch}mm</span>
+              </div>
+            )}
+            {/* スパウトパウチ: スパウト位置表示 */}
+            {bagTypeId === 'spout_pouch' && spoutPosition && (
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">スパウト位置</span>
+                <span className="font-medium text-gray-900">
+                  {SPOUT_POSITION_LABELS[spoutPosition] || spoutPosition}
+                </span>
+              </div>
+            )}
             {bagTypeId !== 'roll_film' && dimensions.width > 0 && dimensions.height > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">面積:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">面積</span>
                 <span className="font-medium text-gray-900">
                   {(dimensions.width * dimensions.height / 1000).toFixed(1)}cm²
                 </span>
@@ -274,24 +345,22 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
           </div>
         </div>
 
-        {/* 素材・厚さ情報 */}
-        {(materialId || thicknessSelection) && (
+        {/* 素材・フィルム構成情報 */}
+        {materialId && (
           <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">素材・厚さ</h4>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">素材・構成</h4>
             <div className="grid grid-cols-1 gap-2 text-sm">
-              {materialId && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">素材:</span>
-                  <span className="font-medium text-gray-900">
-                    {MATERIAL_TYPE_LABELS_JA[materialId] || materialId}
-                  </span>
-                </div>
-              )}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">素材</span>
+                <span className="font-medium text-gray-900">
+                  {MATERIAL_TYPE_LABELS_JA[materialId] || materialId}
+                </span>
+              </div>
               {thicknessSelection && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">厚さ:</span>
-                  <span className="font-medium text-gray-900">
-                    {THICKNESS_LABELS[thicknessSelection] || thicknessSelection}
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-600 text-xs">フィルム構成</span>
+                  <span className="font-medium text-gray-900 text-xs leading-relaxed">
+                    {getFilmStructureSpec(materialId, thicknessSelection)}
                   </span>
                 </div>
               )}
@@ -302,54 +371,53 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
         {/* 後加工オプション */}
         {postProcessingOptions && postProcessingOptions.length > 0 && (
           <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">後加工</h4>
-            <div className="flex flex-wrap gap-1">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">後加工</h4>
+            <div className="flex flex-wrap gap-1.5">
               {postProcessingOptions
                 .filter(option => {
-                  // 技術的なオプション（表示しないもの）
-                  const excludeOptions = [
-                    'sealing-width',
-                    'top-open',
-                    'valve-no',
-                    'zipper-yes',
-                    'zipper-no',
-                    'notch-yes',
-                    'notch-no',
-                    'hang-hole-yes',
-                    'hang-hole-no',
+                  // 表示したいオプションのみを含める
+                  const displayOptions = [
+                    'zipper',
+                    'notch-straight',
+                    'hang-hole-6mm',
+                    'hang-hole-8mm',
                     'corner-round',
                     'corner-square',
+                    'valve-yes',
                     'easy-cut-yes',
-                    'easy-cut-no',
                     'matte',
                     'glossy'
                   ];
-                  // 表示したいオプションのみを含める
-                  return !excludeOptions.some(exclude => option.startsWith(exclude));
+                  return displayOptions.some(display => option.includes(display));
                 })
                 .map((option) => {
                   const optionLabels: Record<string, string> = {
                     'zipper': 'ジッパー',
-                    'zipper-top': 'トップジッパー',
                     'notch-straight': '直線ノッチ',
                     'hang-hole-6mm': '吊り穴(6mm)',
                     'hang-hole-8mm': '吊り穴(8mm)',
+                    'corner-round': '角丸(R5)',
+                    'corner-square': '角切り(R0)',
                     'valve-yes': 'ガスバルブ',
-                    'corner-r5': '角丸(R5)',
-                    'corner-r0': '角切り(R0)',
-                    'easy-cut': 'イージーカット',
-                    'matte-finish': 'マット仕上げ',
-                    'glossy-finish': '光沢仕上げ'
+                    'easy-cut-yes': 'イージーカット',
+                    'matte': 'マット',
+                    'glossy': '光沢'
                   };
+                  // オプションIDからラベルを取得
+                  const label = Object.entries(optionLabels).find(([key]) => option.includes(key))?.[1] || option;
                   return (
                     <span
                       key={option}
-                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-navy-100 text-navy-700 border border-navy-200"
+                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white text-gray-700 border border-gray-300 shadow-sm"
+                      title={label}
                     >
-                      {optionLabels[option] || option}
+                      {label}
                     </span>
                   );
                 })}
+              {postProcessingOptions.length === 0 && (
+                <span className="text-xs text-gray-400 italic">なし</span>
+              )}
             </div>
           </div>
         )}
@@ -412,7 +480,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
           サイズを変更するとリアルタイムで更新されます。
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

@@ -9,11 +9,11 @@ export async function generateMetadata(): Promise<Metadata> {
       default: '食品製造業向けパッケージングソリューション | Epackage Lab',
       template: '%s | Epackage Lab'
     },
-    description: '食品製造業向けの専門パッケージングソリューション。食品衛生法対応、鮮度保持技術、30%のコスト削減を実現。実際の導入事例とROIデータを公開。今すぐ無料見積もりで鮮度保持包装を依頼。',
+    description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術、30%のコスト削減を実現。実際の導入事例とROIデータを公開。今すぐ無料見積もりで鮮度保持包装を依頼。',
     keywords: [
       '食品包装',
       '食品製造業',
-      '食品衛生法',
+      '厳格な品質管理',
       'パッケージングソリューション',
       '食品容器',
       '保鲜包装',
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ],
     openGraph: {
       title: '食品製造業向けパッケージングソリューション | Epackage Lab',
-      description: '食品製造業向けの専門パッケージングソリューション。食品衛生法対応、鮮度保持技術で30%のコスト削減を実現。',
+      description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術で30%のコスト削減を実現。',
       type: 'website',
       images: [
         {
@@ -66,7 +66,7 @@ export default function FoodManufacturingPage() {
     <IndustrySolutionTemplate
       industry="food-manufacturing"
       title="食品製造業向けパッケージングソリューション"
-      subtitle="食品衛生法準拠・鮮度保持技術・30%コスト削減を実現"
+      subtitle="厳格な品質管理・鮮度保持技術・30%コスト削減を実現"
       content={<FoodManufacturingContent />}
     />
   )

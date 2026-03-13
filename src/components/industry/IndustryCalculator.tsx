@@ -22,7 +22,7 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
 
   const industryFeatures = {
     'food-manufacturing': [
-      { id: 'hygiene', name: '食品衛生法対応', impact: 15, cost: 10000 },
+      { id: 'hygiene', name: '厳格な品質管理', impact: 15, cost: 10000 },
       { id: 'preservation', name: '鮮度保持技術', impact: 25, cost: 15000 },
       { id: 'automation', name: '自動化対応', impact: 20, cost: 20000 },
       { id: 'custom', name: 'カスタム設計', impact: 30, cost: 25000 }

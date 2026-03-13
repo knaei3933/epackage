@@ -138,10 +138,10 @@ export default function CorporateSocialResponsibility() {
                           品質保証体制
                         </h3>
                         <ul className="space-y-2">
-                          <li>• ISO 9001：2015 品質マネジメントシステム</li>
-                          <li>• ISO 14001：2015 環境マネジメントシステム</li>
-                          <li>• ISO 45001：2018 労働安全衛生マネジメントシステム</li>
-                          <li>• FSSC 22000 食品安全マネジメントシステム</li>
+                          <li>• 厳格な品質マネジメントシステム</li>
+                          <li>• 環境マネジメントシステム</li>
+                          <li>• 労働安全衛生マネジメントシステム</li>
+                          <li>• 継続的改善活動</li>
                         </ul>
                       </div>
 
