@@ -98,7 +98,13 @@ export function StructuredData({ type, data }: StructuredDataProps) {
               '@type': 'MerchantReturnPolicy',
               returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
               merchantReturnDays: 14,
-              returnMethod: 'https://schema.org/ReturnByMail'
+              returnMethod: 'https://schema.org/ReturnByMail',
+              applicableCountry: 'JP',
+              returnFees: {
+                '@type': 'MonetaryAmount',
+                currency: 'JPY',
+                value: '0'
+              }
             },
             shippingDetails: {
               '@type': 'OfferShippingDetails',
@@ -120,7 +126,17 @@ export function StructuredData({ type, data }: StructuredDataProps) {
                   minValue: 10,
                   maxValue: 21,
                   unitCode: 'DAY'
+                },
+                transitTime: {
+                  '@type': 'QuantitativeValue',
+                  minValue: 1,
+                  maxValue: 2,
+                  unitCode: 'DAY'
                 }
+              },
+              shippingDestination: {
+                '@type': 'DefinedRegion',
+                addressCountry: 'JP'
               }
             }
           },
