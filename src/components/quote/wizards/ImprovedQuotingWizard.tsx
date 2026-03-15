@@ -4592,8 +4592,8 @@ export function ImprovedQuotingWizard() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
           {/* Sidebar Navigation - Desktop */}
-          <div className="xl:col-span-1 lg:block h-full">
-            <div className="sticky top-6 space-y-4" style={{ zIndex: 10 }}>
+          <div className="xl:col-span-1 lg:block">
+            <div className="sticky top-6 space-y-4">
               {/* Envelope Preview */}
               <EnvelopePreview
                 bagTypeId={state.bagTypeId}

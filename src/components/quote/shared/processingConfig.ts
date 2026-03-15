@@ -63,8 +63,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefits: ['コスト削減', '生産効率', '信頼性'],
     benefitsJa: ['コスト削減', '生産効率', '信頼性'],
     applications: ['一回用包装', '医薬品', 'サンプルパック'],
-    applicationsJa: ['一回用包装', '医薬品', 'サンプルパック'],
-    // isDefault: false (zipper-yes is left side in PostProcessingStep.tsx)
+    applicationsJa: ['一回用包装', '医薬品', 'サンプルパック']
+    // isDefault: false  // デフォルトは zipper-yes (ジッパー付き)
   },
   {
     id: 'zipper-yes',
@@ -109,7 +109,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
         priceAdjustment: 0.02
       }
     ],
-    isDefault: true  // デフォルト値（左側）
+    isDefault: true  // デフォルト値（ジッパー付き）
   },
 
   // =====================================================
@@ -197,7 +197,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefitsJa: ['消費者利便性', 'ユーザー体験向上'],
     applications: ['スナック', '菓子', '医薬品'],
     applicationsJa: ['間食', 'スナック', '医薬品'],
-    isDefault: true  // デフォルト値（左側）
+    isDefault: true  // デフォルト値（Vノッチ）
   },
   // 3-2. Notch Straight (直線ノッチ)
   {
@@ -223,6 +223,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     benefitsJa: ['きれいな開封', 'デザイン性'],
     applications: ['スナック', '菓子', '食品'],
     applicationsJa: ['間食', 'スナック', '食品']
+    // isDefault: false  // デフォルトは notch-yes (Vノッチ)
   },
   {
     id: 'notch-no',

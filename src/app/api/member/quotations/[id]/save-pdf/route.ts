@@ -17,6 +17,7 @@ export const dynamic = 'force-dynamic';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { cookies } from 'next/headers';
 
 export async function POST(
   request: NextRequest,
@@ -26,15 +27,48 @@ export async function POST(
   console.log('[save-pdf API] Route hit, quotationId will be extracted from params');
 
   try {
-    // Get x-user-id header from middleware (already authenticated)
-    const userId = request.headers.get('x-user-id');
+    // Create Supabase client from request cookies
+    const cookieStore = cookies();
+    const authCookie = cookieStore.get('sb-ijlgpzjdfipzmjvawofp-auth-token')?.value;
 
-    if (!userId) {
+    if (!authCookie) {
+      console.error('[save-pdf API] No auth token found in cookies');
       return NextResponse.json(
         { error: 'Unauthorized - No session found' },
         { status: 401 }
       );
     }
+
+    // Remove base64: prefix if present
+    const authToken = authCookie.startsWith('base64:')
+      ? authCookie.substring(7)
+      : authCookie;
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${authToken}`
+          }
+        }
+      }
+    );
+
+    // Get user from session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('[save-pdf API] Auth error:', authError);
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid session' },
+        { status: 401 }
+      );
+    }
+
+    const userId = user.id;
+    console.log('[save-pdf API] Authenticated user:', userId);
 
     // Create service client for all operations
     const serviceClient = createServiceClient();

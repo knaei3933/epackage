@@ -231,7 +231,7 @@ const initialState: QuoteState = {
   quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
   quantity: 500,
   isUVPrinting: false,
-  postProcessingOptions: [], // 初期状態では後加工オプション未選択
+  postProcessingOptions: getDefaultPostProcessingOptions('flat_3_side'), // 平袋のデフォルト値
   postProcessingMultiplier: 1.0, // 初期値は1.0（PostProcessingStepで更新）
   postProcessingLimit: {
     selectedItems: [],
