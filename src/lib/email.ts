@@ -771,7 +771,8 @@ async function sendEmail(
       subject,
       // Only send HTML part to avoid encoding issues with text/plain
       html,
-      // Explicit UTF-8 headers for Japanese character support
+      // Explicit UTF-8 encoding for Japanese character support
+      encoding: 'utf-8',
       headers: {
         'Content-Type': 'text/html; charset=utf-8'
       }
