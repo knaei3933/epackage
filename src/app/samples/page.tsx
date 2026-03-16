@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: 'パウチサンプルご依頼 | Epackage Lab',
   description: 'Epackage Labのパウチ製品サンプルご依頼フォーム。実際の製品をお手元でお試しいただけます。完全無料で全国発送いたします。',
   keywords: ['パウチサンプル', 'サンプル依頼', 'パウチ請求', '連包裝材', 'Epackage Lab', 'ソフトパウチ', 'スタンドパウチ'],
+  alternates: {
+    canonical: '/samples',
+  },
   openGraph: {
     title: 'パウチサンプルご依頼 | Epackage Lab',
     description: 'Epackage Labのパッキージ製品サンプルご依頼フォーム',

@@ -29,6 +29,9 @@ export const metadata: Metadata = {
     'ガゼットパウチ',
     'ソフトパウチ',
   ],
+  alternates: {
+    canonical: '/about',
+  },
   openGraph: {
     title: '会社概要 | Epackage Lab',
     description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。',
