@@ -99,6 +99,7 @@ const ALL_MATERIALS = [
     thicknessOptions: [
       { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 72μ', weightRange: '~100g', multiplier: 0.9 },
       { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'standard', name: 'レギュラータイプ (LLDPE 80μ)', nameJa: 'レギュラータイプ (LLDPE 80μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
       { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 }
     ]
   },
@@ -119,6 +120,7 @@ const ALL_MATERIALS = [
     thicknessOptions: [
       { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 72μ', weightRange: '~100g', multiplier: 0.9 },
       { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'standard', name: 'レギュラータイプ (LLDPE 80μ)', nameJa: 'レギュラータイプ (LLDPE 80μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
       { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 }
     ]
   },
