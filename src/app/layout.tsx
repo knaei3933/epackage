@@ -92,10 +92,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  // canonicalは各ページで自動生成されるため、layoutでは指定しない
   // alternates: {
-  //   canonical: '/',
+  //   canonical: '/',  // Removed to allow per-page canonical URLs
   // },
+  // Use metadataBase for absolute URLs
+  metadataBase: new URL('https://www.package-lab.com'),
   openGraph: {
     type: 'website',
     locale: 'ja_JP',

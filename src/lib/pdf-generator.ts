@@ -1557,6 +1557,24 @@ function generateQuoteHTML(
       white-space: nowrap;
     }
 
+    /* Product-type-specific sections */
+    .spout-pouch-section,
+    .roll-film-section,
+    .box-pouch-section {
+      margin-top: 2mm;
+    }
+
+    .spout-pouch-section h5,
+    .roll-film-section h5,
+    .box-pouch-section h5 {
+      font-size: 9pt;
+      font-weight: bold;
+      margin-bottom: 1mm;
+      padding: 1mm;
+      background: #f0f0f0;
+      border: 0.1px solid #000;
+    }
+
     /* Order table - html2canvas workaround */
     .order-table {
       border-collapse: separate;
@@ -1951,6 +1969,7 @@ function generateQuoteHTML(
           <td>${specs.rollFilmSpecs.rollCount ? `${specs.rollFilmSpecs.rollCount}本` : '-'}</td>
         </tr>` : ''}
       </table>
+      ${generateProductTypeSection(specs)}
     </div>
 
     <!-- Right: Amount Table -->
