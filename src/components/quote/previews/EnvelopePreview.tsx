@@ -31,74 +31,84 @@ const THICKNESS_LABELS: Record<string, string> = {
 };
 
 // フィルム構成を取得する関数
+// pouch-cost-calculator.tsのgetDefaultFilmLayersと厚さ設定を統一
 const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
+  // pouch-cost-calculator.tsのthicknessMapに基づくLLDPE厚さ
+  const lldpeThicknessMap: Record<string, number> = {
+    'light': 72,    // 80 * 0.9
+    'medium': 80,   // 80 * 1.0 (基準)
+    'standard': 80, // mediumと同じ
+    'heavy': 88,    // 80 * 1.1
+    'ultra': 96     // 80 * 1.2
+  };
+
   const materials = [
     {
       id: 'pet_al',
       thicknessOptions: [
-        { id: 'light', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ' },
-        { id: 'medium', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ' },
-        { id: 'standard', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ' },
-        { id: 'heavy', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ' },
-        { id: 'ultra', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ' }
+        { id: 'light', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'medium', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'standard', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.standard}μ` },
+        { id: 'heavy', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     },
     {
       id: 'pet_vmpet',
       thicknessOptions: [
-        { id: 'light', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ' },
-        { id: 'medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ' },
-        { id: 'heavy', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' },
-        { id: 'ultra', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ' },
-        { id: 'maximum', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ' }
+        { id: 'light', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'medium', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'heavy', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
+        { id: 'maximum', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     },
     {
       id: 'pet_ldpe',
       thicknessOptions: [
-        { id: 'light', specificationEn: 'PET 12μ + LLDPE 50μ' },
-        { id: 'medium', specificationEn: 'PET 12μ + LLDPE 70μ' },
-        { id: 'standard', specificationEn: 'PET 12μ + LLDPE 90μ' },
-        { id: 'heavy', specificationEn: 'PET 12μ + LLDPE 100μ' },
-        { id: 'ultra', specificationEn: 'PET 12μ + LLDPE 110μ' }
+        { id: 'light', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'medium', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'standard', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.standard}μ` },
+        { id: 'heavy', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     },
     {
       id: 'pet_ny_al',
       thicknessOptions: [
-        { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ' },
-        { id: 'light_medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ' },
-        { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' },
-        { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ' },
-        { id: 'ultra', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ' }
+        { id: 'light', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'light_medium', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'medium', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.standard}μ` },
+        { id: 'heavy', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     },
     {
       id: 'ny_lldpe',
       thicknessOptions: [
-        { id: 'light', specificationEn: 'NY 15μ + LLDPE 50μ' },
-        { id: 'medium', specificationEn: 'NY 15μ + LLDPE 70μ' },
-        { id: 'heavy', specificationEn: 'NY 15μ + LLDPE 90μ' }
+        { id: 'light', specificationEn: `NY 15μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'medium', specificationEn: `NY 15μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'heavy', specificationEn: `NY 15μ + LLDPE ${lldpeThicknessMap.heavy}μ` }
       ]
     },
     {
       id: 'kraft_vmpet_lldpe',
       thicknessOptions: [
-        { id: 'light_50', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ' },
-        { id: 'standard_70', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ' },
-        { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ' },
-        { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ' },
-        { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ' }
+        { id: 'light_50', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'standard_70', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'heavy_90', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra_100', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
+        { id: 'maximum_110', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     },
     {
       id: 'kraft_pet_lldpe',
       thicknessOptions: [
-        { id: 'light_50', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ' },
-        { id: 'standard_70', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ' },
-        { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ' },
-        { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ' },
-        { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ' }
+        { id: 'light_50', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'standard_70', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'heavy_90', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra_100', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
+        { id: 'maximum_110', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     }
   ];
