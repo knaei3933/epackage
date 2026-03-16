@@ -49,19 +49,20 @@ function initializeTransporter(): void {
   const isProduction = process.env.NODE_ENV === 'production';
 
   // Try XServer SMTP first (production)
-  const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST;
-  const XSERVER_SMTP_PORT = parseInt(process.env.XSERVER_SMTP_PORT || '587');
-  const XSERVER_SMTP_USER = process.env.XSERVER_SMTP_USER;
-  const XSERVER_SMTP_PASSWORD = process.env.XSERVER_SMTP_PASSWORD;
+  // SUPABASE_SMTP_* または XSERVER_SMTP_* のどちらかを使う
+  const SMTP_HOST = process.env.SUPABASE_SMTP_HOST || process.env.XSERVER_SMTP_HOST;
+  const SMTP_PORT = parseInt(process.env.SUPABASE_SMTP_PORT || process.env.XSERVER_SMTP_PORT || '587');
+  const SMTP_USER = process.env.SUPABASE_SMTP_USER || process.env.XSERVER_SMTP_USER;
+  const SMTP_PASSWORD = process.env.SUPABASE_SMTP_PASSWORD || process.env.XSERVER_SMTP_PASSWORD;
 
-  if (XSERVER_SMTP_HOST && XSERVER_SMTP_USER && XSERVER_SMTP_PASSWORD) {
+  if (SMTP_HOST && SMTP_USER && SMTP_PASSWORD) {
     transporter = nodemailer.createTransport({
-      host: XSERVER_SMTP_HOST,
-      port: XSERVER_SMTP_PORT,
+      host: SMTP_HOST,
+      port: SMTP_PORT,
       secure: false,
       auth: {
-        user: XSERVER_SMTP_USER,
-        pass: XSERVER_SMTP_PASSWORD,
+        user: SMTP_USER,
+        pass: SMTP_PASSWORD,
       },
     });
     transportType = 'xserver';

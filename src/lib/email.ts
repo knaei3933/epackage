@@ -163,25 +163,27 @@ function createAwsSesTransporter() {
 
 /**
  * 本番用: XServer SMTP Transporter（日本ホスティング）
+ * SUPABASE_SMTP_* または XSERVER_SMTP_* 環境変数を使用
  */
 function createXServerTransporter() {
-  const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST;
-  const XSERVER_SMTP_PORT = parseInt(process.env.XSERVER_SMTP_PORT || '587');
-  const XSERVER_SMTP_USER = process.env.XSERVER_SMTP_USER;
-  const XSERVER_SMTP_PASSWORD = process.env.XSERVER_SMTP_PASSWORD;
+  // SUPABASE_SMTP_* または XSERVER_SMTP_* のどちらかを使う
+  const SMTP_HOST = process.env.SUPABASE_SMTP_HOST || process.env.XSERVER_SMTP_HOST;
+  const SMTP_PORT = parseInt(process.env.SUPABASE_SMTP_PORT || process.env.XSERVER_SMTP_PORT || '587');
+  const SMTP_USER = process.env.SUPABASE_SMTP_USER || process.env.XSERVER_SMTP_USER;
+  const SMTP_PASSWORD = process.env.SUPABASE_SMTP_PASSWORD || process.env.XSERVER_SMTP_PASSWORD;
 
-  // XServer設定がない場合はnullを返す
-  if (!XSERVER_SMTP_HOST || !XSERVER_SMTP_USER || !XSERVER_SMTP_PASSWORD) {
+  // SMTP設定がない場合はnullを返す
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
     return null;
   }
 
   return nodemailer.createTransport({
-    host: XSERVER_SMTP_HOST,
-    port: XSERVER_SMTP_PORT,
-    secure: XSERVER_SMTP_PORT === 465, // 465ならSSL、587ならTLS
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465, // 465ならSSL、587ならTLS
     auth: {
-      user: XSERVER_SMTP_USER,
-      pass: XSERVER_SMTP_PASSWORD,
+      user: SMTP_USER,
+      pass: SMTP_PASSWORD,
     },
     // XServerはTLSを推奨
     tls: {
@@ -1314,7 +1316,7 @@ export function getEmailConfigStatus(): {
   hasFromEmail: boolean;
   hasAdminEmail: boolean;
 } {
-  const XSERVER_SMTP_HOST = process.env.XSERVER_SMTP_HOST;
+  const SMTP_HOST = process.env.SUPABASE_SMTP_HOST || process.env.XSERVER_SMTP_HOST;
   const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
   const AWS_SES_SMTP_USERNAME = process.env.AWS_SES_SMTP_USERNAME;
 
@@ -1322,7 +1324,7 @@ export function getEmailConfigStatus(): {
     mode: isDevelopment ? 'development' : isProduction ? 'production' : 'unknown',
     transportType,
     configured: !!transporter && transportType !== 'console',
-    hasXServer: !!XSERVER_SMTP_HOST,
+    hasXServer: !!SMTP_HOST,
     hasSendGrid: !!(SENDGRID_API_KEY && SENDGRID_API_KEY !== 'SG.placeholder'),
     hasAwsSes: !!(AWS_SES_SMTP_USERNAME && AWS_SES_SMTP_USERNAME !== 'AKIAIOSFODNN7EXAMPLE'),
     hasFromEmail: !!FROM_EMAIL,
