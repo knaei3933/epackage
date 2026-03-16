@@ -185,6 +185,17 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  // =====================================================
+  // Additional optimization for LCP
+  // =====================================================
+  swcMinify: true,
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+    ],
+  },
 };
 
 export default nextConfig;
