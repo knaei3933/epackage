@@ -92,9 +92,10 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  alternates: {
-    canonical: '/',
-  },
+  // canonicalは各ページで自動生成されるため、layoutでは指定しない
+  // alternates: {
+  //   canonical: '/',
+  // },
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
