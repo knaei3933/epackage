@@ -52,9 +52,6 @@ export const metadata: Metadata = {
     description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。',
     images: ['https://www.package-lab.com/images/og-image.jpg'],
   },
-  alternates: {
-    canonical: '/about',
-  },
 };
 
 export default function AboutPage() {
