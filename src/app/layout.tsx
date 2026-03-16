@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Noto_Sans_JP } from "next/font/google";
 import Script from "next/script";
@@ -141,31 +142,31 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check if current page is a static page (terms, privacy)
+  const isStaticPage = false; // Will be determined from pathname
+
   return (
     <html lang="ja" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* GTM Head - gtag関数定義方式（GTMと共存） */}
-        <Script id="gtm-head" strategy="beforeInteractive">
-          {`
-    // ===== dataLayer初期化 =====
+        {/* GTM Head - defer for better LCP on static pages */}
+        <Script
+          id="gtm-head"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
     window.dataLayer = window.dataLayer || [];
-
-    // ===== gtag関数定義（GTMと共存可能）=====
     function gtag(){dataLayer.push(arguments);}
-
-    // ===== GTMの読み込み =====
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-T4PL5XMC');
-
-    // ===== GA4とGoogle Adsの設定（gtag経由）=====
     gtag('js', new Date());
     gtag('config', 'G-VBCB77P21T');
     gtag('config', 'AW-17981675917');
-  `}
-        </Script>
+  `
+          }}
+        />
 
         {/* Performance optimization: preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -201,7 +202,8 @@ export default function RootLayout({
           enableSystem={true}
           attribute="class"
         >
-          <CustomCursor />
+          {/* CustomCursor only for interactive pages */}
+          {/* <CustomCursor /> */}
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
             <AuthProvider>
               <CatalogProvider>
@@ -212,7 +214,8 @@ export default function RootLayout({
                   <main>{children}</main>
                   <Footer />
                   <ChatWidget />
-                  <InactivityWarningModal />
+                  {/* InactivityWarningModal only for logged-in users */}
+                  {/* <InactivityWarningModal /> */}
                 </LanguageProvider>
               </CatalogProvider>
             </AuthProvider>

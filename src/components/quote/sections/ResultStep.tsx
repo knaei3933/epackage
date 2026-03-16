@@ -156,31 +156,57 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   };
 
   // Get film structure specification from materials data (Japanese)
-  // 値はImprovedQuotingWizard.tsxと整合性を保つこと
+  // MaterialSelection.tsxの値と統一
   const getFilmStructureSpecJa = (materialId: string, thicknessId: string): string => {
     const materialSpecs: Record<string, Record<string, string>> = {
       'pet_al': {
         'light': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 50μ',
         'medium': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ',
-        'heavy': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ',
-        'ultra': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ'
+        'standard': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ',
+        'heavy': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ',
+        'ultra': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 110μ'
       },
       'pet_vmpet': {
         'light': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 50μ',
-        'light_medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 70μ',
-        'medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 90μ',
+        'medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 70μ',
+        'standard': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 90μ',
         'heavy': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 100μ',
         'ultra': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 110μ'
       },
       'pet_ldpe': {
-        'light': 'PET 12μ / LLDPE 100μ',
-        'medium': 'PET 12μ / LLDPE 110μ',
-        'heavy': 'PET 12μ / LLDPE 120μ'
+        'light': 'PET 12μ / LLDPE 50μ',
+        'medium': 'PET 12μ / LLDPE 70μ',
+        'standard': 'PET 12μ / LLDPE 90μ',
+        'heavy': 'PET 12μ / LLDPE 100μ',
+        'ultra': 'PET 12μ / LLDPE 110μ'
       },
       'pet_ny_al': {
         'light': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 50μ',
         'medium': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 70μ',
-        'heavy': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 90μ'
+        'standard': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 90μ',
+        'heavy': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 100μ',
+        'ultra': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 110μ'
+      },
+      'ny_lldpe': {
+        'light': 'NY 15μ / LLDPE 50μ',
+        'medium': 'NY 15μ / LLDPE 70μ',
+        'standard': 'NY 15μ / LLDPE 90μ',
+        'heavy': 'NY 15μ / LLDPE 100μ',
+        'ultra': 'NY 15μ / LLDPE 110μ'
+      },
+      'kraft_vmpet_lldpe': {
+        'light_50': 'Kraft 50g/m² / VMPET 12μ / LLDPE 50μ',
+        'standard_70': 'Kraft 50g/m² / VMPET 12μ / LLDPE 70μ',
+        'heavy_90': 'Kraft 50g/m² / VMPET 12μ / LLDPE 90μ',
+        'ultra_100': 'Kraft 50g/m² / VMPET 12μ / LLDPE 100μ',
+        'maximum_110': 'Kraft 50g/m² / VMPET 12μ / LLDPE 110μ'
+      },
+      'kraft_pet_lldpe': {
+        'light_50': 'Kraft 50g/m² / PET 12μ / LLDPE 50μ',
+        'standard_70': 'Kraft 50g/m² / PET 12μ / LLDPE 70μ',
+        'heavy_90': 'Kraft 50g/m² / PET 12μ / LLDPE 90μ',
+        'ultra_100': 'Kraft 50g/m² / PET 12μ / LLDPE 100μ',
+        'maximum_110': 'Kraft 50g/m² / PET 12μ / LLDPE 110μ'
       }
     };
 

@@ -17,12 +17,13 @@ import { FilmCostCalculator, FilmCostResult, FilmStructureLayer } from './film-c
  */
 function getDefaultFilmLayers(materialId: string, thicknessSelection: string): FilmStructureLayer[] {
   // thicknessSelectionに基づいてLLDPE厚さを決定
+  // MaterialSelection.tsxのドロップダウン表示値と統一
   const thicknessMap: Record<string, number> = {
-    'light': 72,    // 80 * 0.9
-    'medium': 80,   // 80 * 1.0 (基準)
-    'standard': 80, // mediumと同じ
-    'heavy': 88,    // 80 * 1.1
-    'ultra': 96     // 80 * 1.2
+    'light': 50,    // 軽量タイプ (~100g)
+    'medium': 70,   // 標準タイプ (~300g)
+    'standard': 90, // レギュラータイプ (~500g)
+    'heavy': 100,   // 高耐久タイプ (~800g)
+    'ultra': 110    // 超耐久タイプ (800g~)
   };
 
   const lldpeThickness = thicknessMap[thicknessSelection] || 80;

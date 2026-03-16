@@ -33,13 +33,13 @@ const THICKNESS_LABELS: Record<string, string> = {
 // フィルム構成を取得する関数
 // pouch-cost-calculator.tsのgetDefaultFilmLayersと厚さ設定を統一
 const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
-  // pouch-cost-calculator.tsのthicknessMapに基づくLLDPE厚さ
+  // pouch-cost-calculator.tsのthicknessMapとMaterialSelection.tsxのドロップダウン表示値に統一
   const lldpeThicknessMap: Record<string, number> = {
-    'light': 72,    // 80 * 0.9
-    'medium': 80,   // 80 * 1.0 (基準)
-    'standard': 80, // mediumと同じ
-    'heavy': 88,    // 80 * 1.1
-    'ultra': 96     // 80 * 1.2
+    'light': 50,    // 軽量タイプ (~100g)
+    'medium': 70,   // 標準タイプ (~300g)
+    'standard': 90, // レギュラータイプ (~500g)
+    'heavy': 100,   // 高耐久タイプ (~800g)
+    'ultra': 110    // 超耐久タイプ (800g~)
   };
 
   const materials = [
