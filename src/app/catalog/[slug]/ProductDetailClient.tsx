@@ -26,7 +26,6 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { PRODUCT_CATEGORIES, getAllProducts } from '@/lib/product-data'
-import { ProductSchema } from '@/components/seo/StructuredData'
 import { ProductFAQ } from '@/components/catalog/ProductFAQ'
 import { ProductDownloads } from '@/components/catalog/ProductDownloads'
 import { ProductRelatedCases } from '@/components/catalog/ProductRelatedCases'
@@ -105,21 +104,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       .slice(0, 4)
   }, [product.category, product.id])
 
-  // 構造化データ用プロパティ
-  const materialNames = product.materials.join(', ')
   const categoryInfo = PRODUCT_CATEGORIES[product.category as keyof typeof PRODUCT_CATEGORIES]
 
   return (
     <>
-      {/* 構造化データ: Product */}
-      <ProductSchema
-        name={product.name_ja}
-        description={product.description_ja}
-        category={categoryInfo?.name_ja || '包装資材'}
-        material={materialNames}
-        foodGrade={product.tags.some(tag => tag.includes('食品') || tag.includes('Food'))}
-        pharmaGrade={product.tags.some(tag => tag.includes('医薬') || tag.includes('医薬品') || tag.includes('Pharmaceutical'))}
-      />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brixa-50">
       {/* Breadcrumb */}
       <section className="relative overflow-hidden">

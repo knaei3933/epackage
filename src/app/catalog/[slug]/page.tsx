@@ -248,14 +248,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <Fragment>
+    <>
       <script
+        id="product-structured-data"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd)
         }}
       />
       <ProductDetailClient product={product} />
-    </Fragment>
+    </>
   )
 }
