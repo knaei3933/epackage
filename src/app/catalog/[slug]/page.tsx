@@ -136,9 +136,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           alt: product.name_ja,
         }
       ]
-    },
-    other: {
-      'application/ld+json': JSON.stringify(jsonLd)
     }
   }
 }
@@ -250,7 +247,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <>
       <script
-        id="product-structured-data"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd)
