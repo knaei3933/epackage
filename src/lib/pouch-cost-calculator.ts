@@ -407,7 +407,29 @@ export class PouchCostCalculator {
       markupRate = 0.0  // デフォルトは割引なし（販売マージン20%は計算済み）
     } = params;
 
-    const skuCount = skuQuantities.length;
+    // ========================================
+    // スパウトパウチの最小注文数適用（5000個）
+    // ========================================
+    const MIN_SPOUT_QUANTITY = 5000;
+    let adjustedQuantities = [...skuQuantities];
+
+    if (pouchType === 'spout_pouch') {
+      const totalQuantity = skuQuantities.reduce((sum, q) => sum + q, 0);
+      if (totalQuantity < MIN_SPOUT_QUANTITY) {
+        // 総数量が5000未満の場合、最小5000個に調整
+        const ratio = MIN_SPOUT_QUANTITY / totalQuantity;
+        adjustedQuantities = skuQuantities.map(q => Math.ceil(q * ratio));
+        console.log('[Spout Pouch] Minimum quantity applied:', {
+          originalQuantities: skuQuantities,
+          originalTotal: totalQuantity,
+          adjustedQuantities,
+          adjustedTotal: adjustedQuantities.reduce((sum, q) => sum + q, 0),
+          minimumRequired: MIN_SPOUT_QUANTITY
+        });
+      }
+    }
+
+    const skuCount = adjustedQuantities.length;
 
     // ========================================
     // 原反幅の決定（先に決定する必要がある）
@@ -425,7 +447,7 @@ export class PouchCostCalculator {
     const optimalColumnCount = this.calculateOptimalColumnCount(
       pouchType,
       dimensions,
-      skuQuantities.reduce((sum, q) => sum + q, 0),
+      adjustedQuantities.reduce((sum, q) => sum + q, 0),
       materialWidth
     );
 
@@ -433,7 +455,7 @@ export class PouchCostCalculator {
     const filmWidth = this.calculateFilmWidth(pouchType, dimensions, optimalColumnCount);
 
     // 全数量の計算（後で使用）
-    const totalQuantity = skuQuantities.reduce((sum, q) => sum + q, 0);
+    const totalQuantity = adjustedQuantities.reduce((sum, q) => sum + q, 0);
 
     console.log('[Film Width Calculation]', JSON.stringify({
       pouchType,
@@ -454,7 +476,7 @@ export class PouchCostCalculator {
     // ========================================
 
     // まず各SKUの理論メートル数と確保量を計算（後で使用）
-    const theoreticalAndSecuredMeters = skuQuantities.map((quantity) => {
+    const theoreticalAndSecuredMeters = adjustedQuantities.map((quantity) => {
       const theoreticalMeters = this.calculateTheoreticalMeters(quantity, dimensions, pouchType, optimalColumnCount);
       const securedMeters = this.calculateSecuredMeters(theoreticalMeters, skuCount, pouchType);
       return { theoreticalMeters, securedMeters };
@@ -520,7 +542,7 @@ export class PouchCostCalculator {
     });
 
     // 各SKUの配分を計算（数量比で按分）
-    const costPerSKU = await Promise.all(skuQuantities.map(async (quantity, index) => {
+    const costPerSKU = await Promise.all(adjustedQuantities.map(async (quantity, index) => {
       const quantityRatio = quantity / totalQuantity;
 
       // 事前計算した理論メートル数と確保量を使用

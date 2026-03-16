@@ -282,5 +282,46 @@ describe('スパウトパウチ計算実データ検証', () => {
       // TODO: calculateFilmWidthにスパウトパウチのマチ有無考慮を実装する必要あり
       expect(result.calculatedFilmWidth).toBe(441);
     });
+
+    test('数量500個の場合、最小5,000個で計算されること（スパウトパウチ全体コスト）', async () => {
+      const params: SKUCostParams = {
+        pouchType: 'spout_pouch',
+        dimensions: { width: 150, height: 200, depth: 0 },
+        materialId: 'pet_al_pet',
+        thicknessSelection: 'standard',
+        skuQuantities: [500], // 500個を注文
+        postProcessingOptions: ['spout-size-22']
+      };
+
+      const result = await calculator.calculateSKUCost(params);
+
+      // 総コストが5000個分で計算されていることを確認
+      // 5000個の場合のスパウト加工費: 130ウォン × 5000個 + 150,000ウォン = 800,000ウォン ≒ 96,000円
+      const pouchProcessingCost = result.costPerSKU[0].costBreakdown.pouchProcessingCost;
+      expect(pouchProcessingCost).toBe(96000);
+
+      // 計算数量が5000個になっていることを確認
+      expect(result.costPerSKU[0].quantity).toBe(5000);
+
+      // 材料費が5000個分で計算されていることを確認（500個より大きいはず）
+      const materialCost = result.costPerSKU[0].costBreakdown.materialCost;
+      const printingCost = result.costPerSKU[0].costBreakdown.printingCost;
+      const laminationCost = result.costPerSKU[0].costBreakdown.laminationCost;
+      const totalFilmCost = materialCost + printingCost + laminationCost;
+      expect(totalFilmCost).toBeGreaterThan(10000); // 500個分より大きい
+
+      // 総コストが正しく計算されていることを確認
+      expect(result.totalCostJPY).toBeGreaterThan(0);
+
+      console.log('=== スパウトパウチ（500個注文 → 5000個計算）の結果 ===');
+      console.log(`注文数量: 500個`);
+      console.log(`計算数量: ${result.costPerSKU[0].quantity}個`);
+      console.log(`スパウト加工費: ${pouchProcessingCost} 円`);
+      console.log(`材料費: ${materialCost} 円`);
+      console.log(`印刷費: ${printingCost} 円`);
+      console.log(`ラミネート費: ${laminationCost} 円`);
+      console.log(`総フィルム費: ${totalFilmCost} 円`);
+      console.log(`総コスト（JPY）: ${result.totalCostJPY} 円`);
+    });
   });
 });
