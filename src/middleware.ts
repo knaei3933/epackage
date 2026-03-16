@@ -967,14 +967,15 @@ function addSecurityHeaders(response: NextResponse, pathname?: string) {
       "default-src 'self' blob:",
       // React 19 and Framer Motion require unsafe-inline for hydration and animations
       // Both dev and production need 'unsafe-inline' for client-side rendering
-      // Google Tag Manager and Analytics support
+      // Google Tag Manager, Analytics, and Ads support
       isDev
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net",
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
       isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https: blob:",
+      "img-src 'self' data: https: blob: https://www.google.com https://www.google.co.jp https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
       "font-src 'self' data: blob:",
-      "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
+      // Complete Google connectivity for GTM, GA4, and Google Ads
+      "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.jp https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.g.doubleclick.net",
       "frame-src 'self' https://www.googletagmanager.com",
       // form-actionを'self'に制限してCSRF防御
       "form-action 'self'",
