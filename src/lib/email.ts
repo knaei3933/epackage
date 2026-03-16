@@ -417,6 +417,7 @@ https://epackage-lab.com
 const getContactAdminNotificationEmail = (data: ContactEmailData & { requestId: string }) => ({
   to: ADMIN_EMAIL,
   from: FROM_EMAIL,
+  replyTo: data.email, // 返信先を顧客のメールアドレスに設定
   subject: `【新規お問い合わせ】${data.subject} - ${data.name}`,
   text: `
 新しいお問い合わせがありました。
