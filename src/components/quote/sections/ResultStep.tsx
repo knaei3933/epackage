@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion'
 ;
-import { useQuote, useQuoteState } from '@/contexts/QuoteContext';
+import { useQuote, useQuoteState, validateProductTypeSpecificFields } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
@@ -604,6 +604,15 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     console.log('[handleDownloadPdf] state.bagTypeId:', state.bagTypeId);
     console.log('[handleDownloadPdf] Includes matte?', state.postProcessingOptions?.includes('matte'));
     console.log('[handleDownloadPdf] Includes glossy?', state.postProcessingOptions?.includes('glossy'));
+
+    // 製品タイプ別必須フィールドバリデーション
+    const validation = validateProductTypeSpecificFields(state);
+    if (!validation.valid) {
+      const errorMessage = `以下の必須項目が入力されていません:\n${validation.missingFields.join('\n')}`;
+      alert(errorMessage);
+      return;
+    }
+
     setIsGeneratingPdf(true);
     setPdfStatus('idle');
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Epackage Labの個人情報保護方針。お客様の個人情報を適切に取得、利用、管理し、安全かつ公正に取り扱うことをお約束します。',
   keywords: ['個人情報保護方針', 'プライバシーポリシー', '個人情報', 'データ保護', 'GDPR', 'プライバシー'],
   alternates: {
-    canonical: '/privacy',
+    canonical: 'https://www.package-lab.com/privacy',
   },
 }
 

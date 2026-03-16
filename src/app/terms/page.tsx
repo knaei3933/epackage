@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Epackage Labサービスの利用規約。本サービスの利用条件、利用者の責任、知的財産権、禁止行為等について定めています。',
   keywords: ['利用規約', 'サービス利用規約', '利用条件', '規約', 'terms of service'],
   alternates: {
-    canonical: '/terms',
+    canonical: 'https://www.package-lab.com/terms',
   },
 }
 

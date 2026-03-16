@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     images: ['https://www.package-lab.com/images/og-image.jpg'],
   },
   alternates: {
-    canonical: '/contact',
+    canonical: 'https://www.package-lab.com/contact',
   },
 }
 

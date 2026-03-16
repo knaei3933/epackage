@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     'ソフトパウチ',
   ],
   alternates: {
-    canonical: '/about',
+    canonical: 'https://www.package-lab.com/about',
   },
   openGraph: {
     title: '会社概要 | Epackage Lab',

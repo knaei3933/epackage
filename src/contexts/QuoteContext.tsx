@@ -1160,6 +1160,40 @@ interface QuoteContextType {
 }
 
 // Helper functions that need state access - accept state as parameter
+
+/**
+ * 製品タイプ別必須フィールドバリデーション関数
+ * Product type-specific required field validation
+ * @param state - 現在の見積状態
+ * @returns { valid: boolean, missingFields: string[] } - バリデーション結果と不足フィールドリスト
+ */
+export function validateProductTypeSpecificFields(state: QuoteState): {
+  valid: boolean;
+  missingFields: string[];
+} {
+  const missingFields: string[] = [];
+
+  switch (state.bagTypeId) {
+    case 'spout_pouch':
+      if (!state.spoutSize) missingFields.push('スパウトサイズ');
+      if (!state.spoutPosition) missingFields.push('スパウト位置');
+      break;
+    case 'roll_film':
+      if (!state.pitch) missingFields.push('ピッチ');
+      if (!state.totalLength) missingFields.push('総長さ');
+      if (!state.rollCount) missingFields.push('ロール数');
+      break;
+    case 'box':
+      if (!state.sideWidth) missingFields.push('よこめん幅');
+      break;
+  }
+
+  return {
+    valid: missingFields.length === 0,
+    missingFields
+  };
+}
+
 export function checkStepComplete(state: QuoteState, step: string): boolean {
   console.log('[checkStepComplete] Called with step:', step, 'state:', {
     bagTypeId: state.bagTypeId,
