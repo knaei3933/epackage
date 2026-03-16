@@ -80,7 +80,7 @@ export function TrustSignalsSection({ className = '' }: TrustSignalsSectionProps
       name: ' DEFフーズ株式会社',
       industry: '食品',
       logo: '/logos/def-foods.png',
-      testimonial: '食品安全基準への対応が非常に丁寧で、法規制変化にも柔軟に対応してくれます。長期的なパートナーとして非常に満足しています。',
+      testimonial: '品質管理の徹底と法規制変化への柔軟な対応に非常に満足しています。長期的なパートナーとして信頼しています。',
       results: [
         '食品安全事故ゼロ',
         '環境負荷40%削減',
@@ -94,7 +94,7 @@ export function TrustSignalsSection({ className = '' }: TrustSignalsSectionProps
       name: 'GHIコスメティクス株式会社',
       industry: '化粧品',
       logo: '/logos/ghi-cosmetics.png',
-      testimonial: '食品安全規格対応の証明書が整備されており、新規製品開発の稟議がスムーズに進みました。技術サポートも非常に充実しています。',
+      testimonial: '品質管理証明書が整備されており、新規製品開発の稟議がスムーズに進みました。技術サポートも非常に充実しています。',
       results: [
         '開発期間30%短縮',
         '包装デザイン自由度向上',

@@ -19,7 +19,7 @@ const TEMPLATES = {
     name_en: 'Food Industry Template',
     description_ja: '食品安全と鮮度保持を重視した食品包装テンプレート',
     description_en: 'Food safety and freshness-focused food packaging template',
-    features: ['安全性', '鮮度保持', 'HACCP対応'],
+    features: ['安全性', '鮮度保持', '品質管理'],
     thumbnail: '/images/templates/food-preview.jpg',
     download_url: '/templates/food-template.zip'
   },

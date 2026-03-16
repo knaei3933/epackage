@@ -41,15 +41,6 @@ interface Certification {
 export function CertificationBadges({ className = '' }: CertificationBadgesProps) {
   const certifications: Certification[] = [
     {
-      id: 'food_safety',
-      name: '食品安全規格対応',
-      description: '日本の食品安全基準に準拠',
-      icon: Shield,
-      status: 'certified',
-      category: '食品安全',
-      score: 95
-    },
-    {
       id: 'pharma_act',
       name: '薬機法',
       description: '医薬品・医療機器包装材',

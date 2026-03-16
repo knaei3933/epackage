@@ -50,9 +50,9 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
       },
       {
         name: '佐藤 衛生',
-        title: 'HACCPスペシャリスト',
+        title: '品質管理スペシャリスト',
         experience: '12年',
-        specialties: ['HACCP', '品質管理', '規制対応'],
+        specialties: ['品質管理', '規制対応'],
         achievements: '100社の規格取得支援',
         rating: 4.8,
         projects: '150+'

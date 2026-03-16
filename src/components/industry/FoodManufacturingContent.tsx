@@ -17,11 +17,11 @@ export function FoodManufacturingContent() {
       icon: Shield,
       benefits: [
         '厳格な品質管理体制',
-        'HACCP認証取得済み資材',
+        '認証取得済み資材',
         '異物混入防止設計',
         '清掃・殺菌しやすい構造'
       ],
-      certifications: ['HACCP', '品質管理認証']
+      certifications: ['品質管理認証']
     },
     {
       id: 'preservation',
@@ -101,7 +101,7 @@ export function FoodManufacturingContent() {
       '厳格な品質管理',
       'FDA認証',
       'EU食品接触物質規則',
-      'HACCP認証'
+      '品質管理認証'
     ],
     features: [
       'マイクロ波対応',

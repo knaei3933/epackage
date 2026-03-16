@@ -234,10 +234,10 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
             <div>
               <h4 className="font-semibold mb-2 text-navy-600">品質管理</h4>
               <ul className="text-sm space-y-1 text-navy-600">
-                <li>• 食品安全規格対応</li>
+                <li>• 品質管理体制</li>
                 <li>• 製品設計管理（PDCA）</li>
-                <li>• 危害分析（HACCP）</li>
                 <li>• リスクアセスメント</li>
+                <li>• 継続的改善</li>
               </ul>
             </div>
             <div>

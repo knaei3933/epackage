@@ -184,14 +184,14 @@ export default function PrintPage() {
       features: [
         'リアルタイム品質モニタリング',
         '非破壊検査システム',
-        '食品安全認証',
+        '品質保証システム',
         '環境マネジメントシステム'
       ],
       specs: [
         '検査項目：50+種類',
         '自動検査率：100%',
         '品質保証期間：2年',
-        '認証：食品安全規格対応'
+        '認証：品質管理システム対応'
       ]
     }
   ]
@@ -225,8 +225,8 @@ export default function PrintPage() {
 
   const certifications = [
     {
-      name: '食品安全規格',
-      description: '日本の食品安全基準に対応',
+      name: '品質管理',
+      description: '厳格な品質管理体制',
       icon: Shield
     },
     {

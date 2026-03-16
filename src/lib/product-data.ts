@@ -165,10 +165,10 @@ const commonFAQs = [
 
     // === 食品業界向けFAQ ===
     {
-        question_ja: '食品安全規格に対応していますか?',
-        question_en: 'Do you meet food safety standards?',
-        answer_ja: 'はい、厳格な品質管理体制で食品安全に対応しています。',
-        answer_en: 'Yes, we have strict quality control systems to ensure food safety.',
+        question_ja: '品質管理体制はどうなっていますか?',
+        question_en: 'What is your quality control system?',
+        answer_ja: 'はい、厳格な品質管理体制で製品の品質を保証しています。',
+        answer_en: 'Yes, we have strict quality control systems to ensure product quality.',
         category: 'food'
     },
     {
