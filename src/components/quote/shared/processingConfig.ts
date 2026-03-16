@@ -874,57 +874,11 @@ const OPTION_CATEGORIES: Record<string, string> = {
 };
 
 export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] => {
-  const defaults: string[] = [];
-
-  // ロールフィルムとスパウトパウチの場合は表面処理のみを返す
-  if (bagTypeId === 'roll_film' || bagTypeId === 'spout_pouch') {
-    console.log('[getDefaultPostProcessingOptions] Roll film/Spout pouch detected, returning surface treatments only');
-    return ['glossy']; // デフォルトは光沢仕上げ
-  }
-
-  // スタンドパウチとボックス型パウチの場合はマチ印刷なしを追加
-  const shouldIncludeMachiPrinting = bagTypeId === 'stand_up' || bagTypeId === 'box';
-
-  // 各オプションを順番に確認し、isDefault: trueのオプションを追加
-  // カテゴリー順序: zipper → finish → notch → hang-hole → corner → valve → open → sealing-width → machi-printing
-  // 左側のオプションを優先（PostProcessingStep.tsxの表示順に合わせる）
-  const optionOrder = [
-    'zipper-yes',
-    'zipper-no',
-    'glossy',
-    'matte',
-    'notch-yes',
-    'notch-straight',
-    'notch-no',
-    'hang-hole-6mm',
-    'hang-hole-8mm',
-    'hang-hole-no',
-    'corner-round',
-    'corner-square',
-    'valve-no',
-    'valve-yes',
-    'top-open',
-    'bottom-open',
-    'sealing-width-5mm',
-    'sealing-width-7-5mm',
-    'sealing-width-10mm',
-    ...(shouldIncludeMachiPrinting ? ['machi-printing-no', 'machi-printing-yes'] : [])
-  ];
-
-  const selectedCategories = new Set<string>();
-
-  for (const optionId of optionOrder) {
-    const option = processingOptionsConfig.find(opt => opt.id === optionId);
-    // OPTION_CATEGORIESマップを使用してカテゴリーを取得
-    const category = OPTION_CATEGORIES[optionId];
-    if (option && option.isDefault && category && !selectedCategories.has(category)) {
-      defaults.push(option.id);
-      selectedCategories.add(category);
-    }
-  }
-
-  console.log('[getDefaultPostProcessingOptions] Selected defaults:', defaults);
-  return defaults;
+  // 修正: デフォルトオプションを自動適用しない
+  // ユーザーが明示的に選択したオプションのみを使用
+  // 理由: 選択していないオプションがPDFに表示される問題を修正
+  console.log('[getDefaultPostProcessingOptions] Returning empty array - no auto-defaults');
+  return [];
 };
 
 /**

@@ -231,7 +231,7 @@ const initialState: QuoteState = {
   quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
   quantity: 500,
   isUVPrinting: false,
-  postProcessingOptions: getDefaultPostProcessingOptions('flat_3_side'), // 平袋のデフォルト値
+  postProcessingOptions: [], // デフォルトは空 - ユーザーが選択したオプションのみ適用
   postProcessingMultiplier: 1.0, // 初期値は1.0（PostProcessingStepで更新）
   postProcessingLimit: {
     selectedItems: [],
@@ -455,13 +455,9 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           newPitch = undefined;
         }
 
-        // バッグタイプ変更時に投稿加工オプションを更新
-        // ロールフィルムとスパウトパウチの場合は表面処理のみ
-        // 既存のfinish設定（glossy/matte）を保持する
-        const existingFinishOption = state.postProcessingOptions?.find(opt => opt === 'glossy' || opt === 'matte');
-        const newPostProcessingOptions = (newBagTypeId === 'roll_film' || newBagTypeId === 'spout_pouch')
-          ? (existingFinishOption ? [existingFinishOption] : ['glossy'])
-          : getDefaultPostProcessingOptions(newBagTypeId);
+        // バッグタイプ変更時に後加工オプションを更新
+        // 修正: デフォルトオプションを自動適用しない - ユーザーの選択のみを保持
+        const newPostProcessingOptions = getDefaultPostProcessingOptions(newBagTypeId);
         const newPostProcessingMultiplier = calculatePostProcessingMultiplier(newPostProcessingOptions);
 
         console.log('[SET_BASIC_SPECS] bagTypeId changed:', state.bagTypeId, '->', newBagTypeId);

@@ -45,7 +45,7 @@ export interface RollFilmSpecs extends BaseQuoteSpecs {
 
 // General pouch specifications
 export interface PouchSpecs extends BaseQuoteSpecs {
-  bagTypeId: 'flat_3_side' | 'stand_up' | 'gusset' | 'lap_seal';
+  bagTypeId: 'flat_3_side' | 'stand_up' | 'gusset' | 'lap_seal' | 'box';
   sideWidth?: number;
 }
 

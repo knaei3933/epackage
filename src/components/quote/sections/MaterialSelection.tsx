@@ -32,9 +32,10 @@ const ALL_MATERIALS = [
     ecoFriendly: false,
     rollFilmOnly: false,
     thicknessOptions: [
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + LLDPE 110μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + LLDPE 120μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (800g~)', nameJa: '超耐久タイプ (800g~)', specification: 'PET 12μ + LLDPE 130μ', weightRange: '800g~', multiplier: 1.2 }
+      { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + LLDPE 72μ', weightRange: '~200g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 },
+      { id: 'ultra', name: '超耐久タイプ (LLDPE 96μ)', nameJa: '超耐久タイプ (LLDPE 96μ)', specification: 'PET 12μ + LLDPE 96μ', weightRange: '800g~', multiplier: 1.2 }
     ]
   },
   {
@@ -52,11 +53,9 @@ const ALL_MATERIALS = [
     ecoFriendly: false,
     rollFilmOnly: false,
     thicknessOptions: [
-      { id: 'light_50', name: 'Light (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'NY 15μ + LLDPE 50μ', weightRange: '~70g/m²', multiplier: 0.85 },
-      { id: 'standard_70', name: 'Standard (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'NY 15μ + LLDPE 70μ', weightRange: '70~90g/m²', multiplier: 1.0 },
-      { id: 'heavy_90', name: 'Heavy (LLDPE 90μ)', nameJa: '高耐久タイプ (LLDPE 90μ)', specification: 'NY 15μ + LLDPE 90μ', weightRange: '90~100g/m²', multiplier: 1.1 },
-      { id: 'ultra_100', name: 'Ultra (LLDPE 100μ)', nameJa: '超耐久タイプ (LLDPE 100μ)', specification: 'NY 15μ + LLDPE 100μ', weightRange: '100~110g/m²', multiplier: 1.15 },
-      { id: 'maximum_110', name: 'Maximum (LLDPE 110μ)', nameJa: '最大耐久タイプ (LLDPE 110μ)', specification: 'NY 15μ + LLDPE 110μ', weightRange: '110g/m²~', multiplier: 1.2 }
+      { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'NY 15μ + LLDPE 72μ', weightRange: '~70g/m²', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'NY 15μ + LLDPE 80μ', weightRange: '70~90g/m²', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'NY 15μ + LLDPE 88μ', weightRange: '90~100g/m²', multiplier: 1.1 }
     ]
   },
 
@@ -76,10 +75,11 @@ const ALL_MATERIALS = [
     ecoFriendly: false,
     rollFilmOnly: false,
     thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (800g~)', nameJa: '超耐久タイプ (800g~)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ', weightRange: '800g~', multiplier: 1.2 }
+      { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 72μ', weightRange: '~100g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'standard', name: 'レギュラータイプ (LLDPE 80μ)', nameJa: 'レギュラータイプ (LLDPE 80μ)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 },
+      { id: 'ultra', name: '超耐久タイプ (LLDPE 96μ)', nameJa: '超耐久タイプ (LLDPE 96μ)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 96μ', weightRange: '800g~', multiplier: 1.2 }
     ]
   },
   {
@@ -97,9 +97,9 @@ const ALL_MATERIALS = [
     ecoFriendly: false,
     rollFilmOnly: false,
     thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 60μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL VMPET 7μ + PET 12μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 }
+      { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 72μ', weightRange: '~100g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 }
     ]
   },
   {
@@ -117,9 +117,9 @@ const ALL_MATERIALS = [
     ecoFriendly: false,
     rollFilmOnly: false,
     thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 60μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~500g)', nameJa: '標準タイプ (~500g)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 }
+      { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 72μ', weightRange: '~100g', multiplier: 0.9 },
+      { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
+      { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 }
     ]
   },
 
@@ -140,11 +140,11 @@ const ALL_MATERIALS = [
     rollFilmOnly: false,
     minQuantityMeters: 1000,
     thicknessOptions: [
-      { id: 'light_50', name: 'Light (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ', weightRange: '110~130g/m²', multiplier: 0.9 },
-      { id: 'standard_70', name: 'Standard (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ', weightRange: '130~150g/m²', multiplier: 1.0 },
-      { id: 'heavy_90', name: 'Heavy (LLDPE 90μ)', nameJa: '高耐久タイプ (LLDPE 90μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ', weightRange: '150~170g/m²', multiplier: 1.1 },
-      { id: 'ultra_100', name: 'Ultra (LLDPE 100μ)', nameJa: '超耐久タイプ (LLDPE 100μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ', weightRange: '170~190g/m²', multiplier: 1.15 },
-      { id: 'maximum_110', name: 'Maximum (LLDPE 110μ)', nameJa: '最大耐久タイプ (LLDPE 110μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ', weightRange: '190g/m²~', multiplier: 1.2 }
+      { id: 'light_50', name: 'Light (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 72μ', weightRange: '110~130g/m²', multiplier: 0.9 },
+      { id: 'standard_70', name: 'Standard (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 80μ', weightRange: '130~150g/m²', multiplier: 1.0 },
+      { id: 'heavy_90', name: 'Heavy (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 88μ', weightRange: '150~170g/m²', multiplier: 1.1 },
+      { id: 'ultra_100', name: 'Ultra (LLDPE 96μ)', nameJa: '超耐久タイプ (LLDPE 96μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 96μ', weightRange: '170~190g/m²', multiplier: 1.15 },
+      { id: 'maximum_110', name: 'Maximum (LLDPE 96μ)', nameJa: '最大耐久タイプ (LLDPE 96μ)', specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 96μ', weightRange: '190g/m²~', multiplier: 1.2 }
     ]
   },
   {
@@ -163,11 +163,11 @@ const ALL_MATERIALS = [
     rollFilmOnly: false,
     minQuantityMeters: 1000,
     thicknessOptions: [
-      { id: 'light_50', name: 'Light (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ', weightRange: '100~120g/m²', multiplier: 0.9 },
-      { id: 'standard_70', name: 'Standard (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ', weightRange: '120~140g/m²', multiplier: 1.0 },
-      { id: 'heavy_90', name: 'Heavy (LLDPE 90μ)', nameJa: '高耐久タイプ (LLDPE 90μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ', weightRange: '140~160g/m²', multiplier: 1.1 },
-      { id: 'ultra_100', name: 'Ultra (LLDPE 100μ)', nameJa: '超耐久タイプ (LLDPE 100μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ', weightRange: '160~180g/m²', multiplier: 1.15 },
-      { id: 'maximum_110', name: 'Maximum (LLDPE 110μ)', nameJa: '最大耐久タイプ (LLDPE 110μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ', weightRange: '180g/m²~', multiplier: 1.2 }
+      { id: 'light_50', name: 'Light (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 72μ', weightRange: '100~120g/m²', multiplier: 0.9 },
+      { id: 'standard_70', name: 'Standard (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 80μ', weightRange: '120~140g/m²', multiplier: 1.0 },
+      { id: 'heavy_90', name: 'Heavy (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 88μ', weightRange: '140~160g/m²', multiplier: 1.1 },
+      { id: 'ultra_100', name: 'Ultra (LLDPE 96μ)', nameJa: '超耐久タイプ (LLDPE 96μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 96μ', weightRange: '160~180g/m²', multiplier: 1.15 },
+      { id: 'maximum_110', name: 'Maximum (LLDPE 96μ)', nameJa: '最大耐久タイプ (LLDPE 96μ)', specification: 'Kraft 50g/m² + PET 12μ + LLDPE 96μ', weightRange: '180g/m²~', multiplier: 1.2 }
     ]
   }
 ];
@@ -225,8 +225,9 @@ export function MaterialSelection({ showThicknessOptions = true }: MaterialSelec
 
   // Filter materials based on bag type
   const isRollFilm = state.bagTypeId === 'roll_film';
+  const isSpoutPouch = state.bagTypeId === 'spout_pouch';
   const availableMaterials = ALL_MATERIALS.filter(m =>
-    isRollFilm ? true : !m.rollFilmOnly
+    isRollFilm ? true : (isSpoutPouch ? !m.ecoFriendly : !m.rollFilmOnly)
   );
 
   // Group materials by category

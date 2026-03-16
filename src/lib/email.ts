@@ -276,6 +276,10 @@ export interface ContactEmailData {
   message: string;
   urgency?: string;
   preferredContact?: string;
+  phone?: string;
+  fax?: string;
+  postalCode?: string;
+  address?: string;
 }
 
 export interface SampleRequestEmailData {
@@ -435,7 +439,8 @@ const getContactAdminNotificationEmail = (data: ContactEmailData & { requestId: 
 --------------------------------
 【お名前】${data.name}
 【メールアドレス】${data.email}
-${data.company ? `【会社名】${data.company}\n` : ''}【ご希望の連絡方法】${data.preferredContact || '未指定'}
+【電話番号】${data.phone || '未入力'}
+${data.fax ? `【FAX】${data.fax}\n` : ''}${data.company ? `【会社名】${data.company}\n` : ''}${data.postalCode ? `【郵便番号】${data.postalCode}\n` : ''}${data.address ? `【住所】${data.address}\n` : ''}【ご希望の連絡方法】${data.preferredContact || '未指定'}
 
 --------------------------------
 お問い合わせ内容
@@ -488,7 +493,14 @@ Epackage Lab 管理画面
 
       <div class="label">メールアドレス</div>
       <div class="value"><a href="mailto:${data.email}">${data.email}</a></div>
+
+      <div class="label">電話番号</div>
+      <div class="value">${data.phone || '未入力'}</div>
+
+      ${data.fax ? `<div class="label">FAX</div><div class="value">${data.fax}</div>` : ''}
       ${data.company ? `<div class="label">会社名</div><div class="value">${data.company}</div>` : ''}
+      ${data.postalCode ? `<div class="label">郵便番号</div><div class="value">${data.postalCode}</div>` : ''}
+      ${data.address ? `<div class="label">住所</div><div class="value">${data.address}</div>` : ''}
       ${data.preferredContact ? `<div class="label">ご希望の連絡方法</div><div class="value">${data.preferredContact}</div>` : ''}
     </div>
 

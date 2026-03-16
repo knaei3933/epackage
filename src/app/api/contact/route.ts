@@ -152,6 +152,10 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
       message: validatedData.message,
       urgency: validatedData.urgency,
       preferredContact: validatedData.preferredContact,
+      phone: validatedData.phone,
+      fax: validatedData.fax,
+      postalCode: validatedData.postalCode,
+      address: validatedData.address,
       requestId
     });
 
