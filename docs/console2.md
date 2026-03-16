@@ -1,221 +1,16 @@
- Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
- [HMR] connected
- Image with src "/images/main/main15.png" is using quality "95" which is not configured in images.qualities [75]. Please update your config to [75, 95].
-Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/products/granola-standpouch-real.jpg" is using quality "95" which is not configured in images.qualities [75]. Please update your config to [75, 95].
-Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
-warn @ 8defa_next_dist_fce9020c._.js:2298
- [AuthContext] Initializing auth context...
- [AuthContext] Fetching session from /api/auth/current-user... Object
- Image with src "/images/main/main1.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main2.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main3.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main4.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main5.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main6.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main7.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main8.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main9.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main15.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main16.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main17.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main14.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- Image with src "/images/main/main13.png" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative.
-warn @ 8defa_next_dist_fce9020c._.js:2298
- [AuthContext] Same zone navigation, skipping session refresh: Object
- [LoginForm] Using AuthContext.signIn for: admin@epackage-lab.com
- [AuthContext] Sign in successful: Object
- [LoginForm] Login successful
- [LoginForm] Redirecting to: /member/dashboard
- [Fast Refresh] rebuilding
- [Fast Refresh] done in 145ms
-  Server  [DashboardContent] START: Rendering dashboard content
-  Server  [DashboardContent] Calling requireAuth...
-  Server  [requireAuth] START: Authentication check initiated
-  Server  [requireAuth] Importing getRBACContext...
-  Server  [requireAuth] Calling getRBACContext()...
-  Server  [RBAC] getRBACContext() called
-  Server  [RBAC] Environment: Object
-  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
-    at requireAuth (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1e6e5b82._.js:938:29)
-    at async DashboardContent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1e6e5b82._.js:5080:16)
-  Server  [RBAC] Checking middleware headers...
-  Server  [DashboardContent] START: Rendering dashboard content
-  Server  [DashboardContent] Calling requireAuth...
-  Server  [requireAuth] START: Authentication check initiated
-  Server  [requireAuth] Importing getRBACContext...
-  Server  [requireAuth] Calling getRBACContext()...
-  Server  [RBAC] getRBACContext() called
-  Server  [RBAC] Environment: Object
-  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
-    at requireAuth (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1e6e5b82._.js:938:29)
-    at async DashboardContent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1e6e5b82._.js:5080:16)
-  Server  [RBAC] Checking middleware headers...
- [AuthContext] Same zone navigation, skipping session refresh: Object
-  Server  [RBAC] All available headers: Array(21)
-  Server  [RBAC] Middleware headers found: Object
-  Server  [RBAC] Middleware headers incomplete, falling back to cookie auth
-  Server  [RBAC] Supabase cookies found: Array(1)
-  Server  [RBAC] Creating Supabase server client...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] Calling supabase.auth.getUser()...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] User found from Supabase: 54fd7b31-b805-43cf-b92e-898ddd066875 admin@epackage-lab.com
-  Server  [RBAC] Fetching profile from database...
-  Server  [RBAC] Profile found: ADMIN ACTIVE
-  Server  [RBAC] Using default permissions for role: admin
-  Server  [RBAC] User authenticated successfully: 54fd7b31-b805-43cf-b92e-898ddd066875 Role: admin Status: ACTIVE
-  Server  [requireAuth] getRBACContext returned: CONTEXT Object
-  Server  [requireAuth] Got user from RBAC context: 54fd7b31-b805-43cf-b92e-898ddd066875 Role: admin Status: ACTIVE
-  Server  [DashboardContent] requireAuth SUCCESS: 54fd7b31-b805-43cf-b92e-898ddd066875
-  Server  [DashboardContent] Fetching stats...
-  Server  [RBAC] getRBACContext() called
-  Server  [RBAC] Environment: Object
-  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
-    at getCurrentUserId (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1e6e5b82._.js:1086:35)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-  Server  [RBAC] Checking middleware headers...
-  Server  [RBAC] All available headers: Array(21)
-  Server  [RBAC] Middleware headers found: Object
-  Server  [RBAC] Middleware headers incomplete, falling back to cookie auth
-  Server  [RBAC] Supabase cookies found: Array(1)
-  Server  [RBAC] Creating Supabase server client...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] Calling supabase.auth.getUser()...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] User found from Supabase: 54fd7b31-b805-43cf-b92e-898ddd066875 admin@epackage-lab.com
-  Server  [RBAC] Fetching profile from database...
-  Server  [RBAC] Profile found: ADMIN ACTIVE
-  Server  [RBAC] Using default permissions for role: admin
-  Server  [RBAC] User authenticated successfully: 54fd7b31-b805-43cf-b92e-898ddd066875 Role: admin Status: ACTIVE
-  Server  [getCurrentUserId] Server-side: Found user ID from RBAC context: 54fd7b31-b805-43cf-b92e-898ddd066875
-  Server  [DashboardContent] Stats fetched: Object
-  Server  [DashboardContent] userName: 管理
-  Server  [DashboardContent] About to render JSX
-  Server  [RBAC] All available headers: Array(21)
-  Server  [RBAC] Middleware headers found: Object
-  Server  [RBAC] Middleware headers incomplete, falling back to cookie auth
-  Server  [RBAC] Supabase cookies found: Array(1)
-  Server  [RBAC] Creating Supabase server client...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] Calling supabase.auth.getUser()...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] User found from Supabase: 54fd7b31-b805-43cf-b92e-898ddd066875 admin@epackage-lab.com
-  Server  [RBAC] Fetching profile from database...
-  Server  [RBAC] Profile found: ADMIN ACTIVE
-  Server  [RBAC] Using default permissions for role: admin
-  Server  [RBAC] User authenticated successfully: 54fd7b31-b805-43cf-b92e-898ddd066875 Role: admin Status: ACTIVE
-  Server  [requireAuth] getRBACContext returned: CONTEXT Object
-  Server  [requireAuth] Got user from RBAC context: 54fd7b31-b805-43cf-b92e-898ddd066875 Role: admin Status: ACTIVE
-  Server  [DashboardContent] requireAuth SUCCESS: 54fd7b31-b805-43cf-b92e-898ddd066875
-  Server  [DashboardContent] Fetching stats...
-  Server  [RBAC] getRBACContext() called
-  Server  [RBAC] Environment: Object
-  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
-    at getCurrentUserId (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1e6e5b82._.js:1086:35)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-  Server  [RBAC] Checking middleware headers...
-  Server  [RBAC] All available headers: Array(21)
-  Server  [RBAC] Middleware headers found: Object
-  Server  [RBAC] Middleware headers incomplete, falling back to cookie auth
-  Server  [RBAC] Supabase cookies found: Array(1)
-  Server  [RBAC] Creating Supabase server client...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] Calling supabase.auth.getUser()...
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] getAll() called, found 5 cookies
-  Server  [RBAC] Supabase cookies: Array(1)
-  Server  [RBAC] User found from Supabase: 54fd7b31-b805-43cf-b92e-898ddd066875 admin@epackage-lab.com
-  Server  [RBAC] Fetching profile from database...
-  Server  [RBAC] Profile found: ADMIN ACTIVE
-  Server  [RBAC] Using default permissions for role: admin
-  Server  [RBAC] User authenticated successfully: 54fd7b31-b805-43cf-b92e-898ddd066875 Role: admin Status: ACTIVE
-  Server  [getCurrentUserId] Server-side: Found user ID from RBAC context: 54fd7b31-b805-43cf-b92e-898ddd066875
-  Server  [DashboardContent] Stats fetched: Object
-  Server  [DashboardContent] userName: 管理
-  Server  [DashboardContent] About to render JSX
- [Fast Refresh] rebuilding
- [Fast Refresh] done in 986ms
- [QuoteContext] initialState created: Object
- [QuoteProvider] State updated: Object
- [AuthContext] Same zone navigation, skipping session refresh: Object
- [QuoteProvider] State updated: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [Fast Refresh] rebuilding
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [checkStepComplete] Called with step: specs state: Object
- [checkStepComplete] specs result: Object
- [Fast Refresh] done in 211ms
- [RealTimePriceDisplay] Auth ready, user detected: 54fd7b31-b805-43cf-b92e-898ddd066875
- [useKeyboardNavigation] handlersRef updated: Object
- [RealTimePriceDisplay] Auth ready, user detected: 54fd7b31-b805-43cf-b92e-898ddd066875
- [useKeyboardNavigation] handlersRef updated: Object
- [Fast Refresh] rebuilding
- [Fast Refresh] done in 143ms
- [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: Object
- [calculateQuote] CACHE CHECK: Object
+ Loading the script 'https://www.googletagmanager.com/gtm.js?id=GTM-T4PL5XMC' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.
+(anonymous) @ unknown
+site.webmanifest:1 Manifest: Line: 1, column: 1, Syntax error.
+site.webmanifest:1 Manifest: Line: 1, column: 1, Syntax error.
  [calculateQuote] CACHE MISS - performing calculation
  [performSKUCalculation] ENTRY: Object
  [performSKUCalculation] AFTER DESTRUCTURING: Object
  [Film Width Calculation] {
-  "pouchType": "flat_3_side",
+  "pouchType": "spout_pouch",
   "dimensions": {
     "width": 200,
     "height": 300,
-    "depth": 0
+    "depth": 30
   },
   "skuCount": 1,
   "totalQuantity": 500,
@@ -229,7 +24,6 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [calculateTheoreticalMeters] result: Object
  [calculateSKUCost] Total Film Calculation: Object
  [calculateFilmCost] DEBUG: Object
- [PouchCostCalculator] Loaded pricing settings from DB: 66 settings
  [calculateMaterialCost] INPUT: Object
  [calculateMaterialCost] LAYER: Object
  [calculateMaterialCost] LAYER: Object
@@ -237,9 +31,9 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [calculateMaterialCost] LAYER: Object
  [calculateMaterialCost] RESULT: Object
  [calculateSurfaceTreatmentCost] DEBUG: Object
- [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
  [calculateSKUCost] Total Film Cost Breakdown: Object
- [Pouch Processing Cost] Object
+ [Spout Processing Cost] Object
  [calculateSKUCost] Total Processing Cost: Object
  [calculateSKUCost] SKU 0 Allocation: Object
  [calculateCostBreakdown] DEBUG: Object
@@ -247,27 +41,28 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [PouchCostCalculator] salesMargin: 0.3
  [calculateCostBreakdown] PRICE CALC: Object
  [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 704430,
-  "manufacturerPriceKRW": 915759,
-  "manufacturerPriceJPY": 109891.08,
-  "dutyJPY": 5494.554,
+  "baseCostKRW": 1161300,
+  "manufacturerPriceKRW": 1509690,
+  "manufacturerPriceJPY": 181162.8,
+  "dutyJPY": 9058.14,
   "deliveryJPY": 15358,
-  "subtotalJPY": 130743.634,
+  "subtotalJPY": 205578.94,
   "salesMargin": 0.3,
-  "priceAfterSalesMargin": 169966.72420000003,
-  "salesMarginJPY": 39223.09020000002,
+  "priceAfterSalesMargin": 267252.62200000003,
+  "salesMarginJPY": 61673.68200000003,
   "customerMarkupRate": 0,
   "customerDiscountJPY": 0,
-  "finalPriceJPY": 169966.72420000003
+  "finalPriceJPY": 267252.62200000003
 }
- [calculateCostBreakdown] Rounding inconsistency detected Object
- [calculateCostBreakdown] totalCost（小数点以下保持）: 169966.72420000003
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 267252.62200000003
  [calculateSKUCost] Delivery Calculation: Object
  【SKU後加工オプション】
  {
-  "後加工オプション": [],
+  "後加工オプション": [
+    "glossy"
+  ],
   "マット仕上げ": false,
-  "光沢仕上げ": false
+  "光沢仕上げ": true
 }
  [SKU Calculation - Using Glossy Finish] Object
  【SKU追加料金】
@@ -276,10 +71,10 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
   "追加料金": "¥0",
   "計算式": "(1 - 1) × ¥10,000 = ¥0"
 }
- [100円丸め] 丸め前 totalPrice: 169966.32420000003 (型: number )
- [100円丸め] 丸め後 roundedTotalPrice: 170000 (差分: 33.67579999996815 )
- [100円丸め] 計算式: Math.ceil( 169966.32420000003 / 100) * 100 = 1700 * 100 = 170000
- [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 170000 円
+ [100円丸め] 丸め前 totalPrice: 267252.222 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 267300 (差分: 47.77799999999115 )
+ [100円丸め] 計算式: Math.ceil( 267252.222 / 100) * 100 = 2673 * 100 = 267300
+ [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 267300 円
  [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
  [calculateQuote] DIAGNOSTIC ENTRY: Object
  [calculateQuote] CACHE CHECK: Object
@@ -287,11 +82,11 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [performSKUCalculation] ENTRY: Object
  [performSKUCalculation] AFTER DESTRUCTURING: Object
  [Film Width Calculation] {
-  "pouchType": "flat_3_side",
+  "pouchType": "spout_pouch",
   "dimensions": {
     "width": 200,
     "height": 300,
-    "depth": 0
+    "depth": 30
   },
   "skuCount": 1,
   "totalQuantity": 1000,
@@ -312,9 +107,9 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [calculateMaterialCost] LAYER: Object
  [calculateMaterialCost] RESULT: Object
  [calculateSurfaceTreatmentCost] DEBUG: Object
- [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
  [calculateSKUCost] Total Film Cost Breakdown: Object
- [Pouch Processing Cost] Object
+ [Spout Processing Cost] Object
  [calculateSKUCost] Total Processing Cost: Object
  [calculateSKUCost] SKU 0 Allocation: Object
  [calculateCostBreakdown] DEBUG: Object
@@ -322,27 +117,28 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [PouchCostCalculator] salesMargin: 0.3
  [calculateCostBreakdown] PRICE CALC: Object
  [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 833821,
-  "manufacturerPriceKRW": 1083967.3,
-  "manufacturerPriceJPY": 130076.076,
-  "dutyJPY": 6503.803800000001,
+  "baseCostKRW": 1247561,
+  "manufacturerPriceKRW": 1621829.3,
+  "manufacturerPriceJPY": 194619.516,
+  "dutyJPY": 9730.9758,
   "deliveryJPY": 15358,
-  "subtotalJPY": 151937.8798,
+  "subtotalJPY": 219708.49180000002,
   "salesMargin": 0.3,
-  "priceAfterSalesMargin": 197519.24374,
-  "salesMarginJPY": 45581.36394000001,
+  "priceAfterSalesMargin": 285621.03934,
+  "salesMarginJPY": 65912.54754,
   "customerMarkupRate": 0,
   "customerDiscountJPY": 0,
-  "finalPriceJPY": 197519.24374
+  "finalPriceJPY": 285621.03934
 }
- [calculateCostBreakdown] Rounding inconsistency detected Object
- [calculateCostBreakdown] totalCost（小数点以下保持）: 197519.24374
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 285621.03934
  [calculateSKUCost] Delivery Calculation: Object
  【SKU後加工オプション】
  {
-  "後加工オプション": [],
+  "後加工オプション": [
+    "glossy"
+  ],
   "マット仕上げ": false,
-  "光沢仕上げ": false
+  "光沢仕上げ": true
 }
  [SKU Calculation - Using Glossy Finish] Object
  【SKU追加料金】
@@ -351,10 +147,10 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
   "追加料金": "¥0",
   "計算式": "(1 - 1) × ¥10,000 = ¥0"
 }
- [100円丸め] 丸め前 totalPrice: 197518.84374 (型: number )
- [100円丸め] 丸め後 roundedTotalPrice: 197600 (差分: 81.15625999998883 )
- [100円丸め] 計算式: Math.ceil( 197518.84374 / 100) * 100 = 1976 * 100 = 197600
- [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 197600 円
+ [100円丸め] 丸め前 totalPrice: 285620.63934 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 285700 (差分: 79.36066000000574 )
+ [100円丸め] 計算式: Math.ceil( 285620.63934 / 100) * 100 = 2857 * 100 = 285700
+ [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 285700 円
  [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
  [calculateQuote] DIAGNOSTIC ENTRY: Object
  [calculateQuote] CACHE CHECK: Object
@@ -362,11 +158,11 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [performSKUCalculation] ENTRY: Object
  [performSKUCalculation] AFTER DESTRUCTURING: Object
  [Film Width Calculation] {
-  "pouchType": "flat_3_side",
+  "pouchType": "spout_pouch",
   "dimensions": {
     "width": 200,
     "height": 300,
-    "depth": 0
+    "depth": 30
   },
   "skuCount": 1,
   "totalQuantity": 2000,
@@ -387,9 +183,9 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [calculateMaterialCost] LAYER: Object
  [calculateMaterialCost] RESULT: Object
  [calculateSurfaceTreatmentCost] DEBUG: Object
- [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
  [calculateSKUCost] Total Film Cost Breakdown: Object
- [Pouch Processing Cost] Object
+ [Spout Processing Cost] Object
  [calculateSKUCost] Total Processing Cost: Object
  [calculateSKUCost] SKU 0 Allocation: Object
  [calculateCostBreakdown] DEBUG: Object
@@ -397,26 +193,29 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [PouchCostCalculator] salesMargin: 0.3
  [calculateCostBreakdown] PRICE CALC: Object
  [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 1092601,
-  "manufacturerPriceKRW": 1420381.3,
-  "manufacturerPriceJPY": 170445.756,
-  "dutyJPY": 8522.2878,
+  "baseCostKRW": 1420081,
+  "manufacturerPriceKRW": 1846105.3,
+  "manufacturerPriceJPY": 221532.636,
+  "dutyJPY": 11076.631800000001,
   "deliveryJPY": 15358,
-  "subtotalJPY": 194326.04379999998,
+  "subtotalJPY": 247967.2678,
   "salesMargin": 0.3,
-  "priceAfterSalesMargin": 252623.85694,
-  "salesMarginJPY": 58297.81314000001,
+  "priceAfterSalesMargin": 322357.44814,
+  "salesMarginJPY": 74390.18033999999,
   "customerMarkupRate": 0,
   "customerDiscountJPY": 0,
-  "finalPriceJPY": 252623.85694
+  "finalPriceJPY": 322357.44814
 }
- [calculateCostBreakdown] totalCost（小数点以下保持）: 252623.85694
+ [calculateCostBreakdown] Rounding inconsistency detected Object
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 322357.44814
  [calculateSKUCost] Delivery Calculation: Object
  【SKU後加工オプション】
  {
-  "後加工オプション": [],
+  "後加工オプション": [
+    "glossy"
+  ],
   "マット仕上げ": false,
-  "光沢仕上げ": false
+  "光沢仕上げ": true
 }
  [SKU Calculation - Using Glossy Finish] Object
  【SKU追加料金】
@@ -425,10 +224,10 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
   "追加料金": "¥0",
   "計算式": "(1 - 1) × ¥10,000 = ¥0"
 }
- [100円丸め] 丸め前 totalPrice: 252623.45694 (型: number )
- [100円丸め] 丸め後 roundedTotalPrice: 252700 (差分: 76.54305999999633 )
- [100円丸め] 計算式: Math.ceil( 252623.45694 / 100) * 100 = 2527 * 100 = 252700
- [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 252700 円
+ [100円丸め] 丸め前 totalPrice: 322357.04813999997 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 322400 (差分: 42.95186000003014 )
+ [100円丸め] 計算式: Math.ceil( 322357.04813999997 / 100) * 100 = 3224 * 100 = 322400
+ [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 322400 円
  [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
  [calculateQuote] DIAGNOSTIC ENTRY: Object
  [calculateQuote] CACHE CHECK: Object
@@ -436,11 +235,11 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [performSKUCalculation] ENTRY: Object
  [performSKUCalculation] AFTER DESTRUCTURING: Object
  [Film Width Calculation] {
-  "pouchType": "flat_3_side",
+  "pouchType": "spout_pouch",
   "dimensions": {
     "width": 200,
     "height": 300,
-    "depth": 0
+    "depth": 30
   },
   "skuCount": 1,
   "totalQuantity": 5000,
@@ -461,9 +260,9 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [calculateMaterialCost] LAYER: Object
  [calculateMaterialCost] RESULT: Object
  [calculateSurfaceTreatmentCost] DEBUG: Object
- [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
  [calculateSKUCost] Total Film Cost Breakdown: Object
- [Pouch Processing Cost] Object
+ [Spout Processing Cost] Object
  [calculateSKUCost] Total Processing Cost: Object
  [calculateSKUCost] SKU 0 Allocation: Object
  [calculateCostBreakdown] DEBUG: Object
@@ -471,26 +270,28 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
  [PouchCostCalculator] salesMargin: 0.3
  [calculateCostBreakdown] PRICE CALC: Object
  [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 1868942,
-  "manufacturerPriceKRW": 2429624.6,
-  "manufacturerPriceJPY": 291554.952,
-  "dutyJPY": 14577.7476,
+  "baseCostKRW": 1937641,
+  "manufacturerPriceKRW": 2518933.3000000003,
+  "manufacturerPriceJPY": 302271.99600000004,
+  "dutyJPY": 15113.599800000004,
   "deliveryJPY": 15358,
-  "subtotalJPY": 321490.6996,
+  "subtotalJPY": 332743.59580000007,
   "salesMargin": 0.3,
-  "priceAfterSalesMargin": 417937.90948000003,
-  "salesMarginJPY": 96447.20988000004,
+  "priceAfterSalesMargin": 432566.6745400001,
+  "salesMarginJPY": 99823.07874000003,
   "customerMarkupRate": 0,
   "customerDiscountJPY": 0,
-  "finalPriceJPY": 417937.90948000003
+  "finalPriceJPY": 432566.6745400001
 }
- [calculateCostBreakdown] totalCost（小数点以下保持）: 417937.90948000003
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 432566.6745400001
  [calculateSKUCost] Delivery Calculation: Object
  【SKU後加工オプション】
  {
-  "後加工オプション": [],
+  "後加工オプション": [
+    "glossy"
+  ],
   "マット仕上げ": false,
-  "光沢仕上げ": false
+  "光沢仕上げ": true
 }
  [SKU Calculation - Using Glossy Finish] Object
  【SKU追加料金】
@@ -499,22 +300,22 @@ warn @ 8defa_next_dist_fce9020c._.js:2298
   "追加料金": "¥0",
   "計算式": "(1 - 1) × ¥10,000 = ¥0"
 }
- [100円丸め] 丸め前 totalPrice: 433295.10948000004 (型: number )
- [100円丸め] 丸め後 roundedTotalPrice: 433300 (差分: 4.890519999957178 )
- [100円丸め] 計算式: Math.ceil( 433295.10948000004 / 100) * 100 = 4333 * 100 = 433300
- [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 433300 円
+ [100円丸め] 丸め前 totalPrice: 447923.8745400001 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 448000 (差分: 76.12545999989379 )
+ [100円丸め] 計算式: Math.ceil( 447923.8745400001 / 100) * 100 = 4480 * 100 = 448000
+ [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 448000 円
  [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-forward-logs-shared.ts:95 [calculateQuote] DIAGNOSTIC ENTRY: Object
-forward-logs-shared.ts:95 [calculateQuote] CACHE CHECK: Object
-forward-logs-shared.ts:95 [calculateQuote] CACHE MISS - performing calculation
-forward-logs-shared.ts:95 [performSKUCalculation] ENTRY: Object
-forward-logs-shared.ts:95 [performSKUCalculation] AFTER DESTRUCTURING: Object
-forward-logs-shared.ts:95 [Film Width Calculation] {
-  "pouchType": "flat_3_side",
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
   "dimensions": {
     "width": 200,
     "height": 300,
-    "depth": 0
+    "depth": 30
   },
   "skuCount": 1,
   "totalQuantity": 10000,
@@ -524,83 +325,1495 @@ forward-logs-shared.ts:95 [Film Width Calculation] {
   "calculatedFilmWidth": 641,
   "note": "パウチ: 1列生産"
 }
-forward-logs-shared.ts:95 [calculateTheoreticalMeters] Object
-forward-logs-shared.ts:95 [calculateTheoreticalMeters] result: Object
-forward-logs-shared.ts:95 [calculateSKUCost] Total Film Calculation: Object
-forward-logs-shared.ts:95 [calculateFilmCost] DEBUG: Object
-forward-logs-shared.ts:95 [calculateMaterialCost] INPUT: Object
-forward-logs-shared.ts:95 [calculateMaterialCost] LAYER: Object
-forward-logs-shared.ts:95 [calculateMaterialCost] LAYER: Object
-forward-logs-shared.ts:95 [calculateMaterialCost] LAYER: Object
-forward-logs-shared.ts:95 [calculateMaterialCost] LAYER: Object
-forward-logs-shared.ts:95 [calculateMaterialCost] RESULT: Object
-forward-logs-shared.ts:95 [calculateSurfaceTreatmentCost] DEBUG: Object
-forward-logs-shared.ts:95 [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
-forward-logs-shared.ts:95 [calculateSKUCost] Total Film Cost Breakdown: Object
-forward-logs-shared.ts:95 [Pouch Processing Cost] Object
-forward-logs-shared.ts:95 [calculateSKUCost] Total Processing Cost: Object
-forward-logs-shared.ts:95 [calculateSKUCost] SKU 0 Allocation: Object
-forward-logs-shared.ts:95 [calculateCostBreakdown] DEBUG: Object
-forward-logs-shared.ts:95 [PouchCostCalculator] manufacturerMargin: 0.3
-forward-logs-shared.ts:95 [PouchCostCalculator] salesMargin: 0.3
-forward-logs-shared.ts:95 [calculateCostBreakdown] PRICE CALC: Object
-forward-logs-shared.ts:95 [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 3170243,
-  "manufacturerPriceKRW": 4121315.9000000004,
-  "manufacturerPriceJPY": 494557.90800000005,
-  "dutyJPY": 24727.895400000005,
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 3350242,
+  "manufacturerPriceKRW": 4355314.600000001,
+  "manufacturerPriceJPY": 522637.75200000004,
+  "dutyJPY": 26131.887600000002,
   "deliveryJPY": 15358,
-  "subtotalJPY": 534643.8034000001,
+  "subtotalJPY": 564127.6396,
   "salesMargin": 0.3,
-  "priceAfterSalesMargin": 695036.9444200002,
-  "salesMarginJPY": 160393.1410200001,
+  "priceAfterSalesMargin": 733365.93148,
+  "salesMarginJPY": 169238.29188000003,
   "customerMarkupRate": 0,
   "customerDiscountJPY": 0,
-  "finalPriceJPY": 695036.9444200002
+  "finalPriceJPY": 733365.93148
 }
-forward-logs-shared.ts:95 [calculateCostBreakdown] totalCost（小数点以下保持）: 695036.9444200002
-forward-logs-shared.ts:95 [calculateSKUCost] Delivery Calculation: Object
-forward-logs-shared.ts:95 【SKU後加工オプション】
-forward-logs-shared.ts:95 {
-  "後加工オプション": [],
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 733365.93148
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
   "マット仕上げ": false,
-  "光沢仕上げ": false
+  "光沢仕上げ": true
 }
-forward-logs-shared.ts:95 [SKU Calculation - Using Glossy Finish] Object
-forward-logs-shared.ts:95 【SKU追加料金】
-forward-logs-shared.ts:95 {
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
   "SKU数": 1,
   "追加料金": "¥0",
   "計算式": "(1 - 1) × ¥10,000 = ¥0"
 }
-forward-logs-shared.ts:95 [100円丸め] 丸め前 totalPrice: 725751.7444200002 (型: number )
-forward-logs-shared.ts:95 [100円丸め] 丸め後 roundedTotalPrice: 725800 (差分: 48.25557999976445 )
-forward-logs-shared.ts:95 [100円丸め] 計算式: Math.ceil( 725751.7444200002 / 100) * 100 = 7258 * 100 = 725800
-forward-logs-shared.ts:95 [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 725800 円
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
+ [100円丸め] 丸め前 totalPrice: 764080.7314800001 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 764100 (差分: 19.268519999925047 )
+ [100円丸め] 計算式: Math.ceil( 764080.7314800001 / 100) * 100 = 7641 * 100 = 764100
+ [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 764100 円
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 199,
+    "height": 300,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 500,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 641,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1161300,
+  "manufacturerPriceKRW": 1509690,
+  "manufacturerPriceJPY": 181162.8,
+  "dutyJPY": 9058.14,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 205578.94,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 267252.62200000003,
+  "salesMarginJPY": 61673.68200000003,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 267252.62200000003
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 267252.62200000003
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 267252.222 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 267300 (差分: 47.77799999999115 )
+ [100円丸め] 計算式: Math.ceil( 267252.222 / 100) * 100 = 2673 * 100 = 267300
+ [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 267300 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 199,
+    "height": 300,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 1000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 641,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1246697,
+  "manufacturerPriceKRW": 1620706.1,
+  "manufacturerPriceJPY": 194484.73200000002,
+  "dutyJPY": 9724.236600000002,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 219566.96860000002,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 285437.05918000004,
+  "salesMarginJPY": 65870.09058000002,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 285437.05918000004
+}
+ [calculateCostBreakdown] Rounding inconsistency detected Object
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 285437.05918000004
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 285436.65918 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 285500 (差分: 63.34081999998307 )
+ [100円丸め] 計算式: Math.ceil( 285436.65918 / 100) * 100 = 2855 * 100 = 285500
+ [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 285500 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 199,
+    "height": 300,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 2000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 641,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1418356,
+  "manufacturerPriceKRW": 1843862.8,
+  "manufacturerPriceJPY": 221263.536,
+  "dutyJPY": 11063.176800000001,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 247684.71279999998,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 321990.12664,
+  "salesMarginJPY": 74305.41384,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 321990.12664
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 321990.12664
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 321989.72663999995 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 322000 (差分: 10.273360000050161 )
+ [100円丸め] 計算式: Math.ceil( 321989.72663999995 / 100) * 100 = 3220 * 100 = 322000
+ [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 322000 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 199,
+    "height": 300,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 5000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 641,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1933328,
+  "manufacturerPriceKRW": 2513326.4,
+  "manufacturerPriceJPY": 301599.168,
+  "dutyJPY": 15079.958400000001,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 332037.1264,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 431648.26432,
+  "salesMarginJPY": 99611.13792000001,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 431648.26432
+}
+ [calculateCostBreakdown] Rounding inconsistency detected Object
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 431648.26432
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 447005.46432 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 447100 (差分: 94.53567999997176 )
+ [100円丸め] 計算式: Math.ceil( 447005.46432 / 100) * 100 = 4471 * 100 = 447100
+ [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 447100 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 199,
+    "height": 300,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 10000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 641,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 3341616,
+  "manufacturerPriceKRW": 4344100.8,
+  "manufacturerPriceJPY": 521292.09599999996,
+  "dutyJPY": 26064.6048,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 562714.7008,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 731529.11104,
+  "salesMarginJPY": 168814.41024,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 731529.11104
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 731529.11104
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 762243.91104 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 762300 (差分: 56.08895999996457 )
+ [100円丸め] 計算式: Math.ceil( 762243.91104 / 100) * 100 = 7623 * 100 = 762300
+ [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 762300 円
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [updateBasicSpecs] Called with specs: Object
+ [updateBasicSpecs] sideWidth in payload: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ Price calculation error: 
+error @ 8defa_next_dist_fce9020c._.js:3128
+ [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 18,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 500,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 77,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1131110,
+  "manufacturerPriceKRW": 1470443,
+  "manufacturerPriceJPY": 176453.16,
+  "dutyJPY": 8822.658000000001,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 200633.818,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 260823.9634,
+  "salesMarginJPY": 60190.14540000001,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 260823.9634
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 260823.9634
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 260823.5634 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 260900 (差分: 76.43659999998636 )
+ [100円丸め] 計算式: Math.ceil( 260823.5634 / 100) * 100 = 2609 * 100 = 260900
+ [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 260900 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 18,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 1000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 2,
+  "calculatedFilmWidth": 143,
+  "note": "パウチ: 2列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1131110,
+  "manufacturerPriceKRW": 1470443,
+  "manufacturerPriceJPY": 176453.16,
+  "dutyJPY": 8822.658000000001,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 200633.818,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 260823.9634,
+  "salesMarginJPY": 60190.14540000001,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 260823.9634
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 260823.9634
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 260823.5634 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 260900 (差分: 76.43659999998636 )
+ [100円丸め] 計算式: Math.ceil( 260823.5634 / 100) * 100 = 2609 * 100 = 260900
+ [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 260900 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 18,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 2000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 2,
+  "calculatedFilmWidth": 143,
+  "note": "パウチ: 2列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1187179,
+  "manufacturerPriceKRW": 1543332.7,
+  "manufacturerPriceJPY": 185199.924,
+  "dutyJPY": 9259.9962,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 209817.9202,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 272763.29626,
+  "salesMarginJPY": 62945.37605999998,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 272763.29626
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 272763.29626
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 272762.89625999995 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 272800 (差分: 37.103740000049584 )
+ [100円丸め] 計算式: Math.ceil( 272762.89625999995 / 100) * 100 = 2728 * 100 = 272800
+ [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 272800 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 18,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 5000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 2,
+  "calculatedFilmWidth": 143,
+  "note": "パウチ: 2列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1355386,
+  "manufacturerPriceKRW": 1762001.8,
+  "manufacturerPriceJPY": 211440.216,
+  "dutyJPY": 10572.0108,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 237370.22679999997,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 308581.29484,
+  "salesMarginJPY": 71211.06804000001,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 308581.29484
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 308581.29484
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 308580.89483999996 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 308600 (差分: 19.10516000003554 )
+ [100円丸め] 計算式: Math.ceil( 308580.89483999996 / 100) * 100 = 3086 * 100 = 308600
+ [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 308600 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 18,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 10000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 2,
+  "calculatedFilmWidth": 143,
+  "note": "パウチ: 2列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 2185731,
+  "manufacturerPriceKRW": 2841450.3000000003,
+  "manufacturerPriceJPY": 340974.036,
+  "dutyJPY": 17048.701800000003,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 373380.7378,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 485394.95914,
+  "salesMarginJPY": 112014.22133999999,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 485394.95914
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 485394.95914
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 485394.55913999997 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 485400 (差分: 5.440860000031535 )
+ [100円丸め] 計算式: Math.ceil( 485394.55913999997 / 100) * 100 = 4854 * 100 = 485400
+ [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 485400 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 500,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1131110,
+  "manufacturerPriceKRW": 1470443,
+  "manufacturerPriceJPY": 176453.16,
+  "dutyJPY": 8822.658000000001,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 200633.818,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 260823.9634,
+  "salesMarginJPY": 60190.14540000001,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 260823.9634
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 260823.9634
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 260823.5634 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 260900 (差分: 76.43659999998636 )
+ [100円丸め] 計算式: Math.ceil( 260823.5634 / 100) * 100 = 2609 * 100 = 260900
+ [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 260900 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 1000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1187179,
+  "manufacturerPriceKRW": 1543332.7,
+  "manufacturerPriceJPY": 185199.924,
+  "dutyJPY": 9259.9962,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 209817.9202,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 272763.29626,
+  "salesMarginJPY": 62945.37605999998,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 272763.29626
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 272763.29626
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 272762.89625999995 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 272800 (差分: 37.103740000049584 )
+ [100円丸め] 計算式: Math.ceil( 272762.89625999995 / 100) * 100 = 2728 * 100 = 272800
+ [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 272800 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 2000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1299316,
+  "manufacturerPriceKRW": 1689110.8,
+  "manufacturerPriceJPY": 202693.296,
+  "dutyJPY": 10134.6648,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 228185.9608,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 296641.74904,
+  "salesMarginJPY": 68455.78824000002,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 296641.74904
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 296641.74904
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 296641.34904 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 296700 (差分: 58.65095999999903 )
+ [100円丸め] 計算式: Math.ceil( 296641.34904 / 100) * 100 = 2967 * 100 = 296700
+ [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 296700 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 5000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1635731,
+  "manufacturerPriceKRW": 2126450.3000000003,
+  "manufacturerPriceJPY": 255174.03600000002,
+  "dutyJPY": 12758.701800000003,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 283290.7378,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 368277.95914,
+  "salesMarginJPY": 84987.22133999999,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 368277.95914
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 368277.95914
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 368277.55913999997 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 368300 (差分: 22.440860000031535 )
+ [100円丸め] 計算式: Math.ceil( 368277.55913999997 / 100) * 100 = 3683 * 100 = 368300
+ [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 368300 円
+ [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 10000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateMaterialCost] INPUT: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] LAYER: Object
+ [calculateMaterialCost] RESULT: Object
+ [calculateSurfaceTreatmentCost] DEBUG: Object
+ [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 2746421,
+  "manufacturerPriceKRW": 3570347.3000000003,
+  "manufacturerPriceJPY": 428441.67600000004,
+  "dutyJPY": 21422.083800000004,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 465221.75980000006,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 604788.28774,
+  "salesMarginJPY": 139566.52794,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 604788.28774
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 604788.28774
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 620145.48774 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 620200 (差分: 54.5122599999886 )
+ [100円丸め] 計算式: Math.ceil( 620145.48774 / 100) * 100 = 6202 * 100 = 620200
+ [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 620200 円
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [checkStepComplete] Called with step: specs state: Object
+ [checkStepComplete] specs result: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [useKeyboardNavigation] ArrowRight pressed. canProceed: true onNext exists: true
+ [useKeyboardNavigation] Calling onNext handler
+ [checkStepComplete] Called with step: post-processing state: Object
+ [checkStepComplete] post-processing complete: Object
+ [checkStepComplete] Called with step: post-processing state: Object
+ [checkStepComplete] post-processing complete: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [SET_SEAL_WIDTH] Setting seal width to: 7.5mm
+ [SET_SEAL_WIDTH] Setting seal width to: 7.5mm
+ [checkStepComplete] Called with step: post-processing state: Object
+ [checkStepComplete] post-processing complete: Object
+ [checkStepComplete] Called with step: post-processing state: Object
+ [checkStepComplete] post-processing complete: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [useKeyboardNavigation] ArrowRight pressed. canProceed: true onNext exists: true
+ [useKeyboardNavigation] Calling onNext handler
+ [checkStepComplete] Called with step: sku-quantity state: Object
+ [checkStepComplete] sku-quantity step check: Object
+ [checkStepComplete] sku-quantity single mode valid: true
+ [checkStepComplete] Called with step: sku-quantity state: Object
+ [checkStepComplete] sku-quantity step check: Object
+ [checkStepComplete] sku-quantity single mode valid: true
+ [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
+ [SKU Step] DIAGNOSTIC - calculateQuote PARAMS: Object
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 500,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [PouchCostCalculator] Loaded pricing settings from DB: 66 settings
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1131110,
+  "manufacturerPriceKRW": 1470443,
+  "manufacturerPriceJPY": 176453.16,
+  "dutyJPY": 8822.658000000001,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 200633.818,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 260823.9634,
+  "salesMarginJPY": 60190.14540000001,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 260823.9634
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 260823.9634
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 260823.5634 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 260900 (差分: 76.43659999998636 )
+ [100円丸め] 計算式: Math.ceil( 260823.5634 / 100) * 100 = 2609 * 100 = 260900
+ [UnifiedSKUQuantityStep] Price calculated: Object
+ [checkStepComplete] Called with step: sku-quantity state: Object
+ [checkStepComplete] sku-quantity step check: Object
+ [checkStepComplete] sku-quantity single mode valid: true
+ [checkStepComplete] Called with step: sku-quantity state: Object
+ [checkStepComplete] sku-quantity step check: Object
+ [checkStepComplete] sku-quantity single mode valid: true
+ [UnifiedSKUQuantityStep] Two column options calculated: Object
+ [UnifiedSKUQuantityStep] Two column options calculated: Object
+ [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
+ [SKU Step] DIAGNOSTIC - calculateQuote PARAMS: Object
+ [calculateQuote] DIAGNOSTIC ENTRY: Object
+ [calculateQuote] CACHE CHECK: Object
+ [calculateQuote] CACHE MISS - performing calculation
+ [performSKUCalculation] ENTRY: Object
+ [performSKUCalculation] AFTER DESTRUCTURING: Object
+ [useKeyboardNavigation] handlersRef updated: Object
+ [Film Width Calculation] {
+  "pouchType": "spout_pouch",
+  "dimensions": {
+    "width": 130,
+    "height": 180,
+    "depth": 30
+  },
+  "skuCount": 1,
+  "totalQuantity": 5000,
+  "materialWidth": 590,
+  "printableWidth": 570,
+  "optimalColumnCount": 1,
+  "calculatedFilmWidth": 401,
+  "note": "パウチ: 1列生産"
+}
+ [calculateTheoreticalMeters] Object
+ [calculateTheoreticalMeters] result: Object
+ [calculateSKUCost] Total Film Calculation: Object
+ [calculateFilmCost] DEBUG: Object
+ [calculateSKUCost] Total Film Cost Breakdown: Object
+ [Spout Processing Cost] Object
+ [calculateSKUCost] Total Processing Cost: Object
+ [calculateSKUCost] SKU 0 Allocation: Object
+ [calculateCostBreakdown] DEBUG: Object
+ [PouchCostCalculator] manufacturerMargin: 0.3
+ [PouchCostCalculator] salesMargin: 0.3
+ [calculateCostBreakdown] PRICE CALC: Object
+ [calculateCostBreakdown] Price Calculation Detail {
+  "baseCostKRW": 1635731,
+  "manufacturerPriceKRW": 2126450.3000000003,
+  "manufacturerPriceJPY": 255174.03600000002,
+  "dutyJPY": 12758.701800000003,
+  "deliveryJPY": 15358,
+  "subtotalJPY": 283290.7378,
+  "salesMargin": 0.3,
+  "priceAfterSalesMargin": 368277.95914,
+  "salesMarginJPY": 84987.22133999999,
+  "customerMarkupRate": 0,
+  "customerDiscountJPY": 0,
+  "finalPriceJPY": 368277.95914
+}
+ [calculateCostBreakdown] totalCost（小数点以下保持）: 368277.95914
+ [calculateSKUCost] Delivery Calculation: Object
+ 【SKU後加工オプション】
+ {
+  "後加工オプション": [
+    "glossy"
+  ],
+  "マット仕上げ": false,
+  "光沢仕上げ": true
+}
+ [SKU Calculation - Using Glossy Finish] Object
+ 【SKU追加料金】
+ {
+  "SKU数": 1,
+  "追加料金": "¥0",
+  "計算式": "(1 - 1) × ¥10,000 = ¥0"
+}
+ [100円丸め] 丸め前 totalPrice: 368277.55913999997 (型: number )
+ [100円丸め] 丸め後 roundedTotalPrice: 368300 (差分: 22.440860000031535 )
+ [100円丸め] 計算式: Math.ceil( 368277.55913999997 / 100) * 100 = 3683 * 100 = 368300
+ [UnifiedSKUQuantityStep] Price calculated: Object
+ [UnifiedSKUQuantityStep] Two column options calculated: Object
+ [UnifiedSKUQuantityStep] Two column options calculated: Object
+ [checkStepComplete] Called with step: sku-quantity state: Object
+ [checkStepComplete] sku-quantity step check: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity single mode valid: true
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: sku-quantity state: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity step check: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity single mode valid: true
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
+forward-logs-shared.ts:95 [SKU Step] DIAGNOSTIC - calculateQuote PARAMS: Object
+forward-logs-shared.ts:95 [calculateQuote] DIAGNOSTIC ENTRY: Object
+forward-logs-shared.ts:95 [calculateQuote] CACHE CHECK: Object
+forward-logs-shared.ts:95 [calculateQuote] CACHE HIT - returning cached result
 forward-logs-shared.ts:95 [useKeyboardNavigation] handlersRef updated: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Price calculated: Object
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: sku-quantity state: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity step check: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity single mode valid: true
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: sku-quantity state: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity step check: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity single mode valid: true
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Two column options calculated: Object
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Two column options calculated: Object
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
+forward-logs-shared.ts:95 [SKU Step] DIAGNOSTIC - calculateQuote PARAMS: Object
+forward-logs-shared.ts:95 [calculateQuote] DIAGNOSTIC ENTRY: Object
+forward-logs-shared.ts:95 [calculateQuote] CACHE CHECK: Object
+forward-logs-shared.ts:95 [calculateQuote] CACHE HIT - returning cached result
 forward-logs-shared.ts:95 [useKeyboardNavigation] handlersRef updated: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Price calculated: Object
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Two column options calculated: Object
+forward-logs-shared.ts:95 [UnifiedSKUQuantityStep] Two column options calculated: Object
+forward-logs-shared.ts:95 [handleNext] Current state: Object
+forward-logs-shared.ts:95 [handleNext] hasValidSKUData Check:
+forward-logs-shared.ts:95 [handleNext] - skuCount > 1: false (skuCount = 1 )
+forward-logs-shared.ts:95 [handleNext] - skuQuantities exists: true
+forward-logs-shared.ts:95 [handleNext] - skuQuantities: Array(1)
+forward-logs-shared.ts:95 [handleNext] - Length check: 1 === 1 : true
+forward-logs-shared.ts:95 [handleNext] - Every check (all >= 100): true
+forward-logs-shared.ts:95 [handleNext] - FINAL hasValidSKUData: true
+forward-logs-shared.ts:95 [handleNext] SKU mode detected (via hasValidSKUData), quantities: Array(1)
+forward-logs-shared.ts:95 [handleNext] Setting quantityMode to "sku"
+forward-logs-shared.ts:95 [handleNext] Calculated total quantity: 5000
+forward-logs-shared.ts:95 [handleNext] Calculating quote for SKU mode, total quantity: 5000
+forward-logs-shared.ts:95 [handleNext] デフォルトmarkupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: sku-quantity state: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity step check: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity SKU mode valid: true
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: sku-quantity state: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity step check: Object
+forward-logs-shared.ts:95 [checkStepComplete] sku-quantity SKU mode valid: true
 forward-logs-shared.ts:95 [useKeyboardNavigation] handlersRef updated: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: specs state: Object
-forward-logs-shared.ts:95 [checkStepComplete] specs result: Object
+forward-logs-shared.ts:95 [handleNext] Customer markup rate: 0
+forward-logs-shared.ts:95 [handleNext] DIAGNOSTIC - calculateQuote PARAMS: Object
+forward-logs-shared.ts:95 [calculateQuote] DIAGNOSTIC ENTRY: Object
+forward-logs-shared.ts:95 [calculateQuote] CACHE CHECK: Object
+forward-logs-shared.ts:95 [calculateQuote] CACHE HIT - returning cached result
+forward-logs-shared.ts:95 [handleNext] 価格計算完了 - 総額: 368300 円, markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
+forward-logs-shared.ts:95 [handleNext] Enhanced result: Object
+forward-logs-shared.ts:95 [handleNext] Setting result with hasValidSKUData: true
+forward-logs-shared.ts:95 [handleNext] Setting result with skuQuantities: Array(1)
+forward-logs-shared.ts:95 [handleNext] About to change step to result
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: result state: Object
+forward-logs-shared.ts:95 [checkStepComplete] Called with step: result state: Object
+forward-logs-shared.ts:95 [ResultStep] Debug: Object
+forward-logs-shared.ts:95 [ResultStep] Debug: Object
 forward-logs-shared.ts:95 [useKeyboardNavigation] handlersRef updated: Object
-forward-logs-shared.ts:95 [useKeyboardNavigation] ArrowRight pressed. canProceed: true onNext exists: true
-forward-logs-shared.ts:95 [useKeyboardNavigation] Calling onNext handler
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: post-processing state: Object
-forward-logs-shared.ts:95 [checkStepComplete] post-processing incomplete: Object
-forward-logs-shared.ts:95 [checkStepComplete] Called with step: post-processing state: Object
-forward-logs-shared.ts:95 [checkStepComplete] post-processing incomplete: Object
-forward-logs-shared.ts:95 [useKeyboardNavigation] handlersRef updated: Object
+forward-logs-shared.ts:95 [ResultStep] Debug: Object
+forward-logs-shared.ts:95 [ResultStep] Debug: Object
