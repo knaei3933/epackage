@@ -967,14 +967,15 @@ function addSecurityHeaders(response: NextResponse, pathname?: string) {
       "default-src 'self' blob:",
       // React 19 and Framer Motion require unsafe-inline for hydration and animations
       // Both dev and production need 'unsafe-inline' for client-side rendering
+      // Google Tag Manager and Analytics support
       isDev
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com",
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net",
       isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data: blob:",
-      "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co",
-      "frame-src 'none'",
+      "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
+      "frame-src 'self' https://www.googletagmanager.com",
       // form-actionを'self'に制限してCSRF防御
       "form-action 'self'",
       // base-uriも制限

@@ -120,6 +120,16 @@ const nextConfig: NextConfig = {
     ];
 
     return [
+      // site.webmanifest - correct MIME type
+      {
+        source: '/site.webmanifest',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
+          },
+        ],
+      },
       // All routes - full security headers including CSP
       // Use negative lookahead to exclude _next and images paths
       {
