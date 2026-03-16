@@ -47,6 +47,15 @@ interface QuotationsClientProps {
 // Constants
 // =====================================================
 
+// 価格フォーマット関数 - 小数点を保持して表示
+function formatPrice(price: number): string {
+  if (Number.isInteger(price)) {
+    return price.toLocaleString();
+  }
+  // 小数点以下1桁を表示
+  return price.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 const quotationStatusLabels: Record<string, string> = {
   DRAFT: '審査中',
   SENT: '送信済み',
@@ -213,7 +222,9 @@ function SpecificationDisplay({ item }: { item: any }) {
   // 두께 - specification 함수 사용
   let thicknessJa = '-';
   if (specs.materialId && specs.thicknessSelection) {
+    console.log('[QuotationsClient] getMaterialSpecification call:', { materialId: specs.materialId, thicknessSelection: specs.thicknessSelection });
     thicknessJa = getMaterialSpecification(specs.materialId, specs.thicknessSelection);
+    console.log('[QuotationsClient] getMaterialSpecification result:', thicknessJa);
   }
   if (thicknessJa === '-') {
     // 폴백: 일본어 변환
@@ -222,8 +233,10 @@ function SpecificationDisplay({ item }: { item: any }) {
       'medium': '標準',
       'heavy': '高耐久',
       'ultra': '超耐久',
+      'standard': 'レギュラー',  // standard 옵션 추가
     };
     thicknessJa = thicknessMap[specs.thicknessSelection] || '-';
+    console.log('[QuotationsClient] Using fallback thicknessMap:', specs.thicknessSelection, '->', thicknessJa);
   }
 
   // 인쇄 정보
@@ -766,7 +779,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-text-primary font-semibold">
-                            {(item.unitPrice * item.quantity).toLocaleString()}円
+                            {formatPrice(item.unitPrice * item.quantity)}円
                           </span>
                           {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
                             item.orderId ? (
@@ -797,7 +810,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                   </div>
 
                   <div className="text-lg font-semibold text-text-primary">
-                    合計: {(quotation.totalAmount || quotation.total_amount || 0).toLocaleString()}円
+                    合計: {formatPrice(quotation.totalAmount || quotation.total_amount || 0)}円
                   </div>
 
                   {/* Download History Indicator */}

@@ -77,6 +77,15 @@ const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' 
 /**
  * 袋タイプIDを日本語名に変換
  */
+// 価格フォーマット関数 - 小数点を保持して表示
+function formatPrice(price: number): string {
+  if (Number.isInteger(price)) {
+    return price.toLocaleString();
+  }
+  // 小数点以下1桁を表示
+  return price.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function getBagTypeName(bagTypeId: string): string {
   const names: Record<string, string> = {
     'flat_pouch': 'ピローパウチ',
@@ -403,8 +412,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
               : '-',
             quantity: item.quantity || 0,
             unit: '個',
-            unitPrice: Math.round(item.unitPrice || 0),
-            amount: Math.round(item.totalPrice || item.unitPrice * item.quantity || 0),
+            unitPrice: item.unitPrice || 0,
+            amount: item.totalPrice || item.unitPrice * item.quantity || 0,
           };
         });
 
@@ -891,14 +900,14 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                   {item.productName || `SKU ${index + 1}`}
                 </h3>
                 <p className="text-sm text-text-muted mt-1">
-                  数量: {item.quantity.toLocaleString()}個 × {(item.unitPrice || 0).toLocaleString()}円
+                  数量: {item.quantity.toLocaleString()}個 × {formatPrice(item.unitPrice || 0)}円
                 </p>
               </div>
 
               {/* Item Total */}
               <div className="text-right">
                 <p className="text-lg font-semibold text-text-primary">
-                  ¥{(item.totalPrice || item.unitPrice * item.quantity || 0).toLocaleString()}
+                  ¥{formatPrice(item.totalPrice || item.unitPrice * item.quantity || 0)}
                 </p>
               </div>
             </div>

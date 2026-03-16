@@ -385,7 +385,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
             <div className="bg-white rounded-lg p-3">
               <p className="text-xs text-gray-600 mb-1">単価</p>
               <p className="text-lg font-bold text-navy-600">
-                ¥{result.unitPrice.toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                ¥{result.unitPrice % 1 === 0 ? result.unitPrice.toLocaleString() : result.unitPrice.toFixed(1)}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
               </p>
             </div>
             <div className="bg-white rounded-lg p-3">

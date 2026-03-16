@@ -461,7 +461,6 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         const newPostProcessingMultiplier = calculatePostProcessingMultiplier(newPostProcessingOptions);
 
         console.log('[SET_BASIC_SPECS] bagTypeId changed:', state.bagTypeId, '->', newBagTypeId);
-        console.log('[SET_BASIC_SPECS] existingFinishOption:', existingFinishOption);
         console.log('[SET_BASIC_SPECS] Updating post-processing options:', newPostProcessingOptions);
         console.log('[SET_BASIC_SPECS] newPostProcessingMultiplier:', newPostProcessingMultiplier);
 

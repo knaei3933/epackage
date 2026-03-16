@@ -2168,13 +2168,15 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
   }
 
   // Get film structure specification from materials data
+  // MaterialSelection.tsxの値と統一
   const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
     const materials = [
       {
         id: 'pet_al',
         thicknessOptions: [
-          { id: 'light', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' },
+          { id: 'light', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ' },
+          { id: 'standard', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ' },
           { id: 'heavy', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ' },
           { id: 'ultra', specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ' }
         ]
@@ -2183,8 +2185,8 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         id: 'pet_vmpet',
         thicknessOptions: [
           { id: 'light', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ' },
-          { id: 'light_medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ' },
+          { id: 'standard', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' },
           { id: 'heavy', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ' },
           { id: 'ultra', specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ' }
         ]
@@ -2192,19 +2194,51 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       {
         id: 'pet_ldpe',
         thicknessOptions: [
-          { id: 'medium', specificationEn: 'PET 12μ + LLDPE 110μ' },
-          { id: 'heavy', specificationEn: 'PET 12μ + LLDPE 120μ' },
-          { id: 'ultra', specificationEn: 'PET 12μ + LLDPE 130μ' }
+          { id: 'light', specificationEn: 'PET 12μ + LLDPE 50μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + LLDPE 70μ' },
+          { id: 'standard', specificationEn: 'PET 12μ + LLDPE 90μ' },
+          { id: 'heavy', specificationEn: 'PET 12μ + LLDPE 100μ' },
+          { id: 'ultra', specificationEn: 'PET 12μ + LLDPE 110μ' }
         ]
       },
       {
         id: 'pet_ny_al',
         thicknessOptions: [
           { id: 'light', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ' },
-          { id: 'light_medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ' },
-          { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' },
+          { id: 'medium', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ' },
+          { id: 'standard', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' },
           { id: 'heavy', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ' },
           { id: 'ultra', specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ' }
+        ]
+      },
+      {
+        id: 'ny_lldpe',
+        thicknessOptions: [
+          { id: 'light', specificationEn: 'NY 15μ + LLDPE 50μ' },
+          { id: 'medium', specificationEn: 'NY 15μ + LLDPE 70μ' },
+          { id: 'standard', specificationEn: 'NY 15μ + LLDPE 90μ' },
+          { id: 'heavy', specificationEn: 'NY 15μ + LLDPE 100μ' },
+          { id: 'ultra', specificationEn: 'NY 15μ + LLDPE 110μ' }
+        ]
+      },
+      {
+        id: 'kraft_vmpet_lldpe',
+        thicknessOptions: [
+          { id: 'light_50', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ' },
+          { id: 'standard_70', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ' },
+          { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ' },
+          { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ' },
+          { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ' }
+        ]
+      },
+      {
+        id: 'kraft_pet_lldpe',
+        thicknessOptions: [
+          { id: 'light_50', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ' },
+          { id: 'standard_70', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ' },
+          { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ' },
+          { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ' },
+          { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ' }
         ]
       }
     ];
@@ -2270,7 +2304,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
           ? state.skuQuantities.map((qty, index) => ({
               product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''})`,
               quantity: qty,
-              unit_price: Math.round(result.unitPrice),
+              unit_price: result.unitPrice,
               specifications: {
                 bagTypeId: state.bagTypeId,
                 materialId: state.materialId,
@@ -2457,8 +2491,8 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
             ? state.skuQuantities.map((qty, index) => ({
                 product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''})`,
                 quantity: qty,
-                unit_price: Math.round(result.unitPrice),
-                totalPrice: Math.round(result.totalPrice), // 【追加】totalPriceをAPIに送信
+                unit_price: result.unitPrice,
+                totalPrice: result.totalPrice, // 【追加】totalPriceをAPIに送信
                 specifications: {
                   bagTypeId: state.bagTypeId,
                   materialId: state.materialId,
@@ -2500,7 +2534,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                 {
                   product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
                   quantity: state.quantity,
-                  unit_price: Math.round(result.unitPrice),
+                  unit_price: result.unitPrice,
                   specifications: {
                     bagTypeId: state.bagTypeId,
                     materialId: state.materialId,
@@ -2831,7 +2865,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                 const itemSpecs = {
                   product_name: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')} (SKU ${index + 1}${state.skuNames?.[index] ? `: ${state.skuNames[index]}` : ''})`,
                   quantity: qty,
-                  unit_price: Math.round(result.unitPrice),
+                  unit_price: result.unitPrice,
                   specifications: {
                     bagTypeId: state.bagTypeId,
                     materialId: state.materialId,
@@ -3343,8 +3377,8 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
               skuNumber: index + 1,
               designName: state.skuNames?.[index] || '',
               quantity: qty,
-              unitPrice: Math.round(result.unitPrice),
-              totalPrice: Math.round(result.unitPrice * qty),
+              unitPrice: result.unitPrice,
+              totalPrice: result.unitPrice * qty,
             })),
           },
         }),
@@ -3608,7 +3642,7 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
                 <div className="text-sm font-medium mb-1">{quote.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</div>
                 <div className="text-xl font-bold">¥{quote.totalPrice.toLocaleString()}</div>
                 <div className="text-xs opacity-90 mt-1">
-                  単価: ¥{quote.unitPrice.toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                  単価: ¥{quote.unitPrice % 1 === 0 ? quote.unitPrice.toLocaleString() : quote.unitPrice.toFixed(1)}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
                 </div>
               </div>
             ))}
@@ -3630,7 +3664,7 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
             ¥{result.totalPrice.toLocaleString()}
           </div>
           <div className="text-sm opacity-90">
-            単価: ¥{result.unitPrice.toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+            単価: ¥{result.unitPrice % 1 === 0 ? result.unitPrice.toLocaleString() : result.unitPrice.toFixed(1)}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
           </div>
         </div>
       )}
@@ -4210,7 +4244,7 @@ function RealTimePriceDisplay() {
                 </div>
 
                 <div className="space-y-1 text-sm text-gray-600">
-                  <div>単価: ¥{quote.unitPrice.toLocaleString()}（税別）</div>
+                  <div>単価: ¥{quote.unitPrice % 1 === 0 ? quote.unitPrice.toLocaleString() : quote.unitPrice.toFixed(1)}（税別）</div>
                   <div>{quote.priceBreak} ({quote.discountRate}%引)</div>
                 </div>
 

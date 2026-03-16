@@ -205,22 +205,30 @@ export interface ThicknessOption {
   multiplier: number
 }
 
-// 素材別厚さオプション (MaterialSelection.tsxと同期)
+// 素材別厚さオプション (ImprovedQuotingWizard.tsxのgetFilmStructureSpecと同期)
 export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
   'pet_al': [
     {
       id: 'light',
       name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 60μ',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ',
       weightRange: '~100g',
       multiplier: 0.9
     },
     {
       id: 'medium',
-      name: '標準タイプ (~500g)',
-      nameJa: '標準タイプ (~500g)',
-      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
+      weightRange: '~300g',
+      multiplier: 1.0
+    },
+    {
+      id: 'standard',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
+      specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
@@ -251,17 +259,17 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       multiplier: 0.9
     },
     {
-      id: 'light_medium',
-      name: '中軽量タイプ (~300g)',
-      nameJa: '中軽量タイプ (~300g)',
+      id: 'medium',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
       specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ',
       weightRange: '~300g',
-      multiplier: 0.95
+      multiplier: 1.0
     },
     {
-      id: 'medium',
-      name: '標準タイプ (~500g)',
-      nameJa: '標準タイプ (~500g)',
+      id: 'standard',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
       specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
@@ -285,10 +293,26 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
   ],
   'pet_ldpe': [
     {
+      id: 'light',
+      name: '軽量タイプ (~100g)',
+      nameJa: '軽量タイプ (~100g)',
+      specification: 'PET 12μ + LLDPE 50μ',
+      weightRange: '~100g',
+      multiplier: 0.9
+    },
+    {
       id: 'medium',
-      name: '標準タイプ (~500g)',
-      nameJa: '標準タイプ (~500g)',
-      specification: 'PET 12μ + LLDPE 110μ',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
+      specification: 'PET 12μ + LLDPE 70μ',
+      weightRange: '~300g',
+      multiplier: 1.0
+    },
+    {
+      id: 'standard',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
+      specification: 'PET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
@@ -296,7 +320,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'heavy',
       name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'PET 12μ + LLDPE 120μ',
+      specification: 'PET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
     },
@@ -304,7 +328,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'ultra',
       name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
-      specification: 'PET 12μ + LLDPE 130μ',
+      specification: 'PET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }
@@ -319,17 +343,17 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       multiplier: 0.9
     },
     {
-      id: 'light_medium',
-      name: '中軽量タイプ (~300g)',
-      nameJa: '中軽量タイプ (~300g)',
+      id: 'medium',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
       specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ',
       weightRange: '~300g',
-      multiplier: 0.95
+      multiplier: 1.0
     },
     {
-      id: 'medium',
-      name: '標準タイプ (~500g)',
-      nameJa: '標準タイプ (~500g)',
+      id: 'standard',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
       specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
@@ -347,6 +371,132 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
       specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ',
+      weightRange: '800g~',
+      multiplier: 1.2
+    }
+  ],
+  'ny_lldpe': [
+    {
+      id: 'light',
+      name: '軽量タイプ (~100g)',
+      nameJa: '軽量タイプ (~100g)',
+      specification: 'NY 15μ + LLDPE 50μ',
+      weightRange: '~100g',
+      multiplier: 0.9
+    },
+    {
+      id: 'medium',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
+      specification: 'NY 15μ + LLDPE 70μ',
+      weightRange: '~300g',
+      multiplier: 1.0
+    },
+    {
+      id: 'standard',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
+      specification: 'NY 15μ + LLDPE 90μ',
+      weightRange: '~500g',
+      multiplier: 1.0
+    },
+    {
+      id: 'heavy',
+      name: '高耐久タイプ (~800g)',
+      nameJa: '高耐久タイプ (~800g)',
+      specification: 'NY 15μ + LLDPE 100μ',
+      weightRange: '~800g',
+      multiplier: 1.1
+    },
+    {
+      id: 'ultra',
+      name: '超耐久タイプ (800g~)',
+      nameJa: '超耐久タイプ (800g~)',
+      specification: 'NY 15μ + LLDPE 110μ',
+      weightRange: '800g~',
+      multiplier: 1.2
+    }
+  ],
+  'kraft_vmpet_lldpe': [
+    {
+      id: 'light_50',
+      name: '軽量タイプ (~100g)',
+      nameJa: '軽量タイプ (~100g)',
+      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
+      weightRange: '~100g',
+      multiplier: 0.9
+    },
+    {
+      id: 'standard_70',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
+      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
+      weightRange: '~300g',
+      multiplier: 1.0
+    },
+    {
+      id: 'heavy_90',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
+      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+      weightRange: '~500g',
+      multiplier: 1.0
+    },
+    {
+      id: 'ultra_100',
+      name: '高耐久タイプ (~800g)',
+      nameJa: '高耐久タイプ (~800g)',
+      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
+      weightRange: '~800g',
+      multiplier: 1.1
+    },
+    {
+      id: 'maximum_110',
+      name: '超耐久タイプ (800g~)',
+      nameJa: '超耐久タイプ (800g~)',
+      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
+      weightRange: '800g~',
+      multiplier: 1.2
+    }
+  ],
+  'kraft_pet_lldpe': [
+    {
+      id: 'light_50',
+      name: '軽量タイプ (~100g)',
+      nameJa: '軽量タイプ (~100g)',
+      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
+      weightRange: '~100g',
+      multiplier: 0.9
+    },
+    {
+      id: 'standard_70',
+      name: '標準タイプ (~300g)',
+      nameJa: '標準タイプ (~300g)',
+      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+      weightRange: '~300g',
+      multiplier: 1.0
+    },
+    {
+      id: 'heavy_90',
+      name: 'レギュラータイプ (~500g)',
+      nameJa: 'レギュラータイプ (~500g)',
+      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
+      weightRange: '~500g',
+      multiplier: 1.0
+    },
+    {
+      id: 'ultra_100',
+      name: '高耐久タイプ (~800g)',
+      nameJa: '高耐久タイプ (~800g)',
+      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
+      weightRange: '~800g',
+      multiplier: 1.1
+    },
+    {
+      id: 'maximum_110',
+      name: '超耐久タイプ (800g~)',
+      nameJa: '超耐久タイプ (800g~)',
+      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }
@@ -1028,11 +1178,10 @@ export class UnifiedPricingEngine {
     )
 
     // 13. 結果構成
-    // totalPrice を先に丸めてから unitPrice を計算することで、
-    // unitPrice * quantity === totalPrice を保証
+    // totalPrice は丸めるが、unitPrice は小数点を保持して正確な単価を表示
     const roundedTotal = Math.round(total);
     const result: UnifiedQuoteResult = {
-      unitPrice: Math.round(roundedTotal / quantity),
+      unitPrice: roundedTotal / quantity, // 小数点を保持（例: 36.6円）
       totalPrice: roundedTotal,
       currency: 'JPY',
       quantity,
