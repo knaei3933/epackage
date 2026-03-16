@@ -68,7 +68,7 @@ function sanitizeUserMessage(message: string): string {
 // =====================================================
 
 // Email Settings
-const FROM_EMAIL = process.env.FROM_EMAIL || 'info@epackage-lab.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'info@package-lab.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@package-lab.com';
 
 // 環境別戦略自動選択

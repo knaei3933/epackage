@@ -29,8 +29,8 @@ export interface HumanHandoffData {
 // Constants
 // =====================================================
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'info@epackage-lab.com';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@epackage-lab.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'info@package-lab.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@package-lab.com';
 
 // =====================================================
 // Transporter Setup

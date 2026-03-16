@@ -464,7 +464,7 @@ export const DEFAULT_EMAIL_TOGGLES: EmailToggles = {
 export const DEFAULT_COMPANY_INFO: CompanyInfo = {
   company_name_ja: 'イーパックラボ',
   company_name_en: 'EPackage Lab',
-  support_email: 'support@epackage-lab.com',
+  support_email: 'support@package-lab.com',
   support_phone: 'XX-XXXX-XXXX',
   postal_code: '000-0000',
   address: '東京都〇〇区〇〇1-2-3',
