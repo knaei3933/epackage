@@ -874,11 +874,32 @@ const OPTION_CATEGORIES: Record<string, string> = {
 };
 
 export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] => {
-  // 修正: デフォルトオプションを自動適用しない
-  // ユーザーが明示的に選択したオプションのみを使用
-  // 理由: 選択していないオプションがPDFに表示される問題を修正
-  console.log('[getDefaultPostProcessingOptions] Returning empty array - no auto-defaults');
-  return [];
+  // 各カテゴリーの最初のオプションをデフォルトとして返す
+  // 並び順（PostProcessingStep.tsxのOPTION_CATEGORIES順）:
+  // 1. zipper → zipper-yes
+  // 2. finish → glossy
+  // 3. notch → notch-yes
+  // 4. hang-hole → hang-hole-6mm
+  // 5. corner → corner-round
+  // 6. valve → valve-no
+  // 7. open → top-open
+  // 8. sealing-width → sealing-width-5mm (コメントアウト、自動選択しない)
+  // 9. machi-printing → machi-printing-no
+
+  const defaults = [
+    'zipper-yes',      // ジッパー付き
+    'glossy',          // 光沢仕上げ
+    'notch-yes',       // Vノッチ
+    'hang-hole-6mm',   // 吊り穴(6mm)
+    'corner-round',    // 角丸
+    'valve-no',        // バルブなし
+    'top-open',        // 上端開封
+    // 'sealing-width-5mm', // シール幅は自動選択しない（別途制御）
+    'machi-printing-no' // マチ印刷なし
+  ];
+
+  console.log('[getDefaultPostProcessingOptions] Returning defaults:', defaults);
+  return defaults;
 };
 
 /**
