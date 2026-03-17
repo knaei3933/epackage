@@ -144,7 +144,7 @@ function SpecificationDisplay({ item }: { item: any }) {
     'gusset': 'ガセットパウチ',
     'spout_pouch': 'スパウトパウチ',
     'roll_film': 'ロールフィルム',
-    'box': 'ボックス袋',
+    'box': 'ガゼットパウチ',
   };
 
   // 내용물 일본어 변환

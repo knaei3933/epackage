@@ -100,7 +100,7 @@ function getBagTypeName(bagTypeId: string): string {
     'roll_film': 'ロールフィルム',
     'roll-film': 'ロールフィルム',
     'zipper_pouch': 'ジッパーパウチ',
-    'box': 'ボックス袋',
+    'box': 'ガゼットパウチ',
   };
   return names[bagTypeId] || translateBagType(bagTypeId) || bagTypeId || '-';
 }

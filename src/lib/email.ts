@@ -800,7 +800,10 @@ async function sendEmail(
       to,
       subject,
       text,
-      html
+      html,
+      // 明示的なエンコーディング設定（日本語対応）
+      encoding: 'utf-8',
+      textEncoding: 'base64'
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
