@@ -676,7 +676,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
               const hasValidGusset = widthToCheck && widthToCheck >= 70 && availableGussetSizes.length > 0;
               return hasValidGusset ? (
                 <select
-                  value={state.depth || availableGussetSizes[0] || 30}
+                  value={state.depth ?? availableGussetSizes[0] ?? ''}
                   onChange={(e) => handleDepthChange(e.target.value)}
                   className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                   aria-label="袋のマチ深さ (mm)"
@@ -749,7 +749,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
               const hasGussetValue = e.target.value === 'has-gusset';
               updateBasicSpecs({
                 hasGusset: hasGussetValue,
-                depth: hasGussetValue ? (state.depth || 30) : 0
+                depth: hasGussetValue ? (state.depth ?? availableGussetSizes[0]) : 0
               });
             }}
             className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"

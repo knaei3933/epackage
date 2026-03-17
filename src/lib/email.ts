@@ -798,8 +798,10 @@ async function sendEmail(
       subject,
       text,
       html,
-      // 日本語エンコーディング設定
-      textEncoding: 'base64'
+      // 日本語エンコーディング設定 - quoted-printableはマルチバイト文字に最適
+      textEncoding: 'quoted-printable',
+      // 明示的にcharsetを指定
+      encoding: 'utf-8'
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
