@@ -4271,10 +4271,10 @@ function RealTimePriceDisplay() {
         <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
           <div className="flex items-center justify-between">
             <span>素材: {state.materialId?.replace('_', ' ').toUpperCase()}</span>
-            <span>タイプ: {state.bagTypeId?.replace('_', ' ')}</span>
+            <span>タイプ: {getBagTypeLabel(state.bagTypeId)}</span>
           </div>
           <div className="mt-1 text-xs text-gray-500">
-            サイズ: {state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`}mm
+            サイズ: {state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}`}mm
             {state.thicknessSelection && ` | 厚さ: ${getThicknessLabel(state.thicknessSelection)}`}
           </div>
         </div>
