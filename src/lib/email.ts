@@ -97,10 +97,6 @@ async function createEtherealTransporter() {
         user: testAccount.user,
         pass: testAccount.pass,
       },
-      // UTF-8エンコーディング設定（日本語対応）
-      message: {
-        charset: 'utf-8'
-      }
     });
 
     console.log('[Email] Ethereal Email initialized:', {
@@ -136,10 +132,6 @@ function createSendGridTransporter() {
       user: 'apikey',
       pass: SENDGRID_API_KEY,
     },
-    // UTF-8エンコーディング設定（日本語対応）
-    message: {
-      charset: 'utf-8'
-    }
   });
 }
 
@@ -166,10 +158,6 @@ function createAwsSesTransporter() {
       user: AWS_SES_SMTP_USERNAME,
       pass: AWS_SES_SMTP_PASSWORD,
     },
-    // UTF-8エンコーディング設定（日本語対応）
-    message: {
-      charset: 'utf-8'
-    }
   });
 }
 
@@ -201,9 +189,6 @@ function createXServerTransporter() {
     tls: {
       rejectUnauthorized: false // 開発環境では証明書検証を緩和
     }
-  }, {
-    // デフォルトのcharsetをUTF-8に設定
-    charset: 'utf-8'
   });
 }
 
@@ -347,7 +332,7 @@ ${data.company ? data.company + '\n' : ''}${data.name} 様
 
 【お問い合わせ種類】${data.inquiryType}
 【件名】${data.subject}
-【お問い合わせ内容】
+【おしい内容】
 ${sanitizeUserMessage(data.message)}
 
 --------------------------------
@@ -795,19 +780,17 @@ async function sendEmail(
   }
 
   try {
-    // デバッグログ：エンコーディング確認
-    console.log('[Email Debug] Subject:', subject);
-    console.log('[Email Debug] Subject bytes:', Buffer.from(subject).toString('hex'));
-    console.log('[Email Debug] Text preview:', text.substring(0, 100));
-
     const info = await transporter.sendMail({
       from: FROM_EMAIL,
       to,
       subject,
-      text,
+      // Only send HTML part to avoid encoding issues with text/plain
       html,
-      // quoted-printableエンコーディング（日本語対応）
-      encoding: 'utf-8'
+      // Explicit UTF-8 encoding for Japanese character support
+      encoding: 'utf-8',
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8'
+      }
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {

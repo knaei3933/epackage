@@ -342,8 +342,20 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
   const { updatePostProcessing, setSealWidth } = useQuote();
 
   // スパウトパウチ・ロールフィルムの場合は表面処理のみ表示（スパウトパウチはスパウトサイズも追加）
+  // 合掌袋・ガゼットパウチはジッパー・角加工非対応
   const getVisibleOptions = (): PostProcessingOption[] => {
     console.log('[PostProcessingStep] getVisibleOptions called, bagTypeId:', state.bagTypeId);
+
+    // 合掌袋・ガゼットパウチ: ジッパーと角加工を除外
+    if (state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') {
+      const incompatibleIds = ['zipper-yes', 'zipper-no', 'corner-round', 'corner-square'];
+      const filtered = POST_PROCESSING_OPTIONS.filter(opt =>
+        !incompatibleIds.includes(opt.id)
+      );
+      console.log('[PostProcessingStep] lap_seal/box detected, filtered options:', filtered.map(o => o.id));
+      return filtered;
+    }
+
     if (state.bagTypeId === 'spout_pouch') {
       // 表面処理（glossy, matte）+ スパウトサイズオプション
       const filtered = POST_PROCESSING_OPTIONS.filter(opt =>
@@ -360,7 +372,7 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
       console.log('[PostProcessingStep] roll_film detected, filtered options:', filtered.map(o => o.id));
       return filtered;
     }
-    console.log('[PostProcessingStep] Not spout_pouch/roll_film, returning all options');
+    console.log('[PostProcessingStep] Not spout_pouch/roll_film/lap_seal/box, returning all options');
     return POST_PROCESSING_OPTIONS;
   };
 
@@ -370,9 +382,16 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
     const currentOptions = state.postProcessingOptions || [];
 
     // スパウトパウチ・ロールフィルムの場合は表面処理のみ（1カテゴリー）
+    // 合掌袋・ガゼットパウチはジッパー・角加工除外（5カテゴリー）
     // それ以外は7つすべてのカテゴリー
     const isLimitedPostProcessing = state.bagTypeId === 'spout_pouch' || state.bagTypeId === 'roll_film';
-    const expectedCategoryCount = isLimitedPostProcessing ? 1 : 7;
+    const isExcludedZipperCorner = state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box';
+    let expectedCategoryCount = 7;
+    if (isLimitedPostProcessing) {
+      expectedCategoryCount = 1;
+    } else if (isExcludedZipperCorner) {
+      expectedCategoryCount = 5; // zipper, corner除外
+    }
 
     // 現在の選択からカテゴリーを抽出
     const currentCategories = new Set(
@@ -394,13 +413,24 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
       currentCategoriesSize: currentCategories.size
     });
 
-    if (isMissingCategories || hasDuplicates || currentOptions.length === 0) {
+    // 互換性のないオプションをチェックしてクリア
+    const incompatibleIds = ['zipper-yes', 'zipper-no', 'corner-round', 'corner-square'];
+    const hasIncompatibleOptions = isExcludedZipperCorner && currentOptions.some(opt => incompatibleIds.includes(opt));
+
+    // 互換性のないオプションを除外
+    let filteredOptions = currentOptions;
+    if (hasIncompatibleOptions) {
+      filteredOptions = currentOptions.filter(opt => !incompatibleIds.includes(opt));
+      console.log('[PostProcessingStep] Clearing incompatible options:', currentOptions, '->', filteredOptions);
+    }
+
+    if (isMissingCategories || hasDuplicates || currentOptions.length === 0 || hasIncompatibleOptions) {
       let defaultOptions: string[];
 
       if (isLimitedPostProcessing) {
         // スパウトパウチ・ロールフィルム：表面処理のみ
         // 既存の選択（glossy/matte）を保持
-        const existingFinish = currentOptions.find(opt => opt === 'glossy' || opt === 'matte');
+        const existingFinish = filteredOptions.find(opt => opt === 'glossy' || opt === 'matte');
         if (existingFinish) {
           defaultOptions = [existingFinish];
           console.log('[PostProcessingStep] Preserving existing finish option:', existingFinish);
@@ -643,8 +673,8 @@ export function PostProcessingStep({ getStepSummary }: PostProcessingStepProps) 
           </div>
         </div>
 
-        {/* ジッパー位置選択 */}
-        {state.postProcessingOptions?.includes('zipper-yes') && (
+        {/* ジッパー位置選択 - 合掌袋・ガゼットパウチは非対応 */}
+        {state.postProcessingOptions?.includes('zipper-yes') && state.bagTypeId !== 'lap_seal' && state.bagTypeId !== 'box' && (
           <div className="mt-6 p-4 bg-info-50 rounded-lg border border-blue-200">
             <h4 className="text-sm font-medium text-info-900 mb-3 flex items-center">
               <Settings className="w-4 h-4 mr-1" />

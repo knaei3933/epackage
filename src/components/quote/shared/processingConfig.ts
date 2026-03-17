@@ -886,7 +886,10 @@ export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] =>
   // 8. sealing-width → sealing-width-5mm (コメントアウト、自動選択しない)
   // 9. machi-printing → machi-printing-no
 
-  const defaults = [
+  // 合掌袋・ガゼットパウチはジッパー・角加工非対応
+  const isExcludedZipperCorner = bagTypeId === 'lap_seal' || bagTypeId === 'box';
+
+  const allDefaults = [
     'zipper-yes',      // ジッパー付き
     'glossy',          // 光沢仕上げ
     'notch-yes',       // Vノッチ
@@ -898,7 +901,13 @@ export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] =>
     'machi-printing-no' // マチ印刷なし
   ];
 
-  console.log('[getDefaultPostProcessingOptions] Returning defaults:', defaults);
+  // 合掌袋・ガゼットパウチ: ジッパーと角加工を除外
+  let defaults = allDefaults;
+  if (isExcludedZipperCorner) {
+    defaults = allDefaults.filter(id => id !== 'zipper-yes' && id !== 'corner-round');
+  }
+
+  console.log('[getDefaultPostProcessingOptions] bagTypeId:', bagTypeId, 'isExcludedZipperCorner:', isExcludedZipperCorner, 'Returning defaults:', defaults);
   return defaults;
 };
 

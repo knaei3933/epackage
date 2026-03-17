@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone', // Force server mode, disable static export
+  // UTF-8エンコーディング設定
+  experimental: {
+    serverComponentsExternalPackages: ['iconv-lite'],
+  },
   // =====================================================
   // Turbopack configuration
   // =====================================================
