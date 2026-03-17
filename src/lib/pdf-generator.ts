@@ -1056,8 +1056,23 @@ function generateProductTypeSection(specs: QuoteData['specifications']): string 
   if (bagType === 'スパウトパウチ') normalizedBagType = 'spout_pouch';
   else if (bagType === 'ロールフィルム') normalizedBagType = 'roll_film';
   else if (bagType === 'ガゼットパウチ' || bagType === 'ボックスパウチ') normalizedBagType = 'box';
+  else if (bagType === '合掌袋') normalizedBagType = 'lap_seal';
 
   switch (normalizedBagType) {
+    case 'lap_seal':
+      // For lap_seal (合掌袋), display side width (よこめん) only, no depth
+      return `
+        <div class="lap-seal-section">
+          <h5>合掌袋仕様</h5>
+          <table class="specs-table">
+            ${(specs as any).sideWidth ? `
+            <tr>
+              <td class="spec-label">よこめん幅</td>
+              <td>${(specs as any).sideWidth}mm</td>
+            </tr>` : ''}
+          </table>
+        </div>
+      `;
     case 'spout_pouch':
       return `
         <div class="spout-pouch-section">

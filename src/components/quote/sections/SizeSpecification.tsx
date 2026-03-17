@@ -519,7 +519,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
 
   // 마치 변경 핸들러
   const handleDepthChange = (value: string) => {
-    updateBasicSpecs({ depth: parseFloat(value) || 30 });
+    updateBasicSpecs({ depth: value === '' ? undefined : parseFloat(value) });
   };
 
   // 입력 필드에 표시할 값 - 로컬 상태만 사용 (전역 상태 무시)

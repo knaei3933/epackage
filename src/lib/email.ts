@@ -200,10 +200,6 @@ function createXServerTransporter() {
     // XServerはTLSを推奨
     tls: {
       rejectUnauthorized: false // 開発環境では証明書検証を緩和
-    },
-    // UTF-8エンコーディング設定（日本語対応）
-    message: {
-      charset: 'utf-8'
     }
   });
 }
@@ -348,7 +344,7 @@ ${data.company ? data.company + '\n' : ''}${data.name} 様
 
 【お問い合わせ種類】${data.inquiryType}
 【件名】${data.subject}
-【おしい内容】
+【お問い合わせ内容】
 ${sanitizeUserMessage(data.message)}
 
 --------------------------------
@@ -800,13 +796,10 @@ async function sendEmail(
       from: FROM_EMAIL,
       to,
       subject,
-      // Only send HTML part to avoid encoding issues with text/plain
+      text,
       html,
-      // Explicit UTF-8 encoding for Japanese character support
-      encoding: 'utf-8',
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8'
-      }
+      // 日本語エンコーディング設定
+      textEncoding: 'base64'
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {

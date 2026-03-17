@@ -1204,8 +1204,8 @@ function SpecsStep() {
                       const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
                       return hasValidGusset ? (
                         <select
-                          value={state.depth || availableGussetSizes[0] || 30}
-                          onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) || 30 })}
+                          value={state.depth ?? availableGussetSizes[0]}
+                          onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
                           className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                         >
                           {availableGussetSizes.map((size) => (
@@ -1270,7 +1270,7 @@ function SpecsStep() {
                         updateField('hasGusset', hasGussetValue);
                         updateBasicSpecs({
                           hasGusset: hasGussetValue,
-                          depth: hasGussetValue ? (state.depth || 30) : 0
+                          depth: hasGussetValue ? (state.depth ?? availableGussetSizes[0]) : 0
                         });
                       }}
                       className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1294,8 +1294,8 @@ function SpecsStep() {
                     const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
                     return hasValidGusset ? (
                       <select
-                        value={state.depth || availableGussetSizes[0] || 30}
-                        onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) || 30 })}
+                        value={state.depth ?? availableGussetSizes[0]}
+                        onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
                         className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                       >
                         {availableGussetSizes.map((size) => (
@@ -2335,7 +2335,23 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                   state.contentsType || '',
                   state.mainIngredient || '',
                   state.distributionEnvironment || ''
-                )
+                ),
+                // 製品タイプ固有のフィールド
+                ...(state.bagTypeId === 'spout_pouch' && {
+                  spoutSize: state.spoutSize,
+                  spoutPosition: state.spoutPosition,
+                  hasGusset: state.hasGusset,
+                }),
+                ...(state.bagTypeId === 'roll_film' && {
+                  rollFilmSpecs: {
+                    materialWidth: state.materialWidth,
+                    pitch: state.pitch,
+                    totalLength: state.totalLength,
+                    rollCount: state.rollCount,
+                    distributedQuantities: state.distributedQuantities,
+                    editableQuantities: state.editableQuantities,
+                  },
+                }),
               }
             }))
           : [
@@ -2378,7 +2394,23 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                     state.contentsType || '',
                     state.mainIngredient || '',
                     state.distributionEnvironment || ''
-                  )
+                  ),
+                  // 製品タイプ固有のフィールド
+                  ...(state.bagTypeId === 'spout_pouch' && {
+                    spoutSize: state.spoutSize,
+                    spoutPosition: state.spoutPosition,
+                    hasGusset: state.hasGusset,
+                  }),
+                  ...(state.bagTypeId === 'roll_film' && {
+                    rollFilmSpecs: {
+                      materialWidth: state.materialWidth,
+                      pitch: state.pitch,
+                      totalLength: state.totalLength,
+                      rollCount: state.rollCount,
+                      distributedQuantities: state.distributedQuantities,
+                      editableQuantities: state.editableQuantities,
+                    },
+                  }),
                 }
               }
             ]
@@ -2527,7 +2559,23 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                     state.contentsType || '',
                     state.mainIngredient || '',
                     state.distributionEnvironment || ''
-                  )
+                  ),
+                  // 製品タイプ固有のフィールド
+                  ...(state.bagTypeId === 'spout_pouch' && {
+                    spoutSize: state.spoutSize,
+                    spoutPosition: state.spoutPosition,
+                    hasGusset: state.hasGusset,
+                  }),
+                  ...(state.bagTypeId === 'roll_film' && {
+                    rollFilmSpecs: {
+                      materialWidth: state.materialWidth,
+                      pitch: state.pitch,
+                      totalLength: state.totalLength,
+                      rollCount: state.rollCount,
+                      distributedQuantities: state.distributedQuantities,
+                      editableQuantities: state.editableQuantities,
+                    },
+                  }),
                 }
               }))
             : [
@@ -2553,7 +2601,23 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                     // 側面幅
                     sideWidth: state.sideWidth,
                     // シール幅
-                    sealWidth: state.sealWidth
+                    sealWidth: state.sealWidth,
+                    // 製品タイプ固有のフィールド
+                    ...(state.bagTypeId === 'spout_pouch' && {
+                      spoutSize: state.spoutSize,
+                      spoutPosition: state.spoutPosition,
+                      hasGusset: state.hasGusset,
+                    }),
+                    ...(state.bagTypeId === 'roll_film' && {
+                      rollFilmSpecs: {
+                        materialWidth: state.materialWidth,
+                        pitch: state.pitch,
+                        totalLength: state.totalLength,
+                        rollCount: state.rollCount,
+                        distributedQuantities: state.distributedQuantities,
+                        editableQuantities: state.editableQuantities,
+                      },
+                    }),
                   }
                 }
               ]
@@ -3315,6 +3379,23 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
                        state.depth > 0
                        ? (state.postProcessingOptions.includes('machi-printing-yes') ? 'あり' : 'なし')
                        : undefined,
+        // 製品タイプ固有のフィールド（PDFのgenerateProductTypeSectionで使用）
+        ...(state.bagTypeId === 'spout_pouch' && {
+          spoutSize: state.spoutSize,
+          spoutPosition: state.spoutPosition,
+          hasGusset: state.hasGusset,
+        }),
+        ...(state.bagTypeId === 'roll_film' && state.distributedQuantities && {
+          rollFilmSpecs: {
+            materialWidth: state.materialWidth,
+            pitch: state.pitch,
+            totalLength: state.totalLength,
+            rollCount: state.rollCount,
+          },
+        }),
+        // 共通フィールド（sideWidthなど）
+        ...(state.sideWidth !== undefined && { sideWidth: state.sideWidth }),
+        bagTypeId: state.bagTypeId,
       };
 
       console.log('[ImprovedQuotingWizard] specifications FULL:', JSON.stringify(specifications, null, 2));

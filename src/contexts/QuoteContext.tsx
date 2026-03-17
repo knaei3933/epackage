@@ -490,7 +490,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           postProcessingOptions: newPostProcessingOptions,
           postProcessingMultiplier: newPostProcessingMultiplier,
           // スパウトパウチの場合はデフォルトでマチあり（hasGusset: true）
-          ...(newBagTypeId === 'spout_pouch' ? { hasGusset: true, depth: state.depth || 30 } : {}),
+          ...(newBagTypeId === 'spout_pouch' ? { hasGusset: true } : {}),
           // Update filmLayers when materialId or thicknessSelection changes
           ...(materialIdChanged || thicknessSelectionChanged ? {
             filmLayers: getDefaultFilmLayers(newMaterialId, newThicknessSelection)

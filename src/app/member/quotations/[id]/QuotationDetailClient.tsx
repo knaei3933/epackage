@@ -509,9 +509,27 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
         items: quoteItems,
         specifications: (() => {
           console.log('[handleDownloadPDF] Calling mapSpecificationsToPDF with:', quotation.items[0]?.specifications);
-          const specs = mapSpecificationsToPDF(quotation.items[0]?.specifications);
-          console.log('[handleDownloadPDF] mapSpecificationsToPDF returned:', specs);
-          return specs;
+          const mappedSpecs = mapSpecificationsToPDF(quotation.items[0]?.specifications);
+          console.log('[handleDownloadPDF] mapSpecificationsToPDF returned:', mappedSpecs);
+
+          // 製品タイプ固有のフィールド（spoutSize, spoutPosition, hasGusset, rollFilmSpecs, sideWidthなど）を元データから引き継ぐ
+          const originalSpecs = quotation.items[0]?.specifications as Record<string, unknown> | undefined;
+          const productTypeSpecificFields: Record<string, unknown> = {};
+
+          // スパウトパウチ固有フィールド
+          if (originalSpecs?.spoutSize) productTypeSpecificFields.spoutSize = originalSpecs.spoutSize;
+          if (originalSpecs?.spoutPosition) productTypeSpecificFields.spoutPosition = originalSpecs.spoutPosition;
+          if (originalSpecs?.hasGusset !== undefined) productTypeSpecificFields.hasGusset = originalSpecs.hasGusset;
+
+          // ロールフィルム固有フィールド
+          if (originalSpecs?.rollFilmSpecs) productTypeSpecificFields.rollFilmSpecs = originalSpecs.rollFilmSpecs;
+
+          // 共通フィールド（sideWidthなど）
+          if (originalSpecs?.sideWidth !== undefined) productTypeSpecificFields.sideWidth = originalSpecs.sideWidth;
+          if (originalSpecs?.bagTypeId) productTypeSpecificFields.bagTypeId = originalSpecs.bagTypeId;
+
+          // マッピングされた仕様と製品タイプ固有フィールドをマージ
+          return { ...mappedSpecs, ...productTypeSpecificFields };
         })(),
         optionalProcessing: (() => {
           const allPostProcessingOptions = quotation.items.flatMap(item =>

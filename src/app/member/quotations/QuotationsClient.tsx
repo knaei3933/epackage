@@ -318,7 +318,7 @@ function SpecificationDisplay({ item }: { item: any }) {
       }
     } else {
       // dimensionsがない場合は個別フィールドから構築
-      sizeDisplay = `${specs.width || 0} x ${specs.height || 0}${specs.depth ? ` x ${specs.depth}` : ''}${sideWidth ? ` x 側面${sideWidth}` : ''} mm`;
+      sizeDisplay = `${specs.width || 0} x ${specs.height || 0}${(specs.depth as number || 0) > 0 && bagTypeId !== 'lap_seal' ? ` x ${specs.depth}` : ''}${sideWidth ? ` x 側面${sideWidth}` : ''} mm`;
     }
   }
 
