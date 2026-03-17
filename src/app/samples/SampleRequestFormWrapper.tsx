@@ -7,7 +7,10 @@ export default function SampleRequestFormWrapper() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
+    kanjiLastName: '',
+    kanjiFirstName: '',
+    kanaLastName: '',
+    kanaFirstName: '',
     company: '',
     email: '',
     phone: '',
@@ -28,28 +31,14 @@ export default function SampleRequestFormWrapper() {
     setIsSubmitting(true)
 
     try {
-      // 名前を姓・名に分割（簡易対応）
-      const nameParts = formData.name.split(' ')
-      const lastName = nameParts[0] || formData.name
-      const firstName = nameParts.slice(1).join(' ') || ''
-
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify({
-          kanjiLastName: lastName,
-          kanjiFirstName: firstName,
-          kanaLastName: lastName, // 簡易対応
-          kanaFirstName: firstName, // 簡易対応
-          company: formData.company,
-          email: formData.email,
-          phone: formData.phone,
-          postalCode: formData.postalCode,
-          address: formData.address,
+          ...formData,
           subject: 'パウチサンプルご依頼',
-          message: formData.message || 'サンプルをご依頼いたします。',
           inquiryType: 'sample',
           privacyConsent: formData.privacyConsent
         }),
@@ -72,21 +61,72 @@ export default function SampleRequestFormWrapper() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* お名前 */}
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          お名前 <span className="text-red-600">*</span>
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          required
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
-          placeholder="山田 太郎"
-        />
+      {/* お名前（漢字） */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="kanjiLastName" className="block text-sm font-medium text-gray-700 mb-1">
+            姓（漢字） <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="kanjiLastName"
+            name="kanjiLastName"
+            required
+            value={formData.kanjiLastName}
+            onChange={(e) => setFormData({ ...formData, kanjiLastName: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+            placeholder="山田"
+          />
+        </div>
+        <div>
+          <label htmlFor="kanjiFirstName" className="block text-sm font-medium text-gray-700 mb-1">
+            名（漢字） <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="kanjiFirstName"
+            name="kanjiFirstName"
+            required
+            value={formData.kanjiFirstName}
+            onChange={(e) => setFormData({ ...formData, kanjiFirstName: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+            placeholder="太郎"
+          />
+        </div>
+      </div>
+
+      {/* お名前（フリガナ） */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="kanaLastName" className="block text-sm font-medium text-gray-700 mb-1">
+            姓（フリガナ） <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="kanaLastName"
+            name="kanaLastName"
+            required
+            value={formData.kanaLastName}
+            onChange={(e) => setFormData({ ...formData, kanaLastName: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+            placeholder="ヤマダ"
+          />
+        </div>
+        <div>
+          <label htmlFor="kanaFirstName" className="block text-sm font-medium text-gray-700 mb-1">
+            名（フリガナ） <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="kanaFirstName"
+            name="kanaFirstName"
+            required
+            value={formData.kanaFirstName}
+            onChange={(e) => setFormData({ ...formData, kanaFirstName: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+            placeholder="タロウ"
+          />
+        </div>
       </div>
 
       {/* 会社名 */}
