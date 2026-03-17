@@ -48,6 +48,7 @@ export default function SampleRequestFormWrapper() {
           phone: formData.phone,
           postalCode: formData.postalCode,
           address: formData.address,
+          subject: 'パウチサンプルご依頼',
           message: formData.message || 'サンプルをご依頼いたします。',
           inquiryType: 'sample',
           privacyConsent: formData.privacyConsent
