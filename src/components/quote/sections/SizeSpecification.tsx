@@ -199,7 +199,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
 
   // Determine if gusset (マチ) should be shown based on bag type
   const shouldShowGusset = () => {
-    return state.bagTypeId !== 'flat_3_side' && state.bagTypeId !== 'roll_film';
+    return state.bagTypeId !== 'flat_3_side' && state.bagTypeId !== 'roll_film' && state.bagTypeId !== 'lap_seal';
   };
 
   const displayDepthField = showDepth !== undefined ? showDepth : shouldShowGusset();

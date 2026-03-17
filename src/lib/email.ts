@@ -97,6 +97,10 @@ async function createEtherealTransporter() {
         user: testAccount.user,
         pass: testAccount.pass,
       },
+      // UTF-8エンコーディング設定（日本語対応）
+      message: {
+        charset: 'utf-8'
+      }
     });
 
     console.log('[Email] Ethereal Email initialized:', {
@@ -132,6 +136,10 @@ function createSendGridTransporter() {
       user: 'apikey',
       pass: SENDGRID_API_KEY,
     },
+    // UTF-8エンコーディング設定（日本語対応）
+    message: {
+      charset: 'utf-8'
+    }
   });
 }
 
@@ -158,6 +166,10 @@ function createAwsSesTransporter() {
       user: AWS_SES_SMTP_USERNAME,
       pass: AWS_SES_SMTP_PASSWORD,
     },
+    // UTF-8エンコーディング設定（日本語対応）
+    message: {
+      charset: 'utf-8'
+    }
   });
 }
 
@@ -188,6 +200,10 @@ function createXServerTransporter() {
     // XServerはTLSを推奨
     tls: {
       rejectUnauthorized: false // 開発環境では証明書検証を緩和
+    },
+    // UTF-8エンコーディング設定（日本語対応）
+    message: {
+      charset: 'utf-8'
     }
   });
 }
