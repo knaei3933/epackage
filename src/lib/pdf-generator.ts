@@ -666,6 +666,24 @@ export function convertNumberToJapaneseKanji(amount: number): string {
 }
 
 /**
+ * Check if zipper is incompatible with bag type
+ * 合掌袋、ガゼットパウチはジッパー非対応
+ */
+function isZipperIncompatible(bagType: string): boolean {
+  const incompatibleTypes = ['box', 'lap_seal', '合掌袋', 'ガゼットパウチ', 'ボックス袋'];
+  return incompatibleTypes.some(type => bagType?.includes(type));
+}
+
+/**
+ * Check if corner processing is incompatible with bag type
+ * 合掌袋、ガゼットパウチは角加工非対応
+ */
+function isCornerIncompatible(bagType: string): boolean {
+  const incompatibleTypes = ['box', 'lap_seal', '合掌袋', 'ガゼットパウチ', 'ボックス袋'];
+  return incompatibleTypes.some(type => bagType?.includes(type));
+}
+
+/**
  * Validate PDF generation data
  *
  * PDF生成データの検証
@@ -1945,11 +1963,11 @@ function generateQuoteHTML(
         </tr>
         <tr>
           <td class="spec-label">チャック位置</td>
-          <td>${specs.zipperPosition || '-'}</td>
+          <td>${isZipperIncompatible(specs.bagType) ? '適用不可' : (specs.zipperPosition || '-')}</td>
         </tr>
         <tr>
           <td class="spec-label">角加工</td>
-          <td>${specs.cornerR || '-'}</td>
+          <td>${isCornerIncompatible(specs.bagType) ? '適用不可' : (specs.cornerR || '-')}</td>
         </tr>`}
         ${specs.spoutPosition ? `
         <tr>

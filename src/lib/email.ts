@@ -795,15 +795,19 @@ async function sendEmail(
   }
 
   try {
+    // デバッグログ：エンコーディング確認
+    console.log('[Email Debug] Subject:', subject);
+    console.log('[Email Debug] Subject bytes:', Buffer.from(subject).toString('hex'));
+    console.log('[Email Debug] Text preview:', text.substring(0, 100));
+
     const info = await transporter.sendMail({
       from: FROM_EMAIL,
       to,
       subject,
       text,
       html,
-      // 明示的なエンコーディング設定（日本語対応）
-      encoding: 'utf-8',
-      textEncoding: 'base64'
+      // quoted-printableエンコーディング（日本語対応）
+      encoding: 'utf-8'
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
