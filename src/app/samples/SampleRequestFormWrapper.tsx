@@ -2,89 +2,117 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
+
+// サンプルリクエストフォームバリデーションスキーマ
+const sampleSchema = z.object({
+  kanjiLastName: z.string()
+    .min(1, '姓（漢字）を入力してください')
+    .max(50, '姓（漢字）は50文字以内で入力してください'),
+  kanjiFirstName: z.string()
+    .min(1, '名（漢字）を入力してください')
+    .max(50, '名（漢字）は50文字以内で入力してください'),
+  kanaLastName: z.string()
+    .min(1, '姓（ひらがな）を入力してください')
+    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
+    .max(50, '姓（ひらがな）は50文字以内で入力してください'),
+  kanaFirstName: z.string()
+    .min(1, '名（ひらがな）を入力してください')
+    .regex(/^[\u3040-\u309F\s]+$/, 'ひらがなのみ入力してください')
+    .max(50, '名（ひらがな）は50文字以内で入力してください'),
+  company: z.string()
+    .max(100, '会社名は100文字以内で入力してください')
+    .optional(),
+  email: z.string()
+    .min(1, 'メールアドレスを入力してください')
+    .email('有効なメールアドレスを入力してください'),
+  phone: z.string()
+    .min(1, '電話番号を入力してください')
+    .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/,
+      '有効な電話番号を入力してください（例: 03-1234-5678）'),
+  postalCode: z.string()
+    .min(1, '郵便番号を入力してください')
+    .regex(/^\d{3}-\d{4}$/, '有効な郵便番号を入力してください（例: 100-0001）'),
+  address: z.string()
+    .min(1, '住所を入力してください')
+    .max(200, '住所は200文字以内で入力してください'),
+  message: z.string()
+    .max(800, 'ご要望・ご質問は800文字以内で入力してください')
+    .optional(),
+})
+
+type SampleFormData = z.infer<typeof sampleSchema>
 
 export default function SampleRequestFormWrapper() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    email: '',
-    phone: '',
-    postalCode: '',
-    address: '',
-    message: '',
-    privacyConsent: false
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    trigger,
+    reset,
+  } = useForm<SampleFormData>({
+    resolver: zodResolver(sampleSchema),
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.privacyConsent) {
-      alert('個人情報保護方針に同意してください')
-      return
-    }
-
+  const onSubmit = async (data: SampleFormData) => {
     setIsSubmitting(true)
 
     try {
-      // 名前を姓・名に分割（簡易対応）
-      const nameParts = formData.name.split(' ')
-      const lastName = nameParts[0] || formData.name
-      const firstName = nameParts.slice(1).join(' ') || ''
-
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify({
-          kanjiLastName: lastName,
-          kanjiFirstName: firstName,
-          kanaLastName: lastName, // 簡易対応
-          kanaFirstName: firstName, // 簡易対応
-          company: formData.company,
-          email: formData.email,
-          phone: formData.phone,
-          postalCode: formData.postalCode,
-          address: formData.address,
-          message: formData.message || 'サンプルをご依頼いたします。',
+          ...data,
           inquiryType: 'sample',
-          privacyConsent: formData.privacyConsent
+          subject: 'サンプルご依頼',
+          message: data.message || 'パウチサンプルセットをご依頼いたします。',
         }),
       })
 
       const result = await response.json()
 
-      if (result.success) {
-        router.push('/samples/thank-you')
-      } else {
-        alert('送信エラー: ' + (result.error || '不明なエラー'))
+      if (!response.ok) {
+        throw new Error(result.error || '送信に失敗しました')
       }
+
+      // 成功時にサンクユーページへリダイレクト
+      router.push('/samples/thank-you')
     } catch (error) {
       console.error('Submit error:', error)
-      alert('送信エラーが発生しました')
+      alert('送信エラーが発生しました: ' + (error instanceof Error ? error.message : '不明なエラー'))
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* お名前 */}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* お名前 - JapaneseNameInputControllerを使用 */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          お名前 <span className="text-red-600">*</span>
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
+        <JapaneseNameInputController
+          control={control}
+          setValue={setValue}
+          trigger={trigger}
+          kanjiLastNameName="kanjiLastName"
+          kanjiFirstNameName="kanjiFirstName"
+          kanaLastNameName="kanaLastName"
+          kanaFirstNameName="kanaFirstName"
+          kanjiLastNameError={errors.kanjiLastName?.message}
+          kanjiFirstNameError={errors.kanjiFirstName?.message}
+          kanaLastNameError={errors.kanaLastName?.message}
+          kanaFirstNameError={errors.kanaFirstName?.message}
           required
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
-          placeholder="山田 太郎"
+          label="お名前"
         />
       </div>
 
@@ -96,12 +124,13 @@ export default function SampleRequestFormWrapper() {
         <input
           type="text"
           id="company"
-          name="company"
-          value={formData.company}
-          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+          {...register('company')}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
           placeholder="株式会社〇〇"
         />
+        {errors.company && (
+          <p className="text-red-600 text-sm mt-1">{errors.company.message}</p>
+        )}
       </div>
 
       {/* メールアドレス */}
@@ -112,13 +141,13 @@ export default function SampleRequestFormWrapper() {
         <input
           type="email"
           id="email"
-          name="email"
-          required
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          {...register('email')}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
           placeholder="example@company.com"
         />
+        {errors.email && (
+          <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+        )}
       </div>
 
       {/* 電話番号 */}
@@ -129,13 +158,13 @@ export default function SampleRequestFormWrapper() {
         <input
           type="tel"
           id="phone"
-          name="phone"
-          required
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          {...register('phone')}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
           placeholder="03-1234-5678"
         />
+        {errors.phone && (
+          <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>
+        )}
       </div>
 
       {/* 郵便番号 */}
@@ -146,13 +175,13 @@ export default function SampleRequestFormWrapper() {
         <input
           type="text"
           id="postalCode"
-          name="postalCode"
-          required
-          value={formData.postalCode}
-          onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+          {...register('postalCode')}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
           placeholder="100-0001"
         />
+        {errors.postalCode && (
+          <p className="text-red-600 text-sm mt-1">{errors.postalCode.message}</p>
+        )}
       </div>
 
       {/* 住所 */}
@@ -162,14 +191,14 @@ export default function SampleRequestFormWrapper() {
         </label>
         <textarea
           id="address"
-          name="address"
-          required
+          {...register('address')}
           rows={2}
-          value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
           placeholder="東京都〇〇区〇〇1-2-3"
         />
+        {errors.address && (
+          <p className="text-red-600 text-sm mt-1">{errors.address.message}</p>
+        )}
       </div>
 
       {/* ご要望・ご質問 */}
@@ -179,39 +208,14 @@ export default function SampleRequestFormWrapper() {
         </label>
         <textarea
           id="message"
-          name="message"
+          {...register('message')}
           rows={4}
-          value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
           placeholder="ご要望やご質問がございましたらご記入ください"
         />
-      </div>
-
-      {/* プライバシーポリシー同意 - カスタムチェックボックス */}
-      <div>
-        <label className="flex items-start space-x-3 cursor-pointer group">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={formData.privacyConsent}
-              onChange={(e) => setFormData({ ...formData, privacyConsent: e.target.checked })}
-              className="peer sr-only"
-              required
-            />
-            <div className="w-5 h-5 mt-0.5 border-2 border-gray-300 rounded bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 flex items-center justify-center group-hover:border-brixa-400">
-              <svg className="w-3 h-3 text-white hidden peer-checked:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-          <span className="text-sm text-gray-600">
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brixa-500 hover:underline">
-              個人情報保護方針
-            </a>
-            に同意して送信します
-          </span>
-        </label>
+        {errors.message && (
+          <p className="text-red-600 text-sm mt-1">{errors.message.message}</p>
+        )}
       </div>
 
       {/* 送信ボタン */}
