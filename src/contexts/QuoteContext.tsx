@@ -1209,8 +1209,9 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
       const requiresThickness = materialsWithThickness.includes(state.materialId);
       const hasThickness = !!state.thicknessSelection;
 
-      // スタンドアップパウチ・ガゼットパウチ: depth（袋の深さ/マチ）が必須
-      const requiresDepth = state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset' || state.bagTypeId === 'box';
+      // スタンドアップパウチ: depth（袋の深さ/マチ）が必須
+      // ガゼットパウチ（box）: depthはオプション（側面で調整可能）
+      const requiresDepth = state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset';
       const hasDepth = !requiresDepth || (!!state.depth && state.depth >= 30);
 
       // ガゼットパウチ: sideWidth（側面幅）が必須

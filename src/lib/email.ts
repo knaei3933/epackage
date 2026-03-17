@@ -201,6 +201,9 @@ function createXServerTransporter() {
     tls: {
       rejectUnauthorized: false // 開発環境では証明書検証を緩和
     }
+  }, {
+    // デフォルトのcharsetをUTF-8に設定
+    charset: 'utf-8'
   });
 }
 
@@ -797,11 +800,7 @@ async function sendEmail(
       to,
       subject,
       text,
-      // HTMLパートにcharsetを明示的に指定
-      alternatives: [{
-        contentType: 'text/html; charset=utf-8',
-        content: html
-      }]
+      html
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
