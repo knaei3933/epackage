@@ -247,7 +247,13 @@ export function MaterialSelection({ showThicknessOptions = true }: MaterialSelec
   const isThicknessRequired = materialsWithThickness.includes(state.materialId);
 
   const handleSelectMaterial = (materialId: string) => {
-    updateBasicSpecs({ materialId });
+    // 素材変更時に最初の厚さオプションを自動選択
+    const material = ALL_MATERIALS.find(m => m.id === materialId);
+    const defaultThickness = material?.thicknessOptions?.[0]?.id;
+    updateBasicSpecs({
+      materialId,
+      thicknessSelection: defaultThickness
+    });
   };
 
   const handleSelectThickness = (thicknessId: string) => {
