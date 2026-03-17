@@ -273,7 +273,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
                 <span className="font-medium text-gray-900">
                   {state.bagTypeId === 'roll_film'
                     ? `幅: ${state.width} mm`
-                    : `${state.width} × ${state.height}${state.depth > 0 ? ` × ${state.depth}` : ''}${state.sideWidth ? ` × 側面${state.sideWidth}` : ''} mm`
+                    : `${state.width} × ${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? ` × ${state.depth}` : ''}${state.sideWidth ? ` × 側面${state.sideWidth}` : ''} mm`
                   }
                 </span>
               </div>

@@ -375,7 +375,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       ? multiQuantityQuotes.map((quote, index) => ({
           id: `item-${index + 1}`,
           name: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
-          description: `サイズ: ${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}mm`,
+          description: `サイズ: ${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
           quantity: quote.quantity,
           unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
           unitPrice: quote.unitPrice,
@@ -384,7 +384,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       : [{
           id: 'item-1',
           name: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
-          description: `サイズ: ${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}mm`,
+          description: `サイズ: ${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
           quantity: state.quantity,
           unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
           unitPrice: result.unitPrice,
@@ -526,7 +526,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       bagType: getBagTypeDescriptionJa(state.bagTypeId) || '指定なし',
       contents,
       material: getMaterialLabelJa(state.materialId) || '指定なし',
-      size: `${state.width || 0}×${state.height || 0}${state.depth > 0 ? `×${state.depth}` : ''}mm`,
+      size: `${state.width || 0}×${state.height || 0}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
       thicknessType: state.thicknessSelection && state.materialId
         ? getFilmStructureSpecJa(state.materialId, state.thicknessSelection)
         : '指定なし',
@@ -1289,7 +1289,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               <div>袋のタイプ: {getBagTypeLabel(state.bagTypeId)}</div>
               <div>サイズ: {state.bagTypeId === 'roll_film'
                 ? `幅: ${state.width} mm`
-                : `${state.width} × ${state.height} ${state.depth > 0 ? `× ${state.depth}` : ''} mm`}</div>
+                : `${state.width} × ${state.height} ${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `× ${state.depth}` : ''} mm`}</div>
               <div>素材: {getMaterialDescription(state.materialId, 'ja')}</div>
               {state.thicknessSelection && <div>厚さ: {THICKNESS_TYPE_JA[state.thicknessSelection as keyof typeof THICKNESS_TYPE_JA] || state.thicknessSelection}</div>}
             </div>

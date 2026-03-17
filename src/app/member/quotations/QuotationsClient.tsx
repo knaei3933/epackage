@@ -139,9 +139,12 @@ function SpecificationDisplay({ item }: { item: any }) {
   const bagTypeMap: Record<string, string> = {
     'flat_pouch': 'ピローパウチ',
     'flat_3_side': '三方シール平袋',
+    'lap_seal': '合掌袋',
     'stand_up': 'スタンドパウチ',
     'gusset': 'ガセットパウチ',
+    'spout_pouch': 'スパウトパウチ',
     'roll_film': 'ロールフィルム',
+    'box': 'ボックス袋',
   };
 
   // 내용물 일본어 변환
@@ -227,16 +230,18 @@ function SpecificationDisplay({ item }: { item: any }) {
     console.log('[QuotationsClient] getMaterialSpecification result:', thicknessJa);
   }
   if (thicknessJa === '-') {
-    // 폴백: 일본어 변환
-    const thicknessMap: Record<string, string> = {
-      'light': '軽量',
-      'medium': '標準',
-      'heavy': '高耐久',
-      'ultra': '超耐久',
-      'standard': 'レギュラー',  // standard 옵션 추가
+    // thicknessSelectionがない場合、素材別のデフォルト仕様を表示
+    const defaultThicknessSpec: Record<string, string> = {
+      'ny_lldpe': 'NY 15μ + LLDPE 70μ',  // 標準
+      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
+      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
+      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
+      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
+      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
     };
-    thicknessJa = thicknessMap[specs.thicknessSelection] || '-';
-    console.log('[QuotationsClient] Using fallback thicknessMap:', specs.thicknessSelection, '->', thicknessJa);
+    thicknessJa = defaultThicknessSpec[specs.materialId] || '-';
+    console.log('[QuotationsClient] Using default thickness spec for material:', specs.materialId, '->', thicknessJa);
   }
 
   // 인쇄 정보

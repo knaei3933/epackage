@@ -152,7 +152,7 @@ function OrderSpecificationItem({
               <span className="text-text-muted">サイズ:</span>
               <span className="ml-1">
                 {specs.width}×{specs.height}
-                {specs.depth ? `×${specs.depth}` : ''}mm
+                {(specs.depth && specs.bag_type !== 'lap_seal') ? `×${specs.depth}` : ''}mm
               </span>
             </div>
           )}

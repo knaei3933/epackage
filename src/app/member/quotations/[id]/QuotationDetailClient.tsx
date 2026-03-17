@@ -91,13 +91,16 @@ function getBagTypeName(bagTypeId: string): string {
     'flat_pouch': 'ピローパウチ',
     'flat_3_side': '三方シール平袋',
     'three_side_seal': '三方シール平袋',
+    'lap_seal': '合掌袋',
     'stand_up': 'スタンドパウチ',
     'stand_pouch': 'スタンドパウチ',
     'gusset': 'ガセットパウチ',
     'gusset_pouch': 'ガセットパウチ',
+    'spout_pouch': 'スパウトパウチ',
     'roll_film': 'ロールフィルム',
     'roll-film': 'ロールフィルム',
     'zipper_pouch': 'ジッパーパウチ',
+    'box': 'ボックス袋',
   };
   return names[bagTypeId] || translateBagType(bagTypeId) || bagTypeId || '-';
 }
@@ -110,6 +113,11 @@ function getMaterialName(materialId: string): string {
     'pet_al': 'PET/AL (アルミ箔ラミネート)',
     'pet_ny_al': 'PET/NY/AL',
     'pet_pe': 'PET/PE (透明ラミネート)',
+    'pet_ldpe': 'PET/LLDPE',
+    'ny_lldpe': 'NY/LLDPE',
+    'pet_vmpet': 'PET/VMPET',
+    'kraft_vmpet_lldpe': 'クラフト/VMPET/LLDPE',
+    'kraft_pet_lldpe': 'クラフト/PET/LLDPE',
     'kp': 'kraft (クラフト紙)',
     'kraft': 'クラフト紙',
     'paper': '紙',
@@ -129,6 +137,37 @@ function getThicknessName(materialId: string, thicknessSelection: string, fallba
     if (spec !== '-') return spec;
   }
 
+  // 非標準の thicknessSelection 値（light_50, standard_70など）のフォールバック
+  let normalizedThickness = thicknessSelection;
+  if (thicknessSelection) {
+    // light_50 -> light, standard_70 -> standard, heavy_90 -> heavy などの変換
+    if (thicknessSelection.includes('_')) {
+      const parts = thicknessSelection.split('_');
+      normalizedThickness = parts[0]; // 'light_50' -> 'light'
+    }
+  }
+
+  // 正規化された値で再試行
+  if (materialId && normalizedThickness && normalizedThickness !== thicknessSelection) {
+    const spec = getMaterialSpecification(materialId, normalizedThickness);
+    if (spec !== '-') return spec;
+  }
+
+  // 素材別のデフォルト仕様
+  if (materialId) {
+    const defaultThicknessSpec: Record<string, string> = {
+      'ny_lldpe': 'NY 15μ + LLDPE 70μ',
+      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
+      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
+      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
+      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
+      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+    };
+    const defaultSpec = defaultThicknessSpec[materialId];
+    if (defaultSpec) return defaultSpec;
+  }
+
   // フォールバック: 日本語変換
   const names: Record<string, string> = {
     'thin': '薄手',
@@ -138,10 +177,14 @@ function getThicknessName(materialId: string, thicknessSelection: string, fallba
     'extra_thick': '超厚手',
     'extra-thick': '超厚手',
     'light': '軽量',
+    'light_50': '軽量 (~50g)',
+    'standard_70': '標準 (~70g)',
+    'heavy_90': '高耐久 (~90g)',
+    'ultra_100': '超耐久 (~100g)',
     'heavy': '高耐久',
     'ultra': '超耐久',
   };
-  return names[fallbackThickness || ''] || names[thicknessSelection] || fallbackThickness || thicknessSelection || '-';
+  return names[fallbackThickness || ''] || names[thicknessSelection] || names[normalizedThickness] || fallbackThickness || thicknessSelection || '-';
 }
 
 /**
@@ -219,7 +262,7 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
       }
     } else {
       // dimensionsがない場合は個別フィールドから構築
-      sizeDisplay = `${specs?.width || 0}×${specs?.height || 0}${(specs?.depth as number || 0) > 0 ? `×${specs?.depth}` : ''}${sideWidth ? `×側面${sideWidth}` : ''}`;
+      sizeDisplay = `${specs?.width || 0}×${specs?.height || 0}${((specs?.depth as number || 0) > 0 && bagTypeId !== 'lap_seal') ? `×${specs?.depth}` : ''}${sideWidth ? `×側面${sideWidth}` : ''}`;
     }
   }
 
@@ -261,11 +304,32 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
   // シール方向 (デフォルト: 上端)
   const sealDirection = '上';
 
+  // 厚さタイプ - thicknessSelectionを使用、なければデフォルト値
+  const thicknessSelection = specs?.thicknessSelection as string | undefined;
+  let thicknessType = '-';
+  if (materialId && thicknessSelection) {
+    thicknessType = getMaterialSpecification(materialId, thicknessSelection);
+  }
+  if (thicknessType === '-' && materialId) {
+    // 素材別のデフォルト仕様
+    const defaultThicknessSpec: Record<string, string> = {
+      'ny_lldpe': 'NY 15μ + LLDPE 70μ',
+      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
+      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
+      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
+      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
+      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+    };
+    thicknessType = defaultThicknessSpec[materialId] || '-';
+  }
+
   const result = {
     bagType: bagTypeId ? translateBagType(bagTypeId) : 'スタンドパウチ',
     contents: '粉体',
     size: sizeDisplay,
     material: materialId ? translateMaterialType(materialId) : 'PET+AL',
+    thicknessType,
     sealWidth,
     sealDirection,
     notchShape,
@@ -400,7 +464,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
               }
             } else {
               // dimensionsがない場合は個別フィールドから構築
-              sizeText = `${specs?.width || 0}×${specs?.height || 0}${(specs?.depth as number || 0) > 0 ? `×${specs?.depth}` : ''}${itemSideWidth ? `×側面${itemSideWidth}` : ''}`;
+              sizeText = `${specs?.width || 0}×${specs?.height || 0}${((specs?.depth as number || 0) > 0 && bagTypeId !== 'lap_seal') ? `×${specs?.depth}` : ''}${itemSideWidth ? `×側面${itemSideWidth}` : ''}`;
             }
           }
 
@@ -751,7 +815,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                       return (
                         <>
                           {specs?.width}mm × {specs?.height}mm
-                          {specs?.depth && ` × ${specs?.depth}mm`}
+                          {(specs?.depth && specs?.bagTypeId !== 'lap_seal') && ` × ${specs?.depth}mm`}
                           {specs?.sideWidth && ` × 側面${specs?.sideWidth}mm`}
                         </>
                       );

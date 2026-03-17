@@ -323,7 +323,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 ) : (
                   <>
                     {dimensions.width}×{dimensions.height}
-                    {dimensions.depth > 0 && `×${dimensions.depth}`}mm
+                    {(dimensions.depth > 0 && bagTypeId !== 'lap_seal') && `×${dimensions.depth}`}mm
                   </>
                 )}
               </span>

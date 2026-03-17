@@ -91,3 +91,45 @@ export function getProductionRequirementsDescription(): string[] {
     '仕様が承認されていること',
   ];
 }
+
+// ============================================================
+// Production Actions (for API routes)
+// ============================================================
+
+export const productionActions = {
+  async getProductionOrderByOrderId(orderId: string) {
+    const { createServiceClient } = await import('@/lib/supabase');
+    const supabase = createServiceClient();
+
+    const { data, error } = await supabase
+      .from('production_orders')
+      .select('*')
+      .eq('order_id', orderId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching production order:', error);
+      return null;
+    }
+
+    return data;
+  },
+
+  async getStageActionHistory(productionOrderId: string) {
+    const { createServiceClient } = await import('@/lib/supabase');
+    const supabase = createServiceClient();
+
+    const { data, error } = await supabase
+      .from('production_stage_actions')
+      .select('*')
+      .eq('production_order_id', productionOrderId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching action history:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+};

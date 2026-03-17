@@ -95,8 +95,8 @@ export function PriceDifferenceSummary({
           <div className="space-y-2 text-xs">
             <SpecChangeDetail
               label="サイズ"
-              original={`${originalSpecs.width}×${originalSpecs.height}${originalSpecs.depth ? `×${originalSpecs.depth}` : ''}mm`}
-              newValue={`${newSpecs.width}×${newSpecs.height}${newSpecs.depth ? `×${newSpecs.depth}` : ''}mm`}
+              original={`${originalSpecs.width}×${originalSpecs.height}${(originalSpecs.depth && originalSpecs.bag_type !== 'lap_seal') ? `×${originalSpecs.depth}` : ''}mm`}
+              newValue={`${newSpecs.width}×${newSpecs.height}${(newSpecs.depth && newSpecs.bag_type !== 'lap_seal') ? `×${newSpecs.depth}` : ''}mm`}
             />
             <SpecChangeDetail
               label="素材"

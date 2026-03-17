@@ -2685,7 +2685,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       const specifications = {
         bagType: getBagTypeLabel(state.bagTypeId),
         contents: contentsValue,
-        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}${state.sideWidth ? `×側面${state.sideWidth}` : ''}`,
+        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}${state.sideWidth ? `×側面${state.sideWidth}` : ''}`,
         material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
         sealWidth: state.sealWidth ? `シール幅 ${state.sealWidth}` : 'シール幅 5mm',
         sealDirection: '上',
@@ -3289,7 +3289,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       const specifications = {
         bagType: getBagTypeLabel(state.bagTypeId),
         contents: contentsValue,
-        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}${state.sideWidth ? `×側面${state.sideWidth}` : ''}`,
+        size: state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}${state.sideWidth ? `×側面${state.sideWidth}` : ''}`,
         material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
         thicknessType: state.thicknessSelection ? getFilmStructureSpec(state.materialId, state.thicknessSelection) : '指定なし',
         sealWidth: state.sealWidth ? `シール幅 ${state.sealWidth}` : 'シール幅 5mm',
@@ -4202,11 +4202,14 @@ function RealTimePriceDisplay() {
     );
   }
 
+  // Find the current selected quote
+  const currentQuote = quantityQuotes.find(q => q.quantity === state.quantity) || quantityQuotes[0];
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
       <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">数量別お見積もり</h3>
+          <h3 className="text-lg font-semibold">お見積もり</h3>
           {isCalculating && (
             <div className="flex items-center text-sm text-navy-200">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -4216,27 +4219,16 @@ function RealTimePriceDisplay() {
         </div>
       </div>
 
-      <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
-        {quantityQuotes.map((quote, index) => (
-          <div
-            key={`${quote.quantity}-${index}`}
-            className={`p-4 rounded-lg border-2 transition-all duration-300 ${quote.quantity === state.quantity
-              ? 'border-brixa-600 bg-brixa-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-          >
+      <div className="p-4 space-y-3">
+        {currentQuote && (
+          <div className="p-4 rounded-lg border-2 border-brixa-600 bg-brixa-50 shadow-md">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="text-lg font-semibold text-gray-900">
-                    {quote.quantity.toLocaleString()}枚
+                    {currentQuote.quantity.toLocaleString()}枚
                   </span>
-                  {quote.quantity === state.quantity && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brixa-100 text-brixa-800">
-                      現在選択
-                    </span>
-                  )}
-                  {quote.minimumPriceApplied && (
+                  {currentQuote.minimumPriceApplied && (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                       最低価格適用
                     </span>
@@ -4244,11 +4236,10 @@ function RealTimePriceDisplay() {
                 </div>
 
                 <div className="space-y-1 text-sm text-gray-600">
-                  <div>単価: ¥{quote.unitPrice % 1 === 0 ? quote.unitPrice.toLocaleString() : quote.unitPrice.toFixed(1)}（税別）</div>
-                  <div>{quote.priceBreak} ({quote.discountRate}%引)</div>
+                  <div>単価: ¥{currentQuote.unitPrice % 1 === 0 ? currentQuote.unitPrice.toLocaleString() : currentQuote.unitPrice.toFixed(1)}（税別）</div>
                 </div>
 
-                {quote.minimumPriceApplied && (
+                {currentQuote.minimumPriceApplied && (
                   <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm text-orange-700">
                     最小注文価格（160,000円）が適用されました
                   </div>
@@ -4256,17 +4247,17 @@ function RealTimePriceDisplay() {
               </div>
 
               <div className="text-right">
-                <div className={`text-2xl font-bold mb-1 transition-all duration-500 ${quote.quantity === state.quantity && priceChange === 'increase' ? 'scale-105 text-success-600' :
-                  quote.quantity === state.quantity && priceChange === 'decrease' ? 'scale-95 text-error-600' :
+                <div className={`text-2xl font-bold mb-1 transition-all duration-500 ${priceChange === 'increase' ? 'scale-105 text-success-600' :
+                  priceChange === 'decrease' ? 'scale-95 text-error-600' :
                     'text-gray-900'
                   }`}>
-                  ¥{quote.totalPrice.toLocaleString()}
+                  ¥{currentQuote.totalPrice.toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-600">総費用（税別）</div>
               </div>
             </div>
           </div>
-        ))}
+        )}
 
         <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
           <div className="flex items-center justify-between">
