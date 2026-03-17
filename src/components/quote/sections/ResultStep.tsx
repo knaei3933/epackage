@@ -1206,58 +1206,30 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {hasMultiQuantityResults ? '数量比較見積もり' : '見積もり完了'}
+          見積もり完了
         </h2>
         <p className="text-gray-600">
-          {hasMultiQuantityResults
-            ? `${multiQuantityQuotes.length}件の数量で比較しました`
-            : '以下の内容でお見積もりいたしました'
-          }
+          以下の内容でお見積もりいたしました
         </p>
       </div>
 
       {/* Price Display */}
-      {hasMultiQuantityResults && multiQuantityQuotes.length > 0 ? (
-        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl">
-          <div className="text-sm font-medium mb-4">数量別見積もり</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {multiQuantityQuotes.map((quote) => (
-              <div key={quote.quantity} className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-sm font-medium mb-1">{quote.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</div>
-                <div className="text-xl font-bold">¥{quote.totalPrice.toLocaleString()}</div>
-                <div className="text-xs opacity-90 mt-1">
-                  単価: ¥{quote.unitPrice.toLocaleString()}
-                </div>
+      <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
+        <div className="text-sm font-medium mb-2">合計金額（税別）</div>
+        {(() => {
+          const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
+          return (
+            <>
+              <div className="text-4xl font-bold mb-4">
+                ¥{roundedTotal.toLocaleString()}
               </div>
-            ))}
-          </div>
-          {multiQuantityState.comparison && (
-            <div className="mt-4 pt-4 border-t border-white/20 text-center">
               <div className="text-sm opacity-90">
-                最適数量: <span className="font-bold">{multiQuantityState.comparison.bestValue.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</span>
-                （{multiQuantityState.comparison.bestValue.percentage}%節約）
+                単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
               </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
-          <div className="text-sm font-medium mb-2">合計金額（税別）</div>
-          {(() => {
-            const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
-            return (
-              <>
-                <div className="text-4xl font-bold mb-4">
-                  ¥{roundedTotal.toLocaleString()}
-                </div>
-                <div className="text-sm opacity-90">
-                  単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
+            </>
+          );
+        })()}
+      </div>
 
       {/* Admin-only cost breakdown */}
       {isAdmin && result.skuCostDetails && (
@@ -1337,17 +1309,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                     総数量: {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
                   </div>
                   <div className="mt-1">印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
-                  <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
-                </div>
-              ) : hasMultiQuantityResults ? (
-                <div>
-                  <div className="font-medium">数量比較見積もり:</div>
-                  {safeMap(multiQuantityQuotes, (mq) => (
-                    <div key={mq.quantity} className="ml-2">
-                      • {mq.quantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'} = ¥{mq.totalPrice.toLocaleString()}
-                    </div>
-                  ))}
-                  <div className="mt-2">印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
                   <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
                 </div>
               ) : (
