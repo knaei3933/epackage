@@ -135,6 +135,7 @@ interface EnvelopeDimensions {
   height: number;
   depth: number;
   pitch?: number;
+  sideWidth?: number; // 側面 (よこめん) - for box_pouch, lap_seal
 }
 
 interface EnvelopePreviewProps {
@@ -323,7 +324,8 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 ) : (
                   <>
                     {dimensions.width}×{dimensions.height}
-                    {(dimensions.depth > 0 && bagTypeId !== 'lap_seal') && `×${dimensions.depth}`}mm
+                    {(dimensions.depth > 0 && bagTypeId !== 'lap_seal') && `×${dimensions.depth}`}
+                    {dimensions.sideWidth && `×側面${dimensions.sideWidth}`}mm
                   </>
                 )}
               </span>

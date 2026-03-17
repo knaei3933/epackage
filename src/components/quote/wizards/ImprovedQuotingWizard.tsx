@@ -4707,7 +4707,8 @@ export function ImprovedQuotingWizard() {
                   width: state.width,
                   height: state.height,
                   depth: state.depth,
-                  pitch: state.pitch
+                  pitch: state.pitch,
+                  sideWidth: state.sideWidth
                 }}
                 productCategory={state.productCategory}
                 contentsType={state.contentsType}

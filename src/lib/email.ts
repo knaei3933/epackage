@@ -797,11 +797,11 @@ async function sendEmail(
       to,
       subject,
       text,
-      html,
-      // 日本語エンコーディング設定 - quoted-printableはマルチバイト文字に最適
-      textEncoding: 'quoted-printable',
-      // 明示的にcharsetを指定
-      encoding: 'utf-8'
+      // HTMLパートにcharsetを明示的に指定
+      alternatives: [{
+        contentType: 'text/html; charset=utf-8',
+        content: html
+      }]
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {

@@ -412,12 +412,9 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       const needsGusset = ['stand_up', 'gusset', 'box', 't_shape', 'm_shape', 'lap_seal', 'spout'].includes(newBagTypeId);
 
       if (bagTypeIdChanged && needsGusset) {
-        // マッチが必要なタイプで、現在のdepthが0またはundefinedの場合
-        // 幅に基づいてデフォルトマッチサイズを取得（幅70mm以上のみ）
-        if ((!state.depth || state.depth === 0) && newWidth >= 70) {
-          newDepth = getDefaultGussetSize(newWidth);
-        }
-        // 幅が70mm未満の場合はdepthを設定しない（ユーザーが選択するまでundefined）
+        // マッチが必要なタイプでも、製品タイプ変更時はdepthを自動設定しない
+        // ユーザーが明示的に選択するまでundefinedのままにする
+        newDepth = undefined;
       } else if (bagTypeIdChanged && newBagTypeId === 'flat_3_side') {
         // 平袋に変更時はdepthを0に設定
         newDepth = 0;
