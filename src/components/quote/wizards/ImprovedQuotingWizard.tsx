@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState } from '@/contexts/QuoteContext';
+import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState, getSpecsValidationMessages } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
@@ -1597,7 +1597,13 @@ function PostProcessingStep() {
 
   const visibleGroups = state.bagTypeId === 'spout_pouch' || state.bagTypeId === 'roll_film'
     ? groups.filter(g => g.id === 'finish')
-    : groups.filter(g => showMachiPrinting || g.id !== 'machi-printing').map(group => {
+    : groups.filter(g => {
+        // 合掌袋・ガゼットパウチ: ジッパーと角加工を除外
+        if ((state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box') && (g.id === 'zipper' || g.id === 'corner')) {
+          return false;
+        }
+        return showMachiPrinting || g.id !== 'machi-printing';
+      }).map(group => {
         // 開封位置グループで、強制上端開封が必要な場合はオプションをフィルタリング
         if (forceTopOpen && group.id === 'opening') {
           return {
@@ -4624,6 +4630,14 @@ export function ImprovedQuotingWizard() {
     return null;
   };
 
+  // Get validation messages for specs step
+  const specsValidationErrors = useMemo(() => {
+    if (currentStepId === 'specs' && !canProceed) {
+      return getSpecsValidationMessages(state);
+    }
+    return [];
+  }, [currentStepId, canProceed, state]);
+
   const navigationBlockReason = getNavigationBlockReason();
 
   // Keyboard navigation
@@ -4784,6 +4798,29 @@ export function ImprovedQuotingWizard() {
               {currentStepId === 'result' && result && <ResultStep result={result} onReset={handleReset} onResultUpdate={setResult} />}
 
               {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
+              {/* Specs step validation errors */}
+              {specsValidationErrors.length > 0 && currentStepId === 'specs' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-800 mb-2">
+                        次の項目を入力してください：
+                      </p>
+                      <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
+                        {specsValidationErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {!canProceed && navigationBlockReason && currentStepId === 'sku-quantity' && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}

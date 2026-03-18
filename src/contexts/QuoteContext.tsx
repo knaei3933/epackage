@@ -1306,12 +1306,16 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
         'hang-hole': ['hang-hole-6mm', 'hang-hole-8mm', 'hang-hole-no'],
         corner: ['corner-round', 'corner-square'],
         valve: ['valve-yes', 'valve-no'],
-        opening: ['top-open', 'bottom-open']
+        opening: ['top-open', 'bottom-open'],
+        'machi-printing': ['machi-printing-no', 'machi-printing-yes']
       };
 
       // ロールフィルム/スパウトパウチの場合、finishグループのみ必須（他は不要）
+      // 合掌袋・ガゼットパウチの場合、ジッパーと角加工は不要
       const optionalGroups = (state.bagTypeId === 'roll_film' || state.bagTypeId === 'spout_pouch')
-        ? ['zipper', 'notch', 'hang-hole', 'corner', 'valve', 'opening']
+        ? ['zipper', 'notch', 'hang-hole', 'corner', 'valve', 'opening', 'machi-printing']
+        : (state.bagTypeId === 'lap_seal' || state.bagTypeId === 'box')
+        ? ['zipper', 'corner']  // 合掌袋・ガゼットパウチはジッパー・角加工不要
         : [];
 
       // 各グループから選択されているオプションをチェック
@@ -1380,6 +1384,92 @@ export function canAddPostProcessingOptionForState(state: QuoteState): boolean {
     canAdd
   });
   return canAdd;
+}
+
+/**
+ * Get validation error messages for specs step
+ * Returns an array of error messages describing what's missing
+ */
+export function getSpecsValidationMessages(state: QuoteState): string[] {
+  const errors: string[] = [];
+
+  // Check bag type
+  if (!state.bagTypeId) {
+    errors.push('パウチタイプを選択してください');
+  }
+
+  // Check material
+  if (!state.materialId) {
+    errors.push('素材を選択してください');
+  }
+
+  // Check width
+  if (!state.width || state.width < 70) {
+    errors.push('幅は70mm以上で入力してください');
+  }
+
+  // Check height
+  const requiresHeight = state.bagTypeId !== 'roll_film';
+  if (requiresHeight && (!state.height || state.height < 70 || state.height > 300)) {
+    errors.push('高さは70mm〜300mmで入力してください');
+  }
+
+  // Check thickness for materials that require it
+  const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al', 'ny_lldpe', 'kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
+  const requiresThickness = materialsWithThickness.includes(state.materialId);
+  if (requiresThickness && !state.thicknessSelection) {
+    errors.push('厚さを選択してください（この素材では厚さの指定が必須です）');
+  }
+
+  // Check depth for stand_up and gusset
+  const requiresDepth = state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset';
+  if (requiresDepth && (!state.depth || state.depth < 30)) {
+    errors.push('マチ（深さ）は30mm以上で入力してください');
+  }
+
+  // Check sideWidth for gusset and box
+  const requiresSideWidth = state.bagTypeId === 'gusset' || state.bagTypeId === 'box';
+  if (requiresSideWidth && (!state.sideWidth || state.sideWidth < 30)) {
+    errors.push('側面幅は30mm以上で入力してください');
+  }
+
+  // Check spout specs for spout_pouch
+  const requiresSpout = state.bagTypeId === 'spout_pouch';
+  if (requiresSpout) {
+    if (!state.spoutSize) {
+      errors.push('スパウトサイズを選択してください');
+    }
+    if (!state.spoutPosition) {
+      errors.push('スパウト位置を選択してください');
+    }
+  }
+
+  // Check pitch for roll_film
+  const isRollFilm = state.bagTypeId === 'roll_film';
+  if (isRollFilm && (!state.pitch || state.pitch < 50 || state.pitch > 1000)) {
+    errors.push('ピッチは50mm〜1000mmで入力してください');
+  }
+
+  // Check contents (내용물)
+  const hasProductCategory = !!state.productCategory;
+  const hasContentsType = !!state.contentsType;
+  const hasMainIngredient = !!state.mainIngredient;
+  const hasDistributionEnvironment = !!state.distributionEnvironment;
+
+  if (!hasProductCategory) {
+    errors.push('製品カテゴリーを選択してください');
+  }
+  if (!hasContentsType) {
+    errors.push('内容物の状態を選択してください');
+  }
+  if (!hasMainIngredient) {
+    errors.push('主成分を選択してください');
+  }
+  if (!hasDistributionEnvironment) {
+    errors.push('流通環境を選択してください');
+  }
+
+  return errors;
 }
 
 /**
@@ -1473,12 +1563,12 @@ function getFilmLayersForMaterial(
 }
 
 /**
- * Get film layer display text (e.g., "PET 12μm + AL 7μm + LLDPE 80μm")
+ * Get film layer display text (e.g., "PET 12m + AL 7m + LLDPE 80m")
  */
 function getFilmLayerDisplay(layers: FilmStructureLayer[]): string {
   return layers.map(layer => {
     const materialName = layer.materialId;
-    return `${materialName} ${layer.thickness}μm`;
+    return `${materialName} ${layer.thickness}m`;
   }).join(' + ');
 }
 
