@@ -1124,7 +1124,9 @@ function generateProductTypeSection(specs: QuoteData['specifications']): string 
         </div>
       `;
     case 'roll_film':
-      return `
+      // ロールフィルム仕様がある場合のみ表示
+      const hasRollFilmSpecs = specs.rollFilmSpecs?.materialWidth || specs.rollFilmSpecs?.pitch || specs.rollFilmSpecs?.totalLength || specs.rollFilmSpecs?.rollCount;
+      return hasRollFilmSpecs ? `
         <div class="roll-film-section">
           <h5>ロールフィルム仕様</h5>
           <table class="specs-table">
@@ -1150,7 +1152,7 @@ function generateProductTypeSection(specs: QuoteData['specifications']): string 
             </tr>` : ''}
           </table>
         </div>
-      `;
+      ` : ``,;
     case 'box':
       // For box pouch (ガゼットパウチ), display side width
       return `
@@ -1995,7 +1997,11 @@ function generateQuoteHTML(
           <td class="spec-label">マチ有無</td>
           <td>${specs.hasGusset}</td>
         </tr>` : ""}
-        ${specs.rollFilmSpecs ? `
+        ${(() => {
+          // ロールフィルム仕様がある場合のみ表示
+          const hasRollFilmSpecs = specs.rollFilmSpecs?.materialWidth || specs.rollFilmSpecs?.pitch || specs.rollFilmSpecs?.totalLength || specs.rollFilmSpecs?.rollCount;
+          if (!hasRollFilmSpecs) return '';
+          return `
         <tr>
           <td class="spec-label">原反幅</td>
           <td>${specs.rollFilmSpecs.materialWidth ? `${specs.rollFilmSpecs.materialWidth}mm` : '-'}</td>
@@ -2011,7 +2017,8 @@ function generateQuoteHTML(
         <tr>
           <td class="spec-label">ロール数</td>
           <td>${specs.rollFilmSpecs.rollCount ? `${specs.rollFilmSpecs.rollCount}本` : '-'}</td>
-        </tr>` : ''}
+        </tr>`;
+        })()}
       </table>
       ${!specs.bagType?.includes('スパウト') && !specs.bagType?.includes('spout') ? generateProductTypeSection(specs) : ''}
     </div>

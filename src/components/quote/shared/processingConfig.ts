@@ -129,7 +129,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.0, // デフォルト（追加費用なし）
     features: ['光沢効果', '高級感', '視覚的的魅力'],
     featuresJa: ['光沢効果', '高級感', '視覚的魅力'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'box', 'lap_seal'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'box', 'lap_seal', 'roll_film'],
     category: 'surface-treatment',
     processingTime: '+1-2 business days',
     processingTimeJa: '+1-2営業日',
@@ -156,7 +156,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     priceMultiplier: 1.0, // 固定（追加費用なし）
     features: ['무광 효과', '부드러운 질감', '글레어 방지'],
     featuresJa: ['マット効果', '滑らかな手触り', '指紋防止'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'box', 'lap_seal'],
+    compatibleWith: ['stand_up', 'flat_3_side', 'box', 'lap_seal', 'roll_film'],
     category: 'surface-treatment',
     processingTime: '+1-2 business days',
     processingTimeJa: '+1-2営業日',
@@ -892,6 +892,9 @@ export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] =>
   // スパウトパウチは表面処理のみ対応
   const isSpoutPouch = bagTypeId === 'spout_pouch';
 
+  // ロールフィルムは表面処理のみ対応
+  const isRollFilm = bagTypeId === 'roll_film';
+
   const allDefaults = [
     'zipper-yes',      // ジッパー付き
     'glossy',          // 光沢仕上げ
@@ -909,6 +912,13 @@ export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] =>
     const spoutDefaults = ['glossy'];
     console.log('[getDefaultPostProcessingOptions] bagTypeId:', bagTypeId, 'isSpoutPouch:', true, 'Returning defaults:', spoutDefaults);
     return spoutDefaults;
+  }
+
+  // ロールフィルム: 表面処理のみ
+  if (isRollFilm) {
+    const rollFilmDefaults = ['glossy'];
+    console.log('[getDefaultPostProcessingOptions] bagTypeId:', bagTypeId, 'isRollFilm:', true, 'Returning defaults:', rollFilmDefaults);
+    return rollFilmDefaults;
   }
 
   // 合掌袋・ガゼットパウチ: ジッパーと角加工を除外
