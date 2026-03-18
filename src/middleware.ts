@@ -98,6 +98,8 @@ const PUBLIC_ROUTES = [
   '/designer/login', // Phase 3: Designer login page (public)
   '/upload', // Phase 4: Token-based designer upload (public, no auth required)
   '/designer-order', // Phase 5: Token-based designer order access (no auth required)
+  '/sitemap.xml', // SEO: Search engine sitemap access
+  '/robots.txt', // SEO: Crawler instructions access
 ];
 
 // =====================================================
@@ -972,7 +974,13 @@ function addSecurityHeaders(response: NextResponse, pathname?: string) {
       isDev
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com"
         : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
+      // script-src-elem for external script files (_next/static/chunks/*)
+      isDev
+        ? "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com"
+        : "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://js.sendgrid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
       isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'",
+      // style-src-elem for external stylesheet files (_next/static/chunks/*)
+      "style-src-elem 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob: https://www.google.com https://www.google.co.jp https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.g.doubleclick.net",
       "font-src 'self' data: blob:",
       // Complete Google connectivity for GTM, GA4, and Google Ads
