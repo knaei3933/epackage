@@ -41,6 +41,14 @@ export const GUSSET_SIZES_BY_WIDTH: Record<number, number[]> = {
 };
 
 /**
+ * 全マチサイズ選択肢（ドロップダウン用）
+ * docs/밑지.mdで定義されている全マチサイズ（昇順）
+ */
+export const ALL_GUSSET_SIZE_OPTIONS = [
+  25, 30, 35, 37.5, 40, 42.5, 45, 50, 55, 60, 62.5, 70, 75
+];
+
+/**
  * 利用可能な幅のリスト（昇順）
  */
 export const AVAILABLE_WIDTHS = Object.keys(GUSSET_SIZES_BY_WIDTH)

@@ -21,7 +21,7 @@ import {
   getThicknessLabel,
   getWeightRange
 } from '@/constants/materialTypes';
-import { getAvailableGussetSizes } from '@/lib/gusset-data';
+import { getAvailableGussetSizes, ALL_GUSSET_SIZE_OPTIONS } from '@/lib/gusset-data';
 import {
   ChevronRight,
   ChevronLeft,
@@ -175,6 +175,14 @@ function SpecsStep() {
     if (!width || width < 70) return [];
     return getAvailableGussetSizes(width);
   }, [state.width]);
+
+  // スタンドパウチが選択されたときに、深さのデフォルト値を自動設定
+  useEffect(() => {
+    if (shouldShowGusset() && !state.depth) {
+      const defaultDepth = availableGussetSizes.length > 0 ? availableGussetSizes[0] : 30;
+      updateBasicSpecs({ depth: defaultDepth });
+    }
+  }, [state.bagTypeId, state.width, availableGussetSizes]);
 
   // バリデーション: 高さ、幅、深さ、バッグタイプが変更されたときに実行
   useEffect(() => {
@@ -1200,34 +1208,25 @@ function SpecsStep() {
                 {state.bagTypeId === 'spout_pouch' && state.hasGusset && (
                   <div>
                     <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
-                    {(() => {
-                      const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
-                      return hasValidGusset ? (
-                        <select
-                          value={state.depth ?? availableGussetSizes[0]}
-                          onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
-                          className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
-                        >
-                          {availableGussetSizes.map((size) => (
-                            <option key={size} value={size}>
-                              {size}mm
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type="number"
-                          min="0"
-                          value={state.depth ?? ''}
-                          onChange={(e) => updateBasicSpecs({ depth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                          className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                          placeholder="0"
-                        />
-                      );
-                    })()}
-                    {state.width && state.width >= 70 && availableGussetSizes.length > 0 && (
+                    <select
+                      value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
+                      onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                    >
+                      {(state.width && availableGussetSizes.length > 0 ? availableGussetSizes : ALL_GUSSET_SIZE_OPTIONS).map((size) => (
+                        <option key={size} value={size}>
+                          {size}mm
+                        </option>
+                      ))}
+                    </select>
+                    {state.width && availableGussetSizes.length > 0 && (
                       <p className="mt-1 text-xs text-gray-400">
                         幅{state.width}mmで選択可能なマチサイズ
+                      </p>
+                    )}
+                    {!state.width && (
+                      <p className="mt-1 text-xs text-gray-400">
+                        まず幅を入力してください
                       </p>
                     )}
                   </div>
@@ -1290,34 +1289,25 @@ function SpecsStep() {
               {shouldShowGusset() && state.bagTypeId !== 'roll_film' && (
                 <div>
                   <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
-                  {(() => {
-                    const hasValidGusset = state.width && state.width >= 70 && availableGussetSizes.length > 0;
-                    return hasValidGusset ? (
-                      <select
-                        value={state.depth ?? availableGussetSizes[0]}
-                        onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
-                      >
-                        {availableGussetSizes.map((size) => (
-                          <option key={size} value={size}>
-                            {size}mm
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="number"
-                        min="0"
-                        value={state.depth ?? ''}
-                        onChange={(e) => updateBasicSpecs({ depth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                        placeholder="0"
-                      />
-                    );
-                  })()}
-                  {state.width && state.width >= 70 && availableGussetSizes.length > 0 && (
+                  <select
+                    value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
+                    onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
+                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                  >
+                    {(state.width && availableGussetSizes.length > 0 ? availableGussetSizes : ALL_GUSSET_SIZE_OPTIONS).map((size) => (
+                      <option key={size} value={size}>
+                        {size}mm
+                      </option>
+                    ))}
+                  </select>
+                  {state.width && availableGussetSizes.length > 0 && (
                     <p className="mt-1 text-xs text-gray-400">
                       幅{state.width}mmで選択可能なマチサイズ
+                    </p>
+                  )}
+                  {!state.width && (
+                    <p className="mt-1 text-xs text-gray-400">
+                      まず幅を入力してください
                     </p>
                   )}
                 </div>
@@ -2752,6 +2742,9 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         contentsValue = typeLabel;
       }
 
+      // スパウトパウチ判定
+      const isSpoutPouch = state.bagTypeId === 'spout_pouch';
+
       const specifications = {
         bagType: getBagTypeLabel(state.bagTypeId),
         contents: contentsValue,
@@ -2759,27 +2752,29 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         material: MATERIAL_TYPE_LABELS_JA[state.materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || getMaterialLabel(state.materialId),
         sealWidth: state.sealWidth ? `シール幅 ${state.sealWidth}` : 'シール幅 5mm',
         sealDirection: '上',
-        notchShape: 'V',
-        notchPosition: '指定位置',
-        hanging: 'なし',
-        hangingPosition: '指定位置',
-        zipperPosition: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
-        cornerR: 'R5',
+        // スパウトパウチの場合は'-'、それ以外はデフォルト値
+        notchShape: isSpoutPouch ? '-' : 'V',
+        notchPosition: isSpoutPouch ? '-' : '指定位置',
+        hanging: isSpoutPouch ? '-' : 'なし',
+        hangingPosition: isSpoutPouch ? '-' : '指定位置',
+        zipperPosition: isSpoutPouch ? '-' : state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
+        cornerR: isSpoutPouch ? '-' : 'R5',
         // ロールフィルム用: ピッチを追加
         ...(state.bagTypeId === 'roll_film' && { pitch: state.pitch }),
       };
 
       // Build optional processing
+      // スパウトパウチの場合、互換性のないオプションを除外
       const optionalProcessing = {
-        zipper: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
-        notch: state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
-        // 吊り下げ穴: hang-hole-6mm または hang-hole-8mm をチェック
-        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hang-hole')),
-        cornerProcessing: state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
+        zipper: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
+        notch: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
+        // 吊り下げ穴: スパウトパウチの場合はfalse
+        hangingHole: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('hang-hole')),
+        cornerProcessing: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
         gasValve: state.postProcessingOptions.some((opt: string) => opt.includes('valve') || opt.includes('gas')),
         easyCut: state.postProcessingOptions.some((opt: string) => opt.includes('easy') || opt.includes('cut')),
         dieCut: state.postProcessingOptions.some((opt: string) => opt.includes('die')),
-        // 表面仕上げ: マットが優先、次いで光沢
+        // 表面仕上げ: マットが優先、次いで光沢（スパウトパウチでも使用可能）
         surfaceFinish: state.postProcessingOptions.includes('matte') ? 'マット' as const :
                        state.postProcessingOptions.includes('glossy') ? '光沢' as const : undefined,
       };
@@ -3356,6 +3351,9 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         contentsValue = typeLabel;
       }
 
+      // スパウトパウチの場合、互換性のない後加工オプションを除外
+      const isSpoutPouch = state.bagTypeId === 'spout_pouch';
+
       const specifications = {
         bagType: getBagTypeLabel(state.bagTypeId),
         contents: contentsValue,
@@ -3364,19 +3362,25 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         thicknessType: state.thicknessSelection ? getFilmStructureSpec(state.materialId, state.thicknessSelection) : '指定なし',
         sealWidth: state.sealWidth ? `シール幅 ${state.sealWidth}` : 'シール幅 5mm',
         sealDirection: '上',
-        // ノッチ形状: state.postProcessingOptionsから抽出
-        notchShape: state.postProcessingOptions.includes('notch-yes') ? 'V' :
+        // ノッチ形状: スパウトパウチの場合は'-'、それ以外はstate.postProcessingOptionsから抽出
+        notchShape: isSpoutPouch ? '-' :
+                    state.postProcessingOptions.includes('notch-yes') ? 'V' :
                     state.postProcessingOptions.includes('notch-straight') ? '直線' :
                     state.postProcessingOptions.includes('notch-no') ? 'なし' : 'V',
-        notchPosition: (state.postProcessingOptions.includes('notch-yes') || state.postProcessingOptions.includes('notch-straight')) ? '指定位置' : 'なし',
-        // 吊り下げ穴: state.postProcessingOptionsから抽出
-        hanging: (state.postProcessingOptions.includes('hang-hole-6mm') || state.postProcessingOptions.includes('hang-hole-8mm')) ? 'あり' : 'なし',
-        hangingPosition: state.postProcessingOptions.includes('hang-hole-6mm') ? '6mm' :
+        notchPosition: isSpoutPouch ? '-' :
+                      (state.postProcessingOptions.includes('notch-yes') || state.postProcessingOptions.includes('notch-straight')) ? '指定位置' : 'なし',
+        // 吊り下げ穴: スパウトパウチの場合は'-'、それ以外はstate.postProcessingOptionsから抽出
+        hanging: isSpoutPouch ? '-' :
+                 (state.postProcessingOptions.includes('hang-hole-6mm') || state.postProcessingOptions.includes('hang-hole-8mm')) ? 'あり' : 'なし',
+        hangingPosition: isSpoutPouch ? '-' :
+                        state.postProcessingOptions.includes('hang-hole-6mm') ? '6mm' :
                         state.postProcessingOptions.includes('hang-hole-8mm') ? '8mm' : '指定位置',
-        zipperPosition: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
-        // 角加工: state.postProcessingOptionsから抽出
-        cornerR: state.postProcessingOptions.includes('corner-round') ? 'R5' :
-                 state.postProcessingOptions.includes('corner-square') ? 'R0' : 'R5',
+        zipperPosition: isSpoutPouch ? '-' :
+                       state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
+        // 角加工: スパウトパウチの場合は'-'、それ以外はstate.postProcessingOptionsから抽出
+        cornerR: isSpoutPouch ? '-' :
+                state.postProcessingOptions.includes('corner-round') ? 'R5' :
+                state.postProcessingOptions.includes('corner-square') ? 'R0' : 'R5',
         // マチ印刷（スタンドパウチ、合掌パウチ、ガゼットパウチのみ）
         machiPrinting: (state.bagTypeId === 'stand_up' ||
                         state.bagTypeId === 'lap_seal' ||
@@ -3412,16 +3416,17 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       console.log('[ImprovedQuotingWizard] specifications.machiPrinting:', specifications.machiPrinting);
 
       // Build optional processing
+      // スパウトパウチの場合、互換性のないオプションを除外
       const optionalProcessing = {
-        zipper: state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
-        notch: state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
-        // 吊り下げ穴: hang-hole-6mm または hang-hole-8mm をチェック
-        hangingHole: state.postProcessingOptions.some((opt: string) => opt.includes('hang-hole')),
-        cornerProcessing: state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
+        zipper: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('zipper') || opt.includes('zip')),
+        notch: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('notch')),
+        // 吊り下げ穴: スパウトパウチの場合はfalse
+        hangingHole: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('hang-hole')),
+        cornerProcessing: isSpoutPouch ? false : state.postProcessingOptions.some((opt: string) => opt.includes('corner')),
         gasValve: state.postProcessingOptions.some((opt: string) => opt.includes('valve') || opt.includes('gas')),
         easyCut: state.postProcessingOptions.some((opt: string) => opt.includes('easy') || opt.includes('cut')),
         dieCut: state.postProcessingOptions.some((opt: string) => opt.includes('die')),
-        // 表面仕上げ: マットが優先、次いで光沢
+        // 表面仕上げ: マットが優先、次いで光沢（スパウトパウチでも使用可能）
         surfaceFinish: state.postProcessingOptions.includes('matte') ? 'マット' as const :
                        state.postProcessingOptions.includes('glossy') ? '光沢' as const : undefined,
       };

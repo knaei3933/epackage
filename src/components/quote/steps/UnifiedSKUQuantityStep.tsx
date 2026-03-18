@@ -935,6 +935,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   const calculateFilmUsage = (skuIndex: number): number => {
     const quantity = quoteState.skuQuantities[skuIndex] || 0;
     const width = quoteState.width || 0;
+    const height = quoteState.height || 0;
     const pouchType = quoteState.bagTypeId || '';
 
     // ロールフィルムの場合は、フィルム使用量 = 数量（メートル）
@@ -942,9 +943,22 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       return quantity;
     }
 
-    // パウチのピッチ（幅）を使用した正しい計算
-    // ピッチ = パウチ幅 (mm)
-    const pitch = width;
+    // ガイド 04-미터수_및_원가_계산.md 基準ピッチ決定（2026-03-07訂正版）
+    // 横向き印刷（平袋/スタンド/スパウト）: ピッチ = W(幅)
+    // 展開図基準（合掌袋T封/ガゼットM封）: ピッチ = H(高さ)
+    let pitch: number;
+
+    if (pouchType.includes('m_shape') || pouchType.includes('box')) {
+      // ガゼットパウチ（M封）: ピッチ = H（高さ）
+      pitch = height;
+    } else if (pouchType.includes('t_shape') || pouchType.includes('center_seal')) {
+      // 合掌袋（T封）: ピッチ = H（高さ）
+      pitch = height;
+    } else {
+      // 平袋、スタンドパウチ、スパウトパウチ: ピッチ = W（幅）
+      pitch = width;
+    }
+
     const pouchesPerMeter = 1000 / pitch; // 1m当たりの個数
 
     // 理論メートル数 = 数量 ÷ (1m当たりの個数)
@@ -979,15 +993,22 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       const width = quoteState.width || 0;
       let pitch: number;
 
-      if (quoteState.bagTypeId?.includes('flat_3_side') ||
-          quoteState.bagTypeId?.includes('three_side') ||
-          quoteState.bagTypeId?.includes('zipper')) {
-        pitch = quoteState.height || quoteState.depth || 0;
-      } else if (quoteState.bagTypeId?.includes('m_shape') ||
-                 quoteState.bagTypeId?.includes('box')) {
-        const depth = quoteState.depth || 0;
-        pitch = depth + width;
+      // ガイド 04-미터수_및_원가_계산.md 基準ピッチ決定（2026-03-07訂正版）
+      // 横向き印刷（平袋/スタンド/スパウト）: ピッチ = W(幅)
+      // 展開図基準（合掌袋T封/ガゼットM封）: ピッチ = H(高さ)
+      if (quoteState.bagTypeId?.includes('m_shape') ||
+          quoteState.bagTypeId?.includes('box')) {
+        // ガゼットパウチ（M封）: ピッチ = H（高さ）
+        // 展開図基準で生産するため、縦方向が進行方向
+        pitch = quoteState.height || 0;
+      } else if (quoteState.bagTypeId?.includes('t_shape') ||
+                 quoteState.bagTypeId?.includes('center_seal')) {
+        // 合掌袋（T封）: ピッチ = H（高さ）
+        // 展開図基準で生産するため、縦方向が進行方向
+        pitch = quoteState.height || 0;
       } else {
+        // 平袋、スタンドパウチ、スパウトパウチ: ピッチ = W（幅）
+        // 横向き印刷、横方向が進行方向
         pitch = width;
       }
 

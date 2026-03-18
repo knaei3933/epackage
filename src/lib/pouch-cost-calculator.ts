@@ -238,7 +238,19 @@ export interface SKUSplitOption {
 // 定数定義
 // ========================================
 
-const FIXED_LOSS_METERS = 400; // ロス固定400m
+/**
+ * 材料に基づくロス量を計算
+ * ALまたはクラフト材料を含む場合は400m、その他は300m
+ */
+function getLossMeters(layers: FilmStructureLayer[]): number {
+  const hasAL = layers.some(layer => layer.materialId === 'AL');
+  const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
+
+  if (hasAL || hasKraft) {
+    return 400; // ALまたはクラフト材料の場合は400m
+  }
+  return 300; // その他材料の場合は300m
+}
 
 // ========================================
 // SKU原価計算クラス
@@ -489,16 +501,17 @@ export class PouchCostCalculator {
     // 全体フィルム使用量（ロス込み）
     // Kraft材料: 最低1000mで価格計算（ユーザーが少量注文しても1000m分の価格）
     const isKraftMaterial = materialId?.includes('kraft');
+    const lossMeters = getLossMeters(filmLayers);
     const totalWithLossMeters = isKraftMaterial
-      ? Math.max(totalSecuredMeters + FIXED_LOSS_METERS, 1000)
-      : totalSecuredMeters + FIXED_LOSS_METERS;
+      ? Math.max(totalSecuredMeters + lossMeters, 1000)
+      : totalSecuredMeters + lossMeters;
 
     console.log('[calculateSKUCost] Total Film Calculation:', {
       totalSecuredMeters,
-      lossMeters: FIXED_LOSS_METERS,
+      lossMeters,
       totalWithLossMeters,
       isKraftMaterial,
-      kraftMinimumApplied: isKraftMaterial && totalSecuredMeters + FIXED_LOSS_METERS < 1000,
+      kraftMinimumApplied: isKraftMaterial && totalSecuredMeters + lossMeters < 1000,
       note: isKraftMaterial ? 'Kraft材料: 最低1000m適用' : '全量を一度に印刷・加工するため、個別計算ではなく合計で計算'
     });
 
@@ -658,8 +671,7 @@ export class PouchCostCalculator {
     const totalCostJPY = updatedCostPerSKU.reduce((sum, sku) => sum + sku.costJPY, 0);
 
     // 📝 注意: totalSecuredMeters と totalWithLossMeters は既にファイル前方（line 256, 259）で計算済み
-    // ロスは400m固定（SKU数に関わらず）
-    const lossMeters = FIXED_LOSS_METERS;
+    // lossMetersは行504で既に計算済み（材料別ロス計算）
 
     const summary = {
       totalSecuredMeters,
@@ -707,8 +719,9 @@ export class PouchCostCalculator {
 
     // 3. 各SKUのフィルム原価計算用メートル数（ロス込み）
     // ドキュメント仕様: 各SKUは自分の確保量 + 分配されたロス分を使用
-    // 例: 2SKUの場合、各SKUは (自分の確保量 + 200m) を使用
-    const totalMetersForCost = securedMeters + (FIXED_LOSS_METERS / skuCount);
+    // 例: 2SKUの場合、各SKUは (自分の確保量 + 分配ロス) を使用
+    const lossMeters = getLossMeters(filmLayers || []);
+    const totalMetersForCost = securedMeters + (lossMeters / skuCount);
 
     // 4. 集計用メートル数（ロスなし）
     const totalMeters = securedMeters;
@@ -846,20 +859,22 @@ export class PouchCostCalculator {
     pouchType: string,
     columnCount: number = 1
   ): number {
-    // ガイド 04-미터수_및_원가_계산.md 基準ピッチ決定
-    // 平袋/三方シール: H(高さ) - シナリオドキュメント確認済み
-    // スタンド/スパウト: W(幅)
-    // 合掌袋(T型): W(幅)
-    // ボックス/M型: G(マチ) + W(幅)
+    // ガイド 04-미터수_및_원가_계산.md 基準ピッチ決定（2026-03-07訂正版）
+    // 横向き印刷（平袋/スタンド/スパウト）: ピッチ = W(幅)
+    // 展開図基準（合掌袋T封/ガゼットM封）: ピッチ = H(高さ)
     let pitch: number;
-    if (pouchType.includes('flat_3_side') || pouchType.includes('three_side') || pouchType.includes('zipper')) {
-      // 平袋/三方シール袋: ピッチ = 高さ
-      // シナリオ確認: 80×120mm平袋、1m당 8.33개 = ピッチ 120mm
+
+    if (pouchType.includes('m_shape') || pouchType.includes('box')) {
+      // ガゼットパウチ（M封）: ピッチ = H（高さ）
+      // 展開図基準で生産するため、縦方向が進行方向
       pitch = dimensions.height;
-    } else if (pouchType.includes('m_shape') || pouchType.includes('box')) {
-      pitch = (dimensions.depth || 0) + dimensions.width;
+    } else if (pouchType.includes('t_shape') || pouchType.includes('center_seal')) {
+      // 合掌袋（T封）: ピッチ = H（高さ）
+      // 展開図基準で生産するため、縦方向が進行方向
+      pitch = dimensions.height;
     } else {
-      // スタンドパウチ、スパウトパウチ、合掌袋など: ピッチ = 幅
+      // 平袋、スタンドパウチ、スパウトパウチ: ピッチ = W（幅）
+      // 横向き印刷、横方向が進行方向
       pitch = dimensions.width;
     }
 
@@ -1920,9 +1935,10 @@ export class PouchCostCalculator {
     dimensions: PouchDimensions,
     currentQuantity: number
   ): boolean {
-    // ロールフィルム、合掌袋、ボックス型パウチには2列生産を適用しない
-    // （これらは既存の並列生産オプションで対応）
+    // ロールフィルム、合掌袋、ボックス型パウチ、スパウトパウチには2列生産を適用しない
+    // （これらは既存の並列生産オプションで対応、または構造的に2列生産が不可能）
     if (pouchType === 'roll_film' ||
+        pouchType === 'spout_pouch' ||
         pouchType.includes('t_shape') ||
         pouchType.includes('m_shape') ||
         pouchType.includes('box')) {

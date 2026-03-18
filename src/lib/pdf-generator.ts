@@ -667,20 +667,29 @@ export function convertNumberToJapaneseKanji(amount: number): string {
 
 /**
  * Check if zipper is incompatible with bag type
- * 合掌袋、ガゼットパウチはジッパー非対応
+ * 合掌袋、ガゼットパウチ、スパウトパウチはジッパー非対応
  */
 function isZipperIncompatible(bagType: string): boolean {
-  const incompatibleTypes = ['box', 'lap_seal', '合掌袋', 'ガゼットパウチ', 'ボックス袋'];
+  const incompatibleTypes = ['box', 'lap_seal', 'spout_pouch', 'spout', '合掌袋', 'ガゼットパウチ', 'ボックス袋', 'スパウトパウチ'];
   return incompatibleTypes.some(type => bagType?.includes(type));
 }
 
 /**
  * Check if corner processing is incompatible with bag type
- * 合掌袋、ガゼットパウチは角加工非対応
+ * 合掌袋、ガゼットパウチ、スパウトパウチは角加工非対応
  */
 function isCornerIncompatible(bagType: string): boolean {
-  const incompatibleTypes = ['box', 'lap_seal', '合掌袋', 'ガゼットパウチ', 'ボックス袋'];
+  const incompatibleTypes = ['box', 'lap_seal', 'spout_pouch', 'spout', '合掌袋', 'ガゼットパウチ', 'ボックス袋', 'スパウトパウチ'];
   return incompatibleTypes.some(type => bagType?.includes(type));
+}
+
+/**
+ * Check if option is incompatible for spout pouch
+ * スパウトパウチで選択できないオプションをチェック
+ */
+function isSpoutPouchIncompatible(bagType: string): boolean {
+  const spoutTypes = ['spout_pouch', 'spout', 'スパウトパウチ'];
+  return spoutTypes.some(type => bagType?.includes(type));
 }
 
 /**
@@ -1937,37 +1946,39 @@ function generateQuoteHTML(
           <td class="spec-label">角加工</td>
           <td>-</td>
         </tr>` : `
+        ${!isSpoutPouchIncompatible(specs.bagType) ? `
         <tr>
           <td class="spec-label">シール幅</td>
           <td>${specs.sealWidth || '指定なし'}</td>
-        </tr>${(specs.machiPrinting && specs.machiPrinting !== 'なし') ? `<tr><td class="spec-label">マチ印刷</td><td>${specs.machiPrinting}</td></tr>` : ''}
+        </tr>` : ''}
+        ${(specs.machiPrinting && specs.machiPrinting !== 'なし' && !isSpoutPouchIncompatible(specs.bagType)) ? `<tr><td class="spec-label">マチ印刷</td><td>${specs.machiPrinting}</td></tr>` : ''}
         <tr>
           <td class="spec-label">封入方向</td>
           <td>${specs.sealDirection || '指定なし'}</td>
         </tr>
         <tr>
           <td class="spec-label">ノッチ形状</td>
-          <td>${specs.notchShape || '-'}</td>
+          <td>${isSpoutPouchIncompatible(specs.bagType) ? '-' : (specs.notchShape || '-')}</td>
         </tr>
         <tr>
           <td class="spec-label">ノッチ位置</td>
-          <td>${specs.notchPosition || '-'}</td>
+          <td>${isSpoutPouchIncompatible(specs.bagType) ? '-' : (specs.notchPosition || '-')}</td>
         </tr>
         <tr>
           <td class="spec-label">吊り下げ加工</td>
-          <td>${specs.hanging || 'なし'}</td>
+          <td>${isSpoutPouchIncompatible(specs.bagType) ? '-' : (specs.hanging || 'なし')}</td>
         </tr>
         <tr>
           <td class="spec-label">吊り下げ位置</td>
-          <td>${specs.hangingPosition || '-'}</td>
+          <td>${isSpoutPouchIncompatible(specs.bagType) ? '-' : (specs.hangingPosition || '-')}</td>
         </tr>
         <tr>
           <td class="spec-label">チャック位置</td>
-          <td>${isZipperIncompatible(specs.bagType) ? '適用不可' : (specs.zipperPosition || '-')}</td>
+          <td>${isZipperIncompatible(specs.bagType) ? '-' : (specs.zipperPosition || '-')}</td>
         </tr>
         <tr>
           <td class="spec-label">角加工</td>
-          <td>${isCornerIncompatible(specs.bagType) ? '適用不可' : (specs.cornerR || '-')}</td>
+          <td>${isCornerIncompatible(specs.bagType) ? '-' : (specs.cornerR || '-')}</td>
         </tr>`}
         ${specs.spoutPosition ? `
         <tr>
@@ -2002,8 +2013,11 @@ function generateQuoteHTML(
           <td>${specs.rollFilmSpecs.rollCount ? `${specs.rollFilmSpecs.rollCount}本` : '-'}</td>
         </tr>` : ''}
       </table>
-      ${generateProductTypeSection(specs)}
+      ${!specs.bagType?.includes('スパウト') && !specs.bagType?.includes('spout') ? generateProductTypeSection(specs) : ''}
     </div>
+
+    <!-- Note: For spout_pouch, we skip the product-type-specific section since
+         the main specs table already shows spoutSize, spoutPosition, and hasGusset -->
 
     <!-- Right: Amount Table -->
     <div class="column-half">

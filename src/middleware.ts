@@ -52,6 +52,7 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/chat', // Chatbot API - public customer support chat (LM Studio via Cloudflare Tunnel)
   '/api/health', // Health check API - public LM Studio availability check
   '/api/test-knowledge', // Test API for knowledge base debugging
+  '/api/pricing/settings', // Public pricing settings API for quotation calculation
 ];
 
 // =====================================================
@@ -977,6 +978,8 @@ function addSecurityHeaders(response: NextResponse, pathname?: string) {
       // Complete Google connectivity for GTM, GA4, and Google Ads
       "connect-src 'self' blob: https://api.sendgrid.com https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.jp https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.g.doubleclick.net",
       "frame-src 'self' https://www.googletagmanager.com",
+      // manifest-src for site.webmanifest
+      "manifest-src 'self'",
       // form-actionを'self'に制限してCSRF防御
       "form-action 'self'",
       // base-uriも制限

@@ -889,6 +889,9 @@ export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] =>
   // 合掌袋・ガゼットパウチはジッパー・角加工非対応
   const isExcludedZipperCorner = bagTypeId === 'lap_seal' || bagTypeId === 'box';
 
+  // スパウトパウチは表面処理のみ対応
+  const isSpoutPouch = bagTypeId === 'spout_pouch';
+
   const allDefaults = [
     'zipper-yes',      // ジッパー付き
     'glossy',          // 光沢仕上げ
@@ -900,6 +903,13 @@ export const getDefaultPostProcessingOptions = (bagTypeId?: string): string[] =>
     // 'sealing-width-5mm', // シール幅は自動選択しない（別途制御）
     'machi-printing-no' // マチ印刷なし
   ];
+
+  // スパウトパウチ: 表面処理のみ
+  if (isSpoutPouch) {
+    const spoutDefaults = ['glossy'];
+    console.log('[getDefaultPostProcessingOptions] bagTypeId:', bagTypeId, 'isSpoutPouch:', true, 'Returning defaults:', spoutDefaults);
+    return spoutDefaults;
+  }
 
   // 合掌袋・ガゼットパウチ: ジッパーと角加工を除外
   let defaults = allDefaults;

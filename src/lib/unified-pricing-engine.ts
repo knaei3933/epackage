@@ -1936,8 +1936,14 @@ export class UnifiedPricingEngine {
       // 厚さ選択による調整
       const adjustedLayers = this.adjustLayersForThickness(layers, rollFilmParams?.thicknessSelection);
 
-      // ロス를 포함한 총 길이 (400m 고정 ロス)
-      const totalMeters = lengthInMeters + 400;
+      // 材料別ロス量計算（ロールフィルム）
+      const getLossMeters = (layers: typeof adjustedLayers): number => {
+        const hasAL = layers.some(layer => layer.materialId === 'AL');
+        const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
+        return (hasAL || hasKraft) ? 400 : 300;
+      };
+      const lossMeters = getLossMeters(adjustedLayers);
+      const totalMeters = lengthInMeters + lossMeters;
 
       // === ラミネートコスト計算 ===
       // ラミネート費(ウォン) = フィルム幅(m) × 使用メートル数 × ラミ単価 × ラミ回数
@@ -2014,7 +2020,7 @@ export class UnifiedPricingEngine {
         materialCostJPY,
         lengthInMeters,
         totalMeters,
-        lossMeters: 400,
+        lossMeters,
         breakdown: await Promise.all(adjustedLayers.map(async (layer) => {
           // DB設定から素材価格と密度を取得（console.log用）
           const defaultMaterialInfo = UnifiedPricingEngine.MATERIAL_PRICES_KRW[layer.materialId];
@@ -2123,8 +2129,15 @@ export class UnifiedPricingEngine {
     // 修正：印刷費は幅無関係、常に475元/mで計算（ドキュメント基準）
     // docs/reports/calcultae/04-미터수_및_원가_계산.md 参照
     if (rollFilmParams?.lengthInMeters && rollFilmParams?.filmWidthM) {
-      // 総メートル数 = 使用メートル数 + ロス(400m)
-      const totalMeters = rollFilmParams.lengthInMeters + 400;
+      // 材料別ロス量計算（ロールフィルム印刷）
+      const getLossMeters = (layers?: FilmStructureLayer[]): number => {
+        if (!layers || layers.length === 0) return 400; // デフォルト
+        const hasAL = layers.some(layer => layer.materialId === 'AL');
+        const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
+        return (hasAL || hasKraft) ? 400 : 300;
+      };
+      const lossMeters = getLossMeters(rollFilmParams.filmLayers);
+      const totalMeters = rollFilmParams.lengthInMeters + lossMeters;
 
       // ロールフィルム印刷費は幅無関係、常に475元/mで計算
       // ドキュメント基準：docs/reports/calcultae/04-미터수_및_원가_계산.md
@@ -2145,7 +2158,7 @@ export class UnifiedPricingEngine {
         filmWidthM: rollFilmParams.filmWidthM,
         lengthInMeters: rollFilmParams.lengthInMeters,
         totalMeters,
-        lossMeters: 400,
+        lossMeters,
         perColorPerMeter: rollFilmPrintingCostPerM, // DB設定から取得
         note: 'ロールフィルム印刷費は幅無関係、常に475元/m',
         printingCostKRW,
