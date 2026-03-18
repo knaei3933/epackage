@@ -93,7 +93,7 @@ export async function POST(
 
     // Get quotation details for filename
     const { data: quotation, error: quoteError } = await serviceClient
-      .from('quotation')
+      .from('quotations')
       .select('quotation_number, user_id')
       .eq('id', quotationId)
       .single();
@@ -142,7 +142,7 @@ export async function POST(
 
     // Update quotation with pdf_url
     const { error: updateError } = await serviceClient
-      .from('quotation')
+      .from('quotations')
       .update({ pdf_url: pdfUrl })
       .eq('id', quotationId);
 
