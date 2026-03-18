@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Package
 } from 'lucide-react'
+import { processingOptionsConfig } from '../../shared/processingConfig'
 
 interface PostProcessingOption {
   id: string
@@ -34,212 +35,19 @@ interface PostProcessingOption {
   compatibleWith: string[]
 }
 
-const postProcessingOptions: PostProcessingOption[] = [
-  {
-    id: 'zipper-yes',
-    name: 'With Zipper',
-    nameJa: 'ジッパー付き',
-    description: 'Resealable zipper for multiple uses',
-    descriptionJa: '再利用可能なジッパー付き',
-    image: '/images/post-processing/1.ジッパーあり.png',
-    priceMultiplier: 1.15,
-    features: ['Resealable', 'Freshness preservation', 'Consumer friendly'],
-    featuresJa: ['再封可能', '鮮度保持', '消費者に優しい'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'zipper-no',
-    name: 'Without Zipper',
-    nameJa: 'ジッパーなし',
-    description: 'Standard sealed top for single use',
-    descriptionJa: '一回使用のシールトップ',
-    image: '/images/post-processing/1.ジッパーなし.png',
-    priceMultiplier: 1.00,
-    features: ['Simple seal', 'Cost effective', 'Secure closure'],
-    featuresJa: ['シンプルなシール', 'コスト効率', '安全な閉鎖'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'zipper-position-any',
-    name: 'Zipper Position: Any',
-    nameJa: 'ジッパー位置: お任せ',
-    description: 'Manufacturer determines optimal zipper placement',
-    descriptionJa: 'メーカーが最適なジッパー位置を決定',
-    image: '/images/post-processing/1.ジッパーあり.png',
-    priceMultiplier: 1.15,
-    features: ['Optimal placement', 'Cost efficient', 'Professional decision'],
-    featuresJa: ['最適な配置', 'コスト効率', 'プロの判断'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'zipper-position-specified',
-    name: 'Zipper Position: Specified',
-    nameJa: 'ジッパー位置: 指定',
-    description: 'Customer specifies exact zipper position',
-    descriptionJa: 'お客様がジッパーの正確な位置を指定',
-    image: '/images/post-processing/1.ジッパーあり.png',
-    priceMultiplier: 1.18,
-    features: ['Custom placement', 'Customer control', 'Precise positioning'],
-    featuresJa: ['カスタム配置', '顧客コントロール', '正確な位置決め'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'glossy',
-    name: 'Glossy Finish',
-    nameJa: '光沢仕上げ',
-    description: 'High-gloss premium finish',
-    descriptionJa: '高光沢のプレミアム仕上げ',
-    image: '/images/post-processing/2.光沢.png',
-    priceMultiplier: 1.08,
-    features: ['Premium look', 'Vibrant colors', 'Professional appearance'],
-    featuresJa: ['プレミアム外観', '鮮やかな色彩', 'プロフェッショナルな見た目'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'matte',
-    name: 'Matte Finish',
-    nameJa: 'マット仕上げ',
-    description: 'Elegant non-glossy surface',
-    descriptionJa: '光沢のないエレガントな表面',
-    image: '/images/post-processing/2.マット.png',
-    priceMultiplier: 1.05,
-    features: ['Elegant appearance', 'Reduced glare', 'Sophisticated look'],
-    featuresJa: ['エレガントな外観', 'グレア軽減', '洗練された見た目'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'notch-yes',
-    name: 'With Notch',
-    nameJa: 'ノッチ付き',
-    description: 'Easy-tear notch for convenient opening',
-    descriptionJa: '開封しやすいノッチ付き',
-    image: '/images/post-processing/3.ノッチあり.png',
-    priceMultiplier: 1.03,
-    features: ['Easy opening', 'No tools required', 'Clean tear'],
-    featuresJa: ['簡単な開封', '工具不要', 'きれいな切断'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'flat_with_zip', 'gusset']
-  },
-  {
-    id: 'notch-no',
-    name: 'Without Notch',
-    nameJa: 'ノッチなし',
-    description: 'Clean edge without tear notch',
-    descriptionJa: 'ノッチなしのクリーンエッジ',
-    image: '/images/post-processing/3.ノッチなし.png',
-    priceMultiplier: 1.00,
-    features: ['Clean design', 'Simple edge', 'Standard finish'],
-    featuresJa: ['クリーンなデザイン', 'シンプルなエッジ', '標準仕上げ'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'hang-hole-6mm',
-    name: '6mm Hang Hole',
-    nameJa: '吊り下げ穴 (6mm)',
-    description: 'Small 6mm hanging hole for light products',
-    descriptionJa: '軽量製品用の6mm小さな吊り穴',
-    image: '/images/post-processing/4.吊り穴あり.png',
-    priceMultiplier: 1.03,
-    features: ['Small size', 'Light products', 'Precise hanging'],
-    featuresJa: ['小さいサイズ', '軽量製品', '正確な吊り'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'soft_pouch']
-  },
-  {
-    id: 'hang-hole-8mm',
-    name: '8mm Hang Hole',
-    nameJa: '吊り下げ穴 (8mm)',
-    description: 'Large 8mm hanging hole for standard products',
-    descriptionJa: '標準製品用の8mm大きな吊り穴',
-    image: '/images/post-processing/4.吊り穴あり.png',
-    priceMultiplier: 1.04,
-    features: ['Standard size', 'Versatile use', 'Easy hanging'],
-    featuresJa: ['標準サイズ', '多用途', '簡単な吊り'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'soft_pouch']
-  },
-  {
-    id: 'hang-hole-no',
-    name: 'Without Hang Hole',
-    nameJa: '吊り穴なし',
-    description: 'No hanging hole - clean design',
-    descriptionJa: '吊り穴なしのクリーンなデザイン',
-    image: '/images/post-processing/4.吊り穴なし.png',
-    priceMultiplier: 1.00,
-    features: ['Clean appearance', 'Simple design', 'Standard finish'],
-    featuresJa: ['クリーンな外観', 'シンプルなデザイン', '標準仕上げ'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'corner-round',
-    name: 'Rounded Corner',
-    nameJa: '角丸',
-    description: 'Safe and modern rounded corners',
-    descriptionJa: '安全でモダンな角丸加工',
-    image: '/images/post-processing/5.角丸.png',
-    priceMultiplier: 1.06,
-    features: ['Safe handling', 'Modern look', 'User friendly'],
-    featuresJa: ['安全な取り扱い', 'モダンな外観', 'ユーザーフレンドリー'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'soft_pouch']
-  },
-  {
-    id: 'corner-square',
-    name: 'Square Corner',
-    nameJa: '角直角',
-    description: 'Traditional square corner design',
-    descriptionJa: '伝統的な直角デザイン',
-    image: '/images/post-processing/5.角直角.png',
-    priceMultiplier: 1.00,
-    features: ['Traditional look', 'Maximum space', 'Classic design'],
-    featuresJa: ['伝統的な外観', '最大スペース', 'クラシックデザイン'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'valve-yes',
-    name: 'With Degassing Valve',
-    nameJa: 'バルブ付き',
-    description: 'One-way valve for fresh coffee products',
-    descriptionJa: 'コーヒー製品用の一方弁付き',
-    image: '/images/post-processing/バルブあり.png',
-    priceMultiplier: 1.08,
-    features: ['Extends shelf life', 'Preserves aroma', 'Prevents bag bloating'],
-    featuresJa: ['賞味期限延長', '香り保持', '袋膨張防止'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'valve-no',
-    name: 'Without Valve',
-    nameJa: 'バルブなし',
-    description: 'Standard pouch without degassing valve',
-    descriptionJa: 'バルブなしの標準パウチ',
-    image: '/images/post-processing/バルブなし.png',
-    priceMultiplier: 1.00,
-    features: ['Simple construction', 'Cost effective', 'Standard design'],
-    featuresJa: ['シンプルな構造', 'コスト効率', '標準デザイン'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset']
-  },
-  {
-    id: 'top-open',
-    name: 'Top Opening',
-    nameJa: '上端開封',
-    description: 'Easy open top seal for convenient access',
-    descriptionJa: '使いやすい上端開封シール',
-    image: '/images/post-processing/6.上端開封.png',
-    priceMultiplier: 1.02,
-    features: ['Easy access', 'Convenient dispensing', 'User friendly'],
-    featuresJa: ['アクセスしやすい', '便利な分配', 'ユーザーフレンドリー'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'gusset', 'flat_with_zip']
-  },
-  {
-    id: 'bottom-open',
-    name: 'Bottom Opening',
-    nameJa: '下端開封',
-    description: 'Bottom opening for complete product dispensing',
-    descriptionJa: '製品を完全に排出する下端開封',
-    image: '/images/post-processing/6.下端開封.png',
-    priceMultiplier: 1.03,
-    features: ['Complete emptying', 'No waste', 'Industrial use'],
-    featuresJa: ['完全な空にする', '無駄なし', '産業用途'],
-    compatibleWith: ['stand_up', 'gusset', 'soft_pouch']
-  }
-]
+// Use processingConfig.ts as the source of truth for post-processing options
+const postProcessingOptions: PostProcessingOption[] = processingOptionsConfig.map(opt => ({
+  id: opt.id,
+  name: opt.name,
+  nameJa: opt.nameJa,
+  description: opt.description,
+  descriptionJa: opt.descriptionJa,
+  image: opt.afterImage || opt.thumbnail || '/images/post-processing/default.png',
+  priceMultiplier: opt.priceMultiplier,
+  features: opt.features,
+  featuresJa: opt.featuresJa,
+  compatibleWith: opt.compatibleWith
+}))
 
 interface PostProcessingPreviewProps {
   selectedProductType: string
@@ -336,12 +144,18 @@ export function PostProcessingPreview({
       'corner-square': ['corner-round'],
       'glossy': ['matte'],
       'matte': ['glossy'],
-      'notch-yes': ['notch-no'],
-      'notch-no': ['notch-yes'],
+      'notch-yes': ['notch-no', 'notch-straight'],
+      'notch-no': ['notch-yes', 'notch-straight'],
+      'notch-straight': ['notch-yes', 'notch-no'],
       'valve-yes': ['valve-no'],
       'valve-no': ['valve-yes'],
       'top-open': ['bottom-open'],
-      'bottom-open': ['top-open']
+      'bottom-open': ['top-open'],
+      'sealing-width-5mm': ['sealing-width-7-5mm', 'sealing-width-10mm'],
+      'sealing-width-7-5mm': ['sealing-width-5mm', 'sealing-width-10mm'],
+      'sealing-width-10mm': ['sealing-width-5mm', 'sealing-width-7-5mm'],
+      'machi-printing-no': ['machi-printing-yes'],
+      'machi-printing-yes': ['machi-printing-no']
     }
     return exclusiveGroups[optionId] || []
   }, [])

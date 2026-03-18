@@ -60,7 +60,7 @@ const CSRF_EXEMPT_API_PATHS = [
 // =====================================================
 
 const PROTECTED_ROUTES = {
-  member: ['/member', '/quote-simulator'],
+  member: ['/member'],
   admin: ['/admin'],
   designer: ['/designer'],  // NEW: Designer routes (Phase 3 - Korean Designer Workflow)
 };

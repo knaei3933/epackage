@@ -1152,7 +1152,7 @@ function generateProductTypeSection(specs: QuoteData['specifications']): string 
             </tr>` : ''}
           </table>
         </div>
-      ` : ``,;
+      ` : ``
     case 'box':
       // For box pouch (ガゼットパウチ), display side width
       return `
