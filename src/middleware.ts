@@ -73,6 +73,7 @@ const PUBLIC_ROUTES = [
   '/print',
   '/guide',
   '/smart-quote',
+  '/quote-simulator', // 統合見積もりシステム（公開）
   '/industry',
   '/news',
   '/premium-content',

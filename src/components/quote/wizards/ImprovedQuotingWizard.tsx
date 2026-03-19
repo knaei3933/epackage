@@ -3,53 +3,21 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
+import { Package, Layers, Calendar, Settings } from 'lucide-react';
 import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState, getSpecsValidationMessages } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
-import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
 import { safeMap } from '@/lib/array-helpers';
 import EnvelopePreview from '../previews/EnvelopePreview';
 import MultiQuantityStep from '../steps/MultiQuantityStep';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
-import {
-  MATERIAL_TYPE_LABELS,
-  MATERIAL_TYPE_LABELS_JA,
-  MATERIAL_DESCRIPTIONS,
-  getMaterialLabel,
-  getMaterialDescription,
-  getThicknessLabel,
-  getWeightRange
-} from '@/constants/materialTypes';
+import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getThicknessLabel, getWeightRange } from '@/constants/materialTypes';
 import { getAvailableGussetSizes, ALL_GUSSET_SIZE_OPTIONS } from '@/lib/gusset-data';
 import {
-  ChevronRight,
-  ChevronLeft,
-  Check,
-  CheckCircle2,
-  AlertCircle,
-  Ticket,
-  Package,
-  Layers,
-  Printer,
-  Calendar,
-  Settings,
-  Info,
-  Edit2,
-  X,
-  Phone,
-  Mail,
-  Clock,
-  Calculator,
-  RefreshCw,
-  BarChart3,
-  Download,
-  Save,
-  Send,
-  Eye,
-  Shield,
-  Leaf,
-  Lightbulb
+  ChevronRight, ChevronLeft, Check, CheckCircle2, AlertCircle, Ticket, Printer,
+  Info, Edit2, X, Phone, Mail, Clock, Calculator, RefreshCw, BarChart3, Download,
+  Save, Send, Eye, Shield, Leaf, Lightbulb
 } from 'lucide-react';
 import { ErrorToast, useToast } from '../shared/ErrorToast';
 import { KeyboardShortcutsHint } from '../shared/KeyboardShortcutsHint';
@@ -65,56 +33,15 @@ import type { ParallelProductionOption } from '../shared/ParallelProductionOptio
 import type { EconomicQuantitySuggestionData } from '../shared/EconomicQuantityProposal';
 import type { QuantityOption } from '../selectors';
 import { generateQuotePDF } from '@/lib/pdf-generator';
-
-// 内容物ラベル定数
-const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-  'food': '食品',
-  'health_supplement': '健康食品',
-  'cosmetic': '化粧品',
-  'quasi_drug': '医薬部外品',
-  'drug': '医薬品',
-  'other': 'その他'
-};
-
-const CONTENTS_TYPE_LABELS: Record<string, string> = {
-  'solid': '固体',
-  'powder': '粉体',
-  'liquid': '液体'
-};
-
-const MAIN_INGREDIENT_LABELS: Record<string, string> = {
-  'general_neutral': '一般/中性',
-  'oil_surfactant': 'オイル/界面活性剤',
-  'acidic_salty': '酸性/塩分',
-  'volatile_fragrance': '揮発性/香料',
-  'other': 'その他'
-};
-
-const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
-  'general_roomTemp': '一般/常温',
-  'light_oxygen_sensitive': '光/酸素敏感',
-  'refrigerated': '冷凍保管',
-  'high_temp_sterilized': '高温殺菌',
-  'other': 'その他'
-};
-
-// 内容物表示文字列を生成
-const getContentsDisplay = (
-  productCategory: string,
-  contentsType: string,
-  mainIngredient: string,
-  distributionEnvironment: string
-): string => {
-  const categoryLabel = PRODUCT_CATEGORY_LABELS[productCategory] || '';
-  const typeLabel = CONTENTS_TYPE_LABELS[contentsType] || '';
-  const ingredientLabel = MAIN_INGREDIENT_LABELS[mainIngredient] || '';
-  const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[distributionEnvironment] || '';
-
-  if (categoryLabel && typeLabel && ingredientLabel && environmentLabel) {
-    return `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`;
-  }
-  return '';
-};
+import {
+  BAG_TYPE_OPTIONS,
+  SPOUT_POSITION_OPTIONS,
+  MATERIAL_CATEGORIES,
+  getBagTypeLabel,
+  getContentsDisplay,
+  validateHeight,
+  shouldShowGusset
+} from '@/types/quote-wizard';
 
 // Step configuration
 const STEPS = [
@@ -137,37 +64,6 @@ function SpecsStep() {
   const [heightError, setHeightError] = useState<string>('');
   const [widthError, setWidthError] = useState<string>('');
 
-  // Validation functions
-  const validateHeight = (height: number, bagTypeId: string, width?: number, depth?: number): string => {
-    // 平袋(平袋): 最大高さ 360mm
-    if (bagTypeId === 'flat_3_side' && height > 360) {
-      return '高さは360mm以下で入力してください';
-    }
-
-    // スタンドパウチ: 展開サイズ (高さ×2＋底) 690mm以下
-    if (bagTypeId === 'stand_up' && height && depth) {
-      const expandedSize = (height * 2) + depth;
-      if (expandedSize > 690) {
-        return `展開サイズ（高さ×2＋底）は690mm以下（現在: ${expandedSize}mm）`;
-      }
-    }
-
-    // ガゼットパウチ: 横＋側面 350mm以下（側面＝depth/2）
-    if (bagTypeId === 'box' && width && depth) {
-      const widthWithSide = width + (depth / 2);
-      if (widthWithSide > 350) {
-        return `横＋側面は350mm以下（現在: ${width}mm＋${depth / 2}mm＝${widthWithSide}mm）`;
-      }
-    }
-
-    return '';
-  };
-
-  // Determine if gusset (マチ) should be shown based on bag type
-  const shouldShowGusset = () => {
-    // Don't show gusset for flat_3_side, roll_film, lap_seal (合掌袋), box (ガゼットパウチ), and spout_pouch (spout_pouch uses hasGusset state instead)
-    return state.bagTypeId === 'stand_up' || state.bagTypeId === 'gusset';
-  };
 
   // Calculate available gusset sizes based on current width
   const availableGussetSizes = useMemo(() => {
@@ -178,7 +74,7 @@ function SpecsStep() {
 
   // スタンドパウチが選択されたときに、深さのデフォルト値を自動設定
   useEffect(() => {
-    if (shouldShowGusset() && !state.depth) {
+    if (shouldShowGusset(state.bagTypeId) && !state.depth) {
       const defaultDepth = availableGussetSizes.length > 0 ? availableGussetSizes[0] : 30;
       updateBasicSpecs({ depth: defaultDepth });
     }
@@ -193,78 +89,6 @@ function SpecsStep() {
       setHeightError('');
     }
   }, [state.height, state.width, state.depth, state.bagTypeId]);
-
-  // Enhanced bag type options with images
-  const bagTypes = [
-    {
-      id: 'flat_3_side',
-      name: '平袋',
-      nameJa: '平袋',
-      description: '基本的な平たい袋タイプ',
-      descriptionJa: '最も一般的な平袋タイプ。三方をシールし、一方は開口部',
-      basePrice: 15,
-      image: '/images/processing-icons/flat-3-side.png'
-    },
-    {
-      id: 'stand_up',
-      name: 'スタンドパウチ',
-      nameJa: 'スタンドパウチ',
-      description: '底が広がり自立するタイプ',
-      descriptionJa: '底部がガセット構造で自立可能。陳列効果に優れる',
-      basePrice: 25,
-      image: '/images/processing-icons/flat-3-side-stand.png'
-    },
-    {
-      id: 'lap_seal',
-      name: '合掌袋',
-      nameJa: '合掌袋',
-      description: '両サイドを合掌シールした袋',
-      descriptionJa: '両サイドを合掌状にシールし、底部は平らな構造',
-      basePrice: 17,
-      image: '/images/processing-icons/gusset.png'
-    },
-    {
-      id: 'box',
-      name: 'ガゼットパウチ',
-      nameJa: 'ガゼットパウチ',
-      description: '箱型形状で保護性に優れる',
-      descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
-      basePrice: 30,
-      image: '/images/processing-icons/box-pouch.png'
-    },
-    {
-      id: 'spout_pouch',
-      name: 'スパウトパウチ',
-      nameJa: 'スパウトパウチ',
-      description: '液体製品に最適な注ぎ口付き',
-      descriptionJa: '液体・粉末製品向けの注ぎ口付き。注ぎやすく再密閉可能',
-      basePrice: 35,
-      image: '/images/processing-icons/spout.png'
-    },
-    {
-      id: 'roll_film',
-      name: 'ロールフィルム',
-      nameJa: 'ロールフィルム',
-      description: '自動包装機対応のフィルム',
-      descriptionJa: '自動包装機向けロール状フィルム。大量生産に最適',
-      basePrice: 8,
-      image: '/images/processing-icons/roll-film.png'
-    }
-  ];
-
-  // Spout position options for spout_pouch
-  const spoutPositions = [
-    { id: 'top-left', label: '左上', labelJa: '左上' },
-    { id: 'top-center', label: '上中央', labelJa: '上中央' },
-    { id: 'top-right', label: '右上', labelJa: '右上' }
-  ];
-
-  // 素材カテゴリー定義
-  const materialCategories = [
-    { id: 'transparent', nameJa: '🪟 透明タイプ', descriptionJa: '中身が見える、窓付き表現可能', colorClass: 'from-sky-50 to-blue-50 border-sky-200', headerBg: 'bg-gradient-to-r from-sky-500 to-blue-500' },
-    { id: 'high_barrier', nameJa: '🛡️ 高バリアタイプ', descriptionJa: '長期保存に最適、最高の遮断性', colorClass: 'from-amber-50 to-orange-50 border-amber-200', headerBg: 'bg-gradient-to-r from-amber-500 to-orange-500' },
-    { id: 'kraft', nameJa: '🌿 クラフトタイプ', descriptionJa: '自然素材風、環境に優しい', colorClass: 'from-emerald-50 to-green-50 border-emerald-200', headerBg: 'bg-gradient-to-r from-emerald-500 to-green-500' }
-  ];
 
   // Enhanced material options with rich details and category
   const materials = [
@@ -1028,7 +852,7 @@ function SpecsStep() {
           <div className="mb-6">
             <label className="block text-lg font-semibold text-gray-900 mb-3">袋のタイプ</label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {bagTypes.map(type => (
+              {BAG_TYPE_OPTIONS.map(type => (
                 <button
                   key={type.id}
                   onClick={() => {                    updateBasicSpecs({                      bagTypeId: type.id,                      ...(type.id === 'lap_seal' ? { depth: 0 } : {})                    })                  }}
@@ -1076,7 +900,7 @@ function SpecsStep() {
             <div className="mb-6">
               <label className="block text-lg font-semibold text-gray-900 mb-3">スパウト位置</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {spoutPositions.map((position) => (
+                {SPOUT_POSITION_OPTIONS.map((position) => (
                   <button
                     key={position.id}
                     onClick={() => updateField('spoutPosition', position.id)}
@@ -1114,7 +938,7 @@ function SpecsStep() {
               {state.spoutPosition && (
                 <div className="mt-3 p-3 bg-info-50 border border-info-200 rounded-lg">
                   <p className="text-sm text-info-800">
-                    選択されたスパウト位置: <span className="font-medium">{spoutPositions.find(p => p.id === state.spoutPosition)?.labelJa}</span>
+                    選択されたスパウト位置: <span className="font-medium">{SPOUT_POSITION_OPTIONS.find(p => p.id === state.spoutPosition)?.labelJa}</span>
                   </p>
                 </div>
               )}
@@ -1286,7 +1110,7 @@ function SpecsStep() {
                 </div>
               )}
 
-              {shouldShowGusset() && state.bagTypeId !== 'roll_film' && (
+              {shouldShowGusset(state.bagTypeId) && state.bagTypeId !== 'roll_film' && (
                 <div>
                   <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                   <select
@@ -1345,7 +1169,7 @@ function SpecsStep() {
             </div>
 
             {/* Categories */}
-            {materialCategories.map(category => {
+            {MATERIAL_CATEGORIES.map(category => {
               const categoryMaterials = materials.filter(m => m.category === category.id);
               if (categoryMaterials.length === 0) return null;
 
@@ -1814,18 +1638,6 @@ function PostProcessingStep() {
       )}
     </div>
   );
-}
-
-// Helper function to get Japanese bag type name
-function getBagTypeLabel(bagTypeId: string): string {
-  const bagTypeLabels: Record<string, string> = {
-    'flat_3_side': '三方シール平袋',
-    'stand_up': 'スタンドパウチ',
-    'box': 'ガゼットパウチ',
-    'spout_pouch': 'スパウトパウチ',
-    'roll_film': 'ロールフィルム'
-  };
-  return bagTypeLabels[bagTypeId] || bagTypeId;
 }
 
 // Helper function to get Japanese post-processing label
