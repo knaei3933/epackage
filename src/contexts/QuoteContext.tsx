@@ -27,6 +27,15 @@ import {
   getDefaultFilmLayers,
   getFilmLayerDisplay
 } from '@/lib/film-structure';
+// MultiQuantity imports
+import {
+  MultiQuantityResult,
+  SavedQuantityPattern,
+  QuantityComparison
+} from '@/types/multi-quantity';
+import { multiQuantityCalculator } from '@/lib/multi-quantity-calculator';
+import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage, type StoredComparison } from '@/lib/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 // Quote state interface
 export interface QuoteState {
@@ -61,10 +70,7 @@ export interface QuoteState {
   distributedQuantities?: number[]; // Auto-distributed lengths per roll
   editableQuantities?: number[];   // User-modified lengths per roll
   materialWidth?: number;         // Film material width (540 or 740mm) - for roll_film
-  filmLayers?: Array<{           // Film structure layers - for roll_film
-    materialId: string;
-    thickness: number;
-  }>;
+  filmLayers?: FilmStructureLayer[]; // Film structure layers - for roll_film
   // SKU-related fields (新增: SKU別原価計算対応)
   skuCount: number;               // Number of SKUs (1-100)
   skuQuantities: number[];        // Quantity for each SKU [500, 500] for 2 SKUs
@@ -84,6 +90,17 @@ export interface QuoteState {
   contentsType?: 'solid' | 'powder' | 'liquid' | ''; // 내용물 형태
   mainIngredient?: 'general_neutral' | 'oil_surfactant' | 'acidic_salty' | 'volatile_fragrance' | 'other' | ''; // 주요성분
   distributionEnvironment?: 'general_roomTemp' | 'light_oxygen_sensitive' | 'refrigerated' | 'high_temp_sterilized' | 'other' | ''; // 유통환경
+  // MultiQuantity fields (統合: Phase 2-5)
+  comparisonQuantities?: number[]; // All quantities to compare
+  selectedQuantity?: number | null; // Currently selected for detailed view
+  multiQuantityResults?: Map<number, UnifiedQuoteResult>; // Results for each quantity
+  comparison?: QuantityComparison; // Comparison analysis
+  savedPatterns?: SavedQuantityPattern[]; // Saved quantity patterns
+  recentCalculations?: MultiQuantityResult[]; // Recent calculation history
+  savedComparisons?: StoredComparison[]; // Saved comparisons from localStorage/API
+  isLoadingSave?: boolean; // Loading state for save/load operations
+  exportUrl?: string | null; // Export URL for generated files
+  shareUrl?: string | null; // Share URL for comparisons
 }
 
 // Action types
@@ -95,7 +112,7 @@ type QuoteAction =
   | { type: 'UPDATE_FIELD'; payload: { field: keyof QuoteState; value: any } }
   | { type: 'ADD_QUANTITY_PATTERN'; payload: number }
   | { type: 'REMOVE_QUANTITY_PATTERN'; payload: number }
-  | { type: 'ADD_POST_PROCESSING_OPTION'; payload: { optionId: string; allOptions?: Array<{ id: string; category: string; compatibility?: string[]; priority: number; impact: number }> } }
+  | { type: 'ADD_POST_PROCESSING_OPTION'; payload: { optionId: string; allOptions?: ProcessingOptionConfig[] } }
   | { type: 'REMOVE_POST_PROCESSING_OPTION'; payload: string }
   | { type: 'REPLACE_POST_PROCESSING_OPTION'; payload: { oldOptionId: string; newOptionId: string } }
   | { type: 'SET_POST_PROCESSING_VALIDATION_ERROR'; payload: PostProcessingValidationError }
@@ -112,7 +129,7 @@ type QuoteAction =
   | { type: 'TOGGLE_SKU_CALCULATION'; payload: boolean }
   // 新規: 推奨機能関連
   | { type: 'CLEAR_RECOMMENDATION_CACHE' }
-  | { type: 'APPLY_TWO_COLUMN_OPTION'; payload: { optionType: 'same' | 'double'; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number } }
+  | { type: 'APPLY_TWO_COLUMN_OPTION'; payload: { optionType: 'same' | 'double'; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number; preserveSKUCount?: boolean } }
   | { type: 'APPLY_SKU_SPLIT'; payload: { skuCount: number; quantities: number[] } }
   | { type: 'CLEAR_APPLIED_OPTION' } // 옵션 적용 상태를 클리어
   | { type: 'RESET_SKU_QUANTITIES_ON_PRODUCT_CHANGE'; payload: { defaultQuantity: number } }
@@ -120,7 +137,36 @@ type QuoteAction =
   | { type: 'SET_CONTENTS'; payload: { productCategory: QuoteState['productCategory']; contentsType: QuoteState['contentsType']; mainIngredient: QuoteState['mainIngredient']; distributionEnvironment: QuoteState['distributionEnvironment'] } } // 내용물 설정
   // SKU数量MOQ検証エラー管理
   | { type: 'SET_SKU_QUANTITY_VALIDATION_ERROR'; payload: string }
-  | { type: 'CLEAR_SKU_QUANTITY_VALIDATION_ERROR' };
+  | { type: 'CLEAR_SKU_QUANTITY_VALIDATION_ERROR' }
+  // MultiQuantity actions (統合: Phase 2-5)
+  | { type: 'SET_COMPARISON_QUANTITIES'; payload: number[] }
+  | { type: 'SET_SELECTED_QUANTITY'; payload: number | null }
+  | { type: 'SET_MULTI_QUANTITY_RESULTS'; payload: MultiQuantityResult }
+  | { type: 'ADD_SAVED_PATTERN'; payload: SavedQuantityPattern }
+  | { type: 'REMOVE_SAVED_PATTERN'; payload: string }
+  | { type: 'SAVE_COMPARISON'; payload: { title?: string; description?: string; customerName?: string; projectName?: string } }
+  | { type: 'LOAD_COMPARISON'; payload: any }
+  | { type: 'EXPORT_COMPARISON'; payload: { format: 'pdf' | 'excel' | 'csv'; options?: any } }
+  | { type: 'SET_SAVED_COMPARISONS'; payload: StoredComparison[] }
+  | { type: 'SET_LOADING_SAVE'; payload: boolean }
+  | { type: 'SET_EXPORT_URL'; payload: string }
+  | { type: 'CLEAR_EXPORT_URL' };
+
+// スパウトパウチ専用フィルム幅計算関数
+// docs/reports/calcultae/02-필름폭_계산공식.md 基準
+function calculateSpoutPouchFilmWidth(
+  height: number,
+  hasGusset: boolean,
+  depth?: number
+): number {
+  if (hasGusset && depth) {
+    // マチあり: スタンドパウチ準用 (H × 2) + G + 35
+    return (height * 2) + depth + 35;
+  } else {
+    // マチなし: 平袋（三封）準用 (H × 2) + 41
+    return (height * 2) + 41;
+  }
+}
 
 // Initial state
 const initialState: QuoteState = {
@@ -168,7 +214,18 @@ const initialState: QuoteState = {
   productCategory: '', // 선택 필수
   contentsType: '', // 선택 필수
   mainIngredient: '', // 선택 필수
-  distributionEnvironment: '' // 선택 필수
+  distributionEnvironment: '', // 선택 필수
+  // MultiQuantity fields (統合: Phase 2-5)
+  comparisonQuantities: [1000, 2000, 5000, 10000],
+  selectedQuantity: null,
+  multiQuantityResults: new Map(),
+  comparison: undefined,
+  savedPatterns: [],
+  recentCalculations: [],
+  savedComparisons: [],
+  isLoadingSave: false,
+  exportUrl: null,
+  shareUrl: null
 };
 
 // DEBUG: Log initial state to verify
@@ -381,7 +438,6 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           useSKUCalculation: kraftUseSKUCalculation ?? false,
           // 割引関連状態も初期化
           twoColumnOptionApplied: kraftTwoColumnOptionApplied ?? null,
-          appliedOption: kraftAppliedOption ?? null,
           fixedTotalQuantity: kraftFixedTotalQuantity,
           // 投稿加工オプションを更新
           postProcessingOptions: newPostProcessingOptions,
@@ -415,7 +471,6 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         ...(kraftQuantityMode !== undefined ? { quantityMode: kraftQuantityMode } : {}),
         ...(kraftUseSKUCalculation !== undefined ? { useSKUCalculation: kraftUseSKUCalculation } : {}),
         ...(kraftTwoColumnOptionApplied !== undefined ? { twoColumnOptionApplied: kraftTwoColumnOptionApplied } : {}),
-        ...(kraftAppliedOption !== undefined ? { appliedOption: kraftAppliedOption } : {}),
         ...(kraftFixedTotalQuantity !== undefined ? { fixedTotalQuantity: kraftFixedTotalQuantity } : {}),
         // Update filmLayers when materialId or thicknessSelection changes
         ...(materialIdChanged || thicknessSelectionChanged ? {
@@ -869,8 +924,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         quantityMode: 'single',
         useSKUCalculation: false,
         // 할인 관련 상태도 초기화
-        twoColumnOptionApplied: false,
-        appliedOption: null,
+        twoColumnOptionApplied: null,
         fixedTotalQuantity: undefined
       };
     }
@@ -935,7 +989,6 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           discountedUnitPrice: unitPrice,
           discountedTotalPrice: adjustedTotalPrice,
           originalUnitPrice: effectiveOriginalUnitPrice, // 既存の値を保持
-          unitPrice: unitPrice,
           quantity: adjustedTotalQuantity,
           skuCount: state.skuCount, // SKU数を維持
           skuQuantities: adjustedQuantities, // 均等分割された数量
@@ -959,7 +1012,6 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         discountedUnitPrice: unitPrice,
         discountedTotalPrice: totalPrice,
         originalUnitPrice: effectiveOriginalUnitPrice, // 既存の値を保持
-        unitPrice: unitPrice,
         quantity: quantity,
         skuCount: 1,
         skuQuantities: [quantity],
@@ -1018,6 +1070,68 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
     }
 
+    // MultiQuantity actions (統合: Phase 2-5)
+    case 'SET_COMPARISON_QUANTITIES':
+      return {
+        ...state,
+        comparisonQuantities: action.payload,
+        multiQuantityResults: new Map(),
+        comparison: undefined
+      };
+
+    case 'SET_SELECTED_QUANTITY':
+      return {
+        ...state,
+        selectedQuantity: action.payload
+      };
+
+    case 'SET_MULTI_QUANTITY_RESULTS':
+      return {
+        ...state,
+        multiQuantityResults: action.payload.calculations,
+        comparison: action.payload.comparison,
+        recentCalculations: [
+          action.payload,
+          ...(state.recentCalculations || []).slice(0, 4)
+        ]
+      };
+
+    case 'ADD_SAVED_PATTERN':
+      return {
+        ...state,
+        savedPatterns: [...(state.savedPatterns || []), action.payload]
+      };
+
+    case 'REMOVE_SAVED_PATTERN':
+      return {
+        ...state,
+        savedPatterns: (state.savedPatterns || []).filter(p => p.id !== action.payload)
+      };
+
+    case 'SET_SAVED_COMPARISONS':
+      return {
+        ...state,
+        savedComparisons: action.payload
+      };
+
+    case 'SET_LOADING_SAVE':
+      return {
+        ...state,
+        isLoadingSave: action.payload
+      };
+
+    case 'SET_EXPORT_URL':
+      return {
+        ...state,
+        exportUrl: action.payload
+      };
+
+    case 'CLEAR_EXPORT_URL':
+      return {
+        ...state,
+        exportUrl: null
+      };
+
     default:
       return state;
   }
@@ -1049,6 +1163,18 @@ interface QuoteContextType {
   clearAppliedOption: () => void; // オプション適用をクリア
   setSealWidth: (width: string) => void; // シーラー幅設定
   setContents: (productCategory: QuoteState['productCategory'], contentsType: QuoteState['contentsType'], mainIngredient: QuoteState['mainIngredient'], distributionEnvironment: QuoteState['distributionEnvironment']) => void; // 内容量設定（4つのフィールド対応）
+  // MultiQuantity helpers (統合: Phase 2-5)
+  setComparisonQuantities: (quantities: number[]) => void;
+  setSelectedQuantity: (quantity: number | null) => void;
+  calculateMultiQuantity: () => Promise<MultiQuantityResult | null>;
+  saveQuantityPattern: (name: string, description: string) => void;
+  loadQuantityPattern: (pattern: SavedQuantityPattern) => void;
+  saveComparison: (metadata?: { title?: string; description?: string; customerName?: string; projectName?: string }) => Promise<{ success: boolean; shareId?: string; shareUrl?: string; error?: string }>;
+  loadComparison: (shareId: string) => Promise<{ success: boolean; data?: any; error?: string }>;
+  exportComparison: (format: 'pdf' | 'excel' | 'csv', options?: any) => Promise<{ success: boolean; url?: string; error?: string }>;
+  loadSavedComparisons: () => Promise<void>;
+  deleteComparison: (shareId: string) => Promise<{ success: boolean; error?: string }>;
+  shareComparison: (shareId: string, options?: { password?: string; expiryDays?: number; allowDownload?: boolean }) => Promise<{ success: boolean; shareUrl?: string; error?: string }>;
 }
 
 // Helper functions that need state access - accept state as parameter
@@ -1379,7 +1505,7 @@ export function createStepSummary(state: QuoteState, getLimitStatus: () => PostP
   switch (step) {
     case 'specs':
       // 필름 구조를 가져와서 모든 파우치 타입에 상세 표시
-      const filmLayers = getFilmLayersForMaterial(state.materialId, state.thicknessSelection);
+      const filmLayers = getDefaultFilmLayers(state.materialId, state.thicknessSelection);
       const filmLayerDisplay = getFilmLayerDisplay(filmLayers);
 
       // 내용물 라벨 매핑
@@ -1732,6 +1858,418 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     });
   }, []);
 
+  // MultiQuantity helper functions (統合: Phase 2-5)
+  const setComparisonQuantities = useCallback((quantities: number[]) => {
+    dispatch({ type: 'SET_COMPARISON_QUANTITIES', payload: quantities });
+  }, []);
+
+  const setSelectedQuantity = useCallback((quantity: number | null) => {
+    dispatch({ type: 'SET_SELECTED_QUANTITY', payload: quantity });
+  }, []);
+
+  const calculateMultiQuantity = useCallback(async (): Promise<MultiQuantityResult | null> => {
+    if (!state.bagTypeId || !state.materialId || !state.width) {
+      console.error('[calculateMultiQuantity] Missing required specs');
+      return null;
+    }
+
+    const quantities = state.comparisonQuantities || state.quantities;
+    if (quantities.length === 0) {
+      console.error('[calculateMultiQuantity] No quantities to compare');
+      return null;
+    }
+
+    try {
+      const result = await multiQuantityCalculator.calculateMultiQuantity({
+        baseParams: {
+          bagTypeId: state.bagTypeId,
+          materialId: state.materialId,
+          width: state.width,
+          height: state.height,
+          depth: state.depth,
+          thicknessSelection: state.thicknessSelection,
+          isUVPrinting: state.isUVPrinting,
+          printingType: state.printingType,
+          printingColors: state.printingColors,
+          doubleSided: state.doubleSided,
+          postProcessingOptions: state.postProcessingOptions,
+          deliveryLocation: state.deliveryLocation,
+          urgency: state.urgency
+        },
+        quantities,
+        comparisonMode: 'price',
+        includeRecommendations: true
+      });
+
+      dispatch({ type: 'SET_MULTI_QUANTITY_RESULTS', payload: result });
+      return result;
+    } catch (error) {
+      console.error('[calculateMultiQuantity] Error:', error);
+      return null;
+    }
+  }, [state]);
+
+  const saveQuantityPattern = useCallback((name: string, description: string) => {
+    const pattern: SavedQuantityPattern = {
+      id: Date.now().toString(),
+      name,
+      description,
+      quantities: [...state.quantities],
+      createdAt: new Date(),
+      lastUsed: new Date(),
+      isDefault: false
+    };
+    dispatch({ type: 'ADD_SAVED_PATTERN', payload: pattern });
+  }, [state.quantities]);
+
+  const loadQuantityPattern = useCallback((pattern: SavedQuantityPattern) => {
+    dispatch({ type: 'SET_QUANTITY_OPTIONS', payload: { quantities: pattern.quantities, quantity: pattern.quantities[0] } });
+    // Update last used time
+    const updatedPattern = { ...pattern, lastUsed: new Date() };
+    dispatch({
+      type: 'UPDATE_FIELD',
+      payload: {
+        field: 'savedPatterns',
+        value: (state.savedPatterns || []).map(p =>
+          p.id === pattern.id ? updatedPattern : p
+        )
+      }
+    });
+  }, [state.savedPatterns]);
+
+  const saveComparison = useCallback(async (metadata: {
+    title?: string;
+    description?: string;
+    customerName?: string;
+    projectName?: string;
+  } = {}) => {
+    if (!state.comparison || !state.multiQuantityResults || state.multiQuantityResults.size === 0) {
+      return { success: false, error: '保存できる比較結果がありません' };
+    }
+
+    dispatch({ type: 'SET_LOADING_SAVE', payload: true });
+
+    try {
+      const response = await fetch('/api/comparison/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseParams: {
+            bagTypeId: state.bagTypeId,
+            materialId: state.materialId,
+            width: state.width,
+            height: state.height,
+            depth: state.depth,
+            thicknessSelection: state.thicknessSelection,
+            isUVPrinting: state.isUVPrinting,
+            printingType: state.printingType,
+            printingColors: state.printingColors,
+            doubleSided: state.doubleSided,
+            postProcessingOptions: state.postProcessingOptions,
+            deliveryLocation: state.deliveryLocation,
+            urgency: state.urgency,
+          },
+          quantities: state.comparisonQuantities,
+          calculations: Object.fromEntries(state.multiQuantityResults),
+          comparison: state.comparison,
+          metadata: {
+            title: metadata.title || `比較結果 ${new Date().toLocaleDateString()}`,
+            description: metadata.description,
+            customerName: metadata.customerName,
+            projectName: metadata.projectName,
+            validityDays: 30,
+          },
+          userPreferences: {
+            includeBreakdown: true,
+            includeRecommendations: true,
+            currency: 'JPY',
+            locale: 'ja',
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        dispatch({ type: 'SET_EXPORT_URL', payload: result.data.shareUrl });
+
+        const shareId = result.data.shareId;
+        const localStorageData: StoredComparison = {
+          id: shareId,
+          shareId,
+          title: metadata.title || `比較結果 ${new Date().toLocaleDateString()}`,
+          description: metadata.description,
+          customerName: metadata.customerName,
+          projectName: metadata.projectName,
+          createdAt: new Date().toISOString(),
+          expiresAt: result.data.expiresAt,
+          viewCount: 0,
+          shareUrl: result.data.shareUrl,
+          baseParams: {
+            bagTypeId: state.bagTypeId,
+            materialId: state.materialId,
+            width: state.width,
+            height: state.height,
+            depth: state.depth,
+            thicknessSelection: state.thicknessSelection,
+            isUVPrinting: state.isUVPrinting,
+            printingType: state.printingType,
+            printingColors: state.printingColors,
+            doubleSided: state.doubleSided,
+            postProcessingOptions: state.postProcessingOptions,
+            deliveryLocation: state.deliveryLocation,
+            urgency: state.urgency,
+          },
+          quantities: state.comparisonQuantities,
+          calculations: Object.fromEntries(state.multiQuantityResults),
+          comparison: state.comparison,
+          userPreferences: {
+            includeBreakdown: true,
+            includeRecommendations: true,
+            currency: 'JPY',
+            locale: 'ja',
+          },
+          metadata: {
+            title: metadata.title,
+            description: metadata.description,
+            customerName: metadata.customerName,
+            projectName: metadata.projectName,
+            createdAt: new Date().toISOString(),
+            expiresAt: result.data.expiresAt,
+            isShared: false,
+            viewCount: 0,
+            lastViewed: null,
+          },
+        };
+
+        saveToLocalStorage(localStorageData);
+        await loadSavedComparisons();
+
+        return {
+          success: true,
+          shareId,
+          shareUrl: result.data.shareUrl,
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error?.message || '保存に失敗しました',
+        };
+      }
+    } catch (error) {
+      console.error('[saveComparison] Error:', error);
+      return {
+        success: false,
+        error: '保存中にエラーが発生しました',
+      };
+    } finally {
+      dispatch({ type: 'SET_LOADING_SAVE', payload: false });
+    }
+  }, [state]);
+
+  const loadComparison = useCallback(async (shareId: string) => {
+    dispatch({ type: 'SET_LOADING_SAVE', payload: true });
+
+    try {
+      const response = await fetch(`/api/comparison/save?shareId=${shareId}`, {
+        method: 'GET',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const data = result.data;
+        dispatch({ type: 'LOAD_COMPARISON', payload: data });
+        return {
+          success: true,
+          data: result.data,
+        };
+      } else {
+        const localData = loadFromLocalStorage().find(comp => comp.shareId === shareId);
+        if (localData) {
+          dispatch({ type: 'LOAD_COMPARISON', payload: localData });
+          return {
+            success: true,
+            data: localData,
+          };
+        }
+
+        return {
+          success: false,
+          error: result.error?.message || '読み込みに失敗しました',
+        };
+      }
+    } catch (error) {
+      console.error('[loadComparison] Error:', error);
+
+      const localData = loadFromLocalStorage().find(comp => comp.shareId === shareId);
+      if (localData) {
+        dispatch({ type: 'LOAD_COMPARISON', payload: localData });
+        return {
+          success: true,
+          data: localData,
+        };
+      }
+
+      return {
+        success: false,
+        error: '読み込み中にエラーが発生しました',
+      };
+    } finally {
+      dispatch({ type: 'SET_LOADING_SAVE', payload: false });
+    }
+  }, []);
+
+  const exportComparison = useCallback(async (format: 'pdf' | 'excel' | 'csv', options = {}) => {
+    if (!state.comparison || !state.multiQuantityResults || state.multiQuantityResults.size === 0) {
+      return { success: false, error: 'エクスポートできる比較結果がありません' };
+    }
+
+    try {
+      const saveResult = await saveComparison();
+      if (!saveResult.success) {
+        return saveResult;
+      }
+
+      const response = await fetch('/api/comparison/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shareId: saveResult.shareId,
+          format,
+          options: {
+            includeBreakdown: true,
+            includeRecommendations: true,
+            includeCharts: true,
+            language: 'ja',
+            currency: 'JPY',
+            ...options,
+          },
+        }),
+      });
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `comparison-${saveResult.shareId}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      return { success: true, url };
+    } catch (error) {
+      console.error('[exportComparison] Error:', error);
+      return {
+        success: false,
+        error: 'エクスポート中にエラーが発生しました',
+      };
+    }
+  }, [state, saveComparison]);
+
+  const loadSavedComparisons = useCallback(async () => {
+    try {
+      const localComparisons = loadFromLocalStorage();
+      if (localComparisons.length > 0) {
+        dispatch({
+          type: 'SET_SAVED_COMPARISONS',
+          payload: localComparisons,
+        });
+      }
+
+      try {
+        const response = await fetch('/api/comparison/save');
+        const result = await response.json();
+
+        if (result.success) {
+          dispatch({
+            type: 'SET_SAVED_COMPARISONS',
+            payload: result.data,
+          });
+        }
+      } catch (apiError) {
+        console.log('[loadSavedComparisons] API unavailable, using localStorage data');
+      }
+    } catch (error) {
+      console.error('[loadSavedComparisons] Error:', error);
+    }
+  }, []);
+
+  const deleteComparison = useCallback(async (shareId: string) => {
+    try {
+      const response = await fetch(`/api/comparison/save?shareId=${shareId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const updatedComparisons = (state.savedComparisons || []).filter(
+          (comp: StoredComparison) => comp.shareId !== shareId
+        );
+        dispatch({
+          type: 'SET_SAVED_COMPARISONS',
+          payload: updatedComparisons,
+        });
+
+        deleteFromLocalStorage(shareId);
+
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: result.error?.message || '削除に失敗しました',
+        };
+      }
+    } catch (error) {
+      console.error('[deleteComparison] Error:', error);
+      return {
+        success: false,
+        error: '削除中にエラーが発生しました',
+      };
+    }
+  }, [state.savedComparisons]);
+
+  const shareComparison = useCallback(async (shareId: string, options = {}) => {
+    try {
+      const response = await fetch('/api/comparison/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shareId,
+          options: {
+            expiryDays: 30,
+            allowDownload: true,
+            allowComment: false,
+            language: 'ja',
+            ...options,
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        return {
+          success: true,
+          shareUrl: result.data.shareUrl,
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error?.message || '共有に失敗しました',
+        };
+      }
+    } catch (error) {
+      console.error('[shareComparison] Error:', error);
+      return {
+        success: false,
+        error: '共有中にエラーが発生しました',
+      };
+    }
+  }, []);
+
   // Memoize the context value with ONLY functions - never changes
   const value: QuoteContextType = useMemo(() => ({
     dispatch,
@@ -1755,7 +2293,19 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     applySKUSplit,
     clearAppliedOption,
     setSealWidth,
-    setContents
+    setContents,
+    // MultiQuantity helpers
+    setComparisonQuantities,
+    setSelectedQuantity,
+    calculateMultiQuantity,
+    saveQuantityPattern,
+    loadQuantityPattern,
+    saveComparison,
+    loadComparison,
+    exportComparison,
+    loadSavedComparisons,
+    deleteComparison,
+    shareComparison
   }), []); // Empty dependency array - these functions NEVER change
 
   return (
