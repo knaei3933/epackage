@@ -94,21 +94,21 @@ const getFilmStructureSpec = (materialId: string, thicknessId: string): string =
     {
       id: 'kraft_vmpet_lldpe',
       thicknessOptions: [
-        { id: 'light_50', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'standard_70', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'heavy_90', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra_100', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
-        { id: 'maximum_110', specificationEn: `Kraft 50g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
+        { id: 'light_50', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'standard_70', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'heavy_90', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra_100', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
+        { id: 'maximum_110', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     },
     {
       id: 'kraft_pet_lldpe',
       thicknessOptions: [
-        { id: 'light_50', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'standard_70', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'heavy_90', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra_100', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
-        { id: 'maximum_110', specificationEn: `Kraft 50g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
+        { id: 'light_50', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
+        { id: 'standard_70', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
+        { id: 'heavy_90', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
+        { id: 'ultra_100', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
+        { id: 'maximum_110', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
       ]
     }
   ];

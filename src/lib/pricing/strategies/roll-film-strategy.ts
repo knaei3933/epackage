@@ -25,10 +25,10 @@ export class RollFilmStrategy extends BasePricingStrategy {
    * 素材費計算（ロールフィルム専用）
    */
   protected async calculateMaterialCost(params: CalculationParams): Promise<number> {
-    const { width, filmLayers, thicknessSelection, quantity } = params
+    const { width, filmLayers, thicknessSelection, quantity, materialId } = params
 
-    // 原反幅決定
-    const materialWidth = this.determineMaterialWidth(width)
+    // 原反幅決定（クラフト材料対応）
+    const materialWidth = this.determineMaterialWidth(width, materialId)
     const widthM = materialWidth / 1000
 
     // デフォルトフィルム構造
@@ -41,8 +41,10 @@ export class RollFilmStrategy extends BasePricingStrategy {
     const baseLayers = filmLayers || defaultLayers
     const adjustedLayers = this.adjustLayersForThickness(baseLayers, thicknessSelection)
 
-    // 総メートル数（ロス含む）
-    const totalMeters = quantity + PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    // 総メートル数（ロス含む）- クラフト材料は700M、通常は400M
+    const isKraftMaterial = this.isKraftMaterial(materialId)
+    const lossMeters = isKraftMaterial ? PRICING_CONSTANTS.KRAFT_TOTAL_LOSS_METERS : PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    const totalMeters = quantity + lossMeters
 
     // 各レイヤーの材料費計算（ウォン）
     let materialCostKRW = 0
@@ -72,13 +74,15 @@ export class RollFilmStrategy extends BasePricingStrategy {
    * 加工費計算（ラミネート費 + スリッター費）
    */
   protected async calculateProcessingCost(params: CalculationParams): Promise<number> {
-    const { width, quantity, filmLayers, thicknessSelection } = params
+    const { width, quantity, filmLayers, thicknessSelection, materialId } = params
 
-    // 原反幅（m）
-    const materialWidthM = this.determineMaterialWidth(width) / 1000
+    // 原反幅（m）- クラフト材料対応
+    const materialWidthM = this.determineMaterialWidth(width, materialId) / 1000
 
-    // 総メートル数
-    const totalMeters = quantity + PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    // 総メートル数 - クラフト材料は700M、通常は400M
+    const isKraftMaterial = this.isKraftMaterial(materialId)
+    const lossMeters = isKraftMaterial ? PRICING_CONSTANTS.KRAFT_TOTAL_LOSS_METERS : PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    const totalMeters = quantity + lossMeters
 
     // AL素材チェック
     const layers = filmLayers || []
@@ -103,26 +107,30 @@ export class RollFilmStrategy extends BasePricingStrategy {
    * 印刷用メートル数計算
    */
   protected calculateMetersForPrinting(params: CalculationParams): number {
-    // ロールフィルム: 総メートル数（ロス含む）
-    return params.quantity + PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    // ロールフィルム: 総メートル数（ロス含む）- クラフト材料は700M
+    const isKraftMaterial = this.isKraftMaterial(params.materialId)
+    const lossMeters = isKraftMaterial ? PRICING_CONSTANTS.KRAFT_TOTAL_LOSS_METERS : PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    return params.quantity + lossMeters
   }
 
   /**
    * 総メートル数（ロス含む）計算（オーバーライド）
    */
   protected calculateTotalMetersWithLoss(params: CalculationParams): number {
-    return params.quantity + PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    const isKraftMaterial = this.isKraftMaterial(params.materialId)
+    const lossMeters = isKraftMaterial ? PRICING_CONSTANTS.KRAFT_TOTAL_LOSS_METERS : PRICING_CONSTANTS.ROLL_FILM_LOSS_METERS
+    return params.quantity + lossMeters
   }
 
   /**
    * 配送料計算（重量ベース）
    */
   protected async calculateDeliveryCost(params: CalculationParams): Promise<number> {
-    const { quantity, width, filmLayers, thicknessSelection } = params
+    const { quantity, width, filmLayers, thicknessSelection, materialId } = params
 
     // 納品メートル数（ロスなし）
     const deliveryMeters = quantity
-    const filmWidthM = this.determineMaterialWidth(width) / 1000
+    const filmWidthM = this.determineMaterialWidth(width, materialId) / 1000
 
     // デフォルトフィルム構造
     const defaultLayers: FilmStructureLayer[] = [
@@ -204,7 +212,7 @@ export class RollFilmStrategy extends BasePricingStrategy {
     const hasMatteFinishing = params.postProcessingOptions?.includes('matte') ?? false
     if (!hasMatteFinishing) return 0
 
-    const materialWidthM = this.determineMaterialWidth(params.width) / 1000
+    const materialWidthM = this.determineMaterialWidth(params.width, params.materialId) / 1000
     const totalMeters = this.calculateTotalMetersWithLoss(params)
     const matteCostKRW = materialWidthM * ROLL_FILM_CONSTANTS.MATTE_COST_PER_M * totalMeters
 

@@ -32,10 +32,10 @@ export class PouchStrategy extends BasePricingStrategy {
    * 素材費計算（フィルム構造に基づく正確な計算）
    */
   protected async calculateMaterialCost(params: CalculationParams): Promise<number> {
-    const { width, height, filmLayers, thicknessSelection } = params
+    const { width, height, filmLayers, thicknessSelection, materialId } = params
 
-    // 原反幅決定
-    const materialWidth = this.determineMaterialWidth(width)
+    // 原反幅決定（クラフト材料対応）
+    const materialWidth = this.determineMaterialWidth(width, materialId)
     const widthM = materialWidth / 1000
 
     // デフォルトフィルム構造

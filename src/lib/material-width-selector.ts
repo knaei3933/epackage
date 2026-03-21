@@ -5,14 +5,14 @@
  * 製品幅（印刷幅）に応じて適切な原反幅を選定
  *
  * 利用可能な原反幅:
- * - 590mm原反 → 印刷可能幅570mm（製品幅570mm以下向け）
- * - 760mm原反 → 印刷可能幅740mm（製品幅740mm以下向け）
+ * - 通常材料: 590mm原反 → 印刷可能幅570mm、760mm原反 → 印刷可能幅740mm
+ * - クラフト材料: 780mm原反 → 印刷可能幅760mm、1190mm原反 → 印刷可能幅1170mm
  */
 
 /**
  * 原反幅タイプ
  */
-export type MaterialWidthType = 590 | 760;
+export type MaterialWidthType = 590 | 760 | 780 | 1190;
 
 /**
  * 原反幅情報
@@ -21,6 +21,7 @@ export interface MaterialWidthInfo {
   materialWidth: MaterialWidthType;  // 実際の原反幅
   printableWidth: number;            // 印刷可能幅
   description: string;               // 説明
+  isKraftMaterial?: boolean;         // クラフト材料フラグ
 }
 
 /**
@@ -36,20 +37,49 @@ export const AVAILABLE_MATERIAL_WIDTHS: Record<MaterialWidthType, MaterialWidthI
     materialWidth: 760,
     printableWidth: 740,
     description: '760mm原反（印刷可能幅740mm）'
+  },
+  780: {
+    materialWidth: 780,
+    printableWidth: 760,
+    description: '780mm原反（クラフト紙・印刷可能幅760mm）',
+    isKraftMaterial: true
+  },
+  1190: {
+    materialWidth: 1190,
+    printableWidth: 1170,
+    description: '1190mm原反（クラフト紙・印刷可能幅1170mm）',
+    isKraftMaterial: true
   }
 };
 
 /**
  * 製品幅に基づいて原反幅を選定
+ * クラフト材料専用の幅選定もサポート
  *
  * @param productWidth 製品幅（mm） - ロールフィルムの幅
+ * @param materialId 素材ID（オプション）- クラフト材料判定用
  * @returns 選定された原反幅
  *
  * @example
  * determineMaterialWidth(476); // returns 590 (476mm ≤ 570mm)
  * determineMaterialWidth(600); // returns 760 (600mm > 570mm but ≤ 740mm)
+ * determineMaterialWidth(600, 'kraft_pet_lldpe'); // returns 780 (クラフト材料)
+ * determineMaterialWidth(800, 'kraft_pet_lldpe'); // returns 1190 (クラフト材料)
  */
-export function determineMaterialWidth(productWidth: number): MaterialWidthType {
+export function determineMaterialWidth(productWidth: number, materialId?: string): MaterialWidthType {
+  // クラフト材料判定
+  const isKraftMaterial = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe'
+
+  if (isKraftMaterial) {
+    // クラフト材料: 780mmまたは1190mm
+    if (productWidth <= 760) {
+      return 780; // クラフト紙小型
+    } else {
+      return 1190; // クラフト紙大型
+    }
+  }
+
+  // 通常材料: 590mmまたは760mm
   if (productWidth <= 570) {
     return 590; // 590mm原反
   } else if (productWidth <= 740) {

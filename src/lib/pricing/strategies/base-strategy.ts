@@ -151,13 +151,19 @@ export abstract class BasePricingStrategy implements PricingStrategy {
 
   /**
    * 印刷費計算（デフォルト実装）
+   * クラフト材料は専用の印刷単価（400ウォン/m）を使用
    */
   protected async calculatePrintingCost(params: CalculationParams): Promise<number> {
     const printingType = params.printingType || 'digital'
     const config = PRINTING_COSTS[printingType]
     const meters = this.calculateMetersForPrinting(params)
 
-    const printingCostKRW = meters * config.perColorPerMeter
+    // クラフト材料の判定
+    const isKraftMaterial = params.materialId === 'kraft_vmpet_lldpe' || params.materialId === 'kraft_pet_lldpe'
+    // クラフト紙は専用印刷単価、通常材料はデフォルト単価
+    const perColorPerMeter = isKraftMaterial ? ROLL_FILM_CONSTANTS.KRAFT_PRINTING_COST_PER_M : config.perColorPerMeter
+
+    const printingCostKRW = meters * perColorPerMeter
     const totalCostKRW = Math.max(printingCostKRW, config.minCharge)
 
     return totalCostKRW * PRICING_CONSTANTS.EXCHANGE_RATE_KRW_TO_JPY
@@ -187,7 +193,7 @@ export abstract class BasePricingStrategy implements PricingStrategy {
     const hasMatteFinishing = params.postProcessingOptions?.includes('matte') ?? false
     if (!hasMatteFinishing) return 0
 
-    const materialWidthM = this.determineMaterialWidth(params.width) / 1000
+    const materialWidthM = this.determineMaterialWidth(params.width, params.materialId) / 1000
     const totalMeters = this.calculateTotalMetersWithLoss(params)
     const matteCostKRW = materialWidthM * ROLL_FILM_CONSTANTS.MATTE_COST_PER_M * totalMeters
 
@@ -368,9 +374,17 @@ export abstract class BasePricingStrategy implements PricingStrategy {
 
   /**
    * 原反幅決定
+   * クラフト材料の場合は780または1190、通常材料は590または760
    */
-  protected determineMaterialWidth(productWidth: number): 590 | 760 {
-    return productWidth <= 300 ? 590 : 760
+  protected determineMaterialWidth(productWidth: number, materialId?: string): 590 | 760 | 780 | 1190 {
+    // クラフト材料の幅判定
+    const isKraftMaterial = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe'
+    if (isKraftMaterial) {
+      // クラフト紙: 760mm以下で780mm、それ以上は1190mm（material-width-selector.tsと一致）
+      return productWidth <= 760 ? 780 : 1190
+    }
+    // 通常材料: 570mm以下で590mm、それ以上は760mm（material-width-selector.tsと一致）
+    return productWidth <= 570 ? 590 : 760
   }
 
   /**

@@ -57,8 +57,8 @@ export interface QuoteResult {
   quantity?: number
   /** フィルム使用量（メートル） */
   filmUsage?: number
-  /** 原反幅（mm） */
-  materialWidth?: 590 | 760
+  /** 原反幅（mm） - 通常材料: 590, 760 / クラフト材料: 780, 1190 */
+  materialWidth?: 590 | 760 | 780 | 1190
 }
 
 // ========================================

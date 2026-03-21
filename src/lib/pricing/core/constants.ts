@@ -49,6 +49,21 @@ export const PRICING_CONSTANTS = {
   NY_LLDPE_MIN_QUANTITY: 500,
   /** Kraft材料 最小注文数量（m） - ロールフィルムのみ */
   KRAFT_MIN_QUANTITY_METERS: 1000,
+
+  /** クラフト紙原反幅オプション（mm） */
+  KRAFT_MATERIAL_WIDTHS: [780, 1190] as const,
+
+  /** クラフト紙印刷ロス（m） - ピン作業（合지） */
+  KRAFT_PRINT_LOSS_METERS: 500,
+
+  /** クラフト紙スリッターロス（m） */
+  KRAFT_SLITTER_LOSS_METERS: 100,
+
+  /** クラフト紙加工ロス（m） */
+  KRAFT_PROCESSING_LOSS_METERS: 100,
+
+  /** クラフト紙総ロス（m） - 印刷 + スリッター + 加工 */
+  KRAFT_TOTAL_LOSS_METERS: 700,
 } as const
 
 // ========================================
@@ -62,7 +77,7 @@ export const MATERIAL_PRICES_KRW: Record<string, MaterialCostConfig> = {
   'NY': { unitPrice: 5400, density: 1.16 },
   'VMPET': { unitPrice: 3600, density: 1.40 },
   'CPP': { unitPrice: 2700, density: 0.91 },
-  'KRAFT': { unitPrice: 10000, density: 0.9 },
+  'KRAFT': { unitPrice: 3000, density: 1.0 },
 } as const
 
 // ========================================
@@ -132,8 +147,10 @@ export const ROLL_FILM_CONSTANTS = {
   SLITTER_MIN_COST: 30000,
   /** スリッター費（ウォン/m） */
   SLITTER_COST_PER_M: 10,
-  /** 印刷費（ウォン/m） */
+  /** 印刷費（ウォン/m） - 通常材料 */
   PRINTING_COST_PER_M: 475,
+  /** クラフト紙印刷費（ウォン/m） - クラフト材料専用 */
+  KRAFT_PRINTING_COST_PER_M: 400,
   /** マット印刷追加費（ウォン/m） */
   MATTE_COST_PER_M: 40,
 } as const
@@ -367,89 +384,89 @@ export const MATERIAL_THICKNESS_OPTIONS: MaterialThicknessOptions = {
       multiplier: 1.2
     }
   ],
-  // Kraft+VMPET+LLDPE: 3-layer structure
+  // Kraft+VMPET+LLDPE: 3-layer structure (Kraft 80g/m² 固定)
   'kraft_vmpet_lldpe': [
     {
       id: 'light_50',
       name: 'Light (LLDPE 50μ)',
       nameJa: '軽量タイプ (LLDPE 50μ)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
-      weightRange: '110~130g/m²',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ',
+      weightRange: '140~160g/m²',
       multiplier: 0.9
     },
     {
       id: 'standard_70',
       name: 'Standard (LLDPE 70μ)',
       nameJa: '標準タイプ (LLDPE 70μ)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
-      weightRange: '130~150g/m²',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ',
+      weightRange: '160~180g/m²',
       multiplier: 1.0
     },
     {
       id: 'heavy_90',
       name: 'Heavy (LLDPE 90μ)',
       nameJa: '高耐久タイプ (LLDPE 90μ)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-      weightRange: '150~170g/m²',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+      weightRange: '180~200g/m²',
       multiplier: 1.1
     },
     {
       id: 'ultra_100',
       name: 'Ultra (LLDPE 100μ)',
       nameJa: '超耐久タイプ (LLDPE 100μ)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
-      weightRange: '170~190g/m²',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ',
+      weightRange: '200~220g/m²',
       multiplier: 1.15
     },
     {
       id: 'maximum_110',
       name: 'Maximum (LLDPE 110μ)',
       nameJa: '最大耐久タイプ (LLDPE 110μ)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
-      weightRange: '190g/m²~',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ',
+      weightRange: '220g/m²~',
       multiplier: 1.2
     }
   ],
-  // Kraft+PET+LLDPE: 3-layer structure
+  // Kraft+PET+LLDPE: 3-layer structure (Kraft 80g/m² 固定)
   'kraft_pet_lldpe': [
     {
       id: 'light_50',
       name: 'Light (LLDPE 50μ)',
       nameJa: '軽量タイプ (LLDPE 50μ)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
-      weightRange: '100~120g/m²',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ',
+      weightRange: '140~160g/m²',
       multiplier: 0.9
     },
     {
       id: 'standard_70',
       name: 'Standard (LLDPE 70μ)',
       nameJa: '標準タイプ (LLDPE 70μ)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-      weightRange: '120~140g/m²',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
+      weightRange: '160~180g/m²',
       multiplier: 1.0
     },
     {
       id: 'heavy_90',
       name: 'Heavy (LLDPE 90μ)',
       nameJa: '高耐久タイプ (LLDPE 90μ)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
-      weightRange: '140~160g/m²',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ',
+      weightRange: '180~200g/m²',
       multiplier: 1.1
     },
     {
       id: 'ultra_100',
       name: 'Ultra (LLDPE 100μ)',
       nameJa: '超耐久タイプ (LLDPE 100μ)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
-      weightRange: '160~180g/m²',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ',
+      weightRange: '200~220g/m²',
       multiplier: 1.15
     },
     {
       id: 'maximum_110',
       name: 'Maximum (LLDPE 110μ)',
       nameJa: '最大耐久タイプ (LLDPE 110μ)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
-      weightRange: '180g/m²~',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ',
+      weightRange: '220g/m²~',
       multiplier: 1.2
     }
   ]

@@ -545,12 +545,12 @@ function SpecsStep() {
           id: 'light_50',
           name: '軽量タイプ (~50g)',
           nameJa: '軽量タイプ (~50g)',
-          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
+          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ',
           weightRange: '~50g',
           multiplier: 0.85,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'VMPET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 50 }
           ]
@@ -559,12 +559,12 @@ function SpecsStep() {
           id: 'standard_70',
           name: '標準タイプ (~200g)',
           nameJa: '標準タイプ (~200g)',
-          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
+          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ',
           weightRange: '~200g',
           multiplier: 0.95,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'VMPET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 70 }
           ]
@@ -573,12 +573,12 @@ function SpecsStep() {
           id: 'heavy_90',
           name: '高耐久タイプ (~500g)',
           nameJa: '高耐久タイプ (~500g)',
-          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
           weightRange: '~500g',
           multiplier: 1.0,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'VMPET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 90 }
           ]
@@ -587,12 +587,12 @@ function SpecsStep() {
           id: 'ultra_100',
           name: '超耐久タイプ (~800g)',
           nameJa: '超耐久タイプ (~800g)',
-          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
+          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ',
           weightRange: '~800g',
           multiplier: 1.1,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'VMPET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 100 }
           ]
@@ -601,12 +601,12 @@ function SpecsStep() {
           id: 'maximum_110',
           name: 'マキシマムタイプ (800g~)',
           nameJa: 'マキシマムタイプ (800g~)',
-          specification: 'クラフト紙50g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
+          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ',
           weightRange: '800g~',
           multiplier: 1.2,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'VMPET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 110 }
           ]
@@ -631,12 +631,12 @@ function SpecsStep() {
           id: 'light_50',
           name: '軽量タイプ (~50g)',
           nameJa: '軽量タイプ (~50g)',
-          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
+          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
+          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ',
           weightRange: '~50g',
           multiplier: 0.85,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'PET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 50 }
           ]
@@ -645,12 +645,12 @@ function SpecsStep() {
           id: 'standard_70',
           name: '標準タイプ (~200g)',
           nameJa: '標準タイプ (~200g)',
-          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
           weightRange: '~200g',
           multiplier: 0.95,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'PET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 70 }
           ]
@@ -659,12 +659,12 @@ function SpecsStep() {
           id: 'heavy_90',
           name: '高耐久タイプ (~500g)',
           nameJa: '高耐久タイプ (~500g)',
-          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
+          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
+          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ',
           weightRange: '~500g',
           multiplier: 1.0,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'PET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 90 }
           ]
@@ -673,12 +673,12 @@ function SpecsStep() {
           id: 'ultra_100',
           name: '超耐久タイプ (~800g)',
           nameJa: '超耐久タイプ (~800g)',
-          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
+          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
+          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ',
           weightRange: '~800g',
           multiplier: 1.1,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'PET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 100 }
           ]
@@ -687,12 +687,12 @@ function SpecsStep() {
           id: 'maximum_110',
           name: 'マキシマムタイプ (800g~)',
           nameJa: 'マキシマムタイプ (800g~)',
-          specification: 'クラフト紙50g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
+          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
+          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ',
           weightRange: '800g~',
           multiplier: 1.2,
           filmLayers: [
-            { materialId: 'KRAFT', grammage: 50 },
+            { materialId: 'KRAFT', grammage: 80 },
             { materialId: 'PET', thickness: 12 },
             { materialId: 'LLDPE', thickness: 110 }
           ]
@@ -2032,21 +2032,21 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
       {
         id: 'kraft_vmpet_lldpe',
         thicknessOptions: [
-          { id: 'light_50', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ' },
-          { id: 'standard_70', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ' },
-          { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ' },
-          { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ' },
-          { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ' }
+          { id: 'light_50', specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ' },
+          { id: 'standard_70', specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ' },
+          { id: 'heavy_90', specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ' },
+          { id: 'ultra_100', specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ' },
+          { id: 'maximum_110', specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ' }
         ]
       },
       {
         id: 'kraft_pet_lldpe',
         thicknessOptions: [
-          { id: 'light_50', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ' },
-          { id: 'standard_70', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ' },
-          { id: 'heavy_90', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ' },
-          { id: 'ultra_100', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ' },
-          { id: 'maximum_110', specificationEn: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ' }
+          { id: 'light_50', specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ' },
+          { id: 'standard_70', specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ' },
+          { id: 'heavy_90', specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ' },
+          { id: 'ultra_100', specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ' },
+          { id: 'maximum_110', specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ' }
         ]
       }
     ];

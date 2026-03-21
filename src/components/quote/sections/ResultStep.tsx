@@ -195,18 +195,18 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         'ultra': 'NY 15μ / LLDPE 110μ'
       },
       'kraft_vmpet_lldpe': {
-        'light_50': 'Kraft 50g/m² / VMPET 12μ / LLDPE 50μ',
-        'standard_70': 'Kraft 50g/m² / VMPET 12μ / LLDPE 70μ',
-        'heavy_90': 'Kraft 50g/m² / VMPET 12μ / LLDPE 90μ',
-        'ultra_100': 'Kraft 50g/m² / VMPET 12μ / LLDPE 100μ',
-        'maximum_110': 'Kraft 50g/m² / VMPET 12μ / LLDPE 110μ'
+        'light_50': 'Kraft 80g/m² / VMPET 12μ / LLDPE 50μ',
+        'standard_70': 'Kraft 80g/m² / VMPET 12μ / LLDPE 70μ',
+        'heavy_90': 'Kraft 80g/m² / VMPET 12μ / LLDPE 90μ',
+        'ultra_100': 'Kraft 80g/m² / VMPET 12μ / LLDPE 100μ',
+        'maximum_110': 'Kraft 80g/m² / VMPET 12μ / LLDPE 110μ'
       },
       'kraft_pet_lldpe': {
-        'light_50': 'Kraft 50g/m² / PET 12μ / LLDPE 50μ',
-        'standard_70': 'Kraft 50g/m² / PET 12μ / LLDPE 70μ',
-        'heavy_90': 'Kraft 50g/m² / PET 12μ / LLDPE 90μ',
-        'ultra_100': 'Kraft 50g/m² / PET 12μ / LLDPE 100μ',
-        'maximum_110': 'Kraft 50g/m² / PET 12μ / LLDPE 110μ'
+        'light_50': 'Kraft 80g/m² / PET 12μ / LLDPE 50μ',
+        'standard_70': 'Kraft 80g/m² / PET 12μ / LLDPE 70μ',
+        'heavy_90': 'Kraft 80g/m² / PET 12μ / LLDPE 90μ',
+        'ultra_100': 'Kraft 80g/m² / PET 12μ / LLDPE 100μ',
+        'maximum_110': 'Kraft 80g/m² / PET 12μ / LLDPE 110μ'
       }
     };
 
