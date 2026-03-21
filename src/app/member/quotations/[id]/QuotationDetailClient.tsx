@@ -36,6 +36,7 @@ import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownload
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
+import { formatPrice, formatDate } from '@/utils/formatters';
 
 // =====================================================
 // Types
@@ -77,14 +78,6 @@ const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' 
 /**
  * 袋タイプIDを日本語名に変換
  */
-// 価格フォーマット関数 - 小数点を保持して表示
-function formatPrice(price: number): string {
-  if (Number.isInteger(price)) {
-    return price.toLocaleString();
-  }
-  // 小数点以下1桁を表示
-  return price.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
 
 function getBagTypeName(bagTypeId: string): string {
   const names: Record<string, string> = {
@@ -429,15 +422,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       if (!quotation.items || quotation.items.length === 0) {
         throw new Error('見積明細がありません');
       }
-
-      const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
 
       const quoteItems = quotation.items
         .filter((item) => item.productName && item.quantity > 0 && item.unitPrice >= 0)

@@ -2,72 +2,19 @@
  * BasicInfoSection Component
  *
  * Extracted from SpecsStep - handles bag type selection
+ * REFACTORED: Now uses centralized BAG_TYPE_OPTIONS from @/types/quote-wizard
  */
+
+'use client';
 
 import React from 'react';
 import { Package, Check } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { useQuote, useQuoteState } from '@/contexts/QuoteContext';
+import { BAG_TYPE_OPTIONS } from '@/types/quote-wizard';
+import type { BagTypeOption } from '@/types/quote-wizard';
 
-export interface BagTypeOption {
-  id: string;
-  name: string;
-  nameJa: string;
-  description: string;
-  descriptionJa: string;
-  basePrice: number;
-  image: string;
-}
-
-const BAG_TYPES: BagTypeOption[] = [
-  {
-    id: 'flat_3_side',
-    name: '三方シール平袋',
-    nameJa: '三方シール平袋',
-    description: '基本的な平たい袋タイプ',
-    descriptionJa: '最も一般的な平袋タイプ。三方をシールし、一方は開口部',
-    basePrice: 15,
-    image: '/images/processing-icons/flat-3-side.png'
-  },
-  {
-    id: 'stand_up',
-    name: 'スタンドパウチ',
-    nameJa: 'スタンドパウチ',
-    description: '底が広がり自立するタイプ',
-    descriptionJa: '底部がガセット構造で自立可能。陳列効果に優れる',
-    basePrice: 25,
-    image: '/images/processing-icons/flat-3-side-stand.png'
-  },
-  {
-    id: 'box',
-    name: 'ガゼットパウチ',
-    nameJa: 'ガゼットパウチ',
-    description: '箱型形状で保護性に優れる',
-    descriptionJa: '立体的な箱型形状で内容物を保護。高級感のあるデザイン',
-    basePrice: 30,
-    image: '/images/processing-icons/box-type.png'
-  },
-  {
-    id: 'spout_pouch',
-    name: 'スパウトパウチ',
-    nameJa: 'スパウトパウチ',
-    description: '液体製品に最適な注ぎ口付き',
-    descriptionJa: '液体・粉末製品向けの注ぎ口付き。注ぎやすく再密閉可能',
-    basePrice: 35,
-    image: '/images/processing-icons/spout.png'
-  },
-  {
-    id: 'roll_film',
-    name: 'ロールフィルム',
-    nameJa: 'ロールフィルム',
-    description: '自動包装機対応のフィルム',
-    descriptionJa: '自動包装機向けロール状フィルム。大量生産に最適',
-    basePrice: 8,
-    image: '/images/processing-icons/roll-film.png'
-  }
-];
-
-interface BasicInfoSectionProps {
+export interface BasicInfoSectionProps {
   title?: string;
   showLabel?: boolean;
 }
@@ -94,7 +41,7 @@ export function BasicInfoSection({
         </label>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {BAG_TYPES.map((type) => (
+        {BAG_TYPE_OPTIONS.map((type) => (
           <button
             key={type.id}
             onClick={() => handleSelectBagType(type.id)}

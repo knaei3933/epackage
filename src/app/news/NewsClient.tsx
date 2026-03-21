@@ -16,6 +16,7 @@ import {
   Eye,
   Star
 } from 'lucide-react'
+import { formatDateJa } from '@/utils/formatters'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Card } from '@/components/ui/Card'
@@ -249,15 +250,6 @@ export function NewsClient() {
     setFilteredArticles(filtered)
   }, [articles, selectedCategory, searchTerm, sortBy])
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
   const formatReadTime = (minutes: number) => {
     return `約${minutes}分で読めます`
   }
@@ -415,7 +407,7 @@ export function NewsClient() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          <span>{formatDate(article.publishedAt)}</span>
+                          <span>{formatDateJa(article.publishedAt)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -523,7 +515,7 @@ export function NewsClient() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          <span>{formatDate(article.publishedAt)}</span>
+                          <span>{formatDateJa(article.publishedAt)}</span>
                         </div>
                       </div>
 

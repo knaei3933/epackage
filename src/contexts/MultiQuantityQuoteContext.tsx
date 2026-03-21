@@ -65,12 +65,12 @@ function getFilmLayersForMaterial(
       { materialId: 'LLDPE', thickness: baseLldpeThickness }
     ],
     'kraft_vmpet_lldpe': [
-      { materialId: 'KRAFT', grammage: 50 },
+      { materialId: 'KRAFT', grammage: 80 },
       { materialId: 'VMPET', thickness: 12 },
       { materialId: 'LLDPE', thickness: baseLldpeThickness }
     ],
     'kraft_pet_lldpe': [
-      { materialId: 'KRAFT', grammage: 50 },
+      { materialId: 'KRAFT', grammage: 80 },
       { materialId: 'PET', thickness: 12 },
       { materialId: 'LLDPE', thickness: baseLldpeThickness }
     ]

@@ -16,6 +16,7 @@ import { adminFetch } from '@/lib/auth-client';
 import { Download, Mail } from 'lucide-react';
 import { EmailComposer } from '@/components/admin/EmailComposer';
 import type { Recipient } from '@/components/admin/EmailComposer';
+import { formatDateJa } from '@/utils/formatters';
 
 interface AuthContext {
   userId: string;
@@ -348,7 +349,7 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: AdminQuota
                               ¥{quotation.subtotal_amount?.toLocaleString() || quotation.total_amount?.toLocaleString() || '0'}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(quotation.created_at).toLocaleDateString('ja-JP')}
+                              {formatDateJa(quotation.created_at)}
                             </p>
                           </div>
                           <button

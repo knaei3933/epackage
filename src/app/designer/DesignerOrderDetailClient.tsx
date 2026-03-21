@@ -14,6 +14,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { formatDateTimeJa } from '@/utils/formatters';
 import {
   ArrowLeft,
   FileImage,
@@ -136,18 +137,6 @@ export function DesignerOrderDetailClient({
     const timer = setTimeout(() => setSuccessMessage(null), 3000);
     return () => clearTimeout(timer);
   }, [successMessage]);
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -387,7 +376,7 @@ export function DesignerOrderDetailClient({
             <Calendar className="w-5 h-5 text-slate-400" />
             <div>
               <p className="text-xs text-slate-500">注文日</p>
-              <p className="font-medium text-slate-900">{formatDate(order.created_at)}</p>
+              <p className="font-medium text-slate-900">{formatDateTimeJa(order.created_at)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -686,7 +675,7 @@ export function DesignerOrderDetailClient({
                     </div>
 
                     <p className="text-sm text-slate-600 mb-2">
-                      {formatDate(revision.created_at)}
+                      {formatDateTimeJa(revision.created_at)}
                     </p>
 
                     {revision.partner_comment && (

@@ -72,13 +72,13 @@ function getDefaultFilmLayers(materialId: string, thicknessSelection: string): F
     ],
     // Kraft+VMPET+LLDPE: 3-layer structure (Kraft uses grammage)
     'kraft_vmpet_lldpe': (lldpe: number) => [
-      { materialId: 'KRAFT', grammage: 50 },
+      { materialId: 'KRAFT', grammage: 80 },
       { materialId: 'VMPET', thickness: 12 },
       { materialId: 'LLDPE', thickness: lldpe }
     ],
     // Kraft+PET+LLDPE: 3-layer structure (Kraft uses grammage)
     'kraft_pet_lldpe': (lldpe: number) => [
-      { materialId: 'KRAFT', grammage: 50 },
+      { materialId: 'KRAFT', grammage: 80 },
       { materialId: 'PET', thickness: 12 },
       { materialId: 'LLDPE', thickness: lldpe }
     ]

@@ -1,16 +1,28 @@
 /**
- * Sections Index
+ * Quote Sections Components
  *
- * Centralized exports for all section components
+ * Re-export all section components for easier imports
  */
 
-export { BasicInfoSection } from './BasicInfoSection';
-export { MaterialSelection } from './MaterialSelection';
-export { SizeSpecification } from './SizeSpecification';
-export { PostProcessingStep } from './PostProcessingStep';
-export { DeliveryStep } from './DeliveryStep';
-export { ResultStep } from './ResultStep';
-export { PageHeaderSection } from './PageHeaderSection';
-export { QuickActionsSection } from './QuickActionsSection';
 export { QuoteSimulatorHeader } from './QuoteSimulatorHeader';
 export type { QuoteSimulatorHeaderProps, TrustIndicator } from './QuoteSimulatorHeader';
+
+export { QuickActionsSection } from './QuickActionsSection';
+
+export { BasicInfoSection } from './BasicInfoSection';
+export type { BagTypeOption } from './BasicInfoSection';
+
+export { SizeSpecification } from './SizeSpecification';
+
+export { MaterialSelection } from './MaterialSelection';
+
+export { ContentsSelector } from './ContentsSelector';
+export type { ContentsSelectorProps } from './ContentsSelector';
+
+export { DeliveryStep } from './DeliveryStep';
+
+export { PostProcessingStep } from './PostProcessingStep';
+
+export { ResultStep } from './ResultStep';
+
+export { PageHeaderSection } from './PageHeaderSection';

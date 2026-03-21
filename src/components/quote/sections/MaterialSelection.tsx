@@ -3,188 +3,24 @@
  *
  * Extracted from SpecsStep - handles material selection with thickness options
  * 素材をカテゴリー別に分類して表示（透明タイプ、高バリアタイプ、クラフトタイプ）
+ *
+ * REFACTORED: Now uses centralized material data from @/constants/materialData
  */
 
+'use client';
+
 import React from 'react';
-import { Check, AlertCircle, Eye, Shield, Leaf, Lightbulb, Zap } from 'lucide-react';
+import { Check, AlertCircle, Eye, Shield, Leaf, Lightbulb } from 'lucide-react';
 import { useQuote, useQuoteState } from '@/contexts/QuoteContext';
-import {
-  MATERIAL_TYPE_LABELS,
-  MATERIAL_TYPE_LABELS_JA,
-  MATERIAL_DESCRIPTIONS
-} from '@/constants/materialTypes';
+import { MATERIALS_DATA, getMaterialsByCategory, getMaterialById } from '@/constants/materialData';
+import type { MaterialCategory as MaterialCategoryType } from '@/types/quote-components';
 
-// All materials including Kraft (roll film only)
-const ALL_MATERIALS = [
-  // ========== 透明タイプ ==========
-  {
-    id: 'pet_ldpe',
-    name: MATERIAL_TYPE_LABELS.pet_ldpe,
-    nameJa: MATERIAL_TYPE_LABELS_JA.pet_ldpe,
-    description: MATERIAL_DESCRIPTIONS.pet_ldpe.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.pet_ldpe.ja,
-    multiplier: 1.0,
-    features: ['透明性に優れる', '中身が見える', 'シール性良好', 'コスト経済的'],
-    featuresJa: ['透明性に優れる', '中身が見える', 'シール性良好', 'コスト経済的'],
-    recommendedFor: 'お菓子、乾物、パン、小物包装',
-    category: 'transparent',
-    popular: false,
-    ecoFriendly: false,
-    rollFilmOnly: false,
-    thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (LLDPE 72μ)', nameJa: '軽量タイプ (LLDPE 72μ)', specification: 'PET 12μ + LLDPE 72μ', weightRange: '~200g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (LLDPE 80μ)', nameJa: '標準タイプ (LLDPE 80μ)', specification: 'PET 12μ + LLDPE 80μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (LLDPE 88μ)', nameJa: '高耐久タイプ (LLDPE 88μ)', specification: 'PET 12μ + LLDPE 88μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (LLDPE 96μ)', nameJa: '超耐久タイプ (LLDPE 96μ)', specification: 'PET 12μ + LLDPE 96μ', weightRange: '800g~', multiplier: 1.2 }
-    ]
-  },
-  {
-    id: 'ny_lldpe',
-    name: MATERIAL_TYPE_LABELS.ny_lldpe,
-    nameJa: MATERIAL_TYPE_LABELS_JA.ny_lldpe,
-    description: MATERIAL_DESCRIPTIONS.ny_lldpe.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.ny_lldpe.ja,
-    multiplier: 1.1,
-    features: ['電子レンジ解凍可能', '透明窓表現可能', '2層構造で経済的', '軽量設計'],
-    featuresJa: ['電子レンジ解凍可能', '透明窓表現可能', '2層構造で経済的', '軽量設計'],
-    recommendedFor: '冷凍食品、惣菜、電子レンジ調理品',
-    category: 'transparent',
-    popular: false,
-    ecoFriendly: false,
-    rollFilmOnly: false,
-    thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'NY 15μ + LLDPE 50μ', weightRange: '~70g/m²', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'NY 15μ + LLDPE 70μ', weightRange: '70~90g/m²', multiplier: 1.0 },
-      { id: 'standard', name: 'レギュラータイプ (LLDPE 90μ)', nameJa: 'レギュラータイプ (LLDPE 90μ)', specification: 'NY 15μ + LLDPE 90μ', weightRange: '90~100g/m²', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (LLDPE 100μ)', nameJa: '高耐久タイプ (LLDPE 100μ)', specification: 'NY 15μ + LLDPE 100μ', weightRange: '90~100g/m²', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (LLDPE 110μ)', nameJa: '超耐久タイプ (LLDPE 110μ)', specification: 'NY 15μ + LLDPE 110μ', weightRange: '100~110g/m²', multiplier: 1.2 }
-    ]
-  },
-
-  // ========== 高バリアタイプ ==========
-  {
-    id: 'pet_al',
-    name: MATERIAL_TYPE_LABELS.pet_al,
-    nameJa: MATERIAL_TYPE_LABELS_JA.pet_al,
-    description: MATERIAL_DESCRIPTIONS.pet_al.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.pet_al.ja,
-    multiplier: 1.5,
-    features: ['高バリア性能', '遮光性に優れる', '酸素透過率が低い', '長期保存に適する'],
-    featuresJa: ['高バリア性能', '遮光性に優れる', '酸素透過率が低い', '長期保存に適する'],
-    recommendedFor: 'コーヒー豆、茶葉、ナッツ、スパイス、漬物',
-    category: 'high_barrier',
-    popular: true,
-    ecoFriendly: false,
-    rollFilmOnly: false,
-    thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (~100g)', nameJa: '軽量タイプ (~100g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (~300g)', nameJa: '標準タイプ (~300g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ', weightRange: '~300g', multiplier: 1.0 },
-      { id: 'standard', name: 'レギュラータイプ (~500g)', nameJa: 'レギュラータイプ (~500g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (~800g)', nameJa: '高耐久タイプ (~800g)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (800g~)', nameJa: '超耐久タイプ (800g~)', specification: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ', weightRange: '800g~', multiplier: 1.2 }
-    ]
-  },
-  {
-    id: 'pet_vmpet',
-    name: MATERIAL_TYPE_LABELS.pet_vmpet,
-    nameJa: MATERIAL_TYPE_LABELS_JA.pet_vmpet,
-    description: MATERIAL_DESCRIPTIONS.pet_vmpet.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.pet_vmpet.ja,
-    multiplier: 1.4,
-    features: ['薄肉設計', '蒸着処理によるバリア性', 'フレキシブル対応', 'コストパフォーマンス'],
-    featuresJa: ['薄肉設計', '蒸着処理によるバリア性', 'フレキシブル対応', 'コストパフォーマンス'],
-    recommendedFor: 'スナック菓子、クッキー、煎餅',
-    category: 'high_barrier',
-    popular: false,
-    ecoFriendly: false,
-    rollFilmOnly: false,
-    thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'standard', name: 'レギュラータイプ (LLDPE 90μ)', nameJa: 'レギュラータイプ (LLDPE 90μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (LLDPE 100μ)', nameJa: '高耐久タイプ (LLDPE 100μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (LLDPE 110μ)', nameJa: '超耐久タイプ (LLDPE 110μ)', specification: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ', weightRange: '800g~', multiplier: 1.2 }
-    ]
-  },
-  {
-    id: 'pet_ny_al',
-    name: MATERIAL_TYPE_LABELS.pet_ny_al,
-    nameJa: MATERIAL_TYPE_LABELS_JA.pet_ny_al,
-    description: MATERIAL_DESCRIPTIONS.pet_ny_al.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.pet_ny_al.ja,
-    multiplier: 1.6,
-    features: ['高強度・高バリア', '耐ピンホール性', 'ガスバリア性最高', '重包装に最適'],
-    featuresJa: ['高強度・高バリア', '耐ピンホール性', 'ガスバリア性最高', '重包装に最適'],
-    recommendedFor: '米、穀物、ペットフード、重包装',
-    category: 'high_barrier',
-    popular: false,
-    ecoFriendly: false,
-    rollFilmOnly: false,
-    thicknessOptions: [
-      { id: 'light', name: '軽量タイプ (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ', weightRange: '~100g', multiplier: 0.9 },
-      { id: 'medium', name: '標準タイプ (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'standard', name: 'レギュラータイプ (LLDPE 90μ)', nameJa: 'レギュラータイプ (LLDPE 90μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ', weightRange: '~500g', multiplier: 1.0 },
-      { id: 'heavy', name: '高耐久タイプ (LLDPE 100μ)', nameJa: '高耐久タイプ (LLDPE 100μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ', weightRange: '~800g', multiplier: 1.1 },
-      { id: 'ultra', name: '超耐久タイプ (LLDPE 110μ)', nameJa: '超耐久タイプ (LLDPE 110μ)', specification: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ', weightRange: '800g~', multiplier: 1.2 }
-    ]
-  },
-
-  // ========== クラフトタイプ ==========
-  {
-    id: 'kraft_vmpet_lldpe',
-    name: MATERIAL_TYPE_LABELS.kraft_vmpet_lldpe,
-    nameJa: MATERIAL_TYPE_LABELS_JA.kraft_vmpet_lldpe,
-    description: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.ja,
-    multiplier: 1.3,
-    features: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しいイメージ', '最小使用量1000m以上'],
-    featuresJa: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しいイメージ', '最小使用量1000m以上'],
-    recommendedFor: 'ナッツ、ドライフルーツ、コーヒー豆、スパイス',
-    category: 'kraft',
-    popular: false,
-    ecoFriendly: true,
-    rollFilmOnly: false,
-    minQuantityMeters: 1000,
-    thicknessOptions: [
-      { id: 'light_50', name: 'Light (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ', weightRange: '140~160g/m²', multiplier: 0.9 },
-      { id: 'standard_70', name: 'Standard (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ', weightRange: '160~180g/m²', multiplier: 1.0 },
-      { id: 'heavy_90', name: 'Heavy (LLDPE 90μ)', nameJa: '高耐久タイプ (LLDPE 90μ)', specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ', weightRange: '180~200g/m²', multiplier: 1.1 },
-      { id: 'ultra_100', name: 'Ultra (LLDPE 100μ)', nameJa: '超耐久タイプ (LLDPE 100μ)', specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ', weightRange: '200~220g/m²', multiplier: 1.15 },
-      { id: 'maximum_110', name: 'Maximum (LLDPE 110μ)', nameJa: '最大耐久タイプ (LLDPE 110μ)', specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ', weightRange: '220g/m²~', multiplier: 1.2 }
-    ]
-  },
-  {
-    id: 'kraft_pet_lldpe',
-    name: MATERIAL_TYPE_LABELS.kraft_pet_lldpe,
-    nameJa: MATERIAL_TYPE_LABELS_JA.kraft_pet_lldpe,
-    description: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.en,
-    descriptionJa: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.ja,
-    multiplier: 1.2,
-    features: ['自然素材風の外観', '短期バリア性能', '環境に優しいイメージ', '最小使用量1000m以上'],
-    featuresJa: ['自然素材風の外観', '短期バリア性能', '環境に優しいイメージ', '最小使用量1000m以上'],
-    recommendedFor: 'パン、菓子、クッキー、短期保存品',
-    category: 'kraft',
-    popular: false,
-    ecoFriendly: true,
-    rollFilmOnly: false,
-    minQuantityMeters: 1000,
-    thicknessOptions: [
-      { id: 'light_50', name: 'Light (LLDPE 50μ)', nameJa: '軽量タイプ (LLDPE 50μ)', specification: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ', weightRange: '140~160g/m²', multiplier: 0.9 },
-      { id: 'standard_70', name: 'Standard (LLDPE 70μ)', nameJa: '標準タイプ (LLDPE 70μ)', specification: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ', weightRange: '160~180g/m²', multiplier: 1.0 },
-      { id: 'heavy_90', name: 'Heavy (LLDPE 90μ)', nameJa: '高耐久タイプ (LLDPE 90μ)', specification: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ', weightRange: '180~200g/m²', multiplier: 1.1 },
-      { id: 'ultra_100', name: 'Ultra (LLDPE 100μ)', nameJa: '超耐久タイプ (LLDPE 100μ)', specification: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ', weightRange: '200~220g/m²', multiplier: 1.15 },
-      { id: 'maximum_110', name: 'Maximum (LLDPE 110μ)', nameJa: '最大耐久タイプ (LLDPE 110μ)', specification: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ', weightRange: '220g/m²~', multiplier: 1.2 }
-    ]
-  }
-];
-
-// 素材カテゴリー定義
-const MATERIAL_CATEGORIES = [
+// 素材カテゴリー定義 (アイコン付き)
+const MATERIAL_CATEGORIES: MaterialCategoryType[] = [
   {
     id: 'transparent',
     name: 'Transparent',
     nameJa: '透明タイプ',
-    icon: <Eye className="w-6 h-6" />,
     description: 'Contents visible, window display possible',
     descriptionJa: '中身が見える、窓付き表現可能',
     colorClass: 'from-sky-50 to-blue-50 border-sky-200',
@@ -196,7 +32,6 @@ const MATERIAL_CATEGORIES = [
     id: 'high_barrier',
     name: 'High Barrier',
     nameJa: '高バリアタイプ',
-    icon: <Shield className="w-6 h-6" />,
     description: 'Long-term storage, maximum protection',
     descriptionJa: '長期保存に最適、最高の遮断性',
     colorClass: 'from-amber-50 to-orange-50 border-amber-200',
@@ -208,7 +43,6 @@ const MATERIAL_CATEGORIES = [
     id: 'kraft',
     name: 'Kraft',
     nameJa: 'クラフトタイプ',
-    icon: <Leaf className="w-6 h-6" />,
     description: 'Natural material appearance, eco-friendly',
     descriptionJa: '自然素材風、環境に優しい',
     colorClass: 'from-emerald-50 to-green-50 border-emerald-200',
@@ -218,7 +52,14 @@ const MATERIAL_CATEGORIES = [
   }
 ];
 
-interface MaterialSelectionProps {
+// Category icons map
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  transparent: <Eye className="w-6 h-6" />,
+  high_barrier: <Shield className="w-6 h-6" />,
+  kraft: <Leaf className="w-6 h-6" />
+};
+
+export interface MaterialSelectionProps {
   showThicknessOptions?: boolean;
 }
 
@@ -232,23 +73,26 @@ export function MaterialSelection({ showThicknessOptions = true }: MaterialSelec
   // Filter materials based on bag type
   const isRollFilm = state.bagTypeId === 'roll_film';
   const isSpoutPouch = state.bagTypeId === 'spout_pouch';
-  const availableMaterials = ALL_MATERIALS.filter(m =>
+  const availableMaterials = MATERIALS_DATA.filter(m =>
     isRollFilm ? true : (isSpoutPouch ? !m.ecoFriendly : !m.rollFilmOnly)
   );
 
   // Group materials by category
   const materialsByCategory = MATERIAL_CATEGORIES.map(category => ({
     ...category,
-    materials: availableMaterials.filter(m => m.category === category.id)
+    icon: CATEGORY_ICONS[category.id],
+    materials: getMaterialsByCategory(category.id).filter(m =>
+      availableMaterials.some(am => am.id === m.id)
+    )
   })).filter(cat => cat.materials.length > 0);
 
-  const selectedMaterial = ALL_MATERIALS.find(m => m.id === state.materialId);
+  const selectedMaterial = getMaterialById(state.materialId);
   const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al', 'ny_lldpe', 'kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
   const isThicknessRequired = materialsWithThickness.includes(state.materialId);
 
   const handleSelectMaterial = (materialId: string) => {
     // 素材変更時に最初の厚さオプションを自動選択
-    const material = ALL_MATERIALS.find(m => m.id === materialId);
+    const material = getMaterialById(materialId);
     const defaultThickness = material?.thicknessOptions?.[0]?.id;
     updateBasicSpecs({
       materialId,

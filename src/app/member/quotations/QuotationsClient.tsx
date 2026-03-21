@@ -22,6 +22,7 @@ import { Eye, Trash2, FileText } from 'lucide-react';
 import { safeMap } from '@/lib/array-helpers';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { formatPrice } from '@/utils/formatters';
 
 // Client-side PDF generation imports
 import { generateQuotePDF } from '@/lib/pdf-generator';
@@ -46,15 +47,6 @@ interface QuotationsClientProps {
 // =====================================================
 // Constants
 // =====================================================
-
-// 価格フォーマット関数 - 小数点を保持して表示
-function formatPrice(price: number): string {
-  if (Number.isInteger(price)) {
-    return price.toLocaleString();
-  }
-  // 小数点以下1桁を表示
-  return price.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
 
 const quotationStatusLabels: Record<string, string> = {
   DRAFT: '審査中',

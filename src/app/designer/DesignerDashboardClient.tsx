@@ -14,6 +14,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { formatDateJa } from '@/utils/formatters';
 import {
   FileText,
   Clock,
@@ -107,16 +108,6 @@ export function DesignerDashboardClient({
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
   const [orders, setOrders] = useState<DesignerOrder[]>(initialOrders);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -282,7 +273,7 @@ export function DesignerDashboardClient({
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-600">
                         <Calendar className="w-4 h-4 text-slate-400" />
-                        <span>{formatDate(order.created_at)}</span>
+                        <span>{formatDateJa(order.created_at)}</span>
                       </div>
                     </div>
 
