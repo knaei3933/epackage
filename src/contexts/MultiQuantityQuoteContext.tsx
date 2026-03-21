@@ -6,7 +6,7 @@ import { multiQuantityCalculator } from '@/lib/multi-quantity-calculator';
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage } from '@/lib/storage';
 import { calculateRollWeight } from '@/lib/roll-film-utils';
-import { getDefaultFilmLayers } from '@/lib/common/film-calculations';
+import { getDefaultFilmLayers } from '@/lib/film-structure';
 
 // Enhanced action types for multi-quantity functionality
 type MultiQuoteAction =
