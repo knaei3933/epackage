@@ -135,17 +135,22 @@ const nextConfig: NextConfig = {
             key: 'Content-Type',
             value: 'application/manifest+json',
           },
+          // Add CSP exemption for manifest
+          {
+            key: 'Content-Security-Policy',
+            value: "manifest-src 'self'",
+          },
         ],
       },
-      // All routes - full security headers including CSP
-      // Use negative lookahead to exclude _next and images paths
+      // EXCLUDE _next paths from security headers (Next.js static assets)
       {
-        source: '/:path((?!_next|images).)*',
+        source: '/:path((?!_next|static|images).)*',
         headers: securityHeaders,
       },
+      // HSTS for all routes in production
       ...(process.env.NODE_ENV === 'production' ? [
         {
-          source: '/:path*',
+          source: '/:path((?!_next|static|images).)*',
           headers: hstsHeaders,
         },
       ] : []),
