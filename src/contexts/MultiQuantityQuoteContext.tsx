@@ -5,79 +5,8 @@ import { MultiQuantityQuoteState, SavedQuantityPattern, MultiQuantityResult } fr
 import { multiQuantityCalculator } from '@/lib/multi-quantity-calculator';
 import { v4 as uuidv4 } from 'uuid';
 import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage } from '@/lib/storage';
-import { calculateRollWeight, type FilmStructureLayer } from '@/lib/roll-film-utils';
-
-// Get film layers for roll film weight calculation
-// LLDPE thickness: 50, 70, 90, 100, 110μm
-function getFilmLayersForMaterial(
-  materialId: string,
-  thicknessSelection?: string
-): FilmStructureLayer[] {
-  const lldpeBaseThickness: Record<string, number> = {
-    'light_50': 50,
-    'standard_70': 70,
-    'heavy_90': 90,
-    'ultra_100': 100,
-    'maximum_110': 110,
-    // fallback mappings
-    'light': 50,
-    'medium': 70,
-    'standard': 90,
-    'heavy': 100,
-    'ultra': 110
-  };
-  const baseLldpeThickness = lldpeBaseThickness[thicknessSelection || 'standard_70'] || 70;
-
-  const defaultLayers: Record<string, FilmStructureLayer[]> = {
-    'pet_al': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'pet_vmpet': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'VMPET', thickness: 12 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'pet_ldpe': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LDPE', thickness: 7 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'pet_ny_al': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'NY', thickness: 15 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'pet_transparent': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'kraft_pe': [
-      { materialId: 'KRAFT', thickness: 80 },
-      { materialId: 'PE', thickness: 40 }
-    ],
-    'ny_lldpe': [
-      { materialId: 'NY', thickness: 15 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'kraft_vmpet_lldpe': [
-      { materialId: 'KRAFT', grammage: 80 },
-      { materialId: 'VMPET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    'kraft_pet_lldpe': [
-      { materialId: 'KRAFT', grammage: 80 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ]
-  };
-
-  return defaultLayers[materialId] || defaultLayers['pet_al'];
-}
+import { calculateRollWeight } from '@/lib/roll-film-utils';
+import { getDefaultFilmLayers } from '@/lib/common/film-calculations';
 
 // Enhanced action types for multi-quantity functionality
 type MultiQuoteAction =
@@ -624,7 +553,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
 
         // For roll film, check 29kg weight limit
         if (isRollFilm) {
-          const layers = getFilmLayersForMaterial(state.materialId, state.thicknessSelection);
+          const layers = getDefaultFilmLayers(state.materialId, state.thicknessSelection);
           const hasOverWeight = state.comparisonQuantities.some(length => {
             const weight = calculateRollWeight(state.width, length, layers);
             return weight.totalWeight > 29000;

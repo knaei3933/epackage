@@ -23,22 +23,10 @@ import {
 } from '@/components/quote/shared/processingConfig';
 import { getAvailableGussetSizes, getDefaultGussetSize, validateWidthStep } from '@/lib/gusset-data';
 import { validateMOQ } from '@/lib/pricing/validators/moq-validator';
-
-// スパウトパウチ専用フィルム幅計算関数
-// docs/reports/calcultae/02-필름폭_계산공식.md 基準
-function calculateSpoutPouchFilmWidth(
-  height: number,
-  hasGusset: boolean,
-  depth?: number
-): number {
-  if (hasGusset && depth) {
-    // マチあり: スタンドパウチ準用 (H × 2) + G + 35
-    return (height * 2) + depth + 35;
-  } else {
-    // マチなし: 平袋（三封）準用 (H × 2) + 41
-    return (height * 2) + 41;
-  }
-}
+import {
+  getDefaultFilmLayers,
+  getFilmLayerDisplay
+} from '@/lib/film-structure';
 
 // Quote state interface
 export interface QuoteState {
@@ -133,92 +121,6 @@ type QuoteAction =
   // SKU数量MOQ検証エラー管理
   | { type: 'SET_SKU_QUANTITY_VALIDATION_ERROR'; payload: string }
   | { type: 'CLEAR_SKU_QUANTITY_VALIDATION_ERROR' };
-
-// Helper function to get default film layers based on material ID and thickness selection
-// LLDPE thickness varies based on thicknessSelection: light_50=50, standard_70=70, heavy_90=90, ultra_100=100, maximum_110=110
-function getDefaultFilmLayers(materialId: string, thicknessSelection: string = 'standard_70'): FilmStructureLayer[] {
-  // LLDPE base thickness for each thickness selection - 50, 70, 90, 100, 110μm
-  const lldpeBaseThickness: Record<string, number> = {
-    'light_50': 50,
-    'standard_70': 70,
-    'heavy_90': 90,
-    'ultra_100': 100,
-    'maximum_110': 110,
-    // fallback mappings
-    'light': 50,
-    'medium': 70,
-    'standard': 90,
-    'heavy': 100,
-    'ultra': 110
-  };
-
-  const lldpeThickness = lldpeBaseThickness[thicknessSelection] ?? 70;
-
-  const layerMap: Record<string, (lldpe: number) => FilmStructureLayer[]> = {
-    'pet_al': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    'pet_vmpet': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'VMPET', thickness: 12 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    'pet_ny': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'NY', thickness: 15 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    'pet_ny_al': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'NY', thickness: 16 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    'pet_ldpe': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    'kp_pe': () => [
-      { materialId: 'KP', thickness: 12 },
-      { materialId: 'PE', thickness: 60 }
-    ],
-    'pet': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    'pet_al_pet': (lldpe: number) => [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    // NY+LLDPE: 2-layer structure
-    'ny_lldpe': (lldpe: number) => [
-      { materialId: 'NY', thickness: 15 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    // Kraft+VMPET+LLDPE: 3-layer structure (Kraft uses grammage)
-    'kraft_vmpet_lldpe': (lldpe: number) => [
-      { materialId: 'KRAFT', grammage: 80 },
-      { materialId: 'VMPET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ],
-    // Kraft+PET+LLDPE: 3-layer structure (Kraft uses grammage)
-    'kraft_pet_lldpe': (lldpe: number) => [
-      { materialId: 'KRAFT', grammage: 80 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: lldpe }
-    ]
-  };
-
-  const layersFn = layerMap[materialId] || layerMap['pet_al'];
-  return layersFn(lldpeThickness);
-}
 
 // Initial state
 const initialState: QuoteState = {
@@ -1473,106 +1375,6 @@ export function getSpecsValidationMessages(state: QuoteState): string[] {
   return errors;
 }
 
-/**
- * Get film layers for a material and thickness selection
- * Used for displaying film structure in roll film specs
- * Patterns from MATERIAL_THICKNESS_OPTIONS in unified-pricing-engine.ts
- */
-function getFilmLayersForMaterial(
-  materialId: string,
-  thicknessSelection?: string
-): FilmStructureLayer[] {
-  // LLDPE base thickness for each thickness selection - 50, 70, 90, 100, 110μm
-  const lldpeBaseThickness: Record<string, number> = {
-    'light': 50,
-    'medium': 70,
-    'standard': 90,
-    'heavy': 100,
-    'ultra': 110
-  };
-  const baseLldpeThickness = lldpeBaseThickness[thicknessSelection || 'standard'] || 90;
-
-  // Default layers for each material type - matching MATERIAL_THICKNESS_OPTIONS
-  const defaultLayers: Record<string, FilmStructureLayer[]> = {
-    // PET+AL+PET+LLDPE (4 layers) - matching 'opp-alu-foil' pattern
-    'pet_al': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    // PET+VMPET+PET+LLDPE (4 layers) - VMPET 12μm
-    'pet_vmpet': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'VMPET', thickness: 12 },
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    // PET+LDPE+LLDPE (3 layers) or PET+LLDPE (2 layers for 'pet-transparent')
-    'pet_ldpe': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LDPE', thickness: 7 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    // PET+NY+AL+LLDPE (4 layers)
-    'pet_ny_al': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'NY', thickness: 15 },
-      { materialId: 'AL', thickness: 7 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    // PET+LLDPE (2 layers) - matching 'pet-transparent' pattern
-    'pet_transparent': [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'LLDPE', thickness: baseLldpeThickness }
-    ],
-    // Kraft+PE (2 layers) - matching 'kraft-pe' pattern
-    'kraft_pe': [
-      { materialId: 'KRAFT', thickness: 80 }, // Kraft paper
-      { materialId: 'PE', thickness: 40 }
-    ]
-  };
-
-  // Get base layers
-  const layers = defaultLayers[materialId] || defaultLayers['pet_al'];
-
-  // Apply thickness multiplier (only affects LLDPE/LDPE layers) - 0.85, 0.95, 1.0, 1.1, 1.2
-  const thicknessMultipliers: Record<string, number> = {
-    'light': 0.85,
-    'medium': 0.95,
-    'standard': 1.0,
-    'heavy': 1.1,
-    'ultra': 1.2
-  };
-  const multiplier = thicknessMultipliers[thicknessSelection || 'standard'] || 1.0;
-
-  // Only apply multiplier if not 1.0
-  if (multiplier !== 1.0) {
-    return layers.map(layer => {
-      // Only apply to sealant layers (LLDPE, LDPE, PE)
-      if (layer.materialId === 'LLDPE' || layer.materialId === 'LDPE' || layer.materialId === 'PE') {
-        // Calculate based on base thickness for this selection
-        if (layer.materialId === 'LLDPE' || layer.materialId === 'LDPE') {
-          return { ...layer, thickness: baseLldpeThickness };
-        }
-      }
-      return layer;
-    });
-  }
-
-  return layers;
-}
-
-/**
- * Get film layer display text (e.g., "PET 12m + AL 7m + LLDPE 80m")
- */
-function getFilmLayerDisplay(layers: FilmStructureLayer[]): string {
-  return layers.map(layer => {
-    const materialName = layer.materialId;
-    return `${materialName} ${layer.thickness}m`;
-  }).join(' + ');
-}
-
 export function createStepSummary(state: QuoteState, getLimitStatus: () => PostProcessingLimitState, step: string): React.ReactNode {
   switch (step) {
     case 'specs':
@@ -1948,6 +1750,7 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     updateSKUQuantity,
     setQuantityMode,
     toggleSKUCalculation,
+    clearRecommendationCache,
     applyTwoColumnOption,
     applySKUSplit,
     clearAppliedOption,
