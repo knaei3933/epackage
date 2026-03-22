@@ -9,11 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: '化粧品業界向け高級パッケージングソリューション | Epackage Lab',
       template: '%s | Epackage Lab'
     },
-    description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上、欧州・日本認証対応、持続可能性を考慮した包装で実際の売上増を実現。今すぐ無料見積もりでラグジュアリー包装を体験。',
-      '美容業界',
-      '化粧品包材',
-      'Epackage Lab'
-    ],
+    description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上、欧州・日本認証対応、持続可能性を考慮した包装で実際の売上増を実現。今すぐ無料見積もりでラグジュアリー包装を体験。'
     openGraph: {
       title: '化粧品業界向け高級パッケージングソリューション | Epackage Lab',
       description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上と実際の売上増を実現。',

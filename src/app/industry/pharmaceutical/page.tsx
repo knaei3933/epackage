@@ -9,11 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: '医薬品業界向けGMP対応パッケージングソリューション | Epackage Lab',
       template: '%s | Epackage Lab'
     },
-    description: '医薬品業界向けの専門パッケージングソリューション。GMP準拠、薬機法対応、小児安全包装で実際の導入事例多数。医薬品企業の信頼を裏切らない包装ソリューション。今すぐ無料見積もりでGMP対応包装を依頼。',
-      '医療関連',
-      '医薬品包装材',
-      'Epackage Lab'
-    ],
+    description: '医薬品業界向けの専門パッケージングソリューション。GMP準拠、薬機法対応、小児安全包装で実際の導入事例多数。医薬品企業の信頼を裏切らない包装ソリューション。今すぐ無料見積もりでGMP対応包装を依頼。'
     openGraph: {
       title: '医薬品業界向けGMP対応パッケージングソリューション | Epackage Lab',
       description: '医薬品業界向けの専門パッケージングソリューション。GMP準拠と実際の導入事例で信頼を提供。',
