@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: '食品製造業向けパッケージングソリューション | Epackage Lab',
       template: '%s | Epackage Lab'
     },
-    description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術、30%のコスト削減を実現。実際の導入事例とROIデータを公開。今すぐ無料見積もりで鮮度保持包装を依頼。'
+    description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術、30%のコスト削減を実現。実際の導入事例とROIデータを公開。今すぐ無料見積もりで鮮度保持包装を依頼。',
     openGraph: {
       title: '食品製造業向けパッケージングソリューション | Epackage Lab',
       description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術で30%のコスト削減を実現。',
