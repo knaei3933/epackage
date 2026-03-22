@@ -6,13 +6,6 @@ import { HowToSchema } from '@/components/seo/StructuredData'
 export const metadata: Metadata = {
   title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
   description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
-  keywords: [
-    'カラー', '特色印刷', 'CMYK', 'カラーマッチング', 'PANTONEカラーガイド', 'パッケージ印刷色', '色指定',
-    // 롱테일 키워드 추가
-    'PANTONEカラーガイド 使い方', '特色印刷 費用', 'PANTONE色指定', 'パッケージ ブランドカラー 再現',
-    '特色とCMYK 違い', '印刷色合わせ 方法', 'パッケージ印刷 色合わせ', 'PANTONE色番号 指定',
-    'CMYK 特色 混合印刷', 'ブランドカラー 印刷 再現'
-  ],
   openGraph: {
     title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
     description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチングについて詳しく説明します。',

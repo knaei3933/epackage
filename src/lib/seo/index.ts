@@ -74,13 +74,6 @@ export function generateProductMetadata(product: {
   return {
     title,
     description: product.description_ja,
-    keywords: [
-      ...product.tags,
-      'Epackage Lab',
-      'パッケージング',
-      '包装',
-      product.name_ja,
-    ],
     openGraph: {
       title,
       description: product.description_ja,
@@ -108,14 +101,12 @@ export function generateProductMetadata(product: {
 export function generateIndustryMetadata(industry: {
   name: string
   description: string
-  keywords: string[]
 }): Metadata {
   const title = `${industry.name} | Epackage Lab`
 
   return {
     title,
     description: industry.description,
-    keywords: [...industry.keywords, 'Epackage Lab', 'パッケージング'],
     openGraph: {
       title,
       description: industry.description,
@@ -127,16 +118,12 @@ export function generateIndustryMetadata(industry: {
 export function generateGuideMetadata(guide: {
   name: string
   description: string
-  keywords?: string[]
 }): Metadata {
   const title = `${guide.name} | Epackage Lab`
 
   return {
     title,
     description: guide.description,
-    keywords: guide.keywords
-      ? [...guide.keywords, 'Epackage Lab', 'パッケージング']
-      : ['Epackage Lab', 'パッケージング'],
     openGraph: {
       title,
       description: guide.description,

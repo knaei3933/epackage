@@ -6,7 +6,6 @@ import { HowToSchema } from '@/components/seo/StructuredData'
 export const metadata: Metadata = {
   title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
   description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。パッケージ印刷品質を確保するための重要な工程です。',
-  keywords: ['白版', 'しろはん', '校正刷', '印刷テスト', '品質確認', '校正', '印刷試作', '色確認', '白版 費用', '白版 納期', '色校正 刷', '白版 なし 印刷', '特色印刷 白版', '白版 見本 送料', '校正刷り 費用'],
   openGraph: {
     title: '白版ガイド - 白版（しろはん）制作と用途 | Epackage Lab',
     description: '白版（しろはん）の役割、制作方法、用途、注意点について詳しく説明します。',

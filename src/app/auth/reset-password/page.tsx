@@ -19,7 +19,6 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'パスワード再設定 | Epackage Lab',
   description: '新しいパスワードを設定してください。',
-  keywords: ['パスワード再設定', 'パスワード変更', 'Epackage Lab'],
 };
 
 // =====================================================

@@ -6,7 +6,6 @@ import { HowToSchema } from '@/components/seo/StructuredData'
 export const metadata: Metadata = {
   title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
   description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモード、制作時の注意点について詳しく説明します。',
-  keywords: ['画像', '解像度', 'DPI', 'ファイル形式', 'CMYK', 'RGB', 'ベクター', 'ラスター', '印刷データ', '印刷データ 350dpi', 'AI データ 印刷', 'PDF 印刷用', '画像 アウトライン 方法', 'CMYK RGB 変換', '印刷用画像 作成 ソフト', 'パッケージ印刷 解像度'],
   openGraph: {
     title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
     description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモードについて詳しく説明します。',

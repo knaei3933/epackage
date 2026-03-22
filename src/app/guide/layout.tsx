@@ -8,7 +8,6 @@ import { ArrowLeft, Palette, Ruler, Image, FileText, Leaf } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'デザインガイド - パッケージデザイン制作ガイド | Epackage Lab',
   description: 'パッケージデザイン制作のための包括的なガイド。色、サイズ、画像、白版、環境表示の基準と仕様について詳しく説明します。',
-  keywords: ['パッケージデザイン', 'デザインガイド', '制作ガイド', '色ガイド', 'サイズガイド', '画像仕様', '白版', '環境表示'],
   openGraph: {
     title: 'デザインガイド - Epackage Lab',
     description: 'プロフェッショナルなパッケージデザイン制作ガイド',

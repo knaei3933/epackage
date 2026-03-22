@@ -10,19 +10,6 @@ export async function generateMetadata(): Promise<Metadata> {
       template: '%s | Epackage Lab'
     },
     description: '電子部品業界向けの専門パッケージングソリューション。静電気防止、衝撃吸収、部品保護機能で供給網の安定性を確保。実際の電子企業取引実績豊富。今すぐ無料見積もりでESD対応包装を依頼。',
-    keywords: [
-      '電子部品包装',
-      '電子部品業界',
-      'ESD防止',
-      '静電気防止',
-      '衝撃吸収',
-      '電子部品容器',
-      '半導体包装',
-      '精密部品包装',
-      '電子部品ソリューション',
-      '電子業界',
-      '電子包装',
-      'ESDパッケージ',
       '電子部品包材',
       '供給網安定',
       'Epackage Lab'

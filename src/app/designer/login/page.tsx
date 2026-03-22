@@ -18,7 +18,6 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Designer Login | Epackage Lab',
   description: 'Korean designer login page for Epackage Lab correction workflow.',
-  keywords: ['designer', 'login', 'Epackage Lab', 'Korean designer'],
 };
 
 // =====================================================

@@ -7,7 +7,6 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'パウチ包装ニュース | Epackage Lab',
   description: 'Epackage Labのパウチ包装に関する最新ニュース、製品情報、導入事例などをお届けします。連包裝材業界の最新動向をご確認ください。',
-  keywords: ['パウチニュース', '連包裝材', '包装ニュース', 'パウチ製品', '導入事例', 'Epackage Lab', 'パウチ専門'],
   openGraph: {
     title: 'パウチ包装ニュース | Epackage Lab',
     description: 'Epackage Labのパウチ包装専門ニュースと製品情報',

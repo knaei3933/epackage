@@ -7,7 +7,6 @@ import CartPageClient from './CartPageClient'
 export const metadata: Metadata = {
   title: 'ショッピングカート | Epackage Lab',
   description: '包装材料の見積・注文カート。製品仕様を確認し、詳細な見積計算や正式な見積依頼が可能です。',
-  keywords: ['ショッピングカート', '包装材料', '見積計算', 'B2B', 'Epackage Lab'],
   openGraph: {
     title: 'ショッピングカート | Epackage Lab',
     description: '包装材料の見積・注文カート。製品仕様を確認し、詳細な見積計算や正式な見積依頼が可能です。',

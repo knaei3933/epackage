@@ -9,7 +9,6 @@ import DetailedInquiryForm from '@/components/inquiry/DetailedInquiryForm'
 export const metadata = {
   title: '詳細お問い合わせ | Epackage Lab',
   description: '5ステップで最適なパウチソリューションをご提案。リードスコアに基づいた優先対応で、最短導入を支援します。',
-  keywords: ['詳細お問い合わせ', 'パウチ相談', 'リードスコア', '優先対応', 'Epackage Lab'],
   openGraph: {
     title: '詳細お問い合わせ | Epackage Lab',
     description: '専門家が最適なパウチソリューションをご提案します',

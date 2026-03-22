@@ -49,7 +49,6 @@ export async function generateMetadata(
   return {
     title: `${post.meta_title || post.title} | Epackage Lab ブログ`,
     description: post.meta_description || post.excerpt || '',
-    keywords: [...post.tags, post.category].join(', '),
     authors: post.author ? [{ name: post.author.name }] : undefined,
     openGraph: {
       type: 'article',

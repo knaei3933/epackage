@@ -24,7 +24,9 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: '印刷技術 | Epackage Lab - 最新設備と技術',
   description: 'Epackage Labの最先端印刷設備と技術力を紹介します。高品質なパッケージ印刷と製造技術で、お客様のニーズにお応えします。',
-  keywords: ['印刷技術', 'パッケージ印刷', '製造設備', '品質管理', 'Epackage Lab設備'],
+  alternates: {
+    canonical: 'https://www.package-lab.com/print',
+  },
   openGraph: {
     title: '印刷技術 | Epackage Lab',
     description: '最新設備と技術で高品質なパッケージ印刷を提供するEpackage Labを紹介します。',

@@ -19,7 +19,6 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: '会員登録 | Epackage Lab',
   description: 'イパッケージLabの会員登録ページ。必要な項目のみ入力してください。',
-  keywords: ['会員登録', 'Epackage Lab', 'イパッケージLab'],
 };
 
 // =====================================================

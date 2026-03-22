@@ -6,7 +6,6 @@ import { HowToSchema } from '@/components/seo/StructuredData'
 export const metadata: Metadata = {
   title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
   description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
-  keywords: ['環境表示', 'リサイクルマーク', 'サステナビリティ', '素材表示', '環境ラベル', 'エコマーク', '包装廃棄物法', '包装廃棄物法 表示義務', 'プラスチック識別表示', 'リサイクルマーク 種類', 'エコマーク 取得', 'FSC認証 包装', '環境表示 義務 化粧品'],
   openGraph: {
     title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
     description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',

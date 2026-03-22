@@ -17,7 +17,6 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'ログイン | Epackage Lab',
   description: 'イパッケージLabのログインページ。',
-  keywords: ['ログイン', 'Epackage Lab', 'イパッケージLab'],
 };
 
 // =====================================================

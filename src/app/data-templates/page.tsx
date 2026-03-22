@@ -20,7 +20,6 @@ import { DataTemplateGuide } from '@/components/quote/shared/DataTemplateGuide'
 export const metadata: Metadata = {
   title: 'デザインテンプレート | Epackage Lab - プロ仕様の包装材デザイン',
   description: 'Epackage Labのプロ仕様デザインテンプレートをダウンロード。Adobe Illustrator形式で、正確な製造仕様に対応します。',
-  keywords: ['デザインテンプレート', '包装材デザイン', 'Adobe Illustrator', '製造仕様', 'データ入稿'],
   openGraph: {
     title: 'デザインテンプレート | Epackage Lab',
     description: 'プロ仕様の包装材デザインテンプレートを無料ダウンロード',

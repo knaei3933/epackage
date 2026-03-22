@@ -11,7 +11,6 @@ import { premiumContents } from '@/types/premium-content'
 export const metadata = {
   title: 'プレミアムコンテンツ | Epackage Lab',
   description: '日本パウチ包装市場レポート、ROI計算テンプレート、技術資料などの専門コンテンツを無料ダウンロード。業界の最新トレンドと導入効果を即把握。',
-  keywords: ['パウチ市場レポート', 'ROI計算', '技術資料', '包装ガイド', 'Epackage Lab'],
   openGraph: {
     title: 'プレミアムコンテンツ | Epackage Lab',
     description: 'パウチ包装の専門コンテンツを無料ダウンロード',

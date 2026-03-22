@@ -4,7 +4,6 @@ import SampleRequestFormWrapper from './SampleRequestFormWrapper'
 export const metadata: Metadata = {
   title: 'パウチサンプルご依頼 | Epackage Lab',
   description: 'Epackage Labのパウチ製品サンプルを無料でお送りします。パウチセットサンプルでお手元でお試しいただけます。全国送料無料。',
-  keywords: ['パウチサンプル', 'サンプル依頼', 'パウチ請求', '連包裝材', 'Epackage Lab', '無料サンプル'],
   alternates: {
     canonical: 'https://www.package-lab.com/samples',
   },

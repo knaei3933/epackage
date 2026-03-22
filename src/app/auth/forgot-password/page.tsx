@@ -22,7 +22,6 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'パスワードを忘れた方 | Epackage Lab',
   description: 'パスワードを再設定するためのメールを送信します。',
-  keywords: ['パスワード再設定', 'パスワードリセット', 'Epackage Lab'],
 };
 
 // =====================================================

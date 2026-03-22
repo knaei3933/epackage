@@ -69,7 +69,7 @@ export function IndustryShowcase({
   return (
     <section className="w-full py-16 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-5">
-        <motion.p
+        <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -77,7 +77,7 @@ export function IndustryShowcase({
           className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8"
         >
           {title}
-        </motion.p>
+        </motion.h2>
       </div>
 
       {/* Infinite Slider */}

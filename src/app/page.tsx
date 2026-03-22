@@ -1,8 +1,10 @@
+import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { OrganizationSchema, LocalBusinessSchema, FAQSchema, ProductSchema } from '@/components/seo/StructuredData'
 import { HeroSection, ProductShowcaseSection, BeforeAfterSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts } from '@/lib/products'
+import { createCanonicalMetadata } from '@/lib/seo/canonical'
 
 const ManufacturingProcessShowcase = dynamic(
   () => import('@/components/home/ManufacturingProcessShowcase').then(m => ({ default: m.ManufacturingProcessShowcase })),
@@ -14,6 +16,11 @@ const ManufacturingProcessShowcase = dynamic(
 
 // ISR for better performance - revalidate every 5 minutes
 export const revalidate = 300;
+
+// Canonical URL for SEO
+export const metadata: Metadata = {
+  ...createCanonicalMetadata('/'),
+};
 
 // FAQ Schema data for homepage
 const faqData = [

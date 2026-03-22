@@ -124,7 +124,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${product.name_ja} | Epackage Lab`,
     description: product.description_ja,
-    keywords: [...product.tags, 'Epackage Lab', 'パッケージング', '包装', product.name_ja],
     openGraph: {
       title: `${product.name_ja} | Epackage Lab`,
       description: product.description_ja,
