@@ -28,7 +28,7 @@ export function ResponsiveStepIndicators({
     <>
       {/* Mobile: Vertical Step Indicators */}
       <nav
-        className="lg:hidden flex flex-col gap-2 mt-4 mb-6"
+        className="lg:hidden flex flex-col gap-1.5 mt-2 mb-4 md:mt-3 md:mb-5"
         aria-label="見積もり作成のステップ"
       >
         {steps.map((step, index) => {
@@ -41,7 +41,7 @@ export function ResponsiveStepIndicators({
               key={step.id}
               onClick={() => isCompleted && onStepClick(index)}
               disabled={!isCompleted}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left transition-all min-h-[56px] ${
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left transition-all min-h-[44px] md:min-h-[48px] ${
                 isActive
                   ? 'bg-navy-700 text-white shadow-lg ring-4 ring-navy-200'
                   : isCompleted
@@ -54,7 +54,7 @@ export function ResponsiveStepIndicators({
               aria-current={isActive ? 'step' : undefined}
             >
               <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                   isActive
                     ? 'bg-white/20'
                     : isCompleted
@@ -97,7 +97,7 @@ export function ResponsiveStepIndicators({
 
       {/* Tablet+: Horizontal Step Indicators */}
       <nav
-        className="hidden lg:flex justify-between mt-4 mb-6 max-w-4xl mx-auto"
+        className="hidden lg:flex justify-between mt-3 md:mt-4 mb-5 md:mb-6 max-w-4xl mx-auto"
         aria-label="見積もり作成のステップ"
       >
         {steps.map((step, index) => {
@@ -113,7 +113,7 @@ export function ResponsiveStepIndicators({
               }`}
             >
               <button
-                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 ${
+                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 ${
                   isActive
                     ? 'bg-navy-700 text-white shadow-lg scale-110 ring-4 ring-navy-200 focus:ring-navy-400'
                     : isCompleted

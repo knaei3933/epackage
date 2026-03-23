@@ -41,11 +41,11 @@ export function QuoteSimulatorHeader({
   trustIndicators
 }: QuoteSimulatorHeaderProps) {
   return (
-    <section className="py-8 bg-gradient-to-br from-navy-700 to-navy-900 border-b">
+    <section className="py-3 md:py-6 lg:py-8 bg-gradient-to-br from-navy-700 to-navy-900 border-b">
       <Container size="6xl">
         <MotionWrapper delay={0.1}>
           {/* Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-sm text-navy-200 mb-4" aria-label="パンくずリスト">
+          <nav className="hidden md:flex items-center space-x-2 text-sm text-navy-200 mb-4" aria-label="パンくずリスト">
             <Link href="/" className="hover:text-white transition-colors">
               ホーム
             </Link>
@@ -54,10 +54,10 @@ export function QuoteSimulatorHeader({
           </nav>
 
           {/* Page Title */}
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2">
             {title}
           </h1>
-          <p className="text-navy-100 text-lg mb-4">
+          <p className="text-navy-100 text-base md:text-lg mb-4">
             {description}
           </p>
 

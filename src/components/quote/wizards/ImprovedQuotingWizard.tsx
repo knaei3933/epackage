@@ -851,7 +851,7 @@ function SpecsStep() {
           {/* Bag Type Selection */}
           <div className="mb-6">
             <label className="block text-lg font-semibold text-gray-900 mb-3">袋のタイプ</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {BAG_TYPE_OPTIONS.map(type => (
                 <button
                   key={type.id}
@@ -869,7 +869,7 @@ function SpecsStep() {
                     </div>
                   )}
                   <div className="flex flex-col items-center space-y-3">
-                    <div className="w-48 h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border-2 border-gray-200 shadow-lg">
+                    <div className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 border-2 border-gray-200 shadow-lg">
                       <img
                         src={type.image}
                         alt={type.nameJa}
@@ -3538,7 +3538,7 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
       {/* Price Display - Show multi-quantity or single quantity */}
       {hasMultiQuantityResults && multiQuantityQuotes.length > 0 ? (
         // Multi-quantity summary display
-        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl">
+        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-4 md:p-6 lg:p-8 rounded-xl">
           <div className="text-sm font-medium mb-4">数量別見積もり</div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {safeMap(multiQuantityQuotes, (quote) => (
@@ -3562,9 +3562,9 @@ ${appliedCoupon.nameJa || appliedCoupon.name}: ${appliedCoupon.type === 'percent
         </div>
       ) : (
         // Single quantity display (fallback)
-        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
+        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-4 md:p-6 lg:p-8 rounded-xl text-center">
           <div className="text-sm font-medium mb-2">合計金額（税別）</div>
-          <div className="text-4xl font-bold mb-4">
+          <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
             ¥{result.totalPrice.toLocaleString()}
           </div>
           <div className="text-sm opacity-90">
@@ -4492,7 +4492,7 @@ export function ImprovedQuotingWizard() {
       <div ref={wizardRef} className="max-w-7xl mx-auto p-4 lg:p-8" id="quote-wizard-content">
 
         {/* Enhanced Progress Bar - Removed duplicate header title */}
-        <div className="mb-8 max-w-2xl mx-auto">
+        <div className="mb-4 md:mb-6 lg:mb-8 max-w-2xl mx-auto">
           <div role="progressbar" aria-valuenow={Math.round(((currentStep + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="見積もり作成の進捗状況">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-600 font-medium">進捗状況</span>
@@ -4500,9 +4500,9 @@ export function ImprovedQuotingWizard() {
                 {Math.round(((currentStep + 1) / STEPS.length) * 100)}% 完了
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+            <div className="w-full bg-gray-200 rounded-full h-2 md:h-2.5 lg:h-3 shadow-inner">
               <div
-                className="bg-gradient-to-r from-navy-600 to-navy-700 h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden"
+                className="bg-gradient-to-r from-navy-600 to-navy-700 h-2 md:h-2.5 lg:h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden"
                 style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
                 aria-hidden="true"
               >
