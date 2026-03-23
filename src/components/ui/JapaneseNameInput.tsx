@@ -3,7 +3,7 @@
  *
  * 日本の氏名入力コンポーネント
  * - 姓と名を別フィールドで入力
- * - 漢字（姓・名）とひらがな（姓・名）の4フィールド構成
+ * - 漢字（姓・名）とカタカナ（姓・名）の4フィールド構成
  * - React Hook Form対応
  * - Zodバリデーション対応
  * - レスポンシブデザイン
@@ -26,17 +26,17 @@ export interface JapaneseNameInputProps {
   kanjiLastName?: string;
   /** 漢字 - 名 */
   kanjiFirstName?: string;
-  /** ひらがな - 姓 */
+  /** カタカナ - 姓 */
   kanaLastName?: string;
-  /** ひらがな - 名 */
+  /** カタカナ - 名 */
   kanaFirstName?: string;
   /** 漢字・姓変更ハンドラー */
   onKanjiLastNameChange?: (value: string) => void;
   /** 漢字・名変更ハンドラー */
   onKanjiFirstNameChange?: (value: string) => void;
-  /** ひらがな・姓変更ハンドラー */
+  /** カタカナ・姓変更ハンドラー */
   onKanaLastNameChange?: (value: string) => void;
-  /** ひらがな・名変更ハンドラー */
+  /** カタカナ・名変更ハンドラー */
   onKanaFirstNameChange?: (value: string) => void;
   /** メインラベル（基本: "氏名"） */
   label?: string;
@@ -46,9 +46,9 @@ export interface JapaneseNameInputProps {
   kanjiLastNameError?: string;
   /** 漢字・名エラーメッセージ */
   kanjiFirstNameError?: string;
-  /** ひらがな・姓エラーメッセージ */
+  /** カタカナ・姓エラーメッセージ */
   kanaLastNameError?: string;
-  /** ひらがな・名エラーメッセージ */
+  /** カタカナ・名エラーメッセージ */
   kanaFirstNameError?: string;
   /** 入力フィールドサイズ */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -58,17 +58,17 @@ export interface JapaneseNameInputProps {
   kanjiLastNameDisabled?: boolean;
   /** 漢字・名フィールド無効化 */
   kanjiFirstNameDisabled?: boolean;
-  /** ひらがな・姓フィールド無効化 */
+  /** カタカナ・姓フィールド無効化 */
   kanaLastNameDisabled?: boolean;
-  /** ひらがな・名フィールド無効化 */
+  /** カタカナ・名フィールド無効化 */
   kanaFirstNameDisabled?: boolean;
   /** 漢字・姓プレースホルダー */
   kanjiLastNamePlaceholder?: string;
   /** 漢字・名プレースホルダー */
   kanjiFirstNamePlaceholder?: string;
-  /** ひらがな・姓プレースホルダー */
+  /** カタカナ・姓プレースホルダー */
   kanaLastNamePlaceholder?: string;
-  /** ひらがな・名プレースホルダー */
+  /** カタカナ・名プレースホルダー */
   kanaFirstNamePlaceholder?: string;
 }
 
@@ -101,8 +101,8 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
       kanaFirstNameDisabled = false,
       kanjiLastNamePlaceholder = '山田',
       kanjiFirstNamePlaceholder = '太郎',
-      kanaLastNamePlaceholder = 'やまだ',
-      kanaFirstNamePlaceholder = 'たろう',
+      kanaLastNamePlaceholder = 'ヤマダ',
+      kanaFirstNamePlaceholder = 'タロウ',
       ...props
     },
     ref
@@ -155,9 +155,9 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
       onKanaFirstNameChange?.(value);
     };
 
-    // ひらがなバリデーション
+    // カタカナバリデーション
     const validateKana = (value: string): boolean => {
-      return /^[\u3040-\u309F\s]*$/.test(value);
+      return /^[\u30A0-\u30FF\u30FC\s]*$/.test(value);
     };
 
     return (
@@ -237,14 +237,14 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
           </div>
         </div>
 
-        {/* ひらがな入力エリア（姓・名） */}
+        {/* カタカナ入力エリア（姓・名） */}
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="text-sm font-medium text-text-muted">ひらがな</div>
-            <span className="text-sm text-text-secondary">（例：やまだ たろう）</span>
+            <div className="text-sm font-medium text-text-muted">カタカナ</div>
+            <span className="text-sm text-text-secondary">（例：ヤマダ タロウ）</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* 姓（ひらがな） */}
+            {/* 姓（カタカナ） */}
             <div className="space-y-1">
               <label className="text-base text-text-primary block">
                 姓
@@ -259,11 +259,11 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 helperTextClassName="text-sm"
-                helperText="全角ひらがなで入力してください（読み仮名）"
+                helperText="全角カタカナで入力してください（読み仮名）"
               />
             </div>
 
-            {/* 名（ひらがな） */}
+            {/* 名（カタカナ） */}
             <div className="space-y-1">
               <label className="text-base text-text-primary block">
                 名
@@ -278,7 +278,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 helperTextClassName="text-sm"
-                helperText="全角ひらがなで入力してください（読み仮名）"
+                helperText="全角カタカナで入力してください（読み仮名）"
               />
             </div>
           </div>
@@ -318,9 +318,9 @@ export interface JapaneseNameInputControllerProps<TFieldValues extends FieldValu
   kanjiLastNameName: FieldPath<TFieldValues>;
   /** 漢字・名フィールド名 */
   kanjiFirstNameName: FieldPath<TFieldValues>;
-  /** ひらがな・姓フィールド名 */
+  /** カタカナ・姓フィールド名 */
   kanaLastNameName: FieldPath<TFieldValues>;
-  /** ひらがな・名フィールド名 */
+  /** カタカナ・名フィールド名 */
   kanaFirstNameName: FieldPath<TFieldValues>;
 }
 
@@ -372,7 +372,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
           </div>
         )}
       />
-      {/* ひらがな・姓 */}
+      {/* カタカナ・姓 */}
       <Controller
         control={control}
         name={kanaLastNameName}
@@ -382,7 +382,7 @@ export function JapaneseNameInputController<TFieldValues extends FieldValues = F
           </div>
         )}
       />
-      {/* ひらがな・名 */}
+      {/* カタカナ・名 */}
       <Controller
         control={control}
         name={kanaFirstNameName}
@@ -463,11 +463,11 @@ export interface LegacyJapaneseNameInputControllerProps<TFieldValues extends Fie
   setValue: UseFormSetValue<TFieldValues>;
   /** 漢字フィールド名 */
   kanjiName: FieldPath<TFieldValues>;
-  /** ひらがなフィールド名 */
+  /** カタカナフィールド名 */
   kanaName: FieldPath<TFieldValues>;
   /** 漢字ラベル */
   kanjiLabel?: string;
-  /** ひらがなラベル */
+  /** カタカナラベル */
   kanaLabel?: string;
 }
 
@@ -550,15 +550,15 @@ export function LegacyJapaneseNameInputController<TFieldValues extends FieldValu
 
           <div className="space-y-1">
             <label className="text-sm text-text-primary block">
-              {kanaLabel || 'ひらがな'}
+              {kanaLabel || 'カタカナ'}
             </label>
             <Input
               value={kanaValue || ''}
               onChange={(e) => handleKanaChange(e.target.value)}
-              placeholder="やまだ たろう"
+              placeholder="ヤマダ タロウ"
               required={required}
               maxLength={100}
-              helperText="ひらがなのみ入力可能"
+              helperText="カタカナのみ入力可能"
             />
           </div>
         </div>
@@ -566,4 +566,3 @@ export function LegacyJapaneseNameInputController<TFieldValues extends FieldValu
     </>
   );
 }
-

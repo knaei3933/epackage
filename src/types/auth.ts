@@ -46,7 +46,7 @@ export enum UserStatus {
 
 export interface JapaneseName {
   kanji: string; // 漢字
-  kana: string; // ひらがな
+  kana: string; // カタカナ
 }
 
 // =====================================================
@@ -68,7 +68,7 @@ export const registrationSchema = z
       .regex(/[0-9]/, 'パスワードには少なくとも1つの数字を含める必要があります。'),
     passwordConfirm: z.string().min(1, 'パスワード確認を入力してください。'),
 
-    // 日本の氏名（漢字・ひらがな、姓・名別）- オプション化
+    // 日本の氏名（漢字・カタカナ、姓・名別）- オプション化
     kanjiLastName: z.union([
       z.string().max(50, '姓は50文字以内で入力してください。'),
       z.literal('')
@@ -78,11 +78,11 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
     kanaLastName: z.union([
-      z.string().max(50, '姓は50文字以内で入力してください。'),
+      z.string().regex(/^[\u30A0-\u30FF\u30FC\s]*$/, '全角カタカナで入力してください。').max(50, '姓は50文字以内で入力してください。'),
       z.literal('')
     ]).optional(),
     kanaFirstName: z.union([
-      z.string().max(50, '名は50文字以内で入力してください。'),
+      z.string().regex(/^[\u30A0-\u30FF\u30FC\s]*$/, '全角カタカナで入力してください。').max(50, '名は50文字以内で入力してください。'),
       z.literal('')
     ]).optional(),
 
