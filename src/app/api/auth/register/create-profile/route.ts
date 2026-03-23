@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         position: userMetadata.position || null,
         department: userMetadata.department || null,
         company_url: userMetadata.company_url || null,
-        product_category: userMetadata.product_category || null,
+        product_category: userMetadata.product_category || 'OTHER',
         acquisition_channel: userMetadata.acquisition_channel || null,
         postal_code: userMetadata.postal_code || null,
         prefecture: userMetadata.prefecture || null,

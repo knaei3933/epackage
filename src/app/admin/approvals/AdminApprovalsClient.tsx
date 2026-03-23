@@ -317,100 +317,101 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-6 space-y-4">
-                  {/* Business Type */}
-                  {member.business_type && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">種別</span>
-                      <span className="text-sm font-medium">
-                        {BUSINESS_TYPE_LABELS[member.business_type] || member.business_type}
-                      </span>
-                    </div>
-                  )}
+                <CardContent className="pt-6 space-y-3">
+                  {/* Business Type - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">種別</span>
+                    <span className="text-sm font-medium">
+                      {member.business_type ? (BUSINESS_TYPE_LABELS[member.business_type] || member.business_type) : '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Representative Name */}
-                  {member.representative_name && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">代表者名</span>
-                      <span className="text-sm font-medium">{member.representative_name}</span>
-                    </div>
-                  )}
+                  {/* Company Name - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">会社名</span>
+                    <span className="text-sm font-medium">
+                      {member.company_name || '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Contact Person */}
+                  {/* Representative Name - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">代表者名</span>
+                    <span className="text-sm font-medium">
+                      {member.representative_name || '未入力'}
+                    </span>
+                  </div>
+
+                  {/* Contact Person - Always show */}
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-sm text-gray-500">担当者名</span>
                     <span className="text-sm font-medium">
-                      {member.kanji_last_name} {member.kanji_first_name}
+                      {member.kanji_last_name || '未入力'} {member.kanji_first_name || '未入力'}
                       {' '}
                       <span className="text-gray-400">
-                        ({member.kana_last_name} {member.kana_first_name})
+                        ({member.kana_last_name || '未入力'} {member.kana_first_name || '未入力'})
                       </span>
                     </span>
                   </div>
 
-                  {/* Position & Department */}
-                  {(member.position || member.department) && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">役職</span>
-                      <span className="text-sm font-medium">
-                        {[member.position, member.department].filter(Boolean).join(' / ')}
-                      </span>
-                    </div>
-                  )}
+                  {/* Position & Department - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">役職</span>
+                    <span className="text-sm font-medium">
+                      {member.position && member.department
+                        ? `${member.position} / ${member.department}`
+                        : member.position || member.department || '未入力'}
+                      }
+                    </span>
+                  </div>
 
-                  {/* Corporate Number */}
-                  {member.legal_entity_number && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">法人番号</span>
-                      <span className="text-sm font-medium font-mono">{member.legal_entity_number}</span>
-                    </div>
-                  )}
+                  {/* Corporate Number - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">法人番号</span>
+                    <span className="text-sm font-medium font-mono">
+                      {member.legal_entity_number || '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Corporate Phone */}
-                  {member.corporate_phone && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">会社電話番号</span>
-                      <span className="text-sm font-medium">
-                        {formatPhoneNumber(member.corporate_phone)}
-                      </span>
-                    </div>
-                  )}
+                  {/* Corporate Phone - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">会社電話番号</span>
+                    <span className="text-sm font-medium">
+                      {member.corporate_phone ? formatPhoneNumber(member.corporate_phone) : '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Personal Phone */}
-                  {member.personal_phone && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">携帯電話</span>
-                      <span className="text-sm font-medium">
-                        {formatPhoneNumber(member.personal_phone)}
-                      </span>
-                    </div>
-                  )}
+                  {/* Personal Phone - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">携帯電話</span>
+                    <span className="text-sm font-medium">
+                      {member.personal_phone ? formatPhoneNumber(member.personal_phone) : '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Postal Code */}
-                  {member.postal_code && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">郵便番号</span>
-                      <span className="text-sm font-medium font-mono">{member.postal_code}</span>
-                    </div>
-                  )}
+                  {/* Postal Code - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">郵便番号</span>
+                    <span className="text-sm font-medium font-mono">
+                      {member.postal_code || '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Address */}
-                  {(member.prefecture || member.city || member.street) && (
-                    <div className="flex justify-between items-start py-2 border-b">
-                      <span className="text-sm text-gray-500">住所</span>
-                      <span className="text-sm font-medium text-right max-w-xs">
-                        〒{member.postal_code || ''}
-                        {[member.prefecture, member.city, member.street]
-                          .filter(Boolean)
-                          .join('')}
-                      </span>
-                    </div>
-                  )}
+                  {/* Address - Always show */}
+                  <div className="flex justify-between items-start py-2 border-b">
+                    <span className="text-sm text-gray-500">住所</span>
+                    <span className="text-sm font-medium text-right max-w-xs">
+                      {member.postal_code || member.prefecture || member.city || member.street
+                        ? `〒${member.postal_code || '未入力'} ${[member.prefecture, member.city, member.street].filter(Boolean).join('') || '未入力'}`
+                        : '未入力'
+                      }
+                    </span>
+                  </div>
 
-                  {/* Company URL */}
-                  {member.company_url && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">会社URL</span>
+                  {/* Company URL - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">会社URL</span>
+                    {member.company_url ? (
                       <a
                         href={member.company_url}
                         target="_blank"
@@ -419,46 +420,50 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
                       >
                         {member.company_url}
                       </a>
-                    </div>
-                  )}
+                    ) : (
+                      <span className="text-sm font-medium text-gray-400">未入力</span>
+                    )}
+                  </div>
 
-                  {/* Product Category */}
-                  {member.product_category && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">業種</span>
-                      <span className="text-sm font-medium">
-                        {PRODUCT_CATEGORY_LABELS[member.product_category] || member.product_category}
-                      </span>
-                    </div>
-                  )}
+                  {/* Product Category - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">業種</span>
+                    <span className="text-sm font-medium">
+                      {member.product_category
+                        ? (PRODUCT_CATEGORY_LABELS[member.product_category] || member.product_category)
+                        : '未入力'
+                      }
+                    </span>
+                  </div>
 
-                  {/* Acquisition Channel */}
-                  {member.acquisition_channel && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">知ったきっかけ</span>
-                      <span className="text-sm font-medium">
-                        {ACQUISITION_CHANNEL_LABELS[member.acquisition_channel] || member.acquisition_channel}
-                      </span>
-                    </div>
-                  )}
+                  {/* Acquisition Channel - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">知ったきっかけ</span>
+                    <span className="text-sm font-medium">
+                      {member.acquisition_channel
+                        ? (ACQUISITION_CHANNEL_LABELS[member.acquisition_channel] || member.acquisition_channel)
+                        : '未入力'
+                      }
+                    </span>
+                  </div>
 
-                  {/* Founded Year */}
-                  {member.founded_year && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">設立年</span>
-                      <span className="text-sm font-medium">{member.founded_year}年</span>
-                    </div>
-                  )}
+                  {/* Founded Year - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">設立年</span>
+                    <span className="text-sm font-medium">
+                      {member.founded_year ? `${member.founded_year}年` : '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Capital */}
-                  {member.capital && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm text-gray-500">資本金</span>
-                      <span className="text-sm font-medium">{member.capital}</span>
-                    </div>
-                  )}
+                  {/* Capital - Always show */}
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-gray-500">資本金</span>
+                    <span className="text-sm font-medium">
+                      {member.capital || '未入力'}
+                    </span>
+                  </div>
 
-                  {/* Applied Date */}
+                  {/* Applied Date - Always show */}
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm text-gray-500">申請日</span>
                     <span className="text-sm font-medium">{formatDate(member.created_at)}</span>

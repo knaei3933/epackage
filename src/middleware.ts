@@ -44,6 +44,7 @@ const CSRF_EXEMPT_API_PATHS = [
   '/api/sitemap',
   '/api/auth',
   '/api/auth/session', // Explicitly exempt session endpoint
+  '/api/config', // Public config API for maintenance mode and settings
   '/api/products', // Public catalog API
   '/api/categories', // Public categories API
   '/api/member', // Member API - handles its own auth via SSR
