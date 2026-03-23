@@ -361,7 +361,6 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
                       {member.position && member.department
                         ? `${member.position} / ${member.department}`
                         : member.position || member.department || '未入力'}
-                      }
                     </span>
                   </div>
 
