@@ -140,10 +140,14 @@ export default function PendingClient({
         const errorData = await response.json();
         console.error('[PendingClient] Profile creation failed:', errorData);
 
-        // Check if profile already exists
-        if (errorData.error?.code === '23505') {
-          // Profile already exists, just show pending approval
-          console.log('[PendingClient] Profile already exists');
+        // Check if profile already exists or has foreign key error (trigger might have created it)
+        const errorCode = errorData.error?.code || errorData.details?.includes('23505') ? '23505' :
+                        errorData.details?.includes('profiles_id_fkey') ? 'FK_EXISTS' :
+                        errorData.details?.includes('duplicate') ? 'DUPLICATE' : null;
+
+        if (errorCode || response.status === 409 || errorData.error?.includes('already exists')) {
+          // Profile already exists (created by trigger or duplicate request), show pending approval
+          console.log('[PendingClient] Profile already exists or created by trigger');
           const metadata = user.user_metadata || {};
           setUserName(`${metadata.kanji_last_name || ''} ${metadata.kanji_first_name || ''}`.trim());
           setStatus('pending_approval');
