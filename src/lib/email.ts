@@ -787,12 +787,9 @@ async function sendEmail(
       // Send both text and HTML parts for proper Japanese email support
       text,
       html,
-      // Explicit UTF-8 encoding for Japanese character support
-      encoding: 'utf-8',
-      // Ensure proper MIME headers for Japanese
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8'
-      }
+      // Use quoted-printable for Japanese text (better than base64 for readability)
+      textEncoding: 'quoted-printable',
+      encoding: 'utf-8'
     });
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
