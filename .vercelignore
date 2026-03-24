@@ -1,44 +1,14 @@
-# Dependencies
-node_modules
+# Exclude large images for deployment to meet 100MB limit
+public/images/main/main*.png
+public/images/hero-*.png
+public/images/processing-icons/*.png
+public/images/products/*.png
+public/images/real-products/*.png
+public/images/about/*.jpg
+public/images/portfolio/*.png
+public/images/flow/*.jpg
+public/images/flow/*.png
+public/images/process/*.png
 
-# Next.js
-.next
-out
-
-# Testing
-coverage
-.nyc_output
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env*.local
-.env
-
-# Vercel
-.vercel
-
-# Playwright MCP screenshots
-.playwright-mcp
-
-# Test screenshots
-screenshots
-results
-docs/test-scenarios/runner/results
-
-# Archives
-archives
-
-# AI files
-**/*.ai
-
-# Large images that should be optimized
-public/images/archives
-public/images/inbound-data
+# Keep only essential images
+!public/images/epackage-lab-logo.png

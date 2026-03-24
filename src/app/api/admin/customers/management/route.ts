@@ -25,6 +25,15 @@ interface CustomerWithStats extends Profile {
   totalOrders?: number;
   totalSpent?: number;
   lastOrderDate?: string | null;
+  latestQuotation?: {
+    id: string;
+    quotation_number: string;
+    status: string;
+    total_amount: number;
+    created_at: string;
+  };
+  totalQuotations?: number;
+  pendingQuotations?: number;
 }
 
 interface CustomerListResponse {
@@ -137,14 +146,32 @@ export async function GET(request: NextRequest) {
       .select('user_id, total_amount, created_at')
       .in('user_id', customerIds);
 
+    // Fetch quotations for each customer
+    const { data: quotationStats } = await supabase
+      .from('quotations')
+      .select('id, user_id, quotation_number, status, total_amount, created_at')
+      .in('user_id', customerIds)
+      .order('created_at', { ascending: false });
+
     // Aggregate statistics by customer
-    const statsMap = new Map<string, { totalOrders: number; totalSpent: number; lastOrderDate: string | null }>();
+    const statsMap = new Map<string, {
+      totalOrders: number;
+      totalSpent: number;
+      lastOrderDate: string | null;
+      latestQuotation: { id: string; quotation_number: string; status: string; total_amount: number; created_at: string } | null;
+      totalQuotations: number;
+      pendingQuotations: number;
+    }>();
+
     orderStats?.forEach((order: any) => {
       if (!statsMap.has(order.user_id)) {
         statsMap.set(order.user_id, {
           totalOrders: 0,
           totalSpent: 0,
           lastOrderDate: null,
+          latestQuotation: null,
+          totalQuotations: 0,
+          pendingQuotations: 0,
         });
       }
       const stats = statsMap.get(order.user_id)!;
@@ -155,13 +182,51 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Process quotation statistics
+    quotationStats?.forEach((quotation: any) => {
+      if (!statsMap.has(quotation.user_id)) {
+        statsMap.set(quotation.user_id, {
+          totalOrders: 0,
+          totalSpent: 0,
+          lastOrderDate: null,
+          latestQuotation: null,
+          totalQuotations: 0,
+          pendingQuotations: 0,
+        });
+      }
+      const stats = statsMap.get(quotation.user_id)!;
+      stats.totalQuotations += 1;
+
+      // Track pending quotations
+      if (quotation.status === 'QUOTATION_PENDING' || quotation.status === 'draft' || quotation.status === 'sent') {
+        stats.pendingQuotations += 1;
+      }
+
+      // Keep the latest quotation
+      if (!stats.latestQuotation || new Date(quotation.created_at) > new Date(stats.latestQuotation.created_at)) {
+        stats.latestQuotation = {
+          id: quotation.id,
+          quotation_number: quotation.quotation_number,
+          status: quotation.status,
+          total_amount: quotation.total_amount,
+          created_at: quotation.created_at,
+        };
+      }
+    });
+
     // Combine customer data with statistics
-    const customersWithStats = (customers || []).map((customer: Profile) => ({
-      ...customer,
-      totalOrders: statsMap.get(customer.id)?.totalOrders || 0,
-      totalSpent: statsMap.get(customer.id)?.totalSpent || 0,
-      lastOrderDate: statsMap.get(customer.id)?.lastOrderDate || null,
-    }));
+    const customersWithStats = (customers || []).map((customer: Profile) => {
+      const stats = statsMap.get(customer.id);
+      return {
+        ...customer,
+        totalOrders: stats?.totalOrders || 0,
+        totalSpent: stats?.totalSpent || 0,
+        lastOrderDate: stats?.lastOrderDate || null,
+        latestQuotation: stats?.latestQuotation || undefined,
+        totalQuotations: stats?.totalQuotations || 0,
+        pendingQuotations: stats?.pendingQuotations || 0,
+      };
+    });
 
     const response: CustomerListResponse = {
       success: true,
