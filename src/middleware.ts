@@ -102,6 +102,12 @@ const PUBLIC_ROUTES = [
   '/designer-order', // Phase 5: Token-based designer order access (no auth required)
   '/sitemap.xml', // SEO: Search engine sitemap access
   '/robots.txt', // SEO: Crawler instructions access
+  '/site.webmanifest', // PWA manifest
+  '/favicon.ico', // Favicon
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/logo.svg',
+  '/apple-touch-icon.png',
 ];
 
 // =====================================================
