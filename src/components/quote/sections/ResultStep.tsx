@@ -20,6 +20,7 @@ import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
 import { RefreshCw, Download, List } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import CostBreakdownPanel from '../shared/CostBreakdownPanel';
@@ -36,6 +37,7 @@ interface ResultStepProps {
  * Component for displaying quote results with actions
  */
 export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepProps) {
+  const router = useRouter();
   const state = useQuoteState();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
@@ -64,12 +66,46 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     // 既に自動保存済みの場合はスキップ
     if (hasAutoSaved.current) return;
 
-    // 認証済みユーザーのみ自動保存実行
-    if (user?.id && result) {
+    // resultが存在すれば自動保存実行（認証不要）
+    if (result) {
       hasAutoSaved.current = true;
       autoGenerateAndSave();
     }
-  }, [user?.id, result]);
+  }, [result]);
+
+  // ブラウザの戻るボタンを無効化
+  useEffect(() => {
+    // 履歴を操作して戻るボタンを無効化
+    const preventBack = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
+
+    // 初期ロード時に履歴を追加
+    window.history.pushState(null, '', window.location.href);
+
+    // popstateイベントをリッスン
+    window.addEventListener('popstate', preventBack);
+
+    // クリーンアップ
+    return () => {
+      window.removeEventListener('popstate', preventBack);
+    };
+  }, []);
+
+  // ページ離脱時の確認ダイアログ（オプション）
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin' || user?.user_metadata?.role === 'admin';
