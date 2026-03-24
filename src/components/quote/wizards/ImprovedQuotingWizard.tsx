@@ -1761,10 +1761,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
     discountAmount: number;
   } | null>(null);
   const [couponError, setCouponError] = useState('');
-  const [adjustedPrice, setAdjustedPrice] = useState(result.totalPrice);
-
-  // 会員登録誘導モーダル
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [adjustedPrice, setAdjustedPrice] = useState<number>(0);
 
   // Optimization suggestions state
   const [showOptimizationSuggestions, setShowOptimizationSuggestions] = useState(false);
@@ -1772,12 +1769,15 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
   const [economicQuantitySuggestion, setEconomicQuantitySuggestion] = useState<EconomicQuantitySuggestionData | null>(null);
 
   // 初期数量を記憶（並列生産オプションはこの数量に基づいて計算される）
-  const [initialQuantity] = useState(result.quantity || state.quantity);
+  const [initialQuantity, setInitialQuantity] = useState<number>(state.quantity || 1000);
   // 初期結果を記憶（現在の選択カードは常にこの初期結果を表示）
-  const [initialResult] = useState(result);
+  const [initialResult, setInitialResult] = useState<UnifiedQuoteResult | null>(null);
 
   // Calculate optimization suggestions
   useEffect(() => {
+    // resultがまだ計算されていない場合はスキップ
+    if (!result) return;
+
     // roll_film, t_shape, m_shapeの場合に並列生産オプションを計算
     if (state.bagTypeId === 'roll_film' || state.bagTypeId === 't_shape' || state.bagTypeId === 'm_shape') {
       // ロールフィルムの場合、ユーザーが入力した長さを使用
@@ -1859,10 +1859,13 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
         });
       })();
     }
-  }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result.unitPrice, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);
+  }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);
 
   // 数量オプションを生成
   const quantityOptions: QuantityOption[] = useMemo(() => {
+    // resultがまだ計算されていない場合は空の配列を返す
+    if (!result) return [];
+
     const options: QuantityOption[] = []
 
     // 現在の選択を最初に追加
@@ -1962,7 +1965,7 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
     }
 
     return options
-  }, [state.quantity, state.bagTypeId, result.unitPrice, result.totalPrice, parallelProductionOptions, economicQuantitySuggestion])
+  }, [state.quantity, state.bagTypeId, result, parallelProductionOptions, economicQuantitySuggestion])
 
   // 数量変更ハンドラー
   const handleQuantityChange = async (option: QuantityOption) => {
@@ -4269,6 +4272,9 @@ export function ImprovedQuotingWizard() {
   const currentStepId = STEPS[currentStep]?.id;
 
   const wizardRef = useRef<HTMLDivElement>(null);
+
+  // 会員登録誘導モーダル
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const handleNext = async () => {
     // ステップ1（基本仕様）から次に進む場合、認証チェック
