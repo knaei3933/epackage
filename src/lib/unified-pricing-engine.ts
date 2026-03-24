@@ -2600,12 +2600,12 @@ export class UnifiedPricingEngine {
    */
   private generateCacheKey(params: UnifiedQuoteParams): string {
     const keyParts = [
-      params.bagTypeId,
-      params.materialId,
-      params.width.toString(),
+      params.bagTypeId || 'unknown',
+      params.materialId || 'unknown',
+      params.width?.toString() || '0', // undefinedの場合は'0'を使用
       params.height?.toString() || '0', // heightがundefinedの場合（ロールフィルム等）は'0'を使用
       params.depth?.toString() || '0',
-      params.quantity.toString(),
+      params.quantity?.toString() || '0', // undefinedの場合は'0'を使用
       // CRITICAL: キャッシュキーにskuQuantitiesを含める - SKUモードで正しい価格を計算するため
       JSON.stringify(params.skuQuantities || []),
       params.thicknessSelection || 'default',
