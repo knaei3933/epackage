@@ -784,12 +784,14 @@ async function sendEmail(
       from: FROM_EMAIL,
       to,
       subject,
-      // Only send HTML part to avoid encoding issues with text/plain
+      // Send both text and HTML parts for proper Japanese email support
+      text,
       html,
       // Explicit UTF-8 encoding for Japanese character support
       encoding: 'utf-8',
+      // Ensure proper MIME headers for Japanese
       headers: {
-        'Content-Type': 'text/html; charset=utf-8'
+        'Content-Type': 'text/plain; charset=utf-8'
       }
     });
 
