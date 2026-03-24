@@ -78,11 +78,11 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
     kanaLastName: z.union([
-      z.string().regex(/^[\u30A0-\u30FF\u30FC\s]*$/, '全角カタカナで入力してください。').max(50, '姓は50文字以内で入力してください。'),
+      z.string().regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/, 'ひらがなで入力してください。').max(50, '姓は50文字以内で入力してください。'),
       z.literal('')
     ]).optional(),
     kanaFirstName: z.union([
-      z.string().regex(/^[\u30A0-\u30FF\u30FC\s]*$/, '全角カタカナで入力してください。').max(50, '名は50文字以内で入力してください。'),
+      z.string().regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/, 'ひらがなで入力してください。').max(50, '名は50文字以内で入力してください。'),
       z.literal('')
     ]).optional(),
 

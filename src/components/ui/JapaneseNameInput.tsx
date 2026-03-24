@@ -155,9 +155,9 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
       onKanaFirstNameChange?.(value);
     };
 
-    // カタカナバリデーション
+    // カタカナ・ひらがなバリデーション
     const validateKana = (value: string): boolean => {
-      return /^[\u30A0-\u30FF\u30FC\s]*$/.test(value);
+      return /^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/.test(value);
     };
 
     return (
@@ -240,8 +240,8 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
         {/* カタカナ入力エリア（姓・名） */}
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="text-sm font-medium text-text-muted">カタカナ</div>
-            <span className="text-sm text-text-secondary">（例：ヤマダ タロウ）</span>
+            <div className="text-sm font-medium text-text-muted">ひらがな</div>
+            <span className="text-sm text-text-secondary">（例：やまだ たろう）</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 姓（カタカナ） */}
@@ -259,7 +259,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 helperTextClassName="text-sm"
-                helperText="全角カタカナで入力してください（読み仮名）"
+                helperText="ひらがなで入力してください（読み仮名）"
               />
             </div>
 
@@ -278,7 +278,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 helperTextClassName="text-sm"
-                helperText="全角カタカナで入力してください（読み仮名）"
+                helperText="ひらがなで入力してください（読み仮名）"
               />
             </div>
           </div>
