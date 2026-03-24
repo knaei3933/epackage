@@ -185,8 +185,8 @@ const nextConfig: NextConfig = {
     'zwitch',
   ],
   images: {
-    unoptimized: false,
-    formats: ['image/avif', 'image/webp'],
+    unoptimized: true, // 画像最適化を無効化して400エラーを解決
+    // formats: ['image/avif', 'image/webp'], // unoptimizedの時は不要
     deviceSizes: [640, 1080, 1920],
     imageSizes: [16, 64, 256],
     minimumCacheTTL: 86400,
