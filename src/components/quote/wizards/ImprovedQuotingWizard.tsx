@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Package, Layers, Calendar, Settings } from 'lucide-react';
@@ -22,6 +23,7 @@ import {
 import { ErrorToast, useToast } from '../shared/ErrorToast';
 import { KeyboardShortcutsHint } from '../shared/KeyboardShortcutsHint';
 import { useKeyboardNavigation } from '../shared/useKeyboardNavigation';
+import { AuthPromptModal } from '../shared/AuthPromptModal';
 import { ResponsiveStepIndicators } from '../shared/ResponsiveStepIndicators';
 import { UnifiedSKUQuantityStep } from '../steps/UnifiedSKUQuantityStep';
 import { ParallelProductionOptions } from '../shared/ParallelProductionOptions';
@@ -1760,6 +1762,9 @@ function ResultStep({ result, onReset, onResultUpdate }: { result: UnifiedQuoteR
   } | null>(null);
   const [couponError, setCouponError] = useState('');
   const [adjustedPrice, setAdjustedPrice] = useState(result.totalPrice);
+
+  // 会員登録誘導モーダル
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   // Optimization suggestions state
   const [showOptimizationSuggestions, setShowOptimizationSuggestions] = useState(false);
@@ -4254,6 +4259,7 @@ export function ImprovedQuotingWizard() {
   const state = useQuoteState();
   const { dispatch, resetQuote } = useQuote();
   const { user, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
   const isStepComplete = (step: string) => checkStepComplete(state, step);
   const { calculateMultiQuantity, canCalculateMultiQuantity } = useMultiQuantityQuote();
 
@@ -4265,6 +4271,12 @@ export function ImprovedQuotingWizard() {
   const wizardRef = useRef<HTMLDivElement>(null);
 
   const handleNext = async () => {
+    // ステップ1（基本仕様）から次に進む場合、認証チェック
+    if (currentStepId === 'specs' && !user?.id) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
     // Validate contents dropdowns before proceeding
     if (!state.productCategory || !state.contentsType || !state.mainIngredient || !state.distributionEnvironment) {
       showError('内容物のすべてのドロップダウンを選択してください。');
@@ -4927,6 +4939,15 @@ export function ImprovedQuotingWizard() {
         <div className="h-48" />
 
       </div>
+
+      {/* 会員登録誘導モーダル */}
+      {showAuthPrompt && (
+        <AuthPromptModal
+          onClose={() => setShowAuthPrompt(false)}
+          onSignIn={() => router.push('/auth/signin?redirect=/quote-simulator')}
+          onRegister={() => router.push('/auth/register?redirect=/quote-simulator')}
+        />
+      )}
     </div>
   );
 }
