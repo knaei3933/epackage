@@ -787,8 +787,7 @@ async function sendEmail(
       // Send both text and HTML parts for proper Japanese email support
       text,
       html,
-      // Use quoted-printable for Japanese text (better than base64 for readability)
-      textEncoding: 'quoted-printable',
+      // Force UTF-8 encoding without transfer encoding for Japanese
       encoding: 'utf-8'
     });
 

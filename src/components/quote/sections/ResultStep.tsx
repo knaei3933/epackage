@@ -5,7 +5,7 @@
  * Extracted from ImprovedQuotingWizard for better maintainability
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion'
 ;
 import { useQuote, useQuoteState, validateProductTypeSpecificFields } from '@/contexts/QuoteContext';
@@ -19,8 +19,9 @@ import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
-import { RefreshCw, Download } from 'lucide-react';
+import { RefreshCw, Download, List } from 'lucide-react';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
+import Link from 'next/link';
 import CostBreakdownPanel from '../shared/CostBreakdownPanel';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
 import type { ParallelProductionOption } from '../shared';
@@ -55,6 +56,20 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     console.log('[ResultStep] useEffect - is roll_film?:', state.bagTypeId === 'roll_film');
     console.log('[ResultStep] useEffect - state keys:', Object.keys(state));
   }, [state.bagTypeId]);
+
+  // 見積結果ページ表示時に自動でPDF生成・DB保存
+  const hasAutoSaved = useRef(false);
+
+  useEffect(() => {
+    // 既に自動保存済みの場合はスキップ
+    if (hasAutoSaved.current) return;
+
+    // 認証済みユーザーのみ自動保存実行
+    if (user?.id && result) {
+      hasAutoSaved.current = true;
+      autoGenerateAndSave();
+    }
+  }, [user?.id, result]);
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin' || user?.user_metadata?.role === 'admin';
@@ -622,6 +637,53 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       validityPeriod: `見積日から30日間\n有効期限経過後は価格変更となる場合がございますので\n再見積の際はご相談ください`,
       remarks: defaultRemarks
     };
+  };
+
+  const autoGenerateAndSave = async () => {
+    console.log('[autoGenerateAndSave] 自動PDF生成・DB保存開始');
+
+    try {
+      // 1. PDF生成
+      const quoteData = generateQuoteData();
+      const pdfResult = await generateQuotePDF(quoteData, {
+        filename: `見積書_${quoteData.quoteNumber}.pdf`
+      });
+
+      if (pdfResult.success && pdfResult.pdfBuffer) {
+        // 2. 自動ダウンロード（バックグラウンド）
+        const blob = new Blob([pdfResult.pdfBuffer], { type: 'application/pdf' });
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = pdfResult.filename || `見積書_${quoteData.quoteNumber}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        if (a.parentNode) document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+
+        // 3. DB保存
+        const savedQuotationId = await saveQuotationToDatabase();
+
+        // 4. Storage保存（認証済みのみ）
+        if (savedQuotationId && pdfResult.pdfBuffer) {
+          const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer);
+          await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              pdfData: `data:application/pdf;base64,${pdfBase64}`,
+            }),
+          });
+        }
+
+        setPdfStatus('success');
+        console.log('[autoGenerateAndSave] 完了');
+      }
+    } catch (error) {
+      console.error('[autoGenerateAndSave] エラー:', error);
+      // エラーでもユーザー体験を妨げない
+    }
   };
 
   const handleDownloadPdf = async () => {
@@ -1497,6 +1559,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           <RefreshCw className="w-4 h-4 inline mr-2" />
           新しい見積もり
         </motion.button>
+
+        {/* 見積一覧リンク（認証済みのみ） */}
+        {user?.id && (
+          <Link
+            href="/member/quotations"
+            className="px-6 py-3 border border-navy-300 text-navy-700 rounded-lg font-medium hover:bg-navy-50 transition-colors flex items-center"
+          >
+            <List className="w-4 h-4 mr-2" />
+            見積一覧
+          </Link>
+        )}
 
         <button
           onClick={handleDownloadPdf}

@@ -74,7 +74,7 @@ const PUBLIC_ROUTES = [
   '/print',
   '/guide',
   '/smart-quote',
-  // '/quote-simulator', // 会員専用 - 認証が必要
+  '/quote-simulator', // 誰でもアクセス可能（ステップ1で認証チェック）
   '/industry',
   '/news',
   '/premium-content',
