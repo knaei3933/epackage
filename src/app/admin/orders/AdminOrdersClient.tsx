@@ -186,10 +186,10 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/3 sm:w-1/4"></div>
             <div className="h-64 bg-gray-200 rounded"></div>
           </div>
         </div>
@@ -198,15 +198,15 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* ヘッダー */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               注文管理
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               ようこそ、{authContext.userName}さん
             </p>
             {quotationFilter && (
@@ -215,21 +215,21 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
               </p>
             )}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             総件数: {total}
           </div>
         </div>
 
         {/* フィルター及び一括操作 */}
-        <div className="bg-white rounded-lg shadow p-4 space-y-4">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between">
             {/* ステータスフィルター */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">ステータス:</label>
+              <label className="text-xs sm:text-sm font-medium text-gray-700">ステータス:</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 <option value="all">すべて</option>
                 {Object.keys(ORDER_STATUS_LABELS).map((status) => (
@@ -243,7 +243,7 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
             {/* 一括操作 */}
             {selectedOrders.size > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600">
                   {selectedOrders.size}件選択
                 </span>
                 <select
@@ -254,7 +254,7 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
                     }
                   }}
                   value=""
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">一括変更...</option>
                   {Object.keys(ORDER_STATUS_LABELS).map((status) => (
@@ -268,8 +268,84 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
           </div>
         </div>
 
-        {/* 注文リストテーブル */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* モバイルカードビュー */}
+        <div className="md:hidden space-y-3">
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className={cn(
+                "bg-white rounded-lg shadow-sm border border-gray-200 p-3 active:shadow-md transition-shadow",
+                selectedOrders.has(order.id) && "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+              )}
+            >
+              {/* チェックボックスと注文番号 */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedOrders.has(order.id)}
+                    onChange={() => toggleOrderSelection(order.id)}
+                    className="rounded border-gray-300 mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-gray-900">
+                      {order.order_number}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {new Date(order.created_at).toLocaleDateString('ja-JP')}
+                    </div>
+                  </div>
+                </div>
+                <a
+                  href={`/admin/orders/${order.id}`}
+                  className="text-blue-600 hover:text-blue-900 text-xs font-medium whitespace-nowrap"
+                >
+                  詳細 →
+                </a>
+              </div>
+
+              {/* 顧客情報 */}
+              <div className="mb-3 pb-3 border-b border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">顧客</div>
+                <div className="text-sm font-medium text-gray-900">{order.customer_name}</div>
+                <div className="text-xs text-gray-500">{order.customer_email}</div>
+              </div>
+
+              {/* 金額とステータス */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">金額</div>
+                  <div className="text-lg font-bold text-gray-900">
+                    ¥{order.total_amount?.toLocaleString() || '0'}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">ステータス</div>
+                  <select
+                    value={order.status}
+                    onChange={(e) => updateOrderStatus(order.id, e.target.value as OrderStatus)}
+                    className="px-2 py-1 text-xs font-medium rounded-full border text-sm"
+                  >
+                    {Object.keys(ORDER_STATUS_LABELS).map((status) => (
+                      <option key={status} value={status}>
+                        {ORDER_STATUS_LABELS[status as OrderStatus].ja}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {orders.length === 0 && (
+            <div className="text-center py-12 text-gray-500 bg-white rounded-lg">
+              注文がありません
+            </div>
+          )}
+        </div>
+
+        {/* デスクトップテーブルビュー */}
+        <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -362,21 +438,21 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
 
         {/* Pagination */}
         {total > pageSize && (
-          <div className="mt-6 flex justify-center items-center gap-4">
+          <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               前へ
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-xs sm:text-sm text-gray-600">
               {page} / {Math.ceil(total / pageSize)} ページ (全{total}件)
             </span>
             <button
               onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
               disabled={page >= Math.ceil(total / pageSize)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               次へ
             </button>
@@ -390,7 +466,16 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
 // Suspense boundary for useSearchParams
 export default function AdminOrdersClient(props: AdminOrdersClientProps) {
   return (
-    <Suspense fallback={<div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-1/4"></div><div className="h-64 bg-gray-200 rounded"></div></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/3 sm:w-1/4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
       <AdminOrdersClientContent {...props} />
     </Suspense>
   );
