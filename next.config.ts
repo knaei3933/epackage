@@ -190,9 +190,9 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 1080, 1920],
     imageSizes: [16, 64, 256],
     minimumCacheTTL: 86400,
-    dangerouslyAllowSVG: false,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    dangerouslyAllowSVG: true,
+    // contentDispositionType: 'attachment', // コメントアウト - 画像表示の問題を解決
+    // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;", // コメントアウト - CSPを緩和
   },
   compress: true,
   poweredByHeader: false,

@@ -115,10 +115,8 @@ export function Header() {
 
   const handleQuoteClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (!isAuthenticated) {
-      setShowAuthModal(true)
-      return
-    }
+    // 認証チェックを削除 - quote-simulatorは誰でもアクセス可能
+    // ステップ1から先に進むときにImprovedQuotingWizard内で認証チェックを行う
     router.push('/quote-simulator')
   }
 
