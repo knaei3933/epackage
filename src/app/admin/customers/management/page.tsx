@@ -104,6 +104,37 @@ interface ContactHistory {
   createdBy: string;
 }
 
+interface QuotationItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  specifications: any;
+  notes: string | null;
+}
+
+interface CustomerQuotation {
+  id: string;
+  quotation_number: string;
+  status: string;
+  customer_name: string;
+  customer_email: string;
+  subtotal_amount: number;
+  tax_amount: number;
+  total_amount: number;
+  valid_until: string | null;
+  pdf_url: string | null;
+  created_at: string;
+  updated_at: string;
+  sent_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  notes: string | null;
+  admin_notes: string | null;
+  items?: QuotationItem[];
+}
+
 interface CustomerDetailResponse {
   success: boolean;
   data?: {
@@ -112,8 +143,11 @@ interface CustomerDetailResponse {
       totalOrders: number;
       totalSpent: number;
       lastOrderDate: string | null;
+      totalQuotations: number;
+      pendingQuotations: number;
     };
     recentOrders: any[];
+    quotations: CustomerQuotation[];
     contactHistory: ContactHistory[];
   };
   error?: string;
@@ -335,6 +369,27 @@ export default function CustomerManagementPage() {
     return <Badge variant={config.variant} size="sm">{config.label}</Badge>;
   };
 
+  // Quotation status badge component
+  const getQuotationStatusBadge = (status: string) => {
+    const variants: Record<string, { variant: 'success' | 'warning' | 'error' | 'secondary' | 'info'; label: string }> = {
+      'QUOTATION_PENDING': { variant: 'warning', label: '見積待ち' },
+      'draft': { variant: 'secondary', label: '下書き' },
+      'sent': { variant: 'info', label: '送信済み' },
+      'pending': { variant: 'warning', label: '承認待ち' },
+      'QUOTATION_APPROVED': { variant: 'success', label: '承認済み' },
+      'approved': { variant: 'success', label: '承認済み' },
+      'REJECTED': { variant: 'error', label: '拒否' },
+      'rejected': { variant: 'error', label: '拒否' },
+      'EXPIRED': { variant: 'secondary', label: '期限切れ' },
+      'expired': { variant: 'secondary', label: '期限切れ' },
+      'CONVERTED': { variant: 'info', label: '注文化済み' },
+      'converted': { variant: 'info', label: '注文化済み' },
+    };
+
+    const config = variants[status] || { variant: 'secondary', label: status };
+    return <Badge variant={config.variant} size="sm">{config.label}</Badge>;
+  };
+
   // Calculate stats
   const stats = useMemo(() => ({
     total: customers.length + totalItems - customers.length, // Approximate total
@@ -404,59 +459,59 @@ export default function CustomerManagementPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card variant="default" className="p-4 hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+          <Card variant="default" className="p-3 md:p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">総顧客数</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
+                <p className="text-xs md:text-sm text-gray-600">総顧客数</p>
+                <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1">
                   {totalItems}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
               </div>
             </div>
           </Card>
 
-          <Card variant="default" className="p-4 hover:shadow-md transition-shadow">
+          <Card variant="default" className="p-3 md:p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">アクティブ</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">
+                <p className="text-xs md:text-sm text-gray-600">アクティブ</p>
+                <p className="text-xl md:text-2xl font-bold text-green-600 mt-1">
                   {stats.active}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Check className="w-6 h-6 text-green-600" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Check className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
               </div>
             </div>
           </Card>
 
-          <Card variant="default" className="p-4 hover:shadow-md transition-shadow">
+          <Card variant="default" className="p-3 md:p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">承認待ち</p>
-                <p className="text-2xl font-bold text-yellow-600 mt-1">
+                <p className="text-xs md:text-sm text-gray-600">承認待ち</p>
+                <p className="text-xl md:text-2xl font-bold text-yellow-600 mt-1">
                   {stats.pending}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-yellow-600" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-5 h-5 md:w-6 md:h-6 text-yellow-600" />
               </div>
             </div>
           </Card>
 
-          <Card variant="default" className="p-4 hover:shadow-md transition-shadow">
+          <Card variant="default" className="p-3 md:p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">今月新規</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">
+                <p className="text-xs md:text-sm text-gray-600">今月新規</p>
+                <p className="text-xl md:text-2xl font-bold text-blue-600 mt-1">
                   {stats.newThisMonth}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-blue-600" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
               </div>
             </div>
           </Card>
@@ -580,212 +635,338 @@ export default function CustomerManagementPage() {
           )}
         </AnimatePresence>
 
-        {/* Customer Table */}
+        {/* Customer List */}
         {loading ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
             <p className="mt-4 text-gray-600 font-medium">読み込み中...</p>
           </div>
         ) : (
-          <Card variant="default" className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left">
-                      <input
-                        type="checkbox"
-                        checked={selectedCustomers.size === customers.length && customers.length > 0}
-                        onChange={toggleAllSelection}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      顧客名
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      会社名
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      メールアドレス
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      電話番号
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      登録日
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      注文数
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ステータス
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      アクション
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  <AnimatePresence>
-                    {customers.map((customer, index) => (
-                      <motion.tr
-                        key={customer.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.03 }}
+          <>
+            {/* Desktop Table View */}
+            <Card variant="default" className="overflow-hidden hidden md:block">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectedCustomers.size === customers.length && customers.length > 0}
+                          onChange={toggleAllSelection}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        顧客名
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        会社名
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        メールアドレス
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        電話番号
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        登録日
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        注文数
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ステータス
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        アクション
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <AnimatePresence>
+                      {customers.map((customer, index) => (
+                        <motion.tr
+                          key={customer.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                          className={cn(
+                            "hover:bg-gray-50 transition-colors",
+                            selectedCustomers.has(customer.id) && "bg-blue-50"
+                          )}
+                        >
+                          <td className="px-6 py-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedCustomers.has(customer.id)}
+                              onChange={() => toggleCustomerSelection(customer.id)}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
+                                {(customer.kanji_last_name || customer.email)[0]}
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {customer.kanji_last_name} {customer.kanji_first_name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {customer.kana_last_name} {customer.kana_first_name}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center text-sm text-gray-900">
+                              {customer.company_name ? (
+                                <>
+                                  <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                  {customer.company_name}
+                                </>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </div>
+                            {customer.position && (
+                              <div className="text-xs text-gray-500 mt-1">{customer.position}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">{customer.email}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center text-sm text-gray-900">
+                              <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                              {customer.corporate_phone || customer.personal_phone || '-'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">
+                              {formatDate(customer.created_at, 'ja')}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {Math.floor((Date.now() - new Date(customer.created_at).getTime()) / (1000 * 60 * 60 * 24))}日前
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900 font-medium">
+                              {customer.totalOrders || 0}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              ¥{(((customer.totalSpent || 0) / 10000).toFixed(1))}万
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {getStatusBadge(customer.status)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => openCustomerDetail(customer)}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="詳細を表示"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleSendEmail(customer)}
+                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                title="メール送信"
+                              >
+                                <Mail className="w-4 h-4" />
+                              </button>
+                              <button
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="その他"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Desktop */}
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  全 {totalItems}件中 {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)}件を表示
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    前へ
+                  </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
                         className={cn(
-                          "hover:bg-gray-50 transition-colors",
-                          selectedCustomers.has(customer.id) && "bg-blue-50"
+                          "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                         )}
                       >
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedCustomers.has(customer.id)}
-                            onChange={() => toggleCustomerSelection(customer.id)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
-                              {(customer.kanji_last_name || customer.email)[0]}
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    次へ
+                  </button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              <AnimatePresence>
+                {customers.map((customer, index) => (
+                  <motion.div
+                    key={customer.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={cn(
+                      "bg-white rounded-xl shadow-sm border border-gray-200 p-4",
+                      selectedCustomers.has(customer.id) && "border-blue-500 bg-blue-50"
+                    )}
+                  >
+                    <div className="flex items-start gap-3 mb-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomers.has(customer.id)}
+                        onChange={() => toggleCustomerSelection(customer.id)}
+                        className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 mt-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0">
+                            {(customer.kanji_last_name || customer.email)[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-base font-semibold text-gray-900 truncate">
                                 {customer.kanji_last_name} {customer.kanji_first_name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {customer.kana_last_name} {customer.kana_first_name}
-                              </div>
+                              </h3>
+                              {getStatusBadge(customer.status)}
                             </div>
+                            <p className="text-sm text-gray-500">
+                              {customer.kana_last_name} {customer.kana_first_name}
+                            </p>
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            {customer.company_name ? (
-                              <>
-                                <Building2 className="w-4 h-4 mr-2 text-gray-400" />
-                                {customer.company_name}
-                              </>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
+                        </div>
+                        {customer.company_name && (
+                          <div className="flex items-center text-sm text-gray-700 mb-2">
+                            <Building2 className="w-4 h-4 mr-1 flex-shrink-0 text-gray-400" />
+                            <span className="truncate">{customer.company_name}</span>
                           </div>
-                          {customer.position && (
-                            <div className="text-xs text-gray-500 mt-1">{customer.position}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">{customer.email}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                            {customer.corporate_phone || customer.personal_phone || '-'}
+                        )}
+                        <div className="text-sm text-gray-900 mb-1">{customer.email}</div>
+                        {customer.corporate_phone && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Phone className="w-4 h-4 mr-1 flex-shrink-0" />
+                            <span>{customer.corporate_phone}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
-                            {formatDate(customer.created_at, 'ja')}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {Math.floor((Date.now() - new Date(customer.created_at).getTime()) / (1000 * 60 * 60 * 24))}日前
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 font-medium">
-                            {customer.totalOrders || 0}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            ¥{(((customer.totalSpent || 0) / 10000).toFixed(1))}万
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(customer.status)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openCustomerDetail(customer)}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="詳細を表示"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleSendEmail(customer)}
-                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                              title="メール送信"
-                            >
-                              <Mail className="w-4 h-4" />
-                            </button>
-                            <button
-                              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="その他"
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
-            </div>
+                        )}
+                      </div>
+                    </div>
 
-            {/* Pagination */}
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                全 {totalItems}件中 {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)}件を表示
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  前へ
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
+                    <div className="grid grid-cols-3 gap-3 mb-4 pt-4 border-t border-gray-100">
+                      <div className="text-center">
+                        <div className="text-lg font-semibold text-gray-900">
+                          {customer.totalOrders || 0}
+                        </div>
+                        <div className="text-xs text-gray-500">注文数</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-semibold text-green-600">
+                          ¥{(((customer.totalSpent || 0) / 10000).toFixed(1))}万
+                        </div>
+                        <div className="text-xs text-gray-500">購入額</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-semibold text-gray-600">
+                          {Math.floor((Date.now() - new Date(customer.created_at).getTime()) / (1000 * 60 * 60 * 24))}
+                        </div>
+                        <div className="text-xs text-gray-500">日前</div>
+                      </div>
+                    </div>
 
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                        currentPage === pageNum
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  次へ
-                </button>
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => handleSendEmail(customer)}
+                        className="flex-1 py-2 px-3 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Mail className="w-4 h-4" />
+                        メール
+                      </button>
+                      <button
+                        onClick={() => openCustomerDetail(customer)}
+                        className="flex-1 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Eye className="w-4 h-4" />
+                        詳細
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+            {/* Pagination Mobile */}
+            <div className="bg-gray-50 px-4 py-3 rounded-lg flex items-center justify-between">
+                <div className="text-xs text-gray-600">
+                  {(() => {
+                    const start = ((currentPage - 1) * itemsPerPage) + 1;
+                    const end = Math.min(currentPage * itemsPerPage, totalItems);
+                    return `${start} - ${end} / ${totalItems}件`;
+                  })()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    前へ
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    次へ
+                  </button>
+                </div>
               </div>
             </div>
-          </Card>
+          </>
         )}
       </div>
 
@@ -890,27 +1071,31 @@ export default function CustomerManagementPage() {
 
                   {/* Order Statistics */}
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <h4 className="text-sm font-medium text-gray-900 mb-4">注文統計</h4>
-                    <div className="grid grid-cols-3 gap-6">
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-blue-600">
+                    <h4 className="text-sm font-medium text-gray-900 mb-4">注文・見積統計</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
                           {customerDetail.statistics.totalOrders}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">総注文数</div>
+                        <div className="text-xs text-gray-600 mt-1">総注文数</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-green-600">
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
                           ¥{(((customerDetail.statistics.totalSpent || 0) / 10000).toFixed(1))}万
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">総購入額</div>
+                        <div className="text-xs text-gray-600 mt-1">総購入額</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-gray-600">
-                          {customerDetail.statistics.lastOrderDate
-                            ? formatDate(customerDetail.statistics.lastOrderDate, 'ja')
-                            : '-'}
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {customerDetail.statistics.totalQuotations || 0}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">最終注文日</div>
+                        <div className="text-xs text-gray-600 mt-1">総見積数</div>
+                      </div>
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <div className="text-2xl font-bold text-amber-600">
+                          {customerDetail.statistics.pendingQuotations || 0}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">見積待ち</div>
                       </div>
                     </div>
                   </div>
@@ -946,6 +1131,99 @@ export default function CustomerManagementPage() {
                               </div>
                               <p className="text-sm text-gray-600">{contact.content}</p>
                               <p className="text-xs text-gray-500 mt-1">作成者: {contact.createdBy}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quotations History */}
+                  {customerDetail.quotations && customerDetail.quotations.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center justify-between">
+                        <span>見積もり履歴</span>
+                        <span className="text-xs text-gray-500">{customerDetail.quotations.length}件</span>
+                      </h4>
+                      <div className="space-y-3">
+                        {customerDetail.quotations.map((quotation) => (
+                          <div
+                            key={quotation.id}
+                            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-gray-900">
+                                    {quotation.quotation_number}
+                                  </span>
+                                  {getQuotationStatusBadge(quotation.status)}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {formatDate(quotation.created_at, 'ja')}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-gray-900">
+                                  ¥{((quotation.total_amount || 0).toLocaleString())}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Quotation Items Summary */}
+                            {quotation.items && quotation.items.length > 0 && (
+                              <div className="mb-3 p-3 bg-gray-50 rounded text-sm">
+                                <div className="text-gray-600 mb-1">明細:</div>
+                                <div className="space-y-1">
+                                  {quotation.items.slice(0, 3).map((item, index) => (
+                                    <div key={item.id} className="flex justify-between text-xs">
+                                      <span className="text-gray-700">
+                                        {item.product_name} × {item.quantity}
+                                      </span>
+                                      <span className="text-gray-600">
+                                        ¥{item.total_price.toLocaleString()}
+                                      </span>
+                                    </div>
+                                  ))}
+                                  {quotation.items.length > 3 && (
+                                    <div className="text-xs text-gray-500 italic">
+                                      他 {quotation.items.length - 3} 品目...
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Quotation Actions */}
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                              <div className="text-xs text-gray-500">
+                                {quotation.admin_notes && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    管理者メモあり
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {quotation.pdf_url && (
+                                  <a
+                                    href={quotation.pdf_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    PDF
+                                  </a>
+                                )}
+                                <a
+                                  href={`/admin/quotations?id=${quotation.id}`}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  詳細
+                                </a>
+                              </div>
                             </div>
                           </div>
                         ))}

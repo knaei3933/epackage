@@ -40,6 +40,7 @@ import {
   getBagTypeLabel,
   getContentsDisplay,
   validateHeight,
+  validateWidth,
   shouldShowGusset
 } from '@/types/quote-wizard';
 
@@ -63,6 +64,46 @@ function SpecsStep() {
   // Validation state
   const [heightError, setHeightError] = useState<string>('');
   const [widthError, setWidthError] = useState<string>('');
+
+  // バリデーションヒント（現在選択されている製品のサイズ制限を表示）
+  const validationHint = useMemo(() => {
+    const hints = {
+      width: '',
+      height: ''
+    };
+
+    switch (state.bagTypeId) {
+      case 'flat_3_side':
+        hints.width = '※ 50mm以上';
+        hints.height = '※ 120mm〜355mm';
+        break;
+      case 'stand_up':
+        hints.width = '※ 80mm以上';
+        hints.height = '※ 100mm以上';
+        break;
+      case 'box':
+        hints.width = '※ 100mm以上（幅＋側面≤335mm）';
+        hints.height = '※ 100mm以上';
+        break;
+      case 'lap_seal':
+        hints.width = '※ 100mm〜350mm';
+        hints.height = '※ 100mm以上';
+        break;
+      case 'spout_pouch':
+        hints.width = '※ 80mm以上';
+        hints.height = '※ 100mm以上';
+        break;
+      case 'roll_film':
+        hints.width = '※ 80mm〜740mm';
+        hints.height = '';
+        break;
+      default:
+        hints.width = '';
+        hints.height = '';
+    }
+
+    return hints;
+  }, [state.bagTypeId]);
 
 
   // Calculate available gusset sizes based on current width
@@ -89,6 +130,16 @@ function SpecsStep() {
       setHeightError('');
     }
   }, [state.height, state.width, state.depth, state.bagTypeId]);
+
+  // バリデーション: 幅が変更されたときに実行
+  useEffect(() => {
+    if (state.width) {
+      const error = validateWidth(state.width, state.bagTypeId, state.depth);
+      setWidthError(error);
+    } else {
+      setWidthError('');
+    }
+  }, [state.width, state.depth, state.bagTypeId]);
 
   // Enhanced material options with rich details and category
   const materials = [
@@ -960,9 +1011,22 @@ function SpecsStep() {
                   min="50"
                   value={state.width ?? ''}
                   onChange={(e) => updateBasicSpecs({ width: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
+                    widthError
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-navy-500'
+                  }`}
                   placeholder={state.bagTypeId === 'roll_film' ? "300" : "200"}
                 />
+                {widthError ? (
+                  <p className="mt-1 text-xs text-red-600">
+                    {widthError}
+                  </p>
+                ) : validationHint.width ? (
+                  <p className="mt-1 text-xs text-gray-400">
+                    {validationHint.width}
+                  </p>
+                ) : null}
               </div>
               {/* Height input - HIDE for roll_film, SHOW pitch instead */}
               {state.bagTypeId === 'roll_film' ? (
@@ -1020,11 +1084,15 @@ function SpecsStep() {
                       }`}
                       placeholder="300"
                     />
-                    {heightError && (
+                    {heightError ? (
                       <p className="mt-1 text-xs text-red-600">
                         {heightError}
                       </p>
-                    )}
+                    ) : validationHint.height ? (
+                      <p className="mt-1 text-xs text-gray-400">
+                        {validationHint.height}
+                      </p>
+                    ) : null}
                   </div>
                 )
               )}

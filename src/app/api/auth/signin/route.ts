@@ -47,7 +47,7 @@ async function handleSignInPost(request: NextRequest) {
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('[Signin API] Supabase not configured');
       return NextResponse.json(
-        { error: 'Supabase not configured' },
+        { error: 'システム設定エラーが発生しました。管理者にお問い合わせください。' },
         { status: 500 }
       );
     }

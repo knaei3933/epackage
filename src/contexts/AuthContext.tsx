@@ -308,21 +308,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signIn = useCallback(async (email: string, password: string) => {
     // Use server-side API route for authentication
     // This sets httpOnly cookies on the server - no client-side storage
-    const response = await fetch('/api/auth/signin/', {
+    const response = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include', // Critical: include cookies in request
       body: JSON.stringify({ email, password }),
     })
 
-    const data = await response.json()
+    // JSONパースエラーを防ぐため、レスポンスを安全に処理
+    let data
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json()
+    } else {
+      // JSONでないレスポンスの場合、テキストとして読み取り
+      const text = await response.text()
+      console.error('[AuthContext] Non-JSON response:', text)
+      throw new Error('サーバーエラーが発生しました。しばらく待ってから再度お試しください。')
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || 'ログインに失敗しました。')
+      throw new Error(data.error || 'ログインに失敗しました。メールアドレスとパスワードを確認してください。')
     }
 
     if (!data.user || !data.profile) {
-      throw new Error('ログインに失敗しました。')
+      throw new Error('ログインに失敗しました。ユーザー情報が見つかりません。')
     }
 
     // Update local state from server response
@@ -372,7 +382,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // 2. Create profile in database (via API route for security)
-      const response = await fetch('/api/auth/register/', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -382,7 +392,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        let errorData
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json()
+        } else {
+          const text = await response.text()
+          console.error('[AuthContext] Non-JSON response:', text)
+          throw new Error('サーバーエラーが発生しました。しばらく待ってから再度お試しください。')
+        }
         throw new Error(errorData.error || 'プロフィールの作成に失敗しました。')
       }
 
@@ -403,7 +421,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = useCallback(async () => {
     try {
       // Call server-side signout endpoint to clear httpOnly cookies
-      await fetch('/api/auth/signout/', {
+      await fetch('/api/auth/signout', {
         method: 'POST',
         credentials: 'include', // Critical: include cookies in request
       })
@@ -461,7 +479,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const resetPassword = useCallback(async (email: string) => {
     // Use server-side API for password reset
-    const response = await fetch('/api/auth/reset-password/', {
+    const response = await fetch('/api/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -469,7 +487,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })
 
     if (!response.ok) {
-      const data = await response.json()
+      let data
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json()
+      } else {
+        const text = await response.text()
+        console.error('[AuthContext] Non-JSON response:', text)
+        throw new Error('サーバーエラーが発生しました。しばらく待ってから再度お試しください。')
+      }
       throw new Error(data.error || 'パスワードリセットメールの送信に失敗しました。')
     }
   }, [])
@@ -480,7 +506,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const updatePassword = useCallback(async (newPassword: string) => {
     // Use server-side API for password update
-    const response = await fetch('/api/auth/update-password/', {
+    const response = await fetch('/api/auth/update-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -488,7 +514,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })
 
     if (!response.ok) {
-      const data = await response.json()
+      let data
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json()
+      } else {
+        const text = await response.text()
+        console.error('[AuthContext] Non-JSON response:', text)
+        throw new Error('サーバーエラーが発生しました。しばらく待ってから再度お試しください。')
+      }
       throw new Error(data.error || 'パスワード変更に失敗しました。')
     }
   }, [])

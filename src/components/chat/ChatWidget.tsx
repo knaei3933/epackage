@@ -68,6 +68,13 @@ export function ChatWidget() {
     const checkMaintenance = async () => {
       try {
         const response = await fetch('/api/config');
+
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          return false; // Not JSON, assume not in maintenance mode
+        }
+
         const data = await response.json();
         if (data.success && data.data?.maintenance_mode?.enabled) {
           setConnectionStatus('maintenance');
@@ -83,6 +90,14 @@ export function ChatWidget() {
     const checkHealth = async () => {
       try {
         const response = await fetch('/api/health');
+
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          setConnectionStatus('offline');
+          return;
+        }
+
         const data = await response.json();
         setConnectionStatus(data.status === 'ok' ? 'online' : 'offline');
       } catch (error) {

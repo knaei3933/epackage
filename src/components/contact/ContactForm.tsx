@@ -45,7 +45,7 @@ const contactSchema = z.object({
   address: z.string()
     .max(200, '住所は200文字以内で入力してください')
     .optional(),
-  inquiryType: z.enum(['product', 'quotation', 'sample', 'delivery', 'other'], {
+  inquiryType: z.enum(['product', 'quotation', 'sample', 'order', 'other'], {
     required_error: 'お問い合わせ種別を選択してください'
   }),
   message: z.string()
@@ -91,7 +91,7 @@ export default function ContactForm() {
       description: 'サンプル請求について'
     },
     {
-      value: 'delivery',
+      value: 'order',
       label: '納期・配送について',
       description: '納期・配送に関するお問い合わせ'
     },

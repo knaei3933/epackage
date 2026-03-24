@@ -226,16 +226,101 @@ export interface ValidationResult {
   errors: ValidationError[];
 }
 
-// バリデーション関数
+// 製品別サイズ制限定数
+export const PRODUCT_SIZE_LIMITS = {
+  // 平袋: 最大縦355mm、最小幅50mm × 縦120mm
+  flat_3_side: {
+    maxHeight: 355,
+    minHeight: 120,
+    minWidth: 50,
+    maxWidth: null
+  },
+  // スタンドパウチ: 最小幅80mm × 縦100mm
+  stand_up: {
+    maxHeight: null,
+    minHeight: 100,
+    minWidth: 80,
+    maxWidth: null
+  },
+  // ガゼットパウチ: 最大幅+側面335mm、最小幅100mm × 縦100mm
+  box: {
+    maxHeight: null,
+    minHeight: 100,
+    minWidth: 100,
+    maxWidth: null,
+    maxWidthPlusSide: 335
+  },
+  // 合掌袋: 最大幅350mm、最小幅100mm × 縦100mm
+  lap_seal: {
+    maxHeight: null,
+    minHeight: 100,
+    minWidth: 100,
+    maxWidth: 350
+  },
+  // スパウトパウチ: 最小幅80mm × 縦100mm
+  spout_pouch: {
+    maxHeight: null,
+    minHeight: 100,
+    minWidth: 80,
+    maxWidth: null
+  },
+  // ロールフィルム: 最大幅740mm、最小幅80mm
+  roll_film: {
+    maxHeight: null,
+    minHeight: null,
+    minWidth: 80,
+    maxWidth: 740
+  }
+} as const;
+
+// 幅のバリデーション
+export const validateWidth = (
+  width: number,
+  bagTypeId: string,
+  depth?: number
+): string => {
+  const limits = PRODUCT_SIZE_LIMITS[bagTypeId as keyof typeof PRODUCT_SIZE_LIMITS];
+  if (!limits) return '';
+
+  // 最小幅チェック
+  if (limits.minWidth && width < limits.minWidth) {
+    return `幅は${limits.minWidth}mm以上で入力してください`;
+  }
+
+  // 最大幅チェック
+  if (limits.maxWidth && width > limits.maxWidth) {
+    return `幅は${limits.maxWidth}mm以下で入力してください`;
+  }
+
+  // ガゼットパウチ: 幅+側面のチェック
+  if (bagTypeId === 'box' && limits.maxWidthPlusSide && depth) {
+    const widthPlusSide = width + depth;
+    if (widthPlusSide > limits.maxWidthPlusSide) {
+      return `幅＋側面は${limits.maxWidthPlusSide}mm以下（現在: ${width}mm＋${depth}mm＝${widthPlusSide}mm）`;
+    }
+  }
+
+  return '';
+};
+
+// 高さ（縦）のバリデーション
 export const validateHeight = (
   height: number,
   bagTypeId: string,
   width?: number,
   depth?: number
 ): string => {
-  // 平袋(平袋): 最大高さ 360mm
-  if (bagTypeId === 'flat_3_side' && height > 360) {
-    return '高さは360mm以下で入力してください';
+  const limits = PRODUCT_SIZE_LIMITS[bagTypeId as keyof typeof PRODUCT_SIZE_LIMITS];
+  if (!limits) return '';
+
+  // 最小高さチェック
+  if (limits.minHeight && height < limits.minHeight) {
+    return `高さは${limits.minHeight}mm以上で入力してください`;
+  }
+
+  // 最大高さチェック
+  if (limits.maxHeight && height > limits.maxHeight) {
+    return `高さは${limits.maxHeight}mm以下で入力してください`;
   }
 
   // スタンドパウチ: 展開サイズ (高さ×2＋底) 690mm以下
@@ -246,11 +331,11 @@ export const validateHeight = (
     }
   }
 
-  // ガゼットパウチ: 横＋側面 350mm以下（側面＝depth/2）
+  // ガゼットパウチ: 幅+側面のチェック（widthとdepthがある場合）
   if (bagTypeId === 'box' && width && depth) {
-    const widthWithSide = width + (depth / 2);
-    if (widthWithSide > 350) {
-      return `横＋側面は350mm以下（現在: ${width}mm＋${depth / 2}mm＝${widthWithSide}mm）`;
+    const widthPlusSide = width + depth;
+    if (widthPlusSide > PRODUCT_SIZE_LIMITS.box.maxWidthPlusSide!) {
+      return `幅＋側面は${PRODUCT_SIZE_LIMITS.box.maxWidthPlusSide}mm以下（現在: ${width}mm＋${depth}mm＝${widthPlusSide}mm）`;
     }
   }
 

@@ -22,6 +22,35 @@ interface RouteContext {
   }>;
 }
 
+interface QuotationWithItems {
+  id: string;
+  quotation_number: string;
+  status: string;
+  customer_name: string;
+  customer_email: string;
+  subtotal_amount: number;
+  tax_amount: number;
+  total_amount: number;
+  valid_until: string | null;
+  pdf_url: string | null;
+  created_at: string;
+  updated_at: string;
+  sent_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  notes: string | null;
+  admin_notes: string | null;
+  items?: Array<{
+    id: string;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    specifications: any;
+    notes: string | null;
+  }>;
+}
+
 interface CustomerDetailResponse {
   success: boolean;
   data?: {
@@ -30,8 +59,11 @@ interface CustomerDetailResponse {
       totalOrders: number;
       totalSpent: number;
       lastOrderDate: string | null;
+      totalQuotations: number;
+      pendingQuotations: number;
     };
     recentOrders: any[];
+    quotations: QuotationWithItems[];
     contactHistory: any[];
   };
   error?: string;
@@ -85,10 +117,47 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(10);
 
+    // Fetch customer's quotations with items
+    const { data: quotations } = await supabase
+      .from('quotations')
+      .select(`
+        id,
+        quotation_number,
+        status,
+        customer_name,
+        customer_email,
+        subtotal_amount,
+        tax_amount,
+        total_amount,
+        valid_until,
+        pdf_url,
+        created_at,
+        updated_at,
+        sent_at,
+        approved_at,
+        rejected_at,
+        notes,
+        admin_notes,
+        items:quotation_items(
+          id,
+          product_name,
+          quantity,
+          unit_price,
+          total_price,
+          specifications,
+          notes
+        )
+      `)
+      .eq('user_id', id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
     // Calculate statistics
     const totalOrders = orders?.length || 0;
     const totalSpent = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
     const lastOrderDate = orders?.[0]?.created_at || null;
+    const totalQuotations = quotations?.length || 0;
+    const pendingQuotations = quotations?.filter(q => q.status === 'QUOTATION_PENDING' || q.status === 'draft' || q.status === 'sent').length || 0;
 
     // Fetch contact history (if table exists)
     const { data: contactHistory } = await supabase
@@ -106,8 +175,11 @@ export async function GET(
           totalOrders,
           totalSpent,
           lastOrderDate,
+          totalQuotations,
+          pendingQuotations,
         },
         recentOrders: orders || [],
+        quotations: (quotations as any) || [],
         contactHistory: contactHistory || [],
       },
     };
