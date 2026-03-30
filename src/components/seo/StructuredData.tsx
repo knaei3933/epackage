@@ -100,11 +100,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
               merchantReturnDays: 14,
               returnMethod: 'https://schema.org/ReturnByMail',
               applicableCountry: 'JP',
-              returnFees: {
-                '@type': 'MonetaryAmount',
-                currency: 'JPY',
-                value: '0'
-              }
+              returnFees: 'https://schema.org/FreeReturn'
             },
             shippingDetails: {
               '@type': 'OfferShippingDetails',

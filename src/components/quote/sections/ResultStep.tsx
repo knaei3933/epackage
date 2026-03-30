@@ -63,32 +63,72 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const hasAutoSaved = useRef(false);
 
   useEffect(() => {
+    console.log('[ResultStep] Auto-save useEffect triggered', { result: !!result, hasAutoSaved: hasAutoSaved.current });
+
     // 既に自動保存済みの場合はスキップ
-    if (hasAutoSaved.current) return;
+    if (hasAutoSaved.current) {
+      console.log('[ResultStep] Already auto-saved, skipping');
+      return;
+    }
 
     // resultが存在すれば自動保存実行（認証不要）
-    if (result) {
+    if (result && result.totalPrice > 0) {
+      console.log('[ResultStep] Starting auto-save with result:', result);
       hasAutoSaved.current = true;
       autoGenerateAndSave();
+    } else {
+      console.log('[ResultStep] Result not ready or invalid:', result);
     }
-  }, [result]);
+  }, [result?.totalPrice, result?.unitPrice]);
 
-  // ブラウザの戻るボタンを無効化
+  // ブラウザの戻るボタンを無効化（強化版）
   useEffect(() => {
+    console.log('[ResultStep] Setting up back button prevention');
+
     // 履歴を操作して戻るボタンを無効化
-    const preventBack = () => {
+    const preventBack = (event: PopStateEvent) => {
+      console.log('[ResultStep] Back button attempted, blocking navigation');
+      event.preventDefault();
+      event.stopPropagation();
+      // 同じURLにプッシュして戻るを無効化
+      window.history.pushState(null, '', window.location.href);
       window.history.pushState(null, '', window.location.href);
     };
 
-    // 初期ロード時に履歴を追加
-    window.history.pushState(null, '', window.location.href);
+    // 初期ロード時に履歴を追加（複数回プッシュして強化）
+    window.history.pushState({ canGoBack: false }, '', window.location.href);
+    window.history.pushState({ canGoBack: false }, '', window.location.href);
+    window.history.pushState({ canGoBack: false }, '', window.location.href);
 
-    // popstateイベントをリッスン
-    window.addEventListener('popstate', preventBack);
+    // popstateイベントをリッスン（キャプチャフェーズ）
+    window.addEventListener('popstate', preventBack, { capture: true });
+
+    // キーボードショートカットも無効化
+    const preventKeyboardNavigation = (event: KeyboardEvent) => {
+      // Alt + Left Arrow (戻る)
+      if (event.altKey && event.key === 'ArrowLeft') {
+        console.log('[ResultStep] Blocking Alt+Left Arrow');
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
+      // Backspace (入力フィールド以外)
+      if (event.key === 'Backspace' &&
+          !['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName)) {
+        console.log('[ResultStep] Blocking Backspace outside input fields');
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
+    };
+
+    window.addEventListener('keydown', preventKeyboardNavigation, { capture: true });
 
     // クリーンアップ
     return () => {
-      window.removeEventListener('popstate', preventBack);
+      console.log('[ResultStep] Cleaning up back button prevention');
+      window.removeEventListener('popstate', preventBack, { capture: true } as any);
+      window.removeEventListener('keydown', preventKeyboardNavigation, { capture: true } as any);
     };
   }, []);
 
@@ -436,7 +476,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           id: 'item-1',
           name: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
           description: `サイズ: ${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
-          quantity: state.quantity,
+          quantity: totalSKUQuantity,
           unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
           unitPrice: result.unitPrice,
           amount: result.totalPrice
@@ -700,17 +740,25 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         // 3. DB保存
         const savedQuotationId = await saveQuotationToDatabase();
 
-        // 4. Storage保存（認証済みのみ）
+        // 4. Storage保存（認証済みのみ）- エラーハンドリング追加
         if (savedQuotationId && pdfResult.pdfBuffer) {
-          const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer);
-          await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              pdfData: `data:application/pdf;base64,${pdfBase64}`,
-            }),
-          });
+          try {
+            const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer);
+            const saveResponse = await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                pdfData: `data:application/pdf;base64,${pdfBase64}`,
+              }),
+            });
+            if (!saveResponse.ok) {
+              console.warn('[autoGenerateAndSave] Failed to save PDF to Storage:', await saveResponse.text());
+            }
+          } catch (saveError) {
+            console.warn('[autoGenerateAndSave] Error saving PDF to Storage:', saveError);
+            // PDF保存に失敗してもダウンロードは成功しているので続行
+          }
         }
 
         setPdfStatus('success');
@@ -879,7 +927,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       console.log('[saveQuotationToDatabase] DEBUG result:', {
         totalPrice: result.totalPrice,
         unitPrice: result.unitPrice,
-        baseCost: result.baseCost,
+        baseCost: result.breakdown?.baseCost,
         quantity: result.quantity,
         skuCostDetails: result.skuCostDetails,
         hasValidSKUData: result.hasValidSKUData
@@ -891,6 +939,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
         // 複数SKUモード: 各SKUの原価を合計
         const firstSkuCost = result.skuCostDetails.costPerSKU[0];
+        const totalBaseCost = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.baseCost || 0), 0);
+
         costBreakdown = {
           materialCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
           laminationCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
@@ -898,11 +948,12 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
           printingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
-          manufacturingMargin: 0,
-          duty: 0,
-          delivery: 0,
-          salesMargin: 0,
-          totalCost: Math.round(firstSkuCost.baseCost || 0)
+          // 修正: マージン・関税・配送料を適切に計算
+          manufacturingMargin: Math.round(totalBaseCost * 0.4), // 製造者マージン40%
+          duty: Math.round(totalBaseCost * 0.05), // 関税5%
+          delivery: Math.round(totalBaseCost * 0.08), // 配送料8%
+          salesMargin: Math.round(totalBaseCost * 0.2), // 販売マージン20%
+          totalCost: Math.round(totalBaseCost)
         };
       } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
         // 【追加】result.breakdownから直接計算（SKUモード対応）
@@ -915,16 +966,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(breakdown.pouchProcessingCost || baseCost * 0.15),
           printingCost: Math.round(breakdown.printing || baseCost * 0.1),
-          manufacturingMargin: 0,
-          duty: 0,
+          // unified-pricing-engine.tsで計算された値を使用
+          manufacturingMargin: Math.round(breakdown.manufacturingMargin || baseCost * 0.4),
+          duty: Math.round(breakdown.duty || baseCost * 0.05),
           delivery: Math.round(breakdown.delivery || baseCost * 0.08),
-          salesMargin: Math.round(baseCost * 0.2),
+          salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.2),
           totalCost: Math.round(baseCost)
         };
-      } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.baseCost && result.baseCost > 0)) {
+      } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.breakdown?.baseCost && result.breakdown.baseCost > 0)) {
         // 通常モード・単一SKUモード: resultから計算
         // 簡易的な原価計算（正確な値ではないが、表示用としては十分）
-        const baseCost = result.baseCost || result.totalPrice || (result.unitPrice * (result.quantity || state.quantity || 1)) || 0;
+        const baseCost = result.breakdown?.baseCost || result.totalPrice || (result.unitPrice * (result.quantity || state.quantity || 1)) || 0;
         costBreakdown = {
           materialCost: Math.round(baseCost * 0.4), // 約40%
           laminationCost: Math.round(baseCost * 0.06), // 約6%
@@ -944,12 +996,15 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       // アイテムデータ変換
       // PDF表示用のquoteSpecsとは別に、DB保存用のクリーンなデータを作成
+      // カスタム見積のため、productIdとproductNameは固定値を使用
+      // SKU数量の合計を計算（会員見積ページでの正しい数量表示のため）
+      const totalSKUQuantity = state.skuQuantities?.reduce((sum, qty) => sum + (Number(qty) || 0), 0) || state.quantity;
+
       const itemsToSave = hasMultiQuantityResults
         ? multiQuantityQuotes.map((quote) => {
-            const itemState = state.items.find(i => i.id === quote.itemId);
             return {
-              productId: itemState?.id || 'custom',
-              productName: itemState?.name || 'カスタム製品',
+              productId: 'custom',
+              productName: 'カスタム製品',
               quantity: quote.quantity,
               unitPrice: quote.unitPrice,
               totalPrice: quote.totalPrice, // 正確な合計金額を追加（丸め誤差防止）
@@ -991,17 +1046,39 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 ...(state.bagTypeId === 'spout_pouch' && {
                   spoutPosition: state.spoutPosition,
                   spoutSize: state.spoutSize
-                })
-              },
-              // 【追加】原価内訳
-              cost_breakdown: costBreakdown
-            };
-          })
+                }),
+                // 【追加】フィルム原価詳細（各素材レイヤーの完全な計算詳細）
+                film_cost_details: result.filmCostDetails ? {
+                materialLayerDetails: result.filmCostDetails.materialLayerDetails?.map(m => ({
+                  materialId: m.materialId,
+                  name: m.name,
+                  nameJa: m.nameJa,
+                  thicknessMicron: m.thicknessMicron,
+                  density: m.density,
+                  unitPriceKRW: m.unitPriceKRW,
+                  areaM2: m.areaM2,
+                  meters: m.meters,
+                  widthM: m.widthM,
+                  weightKg: m.weightKg,
+                  costKRW: m.costKRW,
+                  costJPY: m.costJPY
+                })) || [],
+                totalCostKRW: result.filmCostDetails.totalCostKRW,
+                costJPY: result.filmCostDetails.costJPY,
+                totalWeight: result.filmCostDetails.totalWeight,
+                totalMeters: result.filmCostDetails.totalMeters,
+                materialWidthMM: result.filmCostDetails.materialWidthMM,
+                areaM2: result.filmCostDetails.areaM2
+              } : null
+            },
+            cost_breakdown: costBreakdown
+          };
+        })
         : [
             {
-              productId: state.items[0]?.id || 'custom',
-              productName: state.items[0]?.name || 'カスタム製品',
-              quantity: state.quantity,
+              productId: 'custom',
+              productName: 'カスタム製品',
+              quantity: totalSKUQuantity,
               unitPrice: result.unitPrice,
               totalPrice: result.totalPrice, // 100円単位切り上げ済み
               specifications: {
@@ -1042,12 +1119,34 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 ...(state.bagTypeId === 'spout_pouch' && {
                   spoutPosition: state.spoutPosition,
                   spoutSize: state.spoutSize
-                })
-              },
-              // 【追加】原価内訳
-              cost_breakdown: costBreakdown
-            }
-          ];
+                }),
+                // 【追加】フィルム原価詳細（単一アイテムの場合も保存）
+                film_cost_details: result.filmCostDetails ? {
+                materialLayerDetails: result.filmCostDetails.materialLayerDetails?.map(m => ({
+                  materialId: m.materialId,
+                  name: m.name,
+                  nameJa: m.nameJa,
+                  thicknessMicron: m.thicknessMicron,
+                  density: m.density,
+                  unitPriceKRW: m.unitPriceKRW,
+                  areaM2: m.areaM2,
+                  meters: m.meters,
+                  widthM: m.widthM,
+                  weightKg: m.weightKg,
+                  costKRW: m.costKRW,
+                  costJPY: m.costJPY
+                })) || [],
+                totalCostKRW: result.filmCostDetails.totalCostKRW,
+                costJPY: result.filmCostDetails.costJPY,
+                totalWeight: result.filmCostDetails.totalWeight,
+                totalMeters: result.filmCostDetails.totalMeters,
+                materialWidthMM: result.filmCostDetails.materialWidthMM,
+                areaM2: result.filmCostDetails.areaM2
+              } : null
+            },
+            cost_breakdown: costBreakdown
+          }
+        ];
 
       const totalAmountFromItems = itemsToSave.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
 
@@ -1188,7 +1287,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         : [
             {
               productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-              quantity: state.quantity,
+              quantity: totalSKUQuantity,
               unitPrice: result.unitPrice,
               specifications: {
                 bagTypeId: state.bagTypeId,
@@ -1254,18 +1353,18 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           notes: null,
           // 【追加】見積全体の原価内訳
-          cost_breakdown: result.skuCostDetails?.costPerSKU?.[0]?.costBreakdown || result.baseCost ? {
-            materialCost: Math.round(result.baseCost * 0.4),
-            laminationCost: Math.round(result.baseCost * 0.06),
-            slitterCost: Math.round(result.baseCost * 0.03),
+          cost_breakdown: result.skuCostDetails?.costPerSKU?.[0]?.costBreakdown || result.breakdown?.baseCost ? {
+            materialCost: Math.round((result.breakdown?.baseCost || 0) * 0.4),
+            laminationCost: Math.round((result.breakdown?.baseCost || 0) * 0.06),
+            slitterCost: Math.round((result.breakdown?.baseCost || 0) * 0.03),
             surfaceTreatmentCost: 0,
-            pouchProcessingCost: Math.round(result.baseCost * 0.15),
-            printingCost: Math.round(result.baseCost * 0.1),
-            manufacturingMargin: 0,
-            duty: 0,
-            delivery: Math.round(result.baseCost * 0.08),
-            salesMargin: Math.round(result.baseCost * 0.2),
-            totalCost: Math.round(result.baseCost)
+            pouchProcessingCost: Math.round((result.breakdown?.baseCost || 0) * 0.15),
+            printingCost: Math.round((result.breakdown?.baseCost || 0) * 0.1),
+            manufacturingMargin: Math.round((result.breakdown?.baseCost || 0) * 0.4),
+            duty: Math.round((result.breakdown?.baseCost || 0) * 0.05),
+            delivery: Math.round((result.breakdown?.baseCost || 0) * 0.08),
+            salesMargin: Math.round((result.breakdown?.baseCost || 0) * 0.2),
+            totalCost: Math.round(result.breakdown?.baseCost || 0)
           } : {},
           items: itemsToSave.map(item => ({
             product_name: item.productName,
@@ -1586,7 +1685,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-3">
         <motion.button
-          onClick={onReset}
+          onClick={() => {
+            if (window.confirm('新しい見積もりを作成します。現在の入力内容はリセットされます。よろしいですか？')) {
+              onReset();
+            }
+          }}
           className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -1646,6 +1749,39 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             </>
           )}
         </button>
+
+        {/* 未認証ユーザー向け会員登録促進メッセージ */}
+        {!user?.id && (
+          <div className="w-full mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-900">この見積を保存するには会員登録</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  会員登録（無料）すると、見積履歴の保存・管理や、専任担当者からのご連絡が可能になります。
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Link
+                    href="/auth/register?redirect=/quote-simulator"
+                    className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
+                  >
+                    今すぐ会員登録
+                  </Link>
+                  <Link
+                    href="/auth/signin?redirect=/quote-simulator"
+                    className="px-4 py-2 border border-amber-600 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-50 transition-colors"
+                  >
+                    ログイン
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

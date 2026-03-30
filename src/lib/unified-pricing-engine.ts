@@ -129,6 +129,12 @@ export interface UnifiedQuoteResult {
     setup: number
     discount: number
     delivery: number
+    // マージン・関税（追加）
+    manufacturingMargin?: number // 製造者マージン
+    duty?: number // 関税
+    salesMargin?: number // 販売マージン
+    // 表面処理費（追加）
+    surfaceTreatmentCost?: number // 表面処理費
     subtotal: number
     total: number
     // 파우치 가공비
@@ -1669,6 +1675,9 @@ export class UnifiedPricingEngine {
     // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
     // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
     const unitPrice = roundedTotalPrice / totalQuantity;
+    // Generate filmCostDetails from skuCostResult for admin UI display
+    const filmCostDetails = this.buildFilmCostDetailsFromSKUCostResult(skuCostResult);
+
     const result: UnifiedQuoteResult = {
       unitPrice: unitPrice,
       totalPrice: roundedTotalPrice,
@@ -1678,6 +1687,7 @@ export class UnifiedPricingEngine {
       skuQuantities: skuQuantities,
       hasValidSKUData: true,
       filmUsage: skuCostResult.summary.totalWithLossMeters,
+      filmCostDetails,  // Include filmCostDetails for admin UI
       breakdown: {
         // 素材費（フィルム材料費のみ）
         filmCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.materialCost, 0)),
@@ -1691,8 +1701,11 @@ export class UnifiedPricingEngine {
         printing: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.printingCost, 0)),
         setup: 0,
         discount: 0,
-        // delivery: PouchCostCalculatorで既に計算済みのため0を設定（二重計算防止）
-        delivery: 0,
+        // マージン・関税・配送料（基本原価から計算）
+        manufacturingMargin: Math.round(baseCost * 0.4), // 製造者マージン40%
+        duty: Math.round(baseCost * 0.05), // 関税5%
+        delivery: Math.round(baseCost * 0.08), // 配送料8%
+        salesMargin: Math.round(baseCost * 0.2), // 販売マージン20%
         subtotal: Math.round(baseCost),
         total: Math.round(totalPrice),
         pouchProcessingCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.pouchProcessingCost, 0)),
@@ -2551,6 +2564,28 @@ export class UnifiedPricingEngine {
 
     const selected = options.find(opt => opt.id === thicknessSelection)
     return selected?.nameJa || selected?.name
+  }
+
+  /**
+   * Build FilmCostDetails from SKUCostResult for admin UI display
+   * Extracts film cost information from the SKU calculation result
+   */
+  private buildFilmCostDetailsFromSKUCostResult(skuResult: any): any {
+    // Use the filmCostResult from SKUCostResult if available
+    if (skuResult.filmCostResult) {
+      return skuResult.filmCostResult;
+    }
+
+    // Fallback to minimal film cost details based on SKUCostResult summary
+    return {
+      materialLayerDetails: [],
+      totalCostKRW: 0,
+      costJPY: 0,
+      totalWeight: skuResult.summary?.totalWeight || 0,
+      totalMeters: skuResult.summary?.totalWithLossMeters || 0,
+      materialWidthMM: skuResult.materialWidth || 590,
+      areaM2: 0
+    };
   }
 
   /**

@@ -1,32 +1,79 @@
-site.webmanifest:1 Manifest: Line: 1, column: 1, Syntax error.
-17981675917/:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-17981675917/?random=1774338703355&cv=11&fst=1774338703355&fmt=3&bg=ffffff&guid=ON&async=1&en=gtag.c…:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-site.webmanifest:1 Manifest: Line: 1, column: 1, Syntax error.
-17981675917/:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-17981675917/?random=1774338718789&cv=11&fst=1774338718789&fmt=3&bg=ffffff&guid=ON&async=1&en=form_s…:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-17981675917/:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-17981675917/?random=1774338719316&cv=11&fst=1774338719316&fmt=3&bg=ffffff&guid=ON&async=1&en=form_s…:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-34881b35e69ccd9c.js:1 ReferenceError: showAuthPrompt is not defined
-    at eb (37435365f0abf350.js:27:33766)
-    at av (34881b35e69ccd9c.js:1:62299)
-    at oY (34881b35e69ccd9c.js:1:82572)
-    at io (34881b35e69ccd9c.js:1:93045)
-    at sc (34881b35e69ccd9c.js:1:137025)
-    at 34881b35e69ccd9c.js:1:136870
-    at ss (34881b35e69ccd9c.js:1:136878)
-    at u9 (34881b35e69ccd9c.js:1:132803)
-    at sV (34881b35e69ccd9c.js:1:158398)
-    at MessagePort.O (34881b35e69ccd9c.js:1:7357)
-d @ 34881b35e69ccd9c.js:1
-3e03754784c40b61.js:1 Global error caught: ReferenceError: showAuthPrompt is not defined
-    at eb (37435365f0abf350.js:27:33766)
-    at av (34881b35e69ccd9c.js:1:62299)
-    at oY (34881b35e69ccd9c.js:1:82572)
-    at io (34881b35e69ccd9c.js:1:93045)
-    at sc (34881b35e69ccd9c.js:1:137025)
-    at 34881b35e69ccd9c.js:1:136870
-    at ss (34881b35e69ccd9c.js:1:136878)
-    at u9 (34881b35e69ccd9c.js:1:132803)
-    at sV (34881b35e69ccd9c.js:1:158398)
-    at MessagePort.O (34881b35e69ccd9c.js:1:7357)
-(익명) @ 3e03754784c40b61.js:1
+見積アイテム詳細
+カスタム製品
+
+数量: 5000個 × ¥55.48
+
+¥277,400
+
+タイプ:stand_up
+素材:PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ
+重量:~300g
+サイズ:130×180×30mm
+印刷:デジタル印刷
+色数:フルカラー
+ジッパー:あり
+角丸
+光沢仕上げ
+吊り穴(6mm)
+マチ印刷なし
+Vノッチ
+上部開放
+バルブなし
+チャック付き
+💰 原価内訳
+📊 基本原価（Base Cost）
+基本原価
+¥78,145
+※ 各費用は基本原価にそれぞれの比率を掛けて算出されます
+📦 素材費
+フィルム材料費
+¥31,258
+¥78,145 × 40% = ¥31,258
+ラミネート費
+¥16,727
+¥78,145 × 6% = ¥16,727
+スリッター費
+¥3,600
+¥78,145 × 3% = ¥3,600
+素材費合計
+¥51,585
+🔧 加工費
+パウチ加工費
+¥33,600
+¥78,145 × 15% = ¥33,600
+基本加工費（固定）× 後加工乗数
+🖨️ 印刷費
+基本印刷
+¥59,850
+¥78,145 × 10% = ¥59,850
+印刷方式: デジタル印刷
+色数: フルカラー
+📦 配送料
+配送料
+¥0
+📊 マージン・関税
+製造者マージン (40%)
+¥0
+関税 (5%)
+¥0
+販売マージン (20%)
+¥0
+💰 合計
+¥0
+🏭 製造業者支払額
+素材費（ウォン）
+₩468,955
+加工費（ウォン）
+₩305,455
+印刷費（ウォン）
+₩544,091
+製造者マージン（ウォン）
+₩0
+合計（円参考）
+¥145,035
+合計（ウォン）
+₩1,318,501
+為替レート: 1ウォン = ¥0.11
+※ 製造業者支払額は「素材費 + 加工費 + 印刷費 + 製造者マージン」の合計です。
+※ 配送料と関税は除外されています。
+※ 販売マージン（自社の利益）は除外されています。

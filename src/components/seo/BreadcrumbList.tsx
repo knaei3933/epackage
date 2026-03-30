@@ -95,7 +95,7 @@ export function BreadcrumbList() {
               "@type": "ListItem",
               "position": index + 1,
               "name": item.name,
-              "item": `https://epackage-lab.com${item.href}`
+              "item": `https://www.package-lab.com${item.href}`
             }))
           })
         }}

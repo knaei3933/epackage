@@ -97,6 +97,22 @@ export interface FilmCostCalculationParams {
   markupRate?: number; // 기본값 0.2 = 20%
 }
 
+// 素材レイヤーの詳細情報（各素材の計算詳細）
+export interface MaterialLayerDetail {
+  materialId: string;
+  name: string; // 英語名
+  nameJa: string; // 日本語名
+  thicknessMicron: number; // 厚さ（μm）
+  density: number; // 密度（kg/m³）
+  unitPriceKRW: number; // 単価（ウォン/kg）
+  areaM2: number; // 面積（m²）
+  meters: number; // メートル数（ロス込み）
+  widthM: number; // 幅（m）
+  weightKg: number; // 重量（kg）
+  costKRW: number; // 原価（ウォン）
+  costJPY: number; // 原価（円）
+}
+
 export interface FilmCostResult {
   // 원가 breakdown (원화)
   materialCost: number; // 원단비
@@ -119,6 +135,12 @@ export interface FilmCostResult {
 
   // 단가 정보
   costPerMeterJPY: number; // 미터당 단가 (엔/m)
+
+  // 【追加】詳細情報
+  materialLayerDetails: MaterialLayerDetail[]; // 各素材レイヤーの詳細計算情報
+  totalMeters: number; // 総メートル数（ロス込み）
+  materialWidthMM: number; // 原料幅（mm）
+  areaM2: number; // 総面積（m²）
 
   // 상세 정보
   breakdown: {
@@ -464,6 +486,11 @@ export class FilmCostCalculator {
       rollCount: boxCount, // Renamed notionally but keeping property for compatibility
       deliveryCostJPY,
       costPerMeterJPY,
+      // 【追加】詳細情報
+      materialLayerDetails: materialBreakdown.materialLayerDetails,
+      totalMeters: lengthWithLoss,
+      materialWidthMM: materialWidth * 1000, // mm単位に変換
+      areaM2: widthM * lengthWithLoss,
       breakdown: {
         materials: materialBreakdown.materials,
         printing: printingBreakdown,
@@ -490,6 +517,9 @@ export class FilmCostCalculator {
       cost: number;
       weight: number;
     }> = [];
+
+    // 【追加】各素材レイヤーの詳細情報
+    const materialLayerDetails: MaterialLayerDetail[] = [];
 
     let totalCost = 0;
     let totalWeight = 0;
@@ -587,6 +617,26 @@ export class FilmCostCalculator {
         weight: Math.round(weight * 100) / 100
       });
 
+      // 【追加】素材レイヤーの詳細情報をキャプチャ
+      const thicknessMm = effectiveThickness / 1000;
+      const areaM2 = widthM * lengthWithLoss;
+      const weightKg = Math.round(weight * 100) / 100;
+
+      materialLayerDetails.push({
+        materialId: layer.materialId,
+        name: material.name,
+        nameJa: material.nameJa,
+        thicknessMicron: effectiveThickness,
+        density: material.density,
+        unitPriceKRW: material.unitPrice,
+        areaM2: Math.round(areaM2 * 100) / 100,
+        meters: Math.round(lengthWithLoss * 10) / 10,
+        widthM: Math.round(widthM * 1000) / 1000,
+        weightKg,
+        costKRW: Math.round(cost),
+        costJPY: Math.round(cost * (dbSettings?.exchange_rate_krw_to_jpy ?? EXCHANGE_RATE))
+      });
+
       totalCost += cost;
       totalWeight += weight;
     }
@@ -594,13 +644,15 @@ export class FilmCostCalculator {
     console.log('[calculateMaterialCost] RESULT:', {
       totalCost,
       totalWeight,
-      totalCostRounded: Math.round(totalCost)
+      totalCostRounded: Math.round(totalCost),
+      materialLayerDetails
     });
 
     return {
       materials,
       totalCost: Math.round(totalCost),
-      totalWeight: Math.round(totalWeight * 100) / 100
+      totalWeight: Math.round(totalWeight * 100) / 100,
+      materialLayerDetails // 【追加】詳細情報を含める
     };
   }
 

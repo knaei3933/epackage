@@ -200,7 +200,6 @@ const nextConfig: NextConfig = {
   // =====================================================
   // Additional optimization for LCP
   // =====================================================
-  swcMinify: true,
   experimental: {
     optimizeCss: true,
     optimizePackageImports: [

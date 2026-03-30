@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createServiceClient } from '@/lib/supabase';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
+import type { FilmCostResult } from '@/lib/film-cost-calculator';
 
 interface QuotationItem {
   id: string;
@@ -17,10 +18,14 @@ interface QuotationItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  specifications: any;
+  specifications: {
+    film_cost_details?: FilmCostResult | null;
+    [key: string]: unknown;
+  };
   notes: string | null;
   display_order: number;
   created_at: string;
+  cost_breakdown?: CostBreakdown;
 }
 
 export async function GET(
@@ -260,7 +265,14 @@ function getPrintingTypeName(printingType: string): string {
 // =====================================================
 
 function calculateBreakdown(item: QuotationItem) {
+  console.log('[calculateBreakdown] item.id:', item.id);
+  console.log('[calculateBreakdown] item.specifications type:', typeof item.specifications);
+  console.log('[calculateBreakdown] item.specifications keys:', item.specifications ? Object.keys(item.specifications) : 'undefined');
   const specs = item.specifications || {};
+  console.log('[calculateBreakdown] film_cost_details in specs:', 'film_cost_details' in specs);
+  console.log('[calculateBreakdown] specs.film_cost_details type:', typeof specs.film_cost_details);
+  console.log('[calculateBreakdown] specs.film_cost_details:', specs.film_cost_details);
+  console.log('[calculateBreakdown] specs keys:', Object.keys(specs));
   const width = specs.width || 0;
   const height = specs.height || 0;
   const depth = specs.depth || 0;
@@ -268,6 +280,30 @@ function calculateBreakdown(item: QuotationItem) {
   // cost_breakdownが既に保存されている場合はそれを使用
   if (item.cost_breakdown) {
     const savedBreakdown = item.cost_breakdown as CostBreakdown;
+
+    // VALIDATION: マージンフィールドが存在するか確認
+    // スキーマ修正前に保存されたレコードに対する互換性処置
+    const materialCost = savedBreakdown.materialCost || 0;
+    const totalCost = savedBreakdown.totalCost || 0;
+
+    // Null-safe baseCost計算: materialCostから逆算し、0の場合はtotalCostを使用
+    const baseCost = materialCost > 0
+      ? Math.round(materialCost / 0.4)
+      : totalCost > 0
+        ? Math.round(totalCost / 1.73)  // 総費用から概算ベースコストを逆算
+        : 0;
+
+    // マージン値が欠けている場合は計算して補完
+    // 注意: ??演算子はnull/undefinedのみチェックするため、0もfalsyとして扱う必要がある
+    const validatedBreakdown: CostBreakdown = {
+      ...savedBreakdown,
+      manufacturingMargin: (savedBreakdown.manufacturingMargin ?? 0) > 0 ? savedBreakdown.manufacturingMargin : Math.round(baseCost * 0.4),
+      salesMargin: (savedBreakdown.salesMargin ?? 0) > 0 ? savedBreakdown.salesMargin : Math.round(baseCost * 0.2),
+      // dutyとdeliveryも念のため確認
+      duty: (savedBreakdown.duty ?? 0) > 0 ? savedBreakdown.duty : Math.round(baseCost * 0.05),
+      delivery: (savedBreakdown.delivery ?? 0) > 0 ? savedBreakdown.delivery : Math.round(baseCost * 0.08),
+    };
+
     return {
       quantity: item.quantity,
       unit_price: item.unit_price,
@@ -325,8 +361,10 @@ function calculateBreakdown(item: QuotationItem) {
         quantities: specs.sku_quantities,
         total: specs.sku_quantities.reduce((sum: number, q: number) => sum + q, 0),
       } : null,
-      // 詳細な原価内訳を追加
-      breakdown: savedBreakdown,
+      // 詳細な原価内訳を追加（検証済み）
+      breakdown: validatedBreakdown,
+      // フィルム原価詳細（素材レイヤーの完全な計算式）
+      filmCostDetails: specs.film_cost_details || null,
     };
   }
 
@@ -410,6 +448,8 @@ function calculateBreakdown(item: QuotationItem) {
       salesMargin: estimatedMargin,
       totalCost: totalCost,
     } as CostBreakdown,
+    // フィルム原価詳細（フォールバック）
+    filmCostDetails: (specs as any).film_cost_details || null,
   };
 }
 

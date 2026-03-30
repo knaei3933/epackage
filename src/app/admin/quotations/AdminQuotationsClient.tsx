@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Badge, Button } from '@/components/ui';
 import { DetailedCostBreakdown } from '@/components/admin/quotation/DetailedCostBreakdown';
 import { adminFetch } from '@/lib/auth-client';
-import { Download, Mail } from 'lucide-react';
+import { Download, Mail, RefreshCw } from 'lucide-react';
 import { EmailComposer } from '@/components/admin/EmailComposer';
 import type { Recipient } from '@/components/admin/EmailComposer';
 import { formatDateJa } from '@/utils/formatters';
@@ -37,16 +37,77 @@ interface QuotationItem {
     total_price: number;
     specifications: {
       bag_type?: string;
+      bag_type_display?: string;
       material?: string;
+      material_display?: string;
+      material_specification?: string;
+      weight_range?: string;
+      thickness?: string;
+      thickness_display?: string;
       size?: string;
+      dimensions?: string;
+      width?: number;
+      height?: number;
+      depth?: number;
       printing?: string;
-      colors?: number;
+      printing_display?: string;
+      printing_type?: string;
+      colors?: string;
+      isUVPrinting?: boolean;
       post_processing?: string[];
+      post_processing_display?: string[];
       zipper?: boolean;
       spout?: boolean;
+      urgency?: string;
+      contents?: string;
+      contentsType?: string;
+      productCategory?: string;
+      deliveryLocation?: string;
+      distributionEnvironment?: string;
+      sealWidth?: string;
+      doubleSided?: boolean;
     };
     area?: { mm2: number; m2: number };
     sku_info?: { count: number; quantities: number[]; total: number };
+    breakdown?: {
+      materialCost: number;
+      laminationCost: number;
+      slitterCost: number;
+      surfaceTreatmentCost: number;
+      pouchProcessingCost: number;
+      printingCost: number;
+      manufacturingMargin: number;
+      duty: number;
+      delivery: number;
+      salesMargin: number;
+      totalCost: number;
+    };
+    filmCostDetails?: {
+      materialCost?: number;
+      laminationCost?: number;
+      slitterCost?: number;
+      surfaceTreatmentCost?: number;
+      materialLayerDetails?: Array<{
+        materialId: string;
+        name: string;
+        nameJa: string;
+        thicknessMicron: number;
+        density: number;
+        unitPriceKRW: number;
+        areaM2: number;
+        meters: number;
+        widthM: number;
+        weightKg: number;
+        costKRW: number;
+        costJPY: number;
+      }>;
+      totalCostKRW?: number;
+      costJPY?: number;
+      totalWeight?: number;
+      totalMeters?: number;
+      materialWidthMM?: number;
+      areaM2?: number;
+    } | null;
   };
 }
 
@@ -469,6 +530,7 @@ function QuotationDetailPanel({
   const [showFormula, setShowFormula] = useState(true);
   const [relatedOrderId, setRelatedOrderId] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
 
   // 選択された見積の詳細を取得
   useEffect(() => {
@@ -552,6 +614,25 @@ function QuotationDetailPanel({
       alert(`PDFを開くのに失敗しました:\n${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloadingPdf(false);
+    }
+  };
+
+  // 原価再計算
+  const handleRecalculate = async () => {
+    setIsRecalculating(true);
+    try {
+      const response = await fetch(`/api/admin/quotations/${quotation.id}/recalculate`, {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Recalculation failed');
+      const result = await response.json();
+      await fetchQuotationDetail(); // Refresh data
+      alert(`原価再計算が完了しました (${result.updatedItems.length}件)`);
+    } catch (error) {
+      console.error('[Recalculate] Error:', error);
+      alert('原価再計算に失敗しました');
+    } finally {
+      setIsRecalculating(false);
     }
   };
 
@@ -658,7 +739,19 @@ function QuotationDetailPanel({
             </div>
           ) : items.length > 0 ? (
             <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-semibold text-gray-900">見積アイテム詳細</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-gray-900">見積アイテム詳細</h4>
+                <Button
+                  onClick={handleRecalculate}
+                  disabled={isRecalculating}
+                  variant="outline"
+                  size="sm"
+                  className="ml-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRecalculating ? 'animate-spin' : ''}`} />
+                  {isRecalculating ? '計算中...' : '原価再計算'}
+                </Button>
+              </div>
               {items.map((item, index) => (
                 <QuotationItemDetail key={item.id} item={item} showFormula={showFormula} />
               ))}
@@ -846,6 +939,7 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
           breakdown={breakdown.breakdown}
           specifications={specs}
           sku_info={breakdown.sku_info}
+          filmCostDetails={breakdown.filmCostDetails}
           showFormula={showFormula}
         />
       )}

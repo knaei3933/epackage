@@ -202,8 +202,9 @@ export interface SKUCostResult {
     deliveryBoxes: number;
   };
   // 필름 폭 계산 정보
-  calculatedFilmWidth: number; // 계산된 필름 폭 (mm)
-  materialWidth: 590 | 760; // 선택된 원단 폭 (mm)
+  calculatedFilmWidth?: number;  // 計算されたフィルム幅
+  materialWidth?: number;       // 原反幅
+  filmCostResult?: any;          // フィルム原価詳細（管理者UI表示用）
 }
 
 /**
@@ -686,7 +687,8 @@ export class PouchCostCalculator {
       costPerSKU: updatedCostPerSKU,
       summary,
       calculatedFilmWidth: filmWidth,
-      materialWidth
+      materialWidth,
+      filmCostResult: totalFilmCostResult  // Include film cost result for admin UI display
     };
   }
 
