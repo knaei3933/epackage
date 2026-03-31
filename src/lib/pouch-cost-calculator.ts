@@ -241,14 +241,17 @@ export interface SKUSplitOption {
 
 /**
  * 材料に基づくロス量を計算
- * ALまたはクラフト材料を含む場合は400m、その他は300m
+ * ALを含む場合は400m、KRAFTを含む場合は700m、その他は300m
  */
 function getLossMeters(layers: FilmStructureLayer[]): number {
   const hasAL = layers.some(layer => layer.materialId === 'AL');
   const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
 
-  if (hasAL || hasKraft) {
-    return 400; // ALまたはクラフト材料の場合は400m
+  if (hasAL) {
+    return 400; // AL材料の場合は400m
+  }
+  if (hasKraft) {
+    return 700; // KRAFT材料の場合は700m
   }
   return 300; // その他材料の場合は300m
 }
@@ -395,6 +398,12 @@ export class PouchCostCalculator {
     const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
     const printableWidth = materialWidth === 590 ? 570 : 740;
     const canUse2Columns = filmWidth2Columns <= printableWidth;
+
+    // 【修正】スパウトパウチは常に1列生産を使用（ユーザードキュメント基準）
+    // 2列生産は複雑で効率が悪いため、1列生産+固定ロス400m方式を採用
+    if (pouchType.includes('spout') || pouchType.includes('stand')) {
+      return 1; // スパウト・スタンドパウチ: 常に1列
+    }
 
     // 小量生産の場合は1列のみ使用（2列は大量生産時のみ効率的）
     if (totalQuantity < 500) {

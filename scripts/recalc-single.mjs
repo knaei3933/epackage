@@ -1,18 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 
-// Load environment variables from .env.local
 config({ path: '.env.local' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing required environment variables:');
-  console.error('  NEXT_PUBLIC_SUPABASE_URL');
-  console.error('  SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
-}
 
 const client = createClient(supabaseUrl, supabaseKey);
 
@@ -39,28 +31,21 @@ function getFilmLayers(materialId, thicknessSelection) {
 }
 
 async function main() {
-  console.log('=== Recalculate ===');
-
+  const quoteId = 'QT20260330-2818';
+  
   const { data: items, error } = await client
     .from('quotation_items')
-    .select('id, specifications, quantity')
-    .limit(50);
+    .select('*')
+    .eq('quotation_id', quoteId);
 
   if (error) {
     console.error('Fetch error:', error.message);
     return;
   }
 
-  const itemsWithoutFCD = items?.filter(item => !item.specifications?.film_cost_details) || [];
-  console.log('Found ' + itemsWithoutFCD.length + ' items without film_cost_details');
+  console.log('Found', items?.length || 0, 'items for', quoteId);
 
-  if (itemsWithoutFCD.length === 0) {
-    console.log('All items have film_cost_details');
-    return;
-  }
-
-  let successCount = 0;
-  for (const item of itemsWithoutFCD) {
+  for (const item of items || []) {
     try {
       const specs = item.specifications || {};
       const materialId = specs.materialId || 'pet_pe';
@@ -81,7 +66,7 @@ async function main() {
         doubleSided: specs.doubleSided || false,
         postProcessingOptions: specs.postProcessingOptions || [],
         filmLayers,
-        useFilmCostCalculation: true,  // 【重要】フィルム原価計算を有効化
+        useFilmCostCalculation: true,
         markupRate: specs.markupRate || 0.5,
         lossRate: specs.lossRate || 0.4,
       };
@@ -90,6 +75,16 @@ async function main() {
       const filmCostDetails = result.filmCostDetails;
 
       if (filmCostDetails) {
+        console.log('Item', item.id.substring(0, 8));
+        console.log('  totalMeters:', filmCostDetails.totalMeters);
+        console.log('  layers:', filmCostDetails.materialLayerDetails?.length || 0);
+        
+        if (filmCostDetails.materialLayerDetails) {
+          for (const layer of filmCostDetails.materialLayerDetails) {
+            console.log(`    ${layer.nameJa}: ${layer.weightKg}kg x ₩${layer.unitPriceKRW}/kg`);
+          }
+        }
+
         const updatedSpecs = { ...specs, film_cost_details: filmCostDetails };
         const { error: updateError } = await client
           .from('quotation_items')
@@ -97,20 +92,19 @@ async function main() {
           .eq('id', item.id);
 
         if (!updateError) {
-          successCount++;
-          console.log('OK', item.id.substring(0, 8), '- meters:', filmCostDetails.totalMeters, 'layers:', filmCostDetails.materialLayerDetails?.length || 0);
+          console.log('  ✓ Updated successfully');
         } else {
-          console.error('FAIL', item.id, '-', updateError.message);
+          console.error('  ✗ Update failed:', updateError.message);
         }
       } else {
-        console.error('NO FCD', item.id);
+        console.error('NO FCD for item', item.id);
       }
     } catch (err) {
       console.error('ERROR', item.id, '-', err.message);
     }
   }
 
-  console.log('Done: ' + successCount + '/' + itemsWithoutFCD.length + ' updated');
+  console.log('Done. Please refresh the admin page.');
 }
 
 main().catch(console.error);

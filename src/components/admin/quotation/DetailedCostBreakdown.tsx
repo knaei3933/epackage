@@ -187,21 +187,6 @@ export function DetailedCostBreakdown({
   // IMPORTANT: Use fiveStep.baseCost instead of local calculation
   const fiveStep = calculateFiveStepBreakdown(breakdown, filmCostDetails);
 
-  // 素材費合計（フィルム＋ラミネート＋スリッター＋表面処理）- 円
-  const totalMaterialCostJPY = (materialCost || 0) + (laminationCost || 0) + (slitterCost || 0) + (surfaceTreatmentCost || 0);
-
-  // 製造業者支払額の計算（ウォン）
-  // 配送料と関税は除外。販売マージン（自社の利益）も除外。
-  // 各費用をウォンに変換して合計
-  const manufacturerPaymentKRW =
-    jpyToKrw(totalMaterialCostJPY) +           // 素材費（ウォン）
-    jpyToKrw(pouchProcessingCost || 0) +        // 加工費（ウォン）
-    jpyToKrw(printingCost || 0) +               // 印刷費（ウォン）
-    jpyToKrw(manufacturingMargin || 0);         // 製造者マージン（ウォン）
-
-  // 円換算（表示用）
-  const manufacturerPaymentJPY = Math.round(manufacturerPaymentKRW * exchangeRateKRWToJPY);
-
   // SKU追加料金があれば計算
   const skuSurcharge = sku_info && sku_info.count > 1 ? (sku_info.count - 1) * 10000 : 0;
 
@@ -246,7 +231,7 @@ export function DetailedCostBreakdown({
               <p className="text-xs text-gray-600">各層の重量 × 単価の合計</p>
             </div>
             {fiveStep.rawMaterialCost.details.length > 0 ? (
-              <span className="font-bold text-blue-900 shrink-0">¥{fiveStep.rawMaterialCost.totalJPY.toLocaleString()}</span>
+              <span className="font-bold text-blue-900 shrink-0">₩{fiveStep.rawMaterialCost.totalKRW.toLocaleString()}</span>
             ) : (
               <span className="font-bold text-gray-400 shrink-0">データなし</span>
             )}
@@ -256,7 +241,7 @@ export function DetailedCostBreakdown({
               {fiveStep.rawMaterialCost.details.map((m, idx) => (
                 <div key={idx} className="flex justify-between">
                   <span>{m.nameJa} {m.thicknessMicron}μm: {m.weightKg.toFixed(2)}kg x ₩{m.unitPriceKRW.toLocaleString()}/kg</span>
-                  <span className="font-medium">¥{m.costJPY.toLocaleString()}</span>
+                  <span className="font-medium">₩{m.costKRW.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -279,12 +264,12 @@ export function DetailedCostBreakdown({
                   : '印刷費'}
               </p>
             </div>
-            <span className="font-bold text-blue-900 shrink-0">¥{fiveStep.printingCost.costJPY.toLocaleString()}</span>
+            <span className="font-bold text-blue-900 shrink-0">₩{fiveStep.printingCost.costKRW.toLocaleString()}</span>
           </div>
           {/* 詳細計算式 */}
           {fiveStep.printingCost.costKRW > 0 && (
             <div className="ml-8 bg-white rounded p-2 text-xs text-gray-600">
-              計算: ₩{fiveStep.printingCost.costKRW.toLocaleString()} → ¥{fiveStep.printingCost.costJPY.toLocaleString()}
+              計算: {fiveStep.printingCost.formulaKRW}
             </div>
           )}
         </div>
@@ -297,18 +282,18 @@ export function DetailedCostBreakdown({
               <h5 className="font-semibold text-gray-900">後加工費</h5>
               <p className="text-xs text-gray-600">ラミネート + スリッター + 製袋加工 + 表面処理</p>
             </div>
-            <span className="font-bold text-blue-900 shrink-0">¥{fiveStep.postProcessingCost.total.toLocaleString()}</span>
+            <span className="font-bold text-blue-900 shrink-0">₩{fiveStep.postProcessingCost.totalKRW.toLocaleString()}</span>
           </div>
           <div className="ml-8 bg-white rounded p-3 text-xs space-y-2">
             {/* ラミネート */}
             <div>
               <div className="flex justify-between">
                 <span>ラミネート</span>
-                <span className="font-medium">¥{fiveStep.postProcessingCost.lamination.toLocaleString()}</span>
+                <span className="font-medium">₩{fiveStep.postProcessingCost.laminationKRW.toLocaleString()}</span>
               </div>
-              {fiveStep.postProcessingCost.laminationFormula && (
+              {fiveStep.postProcessingCost.laminationFormulaKRW && (
                 <div className="text-xs text-gray-500 mt-1 pl-2">
-                  {fiveStep.postProcessingCost.laminationFormula}
+                  {fiveStep.postProcessingCost.laminationFormulaKRW}
                 </div>
               )}
             </div>
@@ -316,11 +301,11 @@ export function DetailedCostBreakdown({
             <div>
               <div className="flex justify-between">
                 <span>スリッター</span>
-                <span className="font-medium">¥{fiveStep.postProcessingCost.slitter.toLocaleString()}</span>
+                <span className="font-medium">₩{fiveStep.postProcessingCost.slitterKRW.toLocaleString()}</span>
               </div>
-              {fiveStep.postProcessingCost.slitterFormula && (
+              {fiveStep.postProcessingCost.slitterFormulaKRW && (
                 <div className="text-xs text-gray-500 mt-1 pl-2">
-                  {fiveStep.postProcessingCost.slitterFormula}
+                  {fiveStep.postProcessingCost.slitterFormulaKRW}
                 </div>
               )}
             </div>
@@ -328,31 +313,31 @@ export function DetailedCostBreakdown({
             <div>
               <div className="flex justify-between">
                 <span>製袋加工</span>
-                <span className="font-medium">¥{fiveStep.postProcessingCost.pouch.toLocaleString()}</span>
+                <span className="font-medium">₩{fiveStep.postProcessingCost.pouchKRW.toLocaleString()}</span>
               </div>
-              {fiveStep.postProcessingCost.pouchFormula && (
+              {fiveStep.postProcessingCost.pouchFormulaKRW && (
                 <div className="text-xs text-gray-500 mt-1 pl-2">
-                  {fiveStep.postProcessingCost.pouchFormula}
+                  {fiveStep.postProcessingCost.pouchFormulaKRW}
                 </div>
               )}
             </div>
             {/* 表面処理 */}
-            {fiveStep.postProcessingCost.surfaceTreatment > 0 && (
+            {fiveStep.postProcessingCost.surfaceTreatmentKRW > 0 && (
               <div>
                 <div className="flex justify-between">
                   <span>表面処理</span>
-                  <span className="font-medium">¥{fiveStep.postProcessingCost.surfaceTreatment.toLocaleString()}</span>
+                  <span className="font-medium">₩{fiveStep.postProcessingCost.surfaceTreatmentKRW.toLocaleString()}</span>
                 </div>
-                {fiveStep.postProcessingCost.surfaceTreatmentFormula && (
+                {fiveStep.postProcessingCost.surfaceTreatmentFormulaKRW && (
                   <div className="text-xs text-gray-500 mt-1 pl-2">
-                    {fiveStep.postProcessingCost.surfaceTreatmentFormula}
+                    {fiveStep.postProcessingCost.surfaceTreatmentFormulaKRW}
                   </div>
                 )}
               </div>
             )}
             <div className="flex justify-between pt-2 border-t border-gray-300">
               <span className="font-semibold">小計</span>
-              <span className="font-semibold">¥{fiveStep.postProcessingCost.total.toLocaleString()}</span>
+              <span className="font-semibold">₩{fiveStep.postProcessingCost.totalKRW.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -365,10 +350,10 @@ export function DetailedCostBreakdown({
               <h5 className="font-semibold text-gray-900">基礎原価</h5>
               <p className="text-xs text-gray-600">ステップ1 + ステップ2 + ステップ3</p>
             </div>
-            <span className="font-bold text-lg text-amber-900 shrink-0">¥{fiveStep.baseCost.toLocaleString()}</span>
+            <span className="font-bold text-lg text-amber-900 shrink-0">₩{fiveStep.baseCostKRW.toLocaleString()}</span>
           </div>
           <div className="ml-8 mt-2 text-xs text-gray-700">
-            ¥{fiveStep.rawMaterialCost.totalJPY > 0 ? fiveStep.rawMaterialCost.totalJPY.toLocaleString() : '0'} + ¥{fiveStep.printingCost.costJPY.toLocaleString()} + ¥{fiveStep.postProcessingCost.total.toLocaleString()} = ¥{fiveStep.baseCost.toLocaleString()}
+            ₩{fiveStep.rawMaterialCost.totalKRW.toLocaleString()} + ₩{fiveStep.printingCost.costKRW.toLocaleString()} + ₩{fiveStep.postProcessingCost.totalKRW.toLocaleString()} = ₩{fiveStep.baseCostKRW.toLocaleString()}
           </div>
         </div>
 
@@ -380,14 +365,29 @@ export function DetailedCostBreakdown({
               <h5 className="font-semibold text-gray-900">製造者マージン</h5>
               <p className="text-xs text-gray-600">基礎原価 × 40%</p>
             </div>
-            <span className="font-bold text-lg text-red-900 shrink-0">¥{fiveStep.manufacturerMargin.toLocaleString()}</span>
+            <span className="font-bold text-lg text-red-900 shrink-0">₩{fiveStep.manufacturerMarginKRW.toLocaleString()}</span>
           </div>
           <div className="ml-8 mt-2 text-xs text-gray-700">
-            ¥{fiveStep.baseCost.toLocaleString()} × 40% = ¥{fiveStep.manufacturerMargin.toLocaleString()}
+            ₩{fiveStep.baseCostKRW.toLocaleString()} × 40% = ₩{fiveStep.manufacturerMarginKRW.toLocaleString()}
+          </div>
+        </div>
+
+        {/* Step 6: Total (Base Cost + Manufacturer Margin) */}
+        <div className="bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">6</span>
+            <div className="flex-1 min-w-0">
+              <h5 className="font-semibold text-gray-900">合計</h5>
+              <p className="text-xs text-gray-600">基礎原価 + 製造者マージン</p>
+            </div>
+            <span className="font-bold text-xl text-purple-900 shrink-0">₩{(fiveStep.baseCostKRW + fiveStep.manufacturerMarginKRW).toLocaleString()}</span>
+          </div>
+          <div className="ml-8 mt-2 text-xs text-gray-700">
+            ₩{fiveStep.baseCostKRW.toLocaleString()} + ₩{fiveStep.manufacturerMarginKRW.toLocaleString()} = ₩{(fiveStep.baseCostKRW + fiveStep.manufacturerMarginKRW).toLocaleString()}
           </div>
         </div>
       </div>
-      {/* End 5-Step Korea-Friendly Cost Breakdown */}
+      {/* End 6-Step Korea-Friendly Cost Breakdown */}
 
       {/* SKU情報 */}
       {sku_info && sku_info.count > 1 && (
@@ -424,50 +424,6 @@ export function DetailedCostBreakdown({
         )}
       </div>
 
-      {/* 製造業者支払額 */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-emerald-100 mb-3">🏭 製造業者支払額</h4>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between items-center text-white">
-            <span>素材費（ウォン）</span>
-            <span className="font-medium">₩{jpyToKrw(totalMaterialCostJPY).toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>加工費（ウォン）</span>
-            <span className="font-medium">₩{jpyToKrw(pouchProcessingCost || 0).toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>印刷費（ウォン）</span>
-            <span className="font-medium">₩{jpyToKrw(printingCost || 0).toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>製造者マージン（ウォン）</span>
-            <span className="font-medium">₩{jpyToKrw(manufacturingMargin || 0).toLocaleString()}</span>
-          </div>
-          <div className="border-t border-emerald-400 pt-2 mt-2">
-            <div className="flex justify-between items-center">
-              <span className="text-emerald-100 text-sm">合計（円参考）</span>
-              <span className="text-lg font-bold text-emerald-100">¥{manufacturerPaymentJPY.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-white font-semibold">合計（ウォン）</span>
-              <span className="text-xl font-bold text-white">₩{manufacturerPaymentKRW.toLocaleString()}</span>
-            </div>
-            <div className="text-xs text-emerald-200 mt-2 text-right">
-              為替レート: 1ウォン = ¥{exchangeRateKRWToJPY.toFixed(2)}
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 pt-3 border-t border-emerald-400">
-          <p className="text-xs text-emerald-100">
-            ※ 製造業者支払額は「素材費 + 加工費 + 印刷費 + 製造者マージン」の合計です。
-            <br />
-            ※ 配送料と関税は除外されています。
-            <br />
-            ※ 販売マージン（自社の利益）は除外されています。
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

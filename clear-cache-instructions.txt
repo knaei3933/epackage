@@ -1,0 +1,25 @@
+ブラウザキャッシュ完全クリア手順
+====================================
+
+Chrome/Edge:
+1. F12 でDevToolsを開く
+2. DevToolsが開いた状態で、F12 をもう一度押してDevToolsを閉じる
+3. Ctrl+Shift+Delete を押す
+4. 「キャッシュされた画像とファイル」にチェックを入れる
+5. 「Cookie その他のサイトデータ」のチェックを外す
+6. 「期間: 「過去1時間」を選択
+7. 「データを消去」クリック
+
+または:
+
+DevTools → Application → Clear storage → Clear site data
+
+その後、強制リロード:
+Ctrl + Shift + R
+または
+Ctrl + F5
+
+Mac:
+Cmd + Shift + Delete
+または
+Cmd + Option + R

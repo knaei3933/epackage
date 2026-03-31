@@ -221,8 +221,8 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     name: 'Kraft Paper',
     nameJa: 'クラフト紙',
     thickness: 50, // grammage 50g/m²
-    density: 0.9,
-    unitPrice: 10000
+    density: 1.0,  // 수정: 0.9 → 1.0
+    unitPrice: 3000  // 수정: 10000 → 3000
   },
   // KP_PE 재질용 추가
   'KP': {
@@ -489,7 +489,7 @@ export class FilmCostCalculator {
       // 【追加】詳細情報
       materialLayerDetails: materialBreakdown.materialLayerDetails,
       totalMeters: lengthWithLoss,
-      materialWidthMM: materialWidth * 1000, // mm単位に変換
+      materialWidthMM: materialWidth, // 既にmm単位なのでそのまま使用
       areaM2: widthM * lengthWithLoss,
       breakdown: {
         materials: materialBreakdown.materials,
@@ -524,47 +524,55 @@ export class FilmCostCalculator {
     let totalCost = 0;
     let totalWeight = 0;
 
-    // DB 설정값 또는 기본값으로 필름 재료 정보 구성
-    const filmMaterials: Record<string, { unitPrice: number; density: number; nameJa: string }> = {
+    // DB 설정値 또는 기본값으로 필름 재료 정보 구성
+    const filmMaterials: Record<string, { unitPrice: number; density: number; name: string; nameJa: string }> = {
       'PET': {
         unitPrice: dbSettings?.PET_unit_price ?? FILM_MATERIALS.PET.unitPrice,
         density: dbSettings?.PET_density ?? FILM_MATERIALS.PET.density,
+        name: FILM_MATERIALS.PET.name,
         nameJa: FILM_MATERIALS.PET.nameJa
       },
       'AL': {
         unitPrice: dbSettings?.AL_unit_price ?? FILM_MATERIALS.AL.unitPrice,
         density: dbSettings?.AL_density ?? FILM_MATERIALS.AL.density,
+        name: FILM_MATERIALS.AL.name,
         nameJa: FILM_MATERIALS.AL.nameJa
       },
       'LLDPE': {
         unitPrice: dbSettings?.LLDPE_unit_price ?? FILM_MATERIALS.LLDPE.unitPrice,
         density: dbSettings?.LLDPE_density ?? FILM_MATERIALS.LLDPE.density,
+        name: FILM_MATERIALS.LLDPE.name,
         nameJa: FILM_MATERIALS.LLDPE.nameJa
       },
       'NY': {
         unitPrice: dbSettings?.NY_unit_price ?? FILM_MATERIALS.NY.unitPrice,
         density: dbSettings?.NY_density ?? FILM_MATERIALS.NY.density,
+        name: FILM_MATERIALS.NY.name,
         nameJa: FILM_MATERIALS.NY.nameJa
       },
       'VMPET': {
         unitPrice: dbSettings?.VMPET_unit_price ?? FILM_MATERIALS.VMPET.unitPrice,
         density: dbSettings?.VMPET_density ?? FILM_MATERIALS.VMPET.density,
+        name: FILM_MATERIALS.VMPET.name,
         nameJa: FILM_MATERIALS.VMPET.nameJa
       },
       'KRAFT': {
         unitPrice: dbSettings?.KRAFT_unit_price ?? FILM_MATERIALS.KRAFT.unitPrice,
         density: dbSettings?.KRAFT_density ?? FILM_MATERIALS.KRAFT.density,
+        name: FILM_MATERIALS.KRAFT.name,
         nameJa: FILM_MATERIALS.KRAFT.nameJa
       },
       // KP_PE 재질용 추가
       'KP': {
         unitPrice: FILM_MATERIALS.KP.unitPrice,
         density: FILM_MATERIALS.KP.density,
+        name: FILM_MATERIALS.KP.name,
         nameJa: FILM_MATERIALS.KP.nameJa
       },
       'PE': {
         unitPrice: FILM_MATERIALS.PE.unitPrice,
         density: FILM_MATERIALS.PE.density,
+        name: FILM_MATERIALS.PE.name,
         nameJa: FILM_MATERIALS.PE.nameJa
       }
     };
@@ -587,13 +595,14 @@ export class FilmCostCalculator {
         // Kraft等のgrammage指定材料: grammage를 직접 사용（g/m² → kg/m²）
         // 重量 = (grammage / 1000) * widthM * lengthWithLoss
         weight = (layer.grammage / 1000) * widthM * lengthWithLoss;
-        const thicknessMm = effectiveThickness / 1000;
-        cost = thicknessMm * widthM * lengthWithLoss * material.density * material.unitPrice;
+        // 【修正】コスト = 重量 × 単価
+        cost = weight * material.unitPrice;
       } else {
         // その他: thickness × density 方式
-        const thicknessMm = effectiveThickness / 1000;
-        cost = thicknessMm * widthM * lengthWithLoss * material.density * material.unitPrice;
-        weight = thicknessMm * widthM * lengthWithLoss * material.density;
+        const thicknessM = effectiveThickness / 1000000; // μm → m
+        weight = thicknessM * widthM * lengthWithLoss * material.density * 1000; // g → kg
+        // 【修正】コスト = 重量 × 単価
+        cost = weight * material.unitPrice;
       }
 
       console.log('[calculateMaterialCost] LAYER:', {
@@ -601,26 +610,27 @@ export class FilmCostCalculator {
         grammage: layer.grammage,
         thickness: layer.thickness,
         effectiveThickness,
-        thicknessMm: effectiveThickness / 1000,
+        thicknessM: effectiveThickness / 1000000,
         widthM,
         lengthWithLoss,
         density: material.density,
         unitPrice: material.unitPrice,
         cost,
-        weight: Math.round(weight * 100) / 100
+        weight: Math.round(weight * 10000) / 10000  // 小数点4桁に修正
       });
 
       materials.push({
         materialId: layer.materialId,
         name: material.nameJa,
         cost,
-        weight: Math.round(weight * 100) / 100
+        weight: Math.round(weight * 10000) / 10000  // 小数点4桁に修正
       });
 
       // 【追加】素材レイヤーの詳細情報をキャプチャ
-      const thicknessMm = effectiveThickness / 1000;
+      const thicknessM = effectiveThickness / 1000000; // μm → m
       const areaM2 = widthM * lengthWithLoss;
-      const weightKg = Math.round(weight * 100) / 100;
+      // 【修正】小数点4桁まで正確に保存してオーバーを削除
+      const weightKg = Math.round(weight * 10000) / 10000;
 
       materialLayerDetails.push({
         materialId: layer.materialId,

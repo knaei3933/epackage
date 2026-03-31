@@ -1865,6 +1865,8 @@ function RealTimePriceDisplay() {
             // Roll film specific parameters
             materialWidth: state.materialWidth,
             filmLayers: state.filmLayers,
+            // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
+            useFilmCostCalculation: true,
             // 2列生産オプション関連パラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
@@ -2243,6 +2245,8 @@ export function ImprovedQuotingWizard() {
             // Roll film specific parameters (materialWidthはQuoteContextで動的に決定)
             materialWidth: state.materialWidth,
             filmLayers: state.filmLayers,
+            // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
+            useFilmCostCalculation: true,
             // 2列生産オプションパラメータ
             twoColumnOptionApplied: state.twoColumnOptionApplied,
             discountedUnitPrice: state.discountedUnitPrice,
