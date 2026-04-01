@@ -127,6 +127,24 @@ function getDeliveryLocationName(location: string): string {
   return names[location] || location || '-';
 }
 
+function getSpoutPositionLabel(value: string): string {
+  const labels: Record<string, string> = {
+    'top-left': '左上',
+    'top-center': '上中央',
+    'top-right': '右上',
+  };
+  return labels[value] || value || '-';
+}
+
+function getSealWidthLabel(value: string): string {
+  const labels: Record<string, string> = {
+    '5mm': '5mm',
+    '7.5mm': '7.5mm',
+    '10mm': '10mm',
+  };
+  return labels[value] || value || '-';
+}
+
 // =====================================================
 // Spec Item Component
 // =====================================================
@@ -246,16 +264,71 @@ function OrderItemRow({ item }: OrderItemRowProps) {
             {item.specifications.deliveryLocation && (
               <SpecItem label="配送先" value={getDeliveryLocationName(item.specifications.deliveryLocation)} />
             )}
+
+            {/* スパウトパウチ専用フィールド */}
+            {item.specifications.bagTypeId === 'spout_pouch' && (
+              <>
+                {item.specifications.spoutSize && (
+                  <SpecItem label="スパウトサイズ" value={`${item.specifications.spoutSize}mm`} />
+                )}
+                {item.specifications.spoutPosition && (
+                  <SpecItem label="スパウト位置" value={getSpoutPositionLabel(item.specifications.spoutPosition)} />
+                )}
+              </>
+            )}
+
+            {/* シール幅 */}
+            {item.specifications.sealWidth && (
+              <SpecItem label="シール幅" value={getSealWidthLabel(item.specifications.sealWidth)} />
+            )}
+
+            {/* 両面印刷 */}
+            {item.specifications.doubleSided === true && (
+              <SpecItem label="両面印刷" value="あり" />
+            )}
           </div>
 
-          {/* 後加工 (簡素化 - カンマ区切り) */}
+          {/* 素材4層構成（filmLayersが存在する場合のみ表示） */}
+          {item.specifications.filmLayers && item.specifications.filmLayers.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border-secondary">
+              <div className="text-xs text-text-muted mb-2">素材構成（4層）:</div>
+              <div className="flex flex-wrap gap-2">
+                {item.specifications.filmLayers.map((layer: any, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1.5 bg-background border border-border-secondary rounded text-xs"
+                  >
+                    <span className="font-medium">{layer.materialId || '-'}</span>
+                    <span className="text-text-muted ml-1">{layer.thickness ? `${layer.thickness}μ` : ''}</span>
+                  </span>
+                ))}
+              </div>
+              {/* 保存された完全なスペックも表示 */}
+              {item.specifications.specification && (
+                <div className="mt-2 text-xs text-text-primary">
+                  {item.specifications.specification}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 後加工 (Badgeスタイル - Adminと統一) */}
           {item.specifications.postProcessingOptions && item.specifications.postProcessingOptions.length > 0 && (
             <div className="mt-3 pt-3 border-t border-border-secondary text-sm">
-              <div className="flex items-baseline gap-2">
-                <span className="text-text-muted flex-shrink-0">後加工:</span>
-                <span className="text-text-primary">
-                  {item.specifications.postProcessingOptions.map((opt: string) => getPostProcessingName(opt)).join(', ')}
-                </span>
+              <div className="text-xs text-text-muted mb-2">後加工:</div>
+              <div className="flex flex-wrap gap-2">
+                {item.specifications.postProcessingOptions.map((opt: string) => {
+                  const config = processingOptionsConfig.find(c => c.id === opt);
+                  return (
+                    <span
+                      key={opt}
+                      className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
+                      title={config?.descriptionJa || opt}
+                    >
+                      {config?.nameJa || getPostProcessingName(opt)}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}

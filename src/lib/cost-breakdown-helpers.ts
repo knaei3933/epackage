@@ -122,9 +122,20 @@ export function calculateFiveStepBreakdown(
   const printingBasicKRW = filmCostDetails?.breakdown?.printing?.basic || 0;
   const printingMatteKRW = filmCostDetails?.breakdown?.printing?.matte || 0;
   const printingTotalKRW = filmCostDetails?.breakdown?.printing?.total || 0;
-  // フォールバック: breakdown.printing（JPY）からKRWに変換
-  const printingCostJPY = (breakdown as any).printing || 0;
-  const printingCostKRW = printingTotalKRW > 0 ? printingTotalKRW : Math.round(printingCostJPY * JPY_TO_KRW_RATE);
+
+  // フォールバック: breakdown.printingまたは直接計算
+  const printingCostJPY = (breakdown as any).printing || (breakdown as any).printingCost || 0;
+
+  // 直接計算: totalMeters × 475 (filmCostDetailsから 데이터가 없는 경우)
+  let calculatedPrintingKRW = 0;
+  if (totalMeters > 0 && printingTotalKRW === 0) {
+    calculatedPrintingKRW = Math.round(totalMeters * PRINTING_UNIT_PRICE_KRW);
+  }
+
+  const printingCostKRW = printingTotalKRW > 0
+    ? printingTotalKRW
+    : (calculatedPrintingKRW > 0 ? calculatedPrintingKRW : Math.round(printingCostJPY * JPY_TO_KRW_RATE));
+
   const printingFormula = totalMeters > 0
     ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × 1m(固定) × ${totalMeters.toFixed(1)}m`
     : '印刷費';

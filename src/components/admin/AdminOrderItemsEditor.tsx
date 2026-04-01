@@ -148,6 +148,24 @@ function getDeliveryLocationLabel(value: string): string {
   return labels[value] || value || '-';
 }
 
+function getSpoutPositionLabel(value: string): string {
+  const labels: Record<string, string> = {
+    'top-left': '左上',
+    'top-center': '上中央',
+    'top-right': '右上',
+  };
+  return labels[value] || value || '-';
+}
+
+function getSealWidthLabel(value: string): string {
+  const labels: Record<string, string> = {
+    '5mm': '5mm',
+    '7.5mm': '7.5mm',
+    '10mm': '10mm',
+  };
+  return labels[value] || value || '-';
+}
+
 // =====================================================
 // Editable Spec Item Component
 // =====================================================
@@ -590,6 +608,48 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
               onChange={(v) => updateSpec('deliveryLocation', v)}
               displayLabel={!isEditing ? getDeliveryLocationLabel(localSpecs.deliveryLocation || '') : undefined}
             />
+
+            {/* スパウトパウチ専用フィールド */}
+            {localSpecs.bagTypeId === 'spout_pouch' && (
+              <>
+                {localSpecs.spoutSize && (
+                  <EditableSpecItem
+                    label="スパウトサイズ"
+                    value={`${localSpecs.spoutSize}mm`}
+                    isEditing={false}
+                    onChange={() => {}}
+                  />
+                )}
+                {localSpecs.spoutPosition && (
+                  <EditableSpecItem
+                    label="スパウト位置"
+                    value={getSpoutPositionLabel(localSpecs.spoutPosition)}
+                    isEditing={false}
+                    onChange={() => {}}
+                  />
+                )}
+              </>
+            )}
+
+            {/* シール幅 */}
+            {localSpecs.sealWidth && (
+              <EditableSpecItem
+                label="シール幅"
+                value={getSealWidthLabel(localSpecs.sealWidth)}
+                isEditing={false}
+                onChange={() => {}}
+              />
+            )}
+
+            {/* 両面印刷 */}
+            {localSpecs.doubleSided === true && (
+              <EditableSpecItem
+                label="両面印刷"
+                value="あり"
+                isEditing={false}
+                onChange={() => {}}
+              />
+            )}
           </div>
 
           {/* 素材4層構成（filmLayersが存在する場合のみ表示） */}
