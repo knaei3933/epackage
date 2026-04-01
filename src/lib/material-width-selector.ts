@@ -68,7 +68,7 @@ export const AVAILABLE_MATERIAL_WIDTHS: Record<MaterialWidthType, MaterialWidthI
  */
 export function determineMaterialWidth(productWidth: number, materialId?: string): MaterialWidthType {
   // クラフト材料判定
-  const isKraftMaterial = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe'
+  const isKraftMaterial = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe' || materialId === 'kraft_pe'
 
   if (isKraftMaterial) {
     // クラフト材料: 780mmまたは1190mm

@@ -96,7 +96,8 @@ export interface FiveStepBreakdown {
  */
 export function calculateFiveStepBreakdown(
   breakdown: DetailedCostBreakdownProps['breakdown'],
-  filmCostDetails: DetailedCostBreakdownProps['filmCostDetails']
+  filmCostDetails: DetailedCostBreakdownProps['filmCostDetails'],
+  specifications?: DetailedCostBreakdownProps['specifications']
 ): FiveStepBreakdown {
   // 為替レート: 1円 = 約8.33ウォン
   const JPY_TO_KRW_RATE = 8.33;
@@ -115,15 +116,20 @@ export function calculateFiveStepBreakdown(
   const rawMaterialTotalKRW = rawMaterialDetails.reduce((sum, m) => sum + m.costKRW, 0);  // costKRWを合計
 
   // Step 2: Printing Cost
-  const printingCostJPY = breakdown.printingCost || 0;
   const totalMeters = filmCostDetails?.totalMeters || 0;
   const PRINTING_UNIT_PRICE_KRW = 475;
-  const printingCostKRW = Math.round(printingCostJPY * JPY_TO_KRW_RATE);
+  // filmCostDetails.breakdown.printingからデータを取得（基本印刷費 + マット印刷追加費）
+  const printingBasicKRW = filmCostDetails?.breakdown?.printing?.basic || 0;
+  const printingMatteKRW = filmCostDetails?.breakdown?.printing?.matte || 0;
+  const printingTotalKRW = filmCostDetails?.breakdown?.printing?.total || 0;
+  // フォールバック: breakdown.printing（JPY）からKRWに変換
+  const printingCostJPY = (breakdown as any).printing || 0;
+  const printingCostKRW = printingTotalKRW > 0 ? printingTotalKRW : Math.round(printingCostJPY * JPY_TO_KRW_RATE);
   const printingFormula = totalMeters > 0
     ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × 1m(固定) × ${totalMeters.toFixed(1)}m`
     : '印刷費';
   const printingFormulaKRW = totalMeters > 0
-    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × 1m(固定) × ${totalMeters.toFixed(1)}m = ₩${printingCostKRW.toLocaleString()}`
+    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × 1m(固定) × ${totalMeters.toFixed(1)}m${printingMatteKRW > 0 ? ' + マット仕上げ追加費 ₩' + printingMatteKRW.toLocaleString() : ''} = ₩${printingCostKRW.toLocaleString()}`
     : '印刷費';
 
   // Step 3: Post-processing Cost
@@ -171,25 +177,55 @@ export function calculateFiveStepBreakdown(
       : `₩${slitterKRW.toLocaleString()}（${totalMeters.toFixed(1)}m × ₩10/m）`
     : undefined;
 
-  const pouchFormula = pouchJPY > 0 ? `¥${pouchJPY.toLocaleString()}` : undefined;
-  const pouchFormulaKRW = pouchKRW > 0 ? `₩${pouchKRW.toLocaleString()}` : undefined;
+  // スパウトパウチの場合、詳細な計算式を表示
+  const spoutSize = specifications?.spoutSize as (number | undefined) || undefined;
+  const quantity = filmCostDetails?.quantity || 0;
+
+  let pouchFormula: string | undefined;
+  let pouchFormulaKRW: string | undefined;
+
+  if (spoutSize && pouchKRW > 0) {
+    // スパウト単価マップ（pouch-cost-calculator.ts基準）
+    const SPOUT_PRICES: Record<number, number> = {
+      9: 70,    // 9パイ（φ9mm）: 70ウォン
+      15: 80,   // 15パイ（φ15mm）: 80ウォン
+      18: 110,  // 18パイ（φ18mm）: 110ウォン
+      22: 130,  // 22パイ（φ22mm）: 130ウォン
+      28: 200   // 28パイ（φ28mm）: 200ウォン
+    };
+    const spoutPrice = SPOUT_PRICES[spoutSize] || 80;
+    const ROUND_TRIP_SHIPPING = 150000; // 往復配送料: 150,000ウォン
+    const MIN_SPOUT_QUANTITY = 5000;    // 最小注文数量: 5,000個
+    const actualQuantity = Math.max(quantity, MIN_SPOUT_QUANTITY);
+    const spoutCost = spoutPrice * actualQuantity;
+
+    pouchFormula = pouchJPY > 0 ? `スパウト加工費 ¥${pouchJPY.toLocaleString()}` : undefined;
+    pouchFormulaKRW = `スパウト単価 ₩${spoutPrice} × ${actualQuantity.toLocaleString()}個 + 往復配送料 ₩${ROUND_TRIP_SHIPPING.toLocaleString()} = ₩${pouchKRW.toLocaleString()}`;
+  } else {
+    // スパウトパウチ以外の場合
+    pouchFormula = pouchJPY > 0 ? `¥${pouchJPY.toLocaleString()}` : undefined;
+    pouchFormulaKRW = pouchKRW > 0 ? `₩${pouchKRW.toLocaleString()}` : undefined;
+  }
 
   const surfaceTreatmentFormula = surfaceTreatmentJPY > 0 ? `¥${surfaceTreatmentJPY.toLocaleString()}` : undefined;
   const surfaceTreatmentFormulaKRW = surfaceTreatmentKRW > 0 ? `₩${surfaceTreatmentKRW.toLocaleString()}` : undefined;
 
   // Step 4: Base Cost
-  const sumBasedBaseCost = rawMaterialTotalJPY + printingCostJPY + postProcessingTotal;
+  const sumBasedBaseCostJPY = rawMaterialTotalJPY + printingCostJPY + postProcessingTotal;
+  const sumBasedBaseCostKRW = rawMaterialTotalKRW + printingCostKRW + postProcessingTotalKRW;
   const legacyBaseCost = (breakdown.materialCost || 0) > 0
     ? Math.round((breakdown.materialCost || 0) / 0.4)
     : 0;
-  const baseCost = (breakdown as any).baseCost || sumBasedBaseCost || legacyBaseCost;
-  const baseCostKRW = Math.round(baseCost * JPY_TO_KRW_RATE);
+  const baseCost = (breakdown as any).baseCost || sumBasedBaseCostJPY || legacyBaseCost;
+  // baseCostKRWはステップ1+2+3のKRW合計を使用
+  const baseCostKRW = sumBasedBaseCostKRW;
 
   // Step 5: Manufacturer Margin
-  const manufacturerMargin = Math.round(baseCost * 0.4);
-  const manufacturerMarginKRW = Math.round(baseCostKRW * 0.4);
-  const marginFormula = `¥${baseCost.toLocaleString()} × 40%`;
-  const marginFormulaKRW = `₩${baseCostKRW.toLocaleString()} × 40%`;
+  const MANUFACTURER_MARGIN_RATE = 0.3; // 30%
+  const manufacturerMargin = Math.round(baseCost * MANUFACTURER_MARGIN_RATE);
+  const manufacturerMarginKRW = Math.round(baseCostKRW * MANUFACTURER_MARGIN_RATE);
+  const marginFormula = `¥${baseCost.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
+  const marginFormulaKRW = `₩${baseCostKRW.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
 
   return {
     rawMaterialCost: {
@@ -232,6 +268,7 @@ export function calculateFiveStepBreakdown(
     baseCostKRW,
     manufacturerMargin,
     manufacturerMarginKRW,
+    manufacturerMarginRate: `${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`,
     formula: marginFormula,
     formulaKRW: marginFormulaKRW
   };

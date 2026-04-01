@@ -1280,7 +1280,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               }),
               // スパウトパウチ専用フィールド
               ...(state.bagTypeId === 'spout_pouch' && {
-                spoutPosition: state.spoutPosition
+                spoutPosition: state.spoutPosition,
+                spoutSize: state.spoutSize
               })
             }
           }))

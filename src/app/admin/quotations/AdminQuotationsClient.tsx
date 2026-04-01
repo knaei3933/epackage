@@ -24,6 +24,14 @@ interface AuthContext {
   userName: string;
 }
 
+// SpoutPouchFields 타입 정의
+interface SpoutPouchFields {
+  bagTypeId?: 'spout_pouch';
+  spoutSize?: number;  // 숫자 타입 (9, 15, 18, 22, 28)
+  spoutPosition?: 'top-left' | 'top-center' | 'top-right';
+  hasGusset?: boolean;
+}
+
 interface QuotationItem {
   id: string;
   product_name: string;
@@ -38,6 +46,7 @@ interface QuotationItem {
     specifications: {
       bag_type?: string;
       bag_type_display?: string;
+      bagTypeId?: 'spout_pouch' | string;
       material?: string;
       material_display?: string;
       material_specification?: string;
@@ -58,6 +67,9 @@ interface QuotationItem {
       post_processing_display?: string[];
       zipper?: boolean;
       spout?: boolean;
+      spoutSize?: number;
+      spoutPosition?: 'top-left' | 'top-center' | 'top-right';
+      hasGusset?: boolean;
       urgency?: string;
       contents?: string;
       contentsType?: string;
@@ -66,7 +78,7 @@ interface QuotationItem {
       distributionEnvironment?: string;
       sealWidth?: string;
       doubleSided?: boolean;
-    };
+    } & Partial<SpoutPouchFields>;
     area?: { mm2: number; m2: number };
     sku_info?: { count: number; quantities: number[]; total: number };
     breakdown?: {
@@ -185,6 +197,24 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: AdminQuota
   useEffect(() => {
     fetchQuotations();
   }, [filterStatus, page]);
+
+  // URLパラメータから見積もりIDを取得して自動選択
+  useEffect(() => {
+    if (quotations.length > 0) {
+      const selectedId = searchParams.get('selectedId');
+      if (selectedId) {
+        const found = quotations.find(q => q.id === selectedId);
+        if (found) {
+          setSelectedQuotation(found);
+          console.log('[Auto-select] Selected quotation from URL param:', found.quotation_number);
+        }
+      } else if (!selectedQuotation && quotations.length > 0) {
+        // URLパラメータがない場合、最初の見積もりを選択
+        setSelectedQuotation(quotations[0]);
+        console.log('[Auto-select] Selected first quotation:', quotations[0].quotation_number);
+      }
+    }
+  }, [quotations]);
 
   const fetchQuotations = async () => {
     setLoading(true);
@@ -551,15 +581,18 @@ function QuotationDetailPanel({
 
       if (response.ok) {
         const result = await response.json();
-        console.log('[fetchQuotationDetail] レスポンス:', result);
+        console.log('[fetchQuotationDetail] レスポンス全体:', result);
         if (result.success && result.quotation) {
           console.log('[fetchQuotationDetail] items数:', result.quotation.items?.length || 0);
           console.log('[fetchQuotationDetail] items内容:', result.quotation.items);
+          console.log('[fetchQuotationDetail] specifications:', result.quotation.items?.[0]?.specifications);
           setDetailData(result.quotation);
           console.log('[fetchQuotationDetail] detailDataをセット完了');
 
           // 関連する注文を検索
           fetchRelatedOrder();
+        } else {
+          console.error('[fetchQuotationDetail] レスポンスにsuccessまたはquotationがありません:', result);
         }
       } else {
         const errorText = await response.text();
@@ -606,9 +639,37 @@ function QuotationDetailPanel({
         return;
       }
 
-      // PDF URLがない場合の処理
-      console.warn('[handleDownloadPDF] No PDF URL found for quotation:', displayQuotation.quotation_number);
-      alert('PDFがまだ生成されていません。\n会員ページで見積を作成してください。\n見積番号: ' + displayQuotation.quotation_number);
+      // PDF URLがない場合: 既存のexport APIを呼び出し
+      console.log('[handleDownloadPDF] No saved PDF, calling export API...');
+
+      const response = await fetch(`/api/admin/quotations/${quotation.id}/export`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ format: 'pdf' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+      }
+
+      // PDFファイルダウンロード
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `見積書_${displayQuotation.quotation_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      console.log('[handleDownloadPDF] PDF downloaded successfully via export API');
+
+      // データ更新（pdf_urlが更新された可能性あり）
+      await fetchQuotationDetail();
     } catch (error) {
       console.error('[handleDownloadPDF] Failed:', error);
       alert(`PDFを開くのに失敗しました:\n${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -811,6 +872,7 @@ function QuotationDetailPanel({
 // アイテム詳細コンポーネント
 function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showFormula: boolean }) {
   const breakdown = item.breakdown;
+  // breakdown.specificationsを優先 - APIルートで変換された完全な仕様情報を使用
   const specs = breakdown?.specifications || item.specifications || {};
 
   return (
@@ -868,18 +930,56 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
             <span className="ml-1">あり</span>
           </div>
         )}
-        {specs.spout && (
-          <div>
-            <span className="text-gray-500">スパウト:</span>
-            <span className="ml-1">あり</span>
-          </div>
+        {/* Spout Pouch Specifications - bagTypeId로確認 (デバッグ: 常に表示) */}
+        {(specs.bagTypeId === 'spout_pouch' || specs.bag_type === 'spout_pouch' || specs.spoutSize || specs.spoutPosition) && (
+          <>
+            <div className="col-span-2 font-medium text-blue-700 mt-2 border-t pt-2">
+              スパウト仕様
+            </div>
+            {/* 스파우트 사이즈 - 숫자 타입 */}
+            {specs.spoutSize && (
+              <div>
+                <span className="text-gray-500">スパウトサイズ:</span>
+                <span className="ml-1">{specs.spoutSize}mm</span>
+              </div>
+            )}
+            {/* 스파우트 위치 */}
+            {specs.spoutPosition && (
+              <div>
+                <span className="text-gray-500">スパウト位置:</span>
+                <span className="ml-1">
+                  {specs.spoutPosition === 'top-left' ? '左上' :
+                   specs.spoutPosition === 'top-center' ? '上部中央' :
+                   specs.spoutPosition === 'top-right' ? '右上' :
+                   specs.spoutPosition}
+                </span>
+              </div>
+            )}
+            {/* スパウト加工費 */}
+            {item.cost_breakdown?.pouchProcessingCost && (
+              <div>
+                <span className="text-gray-500">スパウト加工費:</span>
+                <span className="ml-1">¥{item.cost_breakdown.pouchProcessingCost.toLocaleString()}</span>
+              </div>
+            )}
+            {/* 마치 유무 */}
+            {specs.hasGusset !== undefined && (
+              <div>
+                <span className="text-gray-500">マチ:</span>
+                <span className="ml-1">{specs.hasGusset ? 'あり' : 'なし'}</span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* 後加工オプション */}
-      {specs.post_processing && specs.post_processing.length > 0 && (
+      {(specs.post_processing && specs.post_processing.length > 0) || specs.sealWidth ? (
         <div className="flex flex-wrap gap-1">
-          {specs.post_processing.map((opt: string) => {
+          {[
+            ...(specs.post_processing || []),
+            ...(specs.sealWidth ? [`seal-width-${specs.sealWidth}`] : [])
+          ].map((opt: string, idx: number) => {
             // 後加工オプションの日本語マッピング
             const labelMap: Record<string, string> = {
               // 코너 처리
@@ -912,18 +1012,21 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
               'sealing-width-5mm': 'シール幅 5mm',
               'sealing-width-7.5mm': 'シール幅 7.5mm',
               'sealing-width-10mm': 'シール幅 10mm',
+              'seal-width-5mm': 'シール幅 5mm',
+              'seal-width-7.5mm': 'シール幅 7.5mm',
+              'seal-width-10mm': 'シール幅 10mm',
               // 마치 인쇄
               'machi-printing-yes': 'マチ印刷あり',
               'machi-printing-no': 'マチ印刷なし',
             };
             return (
-              <span key={opt} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+              <span key={idx} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                 {labelMap[opt] || opt}
               </span>
             );
           })}
         </div>
-      )}
+      ) : null}
 
       {/* SKU情報 */}
       {breakdown?.sku_info && breakdown.sku_info.count > 1 && (

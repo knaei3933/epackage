@@ -2,55 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { unifiedPricingEngine, type UnifiedQuoteParams } from '@/lib/unified-pricing-engine';
-import { MATERIAL_THICKNESS_OPTIONS } from '@/lib/pricing/core/constants';
-
-/**
- * Parse film specification string to extract material layers
- * Example: "PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ" → [{materialId: 'PET', thickness: 12}, ...]
- */
-function parseFilmSpecToLayers(spec: string): Array<{ materialId: string; thickness: number }> {
-  const layers: Array<{ materialId: string; thickness: number }> = [];
-
-  // Parse the specification string (e.g., "PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ")
-  const parts = spec.split('+').map(p => p.trim());
-
-  for (const part of parts) {
-    // Match pattern like "PET 12μ" or "AL 7μ"
-    const match = part.match(/^([A-Z]+)\s+(\d+)\s*μ?$/);
-    if (match) {
-      const [, materialId, thicknessStr] = match;
-      layers.push({ materialId, thickness: parseInt(thicknessStr, 10) });
-    }
-  }
-
-  return layers;
-}
-
-/**
- * Get film layers from material ID and thickness selection
- */
-function getFilmLayers(materialId: string, thicknessSelection: string): Array<{ materialId: string; thickness: number }> {
-  const options = MATERIAL_THICKNESS_OPTIONS[materialId as keyof typeof MATERIAL_THICKNESS_OPTIONS];
-  if (!options) {
-    // Default to PET/PE structure
-    return [
-      { materialId: 'PET', thickness: 12 },
-      { materialId: 'PE', thickness: 80 }
-    ];
-  }
-
-  const selected = options.find(opt => opt.id === thicknessSelection);
-  if (!selected || !selected.specification) {
-    // Use first option as fallback
-    const first = options[0];
-    if (first?.specification) {
-      return parseFilmSpecToLayers(first.specification);
-    }
-    return [];
-  }
-
-  return parseFilmSpecToLayers(selected.specification);
-}
+import { getDefaultLayers } from '@/lib/common/film-calculations';
+import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
 
 export async function POST(
   request: NextRequest,
@@ -80,14 +33,16 @@ export async function POST(
     const materialId = (specs.materialId as string) || 'pet_pe';
     const thicknessSelection = (specs.thicknessSelection as string) || 'medium';
 
-    // Generate filmLayers from materialId and thicknessSelection
-    const filmLayers = getFilmLayers(materialId, thicknessSelection);
+    // Use getDefaultLayers from film-calculations.ts for proper Kraft support
+    const filmLayers: FilmStructureLayer[] = getDefaultLayers(materialId, thicknessSelection);
 
     // Build UnifiedQuoteParams from specifications
     const params: UnifiedQuoteParams = {
       bagTypeId: (specs.bagTypeId as string) || 'standup_pouch',
       materialId,
       quantity: item.quantity,
+      skuQuantities: [item.quantity],  // SKUモード用: 単一SKUとして数量を配列で渡す
+      useSKUCalculation: true,  // SKUモードを明示的に有効化
       width: (specs.width as number) || 0,
       height: (specs.height as number) || 0,
       depth: (specs.depth as number) || 0,
@@ -101,22 +56,87 @@ export async function POST(
       useFilmCostCalculation: true,
       markupRate: (specs.markupRate as number) || 0.5,
       lossRate: (specs.lossRate as number) || 0.4,
+      // スパウトパウチ専用パラメータ（文字列から数値に変換）
+      spoutSize: specs.spoutSize ? parseInt(String(specs.spoutSize), 10) : undefined,
+      spoutPosition: (specs.spoutPosition as 'top-left' | 'top-center' | 'top-right') || undefined,
     };
+
+    // デバッグログ：paramsオブジェクト全体を確認
+    console.log('[Recalculate API] Full params object:', JSON.stringify({
+      bagTypeId: params.bagTypeId,
+      spoutSize: params.spoutSize,
+      spoutSizeType: typeof params.spoutSize,
+      spoutPosition: params.spoutPosition,
+      quantity: params.quantity,
+      skuQuantities: params.skuQuantities,
+      useSKUCalculation: params.useSKUCalculation,
+      specsOriginal: {
+        spoutSize: specs.spoutSize,
+        spoutSizeType: typeof specs.spoutSize,
+        spoutSizeIsNumber: typeof specs.spoutSize === 'number',
+        spoutSizeValue: specs.spoutSize,
+        spoutSizeConverted: parseInt(String(specs.spoutSize || ''), 10)
+      }
+    }, null, 2));
 
     // Recalculate
     const result = await unifiedPricingEngine.calculateQuote(params);
+
+    // デバッグログ：結果を確認
+    console.log('[Recalculate API] Result:', {
+      breakdown: result.breakdown,
+      filmCostDetails: result.filmCostDetails,
+      pouchProcessingCostFromBreakdown: result.breakdown?.pouchProcessingCost,
+      processingFromBreakdown: result.breakdown?.processing,
+      pouchProcessingCostFromFilmCost: result.filmCostDetails?.pouchProcessingCost,
+      totalCost: result.breakdown?.total
+    });
     const filmCostDetails = result.filmCostDetails || null;
 
-    // Update specifications
+    // Create cost_breakdown from result.breakdown
+    const costBreakdown = result.breakdown ? {
+      materialCost: result.breakdown.material || 0,
+      laminationCost: filmCostDetails?.laminationCost || 0,
+      slitterCost: filmCostDetails?.slitterCost || 0,
+      surfaceTreatmentCost: filmCostDetails?.surfaceTreatmentCost || 0,
+      // pouchProcessingCostはresult.breakdown.processing（円貨）を使用
+      pouchProcessingCost: result.breakdown.processing || result.breakdown.pouchProcessingCost || filmCostDetails?.pouchProcessingCost || 0,
+      printingCost: filmCostDetails?.printingCost || 0,
+      manufacturingMargin: filmCostDetails?.manufacturingMargin || 0,
+      duty: filmCostDetails?.duty || 0,
+      delivery: filmCostDetails?.delivery || 0,
+      salesMargin: filmCostDetails?.salesMargin || 0,
+      totalCost: result.breakdown.total || 0,
+      baseCost: result.breakdown.baseCost || 0,
+    } : null;
+
+    // Update both specifications.film_cost_details, film_cost_details column, and cost_breakdown
     const updatedSpecs = { ...specs, film_cost_details: filmCostDetails };
+
+    // デバッグ：保存する値を確認
+    console.log('[Recalculate API] Saving to database:', {
+      itemId: item.id,
+      pouchProcessingCostInBreakdown: costBreakdown?.pouchProcessingCost,
+      pouchProcessingCostInFilmCost: filmCostDetails?.pouchProcessingCost,
+      processingInBreakdown: result.breakdown?.processing,
+      expectedPouchProcessingCostFor15mm: 66000, // 80 KRW * 5000 + 150000 = 550000 KRW * 0.12 = 66000 JPY
+      expectedPouchProcessingCostFor18mm: 84000 // 110 KRW * 5000 + 150000 = 700000 KRW * 0.12 = 84000 JPY
+    });
 
     const { error: updateError } = await serviceClient
       .from('quotation_items')
-      .update({ specifications: updatedSpecs })
+      .update({
+        specifications: updatedSpecs,
+        film_cost_details: filmCostDetails,  // Also update dedicated column
+        cost_breakdown: costBreakdown  // Update cost_breakdown with new calculation
+      })
       .eq('id', item.id);
 
     if (!updateError) {
+      console.log('[Recalculate API] Database update successful for item:', item.id);
       updatedItems.push({ id: item.id, filmCostDetails });
+    } else {
+      console.error('[Recalculate API] Database update error:', updateError);
     }
   }
 
@@ -124,5 +144,11 @@ export async function POST(
     success: true,
     message: `Updated ${updatedItems.length} item(s)`,
     updatedItems
+  }, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
   });
 }

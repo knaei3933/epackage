@@ -137,11 +137,8 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
 
   // 2列生産オプションとSKU分割オプションを計算（useMemoでキャッシュ）
   const twoColumnOptions = useMemo(() => {
-    // 2列生産オプション適用済みで数量が変更された場合は計算しない
-    if (quoteState.twoColumnOptionApplied) {
-      return null;
-    }
-
+    // オプション適用後も推奨変更のため計算を続ける
+    // 適用済みオプションは appliedOption prop で処理する
     const isRollFilm = quoteState.bagTypeId === 'roll_film';
 
     // ロールフィルムの場合：幅条件なしで2〜5列生産オプションを提供
@@ -660,11 +657,14 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       quoteStateTwoColumnOptionApplied: quoteState.twoColumnOptionApplied
     });
 
-    if (!twoColumnOptions || isApplying) {
-      console.log('[handleApplyTwoColumnOption] Early return:', {
-        hasTwoColumnOptions: !!twoColumnOptions,
-        isApplying
-      });
+    // 個別の条件チェックとログ出力
+    if (!twoColumnOptions) {
+      console.log('[handleApplyTwoColumnOption] Early return: no twoColumnOptions available');
+      return;
+    }
+
+    if (isApplying) {
+      console.log('[handleApplyTwoColumnOption] Early return: already applying');
       return;
     }
 

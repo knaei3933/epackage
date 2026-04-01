@@ -111,6 +111,7 @@ export interface MaterialLayerDetail {
   weightKg: number; // 重量（kg）
   costKRW: number; // 原価（ウォン）
   costJPY: number; // 原価（円）
+  grammage?: number; // 坪量（g/m²） - Kraft等で使用
 }
 
 export interface FilmCostResult {
@@ -250,7 +251,7 @@ const KG_PER_ROLL = 30; // 1롤 = 30kg
 
 // 인쇄 단가 (원/m²)
 const PRINTING_COST_PER_M2 = 475;
-const MATTE_PRINTING_COST_PER_M = 40; // 원/m
+const MATTE_PRINTING_COST_PER_M = 40; // 원/m (マット印刷追加費)
 
 // 표면처리 추가비 (원/m)
 const MATTE_SURFACE_COST_PER_M = 40; // 매트 코팅 추가비 (원/m) - 실제 사용 값
@@ -342,15 +343,26 @@ export class FilmCostCalculator {
     } = params;
 
     // params.lossRate를 우선 적용 (SKU 모드에서 이미 로스가 포함된 경우 0을 전달)
+    // クラフト紙の場合は固定ロス700mを適用（ロス率を無視）
+    const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
+    const hasAL = layers.some(layer => layer.materialId === 'AL');
+
     let effectiveLossRate: number;
-    if (lossRate !== undefined) {
+    let lengthWithLoss: number;
+
+    if (hasKraft) {
+      // クラフト紙: 固定ロス700m（印刷500m + スリッター100m + 加工100m）
+      lengthWithLoss = length + 700;
+      effectiveLossRate = 700 / length; // ログ用のロス率
+    } else if (lossRate !== undefined) {
       // 명시적으로 로스율이 지정된 경우 사용
       effectiveLossRate = lossRate;
+      lengthWithLoss = length * (1 + effectiveLossRate);
     } else {
       // 명시적 지정이 없는 경우, 재료에 따라 동적 로스율 적용
       // AL(알루미늄)이 포함된 경우 0.4, 그 외 0.3
-      const containsAL = layers.some(layer => layer.materialId === 'AL');
-      effectiveLossRate = containsAL ? 0.4 : 0.3;
+      effectiveLossRate = hasAL ? 0.4 : 0.3;
+      lengthWithLoss = length * (1 + effectiveLossRate);
     }
 
     // DB 설정값 또는 기본값
@@ -360,8 +372,6 @@ export class FilmCostCalculator {
     const kgPerRoll = dbSettings?.delivery_kg_per_roll ?? KG_PER_ROLL;
 
 
-    // 로스 포함 미터수 계산 (effectiveLossRate 사용)
-    const lengthWithLoss = length * (1 + effectiveLossRate);
 
     // 폭을 미터로 변환
     const widthM = materialWidth / 1000;
@@ -629,8 +639,8 @@ export class FilmCostCalculator {
       // 【追加】素材レイヤーの詳細情報をキャプチャ
       const thicknessM = effectiveThickness / 1000000; // μm → m
       const areaM2 = widthM * lengthWithLoss;
-      // 【修正】小数点4桁まで正確に保存してオーバーを削除
-      const weightKg = Math.round(weight * 10000) / 10000;
+      // 【修正】小数点2桁で丸め（表示用）
+      const weightKg = Math.round(weight * 100) / 100;
 
       materialLayerDetails.push({
         materialId: layer.materialId,
@@ -644,7 +654,8 @@ export class FilmCostCalculator {
         widthM: Math.round(widthM * 1000) / 1000,
         weightKg,
         costKRW: Math.round(cost),
-        costJPY: Math.round(cost * (dbSettings?.exchange_rate_krw_to_jpy ?? EXCHANGE_RATE))
+        costJPY: Math.round(cost * (dbSettings?.exchange_rate_krw_to_jpy ?? EXCHANGE_RATE)),
+        grammage: layer.grammage  // Kraft等の坪量（g/m²）
       });
 
       totalCost += cost;

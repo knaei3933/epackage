@@ -110,6 +110,10 @@ export interface UnifiedQuoteParams {
 
   // Roll film specific parameters
   rollCount?: number // 롤 필름 시 롤 개수 (롤당 배송비 계산용)
+
+  // Spout pouch specific parameters
+  spoutSize?: 9 | 15 | 18 | 22 | 28 // スパウトサイズ（パイ径）
+  spoutPosition?: 'top-left' | 'top-center' | 'top-right' // スパウト位置
 }
 
 export interface UnifiedQuoteResult {
@@ -601,10 +605,10 @@ const CONSTANTS = {
   ROLL_FILM_SLITTER_COST_PER_M: 10,    // 원/m
 
   // 필름 원가 계산 설정 (새로운 기능)
-  MANUFACTURER_MARGIN: 0.4, // 제조업체 마진율 40%
-  SALES_MARGIN: 0.2, // 판매 마진율 20%
-  DEFAULT_MARKUP_RATE: 0.2, // デフォルトマージン率 20%
-  // 총 마진율 = (1 + 0.4) × (1 + 0.2) - 1 = 0.68 (68%)
+  MANUFACTURER_MARGIN: 0.3, // 제조업체 마진율 30%
+  SALES_MARGIN: 0.3, // 판매 마진율 30%
+  DEFAULT_MARKUP_RATE: 0.3, // デフォルトマージン率 30%
+  // 총 마진율 = (1 + 0.3) × (1 + 0.3) - 1 = 0.69 (69%)
   DEFAULT_LOSS_RATE: 0.4, // 기본 로스율 40%
   DEFAULT_MATERIAL_WIDTH: 760, // 기본 원단 폭 (590 또는 760)
 
@@ -844,7 +848,10 @@ export class UnifiedPricingEngine {
       urgency = 'standard',
       markupRate = CONSTANTS.DEFAULT_MARKUP_RATE,
       materialWidth,
-      filmLayers
+      filmLayers,
+      // スパウトパウチ専用パラメータ
+      spoutSize,
+      spoutPosition
     } = params
 
     // postProcessingMultiplierの決定: 渡された値を優先、なければオプションから計算
@@ -880,10 +887,21 @@ export class UnifiedPricingEngine {
       // ドキュメント基準：docs/reports/calcultae/04-미터수_및_원가_계산.md
 
       // 原反幅(m)を取得
-      const materialWidthM = determineMaterialWidth(width) / 1000
+      const materialWidthM = determineMaterialWidth(width, params.materialId) / 1000
 
-      // 総メートル数 = 注文長さ + 400m ロス
-      const totalMeters = quantity + 400
+      // 材料別ロス量計算（ロールフィルム加工）
+      const getProcessingLossMeters = (layers?: typeof filmLayers): number => {
+        if (!layers || layers.length === 0) return 400; // デフォルト
+        const hasAL = layers.some(layer => layer.materialId === 'AL');
+        const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
+        // KRAFT材料は700mのロス、AL材料は400mのロス
+        if (hasKraft) return 700;
+        return hasAL ? 400 : 300;
+      };
+      const lossMeters = getProcessingLossMeters(filmLayers);
+
+      // 総メートル数 = 注文長さ + ロス量
+      const totalMeters = quantity + lossMeters
 
       // ラミネート費(ウォン) = 原反幅(m) × 総メートル数 × 75ウォン/m × 3回（4層構造）
       const laminationCostKRW = materialWidthM * totalMeters * CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M * 3
@@ -907,7 +925,8 @@ export class UnifiedPricingEngine {
         bagTypeId,
         width,
         quantity,
-        postProcessingOptions
+        postProcessingOptions,
+        spoutSize  // スパウトサイズ（スパウトパウチ用）
       )
       console.log('[Processing Cost] Pouch: using calculatePouchProcessingCost')
     }
@@ -951,7 +970,7 @@ export class UnifiedPricingEngine {
     // 材料費の再計算（フィルム構造に基づく正しい計算）
     // ========================================
     // 製品幅に基づいて原反幅を決定
-    const determinedMaterialWidth = determineMaterialWidth(width);
+    const determinedMaterialWidth = determineMaterialWidth(width, params.materialId);
     const widthM = determinedMaterialWidth / 1000;
 
     // フィルム構造レイヤー（PET/AL/PET/LLDPE 4層構造）
@@ -1020,7 +1039,7 @@ export class UnifiedPricingEngine {
       isUVPrinting,
       bagTypeId === 'roll_film' ? {
         lengthInMeters: quantity,  // quantityはロールフィルムの場合は長さ(m)
-        filmWidthM: determineMaterialWidth(width) / 1000  // 製品幅から原反幅を決定してm単位に変換
+        filmWidthM: determineMaterialWidth(width, params.materialId) / 1000  // 製品幅から原反幅を決定してm単位に変換
       } : undefined,
       bagTypeId === 'roll_film' ? undefined : totalUsedMeters  // パウチの場合は使用メートル数を渡す
     )
@@ -1042,8 +1061,8 @@ export class UnifiedPricingEngine {
     })
 
     if (hasMatteFinishing) {
-      // 原反幅（m）を取得（590mm または 760mm）
-      const materialWidthM = determineMaterialWidth(width) / 1000
+      // 原反幅（m）を取得
+      const materialWidthM = determineMaterialWidth(width, params.materialId) / 1000
 
       // マット印刷追加費(ウォン) = 原反幅(m) × 40ウォン/m × 長さ(m)
       const matteCostKRW = materialWidthM * 40 * totalUsedMeters
@@ -1101,7 +1120,7 @@ export class UnifiedPricingEngine {
     if (bagTypeId === 'roll_film') {
       const lengthInMeters = quantity;
       const productWidth = width;
-      const determinedMaterialWidth = determineMaterialWidth(productWidth);
+      const determinedMaterialWidth = determineMaterialWidth(productWidth, params.materialId);
       const filmWidthM = determinedMaterialWidth / 1000;
 
       // フィルム構造レイヤー
@@ -1255,7 +1274,7 @@ export class UnifiedPricingEngine {
     } = params
 
     // 製品幅に基づいて原反幅を動的に決定
-    const materialWidth = determineMaterialWidth(width)
+    const materialWidth = determineMaterialWidth(width, params.materialId)
 
     // 파라미터 검증
     this.validateParams(params)
@@ -1493,11 +1512,18 @@ export class UnifiedPricingEngine {
       urgency = 'standard',
       markupRate = 0.0,  // デフォルトは割引なし（PouchCostCalculatorですでに販売マージン20%が含まれているため）
       materialWidth = CONSTANTS.DEFAULT_MATERIAL_WIDTH,
-      filmLayers
+      filmLayers,
+      // スパウトパウチ専用パラメータ
+      spoutSize,
+      spoutPosition
     } = params
 
     console.log('[performSKUCalculation] AFTER DESTRUCTURING:', {
       markupRate_used: markupRate,
+      spoutSize,
+      spoutSizeType: typeof spoutSize,
+      spoutPosition,
+      bagTypeId
     });
 
     // パラメータ検証
@@ -1544,7 +1570,10 @@ export class UnifiedPricingEngine {
       pouchType: mappedPouchType,
       filmLayers,
       postProcessingOptions,
-      markupRate  // 顧客別マークアップ率を適用
+      markupRate,  // 顧客別マークアップ率を適用
+      // スパウトパウチ専用パラメータ
+      spoutSize: params.spoutSize,
+      spoutPosition: params.spoutPosition
     })
 
     // 総数量計算
@@ -1595,8 +1624,8 @@ export class UnifiedPricingEngine {
     const hasGlossyFinishing = postProcessingOptions?.includes('glossy') ?? false
 
     if (hasMatteFinishing) {
-      // 原反幅（m）を取得（590mm または 760mm）
-      const materialWidthM = determineMaterialWidth(width) / 1000
+      // 原反幅（m）を取得
+      const materialWidthM = determineMaterialWidth(width, params.materialId) / 1000
 
       // 総使用メートル数（ロス含む）
       const totalUsedMeters = skuCostResult.summary.totalWithLossMeters
@@ -1702,16 +1731,18 @@ export class UnifiedPricingEngine {
         setup: 0,
         discount: 0,
         // マージン・関税・配送料（基本原価から計算）
-        manufacturingMargin: Math.round(baseCost * 0.4), // 製造者マージン40%
+        manufacturingMargin: Math.round(baseCost * 0.3), // 製造者マージン30%
         duty: Math.round(baseCost * 0.05), // 関税5%
         delivery: Math.round(baseCost * 0.08), // 配送料8%
-        salesMargin: Math.round(baseCost * 0.2), // 販売マージン20%
+        salesMargin: Math.round(baseCost * 0.3), // 販売マージン30%
         subtotal: Math.round(baseCost),
         total: Math.round(totalPrice),
         pouchProcessingCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.pouchProcessingCost, 0)),
         baseCost: Math.round(baseCost),
         // SKU追加料金（SKU数量に基づく追加料金）
-        skuSurcharge: skuSurcharge
+        skuSurcharge: skuSurcharge,
+        // 表面処理費（マット印刷追加費等）
+        surfaceTreatmentCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + (sku.costBreakdown.surfaceTreatmentCost || 0), 0))
       },
       leadTimeDays,
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -1913,6 +1944,7 @@ export class UnifiedPricingEngine {
     bagTypeId: string,
     quantity: number,
     isUVPrinting: boolean = false,
+    materialId?: string,
     rollFilmParams?: {
       productWidth?: number  // 製品幅（顧客が指定する印刷幅）
       filmLayers?: FilmStructureLayer[]
@@ -1925,7 +1957,7 @@ export class UnifiedPricingEngine {
 
       // 製品幅に基づいて原反幅を動的に決定
       const productWidth = rollFilmParams?.productWidth || 760;
-      const determinedMaterialWidth = determineMaterialWidth(productWidth);
+      const determinedMaterialWidth = determineMaterialWidth(productWidth, materialId);
       const widthM = determinedMaterialWidth / 1000; // mm→m変換
 
       console.log('[RollFilm Cost Calculation]', {
@@ -1953,7 +1985,9 @@ export class UnifiedPricingEngine {
       const getLossMeters = (layers: typeof adjustedLayers): number => {
         const hasAL = layers.some(layer => layer.materialId === 'AL');
         const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
-        return (hasAL || hasKraft) ? 400 : 300;
+        // KRAFT材料は700mのロス、AL材料は400mのロス
+        if (hasKraft) return 700;
+        return hasAL ? 400 : 300;
       };
       const lossMeters = getLossMeters(adjustedLayers);
       const totalMeters = lengthInMeters + lossMeters;
@@ -2147,7 +2181,9 @@ export class UnifiedPricingEngine {
         if (!layers || layers.length === 0) return 400; // デフォルト
         const hasAL = layers.some(layer => layer.materialId === 'AL');
         const hasKraft = layers.some(layer => layer.materialId === 'KRAFT');
-        return (hasAL || hasKraft) ? 400 : 300;
+        // KRAFT材料は700mのロス、AL材料は400mのロス
+        if (hasKraft) return 700;
+        return hasAL ? 400 : 300;
       };
       const lossMeters = getLossMeters(rollFilmParams.filmLayers);
       const totalMeters = rollFilmParams.lengthInMeters + lossMeters;
@@ -2577,6 +2613,8 @@ export class UnifiedPricingEngine {
     }
 
     // Fallback to minimal film cost details based on SKUCostResult summary
+    // pouchProcessingCostを含める
+    const firstSKU = skuResult.costPerSKU?.[0];
     return {
       materialLayerDetails: [],
       totalCostKRW: 0,
@@ -2584,7 +2622,19 @@ export class UnifiedPricingEngine {
       totalWeight: skuResult.summary?.totalWeight || 0,
       totalMeters: skuResult.summary?.totalWithLossMeters || 0,
       materialWidthMM: skuResult.materialWidth || 590,
-      areaM2: 0
+      areaM2: 0,
+      // pouchProcessingCostを追加（costBreakdownから取得）
+      pouchProcessingCost: firstSKU?.costBreakdown?.pouchProcessingCost || 0,
+      // その他のコスト内訳も追加
+      laminationCost: firstSKU?.costBreakdown?.laminationCost || 0,
+      slitterCost: firstSKU?.costBreakdown?.slitterCost || 0,
+      surfaceTreatmentCost: firstSKU?.costBreakdown?.surfaceTreatmentCost || 0,
+      printingCost: firstSKU?.costBreakdown?.printingCost || 0,
+      manufacturingMargin: firstSKU?.costBreakdown?.manufacturingMargin || 0,
+      duty: firstSKU?.costBreakdown?.duty || 0,
+      delivery: firstSKU?.costBreakdown?.delivery || 0,
+      salesMargin: firstSKU?.costBreakdown?.salesMargin || 0,
+      materialCost: firstSKU?.costBreakdown?.materialCost || 0,
     };
   }
 
@@ -2665,7 +2715,10 @@ export class UnifiedPricingEngine {
       // 2열생산 옵션 관련 파라미터
       params.twoColumnOptionApplied || 'none',
       params.discountedUnitPrice?.toString() || 'none',
-      params.discountedTotalPrice?.toString() || 'none'
+      params.discountedTotalPrice?.toString() || 'none',
+      // CRITICAL: 스파우트 파우치 관련 파라미터 - spoutSize가 다르면 가격이 다름
+      params.spoutSize?.toString() || 'none',
+      params.spoutPosition || 'none'
     ]
 
     return keyParts.join('|')

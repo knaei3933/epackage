@@ -57,7 +57,55 @@ export function getDefaultFilmLayers(
       { materialId: 'LLDPE', thickness: baseLldpeThickness }
     ],
     'kraft_pe': [
-      { materialId: 'KRAFT', thickness: 80 },
+      { materialId: 'KRAFT', grammage: 80 },
+      { materialId: 'PE', thickness: 40 }
+    ],
+    'ny_lldpe': [
+      { materialId: 'NY', thickness: 15 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'kraft_vmpet_lldpe': [
+      { materialId: 'KRAFT', grammage: 80 },
+      { materialId: 'VMPET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'kraft_pet_lldpe': [
+      { materialId: 'KRAFT', grammage: 80 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ]
+  };
+
+  return defaultLayers[materialId] || defaultLayers['pet_al'];
+}
+
+/**
+ * Get default film layers for a given material ID
+ * @param materialId - Material ID (e.g., 'kraft_vmpet_lldpe', 'pet_al')
+ * @param thicknessSelection - Thickness selection for LLDPE layer
+ * @returns Array of film structure layers
+ */
+export function getDefaultLayers(
+  materialId: string,
+  thicknessSelection?: string
+): FilmStructureLayer[] {
+  const baseLldpeThickness = thicknessSelection
+    ? { standard_50: 50, standard_70: 70, standard_90: 90, standard_100: 100, standard_110: 110 }[thicknessSelection] || 70
+    : 70;
+
+  const defaultLayers: Record<string, FilmStructureLayer[]> = {
+    'pet_al': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'AL', thickness: 7 },
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'pet_transparent': [
+      { materialId: 'PET', thickness: 12 },
+      { materialId: 'LLDPE', thickness: baseLldpeThickness }
+    ],
+    'kraft_pe': [
+      { materialId: 'KRAFT', grammage: 80 },
       { materialId: 'PE', thickness: 40 }
     ],
     'ny_lldpe': [

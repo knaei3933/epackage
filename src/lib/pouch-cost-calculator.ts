@@ -6,6 +6,7 @@
  */
 
 import { FilmCostCalculator, FilmCostResult, FilmStructureLayer } from './film-cost-calculator';
+import { determineMaterialWidth, MaterialWidthType } from './material-width-selector';
 
 // ========================================
 // タイプ定義
@@ -135,15 +136,15 @@ export interface EconomicQuantitySuggestion {
  * 並列生産オプション（顧客への具体的な提案）
  */
 export interface ParallelProductionOption {
-  optionNumber: number;           // オプション番号
-  quantity: number;               // 注文数量（例: 2個、3個）
-  materialWidth: 590 | 760;       // 使用原反幅
-  parallelCount: number;          // 並列本数
-  filmWidthUtilization: number;   // フィルム幅利用率（%）
-  estimatedUnitCost: number;      // 見積単価（円/m または 円/個）
-  savingsRate: number;            // 節減率（%）
-  isRecommended: boolean;         // 推奨オプションかどうか
-  reason: string;                 // 推奨理由
+  optionNumber: number;                  // オプション番号
+  quantity: number;                      // 注文数量（例: 2個、3個）
+  materialWidth: 590 | 760 | 780 | 1190; // 使用原反幅（クラフト材料: 780/1190mm）
+  parallelCount: number;                 // 並列本数
+  filmWidthUtilization: number;          // フィルム幅利用率（%）
+  estimatedUnitCost: number;             // 見積単価（円/m または 円/個）
+  savingsRate: number;                   // 節減率（%）
+  isRecommended: boolean;                // 推奨オプションかどうか
+  reason: string;                        // 推奨理由
 }
 
 /**
@@ -159,6 +160,9 @@ export interface SKUCostParams {
   filmLayers?: FilmStructureLayer[]; // フィルム構造レイヤー
   postProcessingOptions?: string[]; // 後加工オプション（ジッパーなど）
   markupRate?: number; // 顧客別マークアップ率（デフォルト20%）
+  // スパウトパウチ専用パラメータ
+  spoutSize?: 9 | 15 | 18 | 22 | 28; // スパウトサイズ（パイ径）
+  spoutPosition?: 'top-left' | 'top-center' | 'top-right'; // スパウト位置
 }
 
 /**
@@ -396,7 +400,7 @@ export class PouchCostCalculator {
     // ========================================
     // 2列フィルム幅計算（2列が可能か確認）
     const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
-    const printableWidth = materialWidth === 590 ? 570 : 740;
+    const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
     const canUse2Columns = filmWidth2Columns <= printableWidth;
 
     // 【修正】スパウトパウチは常に1列生産を使用（ユーザードキュメント基準）
@@ -427,8 +431,17 @@ export class PouchCostCalculator {
       pouchType,
       filmLayers,
       postProcessingOptions,
+      spoutSize,
+      spoutPosition,
       markupRate = 0.0  // デフォルトは割引なし（販売マージン20%は計算済み）
     } = params;
+
+    console.log('[calculateSKUCost] Spout Parameters:', {
+      pouchType,
+      spoutSize,
+      spoutPosition,
+      includesSpout: pouchType.includes('spout')
+    });
 
     // ========================================
     // スパウトパウチの最小注文数適用（5000個）
@@ -458,10 +471,10 @@ export class PouchCostCalculator {
     // 原反幅の決定（先に決定する必要がある）
     // ========================================
     // 原反幅自動決定 (パウチ幅/インク印刷幅基準)
-    // 590mm原反: 印刷可能幅570mm
-    // 760mm原反: 印刷可能幅740mm
-    const materialWidth = this.determineMaterialWidth(dimensions.width);
-    const printableWidth = materialWidth === 590 ? 570 : 740;
+    // クラフト材料: 780mm(印刷可能760mm)/1190mm(印刷可能1170mm)
+    // 通常材料: 590mm(印刷可能570mm)/760mm(印刷可能740mm)
+    const materialWidth = this.selectMaterialWidth(dimensions.width, materialId);
+    const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
 
     // ========================================
     // 列数自動判定ロジック（原反幅を考慮）
@@ -486,7 +499,7 @@ export class PouchCostCalculator {
       skuCount,
       totalQuantity,
       materialWidth,
-      printableWidth: materialWidth === 590 ? 570 : 740,
+      printableWidth: materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170,
       optimalColumnCount,
       calculatedFilmWidth: filmWidth,
       note: pouchType === 'roll_film'
@@ -555,7 +568,8 @@ export class PouchCostCalculator {
       pouchType,
       dimensions.width,
       totalQuantity,  // 全数量に対して1回のみ計算
-      postProcessingOptions
+      postProcessingOptions,
+      params.spoutSize  // スパウトサイズ（スパウトパウチ用）
     );
 
     console.log('[calculateSKUCost] Total Processing Cost:', {
@@ -786,7 +800,8 @@ export class PouchCostCalculator {
       pouchType,
       dimensions.width,
       quantity,
-      postProcessingOptions
+      postProcessingOptions,
+      params.spoutSize  // スパウトサイズ（スパウトパウチ用）
     );
 
     // 7. 原価内訳集計 (KRW 기준으로 엄격한 마진 및 관세 계산)
@@ -943,12 +958,10 @@ export class PouchCostCalculator {
 
   /**
    * 원단 폭 자동 결정 (인쇄폭/패우치 폭 기준)
-   * 인쇄폭이 570 이하라면 590폭, 인쇄폭이 570 초과라면 760폭 원단을 사용
+   * 클라트 재료는 780/1190mm, 일반 재료는 590/760mm를 사용
    */
-  private determineMaterialWidth(printingWidth: number): 590 | 760 {
-    if (printingWidth <= 570) return 590;
-    if (printingWidth <= 740) return 760;
-    return 760;
+  private selectMaterialWidth(printingWidth: number, materialId?: string): MaterialWidthType {
+    return determineMaterialWidth(printingWidth, materialId);
   }
 
   // --------------------------------------------------------------------------
@@ -1019,8 +1032,19 @@ export class PouchCostCalculator {
     pouchType: string,
     widthMM: number,
     quantity: number,
-    postProcessingOptions?: string[]
+    postProcessingOptions?: string[],
+    spoutSize?: 9 | 15 | 18 | 22 | 28  // スパウトサイズ（スパウトパウチ用）
   ): number {
+    // デバッグログ：パラメータを確認
+    console.log('[calculatePouchProcessingCost] ENTRY:', {
+      pouchType,
+      widthMM,
+      quantity,
+      spoutSize,
+      spoutSizeType: typeof spoutSize,
+      postProcessingOptions
+    });
+
     // 基本パウチタイプを判定（ジッパーなし）
     // ジッパー追加は postProcessingMultiplier で調整するため、
     // ここでは基本タイプのみを使用して二重課税を防ぐ
@@ -1029,6 +1053,13 @@ export class PouchCostCalculator {
     // スパウトパウチは最初にチェック（別部品と追加加工が必要）
     if (pouchType.includes('spout')) {
       basePouchType = 'spout';
+      console.log('[calculatePouchProcessingCost] Detected spout pouch, basePouchType = spout');
+
+      // DEBUG: spoutSize が undefined の場合はエラーを投げて確認
+      if (spoutSize === undefined) {
+        console.error('[calculatePouchProcessingCost] ERROR: spoutSize is undefined for spout pouch!');
+        throw new Error('spoutSize is required for spout pouch calculation');
+      }
     }
     // 合掌袋(lap_seal)はt_shapeとして判定
     else if (pouchType.includes('lap_seal') || pouchType.includes('t_shape') || pouchType.includes('T방')) {
@@ -1046,12 +1077,17 @@ export class PouchCostCalculator {
     // ジッパーオションによる最低価格調整
     const hasZipper = postProcessingOptions?.includes('zipper-yes');
 
-    // スパウトサイズ取得（オプションから）
-    const spoutSizeOption = postProcessingOptions?.find(opt => opt.startsWith('spout-size-'));
-    const spoutSize = spoutSizeOption ? parseInt(spoutSizeOption.replace('spout-size-', '')) : null;
-
     // スパウトパウチ専用計算
+    console.log('[calculatePouchProcessingCost] Before spout check:', {
+      basePouchType,
+      pouchType,
+      pouchTypeIncludesSpout: pouchType.includes('spout'),
+      spoutSize,
+      spoutSizeType: typeof spoutSize
+    });
+
     if (basePouchType === 'spout') {
+      console.log('[calculatePouchProcessingCost] ENTERING SPOUT LOGIC');
       // docs/reports/calcultae/05-가공비용_계산.md 基準
       // スパウト加工費(ウォン) = (スパウト単価 × 数量) + 往復配送料
       // 最小注文数量: 5,000個
@@ -1068,7 +1104,15 @@ export class PouchCostCalculator {
       const MIN_SPOUT_QUANTITY = 5000;    // 最小注文数量: 5,000個
 
       // スパウト単価を取得（デフォルトは18パイ）
+      console.log('[calculatePouchProcessingCost] Getting spout price:', {
+        spoutSize,
+        spoutSizeType: typeof spoutSize,
+        SPOUT_PRICES_15: SPOUT_PRICES[15],
+        SPOUT_PRICES_15_type: typeof SPOUT_PRICES[15],
+        lookupKey: spoutSize as keyof typeof SPOUT_PRICES
+      });
       const spoutPrice = spoutSize ? (SPOUT_PRICES[spoutSize as keyof typeof SPOUT_PRICES] || 110) : 110;
+      console.log('[calculatePouchProcessingCost] Result spoutPrice:', spoutPrice);
 
       // 実際の数量（最小数量適用）
       const actualQuantity = Math.max(quantity, MIN_SPOUT_QUANTITY);
@@ -1196,8 +1240,8 @@ export class PouchCostCalculator {
       deliveryJPY
     });
 
-    // 2. 製造者価格 (KRW) - DB設定から製造者マージン率を取得（デフォルト40%）
-    const MANUFACTURER_MARGIN = await this.getSetting('pricing', 'manufacturer_margin', 0.4);
+    // 2. 製造者価格 (KRW) - DB設定から製造者マージン率を取得（デフォルト30%）
+    const MANUFACTURER_MARGIN = await this.getSetting('pricing', 'manufacturer_margin', 0.3);
     console.log('[PouchCostCalculator] manufacturerMargin:', MANUFACTURER_MARGIN);
     const manufacturerPriceKRW = baseCostKRW * (1 + MANUFACTURER_MARGIN);
     const manufacturingMarginKRW = manufacturerPriceKRW - baseCostKRW;

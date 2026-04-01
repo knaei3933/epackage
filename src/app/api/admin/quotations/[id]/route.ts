@@ -22,6 +22,8 @@ interface QuotationItem {
     film_cost_details?: FilmCostResult | null;
     [key: string]: unknown;
   };
+  // データベース列のfilm_cost_details（recalculate APIで更新される）
+  film_cost_details?: FilmCostResult | null;
   notes: string | null;
   display_order: number;
   created_at: string;
@@ -100,6 +102,12 @@ export async function GET(
     return NextResponse.json({
       success: true,
       quotation: quotationWithProfile,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
   } catch (error) {
     console.error('[Quotation Detail API] Error:', error);
@@ -345,6 +353,11 @@ function calculateBreakdown(item: QuotationItem) {
         post_processing_display: getPostProcessingDisplay(specs.postProcessingOptions || specs.post_processing || []),
         zipper: specs.zipper || specs.postProcessingOptions?.includes('zipper-yes') || specs.post_processing?.includes('zipper-yes'),
         spout: specs.spout || specs.postProcessingOptions?.includes('spout-yes') || specs.post_processing?.includes('spout-yes'),
+        // スパウトパウチ専用フィールド
+        bagTypeId: specs.bagTypeId,
+        spoutSize: specs.spoutSize,
+        spoutPosition: specs.spoutPosition,
+        hasGusset: specs.hasGusset,
         // その他
         urgency: specs.urgency,
         contents: specs.contents,
@@ -364,7 +377,8 @@ function calculateBreakdown(item: QuotationItem) {
       // 詳細な原価内訳を追加（検証済み）
       breakdown: validatedBreakdown,
       // フィルム原価詳細（素材レイヤーの完全な計算式）
-      filmCostDetails: specs.film_cost_details || null,
+      // データベース列のfilm_cost_detailsを優先、なければspecifications内の値を使用
+      filmCostDetails: item.film_cost_details || specs.film_cost_details || null,
     };
   }
 
@@ -418,6 +432,11 @@ function calculateBreakdown(item: QuotationItem) {
       post_processing_display: getPostProcessingDisplay(specs.postProcessingOptions || specs.post_processing || []),
       zipper: specs.zipper || specs.postProcessingOptions?.includes('zipper-yes') || specs.post_processing?.includes('zipper-yes'),
       spout: specs.spout || specs.postProcessingOptions?.includes('spout-yes') || specs.post_processing?.includes('spout-yes'),
+      // スパウトパウチ専用フィールド
+      bagTypeId: specs.bagTypeId,
+      spoutSize: specs.spoutSize,
+      spoutPosition: specs.spoutPosition,
+      hasGusset: specs.hasGusset,
       // その他
       urgency: specs.urgency,
       contents: specs.contents,
@@ -449,7 +468,7 @@ function calculateBreakdown(item: QuotationItem) {
       totalCost: totalCost,
     } as CostBreakdown,
     // フィルム原価詳細（フォールバック）
-    filmCostDetails: (specs as any).film_cost_details || null,
+    filmCostDetails: (item as any).film_cost_details || (specs as any).film_cost_details || null,
   };
 }
 

@@ -47,7 +47,7 @@ export interface DetailedCostBreakdownProps {
     // パウチ加工費
     pouchProcessingCost: number;
     // 印刷費
-    printingCost: number;
+    printing: number;
     // 製造者マージン
     manufacturingMargin: number;
     // 関税
@@ -175,7 +175,7 @@ export function DetailedCostBreakdown({
     slitterCost,
     surfaceTreatmentCost,
     pouchProcessingCost,
-    printingCost,
+    printing,
     manufacturingMargin,
     duty,
     delivery,
@@ -185,7 +185,7 @@ export function DetailedCostBreakdown({
 
   // Calculate 5-step breakdown using helper
   // IMPORTANT: Use fiveStep.baseCost instead of local calculation
-  const fiveStep = calculateFiveStepBreakdown(breakdown, filmCostDetails);
+  const fiveStep = calculateFiveStepBreakdown(breakdown, filmCostDetails, specifications);
 
   // SKU追加料金があれば計算
   const skuSurcharge = sku_info && sku_info.count > 1 ? (sku_info.count - 1) * 10000 : 0;
@@ -268,8 +268,20 @@ export function DetailedCostBreakdown({
           </div>
           {/* 詳細計算式 */}
           {fiveStep.printingCost.costKRW > 0 && (
-            <div className="ml-8 bg-white rounded p-2 text-xs text-gray-600">
-              計算: {fiveStep.printingCost.formulaKRW}
+            <div className="ml-8 bg-white rounded p-2 text-xs text-gray-600 space-y-1">
+              <div>基本印刷費: {fiveStep.printingCost.formulaKRW}</div>
+              {/* マット印刷追加費 */}
+              {filmCostDetails?.breakdown?.printing?.matte && (
+                <div className="border-t pt-1 mt-1">
+                  <div className="flex justify-between items-center">
+                    <span>マット仕上げ追加費</span>
+                    <span className="font-medium">₩{filmCostDetails.breakdown.printing.matte.toLocaleString()}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    原反幅 {((filmCostDetails.materialWidthMM || 590) / 1000).toFixed(2)}m × {filmCostDetails.totalMeters?.toFixed(1)}m × ₩40/m = ₩{filmCostDetails.breakdown.printing.matte.toLocaleString()}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -363,12 +375,12 @@ export function DetailedCostBreakdown({
             <span className="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">5</span>
             <div className="flex-1 min-w-0">
               <h5 className="font-semibold text-gray-900">製造者マージン</h5>
-              <p className="text-xs text-gray-600">基礎原価 × 40%</p>
+              <p className="text-xs text-gray-600">基礎原価 × {fiveStep.manufacturerMarginRate}</p>
             </div>
             <span className="font-bold text-lg text-red-900 shrink-0">₩{fiveStep.manufacturerMarginKRW.toLocaleString()}</span>
           </div>
           <div className="ml-8 mt-2 text-xs text-gray-700">
-            ₩{fiveStep.baseCostKRW.toLocaleString()} × 40% = ₩{fiveStep.manufacturerMarginKRW.toLocaleString()}
+            ₩{fiveStep.baseCostKRW.toLocaleString()} × {fiveStep.manufacturerMarginRate} = ₩{fiveStep.manufacturerMarginKRW.toLocaleString()}
           </div>
         </div>
 
@@ -408,21 +420,6 @@ export function DetailedCostBreakdown({
           </div>
         </div>
       )}
-
-      {/* 合計 */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-4">
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-semibold text-white">💰 合計</span>
-          <span className="text-lg font-bold text-white">
-            ¥{((totalCost || 0) + skuSurcharge).toLocaleString()}
-          </span>
-        </div>
-        {skuSurcharge > 0 && (
-          <div className="text-xs text-gray-300 mt-1 text-right">
-            (SKU追加料金込み: +¥{skuSurcharge.toLocaleString()})
-          </div>
-        )}
-      </div>
 
     </div>
   );
