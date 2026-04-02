@@ -755,7 +755,7 @@ function QuotationDetailPanel({
                 <span>¥{displayQuotation.tax_amount?.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-1 border-t font-medium">
-                <span>合計:</span>
+                <span>合計 (税込):</span>
                 <span>¥{displayQuotation.total_amount?.toLocaleString()}</span>
               </div>
             </div>
