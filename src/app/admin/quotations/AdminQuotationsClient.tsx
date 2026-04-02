@@ -701,6 +701,14 @@ function QuotationDetailPanel({
   const displayQuotation = detailData || quotation;
   const items = displayQuotation.items || [];
 
+  // ステータスを正規化
+  const normalizedStatus = normalizeStatus(displayQuotation.status);
+
+  // 合計を計算（DBのtotal_amountではなく、subtotal + taxを使用）
+  const subtotal = displayQuotation.subtotal_amount || 0;
+  const tax = displayQuotation.tax_amount || 0;
+  const calculatedTotal = subtotal + tax;
+
   return (
     <Card>
       <div className="p-6 max-h-[80vh] overflow-y-auto">
@@ -731,14 +739,14 @@ function QuotationDetailPanel({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-gray-500">ステータス</p>
-              <Badge variant={STATUS_LABELS[displayQuotation.status]?.variant || 'default'}>
-                {STATUS_LABELS[displayQuotation.status]?.label || displayQuotation.status}
+              <Badge variant={STATUS_LABELS[normalizedStatus]?.variant || 'default'}>
+                {STATUS_LABELS[normalizedStatus]?.label || displayQuotation.status}
               </Badge>
             </div>
             <div>
               <p className="text-xs text-gray-500">総額（税別）</p>
               <p className="font-medium text-gray-900">
-                ¥{displayQuotation.subtotal_amount?.toLocaleString() || displayQuotation.total_amount?.toLocaleString() || '0'}
+                ¥{subtotal.toLocaleString() || '0'}
               </p>
             </div>
           </div>
@@ -748,15 +756,15 @@ function QuotationDetailPanel({
             <div className="bg-gray-50 p-3 rounded-lg text-sm">
               <div className="flex justify-between py-1">
                 <span className="text-gray-600">小計:</span>
-                <span>¥{displayQuotation.subtotal_amount?.toLocaleString()}</span>
+                <span>¥{subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-gray-600">消費税 (10%):</span>
-                <span>¥{displayQuotation.tax_amount?.toLocaleString()}</span>
+                <span>¥{tax.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-1 border-t font-medium">
                 <span>合計 (税込):</span>
-                <span>¥{displayQuotation.total_amount?.toLocaleString()}</span>
+                <span>¥{calculatedTotal.toLocaleString()}</span>
               </div>
             </div>
           )}
@@ -832,7 +840,7 @@ function QuotationDetailPanel({
 
           {/* アクションボタン */}
           <div className="pt-4 border-t space-y-2">
-            {(displayQuotation.status === 'DRAFT' || displayQuotation.status === 'draft') && (
+            {normalizedStatus === 'DRAFT' && (
               <>
                 <Button className="w-full" onClick={onApprove}>
                   承認
@@ -842,12 +850,12 @@ function QuotationDetailPanel({
                 </Button>
               </>
             )}
-            {(displayQuotation.status === 'APPROVED' || displayQuotation.status === 'approved') && (
+            {normalizedStatus === 'APPROVED' && (
               <Button className="w-full" variant="outline">
                 注文に変換
               </Button>
             )}
-            {(displayQuotation.status === 'CONVERTED' || displayQuotation.status === 'converted') && (
+            {normalizedStatus === 'CONVERTED' && (
               relatedOrderId ? (
                 <Button
                   className="w-full"
