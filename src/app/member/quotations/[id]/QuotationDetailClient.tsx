@@ -876,21 +876,59 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             )}
 
             {/* Post Processing Options */}
-            {quotation.items[0].specifications?.postProcessingOptions && Array.isArray(quotation.items[0].specifications?.postProcessingOptions) && quotation.items[0].specifications?.postProcessingOptions.length > 0 && (() => {
-              const bagTypeId = quotation.items[0].specifications?.bagTypeId as string;
+            {quotation.items[0].specifications && (() => {
+              const specs = quotation.items[0].specifications;
+              const bagTypeId = specs?.bagTypeId as string;
               const isLimitedPostProcessing = bagTypeId === 'roll_film' || bagTypeId === 'standup_pouch';
-              const allowedOptions = isLimitedPostProcessing
-                ? quotation.items[0].specifications?.postProcessingOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
-                : quotation.items[0].specifications?.postProcessingOptions;
 
-              if (allowedOptions.length === 0) return null;
+              // 시일 폭 표시 - sealWidth 필드 우선, 없으면 postProcessingOptions에서 추출
+              let sealWidthDisplay = null;
+              if (specs.sealWidth) {
+                sealWidthDisplay = `シール幅 ${specs.sealWidth}`;
+              } else {
+                const sealWidthOption = (specs.postProcessingOptions || []).find((opt: string) => opt.startsWith('sealing-width-'));
+                if (sealWidthOption) {
+                  const widthMatch = sealWidthOption.match(/sealing-width-(.+)$/);
+                  if (widthMatch) {
+                    sealWidthDisplay = `シール幅 ${widthMatch[1].replace('-', '.')}`;
+                  }
+                }
+              }
+
+              // 후가공 옵션에서 sealing-width-* 제거
+              const allOptions = (specs.postProcessingOptions || []) as string[];
+              const otherOptions = allOptions.filter((opt: string) => !opt.startsWith('sealing-width-'));
+
+              // 시일 폭을 맨 앞에 추가 (롤필름/스파우트파우치가 아닌 경우만)
+              const allowedOptions = isLimitedPostProcessing
+                ? otherOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
+                : otherOptions;
+
+              const displayOptions = (!isLimitedPostProcessing && sealWidthDisplay)
+                ? [{ label: sealWidthDisplay, isSealWidth: true }, ...allowedOptions.map((opt: string) => ({ label: opt, isSealWidth: false }))]
+                : allowedOptions.map((opt: string) => ({ label: opt, isSealWidth: false }));
+
+              if (displayOptions.length === 0) return null;
 
               return (
                 <div className="text-sm">
                   <span className="text-text-muted">後加工:</span>
                   <div className="ml-2 mt-1 flex flex-wrap gap-2">
-                    {allowedOptions.map((opt: string) => {
+                    {displayOptions.map((item: { label: string; isSealWidth?: boolean }) => {
+                      // 시일 폭이면 그대로 표시
+                      if (item.isSealWidth) {
+                        return (
+                          <span
+                            key="seal-width"
+                            className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
+                          >
+                            {item.label}
+                          </span>
+                        );
+                      }
+
                       // 標準定義を使用（POST_PROCESSING_JA）
+                      const opt = item.label;
                       const standardTranslation = translatePostProcessing(opt);
                       // 標準定義にない項目のみフォールバック
                       const fallbackMap: Record<string, string> = {
