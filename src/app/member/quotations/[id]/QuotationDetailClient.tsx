@@ -875,6 +875,37 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
               </div>
             )}
 
+            {/* Spout Specifications (スパウトパウチの場合のみ) */}
+            {quotation.items[0].specifications?.bagTypeId === 'spout_pouch' && (() => {
+              const specs = quotation.items[0].specifications;
+              const hasSpoutSpecs = specs?.spoutSize || specs?.spoutPosition || specs?.hasGusset !== undefined;
+              if (!hasSpoutSpecs) return null;
+
+              return (
+                <>
+                  {/* スパウト仕様 */}
+                  <div className="text-sm">
+                    <span className="text-text-muted">スパウト仕様:</span>
+                    <span className="ml-2 text-text-primary">
+                      {specs?.spoutSize && `サイズ: ${specs.spoutSize}`}
+                      {specs?.spoutPosition && `、位置: ${specs.spoutPosition === 'top-center' ? '上部中央' : specs.spoutPosition === 'top-left' ? '上部左側' : specs.spoutPosition === 'top-right' ? '上部右側' : specs.spoutPosition}`}
+                      {specs?.hasGusset !== undefined && `、マチ: ${specs.hasGusset ? 'あり' : 'なし'}`}
+                    </span>
+                  </div>
+
+                  {/* マチサイズ */}
+                  {specs?.sideWidth && (
+                    <div className="text-sm">
+                      <span className="text-text-muted">マチサイズ:</span>
+                      <span className="ml-2 text-text-primary">
+                        {specs.sideWidth}mm
+                      </span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
             {/* Post Processing Options */}
             {quotation.items[0].specifications && (() => {
               const specs = quotation.items[0].specifications;
