@@ -90,7 +90,9 @@ export const POST_PROCESSING_JA = {
   'valve-yes': 'バルブ付き',
   'valve-no': 'バルブなし',
   'top-open': '上端開封',
-  'bottom-open': '下端開封'
+  'bottom-open': '下端開封',
+  'machi-printing-yes': 'マチ印刷あり',
+  'machi-printing-no': 'マチ印刷なし'
 } as const;
 
 // ユーティリティ関数
