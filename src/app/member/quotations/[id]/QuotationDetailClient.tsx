@@ -30,7 +30,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { generateQuotePDF, type QuoteData } from '@/lib/pdf-generator';
-import { translateBagType, translateMaterialType } from '@/constants/enToJa';
+import { translateBagType, translateMaterialType, translatePostProcessing, BAG_TYPE_JA } from '@/constants/enToJa';
 import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
 import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
@@ -80,29 +80,25 @@ const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' 
  */
 
 function getBagTypeName(bagTypeId: string): string {
-  const names: Record<string, string> = {
+  // 標準定義を優先使用し、不足分のみフォールバック
+  const fallbackNames: Record<string, string> = {
     'flat_pouch': 'ピローパウチ',
-    'flat_3_side': '三方シール平袋',
     'three_side_seal': '三方シール平袋',
     'lap_seal': '合掌袋',
-    'stand_up': 'スタンドパウチ',
     'stand_pouch': 'スタンドパウチ',
-    'gusset': 'ガセットパウチ',
     'gusset_pouch': 'ガセットパウチ',
-    'spout_pouch': 'スパウトパウチ',
-    'roll_film': 'ロールフィルム',
-    'roll-film': 'ロールフィルム',
     'zipper_pouch': 'ジッパーパウチ',
-    'box': 'ガゼットパウチ',
+    'roll-film': 'ロールフィルム',
   };
-  return names[bagTypeId] || translateBagType(bagTypeId) || bagTypeId || '-';
+  return BAG_TYPE_JA[bagTypeId as keyof typeof BAG_TYPE_JA] || fallbackNames[bagTypeId] || bagTypeId || '-';
 }
 
 /**
  * 素材IDを日本語名に変換
  */
 function getMaterialName(materialId: string): string {
-  const names: Record<string, string> = {
+  // 標準定義を優先使用し、不足分のみフォールバック
+  const fallbackNames: Record<string, string> = {
     'pet_al': 'PET/AL (アルミ箔ラミネート)',
     'pet_ny_al': 'PET/NY/AL',
     'pet_pe': 'PET/PE (透明ラミネート)',
@@ -113,11 +109,11 @@ function getMaterialName(materialId: string): string {
     'kraft_pet_lldpe': 'クラフト/PET/LLDPE',
     'kp': 'kraft (クラフト紙)',
     'kraft': 'クラフト紙',
-    'paper': '紙',
     'ny_pe': 'NY/PE',
     'pet_ny': 'PET/NY',
   };
-  return names[materialId] || translateMaterialType(materialId) || materialId || '-';
+  // 標準定義のMATERIAL_TYPE_JAを優先
+  return translateMaterialType(materialId) || fallbackNames[materialId] || materialId || '-';
 }
 
 /**
@@ -894,23 +890,11 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                   <span className="text-text-muted">後加工:</span>
                   <div className="ml-2 mt-1 flex flex-wrap gap-2">
                     {allowedOptions.map((opt: string) => {
-                      const labelMap: Record<string, string> = {
-                        'corner-round': '角丸',
-                        'corner-square': '角直角',
-                        'glossy': '光沢仕上げ',
-                        'matte': 'マット仕上げ',
-                        'notch-yes': 'Vノッチ',
+                      // 標準定義を使用（POST_PROCESSING_JA）
+                      const standardTranslation = translatePostProcessing(opt);
+                      // 標準定義にない項目のみフォールバック
+                      const fallbackMap: Record<string, string> = {
                         'notch-straight': '直線ノッチ',
-                        'notch-no': 'ノッチなし',
-                        'hang-hole-6mm': '吊り穴(6mm)',
-                        'hang-hole-8mm': '吊り下げ穴 (8mm)',
-                        'hang-hole-no': '吊り穴なし',
-                        'valve-yes': 'バルブ付き',
-                        'valve-no': 'バルブなし',
-                        'zipper-yes': 'ジッパー付き',
-                        'zipper-no': 'ジッパーなし',
-                        'zipper-position-any': 'ジッパー位置 (お任せ)',
-                        'zipper-position-specified': 'ジッパー位置 (指定)',
                         'top-open': '上部解放',
                         'bottom-open': '下端解放',
                         'top-sealed': '上部密封',
@@ -920,12 +904,13 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                         'machi-printing-yes': 'マチ印刷あり',
                         'machi-printing-no': 'マチ印刷なし',
                       };
+                      const label = standardTranslation !== opt ? standardTranslation : fallbackMap[opt] || opt;
                       return (
                         <span
                           key={opt}
                           className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
                         >
-                          {labelMap[opt] || opt}
+                          {label}
                         </span>
                       );
                     })}
@@ -976,6 +961,21 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 <p className="text-sm text-text-muted mt-1">
                   数量: {item.quantity.toLocaleString()}個 × {formatPrice(item.unitPrice || 0)}円
                 </p>
+                {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (
+                  <div className="bg-purple-50 p-3 rounded-lg mt-4">
+                    <p className="font-medium text-purple-700">SKU分割: {item.specifications.sku_quantities.length}種類</p>
+                    <div className="text-sm text-purple-600 mt-2">
+                      {item.specifications.sku_quantities.map((qty: number, idx: number) => (
+                        <span key={idx} className="inline-block mr-3">
+                          SKU {idx + 1}: {qty}個
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-purple-500 mt-1">
+                      合計: {item.specifications.sku_quantities.reduce((sum: number, q: number) => sum + q, 0)}個
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Item Total */}

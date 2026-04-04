@@ -161,6 +161,18 @@ function normalizeStatus(status: string): Quotation['status'] {
     'rejected': 'REJECTED',
     'expired': 'EXPIRED',
     'converted': 'CONVERTED',
+    // 10-step workflow statuses
+    'quotation_pending': 'DRAFT',
+    'quotation_approved': 'APPROVED',
+    'data_upload_pending': 'DRAFT',
+    'data_uploaded': 'SENT',
+    'correction_in_progress': 'DRAFT',
+    'correction_completed': 'SENT',
+    'customer_approval_pending': 'SENT',
+    'production': 'APPROVED',
+    'ready_to_ship': 'APPROVED',
+    'shipped': 'APPROVED',
+    'cancelled': 'REJECTED',
   };
   return statusMap[status?.toLowerCase()] || 'DRAFT';
 }
@@ -178,6 +190,18 @@ const STATUS_LABELS: Record<string, { label: string; variant: 'success' | 'warni
   'expired': { label: '期限切れ', variant: 'default' },
   'CONVERTED': { label: '注文変換済み', variant: 'success' },
   'converted': { label: '注文変換済み', variant: 'success' },
+  // 10-step workflow statuses
+  'QUOTATION_PENDING': { label: '見積依頼中', variant: 'default' },
+  'QUOTATION_APPROVED': { label: '見積承認済み', variant: 'success' },
+  'DATA_UPLOAD_PENDING': { label: 'データ入待ち', variant: 'default' },
+  'DATA_UPLOADED': { label: 'データ入完了', variant: 'warning' },
+  'CORRECTION_IN_PROGRESS': { label: '修正中', variant: 'warning' },
+  'CORRECTION_COMPLETED': { label: '修正完了', variant: 'warning' },
+  'CUSTOMER_APPROVAL_PENDING': { label: '顧客承認待ち', variant: 'warning' },
+  'PRODUCTION': { label: '製造中', variant: 'warning' },
+  'READY_TO_SHIP': { label: '出荷予定', variant: 'warning' },
+  'SHIPPED': { label: '出荷完了', variant: 'success' },
+  'CANCELLED': { label: 'キャンセル', variant: 'error' },
 };
 
 function AdminQuotationsClientContent({ authContext, initialStatus }: AdminQuotationsClientProps) {
@@ -1001,19 +1025,19 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
               'notch-straight': '直線ノッチ',
               'notch-no': 'ノッチなし',
               // 매달림 구멍
-              'hang-hole-6mm': '吊り穴(6mm)',
+              'hang-hole-6mm': '吊り下げ穴 (6mm)',
               'hang-hole-8mm': '吊り下げ穴 (8mm)',
               'hang-hole-no': '吊り穴なし',
               // 밸브
               'valve-yes': 'バルブ付き',
               'valve-no': 'バルブなし',
               // 지퍼
-              'zipper-yes': 'チャック付き',
-              'zipper-no': 'チャックなし',
+              'zipper-yes': 'ジッパー付き',
+              'zipper-no': 'ジッパーなし',
               'zipper-position-any': 'ジッパー位置 (お任せ)',
               'zipper-position-specified': 'ジッパー位置 (指定)',
               // 개구 처리
-              'top-open': '上部開放',
+              'top-open': '上端開封',
               'bottom-open': '下端開封',
               'top-sealed': '上部密閉',
               // 시일 폭
@@ -1037,10 +1061,15 @@ function QuotationItemDetail({ item, showFormula }: { item: QuotationItem; showF
       ) : null}
 
       {/* SKU情報 */}
-      {breakdown?.sku_info && breakdown.sku_info.count > 1 && (
+      {breakdown?.sku_info && breakdown.sku_info.count > 1 ? (
         <div className="bg-purple-50 p-2 rounded text-xs">
           <p className="font-medium text-purple-700">SKU分割: {breakdown.sku_info.count}SKU</p>
           <p className="text-purple-600">数量: [{breakdown.sku_info.quantities.join(', ')}] 合計: {breakdown.sku_info.total}個</p>
+        </div>
+      ) : (
+        <div className="bg-gray-100 p-2 rounded text-xs">
+          <p className="text-gray-600">SKU数: 1種類</p>
+          <p className="text-gray-500">数量: {item.quantity}個</p>
         </div>
       )}
 

@@ -17,7 +17,7 @@ import { ja } from 'date-fns/locale';
 import { Download } from 'lucide-react';
 import type { Quotation, QuotationStatus } from '@/types/dashboard';
 import { supabase } from '@/lib/supabase-browser';
-import { translateBagType, translateMaterialType } from '@/constants/enToJa';
+import { translateBagType, translateMaterialType, translatePostProcessing, BAG_TYPE_JA, POST_PROCESSING_JA } from '@/constants/enToJa';
 import { Eye, Trash2, FileText } from 'lucide-react';
 import { safeMap } from '@/lib/array-helpers';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
@@ -127,16 +127,10 @@ function SpecificationDisplay({ item }: { item: any }) {
 
   const specs = item.specifications;
 
-  // 백타입 일본어 변환
-  const bagTypeMap: Record<string, string> = {
+  // 백타입 일본어 변환 - 표준 정의 우선 사용
+  const bagTypeFallback: Record<string, string> = {
     'flat_pouch': 'ピローパウチ',
-    'flat_3_side': '三方シール平袋',
     'lap_seal': '合掌袋',
-    'stand_up': 'スタンドパウチ',
-    'gusset': 'ガセットパウチ',
-    'spout_pouch': 'スパウトパウチ',
-    'roll_film': 'ロールフィルム',
-    'box': 'ガゼットパウチ',
   };
 
   // 내용물 일본어 변환
@@ -167,52 +161,16 @@ function SpecificationDisplay({ item }: { item: any }) {
     'other': 'その他',
   };
 
-  // 소재 일본어 변환
-  const materialMap: Record<string, string> = {
+  // 소재 일본어 변환 - 표준 정의 우선 사용
+  const materialFallback: Record<string, string> = {
     'pet_al': 'PET/AL (アルミ箔ラミネート)',
     'pet_ny_al': 'PET/NY/AL',
     'pet_pe': 'PET/PE (透明ラミネート)',
     'pet_ldpe': 'PET/LLDPE',
   };
 
-  // 후加工 일본어 변환 (enToJa.ts와 일치시킴)
-  const postProcessingMap: Record<string, string> = {
-    // 코너 처리
-    'corner-round': '角丸',
-    'corner-square': '角直角',
-    // 표면 처리
-    'glossy': '光沢仕上げ',
-    'matte': 'マット仕上げ',
-    // 노치 (V노치/직선노치 구분)
-    'notch-yes': 'Vノッチ',
-    'notch-straight': '直線ノッチ',
-    'notch-no': 'ノッチなし',
-    // 매달림 구멍
-    'hang-hole-6mm': '吊り穴(6mm)',
-    'hang-hole-8mm': '吊り下げ穴 (8mm)',
-    'hang-hole-no': '吊り穴なし',
-    // 밸브
-    'valve-yes': 'バルブ付き',
-    'valve-no': 'バルブなし',
-    // 지퍼
-    'zipper-yes': 'チャック付き',
-    'zipper-no': 'チャックなし',
-    'zipper-position-any': 'ジッパー位置 (お任せ)',
-    'zipper-position-specified': 'ジッパー位置 (指定)',
-    // 개구 처리
-    'top-open': '上部開放',
-    'bottom-open': '下端開封',
-    // 시일 폭
-    'sealing-width-5mm': 'シール幅 5mm',
-    'sealing-width-7.5mm': 'シール幅 7.5mm',
-    'sealing-width-10mm': 'シール幅 10mm',
-    // 마치 인쇄
-    'machi-printing-yes': 'マチ印刷あり',
-    'machi-printing-no': 'マチ印刷なし',
-  };
-
-  const bagTypeJa = bagTypeMap[specs.bagTypeId] || specs.bagTypeId || '-';
-  const materialJa = materialMap[specs.materialId] || specs.materialId || '-';
+  const bagTypeJa = BAG_TYPE_JA[specs.bagTypeId as keyof typeof BAG_TYPE_JA] || bagTypeFallback[specs.bagTypeId] || specs.bagTypeId || '-';
+  const materialJa = translateMaterialType(specs.materialId) || materialFallback[specs.materialId] || specs.materialId || '-';
 
   // 두께 - specification 함수 사용
   let thicknessJa = '-';
@@ -254,7 +212,9 @@ function SpecificationDisplay({ item }: { item: any }) {
     ? filteredOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
     : filteredOptions;
 
-  const postProcessingList = filteredPostProcessingOptions.map((opt: string) => postProcessingMap[opt] || opt).filter(Boolean);
+  const postProcessingList = filteredPostProcessingOptions.map((opt: string) => {
+    return POST_PROCESSING_JA[opt as keyof typeof POST_PROCESSING_JA] || opt;
+  }).filter(Boolean);
 
   // 시일 폭 표시 - sealWidth 필드 우선, 없으면 postProcessingOptions에서 추출
   let sealWidthDisplay = null;
@@ -768,37 +728,49 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
 
                   {/* SKU Items - Simplified display */}
                   <div className="text-sm text-text-muted space-y-1 mb-3">
-                    {safeMap((quotation.items || []).slice(0, 3), (item) => (
-                      <div key={item.id} className="flex items-center justify-between p-2 rounded bg-bg-secondary/30">
-                        <div className="flex items-center gap-2">
-                          <span className="text-text-primary font-medium">{item.productName || `SKU ${item.id}`}</span>
-                          <span className="text-border-secondary">x{item.quantity}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-text-primary font-semibold">
-                            {formatPrice(item.unitPrice * item.quantity)}円
-                          </span>
-                          {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
-                            item.orderId ? (
-                              <a
-                                href={`/member/orders/${item.orderId}`}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  window.location.href = `/member/orders/${item.orderId}`;
-                                }}
-                                className="text-xs text-primary hover:underline cursor-pointer"
-                              >
-                                注文を確認
-                              </a>
+                    {safeMap((quotation.items || []).slice(0, 3), (item) => {
+                      const specs = item.specifications || {};
+                      const skuQuantities = specs.sku_quantities;
+                      const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
+
+                      return (
+                        <div key={item.id} className="flex items-center justify-between p-2 rounded bg-bg-secondary/30">
+                          <div className="flex items-center gap-2">
+                            {hasMultipleSKUs ? (
+                              <>
+                                <span className="text-text-primary font-medium">SKU分割: {skuQuantities.length}種類</span>
+                                <span className="text-border-secondary">合計: {skuQuantities.reduce((sum: number, q: number) => sum + q, 0)}個</span>
+                              </>
                             ) : (
-                              <span className="text-xs text-text-muted">注文詳細で確認</span>
-                            )
-                          ) : (
-                            <Badge variant="secondary" size="sm">未注文</Badge>
-                          )}
+                              <span className="text-text-primary font-medium">{item.productName || `SKU ${item.id}`}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-text-primary font-semibold">
+                              {formatPrice(item.unitPrice * item.quantity)}円
+                            </span>
+                            {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
+                              item.orderId ? (
+                                <a
+                                  href={`/member/orders/${item.orderId}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    window.location.href = `/member/orders/${item.orderId}`;
+                                  }}
+                                  className="text-xs text-primary hover:underline cursor-pointer"
+                                >
+                                  注文を確認
+                                </a>
+                              ) : (
+                                <span className="text-xs text-text-muted">注文詳細で確認</span>
+                              )
+                            ) : (
+                              <Badge variant="secondary" size="sm">未注文</Badge>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {quotation.items && quotation.items.length > 3 && (
                       <p className="text-text-muted text-center">
                         他 {quotation.items.length - 3} 点

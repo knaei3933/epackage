@@ -24,6 +24,7 @@ import type {
   ContractParty,
   ContractSignatory,
 } from '../types/contract';
+import { POST_PROCESSING_JA } from '@/constants/enToJa';
 
 // ============================================================
 // Type Definitions
@@ -105,7 +106,7 @@ export interface QuoteData {
     gasValve?: boolean;
     easyCut?: boolean;
     dieCut?: boolean;
-    surfaceFinish?: '光沢' | 'マット';
+    surfaceFinish?: '光沢仕上げ' | 'マット仕上げ';
     zipperPositionSpecified?: boolean;
     openingPosition?: '上端' | '下端';
   };
@@ -1187,13 +1188,14 @@ function generateQuoteHTML(
   console.log('[PDF HTML Generator] data.optionalProcessing:', data.optionalProcessing);
   console.log('[PDF HTML Generator] processing before:', processing);
 
-  // ロールフィルム・スパウトパウチの場合、surfaceFinishがない場合はデフォルトで'光沢'を設定
+  // ロールフィルム・スパウトパウチの場合、surfaceFinishがない場合はデフォルトで'光沢仕上げ'を設定
+  // 標準定義 POST_PROCESSING_JA['glossy'] = '光沢仕上げ'
   // ただし、既にmatteが選択されている場合はmatteを優先
   const isRollFilmOrSpout = specs.bagType === 'ロールフィルム' || specs.bagType === 'スパウトパウチ' ||
                           (specs as any).productType === 'roll_film' || (specs as any).productType === 'spout_pouch';
   if (isRollFilmOrSpout && !processing.surfaceFinish) {
-    processing = { ...processing, surfaceFinish: '光沢' };
-    console.log('[PDF HTML Generator] Set default surfaceFinish to 光沢 for roll_film/spout_pouch (no user selection)');
+    processing = { ...processing, surfaceFinish: POST_PROCESSING_JA['glossy'] };
+    console.log('[PDF HTML Generator] Set default surfaceFinish to', POST_PROCESSING_JA['glossy'], 'for roll_film/spout_pouch (no user selection)');
   }
 
   const supplier = data.supplierInfo || JAPANESE_CONSTANTS.DEFAULT_SUPPLIER;
@@ -1941,7 +1943,7 @@ function generateQuoteHTML(
           <td>-</td>
         </tr>
         <tr>
-          <td class="spec-label">チャック位置</td>
+          <td class="spec-label">ジッパー位置</td>
           <td>-</td>
         </tr>
         <tr>
@@ -1975,7 +1977,7 @@ function generateQuoteHTML(
           <td>${isSpoutPouchIncompatible(specs.bagType) ? '-' : (specs.hangingPosition || '-')}</td>
         </tr>
         <tr>
-          <td class="spec-label">チャック位置</td>
+          <td class="spec-label">ジッパー位置</td>
           <td>${isZipperIncompatible(specs.bagType) ? '-' : (specs.zipperPosition || '-')}</td>
         </tr>
         <tr>

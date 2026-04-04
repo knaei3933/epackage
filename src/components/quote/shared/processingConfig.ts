@@ -1,3 +1,12 @@
+/**
+ * 後加工オプション設定
+ *
+ * 標準日本語定義: src/constants/enToJa.ts の POST_PROCESSING_JA
+ * このファイルの nameJa は標準定義に基づいて統一されています
+ */
+
+import { POST_PROCESSING_JA } from '@/constants/enToJa'
+
 export interface ProcessingOptionConfig {
   id: string
   name: string
@@ -68,8 +77,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   },
   {
     id: 'zipper-yes',
-    name: 'ジッパーあり',
-    nameJa: 'ジッパーあり',
+    name: 'ジッパー付き',
+    nameJa: 'ジッパー付き',
     description: '再利用可能なジッパー密閉機能',
     descriptionJa: '再利用可能なジッパー密閉機能',
     beforeImage: '/images/post-processing/1.ジッパーなし.png',
@@ -119,8 +128,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 2-1. Glossy (光沢)
   {
     id: 'glossy',
-    name: '光沢処理',
-    nameJa: '光沢処理',
+    name: '光沢仕上げ',
+    nameJa: '光沢仕上げ',
     description: '光沢のある表面処理',
     descriptionJa: '光沢のある表面処理',
     beforeImage: '/images/post-processing/2.マット.png',
@@ -146,8 +155,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 2-2. Matte (マット)
   {
     id: 'matte',
-    name: 'マット処理',
-    nameJa: 'マット処理',
+    name: 'マット仕上げ',
+    nameJa: 'マット仕上げ',
     description: 'マット表面処理',
     descriptionJa: 'マット表面処理',
     beforeImage: '/images/post-processing/2.光沢.png',
@@ -173,11 +182,11 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 3. NOTCH (ノッチ)
   // =====================================================
 
-  // 3-1. Notch Yes (Vノッチ)
+  // 3-1. Notch Yes (ノッチ付き)
   {
     id: 'notch-yes',
-    name: 'Vノッチ',
-    nameJa: 'Vノッチ',
+    name: 'ノッチ付き',
+    nameJa: 'ノッチ付き',
     description: '簡単な開封のためのVノッチ',
     descriptionJa: '簡単な開封のためのVノッチ',
     beforeImage: '/images/post-processing/3.ノッチなし.png',
@@ -258,8 +267,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 4-1. Hang Hole 6mm
   {
     id: 'hang-hole-6mm',
-    name: '吊り穴 6mm',
-    nameJa: '吊り穴 6mm',
+    name: '吊り下げ穴 (6mm)',
+    nameJa: '吊り下げ穴 (6mm)',
     description: '6mm吊り穴処理',
     descriptionJa: '6mm吊り穴処理',
     beforeImage: '/images/post-processing/4.걸이타공 없음.png',
@@ -303,8 +312,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   },
   {
     id: 'hang-hole-8mm',
-    name: '吊り穴 8mm',
-    nameJa: '吊り穴 8mm',
+    name: '吊り下げ穴 (8mm)',
+    nameJa: '吊り下げ穴 (8mm)',
     description: '8mm吊り穴処理',
     descriptionJa: '8mm吊り穴処理',
     beforeImage: '/images/post-processing/4.걸이타공 없음.png',
@@ -439,8 +448,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   },
   {
     id: 'valve-yes',
-    name: 'バルブあり',
-    nameJa: 'バルブあり',
+    name: 'バルブ付き',
+    nameJa: 'バルブ付き',
     description: 'ガス排出バルブ機能',
     descriptionJa: 'ガス排出バルブ機能',
     beforeImage: '/images/post-processing/バルブなし.png',

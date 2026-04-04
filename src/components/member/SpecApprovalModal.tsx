@@ -241,8 +241,8 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
   // 後加工オプションの詳細マッピング
   const optionMap: Record<string, string> = {
     // ジッパー
-    'zipper': 'チャック付き',
-    'zipper-yes': 'チャック付き',
+    'zipper': 'ジッパー付き',
+    'zipper-yes': 'ジッパー付き',
     'slider': 'スライダー',
 
     // 仕上げ
@@ -258,16 +258,16 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
     // その他オプション（英語キーを日本語に変換）
     'corner_rounding': '角丸め',
     'corner-rounding': '角丸め',
-    'hang_hole': '吊り穴',
-    'hang-hole': '吊り穴',
-    'hang-hole-6mm': '吊り穴(6mm)',
-    'notch': 'ノッチあり',
-    'notch-yes': 'ノッチあり',
-    'top_open': '上部開放',
-    'top-open': '上部開放',
+    'hang_hole': '吊り下げ穴',
+    'hang-hole': '吊り下げ穴',
+    'hang-hole-6mm': '吊り下げ穴 (6mm)',
+    'notch': 'ノッチ付き',
+    'notch-yes': 'ノッチ付き',
+    'top_open': '上端開封',
+    'top-open': '上端開封',
     'spout': 'スパウト',
-    'valve': 'バルブ',
-    'valve-yes': 'バルブ',
+    'valve': 'バルブ付き',
+    'valve-yes': 'バルブ付き',
     'valve-no': 'バルブなし',
     'easy_tear': 'イージーティア',
   };

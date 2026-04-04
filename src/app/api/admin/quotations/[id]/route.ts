@@ -9,6 +9,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createServiceClient } from '@/lib/supabase';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import type { FilmCostResult } from '@/lib/film-cost-calculator';
+import { POST_PROCESSING_JA } from '@/constants/enToJa';
 
 interface QuotationItem {
   id: string;
@@ -233,24 +234,30 @@ function getThicknessName(thickness: string): string {
 }
 
 function getPostProcessingDisplay(options: string[]): string[] {
+  // 標準定義を使用
   const displayNames: Record<string, string> = {
-    'corner-round': 'コーナーR',
-    'glossy': '光沢 (グロッシー)',
-    'matte': 'マット',
-    'hang-hole-6mm': 'ハングホール (6mm)',
-    'hang-hole-8mm': 'ハングホール (8mm)',
-    'notch-yes': 'ノッチ',
-    'notch-no': 'ノッチなし',
-    'zipper-yes': 'ジッパー',
-    'zipper-no': 'ジッパーなし',
-    'valve-yes': 'バルブ',
-    'valve-no': 'バルブなし',
-    'spout-yes': 'スパウト',
+    // POST_PROCESSING_JAから標準定義を使用
+    'zipper-yes': POST_PROCESSING_JA['zipper-yes'],
+    'zipper-no': POST_PROCESSING_JA['zipper-no'],
+    'glossy': POST_PROCESSING_JA['glossy'],
+    'matte': POST_PROCESSING_JA['matte'],
+    'notch-yes': POST_PROCESSING_JA['notch-yes'],
+    'notch-no': POST_PROCESSING_JA['notch-no'],
+    'hang-hole-6mm': POST_PROCESSING_JA['hang-hole-6mm'],
+    'hang-hole-8mm': POST_PROCESSING_JA['hang-hole-8mm'],
+    'hang-hole-no': POST_PROCESSING_JA['hang-hole-no'],
+    'corner-round': POST_PROCESSING_JA['corner-round'],
+    'corner-square': POST_PROCESSING_JA['corner-square'],
+    'valve-yes': POST_PROCESSING_JA['valve-yes'],
+    'valve-no': POST_PROCESSING_JA['valve-no'],
+    'top-open': POST_PROCESSING_JA['top-open'],
+    'bottom-open': POST_PROCESSING_JA['bottom-open'],
+    // その他のオプション（標準定義にないもの）
+    'spout-yes': 'スパウト付き',
     'spout-no': 'スパウトなし',
     'sealing-width-5mm': 'シール幅5mm',
     'sealing-width-8mm': 'シール幅8mm',
     'sealing-width-10mm': 'シール幅10mm',
-    'top-open': 'トップオープン',
     'top-closed': 'トップクローズ',
     'machi-printing-yes': 'マチ印刷あり',
     'machi-printing-no': 'マチ印刷なし',
@@ -482,7 +489,7 @@ async function recalculateTotals(supabase: any, quotationId: string) {
   const roundedSubtotal = Math.round(subtotal / 100) * 100;
   const tax = roundedSubtotal * 0.1;
   const roundedTax = Math.round(tax);
-  const total = Math.round((roundedSubtotal + roundedTax) / 100) * 100;
+  const total = roundedSubtotal + roundedTax;
 
   console.log('[recalculateTotals] Price calculation:', {
     quotationId,
@@ -493,7 +500,7 @@ async function recalculateTotals(supabase: any, quotationId: string) {
     total,
   });
 
-  await supabase.from('quotation').update({
+  await supabase.from('quotations').update({
     subtotal_amount: roundedSubtotal,
     tax_amount: roundedTax,
     total_amount: total,
