@@ -310,6 +310,23 @@ function SpecificationDisplay({ item }: { item: any }) {
           <span className="text-text-muted flex-shrink-0">配送先:</span>
           <span className="text-text-primary">{deliveryJa}</span>
         </div>
+        {/* 스파ウトパウチ 관련 정보 (bagTypeId가 'spout_pouch'인 경우만 표시) */}
+        {specs.bagTypeId === 'spout_pouch' && (specs.spoutSize || specs.spoutPosition) && (
+          <div className="col-span-2 flex items-start gap-1">
+            <span className="text-text-muted flex-shrink-0">スパウト仕様:</span>
+            <span className="text-text-primary">
+              サイズ: {specs.spoutSize ? `${specs.spoutSize}mm` : '-'}
+              {specs.spoutPosition && `、位置: ${specs.spoutPosition === 'top-center' ? '上部中央' : specs.spoutPosition === 'top-left' ? '上部左側' : specs.spoutPosition === 'top-right' ? '上部右側' : specs.spoutPosition || '-'}`}
+            </span>
+          </div>
+        )}
+        {/* 마치 사이즈 (스パウトパウ치의 경우) */}
+        {specs.bagTypeId === 'spout_pouch' && specs.sideWidth && (
+          <div className="flex items-start gap-1">
+            <span className="text-text-muted flex-shrink-0">マチサイズ:</span>
+            <span className="text-text-primary">{specs.sideWidth}mm</span>
+          </div>
+        )}
         {postProcessingList.length > 0 && (
           <div className="col-span-2 flex items-start gap-1">
             <span className="text-text-muted flex-shrink-0">後加工:</span>
