@@ -220,7 +220,7 @@ export function PostProcessingPreview({
         <CardContent className="text-center">
           <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-gray-600">
-            {language === 'ja' ? '選択した製品タイプでは後加工オプションは利用できません' : 'No post-processing options available for this product type'}
+            選択した製品タイプでは後加工オプションは利用できません
           </p>
         </CardContent>
       </Card>
@@ -234,15 +234,13 @@ export function PostProcessingPreview({
         <div className="text-center">
           <div className="inline-flex items-center space-x-2 bg-brixa-100 text-brixa-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Settings className="w-4 h-4" />
-            <span>{language === 'ja' ? '後加工オプション' : 'Post-Processing Options'}</span>
+            <span>後加工オプション</span>
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            {language === 'ja' ? '仕上げ加工をお選びください' : 'Select Finishing Options'}
+            仕上げ加工をお選びください
           </h3>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {language === 'ja'
-              ? '製品の機能性と魅力を向上させる後加工オプションをお選びいただけます'
-              : 'Enhance your product functionality and appeal with post-processing options'}
+            製品の機能性と魅力を向上させる後加工オプションをお選びいただけます
           </p>
         </div>
       </MotionWrapper>
@@ -258,8 +256,8 @@ export function PostProcessingPreview({
           >
             {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             <span>{showPreview
-              ? (language === 'ja' ? 'プレビューを隠す' : 'Hide Preview')
-              : (language === 'ja' ? 'プレビューを表示' : 'Show Preview')
+              ? 'プレビューを隠す'
+              : 'プレビューを表示'
             }</span>
           </Button>
         </div>
@@ -272,14 +270,14 @@ export function PostProcessingPreview({
               <CardTitle className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xl font-semibold text-gray-900">
-                    {language === 'ja' ? currentOption.nameJa : currentOption.name}
+                    {currentOption.nameJa}
                   </h4>
                   <p className="text-gray-600 mt-1">
-                    {language === 'ja' ? currentOption.descriptionJa : currentOption.description}
+                    {currentOption.descriptionJa}
                   </p>
                 </div>
                 <Badge variant="metallic" className="text-sm">
-                  {language === 'ja' ? '価格x' : 'Price'} {currentOption.priceMultiplier.toFixed(2)}
+                  価格x {currentOption.priceMultiplier.toFixed(2)}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -296,7 +294,7 @@ export function PostProcessingPreview({
                     )}
                     <img
                       src={currentOption.image}
-                      alt={language === 'ja' ? currentOption.nameJa : currentOption.name}
+                      alt={currentOption.nameJa}
                       className="w-full h-48 object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                       onLoad={() => handleImageLoad(currentOption.id)}
@@ -316,7 +314,7 @@ export function PostProcessingPreview({
                       onClick={prevOption}
                       className="bg-white/90 hover:bg-white shadow-lg"
                       disabled={compatibleOptions.length <= 1}
-                      aria-label={language === 'ja' ? '前のオプション' : 'Previous option'}
+                      aria-label="前のオプション"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
@@ -326,7 +324,7 @@ export function PostProcessingPreview({
                       onClick={nextOption}
                       className="bg-white/90 hover:bg-white shadow-lg"
                       disabled={compatibleOptions.length <= 1}
-                      aria-label={language === 'ja' ? '次のオプション' : 'Next option'}
+                      aria-label="次のオプション"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Button>
@@ -352,7 +350,7 @@ export function PostProcessingPreview({
                     size="icon"
                     onClick={() => openModal(currentOption)}
                     className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    aria-label={language === 'ja' ? '詳細を表示' : 'View details'}
+                    aria-label="詳細を表示"
                   >
                     <Maximize2 className="w-4 h-4" />
                   </Button>
@@ -362,10 +360,10 @@ export function PostProcessingPreview({
                 <div className="space-y-4">
                   <div>
                     <h5 className="font-semibold text-gray-900 mb-3">
-                      {language === 'ja' ? '主な特徴' : 'Key Features'}
+                      主な特徴
                     </h5>
                     <div className="space-y-2">
-                      {(language === 'ja' ? currentOption.featuresJa : currentOption.features).map((feature, index) => (
+                      {currentOption.featuresJa.map((feature, index) => (
                         <div key={index} className="flex items-center space-x-2">
                           <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                           <span className="text-sm text-gray-700">{feature}</span>
@@ -377,7 +375,7 @@ export function PostProcessingPreview({
                   {/* Compatibility */}
                   <div>
                     <h5 className="font-semibold text-gray-900 mb-3">
-                      {language === 'ja' ? '対応製品タイプ' : 'Compatible Product Types'}
+                      対応製品タイプ
                     </h5>
                     <div className="flex flex-wrap gap-2">
                       {currentOption.compatibleWith.map((type, index) => (
@@ -409,7 +407,7 @@ export function PostProcessingPreview({
                 {hasConflicts && (
                   <div className="absolute -top-2 -right-2 z-10">
                     <div className="bg-amber-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                      {language === 'ja' ? '競合' : 'Conflict'}
+                      競合
                     </div>
                   </div>
                 )}
@@ -437,10 +435,10 @@ export function PostProcessingPreview({
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 group-hover:text-brixa-700 transition-colors">
-                            {language === 'ja' ? option.nameJa : option.name}
+                            {option.nameJa}
                           </h4>
                           <p className="text-xs text-gray-600 line-clamp-2">
-                            {language === 'ja' ? option.descriptionJa : option.description}
+                            {option.descriptionJa}
                           </p>
                         </div>
                       </div>
@@ -475,10 +473,10 @@ export function PostProcessingPreview({
                           : 'bg-gray-100 text-gray-600 group-hover:bg-brixa-50 group-hover:text-brixa-700'
                       }`}>
                         {isSelected
-                          ? (language === 'ja' ? '選択済み' : 'Selected')
+                          ? '選択済み'
                           : hasConflicts
-                          ? (language === 'ja' ? '排他選択' : 'Exclusive')
-                          : (language === 'ja' ? 'クリックして選択' : 'Click to select')
+                          ? '排他選択'
+                          : 'クリックして選択'
                         }
                       </span>
                     </div>
@@ -490,23 +488,23 @@ export function PostProcessingPreview({
                   <div className="absolute z-50 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl -top-2 left-full ml-2 animate-fade-in">
                     <div className="flex items-center justify-between mb-2">
                       <h5 className="font-semibold text-gray-900">
-                        {language === 'ja' ? tooltipData[option.id].titleJa : tooltipData[option.id].title}
+                        {tooltipData[option.id].titleJa}
                       </h5>
                       <Badge variant="outline" className="text-xs">
                         x{option.priceMultiplier.toFixed(2)}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mb-3">
-                      {language === 'ja' ? tooltipData[option.id].contentJa : tooltipData[option.id].content}
+                      {tooltipData[option.id].contentJa}
                     </p>
 
                     <div className="space-y-2">
                       <div>
                         <h6 className="text-xs font-semibold text-gray-700 mb-1">
-                          {language === 'ja' ? '主な利点' : 'Key Benefits'}
+                          主な利点
                         </h6>
                         <ul className="text-xs text-gray-600 space-y-1">
-                          {(language === 'ja' ? tooltipData[option.id].benefitsJa : tooltipData[option.id].benefits).map((benefit, idx) => (
+                          {tooltipData[option.id].benefitsJa.map((benefit, idx) => (
                             <li key={idx} className="flex items-center space-x-1">
                               <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
                               <span>{benefit}</span>
@@ -517,10 +515,10 @@ export function PostProcessingPreview({
 
                       <div>
                         <h6 className="text-xs font-semibold text-gray-700 mb-1">
-                          {language === 'ja' ? '主な用途' : 'Applications'}
+                          主な用途
                         </h6>
                         <div className="flex flex-wrap gap-1">
-                          {(language === 'ja' ? tooltipData[option.id].applicationsJa : tooltipData[option.id].applications).map((app, idx) => (
+                          {tooltipData[option.id].applicationsJa.map((app, idx) => (
                             <Badge key={idx} variant="secondary" className="text-xs">
                               {app}
                             </Badge>
@@ -544,10 +542,10 @@ export function PostProcessingPreview({
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-gray-900">
-                    {language === 'ja' ? '選択された後加工オプション' : 'Selected Post-Processing'}
+                    選択された後加工オプション
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {selectedOptions.length} {language === 'ja' ? '個のオプション' : 'options'} selected
+                    {selectedOptions.length} 個のオプションを選択中
                   </p>
                 </div>
                 <Button
@@ -558,7 +556,7 @@ export function PostProcessingPreview({
                     onPriceUpdate(1.0)
                   }}
                 >
-                  {language === 'ja' ? 'すべてクリア' : 'Clear All'}
+                  すべてクリア
                 </Button>
               </div>
             </CardContent>

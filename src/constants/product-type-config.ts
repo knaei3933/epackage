@@ -71,11 +71,17 @@ export const ADMIN_STATUS_LABELS: Record<string, { label: string; variant: 'succ
  */
 export const MEMBER_STATUS_LABELS: Record<string, string> = {
   'DRAFT': '審査中',
+  'draft': '審査中',
   'SENT': '送信済み',
+  'sent': '送信済み',
   'APPROVED': '承認済み',
+  'approved': '承認済み',
   'REJECTED': '拒否',
+  'rejected': '拒否',
   'EXPIRED': '期限切れ',
+  'expired': '期限切れ',
   'CONVERTED': '注文変換済み',
+  'converted': '注文変換済み',
   // 10-step workflow statuses
   'QUOTATION_PENDING': '見積依頼中',
   'QUOTATION_APPROVED': '見積承認済み',
@@ -96,11 +102,17 @@ export const MEMBER_STATUS_LABELS: Record<string, string> = {
  */
 export const MEMBER_STATUS_VARIANTS: Record<string, 'secondary' | 'info' | 'success' | 'error' | 'warning'> = {
   'DRAFT': 'secondary',
+  'draft': 'secondary',
   'SENT': 'info',
+  'sent': 'info',
   'APPROVED': 'success',
+  'approved': 'success',
   'REJECTED': 'error',
+  'rejected': 'error',
   'EXPIRED': 'secondary',
+  'expired': 'secondary',
   'CONVERTED': 'success',
+  'converted': 'success',
   // 10-step workflow statuses
   'QUOTATION_PENDING': 'secondary',
   'QUOTATION_APPROVED': 'success',

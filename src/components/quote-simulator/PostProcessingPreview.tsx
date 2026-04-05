@@ -133,7 +133,7 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, classN
       <div className="p-4 border-b border-border-medium">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-text-primary">
-            後加工プレビュー (Post-Processing Preview)
+            後加工プレビュー
           </h3>
           <button
             onClick={togglePreview}
