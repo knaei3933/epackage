@@ -64,6 +64,7 @@ function formatReason(reason: string | null | undefined): string {
   const reasonMap: Record<string, string> = {
     'Initial status': '初期ステータス',
     'Initial status (backfilled)': '初期ステータス（バックフィル）',
+    'Initial status - backfilled': '初期ステータス（バックフィル）',
     'Status updated automatically': 'ステータス自動更新',
     'Payment completed': '支払い完了',
     'File uploaded': 'ファイルアップロード完了',
@@ -135,6 +136,11 @@ const getStatusLabel = (status: string): string => {
     CUSTOMER_APPROVED: '顧客承認済み',
     DESIGN_REVISION_PENDING: 'デザイン改訂待ち',
     DESIGN_REVISION_COMPLETED: 'デザイン改訂完了',
+    // 10-step workflow statuses
+    DATA_UPLOAD_PENDING: 'データ入待ち',
+    DATA_UPLOADED: 'データ入完了',
+    QUOTATION_PENDING: '見積依頼中',
+    QUOTATION_APPROVED: '見積承認済み',
   };
   return labels[status?.toUpperCase()] || status || '不明';
 };

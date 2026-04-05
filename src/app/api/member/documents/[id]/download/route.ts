@@ -79,7 +79,7 @@ export async function GET(
       case 'quotation':
         tableName = 'quotations';
         const { data: quotation } = await supabase
-          .from('quotation')
+          .from('quotations')
           .select('pdf_url, quotation_number, user_id')
           .eq('id', documentId)
           .single();

@@ -211,7 +211,7 @@ export async function GET(
 
     // Fetch quotation with items
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select(`
         *,
         quotation_items (*)
@@ -301,7 +301,7 @@ export async function POST(
 
     // Fetch quotation with items
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select(`
         *,
         quotation_items (*)
@@ -425,7 +425,7 @@ export async function POST(
 
         // Update quotation record with file URL
         await supabase
-          .from('quotation')
+          .from('quotations')
           .update({
             [format === 'pdf' ? 'pdf_url' : 'excel_url']: storagePath,
             updated_at: new Date().toISOString(),

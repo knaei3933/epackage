@@ -103,7 +103,7 @@ async function validateQuotationForConversion(
 }> {
   // Check if quotation exists
   const { data: quotationRaw, error: quoteError } = await supabase
-    .from('quotation')
+    .from('quotations')
     .select('*')
     .eq('id', quotationId)
     .single();
@@ -175,7 +175,7 @@ async function createOrderStatusHistory(
   // @ts-expect-error - Supabase JSONB columns need explicit type handling
   await supabase.from('order_status_history').insert({
     order_id: orderId,
-    from_status: null, // Initial status
+    from_status: '-', // Initial status (NOT NULL constraint)
     to_status: toStatus,
     changed_by: changedBy,
     changed_at: new Date().toISOString(),
@@ -317,7 +317,7 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
 
     // Update quotation status to CONVERTED
     const { error: updateQuoteError } = await supabase
-      .from('quotation')
+      .from('quotations')
       // @ts-expect-error - Supabase update type inference issue
       .update({ status: 'CONVERTED' })
       .eq('id', q.id);

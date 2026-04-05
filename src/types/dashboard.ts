@@ -175,38 +175,36 @@ export interface BillingAddress {
 // Quotation Types
 // =====================================================
 
-export type QuotationStatus =
-  | 'draft'      // 作成中
-  | 'sent'       // 送信済
-  | 'approved'   // 承認済
-  | 'rejected'   // 却下
-  | 'expired';   // 期限切れ
+// Re-export from unified entity types
+export type {
+  QuotationStatus,
+  Quotation,
+  QuotationItem,
+  QuotationItemSpecifications,
+  QuotationItemInput,
+  QuotationCreateInput,
+  QuotationUpdateInput,
+  QuotationFilters,
+  QuotationPaginationParams,
+  QuotationPaginatedResponse,
+  SpoutPouchFields,
+  CostBreakdown,
+  FilmCostDetails,
+} from './entities/quotation';
 
-export interface Quotation {
-  id: string;
-  userId: string;
-  quotationNumber: string;
-  status: QuotationStatus;
-  totalAmount: number;
-  validUntil: string;
-  items: QuotationItem[];
-  createdAt: string;
-  updatedAt: string;
-  sentAt?: string;
-  approvedAt?: string;
-  pdfUrl?: string | null;  // 保存されたPDFのURL
-}
+export {
+  QUOTATION_STATUS_LABELS,
+  QUOTATION_STATUS_VARIANTS,
+  isQuotationStatus,
+  isQuotationItem,
+  isQuotation,
+  getQuotationStatusLabel,
+  getQuotationStatusVariant,
+  calculateQuotationTotal,
+} from './entities/quotation';
 
-export interface QuotationItem {
-  id: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  specifications?: Record<string, unknown>;
-  orderId?: string | null;  // Reference to order created from this item
-}
+// Legacy compatibility aliases
+export type LegacyQuotationStatus = 'draft' | 'sent' | 'approved' | 'rejected' | 'expired';
 
 // =====================================================
 // Sample Request Types

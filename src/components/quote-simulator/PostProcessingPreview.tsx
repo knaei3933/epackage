@@ -34,8 +34,8 @@ const postProcessingOptions: PostProcessingOption[] = [
   { id: 'zipper-yes', name: 'With Zipper', nameJa: 'ジッパー付き', imageName: '1.ジッパーあり.png', category: 'opening-sealing' },
 
   // Finish options -> surface-treatment
-  { id: 'matte', name: 'Matte Finish', nameJa: '無光沢', imageName: '2.マット.png', category: 'surface-treatment' },
-  { id: 'glossy', name: 'Glossy Finish', nameJa: '有光沢', imageName: '2.光沢.png', category: 'surface-treatment' },
+  { id: 'matte', name: 'Matte Finish', nameJa: 'マット紙', imageName: '2.マット.png', category: 'surface-treatment' },
+  { id: 'glossy', name: 'Glossy Finish', nameJa: '光沢紙', imageName: '2.光沢.png', category: 'surface-treatment' },
 
   // Notch options -> opening-sealing
   { id: 'notch-no', name: 'No Notch', nameJa: 'ノッチなし', imageName: '3.ノッチなし.png', category: 'opening-sealing' },
@@ -50,8 +50,8 @@ const postProcessingOptions: PostProcessingOption[] = [
   { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.角直角.png', category: 'shape-structure' },
 
   // Opening options -> opening-sealing
-  { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.上端開封.png', category: 'opening-sealing' },
-  { id: 'opening-bottom', name: 'Bottom Opening', nameJa: '下開口', imageName: '6.下端開封.png', category: 'opening-sealing' },
+  { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.上端オープン.png', category: 'opening-sealing' },
+  { id: 'opening-bottom', name: 'Bottom Opening', nameJa: '下開口', imageName: '6.下端オープン.png', category: 'opening-sealing' },
 
   // Valve options -> opening-sealing
   { id: 'valve-no', name: 'No Valve', nameJa: 'バルブなし', imageName: 'バルブなし.png', category: 'opening-sealing' },

@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch quotation with user info
     const { data: quotation, error: quotationError } = await supabaseAdmin
-      .from('quotation')
+      .from('quotations')
       .select('id, quotation_number, user_id, status, valid_until, total_amount')
       .eq('id', quotationId)
       .single();

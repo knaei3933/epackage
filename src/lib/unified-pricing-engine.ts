@@ -1182,7 +1182,7 @@ export class UnifiedPricingEngine {
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
     // 輸入原価は既に製造者マージン40% + 関税5%が含まれている
-    let total = importCost * (1 + salesMargin) + deliveryCost;
+    const total = importCost * (1 + salesMargin) + deliveryCost;
 
     logPriceCalculationDetail('最終価格計算', {
       製造者価格: `¥${manufacturerPrice.toLocaleString()}`,
@@ -1397,7 +1397,7 @@ export class UnifiedPricingEngine {
 
     // ガイド準拠: 配送料はマージン計算対象外
     // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
-    let totalPrice = importCost * (1 + salesMargin) + deliveryCost;
+    const totalPrice = importCost * (1 + salesMargin) + deliveryCost;
 
     // ========================================
     // 最小価格適用は無効化（ドキュメント通りの計算のみ）

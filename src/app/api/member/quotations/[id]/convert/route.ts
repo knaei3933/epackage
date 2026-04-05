@@ -326,7 +326,7 @@ export async function POST(
 
     // Update quotation status to converted
     await supabaseAdmin
-      .from('quotation')
+      .from('quotations')
       .update({ status: 'converted' })
       .eq('id', quotationId);
 

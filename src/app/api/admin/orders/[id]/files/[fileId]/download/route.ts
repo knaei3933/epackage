@@ -178,7 +178,7 @@ async function downloadFromSupabaseStorage(file: any): Promise<NextResponse> {
   }
 
   // Determine storage bucket
-  let bucket = 'production-files';
+  const bucket = 'production-files';
   let storagePath = filePath;
 
   if (filePath.startsWith('production-files/')) {

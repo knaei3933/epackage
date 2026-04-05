@@ -15,7 +15,7 @@ export async function GET() {
   // 1. Check admin's Google token
   const adminUserId = process.env.GOOGLE_DRIVE_ADMIN_USER_ID;
 
-  let tokenStatus = {
+  const tokenStatus = {
     adminUserId,
     hasTokenInDb: false,
     refreshToken: null as string | null,

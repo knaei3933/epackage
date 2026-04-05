@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { ChevronDown, ChevronUp, Package, Edit2, Save, X, Check, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -224,7 +224,7 @@ function EditableSpecItem({ label, value, type = 'text', options, isEditing, onC
 interface OrderItemEditRowProps {
   item: any;
   isEditing: boolean;
-  onEditChange: (specifications: any, quantity: number, unitPrice: number) => void;
+  onEditChange: (productName: string, specifications: any, quantity: number, unitPrice: number) => void;
 }
 
 function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowProps) {
@@ -248,9 +248,19 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
   const [localUnitPrice, setLocalUnitPrice] = useState(
     getItemValue(item, 'unitPrice', 'unit_price') || 0
   );
+  const [localProductName, setLocalProductName] = useState(
+    getItemValue(item, 'productName', 'product_name') || ''
+  );
 
-  const productName = getItemValue(item, 'productName', 'product_name') || '-';
   const totalPrice = localQuantity * localUnitPrice;
+
+  // 商品名変更を監視
+  const originalProductName = getItemValue(item, 'productName', 'product_name') || '';
+  useEffect(() => {
+    if (isEditing && localProductName !== originalProductName) {
+      onEditChange(localProductName, localSpecs, localQuantity, localUnitPrice);
+    }
+  }, [isEditing, localProductName, localSpecs, localQuantity, localUnitPrice, onEditChange, originalProductName]);
 
   // オプション定義
   const bagTypeOptions = [
@@ -342,7 +352,20 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
       >
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-text-primary truncate">{productName}</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={localProductName}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  setLocalProductName(newName);
+                }}
+                className="w-full px-2 py-1 border border-border-secondary rounded text-sm"
+                placeholder="商品名を入力"
+              />
+            ) : (
+              <p className="font-medium text-text-primary truncate">{localProductName || productName}</p>
+            )}
             {isEditing ? (
               <div className="flex items-center gap-3 mt-1 text-sm">
                 <div className="flex items-center gap-1">
@@ -781,9 +804,10 @@ export function AdminOrderItemsEditor({ order, editable = false, onUpdate }: Adm
     const initialItems: { [key: string]: any } = {};
     order.items?.forEach((item: any) => {
       initialItems[item.id] = {
+        productName: item.product_name || '',
         specifications: item.specifications || {},
-        quantity: item.quantity || item.quantity,
-        unitPrice: item.unitPrice || item.unit_price,
+        quantity: item.quantity || 0,
+        unitPrice: item.unit_price || 0,
       };
     });
     setEditingItems(initialItems);
@@ -796,10 +820,10 @@ export function AdminOrderItemsEditor({ order, editable = false, onUpdate }: Adm
   };
 
   // アイテム更新ハンドラー
-  const handleItemChange = (itemId: string, specifications: any, quantity: number, unitPrice: number) => {
+  const handleItemChange = (itemId: string, productName: string, specifications: any, quantity: number, unitPrice: number) => {
     setEditingItems((prev) => ({
       ...prev,
-      [itemId]: { specifications, quantity, unitPrice },
+      [itemId]: { productName, specifications, quantity, unitPrice },
     }));
   };
 

@@ -227,16 +227,6 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
             </div>
           );
         })()}
-                  }}
-                />
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-bold text-blue-900">{bagTypeInfo.name}</div>
-                <div className="text-xs text-blue-700">製品タイプ</div>
-              </div>
-            </div>
-          );
-        })()}
 
         <div className="flex items-start gap-1">
           <span className="text-text-muted flex-shrink-0">袋タイプ:</span>

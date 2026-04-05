@@ -226,7 +226,7 @@ export const createQuotationRequest = async (data: CreateQuotationRequestRequest
 // 견적 요청 목록 조회
 export const getQuotationRequests = async (params: QueryParams = {}) => {
   try {
-    const { page = 1, limit = 10, select: _select, ...filters } = params // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { page = 1, limit = 10, select: _select, ...filters } = params  
     const { from, to } = supabaseUtils.getPagination(page, limit)
 
     let query = supabase
@@ -371,7 +371,7 @@ export const createSampleRequest = async (data: CreateSampleRequestRequest) => {
 // 샘플 요청 목록 조회
 export const getSampleRequests = async (params: QueryParams = {}) => {
   try {
-    const { page = 1, limit = 10, select: _select, ...filters } = params // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { page = 1, limit = 10, select: _select, ...filters } = params  
     const { from, to } = supabaseUtils.getPagination(page, limit)
 
     let query = supabase
@@ -477,7 +477,7 @@ export const createInquiry = async (data: CreateInquiryRequest) => {
 // 문의 목록 조회
 export const getInquiries = async (params: QueryParams = {}) => {
   try {
-    const { page = 1, limit = 10, select: _select, ...filters } = params // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { page = 1, limit = 10, select: _select, ...filters } = params  
     const { from, to } = supabaseUtils.getPagination(page, limit)
 
     let query = supabase
@@ -721,7 +721,7 @@ export const testDatabaseConnection = async () => {
 
   try {
     // Simple connection test by checking if we can access a table
-    const { data: _data, error } = await supabase.from('contacts').select('id').limit(1) // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { data: _data, error } = await supabase.from('contacts').select('id').limit(1)  
 
     if (error) {
       console.error('❌ 데이터베이스 연결 실패:', error)

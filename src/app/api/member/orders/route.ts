@@ -78,7 +78,8 @@ export async function GET(request: NextRequest) {
         quotations (
           id,
           quotation_number,
-          pdf_url
+          pdf_url,
+          quotation_items (*)
         ),
         order_items (*)
       `)
@@ -159,9 +160,17 @@ export async function GET(request: NextRequest) {
         ? Math.round(((currentIndex + 1) / statusOrder.length) * 100)
         : 0;
 
+      // Extract order_items array from Supabase relation format
+      // Supabase returns relations as { data: [...], ... } or directly as array
+      const orderItemsArray = Array.isArray(order.order_items)
+        ? order.order_items
+        : order.order_items?.data || null;
+
       return {
         ...order,
-        progress_percentage: progressPercentage
+        progress_percentage: progressPercentage,
+        // Convert order_items to items for client compatibility
+        items: orderItemsArray
       };
     });
 
@@ -230,7 +239,7 @@ export async function POST(request: NextRequest) {
 
     // Get quotation data
     const { data: quotation, error: quotationError } = await supabase
-      .from('quotation')
+      .from('quotations')
       .select(`
         *,
         companies (*),

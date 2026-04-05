@@ -286,7 +286,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       const materialIdChanged = newMaterialId !== state.materialId;
       let newWidth = 'width' in action.payload ? action.payload.width : state.width;
       const widthChanged = newWidth !== state.width;
-      let newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
+      const newBagTypeId = action.payload.bagTypeId ?? state.bagTypeId;
       const newThicknessSelection = action.payload.thicknessSelection ?? state.thicknessSelection;
 
       // Kraft材料はロールフィルムのみ対応

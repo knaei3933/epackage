@@ -381,7 +381,7 @@ export async function PUT(request: NextRequest) {
     };
 
     // Update settings based on section
-    let errors: string[] = [];
+    const errors: string[] = [];
 
     if (section === 'smtp') {
       const error = await upsertSetting(SETTINGS_KEYS.smtp, data, 'SMTP設定（メールサーバー接続情報）');

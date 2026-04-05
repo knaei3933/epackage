@@ -5,7 +5,7 @@
  * 중요: 이 테스트 러너는 실전 환경(Production Mode)에서 동작합니다.
  * DEV_MODE, 모 데이터, 가상 인증을 사용하지 않습니다.
  */
-var _a, _b;
+let _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
 exports.config = {

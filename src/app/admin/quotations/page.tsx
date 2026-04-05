@@ -20,6 +20,8 @@ interface AuthContext {
   userId: string;
   role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
   userName: string;
+  companyId?: string;
+  permissions?: string[];
 }
 
 // ============================================================

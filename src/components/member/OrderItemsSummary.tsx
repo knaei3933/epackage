@@ -2,8 +2,8 @@
  * Order Items Summary Component
  *
  * 注文商品明細サマリーコンポーネント
- * - 商品明細をコンパクトに表示
- * - 仕様・オプションも見やすく整理
+ * - 製品仕様を共通表示
+ * - SKUごとに「数量 × 単価」を表示
  *
  * @client
  */
@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { ChevronDown, ChevronUp, Package, Building2, Tag, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Building2, Tag, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order, AppliedCoupon } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
@@ -45,16 +45,9 @@ interface InvoiceResponse {
 }
 
 // =====================================================
-// Constants
-// =====================================================
-
-const ITEMS_PER_PAGE = 5;
-
-// =====================================================
 // Helper Functions
 // =====================================================
 
-// 安全な数値フォーマット関数
 function formatNumber(value: number | undefined | null): string {
   if (value === undefined || value === null || isNaN(value)) {
     return '0';
@@ -62,7 +55,6 @@ function formatNumber(value: number | undefined | null): string {
   return value.toLocaleString();
 }
 
-// Adminページ（snake_case）とMemberページ（camelCase）のプロパティ名の違いを吸収
 function getOrderValue(order: any, camelCaseKey: string, snakeCaseKey: string): any {
   return order[camelCaseKey] ?? order[snakeCaseKey];
 }
@@ -84,29 +76,15 @@ function getBagTypeName(bagTypeId: string): string {
   return names[bagTypeId] || bagTypeId || '-';
 }
 
-function getMaterialName(materialId: string): string {
-  // 기본 매핑은 유지 (fallback용)
-  const names: Record<string, string> = {
-    pet_al: 'PET/AL (アルミ箔ラミネート)',
-    pet_pe: 'PET/PE',
-    cpp: 'CPP (未延伸ポリプロピレン)',
-    lldpe: 'LLDPE (直鎖状低密度ポリエチレン)',
-  };
-  return names[materialId] || materialId || '-';
-}
-
-function getPrintingName(type: string, colors?: number): string {
+function getPrintingName(type: string): string {
   const typeNames: Record<string, string> = {
     digital: 'デジタル印刷',
     gravure: 'グラビア印刷',
   };
-  const typeName = typeNames[type] || type || '-';
-  // 色数は常にフルカラー表示
-  return typeName;
+  return typeNames[type] || type || '-';
 }
 
 function getPostProcessingName(option: string): string {
-  // processingOptionsConfigから日本語ラベルを取得
   const config = processingOptionsConfig.find(opt => opt.id === option);
   return config?.nameJa || option;
 }
@@ -146,6 +124,58 @@ function getSealWidthLabel(value: string): string {
 }
 
 // =====================================================
+// Product Name Generator
+// =====================================================
+
+/**
+ * 仕様情報から適切な商品名を生成
+ */
+function generateProductName(specifications: any): string {
+  if (!specifications || Object.keys(specifications).length === 0) {
+    return 'カスタム製品';
+  }
+
+  const parts: string[] = [];
+
+  // タイプ（袋の種類）
+  if (specifications.bagTypeId) {
+    const typeMap: Record<string, string> = {
+      flat_pouch: '平袋',
+      flat_3_side: '合掌袋',
+      stand_up: 'スタンドパウチ',
+      gazette: 'ガゼットパウチ',
+      roll_film: 'ロールフィルム',
+      spout_pouch: 'スパウトパウチ',
+      zipper_pouch: 'チャック付袋',
+    };
+    parts.push(typeMap[specifications.bagTypeId] || '');
+  }
+
+  // 素材構成（最上位レベル）
+  if (specifications.materialId) {
+    const materialMap: Record<string, string> = {
+      pet_al: 'PET/AL',
+      pet_pe: 'PET/PE',
+      cpp: 'CPP',
+      lldpe: 'LLDPE',
+    };
+    parts.push(materialMap[specifications.materialId] || '');
+  }
+
+  // シール幅
+  if (specifications.sealWidth) {
+    parts.push(getSealWidthLabel(specifications.sealWidth));
+  }
+
+  // その他オプション
+  if (specifications.doubleSided) {
+    parts.push('両面印刷');
+  }
+
+  return parts.length > 0 ? parts.join('・') : 'カスタム製品';
+}
+
+// =====================================================
 // Spec Item Component
 // =====================================================
 
@@ -164,174 +194,119 @@ function SpecItem({ label, value }: SpecItemProps) {
 }
 
 // =====================================================
-// Order Item Row Component
+// Specifications Display Component
 // =====================================================
 
-interface OrderItemRowProps {
-  item: any;
+interface SpecificationsDisplayProps {
+  specifications: any;
 }
 
-function OrderItemRow({ item }: OrderItemRowProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function SpecificationsDisplay({ specifications }: SpecificationsDisplayProps) {
+  if (!specifications || Object.keys(specifications).length === 0) {
+    return null;
+  }
 
-  // camelCaseとsnake_caseの両方に対応
-  const productName = getItemValue(item, 'productName', 'product_name') || '-';
-  const quantity = getItemValue(item, 'quantity', 'quantity') || 0;
-  const unitPrice = getItemValue(item, 'unitPrice', 'unit_price') || 0;
-  const totalPrice = getItemValue(item, 'totalPrice', 'total_price') || 0;
+  const matSpec = specifications.materialId && specifications.thicknessSelection
+    ? getMaterialSpecification(specifications.materialId, specifications.thicknessSelection)
+    : null;
+
+  let weightRange = null;
+  if (specifications.materialId) {
+    const options = MATERIAL_THICKNESS_OPTIONS[specifications.materialId];
+    if (options) {
+      const thickness = options.find(opt => opt.id === specifications.thicknessSelection);
+      weightRange = thickness?.weightRange || null;
+    }
+  }
 
   return (
-    <div className="border-b border-border-secondary last:border-b-0">
-      {/* Main row */}
-      <div
-        className={cn(
-          "py-3 px-4 transition-colors",
-          isExpanded && "bg-muted/10"
+    <div className="p-4 bg-muted/20 rounded-lg mb-4">
+      <h3 className="text-sm font-semibold text-text-primary mb-3">製品仕様</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+        {specifications.bagTypeId && (
+          <SpecItem label="タイプ" value={getBagTypeName(specifications.bagTypeId)} />
         )}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-text-primary truncate">{productName}</p>
-            <div className="flex items-center gap-3 mt-1 text-sm text-text-muted">
-              <span>数量: {formatNumber(quantity)}</span>
-              <span>単価: {formatNumber(unitPrice)}円</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-text-primary">
-              {formatNumber(totalPrice)}円
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 rounded hover:bg-muted transition-colors"
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-          </div>
-        </div>
+        {matSpec && (
+          <SpecItem
+            label="素材"
+            value={<span className="text-blue-700">{matSpec}</span>}
+          />
+        )}
+        {weightRange && (
+          <SpecItem label="重量" value={weightRange} />
+        )}
+        {specifications.dimensions && (
+          <SpecItem label="サイズ" value={specifications.dimensions} />
+        )}
+        {(specifications.printingType || specifications.printingColors !== undefined) && (
+          <SpecItem label="印刷" value={getPrintingName(specifications.printingType)} />
+        )}
+        <SpecItem label="色数" value="フルカラー" />
+        {specifications.urgency && (
+          <SpecItem label="納期" value={getUrgencyName(specifications.urgency)} />
+        )}
+        {specifications.deliveryLocation && (
+          <SpecItem label="配送先" value={getDeliveryLocationName(specifications.deliveryLocation)} />
+        )}
+        {specifications.bagTypeId === 'spout_pouch' && (
+          <>
+            {specifications.spoutSize && (
+              <SpecItem label="スパウトサイズ" value={`${specifications.spoutSize}mm`} />
+            )}
+            {specifications.spoutPosition && (
+              <SpecItem label="スパウト位置" value={getSpoutPositionLabel(specifications.spoutPosition)} />
+            )}
+          </>
+        )}
+        {specifications.sealWidth && (
+          <SpecItem label="シール幅" value={getSealWidthLabel(specifications.sealWidth)} />
+        )}
+        {specifications.doubleSided === true && (
+          <SpecItem label="両面印刷" value="あり" />
+        )}
       </div>
 
-      {/* Expanded specifications */}
-      {isExpanded && item.specifications && Object.keys(item.specifications).length > 0 && (
-        <div className="px-4 pb-3 bg-muted/10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-            {item.specifications.bagTypeId && (
-              <SpecItem label="タイプ" value={getBagTypeName(item.specifications.bagTypeId)} />
-            )}
-            {item.specifications.materialId && item.specifications.thicknessSelection && (() => {
-              const matSpec = getMaterialSpecification(item.specifications.materialId, item.specifications.thicknessSelection);
-              const weightRange = (() => {
-                const options = MATERIAL_THICKNESS_OPTIONS[item.specifications.materialId];
-                if (!options) return null;
-                const thickness = options.find(opt => opt.id === item.specifications.thicknessSelection);
-                return thickness?.weightRange || null;
-              })();
-              return (
-                <>
-                  {matSpec && (
-                    <SpecItem
-                      label="素材"
-                      value={<span className="text-blue-700">{matSpec}</span>}
-                    />
-                  )}
-                  {weightRange && (
-                    <SpecItem label="重量" value={weightRange} />
-                  )}
-                </>
-              );
-            })()}
-            {item.specifications.dimensions && (
-              <SpecItem label="サイズ" value={item.specifications.dimensions} />
-            )}
-            {(item.specifications.printingType || item.specifications.printingColors !== undefined) && (
-              <SpecItem
-                label="印刷"
-                value={getPrintingName(
-                  item.specifications.printingType,
-                  item.specifications.printingColors
-                )}
-              />
-            )}
-            <SpecItem label="色数" value="フルカラー" />
-            {item.specifications.urgency && (
-              <SpecItem label="納期" value={getUrgencyName(item.specifications.urgency)} />
-            )}
-            {item.specifications.deliveryLocation && (
-              <SpecItem label="配送先" value={getDeliveryLocationName(item.specifications.deliveryLocation)} />
-            )}
-
-            {/* スパウトパウチ専用フィールド */}
-            {item.specifications.bagTypeId === 'spout_pouch' && (
-              <>
-                {item.specifications.spoutSize && (
-                  <SpecItem label="スパウトサイズ" value={`${item.specifications.spoutSize}mm`} />
-                )}
-                {item.specifications.spoutPosition && (
-                  <SpecItem label="スパウト位置" value={getSpoutPositionLabel(item.specifications.spoutPosition)} />
-                )}
-              </>
-            )}
-
-            {/* シール幅 */}
-            {item.specifications.sealWidth && (
-              <SpecItem label="シール幅" value={getSealWidthLabel(item.specifications.sealWidth)} />
-            )}
-
-            {/* 両面印刷 */}
-            {item.specifications.doubleSided === true && (
-              <SpecItem label="両面印刷" value="あり" />
-            )}
+      {/* 素材4層構成 */}
+      {specifications.filmLayers && specifications.filmLayers.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-border-secondary">
+          <div className="text-xs text-text-muted mb-2">素材構成（4層）:</div>
+          <div className="flex flex-wrap gap-2">
+            {specifications.filmLayers.map((layer: any, idx: number) => (
+              <span
+                key={idx}
+                className="px-3 py-1.5 bg-background border border-border-secondary rounded text-xs"
+              >
+                <span className="font-medium">{layer.materialId || '-'}</span>
+                <span className="text-text-muted ml-1">{layer.thickness ? `${layer.thickness}μ` : ''}</span>
+              </span>
+            ))}
           </div>
-
-          {/* 素材4層構成（filmLayersが存在する場合のみ表示） */}
-          {item.specifications.filmLayers && item.specifications.filmLayers.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-border-secondary">
-              <div className="text-xs text-text-muted mb-2">素材構成（4層）:</div>
-              <div className="flex flex-wrap gap-2">
-                {item.specifications.filmLayers.map((layer: any, idx: number) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1.5 bg-background border border-border-secondary rounded text-xs"
-                  >
-                    <span className="font-medium">{layer.materialId || '-'}</span>
-                    <span className="text-text-muted ml-1">{layer.thickness ? `${layer.thickness}μ` : ''}</span>
-                  </span>
-                ))}
-              </div>
-              {/* 保存された完全なスペックも表示 */}
-              {item.specifications.specification && (
-                <div className="mt-2 text-xs text-text-primary">
-                  {item.specifications.specification}
-                </div>
-              )}
+          {specifications.specification && (
+            <div className="mt-2 text-xs text-text-primary">
+              {specifications.specification}
             </div>
           )}
+        </div>
+      )}
 
-          {/* 後加工 (Badgeスタイル - Adminと統一) */}
-          {item.specifications.postProcessingOptions && item.specifications.postProcessingOptions.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-border-secondary text-sm">
-              <div className="text-xs text-text-muted mb-2">後加工:</div>
-              <div className="flex flex-wrap gap-2">
-                {item.specifications.postProcessingOptions.map((opt: string) => {
-                  const config = processingOptionsConfig.find(c => c.id === opt);
-                  return (
-                    <span
-                      key={opt}
-                      className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
-                      title={config?.descriptionJa || opt}
-                    >
-                      {config?.nameJa || getPostProcessingName(opt)}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+      {/* 後加工 */}
+      {specifications.postProcessingOptions && specifications.postProcessingOptions.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-border-secondary">
+          <div className="text-xs text-text-muted mb-2">後加工:</div>
+          <div className="flex flex-wrap gap-2">
+            {specifications.postProcessingOptions.map((opt: string) => {
+              const config = processingOptionsConfig.find(c => c.id === opt);
+              return (
+                <span
+                  key={opt}
+                  className="px-2 py-1 bg-bg-primary rounded text-xs border border-border-secondary"
+                  title={config?.descriptionJa || opt}
+                >
+                  {config?.nameJa || getPostProcessingName(opt)}
+                </span>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -343,20 +318,13 @@ function OrderItemRow({ item }: OrderItemRowProps) {
 // =====================================================
 
 export function OrderItemsSummary({ order, quotationId, onCouponApplied }: OrderItemsSummaryProps) {
-  // 은행 정보 상태
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
-
-  // クーポン関連の状態
   const [couponCode, setCouponCode] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
-  // ページネーション状態
-  const [currentPage, setCurrentPage] = useState(0);
-
-  // 은행 정보 가져오기
   useEffect(() => {
     if (!quotationId) return;
 
@@ -381,7 +349,6 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
     fetchBankInfo();
   }, [quotationId]);
 
-  // 既に適用されたクーポンがある場合は表示
   useEffect(() => {
     if (order.appliedCoupon) {
       setAppliedCoupon(order.appliedCoupon);
@@ -389,7 +356,6 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
     }
   }, [order]);
 
-  // クーポン適用ハンドラー
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponError('クーポンコードを入力してください');
@@ -402,9 +368,7 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
     try {
       const response = await fetch(`/api/member/orders/${order.id}/apply-coupon`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ couponCode: couponCode.trim() }),
       });
@@ -416,7 +380,6 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
         setDiscountAmount(data.discountAmount);
         setCouponCode('');
 
-        // 親コンポーネントに更新を通知
         if (onCouponApplied) {
           const updatedOrder = {
             ...order,
@@ -439,19 +402,14 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
     }
   };
 
-  // camelCaseとsnake_caseの両方に対応
   const subtotal = getOrderValue(order, 'subtotal', 'subtotal');
   const taxAmount = getOrderValue(order, 'taxAmount', 'tax_amount');
   const totalAmount = getOrderValue(order, 'totalAmount', 'total_amount');
   const originalTotal = subtotal ? subtotal + (taxAmount || 0) : totalAmount;
   const finalTotal = discountAmount > 0 ? originalTotal - discountAmount : totalAmount;
 
-  // ページネーション計算
   const items = order.items || [];
-  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
-  const startIndex = currentPage * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, items.length);
-  const displayItems = items.slice(startIndex, endIndex);
+  const specifications = items.length > 0 ? items[0].specifications : null;
 
   return (
     <Card className="p-6">
@@ -461,50 +419,56 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
           商品明細
         </h2>
         <span className="text-sm text-text-muted">
-          {order.items?.length || 0}点
+          {items.length} SKU
         </span>
       </div>
 
-      {/* Items list */}
-      <div className="divide-y divide-border-secondary border-y border-border-secondary mb-4">
-        {displayItems.map((item) => (
-          <OrderItemRow key={item.id} item={item} />
-        ))}
+      {/* 製品仕様（共通） */}
+      <SpecificationsDisplay specifications={specifications} />
+
+      {/* SKU明細 */}
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-text-primary mb-2">SKU明細</h3>
+        <div className="border border-border-secondary rounded-lg overflow-hidden">
+          {items.map((item: any, index: number) => {
+            const rawProductName = getItemValue(item, 'productName', 'product_name');
+            const itemSpecs = item.specifications || specifications;
+            const productName = (rawProductName === 'カスタム製品' || !rawProductName) && itemSpecs
+              ? generateProductName(itemSpecs)
+              : rawProductName || `SKU ${index + 1}`;
+            const quantity = getItemValue(item, 'quantity', 'quantity') || 0;
+            const unitPrice = getItemValue(item, 'unitPrice', 'unit_price') || 0;
+            const totalPrice = getItemValue(item, 'totalPrice', 'total_price') || 0;
+            const skuLabel = `SKU ${index + 1}`;
+
+            return (
+              <div
+                key={item.id}
+                className={cn(
+                  "flex items-center justify-between p-3 text-sm",
+                  index < items.length - 1 && "border-b border-border-secondary"
+                )}
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <span className="text-text-muted font-medium min-w-[60px]">{skuLabel}</span>
+                  <span className="text-text-primary">{productName}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-text-muted">
+                    {formatNumber(quantity)}個 × {formatNumber(unitPrice)}円
+                  </span>
+                  <span className="font-semibold text-text-primary">
+                    {formatNumber(totalPrice)}円
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 py-3">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-            disabled={currentPage === 0}
-            className={cn(
-              "p-2 rounded-md transition-colors",
-              "hover:bg-muted",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
-            )}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="text-sm text-text-muted min-w-[60px] text-center">
-            {currentPage + 1} / {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-            disabled={currentPage >= totalPages - 1}
-            className={cn(
-              "p-2 rounded-md transition-colors",
-              "hover:bg-muted",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
-            )}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-
-      {/* Total */}
-      <div className="space-y-2 pt-4">
+      {/* 合計 */}
+      <div className="space-y-2 pt-4 border-t border-border-secondary">
         {subtotal !== undefined && subtotal !== null && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted">小計</span>
@@ -616,7 +580,7 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
         </div>
       )}
 
-      {/* 振込先銀行口座 - コンパクト版 */}
+      {/* 振込先銀行口座 */}
       {bankInfo && (
         <div className="mt-4 pt-4 border-t border-border-secondary">
           <div className="flex items-center gap-2 mb-2">

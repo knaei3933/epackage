@@ -18,6 +18,8 @@ import { Eye, Search, Filter, ChevronDown, Package, Truck, CheckCircle, Clock, F
 import type { OrderStatus } from '@/types/order-status';
 import { safeMap } from '@/lib/array-helpers';
 import { OrderStatusBadge } from '@/components/orders';
+import { BAG_TYPE_IMAGES } from '@/constants/product-type-config';
+import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 
 // =====================================================
 // Types
@@ -31,6 +33,55 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  specifications?: {
+    bagTypeId?: string;
+    size?: string;
+    material?: string;
+    thickness?: string;
+    printing?: string;
+    width?: number;
+    height?: number;
+    depth?: number;
+    sideWidth?: number;
+    spoutSize?: number;
+    spoutPosition?: string;
+    [key: string]: any;
+  } | null;
+}
+
+interface QuotationItem {
+  id: string;
+  specifications?: {
+    bagTypeId?: string;
+    size?: string;
+    material?: string;
+    thickness?: string;
+    printing?: string;
+    printingColors?: string;
+    inkType?: string;
+    width?: number;
+    height?: number;
+    depth?: number;
+    sideWidth?: number;
+    spoutSize?: number;
+    spoutPosition?: string;
+    contentType?: string;
+    deliveryLocation?: string;
+    urgency?: string;
+    postProcessing?: {
+      zipper?: boolean;
+      zipperPosition?: string;
+      finish?: 'matte' | 'glossy';
+      notch?: boolean;
+      punching?: boolean;
+      hangHoleSize?: string;
+      corner?: 'round' | 'square';
+      opening?: 'top' | 'bottom';
+      valve?: boolean;
+      machiPrinting?: boolean;
+    };
+    [key: string]: any;
+  } | null;
 }
 
 interface Order {
@@ -46,6 +97,11 @@ interface Order {
   quotation_number?: string;
   quotationNumber?: string;
   items?: OrderItem[];
+  quotations?: {
+    id: string;
+    quotation_number?: string;
+    quotation_items?: QuotationItem[] | { data: QuotationItem[] };
+  } | null;
   progress_percentage?: number;
   shipments?: {
     tracking_number: string | null;
@@ -114,6 +170,33 @@ const SORT_OPTIONS = [
   { value: 'amount-desc', label: '金額が高い順' },
   { value: 'amount-asc', label: '金額が低い順' },
 ];
+
+// =====================================================
+// Helper Functions
+// =====================================================
+
+/**
+ * Extract quotation_items array from Supabase relation format
+ * Supabase returns relations as { data: [...] } or directly as array
+ */
+function extractQuotationItems(quotations: Order['quotations']): QuotationItem[] {
+  if (!quotations) return [];
+
+  // Handle Supabase relation format: { data: [...] }
+  if (Array.isArray(quotations.quotation_items)) {
+    return quotations.quotation_items;
+  }
+
+  // Handle nested data format: { quotation_items: { data: [...] } }
+  if (quotations.quotation_items && typeof quotations.quotation_items === 'object') {
+    const items = (quotations.quotation_items as { data?: QuotationItem[] }).data;
+    if (Array.isArray(items)) {
+      return items;
+    }
+  }
+
+  return [];
+}
 
 // =====================================================
 // Helper Components
@@ -503,25 +586,215 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
                     )}
                   </div>
 
-                  <div className="space-y-2 mb-4">
-                    {safeMap((order.items || []).slice(0, 3), (item: any) => (
-                      <div key={item.id} className="flex items-center justify-between text-sm">
-                        <div className="flex-1">
-                          <span className="text-text-primary">
-                            {item.product_name || item.productName}
-                          </span>
-                          <span className="text-text-muted ml-2">
-                            x{item.quantity}
-                          </span>
+                  <div className="space-y-3 mb-4">
+                    {safeMap((order.items || []).slice(0, 2), (item: any, itemIndex: number) => {
+                      // Find matching quotation item by index
+                      const quotationItem = order.quotations?.quotation_items?.[itemIndex];
+                      const specs = quotationItem?.specifications || item.specifications;
+
+                      return (
+                        <div key={item.id} className="border border-border-secondary rounded-lg p-3 bg-bg-secondary/30">
+                          {/* Product Type Preview Image */}
+                          {specs?.bagTypeId && (() => {
+                            const bagTypeInfo = BAG_TYPE_IMAGES[specs.bagTypeId as keyof typeof BAG_TYPE_IMAGES];
+                            if (bagTypeInfo) {
+                              return (
+                                <div className="flex items-center gap-3 mb-2 pb-2 border-b border-border-secondary">
+                                  <div className="w-16 h-16 relative bg-white rounded-lg p-1 shadow-sm flex-shrink-0">
+                                    <img
+                                      src={bagTypeInfo.image}
+                                      alt={bagTypeInfo.name}
+                                      className="w-full h-full object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="text-sm font-semibold text-text-primary">{bagTypeInfo.name}</div>
+                                    <div className="text-xs text-text-muted">{item.product_name || item.productName}</div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {/* Detailed Specifications from quotation_items */}
+                          {specs && (
+                            <div className="text-xs space-y-2">
+                              {/* Basic Specifications */}
+                              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                {/* Size from width/height/depth */}
+                                {(specs.width || specs.height || specs.depth) && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">サイズ:</span>
+                                    <span className="text-text-primary">
+                                      {specs.width || 0} x {specs.height || 0}
+                                      {specs.depth ? ` x ${specs.depth}` : ''} mm
+                                    </span>
+                                  </div>
+                                )}
+                                {/* fallback to size field if exists */}
+                                {specs.size && !specs.width && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">サイズ:</span>
+                                    <span className="text-text-primary">{specs.size}</span>
+                                  </div>
+                                )}
+                                {specs.material && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">素材:</span>
+                                    <span className="text-text-primary">{specs.material}</span>
+                                  </div>
+                                )}
+                                {specs.thickness && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">厚さ:</span>
+                                    <span className="text-text-primary">{specs.thickness}</span>
+                                  </div>
+                                )}
+                                {specs.printing && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">印刷:</span>
+                                    <span className="text-text-primary">{specs.printing}</span>
+                                  </div>
+                                )}
+                                {specs.printingColors && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">色数:</span>
+                                    <span className="text-text-primary">{specs.printingColors}</span>
+                                  </div>
+                                )}
+                                {specs.inkType && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">インク種類:</span>
+                                    <span className="text-text-primary">{specs.inkType}</span>
+                                  </div>
+                                )}
+                                {specs.contentType && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">内容物タイプ:</span>
+                                    <span className="text-text-primary">{specs.contentType}</span>
+                                  </div>
+                                )}
+                                {specs.deliveryLocation && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">配達先:</span>
+                                    <span className="text-text-primary">{specs.deliveryLocation}</span>
+                                  </div>
+                                )}
+                                {specs.urgency && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">納期:</span>
+                                    <span className="text-text-primary">{specs.urgency}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Post-Processing Options */}
+                              {specs.postProcessing && (
+                                <div className="border-t border-border-secondary pt-2 mt-2">
+                                  <div className="text-text-muted font-medium mb-1">後加工オプション:</div>
+                                  <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                    {specs.postProcessing.zipper !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">ジッパー:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.zipper ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.zipperPosition && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">ジッパー位置:</span>
+                                        <span className="text-text-primary">{specs.postProcessing.zipperPosition}</span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.finish && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">仕上げ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.finish === 'matte' ? 'マット' : '光沢'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.notch !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">ノッチ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.notch ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.punching !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">穴あけ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.punching ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.hangHoleSize && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">吊り穴サイズ:</span>
+                                        <span className="text-text-primary">{specs.postProcessing.hangHoleSize}</span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.corner && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">角:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.corner === 'round' ? '丸' : '直角'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.opening && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">開口部:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.opening === 'top' ? '上端' : '下端'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.valve !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">バルブ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.valve ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.machiPrinting !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">マチ印刷:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.machiPrinting ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Quantity and Price */}
+                          <div className="flex items-center justify-between text-sm pt-2 border-t border-border-secondary">
+                            <div>
+                              <span className="text-text-muted">数量: </span>
+                              <span className="text-text-primary font-medium">{item.quantity}個</span>
+                            </div>
+                            <span className="text-text-primary font-semibold">
+                              {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-text-muted">
-                          {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
-                        </span>
-                      </div>
-                    ))}
-                    {order.items && order.items.length > 3 && (
-                      <p className="text-text-muted text-sm">
-                        他 {order.items.length - 3} 点
+                      );
+                    })}
+                    {order.items && order.items.length > 2 && (
+                      <p className="text-text-muted text-sm text-center">
+                        他 {order.items.length - 2} 点
                       </p>
                     )}
                   </div>
@@ -571,18 +844,215 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
                   )}
 
                   <div className="text-sm text-text-muted space-y-1 mb-3">
-                    {safeMap((order.items || []).slice(0, 3), (item: any) => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <span>{item.product_name || item.productName}</span>
-                        <span className="text-border-secondary">x{item.quantity}</span>
-                        <span>
-                          {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
-                        </span>
-                      </div>
-                    ))}
-                    {order.items && order.items.length > 3 && (
+                    {safeMap((order.items || []).slice(0, 2), (item: any, itemIndex: number) => {
+                      // Extract quotation_items using helper function
+                      const quotationItems = extractQuotationItems(order.quotations);
+                      const quotationItem = quotationItems?.[itemIndex];
+                      const specs = quotationItem?.specifications || item.specifications;
+
+                      return (
+                        <div key={item.id} className="border border-border-secondary rounded-lg p-3 bg-bg-secondary/30">
+                          {/* Product Type Preview Image */}
+                          {specs?.bagTypeId && (() => {
+                            const bagTypeInfo = BAG_TYPE_IMAGES[specs.bagTypeId as keyof typeof BAG_TYPE_IMAGES];
+                            if (bagTypeInfo) {
+                              return (
+                                <div className="flex items-center gap-3 mb-2 pb-2 border-b border-border-secondary">
+                                  <div className="w-16 h-16 relative bg-white rounded-lg p-1 shadow-sm flex-shrink-0">
+                                    <img
+                                      src={bagTypeInfo.image}
+                                      alt={bagTypeInfo.name}
+                                      className="w-full h-full object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="text-sm font-semibold text-text-primary">{bagTypeInfo.name}</div>
+                                    <div className="text-xs text-text-muted">{item.product_name || item.productName}</div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {/* Detailed Specifications from quotation_items */}
+                          {specs && (
+                            <div className="text-xs space-y-2">
+                              {/* Basic Specifications */}
+                              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                {/* Size from width/height/depth */}
+                                {(specs.width || specs.height || specs.depth) && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">サイズ:</span>
+                                    <span className="text-text-primary">
+                                      {specs.width || 0} x {specs.height || 0}
+                                      {specs.depth ? ` x ${specs.depth}` : ''} mm
+                                    </span>
+                                  </div>
+                                )}
+                                {/* fallback to size field if exists */}
+                                {specs.size && !specs.width && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">サイズ:</span>
+                                    <span className="text-text-primary">{specs.size}</span>
+                                  </div>
+                                )}
+                                {specs.material && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">素材:</span>
+                                    <span className="text-text-primary">{specs.material}</span>
+                                  </div>
+                                )}
+                                {specs.thickness && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">厚さ:</span>
+                                    <span className="text-text-primary">{specs.thickness}</span>
+                                  </div>
+                                )}
+                                {specs.printing && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">印刷:</span>
+                                    <span className="text-text-primary">{specs.printing}</span>
+                                  </div>
+                                )}
+                                {specs.printingColors && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">色数:</span>
+                                    <span className="text-text-primary">{specs.printingColors}</span>
+                                  </div>
+                                )}
+                                {specs.inkType && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">インク種類:</span>
+                                    <span className="text-text-primary">{specs.inkType}</span>
+                                  </div>
+                                )}
+                                {specs.contentType && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">内容物タイプ:</span>
+                                    <span className="text-text-primary">{specs.contentType}</span>
+                                  </div>
+                                )}
+                                {specs.deliveryLocation && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">配達先:</span>
+                                    <span className="text-text-primary">{specs.deliveryLocation}</span>
+                                  </div>
+                                )}
+                                {specs.urgency && (
+                                  <div className="flex items-start gap-1">
+                                    <span className="text-text-muted flex-shrink-0">納期:</span>
+                                    <span className="text-text-primary">{specs.urgency}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Post-Processing Options */}
+                              {specs.postProcessing && (
+                                <div className="border-t border-border-secondary pt-2 mt-2">
+                                  <div className="text-text-muted font-medium mb-1">後加工オプション:</div>
+                                  <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                    {specs.postProcessing.zipper !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">ジッパー:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.zipper ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.zipperPosition && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">ジッパー位置:</span>
+                                        <span className="text-text-primary">{specs.postProcessing.zipperPosition}</span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.finish && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">仕上げ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.finish === 'matte' ? 'マット' : '光沢'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.notch !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">ノッチ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.notch ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.punching !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">穴あけ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.punching ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.hangHoleSize && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">吊り穴サイズ:</span>
+                                        <span className="text-text-primary">{specs.postProcessing.hangHoleSize}</span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.corner && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">角:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.corner === 'round' ? '丸' : '直角'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.opening && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">開口部:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.opening === 'top' ? '上端' : '下端'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.valve !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">バルブ:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.valve ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {specs.postProcessing.machiPrinting !== undefined && (
+                                      <div className="flex items-start gap-1">
+                                        <span className="text-text-muted">マチ印刷:</span>
+                                        <span className="text-text-primary">
+                                          {specs.postProcessing.machiPrinting ? 'あり' : 'なし'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Quantity and Price */}
+                          <div className="flex items-center justify-between text-sm pt-2 border-t border-border-secondary">
+                            <div>
+                              <span className="text-text-muted">数量: </span>
+                              <span className="text-text-primary font-medium">{item.quantity}個</span>
+                            </div>
+                            <span className="text-text-primary font-semibold">
+                              {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {order.items && order.items.length > 2 && (
                       <p className="text-text-muted">
-                        他 {order.items.length - 3} 点
+                        他 {order.items.length - 2} 点
                       </p>
                     )}
                   </div>

@@ -68,7 +68,7 @@ export const createSupabaseAdmin = () => {
 // 데이터베이스 연결 상태 확인
 export const checkDatabaseConnection = async () => {
   try {
-    const { data: _data, error } = await supabase // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { data: _data, error } = await supabase  
       .from('contacts')
       .select('count')
       .limit(1)

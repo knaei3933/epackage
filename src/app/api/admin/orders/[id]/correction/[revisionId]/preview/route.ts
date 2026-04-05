@@ -45,7 +45,7 @@ export async function GET(
       );
     }
 
-    let imageUrl = revision.preview_image_url;
+    const imageUrl = revision.preview_image_url;
 
     // Check if imageUrl is already our proxy URL (causes redirect loop)
     if (imageUrl.includes('/api/admin/orders/') && imageUrl.includes('/preview')) {

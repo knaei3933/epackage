@@ -428,6 +428,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     const issueDate = today.toISOString().split('T')[0];
     const expiryDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    // Calculate total SKU quantity for PDF generation
+    const totalSKUQuantity = state.skuQuantities?.reduce((sum, qty) => sum + (Number(qty) || 0), 0) || state.quantity;
+
     // Build items from SKU mode, multi-quantity quotes, or single quote
     const items = hasValidSKUData
       ? state.skuQuantities.map((qty, index) => {
@@ -1069,7 +1072,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 totalMeters: result.filmCostDetails.totalMeters,
                 materialWidthMM: result.filmCostDetails.materialWidthMM,
                 areaM2: result.filmCostDetails.areaM2
-              } : null
+              } : null,
+              sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
             },
             cost_breakdown: costBreakdown
           };
@@ -1142,7 +1146,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 totalMeters: result.filmCostDetails.totalMeters,
                 materialWidthMM: result.filmCostDetails.materialWidthMM,
                 areaM2: result.filmCostDetails.areaM2
-              } : null
+              } : null,
+              // 【追加】SKU数量情報（単一アイテムモード）
+              sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
             },
             cost_breakdown: costBreakdown
           }
@@ -1282,7 +1288,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               ...(state.bagTypeId === 'spout_pouch' && {
                 spoutPosition: state.spoutPosition,
                 spoutSize: state.spoutSize
-              })
+              }),
+              sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
             }
           }))
         : [
@@ -1321,7 +1328,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 ...(state.bagTypeId === 'spout_pouch' && {
                   spoutPosition: state.spoutPosition,
                   spoutSize: state.spoutSize
-                })
+                }),
+                sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
               }
             }
           ];

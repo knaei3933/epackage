@@ -20,7 +20,7 @@ import {
   TrendingUp,
   Package
 } from 'lucide-react'
-import { processingOptionsConfig } from '../../shared/processingConfig'
+import { processingOptionsConfig } from '../shared/processingConfig'
 
 interface PostProcessingOption {
   id: string

@@ -21,3 +21,10 @@ export {
   revalidate,
   fetcher,
 } from './use-optimized-fetch';
+
+// Quotations hook
+export {
+  useQuotations,
+  fetchQuotationsServerSide,
+} from './useQuotations';
+export type { UseQuotationsParams, UseQuotationsReturn } from './useQuotations';

@@ -1162,7 +1162,7 @@ export class PouchCostCalculator {
     const finalPouchType = basePouchType;
 
     // 基本設定を取得
-    let costConfig = POUCH_PROCESSING_COSTS_BASE[finalPouchType] || POUCH_PROCESSING_COSTS_BASE.other;
+    const costConfig = POUCH_PROCESSING_COSTS_BASE[finalPouchType] || POUCH_PROCESSING_COSTS_BASE.other;
 
     // パウチ横幅をcmに変換
     const widthCM = widthMM / 10;

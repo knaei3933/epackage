@@ -101,10 +101,10 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'created_at';
     const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc';
 
-    // Build query - simple select without quotation_items relation
+    // Build query - include quotation_items for SKU info
     let query = supabase
       .from('quotations')
-      .select('*', { count: 'exact' });
+      .select('*, quotation_items(*)', { count: 'exact' });
 
     // Apply filters - use normalized status for 10-step workflow
     if (status) {
@@ -154,15 +154,38 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Merge quotations with profile data
-      quotationsWithProfiles = quotations.map(quotation => ({
-        ...quotation,
-        company_name: profileMap[quotation.user_id]?.company_name || null,
-        kanji_last_name: profileMap[quotation.user_id]?.kanji_last_name || null,
-        kanji_first_name: profileMap[quotation.user_id]?.kanji_first_name || null,
-        corporate_phone: profileMap[quotation.user_id]?.corporate_phone || null,
-        personal_phone: profileMap[quotation.user_id]?.personal_phone || null,
-      }));
+      // Merge quotations with profile data and process items
+      quotationsWithProfiles = quotations.map(quotation => {
+        const quotationItems = (quotation as any).quotation_items || [];
+        // Process items to include breakdown with sku_info
+        const processedItems = quotationItems.map((item: any) => {
+          const specs = item.specifications || {};
+          return {
+            ...item,
+            breakdown: {
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              total_price: item.total_price,
+              specifications: specs,
+              sku_info: specs.sku_quantities ? {
+                count: specs.sku_quantities.length,
+                quantities: specs.sku_quantities,
+                total: specs.sku_quantities.reduce((sum: number, q: number) => sum + q, 0),
+              } : null,
+            },
+          };
+        });
+
+        return {
+          ...quotation,
+          company_name: profileMap[quotation.user_id]?.company_name || null,
+          kanji_last_name: profileMap[quotation.user_id]?.kanji_last_name || null,
+          kanji_first_name: profileMap[quotation.user_id]?.kanji_first_name || null,
+          corporate_phone: profileMap[quotation.user_id]?.corporate_phone || null,
+          personal_phone: profileMap[quotation.user_id]?.personal_phone || null,
+          items: processedItems,
+        };
+      });
     }
 
     return NextResponse.json({

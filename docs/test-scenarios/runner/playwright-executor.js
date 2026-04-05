@@ -3,7 +3,7 @@
  * Playwright MCP 실행기
  * 실제 Playwright 브라우저를 사용하여 테스트 실행
  */
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+const __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -12,8 +12,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+const __generator = (this && this.__generator) || function (thisArg, body) {
+    let _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
     return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
@@ -41,14 +41,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlaywrightExecutor = void 0;
-var fs = require("fs");
-var path = require("path");
-var playwright_1 = require("playwright");
-var test_config_js_1 = require("./config/test-config.js");
+const fs = require("fs");
+const path = require("path");
+const playwright_1 = require("playwright");
+const test_config_js_1 = require("./config/test-config.js");
 /**
  * 실제 Playwright 브라우저를 사용한 실행기
  */
-var PlaywrightExecutor = /** @class */ (function () {
+const PlaywrightExecutor = /** @class */ (function () {
     function PlaywrightExecutor() {
         this.results = [];
         this.scenarioName = '';
@@ -63,7 +63,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      */
     PlaywrightExecutor.prototype.startBrowser = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _c;
+            let _a, _b, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -117,7 +117,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      */
     PlaywrightExecutor.prototype.getSnapshot = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var content, error_1;
+            let content, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -144,7 +144,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      */
     PlaywrightExecutor.prototype.isElementVisible = function (element) {
         return __awaiter(this, void 0, void 0, function () {
-            var isVisible, isHidden, _a;
+            let isVisible, isHidden, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -153,7 +153,7 @@ var PlaywrightExecutor = /** @class */ (function () {
                     case 1:
                         isVisible = _b.sent();
                         return [4 /*yield*/, element.evaluate(function (el) {
-                                var _a;
+                                let _a;
                                 return el.type === 'hidden' ||
                                     ((_a = el.getAttribute('data-testid')) === null || _a === void 0 ? void 0 : _a.includes('-hidden')) ||
                                     el.style.display === 'none' ||
@@ -177,7 +177,7 @@ var PlaywrightExecutor = /** @class */ (function () {
     PlaywrightExecutor.prototype.findElement = function (selectorDescription) {
         return __awaiter(this, void 0, void 0, function () {
             var testIdMapping, testId, element, directElement, _a, currentUrl, mappedKey, tabs, _i, tabs_1, tab, dynamicTestId, dynamicElement, _b, _c, _d, tab, directDynamicTestId, directDynamicElement, _e, e_1, elements, count, i, elem, e_2, element, _f, e_3, spinbuttons, count, i, elem, foundLabel, prevSibling, prevText, e_4, allPrevSiblings, _g, allPrevSiblings_1, sibling, siblingText, e_5, parent_1, parentText, e_6, parent_2, allText, lines, _h, lines_1, line, e_7, e_8, element, _j, e_9, elements, count, i, elem, e_10, textElement, tagName, isLabelOrGeneric, forAttr, inputById, _k, parent_3, siblings, _l, siblings_1, sibling, grandParent, cousins, _m, cousins_1, cousin, inputs, _o, inputs_1, input, e_11, parent_4, inputFields, _p, inputFields_1, inputField, e_12;
-            var _q;
+            let _q;
             return __generator(this, function (_r) {
                 switch (_r.label) {
                     case 0:
@@ -492,9 +492,9 @@ var PlaywrightExecutor = /** @class */ (function () {
                         if (!((_r.sent()) > 0)) return [3 /*break*/, 43];
                         return [4 /*yield*/, prevSibling.evaluate(function (el) {
                                 // テキストノードを取得 (Node.TEXT_NODE = 3)
-                                var textNodes = Array.from(el.childNodes)
+                                const textNodes = Array.from(el.childNodes)
                                     .filter(function (node) { return node.nodeType === 3; })
-                                    .map(function (node) { var _a; return (_a = node.textContent) === null || _a === void 0 ? void 0 : _a.trim(); })
+                                    .map(function (node) { let _a; return (_a = node.textContent) === null || _a === void 0 ? void 0 : _a.trim(); })
                                     .filter(function (text) { return text.length > 0; });
                                 return textNodes.join('');
                             })];
@@ -522,9 +522,9 @@ var PlaywrightExecutor = /** @class */ (function () {
                         if (!(_g < allPrevSiblings_1.length)) return [3 /*break*/, 50];
                         sibling = allPrevSiblings_1[_g];
                         return [4 /*yield*/, sibling.evaluate(function (el) {
-                                var textNodes = Array.from(el.childNodes)
+                                const textNodes = Array.from(el.childNodes)
                                     .filter(function (node) { return node.nodeType === 3; }) // Node.TEXT_NODE = 3
-                                    .map(function (node) { var _a; return (_a = node.textContent) === null || _a === void 0 ? void 0 : _a.trim(); })
+                                    .map(function (node) { let _a; return (_a = node.textContent) === null || _a === void 0 ? void 0 : _a.trim(); })
                                     .filter(function (text) { return text.length > 0; });
                                 return textNodes.join('');
                             })];
@@ -548,9 +548,9 @@ var PlaywrightExecutor = /** @class */ (function () {
                         parent_1 = elem.locator('xpath=..');
                         return [4 /*yield*/, parent_1.evaluate(function (el) {
                                 // 直系テキストノードのみ取得 (Node.TEXT_NODE = 3)
-                                var textNodes = Array.from(el.childNodes)
+                                const textNodes = Array.from(el.childNodes)
                                     .filter(function (node) { return node.nodeType === 3; })
-                                    .map(function (node) { var _a; return (_a = node.textContent) === null || _a === void 0 ? void 0 : _a.trim(); })
+                                    .map(function (node) { let _a; return (_a = node.textContent) === null || _a === void 0 ? void 0 : _a.trim(); })
                                     .filter(function (text) { return text.length > 0; });
                                 return textNodes.join('');
                             })];
@@ -982,11 +982,11 @@ var PlaywrightExecutor = /** @class */ (function () {
         console.log("".concat('='.repeat(60)));
     };
     PlaywrightExecutor.prototype.endScenario = function () {
-        var endTime = Date.now();
-        var duration = this.scenarioStartTime ? endTime - this.scenarioStartTime : 0;
-        var passed = this.results.filter(function (r) { return r.status === 'passed'; }).length;
-        var failed = this.results.filter(function (r) { return r.status === 'failed'; }).length;
-        var result = {
+        const endTime = Date.now();
+        const duration = this.scenarioStartTime ? endTime - this.scenarioStartTime : 0;
+        const passed = this.results.filter(function (r) { return r.status === 'passed'; }).length;
+        const failed = this.results.filter(function (r) { return r.status === 'failed'; }).length;
+        const result = {
             scenario: this.scenarioName,
             title: this.scenarioName,
             totalSteps: this.results.length,
@@ -1014,7 +1014,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      * 現在のページ URL を返す
      */
     PlaywrightExecutor.prototype.getCurrentUrl = function () {
-        var _a;
+        let _a;
         return ((_a = this.page) === null || _a === void 0 ? void 0 : _a.url()) || '';
     };
     /**
@@ -1022,7 +1022,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      */
     PlaywrightExecutor.prototype.loginAsAdmin = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var loginUrl, emailInput, passwordInput, loginButton, currentUrl, error_3;
+            let loginUrl, emailInput, passwordInput, loginButton, currentUrl, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1085,7 +1085,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      */
     PlaywrightExecutor.prototype.loginAsMember = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var loginUrl, emailInput, passwordInput, loginButton, currentUrl, error_4;
+            let loginUrl, emailInput, passwordInput, loginButton, currentUrl, error_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1144,7 +1144,7 @@ var PlaywrightExecutor = /** @class */ (function () {
      */
     PlaywrightExecutor.prototype.logout = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var currentUrl, signoutUrl, error_5;
+            let currentUrl, signoutUrl, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:

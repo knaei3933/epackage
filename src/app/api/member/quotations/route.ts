@@ -186,8 +186,8 @@ export async function POST(request: NextRequest) {
 
     // クーポン処理：クーポンコードからcoupon_idを取得
     let couponId = null;
-    let discountAmount = (body as any).discountAmount || 0;
-    let discountType = (body as any).appliedCoupon?.type || null;
+    const discountAmount = (body as any).discountAmount || 0;
+    const discountType = (body as any).appliedCoupon?.type || null;
     let finalTotalAmount = totalAmount;
 
     if ((body as any).appliedCoupon?.couponId) {

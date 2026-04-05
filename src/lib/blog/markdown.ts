@@ -205,7 +205,7 @@ function extractHeadings(html: string): Heading[] {
  */
 function generateExcerpt(markdown: string, maxLength = 160): string {
   // Remove markdown syntax
-  let text = markdown
+  const text = markdown
     .replace(/^#+\s+/gm, '') // Remove headers
     .replace(/\*\*/g, '') // Remove bold
     .replace(/\*/g, '') // Remove italic
