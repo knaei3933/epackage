@@ -155,9 +155,22 @@ export function QuotationList({
               {/* 製品仕様プレビュー */}
               {quotation.items?.[0] && (() => {
                 const breakdown = quotation.items[0].breakdown;
-                const specs = breakdown?.specifications || quotation.items[0].specifications || {};
+                let specs = breakdown?.specifications || quotation.items[0].specifications || {};
 
-                let bagTypeId = specs.bagTypeId || specs.bag_type || specs.type;
+                // Extract dimensions from various possible sources
+                const width = enrichedSpecs.width || enrichedSpecs.size?.width || breakdown?.width;
+                const height = enrichedSpecs.height || enrichedSpecs.size?.height || breakdown?.height;
+                const depth = enrichedSpecs.depth || enrichedSpecs.size?.depth || breakdown?.depth || enrichedSpecs.sideWidth;
+
+                // Create enriched specs with dimensions
+                const enrichedSpecs = {
+                  ...specs,
+                  width: width || undefined,
+                  height: height || undefined,
+                  depth: depth || undefined,
+                };
+
+                let bagTypeId = enrichedSpecs.bagTypeId || enrichedSpecs.bag_type || enrichedSpecs.type;
                 let bagTypeInfo = bagTypeId ? BAG_TYPE_IMAGES[bagTypeId] : null;
 
                 if (!bagTypeInfo && bagTypeId) {
@@ -207,21 +220,21 @@ export function QuotationList({
                 };
 
                 const contentsJa = [
-                  specs.productCategory ? productCategoryMap[specs.productCategory] : null,
-                  specs.contentsType ? contentsTypeMap[specs.contentsType] : null,
-                  specs.mainIngredient ? mainIngredientMap[specs.mainIngredient] : null,
-                  specs.distributionEnvironment ? distributionEnvironmentMap[specs.distributionEnvironment] : null,
+                  enrichedSpecs.productCategory ? productCategoryMap[enrichedSpecs.productCategory] : null,
+                  enrichedSpecs.contentsType ? contentsTypeMap[enrichedSpecs.contentsType] : null,
+                  enrichedSpecs.mainIngredient ? mainIngredientMap[enrichedSpecs.mainIngredient] : null,
+                  enrichedSpecs.distributionEnvironment ? distributionEnvironmentMap[enrichedSpecs.distributionEnvironment] : null,
                 ].filter(Boolean).join('、') || '-';
 
-                const printingJa = specs.printingType === 'digital'
+                const printingJa = enrichedSpecs.printingType === 'digital'
                   ? 'デジタル印刷（フルカラー）'
-                  : specs.printingType === 'gravure' ? 'グラビア印刷（フルカラー）' : '-';
+                  : enrichedSpecs.printingType === 'gravure' ? 'グラビア印刷（フルカラー）' : '-';
 
-                const deliveryJa = specs.deliveryLocation === 'domestic' ? '国内' : specs.deliveryLocation === 'international' ? '海外' : '-';
-                const urgencyJa = specs.urgency === 'standard' ? '標準' : specs.urgency === 'express' ? '急ぎ' : '-';
+                const deliveryJa = enrichedSpecs.deliveryLocation === 'domestic' ? '国内' : enrichedSpecs.deliveryLocation === 'international' ? '海外' : '-';
+                const urgencyJa = enrichedSpecs.urgency === 'standard' ? '標準' : enrichedSpecs.urgency === 'express' ? '急ぎ' : '-';
 
-                const isLimitedPostProcessing = specs.bagTypeId === 'roll_film' || specs.bagTypeId === 'spout_pouch';
-                const filteredOptions = (specs.postProcessingOptions || [])
+                const isLimitedPostProcessing = enrichedSpecs.bagTypeId === 'roll_film' || enrichedSpecs.bagTypeId === 'spout_pouch';
+                const filteredOptions = (enrichedSpecs.postProcessingOptions || [])
                   .filter((opt: string) => !opt.startsWith('sealing-width-'));
                 const filteredPostProcessingOptions = isLimitedPostProcessing
                   ? filteredOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
@@ -232,10 +245,10 @@ export function QuotationList({
                 }).filter(Boolean);
 
                 let sealWidthDisplay = null;
-                if (specs.sealWidth) {
-                  sealWidthDisplay = `シール幅 ${specs.sealWidth}`;
+                if (enrichedSpecs.sealWidth) {
+                  sealWidthDisplay = `シール幅 ${enrichedSpecs.sealWidth}`;
                 } else {
-                  const sealWidthOption = (specs.postProcessingOptions || []).find((opt: string) => opt.startsWith('sealing-width-'));
+                  const sealWidthOption = (enrichedSpecs.postProcessingOptions || []).find((opt: string) => opt.startsWith('sealing-width-'));
                   if (sealWidthOption) {
                     const widthMatch = sealWidthOption.match(/sealing-width-(.+)$/);
                     if (widthMatch) {
@@ -271,7 +284,7 @@ export function QuotationList({
                       <div className="flex-1">
                         <div className="border-b border-blue-200 pb-2 mb-3">
                           <h3 className="text-lg font-bold text-blue-900">
-                            {translateBagType(specs.bagTypeId)}
+                            {translateBagType(enrichedSpecs.bagTypeId)}
                           </h3>
                         </div>
 
@@ -282,28 +295,28 @@ export function QuotationList({
                               <span className="text-gray-600 font-medium flex-shrink-0">内容物:</span>
                               <span className="text-gray-900">{contentsJa}</span>
                             </div>
-                            {(specs.width || specs.height || specs.depth || specs.size) && (
+                            {(enrichedSpecs.width || enrichedSpecs.height || enrichedSpecs.depth || enrichedSpecs.size) && (
                               <div className="flex items-start gap-2">
                                 <span className="text-gray-600 font-medium flex-shrink-0">サイズ:</span>
                                 <span className="text-gray-900">
-                                  {specs.width && specs.height
-                                    ? `${specs.width} x ${specs.height}${specs.depth ? ` x ${specs.depth}` : ''} mm`
-                                    : specs.size || '-'}
+                                  {enrichedSpecs.width && enrichedSpecs.height
+                                    ? `${enrichedSpecs.width} x ${enrichedSpecs.height}${enrichedSpecs.depth ? ` x ${enrichedSpecs.depth}` : ''} mm`
+                                    : enrichedSpecs.size || '-'}
                                 </span>
                               </div>
                             )}
                             <div className="flex items-start gap-2">
                               <span className="text-gray-600 font-medium flex-shrink-0">袋タイプ:</span>
-                              <span className="text-gray-900">{translateBagType(specs.bagTypeId)}</span>
+                              <span className="text-gray-900">{translateBagType(enrichedSpecs.bagTypeId)}</span>
                             </div>
                             <div className="flex items-start gap-2">
                               <span className="text-gray-600 font-medium flex-shrink-0">素材:</span>
-                              <span className="text-gray-900">{translateMaterialType(specs.materialId)}</span>
+                              <span className="text-gray-900">{translateMaterialType(enrichedSpecs.materialId)}</span>
                             </div>
                             <div className="flex items-start gap-2">
                               <span className="text-gray-600 font-medium flex-shrink-0">厚さ:</span>
                               <span className="text-gray-900">
-                                {specs.material_specification || specs.thickness_display || specs.weight_range || getMaterialSpecification(specs.materialId, specs.printingType) || '-'}
+                                {enrichedSpecs.material_specification || enrichedSpecs.thickness_display || enrichedSpecs.weight_range || getMaterialSpecification(enrichedSpecs.materialId, enrichedSpecs.printingType) || '-'}
                               </span>
                             </div>
                             <div className="flex items-start gap-2">
@@ -334,10 +347,10 @@ export function QuotationList({
                             </div>
                           )}
 
-                          {specs.sideWidth && (
+                          {enrichedSpecs.sideWidth && (
                             <div className="pt-2 border-t border-blue-100 text-sm">
                               <span className="text-gray-600 font-medium">マチサイズ:</span>
-                              <span className="text-gray-900 ml-2">{specs.sideWidth}mm</span>
+                              <span className="text-gray-900 ml-2">{enrichedSpecs.sideWidth}mm</span>
                             </div>
                           )}
                         </div>
@@ -359,7 +372,7 @@ export function QuotationList({
               <div className="text-sm text-text-muted space-y-1 mb-3">
                 {safeMap((quotation.items || []).slice(0, 3), (item) => {
                   const specs = item.breakdown?.specifications || item.specifications || {};
-                  const skuQuantities = specs.sku_quantities;
+                  const skuQuantities = enrichedSpecs.sku_quantities;
                   const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
 
                   return (
