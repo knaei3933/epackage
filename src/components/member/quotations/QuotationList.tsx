@@ -276,10 +276,25 @@ export function QuotationList({
                         </div>
 
                         <div className="space-y-3">
+                          <div className="text-xs font-medium text-gray-600 mb-2">詳細仕様</div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             <div className="flex items-start gap-2">
                               <span className="text-gray-600 font-medium flex-shrink-0">内容物:</span>
                               <span className="text-gray-900">{contentsJa}</span>
+                            </div>
+                            {(specs.width || specs.height || specs.depth || specs.size) && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-gray-600 font-medium flex-shrink-0">サイズ:</span>
+                                <span className="text-gray-900">
+                                  {specs.width && specs.height
+                                    ? `${specs.width} x ${specs.height}${specs.depth ? ` x ${specs.depth}` : ''} mm`
+                                    : specs.size || '-'}
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex items-start gap-2">
+                              <span className="text-gray-600 font-medium flex-shrink-0">袋タイプ:</span>
+                              <span className="text-gray-900">{translateBagType(specs.bagTypeId)}</span>
                             </div>
                             <div className="flex items-start gap-2">
                               <span className="text-gray-600 font-medium flex-shrink-0">素材:</span>
@@ -305,9 +320,9 @@ export function QuotationList({
                             </div>
                           </div>
 
+                          {/* 後加工オプション */}
                           {finalPostProcessingList.length > 0 && (
                             <div className="pt-3 border-t border-blue-100">
-                              <div className="text-xs font-medium text-gray-600 mb-2">詳細仕様</div>
                               <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
                                 <span className="text-gray-600 font-medium">後加工:</span>
                                 {finalPostProcessingList.map((pp, idx) => (
