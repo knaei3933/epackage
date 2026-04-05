@@ -264,11 +264,11 @@ export function QuotationList({
                 }
 
                 return (
-                  <div className="mb-4 p-5 rounded-xl bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 shadow-sm">
-                    <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="mb-4 p-5 rounded-xl bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 shadow-sm overflow-hidden">
+                    <div className="flex flex-col lg:flex-row gap-4">
                       {/* 製品タイプ画像 */}
                       <div className="flex-shrink-0">
-                        <div className="w-36 h-36 lg:w-44 lg:h-44 relative bg-white rounded-xl p-3 shadow-md">
+                        <div className="w-32 h-32 lg:w-36 lg:h-36 relative bg-white rounded-lg p-2 shadow-sm">
                           <img
                             src={bagTypeInfo.image}
                             alt={bagTypeInfo.name}
@@ -280,76 +280,78 @@ export function QuotationList({
                         </div>
                       </div>
 
-                      {/* 製品仕様 */}
-                      <div className="flex-1">
+                      {/* 製品仕様 - 詳細仕様全体を青いボックス内に */}
+                      <div className="flex-1 min-w-0">
                         <div className="border-b border-blue-200 pb-2 mb-3">
-                          <h3 className="text-lg font-bold text-blue-900">
+                          <h3 className="text-base font-bold text-blue-900">
                             詳細仕様
                           </h3>
                         </div>
 
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">内容物:</span>
-                              <span className="text-gray-900">{contentsJa}</span>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">内容物:</span>
+                              <span className="text-gray-900 break-words">{contentsJa}</span>
                             </div>
                             {(enrichedSpecs.width || enrichedSpecs.height || enrichedSpecs.depth || enrichedSpecs.size) && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-gray-600 font-medium flex-shrink-0">サイズ:</span>
-                                <span className="text-gray-900">
+                              <div className="flex items-start gap-1.5">
+                                <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">サイズ:</span>
+                                <span className="text-gray-900 break-words">
                                   {enrichedSpecs.width && enrichedSpecs.height
                                     ? `${enrichedSpecs.width} x ${enrichedSpecs.height}${enrichedSpecs.depth ? ` x ${enrichedSpecs.depth}` : ''} mm`
                                     : enrichedSpecs.size || '-'}
                                 </span>
                               </div>
                             )}
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">袋タイプ:</span>
-                              <span className="text-gray-900">{translateBagType(enrichedSpecs.bagTypeId)}</span>
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">袋タイプ:</span>
+                              <span className="text-gray-900 break-words">{translateBagType(enrichedSpecs.bagTypeId)}</span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">素材:</span>
-                              <span className="text-gray-900">{translateMaterialType(enrichedSpecs.materialId)}</span>
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">素材:</span>
+                              <span className="text-gray-900 break-words">{translateMaterialType(enrichedSpecs.materialId)}</span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">厚さ:</span>
-                              <span className="text-gray-900">
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">厚さ:</span>
+                              <span className="text-gray-900 break-words">
                                 {enrichedSpecs.material_specification || enrichedSpecs.thickness_display || enrichedSpecs.weight_range || getMaterialSpecification(enrichedSpecs.materialId, enrichedSpecs.printingType) || '-'}
                               </span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">印刷:</span>
-                              <span className="text-gray-900">{printingJa}</span>
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">印刷:</span>
+                              <span className="text-gray-900 break-words">{printingJa}</span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">納期:</span>
-                              <span className="text-gray-900">{urgencyJa}</span>
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">納期:</span>
+                              <span className="text-gray-900 break-words">{urgencyJa}</span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-gray-600 font-medium flex-shrink-0">配送先:</span>
-                              <span className="text-gray-900">{deliveryJa}</span>
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-gray-600 font-medium flex-shrink-0 min-w-[60px]">配送先:</span>
+                              <span className="text-gray-900 break-words">{deliveryJa}</span>
                             </div>
                           </div>
 
                           {/* 後加工オプション */}
                           {finalPostProcessingList.length > 0 && (
-                            <div className="pt-3 border-t border-blue-100">
-                              <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
-                                <span className="text-gray-600 font-medium">後加工:</span>
-                                {finalPostProcessingList.map((pp, idx) => (
-                                  <span key={idx} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-                                    {pp}
-                                  </span>
-                                ))}
+                            <div className="pt-2 border-t border-blue-100">
+                              <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs">
+                                <span className="text-gray-600 font-medium flex-shrink-0">後加工:</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {finalPostProcessingList.map((pp, idx) => (
+                                    <span key={idx} className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                      {pp}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           )}
 
                           {enrichedSpecs.sideWidth && (
-                            <div className="pt-2 border-t border-blue-100 text-sm">
+                            <div className="pt-2 border-t border-blue-100 text-xs">
                               <span className="text-gray-600 font-medium">マチサイズ:</span>
-                              <span className="text-gray-900 ml-2">{enrichedSpecs.sideWidth}mm</span>
+                              <span className="text-gray-900 ml-1">{enrichedSpecs.sideWidth}mm</span>
                             </div>
                           )}
                         </div>
