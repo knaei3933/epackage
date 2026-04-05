@@ -15,10 +15,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Download } from 'lucide-react';
-import type { Quotation, QuotationStatus } from '@/types/dashboard';
+import type { Quotation, QuotationStatus } from '@/types/entities';
 import { supabase } from '@/lib/supabase-browser';
 import { translateBagType, translateMaterialType, translatePostProcessing, BAG_TYPE_JA, POST_PROCESSING_JA } from '@/constants/enToJa';
+import {
+  BAG_TYPE_IMAGES,
+  MEMBER_STATUS_LABELS,
+  MEMBER_STATUS_VARIANTS,
+  convertToPreviewOptions
+} from '@/constants/product-type-config';
 import { Eye, Trash2, FileText } from 'lucide-react';
+import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { safeMap } from '@/lib/array-helpers';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
@@ -47,60 +54,6 @@ interface QuotationsClientProps {
 // =====================================================
 // Constants
 // =====================================================
-
-const quotationStatusLabels: Record<string, string> = {
-  DRAFT: '審査中',
-  SENT: '送信済み',
-  APPROVED: '承認済み',
-  REJECTED: '却下',
-  EXPIRED: '期限切れ',
-  CONVERTED: '注文変換済み',
-  draft: '審査中',
-  sent: '送信済み',
-  approved: '承認済み',
-  rejected: '却下',
-  expired: '期限切れ',
-  converted: '注文変換済み',
-  // 10-step workflow statuses
-  QUOTATION_PENDING: '見積依頼中',
-  QUOTATION_APPROVED: '見積承認済み',
-  DATA_UPLOAD_PENDING: 'データ入待ち',
-  DATA_UPLOADED: 'データ入完了',
-  CORRECTION_IN_PROGRESS: '修正中',
-  CORRECTION_COMPLETED: '修正完了',
-  CUSTOMER_APPROVAL_PENDING: '顧客承認待ち',
-  PRODUCTION: '製造中',
-  READY_TO_SHIP: '出荷予定',
-  SHIPPED: '出荷完了',
-  CANCELLED: 'キャンセル',
-};
-
-const quotationStatusVariants: Record<string, 'secondary' | 'info' | 'success' | 'error' | 'warning'> = {
-  DRAFT: 'secondary',
-  SENT: 'info',
-  APPROVED: 'success',
-  REJECTED: 'error',
-  EXPIRED: 'warning',
-  CONVERTED: 'default',
-  draft: 'secondary',
-  sent: 'info',
-  approved: 'success',
-  rejected: 'error',
-  expired: 'warning',
-  converted: 'default',
-  // 10-step workflow statuses
-  QUOTATION_PENDING: 'info',
-  QUOTATION_APPROVED: 'success',
-  DATA_UPLOAD_PENDING: 'secondary',
-  DATA_UPLOADED: 'info',
-  CORRECTION_IN_PROGRESS: 'warning',
-  CORRECTION_COMPLETED: 'info',
-  CUSTOMER_APPROVAL_PENDING: 'warning',
-  PRODUCTION: 'warning',
-  READY_TO_SHIP: 'info',
-  SHIPPED: 'success',
-  CANCELLED: 'error',
-};
 
 const statusFilterOptions = [
   { value: 'all', label: 'すべて' },
@@ -250,13 +203,26 @@ function SpecificationDisplay({ item }: { item: any }) {
     specs.distributionEnvironment ? distributionEnvironmentMap[specs.distributionEnvironment] : null,
   ].filter(Boolean).join('、') || '-';
 
-  // サイズ表示 - ロールフィルムの場合は常に「幅: ○mm、ピッチ: ○mm」
-  // 旧データ（二重ネスト）と新データ（修正後）の両方に対応
+  // サイズ表示 - specs.sizeがあればそれを優先使用（管理者ページと同じロジック）
   const pitchValue = specs.pitch || (specs.specifications as any)?.pitch || 0;
   const sideWidth = specs.sideWidth;
   let sizeDisplay = '';
-  if (specs.bagTypeId === 'roll_film' || specs.bagTypeId === 'spout_pouch') {
+
+  // specs.sizeがあればそれを優先（管理者ページから渡されたフォーマット済みサイズ）
+  if (specs.size) {
+    sizeDisplay = specs.size;
+  } else if (specs.bagTypeId === 'roll_film') {
+    // ロールフィルム: 幅とピッチ
     sizeDisplay = `幅: ${specs.width || 0}mm${pitchValue ? `、ピッチ: ${pitchValue}mm` : ''}`;
+  } else if (specs.bagTypeId === 'spout_pouch') {
+    // スパウトパウチ: 幅、マチ、高さ、奥行
+    const width = specs.width || 0;
+    const height = specs.height || 0;
+    const depth = specs.depth || 0;
+    sizeDisplay = `幅: ${width}mm`;
+    if (sideWidth) sizeDisplay += `、マチ: ${sideWidth}mm`;
+    if (height > 0) sizeDisplay += `、高さ: ${height}mm`;
+    if (depth > 0) sizeDisplay += `、奥行: ${depth}mm`;
   } else {
     // 既存のdimensionsがある場合はそれをベースに、なければ個別フィールドから構築
     const existingDimensions = specs.dimensions;
@@ -286,6 +252,56 @@ function SpecificationDisplay({ item }: { item: any }) {
           <span className="text-text-muted flex-shrink-0">サイズ:</span>
           <span className="text-text-primary">{sizeDisplay}</span>
         </div>
+        {/* 製品タイププレビュー画像 */}
+        {(() => {
+          const entry = Object.entries(BAG_TYPE_IMAGES).find(([key, value]) => value.name === bagTypeJa);
+          if (!entry) return null;
+          const bagTypeInfo = entry[1];
+          return (
+            <div className="col-span-2 mb-2 flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="w-20 h-20 relative bg-white rounded-lg p-2 shadow-sm flex-shrink-0">
+                <img
+                  src={bagTypeInfo.image}
+                  alt={bagTypeInfo.name}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-blue-900">{bagTypeInfo.name}</div>
+                <div className="text-xs text-blue-700">製品タイプ</div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* 製品タイププレビュー画像 - 「袋タイプ」行の直前に配置 */}
+        {(() => {
+          const entry = Object.entries(BAG_TYPE_IMAGES).find(([key, value]) => value.name === bagTypeJa);
+          if (!entry) return null;
+          const bagTypeInfo = entry[1];
+          return (
+            <div className="col-span-2 mb-2 flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="w-20 h-20 relative bg-white rounded-lg p-2 shadow-sm flex-shrink-0">
+                <img
+                  src={bagTypeInfo.image}
+                  alt={bagTypeInfo.name}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-blue-900">{bagTypeInfo.name}</div>
+                <div className="text-xs text-blue-700">製品タイプ</div>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="flex items-start gap-1">
           <span className="text-text-muted flex-shrink-0">袋タイプ:</span>
           <span className="text-text-primary">{bagTypeJa}</span>
@@ -296,7 +312,7 @@ function SpecificationDisplay({ item }: { item: any }) {
         </div>
         <div className="flex items-start gap-1">
           <span className="text-text-muted flex-shrink-0">厚さ:</span>
-          <span className="text-text-primary">{thicknessJa}</span>
+          <span className="text-text-primary">{specs.material_specification || thicknessJa}</span>
         </div>
         <div className="flex items-start gap-1">
           <span className="text-text-muted flex-shrink-0">印刷:</span>
@@ -691,8 +707,8 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                     <span className="font-medium text-text-primary">
                       {quotation.quotationNumber}
                     </span>
-                    <Badge variant={quotationStatusVariants[quotation.status]} size="sm">
-                      {quotationStatusLabels[quotation.status]}
+                    <Badge variant={MEMBER_STATUS_VARIANTS[quotation.status]} size="sm">
+                      {MEMBER_STATUS_LABELS[quotation.status]}
                     </Badge>
                   </div>
 
@@ -735,18 +751,213 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                     </div>
                   )}
 
-                  {/* Common Specifications - Display once for all items */}
-                  {quotation.items?.[0]?.specifications && (
-                    <div className="mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100">
-                      <div className="text-xs font-medium text-text-primary mb-2">製品仕様（共通）</div>
-                      <SpecificationDisplay item={quotation.items[0]} />
-                    </div>
+                  {/* Product Type Preview with Specifications */}
+                  {quotation.items?.[0] && (() => {
+                    // 管理者ページと同じデータ構造を使用: breakdown.specificationsを優先
+                    const breakdown = quotation.items[0].breakdown;
+                    const specs = breakdown?.specifications || quotation.items[0].specifications || {};
+
+                    // bagTypeIdを取得 - 複数のフィールドを試す
+                    let bagTypeId = specs.bagTypeId || specs.bag_type || specs.type;
+
+                    // BAG_TYPE_IMAGESから画像情報を取得
+                    let bagTypeInfo = bagTypeId ? BAG_TYPE_IMAGES[bagTypeId] : null;
+
+                    // まだ見つからない場合、日本語名から逆引き
+                    if (!bagTypeInfo && bagTypeId) {
+                      const jaName = translateBagType(bagTypeId);
+                      if (jaName && jaName !== '-') {
+                        const entry = Object.entries(BAG_TYPE_IMAGES).find(([key, value]) => value.name === jaName);
+                        if (entry) {
+                          bagTypeId = entry[0];
+                          bagTypeInfo = BAG_TYPE_IMAGES[bagTypeId];
+                        }
+                      }
+                    }
+
+                    // まだ見つからない場合、BAG_TYPE_JAから逆引き
+                    if (!bagTypeInfo && bagTypeId) {
+                      const jaName = BAG_TYPE_JA[bagTypeId as keyof typeof BAG_TYPE_JA];
+                      if (jaName) {
+                        const entry = Object.entries(BAG_TYPE_IMAGES).find(([key, value]) => value.name === jaName);
+                        if (entry) {
+                          bagTypeId = entry[0];
+                          bagTypeInfo = BAG_TYPE_IMAGES[bagTypeId];
+                        }
+                      }
+                    }
+
+                    if (!bagTypeInfo) return null;
+
+                    // 製品仕様データを準備
+                    const productCategoryMap = {
+                      'food': '食品',
+                      'cosmetics': '化粧品',
+                      'medicine': '医薬品',
+                      'other': 'その他'
+                    };
+                    const contentsTypeMap = {
+                      'solid': '固形',
+                      'liquid': '液状',
+                      'powder': '粉状'
+                    };
+                    const mainIngredientMap = {
+                      'general_neutral': '一般・中性',
+                      'oily': '油性・界面活性剤',
+                      'acidic_alkaline': '酸性・アルカリ性'
+                    };
+                    const distributionEnvironmentMap = {
+                      'room_temperature': '一般（常温）',
+                      'refrigerated': '冷蔵',
+                      'frozen': '冷凍'
+                    };
+
+                    const contentsJa = [
+                      specs.productCategory ? productCategoryMap[specs.productCategory] : null,
+                      specs.contentsType ? contentsTypeMap[specs.contentsType] : null,
+                      specs.mainIngredient ? mainIngredientMap[specs.mainIngredient] : null,
+                      specs.distributionEnvironment ? distributionEnvironmentMap[specs.distributionEnvironment] : null,
+                    ].filter(Boolean).join('、') || '-';
+
+                    const printingJa = specs.printingType === 'digital'
+                      ? 'デジタル印刷（フルカラー）'
+                      : specs.printingType === 'gravure' ? 'グラビア印刷（フルカラー）' : '-';
+
+                    const deliveryJa = specs.deliveryLocation === 'domestic' ? '国内' : specs.deliveryLocation === 'international' ? '海外' : '-';
+                    const urgencyJa = specs.urgency === 'standard' ? '標準' : specs.urgency === 'express' ? '急ぎ' : '-';
+
+                    // 後加工オプションを準備
+                    const isLimitedPostProcessing = specs.bagTypeId === 'roll_film' || specs.bagTypeId === 'spout_pouch';
+                    const filteredOptions = (specs.postProcessingOptions || [])
+                      .filter((opt: string) => !opt.startsWith('sealing-width-'));
+                    const filteredPostProcessingOptions = isLimitedPostProcessing
+                      ? filteredOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
+                      : filteredOptions;
+
+                    const postProcessingList = filteredPostProcessingOptions.map((opt: string) => {
+                      return POST_PROCESSING_JA[opt as keyof typeof POST_PROCESSING_JA] || opt;
+                    }).filter(Boolean);
+
+                    // シール幅表示
+                    let sealWidthDisplay = null;
+                    if (specs.sealWidth) {
+                      sealWidthDisplay = `シール幅 ${specs.sealWidth}`;
+                    } else {
+                      const sealWidthOption = (specs.postProcessingOptions || []).find((opt: string) => opt.startsWith('sealing-width-'));
+                      if (sealWidthOption) {
+                        const widthMatch = sealWidthOption.match(/sealing-width-(.+)$/);
+                        if (widthMatch) {
+                          const width = widthMatch[1].replace('-', '.');
+                          sealWidthDisplay = `シール幅 ${width}`;
+                        }
+                      }
+                    }
+
+                    const finalPostProcessingList = [...postProcessingList];
+                    if (sealWidthDisplay && !isLimitedPostProcessing) {
+                      finalPostProcessingList.unshift(sealWidthDisplay);
+                    }
+
+                    return (
+                      <div className="mb-4 p-5 rounded-xl bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 shadow-sm">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          {/* 製品タイプ画像 - 大きく表示 */}
+                          <div className="flex-shrink-0">
+                            <div className="w-36 h-36 lg:w-44 lg:h-44 relative bg-white rounded-xl p-3 shadow-md">
+                              <img
+                                src={bagTypeInfo.image}
+                                alt={bagTypeInfo.name}
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* 製品仕様 - 画像の横に配置 */}
+                          <div className="flex-1">
+                            {/* タイトル */}
+                            <div className="border-b border-blue-200 pb-2 mb-3">
+                              <h3 className="text-lg font-bold text-blue-900">
+                                {translateBagType(specs.bagTypeId)}
+                              </h3>
+                            </div>
+
+                            {/* 仕様セクション */}
+                            <div className="space-y-3">
+                              {/* 基本仕様 */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-600 font-medium flex-shrink-0">内容物:</span>
+                                  <span className="text-gray-900">{contentsJa}</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-600 font-medium flex-shrink-0">素材:</span>
+                                  <span className="text-gray-900">{translateMaterialType(specs.materialId)}</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-600 font-medium flex-shrink-0">厚さ:</span>
+                                  <span className="text-gray-900">
+                                    {specs.material_specification || specs.thickness_display || specs.weight_range || getMaterialSpecification(specs.materialId, specs.printingType) || '-'}
+                                  </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-600 font-medium flex-shrink-0">印刷:</span>
+                                  <span className="text-gray-900">{printingJa}</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-600 font-medium flex-shrink-0">納期:</span>
+                                  <span className="text-gray-900">{urgencyJa}</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-600 font-medium flex-shrink-0">配送先:</span>
+                                  <span className="text-gray-900">{deliveryJa}</span>
+                                </div>
+                              </div>
+
+                              {/* 詳細仕様（後加工など） */}
+                              {finalPostProcessingList.length > 0 && (
+                                <div className="pt-3 border-t border-blue-100">
+                                  <div className="text-xs font-medium text-gray-600 mb-2">詳細仕様</div>
+                                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+                                    <span className="text-gray-600 font-medium">後加工:</span>
+                                    {finalPostProcessingList.map((pp, idx) => (
+                                      <span key={idx} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                        {pp}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* マチサイズ */}
+                              {specs.sideWidth && (
+                                <div className="pt-2 border-t border-blue-100 text-sm">
+                                  <span className="text-gray-600 font-medium">マチサイズ:</span>
+                                  <span className="text-gray-900 ml-2">{specs.sideWidth}mm</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Post Processing Preview - Compact Mode */}
+                  {quotation.items?.[0]?.breakdown?.specifications && (
+                    <PostProcessingPreview
+                      selectedOptions={convertToPreviewOptions(quotation.items[0].breakdown.specifications.postProcessingOptions || [])}
+                      className="mb-3"
+                    />
                   )}
 
                   {/* SKU Items - Simplified display */}
                   <div className="text-sm text-text-muted space-y-1 mb-3">
                     {safeMap((quotation.items || []).slice(0, 3), (item) => {
-                      const specs = item.specifications || {};
+                      // breakdown.specificationsを優先（material_specificationフィールドを含む）
+                      const specs = item.breakdown?.specifications || item.specifications || {};
                       const skuQuantities = specs.sku_quantities;
                       const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
 

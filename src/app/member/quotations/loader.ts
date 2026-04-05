@@ -7,6 +7,7 @@
  */
 
 import { createServiceClient } from '@/lib/supabase';
+import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 
 export interface QuotationItem {
   id: string;
@@ -153,13 +154,38 @@ export async function fetchQuotationsServerSide(
     quotationNumber: q.quotation_number,
     totalAmount: q.total_amount,
     validUntil: q.valid_until,
-    items: (q.quotation_items || []).map((item: any) => ({
-      ...item,
-      productName: item.product_name,
-      unitPrice: item.unit_price,
-      totalPrice: item.total_price,
-      orderId: item.order_id,
-    })),
+    items: (q.quotation_items || []).map((item: any) => {
+      const specs = item.specifications || {};
+
+      // material_specificationフィールドを追加（管理者ページと同じように表示するため）
+      if (specs.materialId && !specs.material_specification) {
+        // thicknessSelectionがあればそれを使用、なければデフォルト仕様を使用
+        const thicknessSpec = getMaterialSpecification(specs.materialId, specs.thicknessSelection || specs.printingType);
+        if (thicknessSpec !== '-') {
+          specs.material_specification = thicknessSpec;
+        }
+      }
+
+      return {
+        ...item,
+        productName: item.product_name,
+        unitPrice: item.unit_price,
+        totalPrice: item.total_price,
+        orderId: item.order_id,
+        // 管理者ページと同じbreakdown構造を構築
+        breakdown: {
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+          specifications: specs,
+          sku_info: specs.sku_quantities ? {
+            count: specs.sku_quantities.length,
+            quantities: specs.sku_quantities,
+            total: specs.sku_quantities.reduce((sum: number, q: number) => sum + q, 0),
+          } : null,
+        },
+      };
+    }),
     createdAt: q.created_at,
     updatedAt: q.updated_at,
     sentAt: q.sent_at,
