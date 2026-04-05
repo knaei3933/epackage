@@ -284,12 +284,11 @@ export function QuotationList({
                       <div className="flex-1">
                         <div className="border-b border-blue-200 pb-2 mb-3">
                           <h3 className="text-lg font-bold text-blue-900">
-                            {translateBagType(enrichedSpecs.bagTypeId)}
+                            詳細仕様
                           </h3>
                         </div>
 
                         <div className="space-y-3">
-                          <div className="text-xs font-medium text-gray-600 mb-2">詳細仕様</div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             <div className="flex items-start gap-2">
                               <span className="text-gray-600 font-medium flex-shrink-0">内容物:</span>
