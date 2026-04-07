@@ -1024,6 +1024,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
     case 'CLEAR_APPLIED_OPTION': {
       // オプション適用状態をクリア（元の単価に戻す）
       console.log('[CLEAR_APPLIED_OPTION] Clearing applied option');
+      console.log('[CLEAR_APPLIED_OPTION] Stack trace:', new Error().stack);
       return {
         ...state,
         twoColumnOptionApplied: null,

@@ -151,8 +151,21 @@ export function useToast() {
     return addToast({ type: 'error', message, duration });
   };
 
-  const showSuccess = (message: string, duration?: number) => {
-    return addToast({ type: 'success', message, duration });
+  const showSuccess = (
+    message: string,
+    duration?: number,
+    options?: {
+      undoAction?: { label: string; onClick: () => void };
+      details?: string[];
+      persistent?: boolean;
+    }
+  ) => {
+    return addToast({
+      type: 'success',
+      message,
+      duration,
+      ...options
+    });
   };
 
   const showInfo = (message: string, duration?: number) => {

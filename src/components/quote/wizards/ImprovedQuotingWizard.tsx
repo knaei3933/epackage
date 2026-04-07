@@ -2410,7 +2410,8 @@ export function ImprovedQuotingWizard() {
 
       <div ref={wizardRef} className="max-w-7xl mx-auto p-4 lg:p-8" id="quote-wizard-content">
 
-        {/* Enhanced Progress Bar - Removed duplicate header title */}
+        {/* Enhanced Progress Bar - Hidden */}
+        {false && (
         <div className="mb-4 md:mb-6 lg:mb-8 max-w-2xl mx-auto">
           <div role="progressbar" aria-valuenow={Math.round(((currentStep + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="見積もり作成の進捗状況">
             <div className="flex justify-between items-center mb-2">
@@ -2443,6 +2444,7 @@ export function ImprovedQuotingWizard() {
             />
           </div>
         </div>
+        )}
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

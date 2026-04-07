@@ -17,6 +17,8 @@ import { Download, Trash2, FileText, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Quotation, QuotationStatus } from '@/types/entities';
 import { MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS, convertToPreviewOptions } from '@/constants/product-type-config';
+import { translateMaterialType, translateBagType } from '@/constants/enToJa';
+import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
 import { generateQuotePDF } from '@/lib/pdf-generator';
 import { mapDatabaseQuotationToExcel } from '@/lib/excel/excelDataMapper';
@@ -27,7 +29,7 @@ import {
   QuotationPagination,
   QuotationActions,
 } from '@/components/member/quotations';
-import { formatPrice } from '@/utils/formatters';
+import { formatPrice, formatDate } from '@/utils/formatters';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 
@@ -148,20 +150,24 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
       console.log('[handleDownloadPDF] Starting PDF download for quotation:', quotation.quotationNumber);
 
       // 優先: 保存されたPDFを直接ダウンロード
-      if (quotation.pdfUrl) {
-        console.log('[handleDownloadPDF] Downloading saved PDF from Storage:', quotation.pdfUrl);
+      // 両方のフィールド名をチェック（pdfUrlとpdf_url）
+      const savedPdfUrl = quotation.pdfUrl || (quotation as any).pdf_url;
 
-        const a = document.createElement('a');
-        a.href = quotation.pdfUrl;
-        a.download = `${quotation.quotationNumber}.pdf`;
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      if (savedPdfUrl && typeof savedPdfUrl === 'string' && savedPdfUrl.trim() !== '' && savedPdfUrl.startsWith('http')) {
+        console.log('[handleDownloadPDF] Found saved PDF URL:', savedPdfUrl);
+
+        // 直接ダウンロードリンクを作成してクリック
+        const link = document.createElement('a');
+        link.href = savedPdfUrl;
+        link.target = '_blank';
+        link.download = `${quotation.quotationNumber}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
         console.log('[handleDownloadPDF] PDF downloaded from Storage successfully:', quotation.quotationNumber);
 
-        // Log PDF download to database
+        // ダウンロード履歴を記録
         try {
           await fetch('/api/member/documents', {
             method: 'POST',
@@ -184,10 +190,259 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
       }
 
       // フォールバック: PDFが保存されていない場合は再生成
-      console.log('[handleDownloadPDF] No saved PDF found, regenerating from data...');
+      console.log('[handleDownloadPDF] No valid saved PDF found, will generate new PDF...');
 
       // PDF生成ロジック（既存コードを維持）
-      // ... (既存のPDF生成コードをここに含める)
+      if (!quotation.items || quotation.items.length === 0) {
+        throw new Error('見積明細がありません');
+      }
+
+      const quoteItems = quotation.items
+        .filter((item) => item.productName && item.quantity > 0 && item.unitPrice >= 0)
+        .map((item) => {
+          const specs = item?.specifications as Record<string, unknown> | undefined;
+          const materialId = specs?.materialId as string | undefined;
+          const dimensions = specs?.dimensions as string | undefined;
+          const bagTypeId = specs?.bagTypeId as string | undefined;
+
+          // サイズ表示を構築
+          let sizeText: string;
+          if (bagTypeId === 'roll_film' || bagTypeId === 'standup_pouch') {
+            const pitchVal = specs?.pitch || (specs?.specifications as any)?.pitch || 0;
+            sizeText = `幅: ${specs?.width || 0}mm${pitchVal ? `、ピッチ: ${pitchVal}mm` : ''}`;
+          } else {
+            const itemSideWidth = specs?.sideWidth as number | undefined;
+            if (dimensions) {
+              if (itemSideWidth && !dimensions.includes('側面')) {
+                sizeText = dimensions.replace(' mm', `${itemSideWidth ? `×側面${itemSideWidth}` : ''} mm`);
+              } else {
+                sizeText = dimensions;
+              }
+            } else {
+              sizeText = `${specs?.width || 0}×${specs?.height || 0}${((specs?.depth as number || 0) > 0 && bagTypeId !== 'lap_seal') ? `×${specs?.depth}` : ''}${itemSideWidth ? `×側面${itemSideWidth}` : ''}`;
+            }
+          }
+
+          return {
+            id: item.id,
+            name: item.productName || '製品名なし',
+            description: sizeText
+              ? `サイズ: ${sizeText} | ${materialId ? translateMaterialType(materialId) : '-'}`
+              : '-',
+            quantity: item.quantity || 0,
+            unit: '個',
+            unitPrice: item.unitPrice || 0,
+            amount: item.totalPrice || item.unitPrice * item.quantity || 0,
+          };
+        });
+
+      if (quoteItems.length === 0) {
+        throw new Error('有効な見積明細がありません');
+      }
+
+      // mapSpecificationsToPDF関数を定義
+      function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Record<string, string | boolean | number> {
+        if (!specs) return {};
+
+        const bagTypeId = specs?.bagTypeId as string | undefined;
+        const materialId = specs?.materialId as string | undefined;
+        const postProcessingOptions = specs?.postProcessingOptions as string[] | undefined;
+
+        const pitchValue = specs?.pitch || (specs?.specifications as any)?.pitch || 0;
+        const sideWidth = specs?.sideWidth as number | undefined;
+        let sizeDisplay = '';
+        if (bagTypeId === 'roll_film' || bagTypeId === 'standup_pouch') {
+          sizeDisplay = `幅: ${specs?.width || 0}mm${pitchValue ? `、ピッチ: ${pitchValue}mm` : ''}`;
+        } else {
+          const existingDimensions = specs?.dimensions as string;
+          if (existingDimensions) {
+            if (sideWidth && !existingDimensions.includes('側面')) {
+              sizeDisplay = existingDimensions.replace(' mm', `${sideWidth ? `×側面${sideWidth}` : ''} mm`);
+            } else {
+              sizeDisplay = existingDimensions;
+            }
+          } else {
+            sizeDisplay = `${specs?.width || 0}×${specs?.height || 0}${((specs?.depth as number || 0) > 0 && bagTypeId !== 'lap_seal') ? `×${specs?.depth}` : ''}${sideWidth ? `×側面${sideWidth}` : ''}`;
+          }
+        }
+
+        let notchShape = 'V';
+        if (postProcessingOptions?.includes('notch-straight')) {
+          notchShape = '直線';
+        } else if (postProcessingOptions?.includes('notch-no')) {
+          notchShape = 'なし';
+        }
+
+        let hanging = 'なし';
+        let hangingPosition = '指定位置';
+        if (postProcessingOptions?.includes('hang-hole-6mm')) {
+          hanging = 'あり';
+          hangingPosition = '6mm';
+        } else if (postProcessingOptions?.includes('hang-hole-8mm')) {
+          hanging = 'あり';
+          hangingPosition = '8mm';
+        }
+
+        let sealWidth = '5mm';
+        const sealWidthField = specs?.sealWidth as string | undefined;
+        if (sealWidthField) {
+          sealWidth = sealWidthField.replace('シール幅 ', '').replace('mm', '');
+        } else {
+          const sealWidthOption = postProcessingOptions?.find((opt: string) => opt.startsWith('sealing-width-'));
+          if (sealWidthOption) {
+            const widthMatch = sealWidthOption.match(/sealing-width-(.+)$/);
+            if (widthMatch) {
+              sealWidth = widthMatch[1].replace('-', '.');
+            }
+          }
+        }
+
+        const sealDirection = '上';
+
+        const thicknessSelection = specs?.thicknessSelection as string | undefined;
+        let thicknessType = '-';
+        if (materialId && thicknessSelection) {
+          thicknessType = getMaterialSpecification(materialId, thicknessSelection);
+        }
+        if (thicknessType === '-' && materialId) {
+          const defaultThicknessSpec: Record<string, string> = {
+            'ny_lldpe': 'NY 15μ + LLDPE 70μ',
+            'pet_ldpe': 'PET 12μ + LLDPE 70μ',
+            'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
+            'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
+            'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
+            'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+            'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+          };
+          thicknessType = defaultThicknessSpec[materialId] || '-';
+        }
+
+        return {
+          bagType: bagTypeId ? translateBagType(bagTypeId) : 'スタンドパウチ',
+          contents: '粉体',
+          size: sizeDisplay,
+          material: materialId ? translateMaterialType(materialId) : 'PET+AL',
+          thicknessType,
+          sealWidth,
+          sealDirection,
+          notchShape,
+          notchPosition: (postProcessingOptions?.includes('notch-yes') || postProcessingOptions?.includes('notch-straight')) ? '指定位置' : undefined,
+          hanging,
+          hangingPosition,
+          zipperPosition: postProcessingOptions?.some(opt => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
+          cornerR: postProcessingOptions?.includes('corner-round') ? 'R5' : postProcessingOptions?.includes('corner-square') ? 'R0' : 'R5',
+          machiPrinting: postProcessingOptions?.includes('machi-printing-yes') ? 'あり' : 'なし',
+        };
+      }
+
+      const pdfData = {
+        quoteNumber: quotation.quotationNumber,
+        issueDate: formatDate(quotation.createdAt),
+        expiryDate: formatDate(quotation.validUntil),
+        quoteCreator: 'EPACKAGE Lab 見積システム',
+        customerName: profile?.kanji_last_name && profile?.kanji_first_name
+          ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+          : (profile?.companyName || user?.email?.split('@')[0] || 'お客様'),
+        customerNameKana: profile?.kana_last_name && profile?.kana_first_name
+          ? `${profile.kana_last_name} ${profile.kana_first_name}`
+          : '',
+        companyName: profile?.company_name || '',
+        postalCode: profile?.postal_code || '',
+        address: (profile?.prefecture || profile?.city || profile?.street)
+          ? `${profile?.prefecture || ''}${profile?.city || ''}${profile?.street || ''}`
+          : '',
+        contactPerson: profile?.kanji_last_name && profile?.kanji_first_name
+          ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+          : '',
+        phone: profile?.corporate_phone || profile?.personal_phone || '',
+        email: user?.email || '',
+        items: quoteItems,
+        specifications: (() => {
+          const mappedSpecs = mapSpecificationsToPDF(quotation.items[0]?.specifications);
+          const originalSpecs = quotation.items[0]?.specifications as Record<string, unknown> | undefined;
+          const productTypeSpecificFields: Record<string, unknown> = {};
+
+          if (originalSpecs?.spoutSize) productTypeSpecificFields.spoutSize = originalSpecs.spoutSize;
+          if (originalSpecs?.spoutPosition) productTypeSpecificFields.spoutPosition = originalSpecs.spoutPosition;
+          if (originalSpecs?.hasGusset !== undefined) productTypeSpecificFields.hasGusset = originalSpecs.hasGusset;
+          if (originalSpecs?.rollFilmSpecs) productTypeSpecificFields.rollFilmSpecs = originalSpecs.rollFilmSpecs;
+          if (originalSpecs?.sideWidth !== undefined) productTypeSpecificFields.sideWidth = originalSpecs.sideWidth;
+          if (originalSpecs?.bagTypeId) productTypeSpecificFields.bagTypeId = originalSpecs.bagTypeId;
+
+          return { ...mappedSpecs, ...productTypeSpecificFields };
+        })(),
+        optionalProcessing: (() => {
+          const allPostProcessingOptions = quotation.items.flatMap(item =>
+            (item?.specifications as Record<string, unknown>)?.postProcessingOptions as string[] || []
+          );
+          return {
+            zipper: allPostProcessingOptions.some(opt => opt.includes('zipper') || opt.includes('zip')),
+            notch: allPostProcessingOptions.some(opt => opt.includes('notch') || opt.includes('tear')),
+            hangingHole: allPostProcessingOptions.some(opt => opt.includes('hang') || opt.includes('hole')),
+            cornerProcessing: allPostProcessingOptions.some(opt => opt.includes('corner') || opt.includes('r')),
+          };
+        })(),
+        paymentTerms: '先払い',
+        deliveryDate: '校了から約1か月',
+        deliveryLocation: '指定なし',
+        validityPeriod: '見積発行から3ヶ月間',
+        remarks: `※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10％程度の過不足が生じる場合がございます。
+数量の完全保証はいたしかねますので、あらかじめご了承ください。`,
+      };
+
+      const result = await generateQuotePDF(pdfData as any, {
+        filename: `${quotation.quotationNumber}.pdf`,
+      });
+
+      if (!result.success || !result.pdfBuffer) {
+        throw new Error(result.error || 'PDF generation failed');
+      }
+
+      const uint8Array = new Uint8Array(result.pdfBuffer);
+      const blob = new Blob([uint8Array], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+
+      window.open(url, '_blank');
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+
+      // PDFをSupabase Storageに保存してpdf_urlを更新
+      try {
+        const binaryString = uint8Array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+        const base64Data = btoa(binaryString);
+        const dataUrl = `data:application/pdf;base64,${base64Data}`;
+
+        await fetch(`/api/member/quotations/${quotation.id}/save-pdf`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ pdfData: dataUrl }),
+        });
+
+        console.log('[handleDownloadPDF] PDF saved to Supabase Storage, pdf_url updated');
+      } catch (saveError) {
+        console.error('[handleDownloadPDF] Failed to save PDF to storage:', saveError);
+      }
+
+      // Log PDF download to database
+      try {
+        await fetch('/api/member/documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            document_type: 'quote',
+            document_id: quotation.id,
+            quotation_id: quotation.id,
+            action: 'downloaded',
+          }),
+        });
+        fetchDownloadStats();
+      } catch (logError) {
+        console.error('Failed to log PDF download:', logError);
+      }
 
     } catch (error) {
       console.error('[handleDownloadPDF] Error:', error);

@@ -1,974 +1,423 @@
-forward-logs-shared.ts:95 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
-forward-logs-shared.ts:95 [HMR] connected
-intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx:758:24
-Parsing ecmascript source code failed
-  756 |                           </div>
-  757 |                         </div>
-> 758 |                       ))}
-      |                        ^
-  759 |                       {order.items && order.items.length > 2 && (
-  760 |                         <p className="text-text-muted">
-  761 |                           他 {order.items.length - 2} 点
+ Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+  Server  [RBAC] getRBACContext() called
+  Server  [RBAC] Environment: Object
+  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
+    at requireAdminAuth (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__a74a8271._.js:822:237)
+    at DashboardContent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__a74a8271._.js:3368:233)
+  Server  [RBAC] Checking middleware headers...
+  Server  [RBAC] All available headers: Array(32)
+  Server  [RBAC] Middleware headers found: Object
+  Server  [RBAC] Found auth in middleware headers: Object
+  Server  [RBAC] Using default permissions for role: admin
+ [HMR] connected
+ [AuthContext] Initializing auth context...
+ [AuthContext] Fetching session from /api/auth/current-user... Object
+ [AuthContext] Session updated successfully Object
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 150ms
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 827ms
+:3000/api/admin/alerts:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 128ms
+:3000/api/admin/alerts:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 779ms
+  Server  [RBAC] getRBACContext() called
+  Server  [RBAC] Environment: Object
+  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
+    at requireAdminAuth (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__a74a8271._.js:822:237)
+    at ApprovalsContent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__484e09b7._.js:3367:233)
+  Server  [RBAC] Checking middleware headers...
+ [AuthContext] Same zone navigation, skipping session refresh: Object
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 175ms
+  Server  [RBAC] All available headers: Array(32)
+  Server  [RBAC] Middleware headers found: Object
+  Server  [RBAC] Found auth in middleware headers: Object
+  Server  [RBAC] Using default permissions for role: admin
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 114ms
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 722ms
+  Server  [RBAC] getRBACContext() called
+  Server  [RBAC] Environment: Object
+  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
+    at requireAdminAuth (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__a74a8271._.js:822:237)
+    at QuotationsContent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__73f88d09._.js:3366:233)
+  Server  [RBAC] Checking middleware headers...
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 185ms
+  Server  [RBAC] All available headers: Array(32)
+  Server  [RBAC] Middleware headers found: Object
+  Server  [RBAC] Found auth in middleware headers: Object
+  Server  [RBAC] Using default permissions for role: admin
+  Server  [RBAC] getRBACContext() called
+  Server  [RBAC] Environment: Object
+  Server  [RBAC] Call stack:     at getRBACContext (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__1628b3f3._.js:273:23)
+    at requireAdminAuth (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__a74a8271._.js:822:237)
+    at QuotationsContent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\[root-of-the-server]__73f88d09._.js:3366:233)
+  Server  [RBAC] Checking middleware headers...
+ [AuthContext] Same zone navigation, skipping session refresh: Object
+  Server  [RBAC] All available headers: Array(32)
+  Server  [RBAC] Middleware headers found: Object
+  Server  [RBAC] Found auth in middleware headers: Object
+  Server  [RBAC] Using default permissions for role: admin
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 160ms
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [Auto-select] Selected first quotation: QT20260406-6679
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+ [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+error-boundary-callbacks.ts:90 ReferenceError: hasCostBreakdown is not defined
+    at AdminQuotationDetailPanel.tsx:353:45
+    at Array.map (<anonymous>)
+    at AdminQuotationDetailPanel (AdminQuotationDetailPanel.tsx:332:39)
+    at Object.react_stack_bottom_frame (react-dom-client.development.js:28038:20)
+    at renderWithHooks (react-dom-client.development.js:7984:22)
+    at updateFunctionComponent (react-dom-client.development.js:10501:19)
+    at beginWork (react-dom-client.development.js:12136:18)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at performUnitOfWork (react-dom-client.development.js:18997:22)
+    at workLoopSync (react-dom-client.development.js:18825:41)
+    at renderRootSync (react-dom-client.development.js:18806:11)
+    at performWorkOnRoot (react-dom-client.development.js:17914:35)
+    at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:20384:7)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:45:48)
 
-Expected '</', got ')'
-
-Import trace:
-  Server Component:
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/page.tsx
+The above error occurred in the <AdminQuotationDetailPanel> component. It was handled by the <ErrorBoundary> error boundary.
+onCaughtError @ error-boundary-callbacks.ts:90
+forward-logs-shared.ts:95 🚨 ErrorBoundary caught an error
+intercept-console-error.ts:42 Error: ReferenceError: hasCostBreakdown is not defined
+    at AdminQuotationDetailPanel.tsx:353:45
+    at Array.map (<anonymous>)
+    at AdminQuotationDetailPanel (AdminQuotationDetailPanel.tsx:332:39)
+    at Object.react_stack_bottom_frame (react-dom-client.development.js:28038:20)
+    at renderWithHooks (react-dom-client.development.js:7984:22)
+    at updateFunctionComponent (react-dom-client.development.js:10501:19)
+    at beginWork (react-dom-client.development.js:12136:18)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at performUnitOfWork (react-dom-client.development.js:18997:22)
+    at workLoopSync (react-dom-client.development.js:18825:41)
+    at renderRootSync (react-dom-client.development.js:18806:11)
+    at performWorkOnRoot (react-dom-client.development.js:17914:35)
+    at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:20384:7)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:45:48)
 error @ intercept-console-error.ts:42
-handleErrors @ hot-reloader-app.tsx:234
-processMessage @ hot-reloader-app.tsx:329
-handleMessage @ web-socket.ts:107
-intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx:758:24
-Parsing ecmascript source code failed
-  756 |                           </div>
-  757 |                         </div>
-> 758 |                       ))}
-      |                        ^
-  759 |                       {order.items && order.items.length > 2 && (
-  760 |                         <p className="text-text-muted">
-  761 |                           他 {order.items.length - 2} 点
-
-Expected '</', got ')'
-
-Import trace:
-  Server Component:
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/page.tsx
+intercept-console-error.ts:42 Error Message: hasCostBreakdown is not defined
 error @ intercept-console-error.ts:42
-handleErrors @ hot-reloader-app.tsx:234
-processMessage @ hot-reloader-app.tsx:329
-handleMessage @ web-socket.ts:107
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-AuthContext.tsx:223 [AuthContext] Initializing auth context...
-AuthContext.tsx:149 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 1}
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-AuthContext.tsx:151  GET http://localhost:3000/api/auth/current-user 500 (Internal Server Error)
-AuthProvider.useCallback[fetchSessionAndUpdateState] @ AuthContext.tsx:151
-AuthProvider.useEffect.getInitialSession @ AuthContext.tsx:232
-AuthProvider.useEffect @ AuthContext.tsx:248
-react_stack_bottom_frame @ react-dom-client.development.js:28123
-runWithFiberInDEV @ react-dom-client.development.js:986
-commitHookEffectListMount @ react-dom-client.development.js:13692
-commitHookPassiveMountEffects @ react-dom-client.development.js:13779
-reconnectPassiveEffects @ react-dom-client.development.js:17124
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-commitPassiveMountOnFiber @ react-dom-client.development.js:16948
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16898
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16768
-flushPassiveEffects @ react-dom-client.development.js:19859
-(anonymous) @ react-dom-client.development.js:19284
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-RootLayout @ layout.tsx:166
-initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
-(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
-initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
-readChunk @ react-server-dom-turbopack-client.browser.development.js:1450
-react_stack_bottom_frame @ react-dom-client.development.js:28145
-resolveLazy @ react-dom-client.development.js:6320
-createChild @ react-dom-client.development.js:6672
-reconcileChildrenArray @ react-dom-client.development.js:6979
-reconcileChildFibersImpl @ react-dom-client.development.js:7305
-(anonymous) @ react-dom-client.development.js:7410
-reconcileChildren @ react-dom-client.development.js:10036
-beginWork @ react-dom-client.development.js:12335
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-<RootLayout>
-initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
-initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
-initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
-processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
-processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
-processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
-progress @ react-server-dom-turbopack-client.browser.development.js:4799
-"use server"
-ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
-createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
-exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
-module evaluation @ app-index.tsx:211
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateModuleFromParent @ dev-base.ts:162
-commonJsRequire @ runtime-utils.ts:389
-(anonymous) @ app-next-turbopack.ts:11
-(anonymous) @ app-bootstrap.ts:79
-loadScriptsInSequence @ app-bootstrap.ts:23
-appBootstrap @ app-bootstrap.ts:61
-module evaluation @ app-next-turbopack.ts:10
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateRuntimeModule @ dev-base.ts:128
-registerChunk @ runtime-backend-dom.ts:57
-await in registerChunk
-registerChunk @ dev-base.ts:1149
-(anonymous) @ dev-backend-dom.ts:126
-(anonymous) @ dev-backend-dom.ts:126
-AuthContext.tsx:193 [AuthContext] Session fetch failed: 500 - preserving existing state
-warn @ forward-logs-shared.ts:95
-AuthProvider.useCallback[fetchSessionAndUpdateState] @ AuthContext.tsx:193
-await in AuthProvider.useCallback[fetchSessionAndUpdateState]
-AuthProvider.useEffect.getInitialSession @ AuthContext.tsx:232
-AuthProvider.useEffect @ AuthContext.tsx:248
-react_stack_bottom_frame @ react-dom-client.development.js:28123
-runWithFiberInDEV @ react-dom-client.development.js:986
-commitHookEffectListMount @ react-dom-client.development.js:13692
-commitHookPassiveMountEffects @ react-dom-client.development.js:13779
-reconnectPassiveEffects @ react-dom-client.development.js:17124
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-commitPassiveMountOnFiber @ react-dom-client.development.js:16948
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16898
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16768
-flushPassiveEffects @ react-dom-client.development.js:19859
-(anonymous) @ react-dom-client.development.js:19284
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-RootLayout @ layout.tsx:166
-initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
-(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
-initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
-readChunk @ react-server-dom-turbopack-client.browser.development.js:1450
-react_stack_bottom_frame @ react-dom-client.development.js:28145
-resolveLazy @ react-dom-client.development.js:6320
-createChild @ react-dom-client.development.js:6672
-reconcileChildrenArray @ react-dom-client.development.js:6979
-reconcileChildFibersImpl @ react-dom-client.development.js:7305
-(anonymous) @ react-dom-client.development.js:7410
-reconcileChildren @ react-dom-client.development.js:10036
-beginWork @ react-dom-client.development.js:12335
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-<RootLayout>
-initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
-initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
-initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
-processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
-processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
-processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
-progress @ react-server-dom-turbopack-client.browser.development.js:4799
-"use server"
-ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
-createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
-exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
-module evaluation @ app-index.tsx:211
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateModuleFromParent @ dev-base.ts:162
-commonJsRequire @ runtime-utils.ts:389
-(anonymous) @ app-next-turbopack.ts:11
-(anonymous) @ app-bootstrap.ts:79
-loadScriptsInSequence @ app-bootstrap.ts:23
-appBootstrap @ app-bootstrap.ts:61
-module evaluation @ app-next-turbopack.ts:10
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateRuntimeModule @ dev-base.ts:128
-registerChunk @ runtime-backend-dom.ts:57
-await in registerChunk
-registerChunk @ dev-base.ts:1149
-(anonymous) @ dev-backend-dom.ts:126
-(anonymous) @ dev-backend-dom.ts:126
-intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx:758:24
-Parsing ecmascript source code failed
-  756 |                           </div>
-  757 |                         </div>
-> 758 |                       ))}
-      |                        ^
-  759 |                       {order.items && order.items.length > 2 && (
-  760 |                         <p className="text-text-muted">
-  761 |                           他 {order.items.length - 2} 点
-
-Expected '</', got ')'
-
-Import trace:
-  Server Component:
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/page.tsx
+intercept-console-error.ts:42 Error Stack: ReferenceError: hasCostBreakdown is not defined
+    at http://localhost:3000/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_eaf86196._.js:5678:61
+    at Array.map (<anonymous>)
+    at AdminQuotationDetailPanel (http://localhost:3000/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_eaf86196._.js:5643:62)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:14826:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:4651:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:6112:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:6708:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9562:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9456:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9440:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9105:47)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:10230:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_09831e78._.js:2647:64)
 error @ intercept-console-error.ts:42
-handleErrors @ hot-reloader-app.tsx:234
-processMessage @ hot-reloader-app.tsx:329
-handleMessage @ web-socket.ts:107
-intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx:758:24
-Parsing ecmascript source code failed
-  756 |                           </div>
-  757 |                         </div>
-> 758 |                       ))}
-      |                        ^
-  759 |                       {order.items && order.items.length > 2 && (
-  760 |                         <p className="text-text-muted">
-  761 |                           他 {order.items.length - 2} 点
-
-Expected '</', got ')'
-
-Import trace:
-  Server Component:
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/page.tsx
+intercept-console-error.ts:42 Error Info: Object
 error @ intercept-console-error.ts:42
-handleErrors @ hot-reloader-app.tsx:234
-processMessage @ hot-reloader-app.tsx:329
-handleMessage @ web-socket.ts:107
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-forward-logs-shared.ts:95 [Fast Refresh] rebuilding
-ChatWidget.tsx:83  GET http://localhost:3000/api/config 500 (Internal Server Error)
-ChatWidget.useEffect.checkMaintenance @ ChatWidget.tsx:83
-ChatWidget.useEffect.initializeStatus @ ChatWidget.tsx:117
-ChatWidget.useEffect @ ChatWidget.tsx:123
-react_stack_bottom_frame @ react-dom-client.development.js:28123
-runWithFiberInDEV @ react-dom-client.development.js:986
-commitHookEffectListMount @ react-dom-client.development.js:13692
-commitHookPassiveMountEffects @ react-dom-client.development.js:13779
-reconnectPassiveEffects @ react-dom-client.development.js:17124
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-reconnectPassiveEffects @ react-dom-client.development.js:17116
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-commitPassiveMountOnFiber @ react-dom-client.development.js:16948
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16898
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16939
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16898
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16768
-flushPassiveEffects @ react-dom-client.development.js:19859
-(anonymous) @ react-dom-client.development.js:19284
-performWorkUntilDeadline @ scheduler.development.js:45
-<...>
-exports.jsx @ react-jsx-runtime.development.js:342
-LoadableComponent @ loadable.tsx:65
-react_stack_bottom_frame @ react-dom-client.development.js:28038
-renderWithHooksAgain @ react-dom-client.development.js:8084
-renderWithHooks @ react-dom-client.development.js:7996
-updateFunctionComponent @ react-dom-client.development.js:10501
-beginWork @ react-dom-client.development.js:12085
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-RootLayout @ layout.tsx:174
-initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
-(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
-initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
-readChunk @ react-server-dom-turbopack-client.browser.development.js:1450
-react_stack_bottom_frame @ react-dom-client.development.js:28145
-resolveLazy @ react-dom-client.development.js:6320
-createChild @ react-dom-client.development.js:6672
-reconcileChildrenArray @ react-dom-client.development.js:6979
-reconcileChildFibersImpl @ react-dom-client.development.js:7305
-(anonymous) @ react-dom-client.development.js:7410
-reconcileChildren @ react-dom-client.development.js:10036
-beginWork @ react-dom-client.development.js:12335
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-<RootLayout>
-initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
-initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
-initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
-processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
-processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
-processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
-progress @ react-server-dom-turbopack-client.browser.development.js:4799
-"use server"
-ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
-createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
-exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
-module evaluation @ app-index.tsx:211
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateModuleFromParent @ dev-base.ts:162
-commonJsRequire @ runtime-utils.ts:389
-(anonymous) @ app-next-turbopack.ts:11
-(anonymous) @ app-bootstrap.ts:79
-loadScriptsInSequence @ app-bootstrap.ts:23
-appBootstrap @ app-bootstrap.ts:61
-module evaluation @ app-next-turbopack.ts:10
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateRuntimeModule @ dev-base.ts:128
-registerChunk @ runtime-backend-dom.ts:57
-await in registerChunk
-registerChunk @ dev-base.ts:1149
-(anonymous) @ dev-backend-dom.ts:126
-(anonymous) @ dev-backend-dom.ts:126
-ChatWidget.tsx:83  GET http://localhost:3000/api/config 500 (Internal Server Error)
-ChatWidget.useEffect.checkMaintenance @ ChatWidget.tsx:83
-ChatWidget.useEffect.initializeStatus @ ChatWidget.tsx:117
-ChatWidget.useEffect @ ChatWidget.tsx:123
-react_stack_bottom_frame @ react-dom-client.development.js:28123
-runWithFiberInDEV @ react-dom-client.development.js:986
-commitHookEffectListMount @ react-dom-client.development.js:13692
-commitHookPassiveMountEffects @ react-dom-client.development.js:13779
-reconnectPassiveEffects @ react-dom-client.development.js:17124
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-reconnectPassiveEffects @ react-dom-client.development.js:17116
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-reconnectPassiveEffects @ react-dom-client.development.js:17148
-doubleInvokeEffectsOnFiber @ react-dom-client.development.js:20130
-runWithFiberInDEV @ react-dom-client.development.js:989
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20107
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-runWithFiberInDEV @ react-dom-client.development.js:989
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20114
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-commitDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20139
-flushPassiveEffects @ react-dom-client.development.js:19866
-(anonymous) @ react-dom-client.development.js:19284
-performWorkUntilDeadline @ scheduler.development.js:45
-<...>
-exports.jsx @ react-jsx-runtime.development.js:342
-LoadableComponent @ loadable.tsx:65
-react_stack_bottom_frame @ react-dom-client.development.js:28038
-renderWithHooksAgain @ react-dom-client.development.js:8084
-renderWithHooks @ react-dom-client.development.js:7996
-updateFunctionComponent @ react-dom-client.development.js:10501
-beginWork @ react-dom-client.development.js:12085
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-RootLayout @ layout.tsx:174
-initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
-(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
-initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
-readChunk @ react-server-dom-turbopack-client.browser.development.js:1450
-react_stack_bottom_frame @ react-dom-client.development.js:28145
-resolveLazy @ react-dom-client.development.js:6320
-createChild @ react-dom-client.development.js:6672
-reconcileChildrenArray @ react-dom-client.development.js:6979
-reconcileChildFibersImpl @ react-dom-client.development.js:7305
-(anonymous) @ react-dom-client.development.js:7410
-reconcileChildren @ react-dom-client.development.js:10036
-beginWork @ react-dom-client.development.js:12335
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-<RootLayout>
-initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
-initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
-initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
-processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
-processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
-processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
-progress @ react-server-dom-turbopack-client.browser.development.js:4799
-"use server"
-ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
-createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
-exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
-module evaluation @ app-index.tsx:211
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateModuleFromParent @ dev-base.ts:162
-commonJsRequire @ runtime-utils.ts:389
-(anonymous) @ app-next-turbopack.ts:11
-(anonymous) @ app-bootstrap.ts:79
-loadScriptsInSequence @ app-bootstrap.ts:23
-appBootstrap @ app-bootstrap.ts:61
-module evaluation @ app-next-turbopack.ts:10
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateRuntimeModule @ dev-base.ts:128
-registerChunk @ runtime-backend-dom.ts:57
-await in registerChunk
-registerChunk @ dev-base.ts:1149
-(anonymous) @ dev-backend-dom.ts:126
-(anonymous) @ dev-backend-dom.ts:126
-ChatWidget.tsx:104  GET http://localhost:3000/api/health 500 (Internal Server Error)
-ChatWidget.useEffect.checkHealth @ ChatWidget.tsx:104
-ChatWidget.useEffect.initializeStatus @ ChatWidget.tsx:120
-await in ChatWidget.useEffect.initializeStatus
-ChatWidget.useEffect @ ChatWidget.tsx:123
-react_stack_bottom_frame @ react-dom-client.development.js:28123
-runWithFiberInDEV @ react-dom-client.development.js:986
-commitHookEffectListMount @ react-dom-client.development.js:13692
-commitHookPassiveMountEffects @ react-dom-client.development.js:13779
-reconnectPassiveEffects @ react-dom-client.development.js:17124
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-reconnectPassiveEffects @ react-dom-client.development.js:17116
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-commitPassiveMountOnFiber @ react-dom-client.development.js:16948
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16898
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16939
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16898
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16753
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16725
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:17010
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16678
-commitPassiveMountOnFiber @ react-dom-client.development.js:16768
-flushPassiveEffects @ react-dom-client.development.js:19859
-(anonymous) @ react-dom-client.development.js:19284
-performWorkUntilDeadline @ scheduler.development.js:45
-<...>
-exports.jsx @ react-jsx-runtime.development.js:342
-LoadableComponent @ loadable.tsx:65
-react_stack_bottom_frame @ react-dom-client.development.js:28038
-renderWithHooksAgain @ react-dom-client.development.js:8084
-renderWithHooks @ react-dom-client.development.js:7996
-updateFunctionComponent @ react-dom-client.development.js:10501
-beginWork @ react-dom-client.development.js:12085
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-RootLayout @ layout.tsx:174
-initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
-(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
-initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
-readChunk @ react-server-dom-turbopack-client.browser.development.js:1450
-react_stack_bottom_frame @ react-dom-client.development.js:28145
-resolveLazy @ react-dom-client.development.js:6320
-createChild @ react-dom-client.development.js:6672
-reconcileChildrenArray @ react-dom-client.development.js:6979
-reconcileChildFibersImpl @ react-dom-client.development.js:7305
-(anonymous) @ react-dom-client.development.js:7410
-reconcileChildren @ react-dom-client.development.js:10036
-beginWork @ react-dom-client.development.js:12335
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-<RootLayout>
-initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
-initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
-initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
-processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
-processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
-processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
-progress @ react-server-dom-turbopack-client.browser.development.js:4799
-"use server"
-ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
-createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
-exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
-module evaluation @ app-index.tsx:211
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateModuleFromParent @ dev-base.ts:162
-commonJsRequire @ runtime-utils.ts:389
-(anonymous) @ app-next-turbopack.ts:11
-(anonymous) @ app-bootstrap.ts:79
-loadScriptsInSequence @ app-bootstrap.ts:23
-appBootstrap @ app-bootstrap.ts:61
-module evaluation @ app-next-turbopack.ts:10
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateRuntimeModule @ dev-base.ts:128
-registerChunk @ runtime-backend-dom.ts:57
-await in registerChunk
-registerChunk @ dev-base.ts:1149
-(anonymous) @ dev-backend-dom.ts:126
-(anonymous) @ dev-backend-dom.ts:126
-ChatWidget.tsx:104  GET http://localhost:3000/api/health 500 (Internal Server Error)
-ChatWidget.useEffect.checkHealth @ ChatWidget.tsx:104
-ChatWidget.useEffect.initializeStatus @ ChatWidget.tsx:120
-await in ChatWidget.useEffect.initializeStatus
-ChatWidget.useEffect @ ChatWidget.tsx:123
-react_stack_bottom_frame @ react-dom-client.development.js:28123
-runWithFiberInDEV @ react-dom-client.development.js:986
-commitHookEffectListMount @ react-dom-client.development.js:13692
-commitHookPassiveMountEffects @ react-dom-client.development.js:13779
-reconnectPassiveEffects @ react-dom-client.development.js:17124
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-reconnectPassiveEffects @ react-dom-client.development.js:17116
-recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:17076
-reconnectPassiveEffects @ react-dom-client.development.js:17148
-doubleInvokeEffectsOnFiber @ react-dom-client.development.js:20130
-runWithFiberInDEV @ react-dom-client.development.js:989
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20107
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-runWithFiberInDEV @ react-dom-client.development.js:989
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20114
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20100
-commitDoubleInvokeEffectsInDEV @ react-dom-client.development.js:20139
-flushPassiveEffects @ react-dom-client.development.js:19866
-(anonymous) @ react-dom-client.development.js:19284
-performWorkUntilDeadline @ scheduler.development.js:45
-<...>
-exports.jsx @ react-jsx-runtime.development.js:342
-LoadableComponent @ loadable.tsx:65
-react_stack_bottom_frame @ react-dom-client.development.js:28038
-renderWithHooksAgain @ react-dom-client.development.js:8084
-renderWithHooks @ react-dom-client.development.js:7996
-updateFunctionComponent @ react-dom-client.development.js:10501
-beginWork @ react-dom-client.development.js:12085
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-"use client"
-RootLayout @ layout.tsx:174
-initializeElement @ react-server-dom-turbopack-client.browser.development.js:1941
-(anonymous) @ react-server-dom-turbopack-client.browser.development.js:4623
-initializeModelChunk @ react-server-dom-turbopack-client.browser.development.js:1828
-readChunk @ react-server-dom-turbopack-client.browser.development.js:1450
-react_stack_bottom_frame @ react-dom-client.development.js:28145
-resolveLazy @ react-dom-client.development.js:6320
-createChild @ react-dom-client.development.js:6672
-reconcileChildrenArray @ react-dom-client.development.js:6979
-reconcileChildFibersImpl @ react-dom-client.development.js:7305
-(anonymous) @ react-dom-client.development.js:7410
-reconcileChildren @ react-dom-client.development.js:10036
-beginWork @ react-dom-client.development.js:12335
-runWithFiberInDEV @ react-dom-client.development.js:986
-performUnitOfWork @ react-dom-client.development.js:18997
-workLoopConcurrentByScheduler @ react-dom-client.development.js:18991
-renderRootConcurrent @ react-dom-client.development.js:18973
-performWorkOnRoot @ react-dom-client.development.js:17834
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20384
-performWorkUntilDeadline @ scheduler.development.js:45
-<RootLayout>
-initializeFakeTask @ react-server-dom-turbopack-client.browser.development.js:3390
-initializeDebugInfo @ react-server-dom-turbopack-client.browser.development.js:3415
-initializeDebugChunk @ react-server-dom-turbopack-client.browser.development.js:1772
-processFullStringRow @ react-server-dom-turbopack-client.browser.development.js:4389
-processFullBinaryRow @ react-server-dom-turbopack-client.browser.development.js:4300
-processBinaryChunk @ react-server-dom-turbopack-client.browser.development.js:4523
-progress @ react-server-dom-turbopack-client.browser.development.js:4799
-"use server"
-ResponseInstance @ react-server-dom-turbopack-client.browser.development.js:2784
-createResponseFromOptions @ react-server-dom-turbopack-client.browser.development.js:4660
-exports.createFromReadableStream @ react-server-dom-turbopack-client.browser.development.js:5064
-module evaluation @ app-index.tsx:211
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateModuleFromParent @ dev-base.ts:162
-commonJsRequire @ runtime-utils.ts:389
-(anonymous) @ app-next-turbopack.ts:11
-(anonymous) @ app-bootstrap.ts:79
-loadScriptsInSequence @ app-bootstrap.ts:23
-appBootstrap @ app-bootstrap.ts:61
-module evaluation @ app-next-turbopack.ts:10
-(anonymous) @ dev-base.ts:244
-runModuleExecutionHooks @ dev-base.ts:278
-instantiateModule @ dev-base.ts:238
-getOrInstantiateRuntimeModule @ dev-base.ts:128
-registerChunk @ runtime-backend-dom.ts:57
-await in registerChunk
-registerChunk @ dev-base.ts:1149
-(anonymous) @ dev-backend-dom.ts:126
-(anonymous) @ dev-backend-dom.ts:126
-intercept-console-error.ts:42 ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx:758:24
-Parsing ecmascript source code failed
-  756 |                           </div>
-  757 |                         </div>
-> 758 |                       ))}
-      |                        ^
-  759 |                       {order.items && order.items.length > 2 && (
-  760 |                         <p className="text-text-muted">
-  761 |                           他 {order.items.length - 2} 点
-
-Expected '</', got ')'
-
-Import trace:
-  Server Component:
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/OrdersClient.tsx
-    ./02.Homepage_Dev/02.epac_homepagever1.1/src/app/member/orders/page.tsx
+intercept-console-error.ts:42 🚨 Layout Error Boundary Caught: Object
 error @ intercept-console-error.ts:42
-handleErrors @ hot-reloader-app.tsx:234
-processMessage @ hot-reloader-app.tsx:329
-handleMessage @ web-socket.ts:107
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [Auto-select] Selected first quotation: QT20260406-6679
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+forward-logs-shared.ts:95 [AdminQuotationList] Item data: Object
+error-boundary-callbacks.ts:90 ReferenceError: hasCostBreakdown is not defined
+    at AdminQuotationDetailPanel.tsx:353:45
+    at Array.map (<anonymous>)
+    at AdminQuotationDetailPanel (AdminQuotationDetailPanel.tsx:332:39)
+    at Object.react_stack_bottom_frame (react-dom-client.development.js:28038:20)
+    at renderWithHooks (react-dom-client.development.js:7984:22)
+    at updateFunctionComponent (react-dom-client.development.js:10501:19)
+    at beginWork (react-dom-client.development.js:12136:18)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at performUnitOfWork (react-dom-client.development.js:18997:22)
+    at workLoopSync (react-dom-client.development.js:18825:41)
+    at renderRootSync (react-dom-client.development.js:18806:11)
+    at performWorkOnRoot (react-dom-client.development.js:17914:35)
+    at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:20384:7)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:45:48)
+
+The above error occurred in the <AdminQuotationDetailPanel> component. It was handled by the <ErrorBoundary> error boundary.
+onCaughtError @ error-boundary-callbacks.ts:90
+forward-logs-shared.ts:95 🚨 ErrorBoundary caught an error
+intercept-console-error.ts:42 Error: ReferenceError: hasCostBreakdown is not defined
+    at AdminQuotationDetailPanel.tsx:353:45
+    at Array.map (<anonymous>)
+    at AdminQuotationDetailPanel (AdminQuotationDetailPanel.tsx:332:39)
+    at Object.react_stack_bottom_frame (react-dom-client.development.js:28038:20)
+    at renderWithHooks (react-dom-client.development.js:7984:22)
+    at updateFunctionComponent (react-dom-client.development.js:10501:19)
+    at beginWork (react-dom-client.development.js:12136:18)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at performUnitOfWork (react-dom-client.development.js:18997:22)
+    at workLoopSync (react-dom-client.development.js:18825:41)
+    at renderRootSync (react-dom-client.development.js:18806:11)
+    at performWorkOnRoot (react-dom-client.development.js:17914:35)
+    at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:20384:7)
+    at MessagePort.performWorkUntilDeadline (scheduler.development.js:45:48)
+error @ intercept-console-error.ts:42
+intercept-console-error.ts:42 Error Message: hasCostBreakdown is not defined
+error @ intercept-console-error.ts:42
+intercept-console-error.ts:42 Error Stack: ReferenceError: hasCostBreakdown is not defined
+    at http://localhost:3000/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_eaf86196._.js:5678:61
+    at Array.map (<anonymous>)
+    at AdminQuotationDetailPanel (http://localhost:3000/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_eaf86196._.js:5643:62)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:14826:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:4651:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:6112:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:6708:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9562:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9456:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9440:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:9105:47)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js:10230:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/8defa_next_dist_compiled_09831e78._.js:2647:64)
+error @ intercept-console-error.ts:42
+intercept-console-error.ts:42 Error Info: Object
+error @ intercept-console-error.ts:42
+intercept-console-error.ts:42 🚨 Layout Error Boundary Caught: Object
+error @ intercept-console-error.ts:42

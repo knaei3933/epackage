@@ -48,20 +48,25 @@ interface UpdateQuotationRequestBody {
   pdf_url?: string | null;
 }
 
-// ステータス値を正規化（10段階ワークフロー用UPPERCASE）
+// ステータス値を正規化（クライアント側のvalidStatusesと一致させる）
 function normalizeStatus(status: string): string {
-  if (!status) return 'QUOTATION_PENDING';
-  // Map legacy values to new 10-step workflow statuses
-  const legacyMap: Record<string, string> = {
-    'draft': 'QUOTATION_PENDING',
-    'sent': 'QUOTATION_PENDING',
-    'pending': 'QUOTATION_PENDING',
-    'approved': 'QUOTATION_APPROVED',
-    'rejected': 'REJECTED',
-    'expired': 'EXPIRED',
-    'converted': 'CONVERTED',
+  if (!status) return 'DRAFT';
+  const lowerStatus = status.toLowerCase();
+
+  // 既に正しい形式（APPROVED, DRAFT, etc.）の場合はそのまま返す
+  // クライアント側のvalidStatuses: ['DRAFT', 'SENT', 'APPROVED', 'REJECTED', 'EXPIRED', 'CONVERTED']
+  const validDirectStatuses = ['draft', 'sent', 'approved', 'rejected', 'expired', 'converted'];
+  if (validDirectStatuses.includes(lowerStatus)) {
+    return status.toUpperCase(); // 'approved' → 'APPROVED', 'APPROVED' → 'APPROVED'
+  }
+
+  // 10段階ワークフロー用のプレフィックス付きステータス（互換性維持）
+  const workflowMap: Record<string, string> = {
+    'quotation_pending': 'QUOTATION_PENDING',
+    'quotation_approved': 'QUOTATION_APPROVED',
   };
-  return legacyMap[status.toLowerCase()] || status.toUpperCase();
+
+  return workflowMap[lowerStatus] || status.toUpperCase();
 }
 
 // ============================================================

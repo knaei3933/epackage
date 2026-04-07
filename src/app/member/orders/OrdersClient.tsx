@@ -568,11 +568,22 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
             <Card key={order.id} className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
                     <span className="font-medium text-text-primary">
                       {order.order_number || order.orderNumber}
                     </span>
                     <StatusBadge status={order.status} />
+                    {(order.quotation_number || order.quotationNumber) && (
+                      <>
+                        <span className="text-text-muted">|</span>
+                        <a
+                          href={`/member/quotations?search=${order.quotation_number || order.quotationNumber}`}
+                          className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          見積: {order.quotation_number || order.quotationNumber}
+                        </a>
+                      </>
+                    )}
                   </div>
 
                   <div className="text-xs text-text-muted mb-3">

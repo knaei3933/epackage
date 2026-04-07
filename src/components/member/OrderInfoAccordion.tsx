@@ -140,6 +140,22 @@ export function OrderInfoAccordion({ order, statusHistory }: OrderInfoAccordionP
                 {order.orderNumber}
               </dd>
             </div>
+            {order.quotationNumber && (
+              <div>
+                <dt className="text-text-muted flex items-center gap-2 mb-1">
+                  <FileText className="w-4 h-4" />
+                  見積番号
+                </dt>
+                <dd className="text-text-primary font-medium ml-6">
+                  <a
+                    href={`/member/quotations?search=${order.quotationNumber}`}
+                    className="text-blue-600 hover:text-blue-700 hover:underline"
+                  >
+                    {order.quotationNumber}
+                  </a>
+                </dd>
+              </div>
+            )}
             {order.customer_name && (
               <div>
                 <dt className="text-text-muted flex items-center gap-2 mb-1">

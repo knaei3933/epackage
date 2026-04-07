@@ -129,6 +129,31 @@ export interface DetailedCostBreakdownProps {
     totalMeters?: number; // 総メートル数（ロス込み）
     materialWidthMM?: number; // 原料幅（mm）
     areaM2?: number; // 総面積（m²）
+    breakdown?: {
+      materials?: Array<{
+        materialId: string;
+        name: string;
+        cost: number;
+        weight: number;
+      }>;
+      printing?: {
+        basic: number;
+        matte: number;
+        total: number;
+      };
+      lamination?: {
+        count: number;
+        cost: number;
+      };
+      slitter?: {
+        calculated: number;
+        final: number;
+      };
+      surfaceTreatment?: {
+        type: 'glossy' | 'matte' | 'none';
+        cost: number;
+      };
+    };
   };
   showFormula?: boolean;
 }
@@ -237,11 +262,36 @@ export function DetailedCostBreakdown({
             )}
           </div>
           {fiveStep.rawMaterialCost.details.length > 0 ? (
-            <div className="ml-8 bg-white rounded p-3 text-xs space-y-1">
+            <div className="ml-8 bg-white rounded p-3 text-xs space-y-2">
               {fiveStep.rawMaterialCost.details.map((m, idx) => (
-                <div key={idx} className="flex justify-between">
-                  <span>{m.nameJa} {m.thicknessMicron}μm: {m.weightKg.toFixed(2)}kg x ₩{m.unitPriceKRW.toLocaleString()}/kg</span>
-                  <span className="font-medium">₩{m.costKRW.toLocaleString()}</span>
+                <div key={idx} className="border border-gray-200 rounded-lg p-3 space-y-1.5 last:mb-0">
+                  {/* 素材名と原単価（メイン表示） */}
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-gray-900">{m.nameJa} {m.thicknessMicron}μm</span>
+                    <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                      ₩{m.unitPriceKRW.toLocaleString()}/kg
+                    </span>
+                  </div>
+
+                  {/* 計算詳細の全表示 */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-gray-600">
+                    <div>面積: {m.areaM2.toFixed(2)}m²</div>
+                    <div>メートル: {m.meters.toFixed(1)}m</div>
+                    <div>幅: {m.widthM.toFixed(3)}m</div>
+                    <div>比重（密度）: {m.density} kg/m³</div>
+                  </div>
+
+                  {/* 重量計算式 */}
+                  <div className="text-gray-700 bg-gray-50 p-2 rounded text-center">
+                    <div className="text-gray-500 text-[10px] mb-1">重量計算</div>
+                    {m.areaM2.toFixed(2)}m² × {m.thicknessMicron}μm × {m.density} / 1,000,000 × {m.meters.toFixed(1)}m
+                  </div>
+
+                  {/* 最終重量と費用 */}
+                  <div className="flex justify-between items-center pt-1 border-t border-gray-200">
+                    <span className="font-medium text-gray-900">{m.weightKg.toFixed(2)}kg × ₩{m.unitPriceKRW.toLocaleString()}/kg</span>
+                    <span className="font-bold text-gray-900">= ₩{m.costKRW.toLocaleString()}</span>
+                  </div>
                 </div>
               ))}
             </div>

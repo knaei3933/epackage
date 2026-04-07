@@ -419,7 +419,14 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
           商品明細
         </h2>
         <span className="text-sm text-text-muted">
-          {items.length} SKU
+          {(() => {
+            const firstItemSpecs = items.length > 0 ? items[0].specifications || specifications : null;
+            const skuQuantities = firstItemSpecs?.sku_quantities;
+            if (skuQuantities && Array.isArray(skuQuantities) && skuQuantities.length > 0) {
+              return `${skuQuantities.length} SKU`;
+            }
+            return `${items.length} SKU`;
+          })()}
         </span>
       </div>
 
@@ -430,40 +437,87 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-text-primary mb-2">SKU明細</h3>
         <div className="border border-border-secondary rounded-lg overflow-hidden">
-          {items.map((item: any, index: number) => {
-            const rawProductName = getItemValue(item, 'productName', 'product_name');
-            const itemSpecs = item.specifications || specifications;
-            const productName = (rawProductName === 'カスタム製品' || !rawProductName) && itemSpecs
-              ? generateProductName(itemSpecs)
-              : rawProductName || `SKU ${index + 1}`;
-            const quantity = getItemValue(item, 'quantity', 'quantity') || 0;
-            const unitPrice = getItemValue(item, 'unitPrice', 'unit_price') || 0;
-            const totalPrice = getItemValue(item, 'totalPrice', 'total_price') || 0;
-            const skuLabel = `SKU ${index + 1}`;
+          {(() => {
+            // Check if items contain SKU split information
+            const firstItemSpecs = items.length > 0 ? items[0].specifications || specifications : null;
+            const skuQuantities = firstItemSpecs?.sku_quantities;
 
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  "flex items-center justify-between p-3 text-sm",
-                  index < items.length - 1 && "border-b border-border-secondary"
-                )}
-              >
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="text-text-muted font-medium min-w-[60px]">{skuLabel}</span>
-                  <span className="text-text-primary">{productName}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-text-muted">
-                    {formatNumber(quantity)}個 × {formatNumber(unitPrice)}円
-                  </span>
-                  <span className="font-semibold text-text-primary">
-                    {formatNumber(totalPrice)}円
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+            if (skuQuantities && Array.isArray(skuQuantities) && skuQuantities.length > 1) {
+              // Display SKU split details
+              const baseItem = items[0];
+              const rawProductName = getItemValue(baseItem, 'productName', 'product_name');
+              const itemSpecs = baseItem.specifications || specifications;
+              const productName = (rawProductName === 'カスタム製品' || !rawProductName) && itemSpecs
+                ? generateProductName(itemSpecs)
+                : rawProductName || 'カスタム製品';
+              const unitPrice = getItemValue(baseItem, 'unitPrice', 'unit_price') || 0;
+
+              return skuQuantities.map((skuQty: number, index: number) => {
+                const totalPrice = skuQty * unitPrice;
+                const skuLabel = `SKU ${index + 1}`;
+
+                return (
+                  <div
+                    key={`sku-${index}`}
+                    className={cn(
+                      "flex items-center justify-between p-3 text-sm",
+                      index < skuQuantities.length - 1 && "border-b border-border-secondary"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-text-muted font-medium min-w-[60px]">{skuLabel}</span>
+                      <span className="text-text-primary">{productName}</span>
+                      <span className="text-xs text-text-muted">(数量: {skuQty}個)</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-text-muted">
+                        {skuQty}個 × {formatNumber(unitPrice)}円
+                      </span>
+                      <span className="font-semibold text-text-primary">
+                        {formatNumber(totalPrice)}円
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            } else {
+              // Display regular items
+              return items.map((item: any, index: number) => {
+                const rawProductName = getItemValue(item, 'productName', 'product_name');
+                const itemSpecs = item.specifications || specifications;
+                const productName = (rawProductName === 'カスタム製品' || !rawProductName) && itemSpecs
+                  ? generateProductName(itemSpecs)
+                  : rawProductName || `SKU ${index + 1}`;
+                const quantity = getItemValue(item, 'quantity', 'quantity') || 0;
+                const unitPrice = getItemValue(item, 'unitPrice', 'unit_price') || 0;
+                const totalPrice = getItemValue(item, 'totalPrice', 'total_price') || 0;
+                const skuLabel = `SKU ${index + 1}`;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      "flex items-center justify-between p-3 text-sm",
+                      index < items.length - 1 && "border-b border-border-secondary"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-text-muted font-medium min-w-[60px]">{skuLabel}</span>
+                      <span className="text-text-primary">{productName}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-text-muted">
+                        {formatNumber(quantity)}個 × {formatNumber(unitPrice)}円
+                      </span>
+                      <span className="font-semibold text-text-primary">
+                        {formatNumber(totalPrice)}円
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            }
+          })()}
         </div>
       </div>
 

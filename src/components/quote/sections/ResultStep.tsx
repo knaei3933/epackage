@@ -39,6 +39,7 @@ interface ResultStepProps {
 export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepProps) {
   const router = useRouter();
   const state = useQuoteState();
+  const { setSelectedQuantity } = useQuote();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -1606,7 +1607,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 }))}
                 comparison={multiQuantityState.comparison!}
                 selectedQuantity={state.quantity}
-                onQuantitySelect={() => {}}
+                onQuantitySelect={(quantity) => setSelectedQuantity(quantity)}
               />
             </div>
           </div>

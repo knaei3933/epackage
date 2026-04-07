@@ -144,14 +144,8 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
   }
 
   const printColors = pattern.printing?.printColors?.front || pattern.printingColors || pattern.colors || '-';
-  let colorsJa = '-';
-  if (typeof printColors === 'number') {
-    colorsJa = `${printColors}色`;
-  } else if (typeof printColors === 'object' && printColors?.front) {
-    colorsJa = `${printColors.front}色`;
-  } else if (printColors) {
-    colorsJa = printColors;
-  }
+  // 常に「フルカラー」を表示
+  const colorsJa = 'フルカラー';
 
   // 厚さ - materialId と thicknessSelection から材料構造を取得
   const materialId = pattern.materialId || pattern.material || pattern.bag?.materialId || '-';
@@ -246,30 +240,35 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
     'slider': 'スライダー',
 
     // 仕上げ
-    'glossy': '光沢仕上げ',
-    'glossy_finish': '光沢仕上げ',
-    'matte': 'マット仕上げ',
-    'matte_finish': 'マット仕上げ',
+    'glossy': '光沢紙',
+    'glossy_finish': '光沢紙',
+    'matte': 'マット紙',
+    'matte_finish': 'マット紙',
 
     // 機能
     'window': '窓付き',
     'hole_punching': '穴あけ',
 
     // その他オプション（英語キーを日本語に変換）
-    'corner_rounding': '角丸め',
-    'corner-rounding': '角丸め',
+    'corner-round': '角丸',
+    'corner_rounding': '角丸',
+    'corner-rounding': '角丸',
     'hang_hole': '吊り下げ穴',
     'hang-hole': '吊り下げ穴',
     'hang-hole-6mm': '吊り下げ穴 (6mm)',
+    'hang-hole-8mm': '吊り下げ穴 (8mm)',
     'notch': 'ノッチ付き',
     'notch-yes': 'ノッチ付き',
     'top_open': '上端開封',
     'top-open': '上端開封',
+    'bottom-open': '下端開封',
     'spout': 'スパウト',
     'valve': 'バルブ付き',
     'valve-yes': 'バルブ付き',
     'valve-no': 'バルブなし',
     'easy_tear': 'イージーティア',
+    'machi-printing-yes': 'マチ印刷あり',
+    'machi-printing-no': 'マチ印刷なし',
   };
 
   // ジッパー（個別処理）

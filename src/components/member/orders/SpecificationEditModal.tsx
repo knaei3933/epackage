@@ -216,15 +216,9 @@ export function SpecificationEditModal({
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">色数</label>
-                <input
-                  type="number"
-                  data-testid="spec-colors-input"
-                  min="1"
-                  max="8"
-                  value={specifications.printingColors || 1}
-                  onChange={(e) => handleSpecificationChange('printingColors', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                  フルカラー
+                </div>
               </div>
             </div>
           </div>

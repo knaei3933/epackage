@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@/components/ui';
-import { Download, Mail } from 'lucide-react';
+import { Download, Mail, RefreshCw } from 'lucide-react';
 import { adminFetch } from '@/lib/auth-client';
 import { DetailedCostBreakdown } from '@/components/admin/quotation/DetailedCostBreakdown';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
@@ -35,6 +35,7 @@ export function AdminQuotationDetailPanel({
   const [showFormula, setShowFormula] = useState(true);
   const [relatedOrderId, setRelatedOrderId] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
 
   // 選択された見積の詳細を取得
   useEffect(() => {
@@ -88,6 +89,35 @@ export function AdminQuotationDetailPanel({
       }
     } catch (error) {
       console.error('[fetchRelatedOrder] Error:', error);
+    }
+  };
+
+  // 再計算ハンドラー
+  const handleRecalculate = async () => {
+    if (!confirm('原価内訳を再計算します。よろしいですか？')) {
+      return;
+    }
+
+    setRecalculating(true);
+    try {
+      const response = await adminFetch(`/api/admin/quotations/${quotation.id}/recalculate`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`再計算が完了しました。${result.updatedItems?.length || 0}件のアイテムを更新しました。`);
+        // データを再取得
+        await fetchQuotationDetail();
+        if (onUpdate) onUpdate();
+      } else {
+        throw new Error('再計算に失敗しました');
+      }
+    } catch (error) {
+      console.error('[handleRecalculate] Error:', error);
+      alert('再計算に失敗しました。');
+    } finally {
+      setRecalculating(false);
     }
   };
 
@@ -149,6 +179,20 @@ export function AdminQuotationDetailPanel({
   const displayQuotation = detailData || quotation;
   const items = displayQuotation.items || [];
 
+  // film_cost_detailsがあるかチェック
+  const hasFilmCostDetails = items?.some(
+    (item: any) => item.specifications?.film_cost_details
+  );
+
+  // 個別コストフィールド（laminationCostなど）が含まれているかチェック
+  const hasDetailedCostBreakdown = items?.some((item: any) => {
+    const filmCostDetails = item.specifications?.film_cost_details;
+    const costBreakdown = item.specifications?.cost_breakdown;
+    // film_cost_detailsに個別コストフィールドがあるか、cost_breakdownがあるか
+    return (filmCostDetails && filmCostDetails.laminationCost !== undefined) ||
+           (costBreakdown && costBreakdown.laminationCost !== undefined);
+  });
+
   // ステータスを正規化
   const normalizedStatus = normalizeStatus(displayQuotation.status);
 
@@ -177,6 +221,18 @@ export function AdminQuotationDetailPanel({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{displayQuotation.quotation_number}</h3>
           <div className="flex gap-2">
+            {!hasDetailedCostBreakdown && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRecalculate}
+                disabled={recalculating}
+                className="text-xs bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+              >
+                <RefreshCw className={`w-4 h-4 mr-1 ${recalculating ? 'animate-spin' : ''}`} />
+                {recalculating ? '再計算中...' : '原価再計算'}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -270,17 +326,45 @@ export function AdminQuotationDetailPanel({
             onSendEmail={onSendEmail}
           />
 
-          {/* 明細リスト */}
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">明細 ({items.length}件)</h4>
-            {items.map((item, index) => (
-              <AdminQuotationItemDetail
-                key={item.id || index}
-                item={item}
-                showFormula={showFormula}
-              />
-            ))}
-          </div>
+          {/* 原価内訳 */}
+          {displayQuotation.items && displayQuotation.items.length > 0 && (
+            <div className="space-y-3">
+              {displayQuotation.items.map((item, index) => {
+                // specifications.film_cost_detailsとspecifications.cost_breakdownを確認
+                const specs = item.specifications || {};
+                const filmCostDetails = specs.film_cost_details;
+                const costBreakdown = specs.cost_breakdown;
+
+                const itemHasFilmCostDetails = filmCostDetails && Object.keys(filmCostDetails).length > 0;
+                const itemHasCostBreakdown = costBreakdown && Object.keys(costBreakdown).length > 0;
+
+                if (!itemHasFilmCostDetails && !itemHasCostBreakdown) {
+                  return (
+                    <div key={item.id || index} className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 text-center">
+                      <p className="text-sm text-yellow-800">⚠️ 原価データがありません</p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        「原価再計算」ボタンをクリックしてデータを生成してください
+                      </p>
+                    </div>
+                  );
+                }
+
+                // cost_breakdownを優先して使用（各コスト内訳が含まれているため）
+                const breakdownForDisplay = itemHasCostBreakdown ? costBreakdown : (filmCostDetails || {});
+
+                return (
+                  <div key={item.id || index} className="border border-gray-200 rounded-lg p-3 bg-white">
+                    <DetailedCostBreakdown
+                      breakdown={breakdownForDisplay}
+                      filmCostDetails={filmCostDetails}
+                      specifications={specs}
+                      showFormula={showFormula}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </Card>

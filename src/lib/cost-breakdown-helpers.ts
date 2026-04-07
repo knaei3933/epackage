@@ -38,6 +38,11 @@ export interface FiveStepBreakdown {
       unitPriceKRW: number;
       costJPY: number;
       costKRW: number;  // 韓国ウォン費用
+      // 追加フィールド（詳細表示用）
+      areaM2: number;
+      meters: number;
+      widthM: number;
+      density: number;
     }>;
   };
   // Step 2: Printing Cost
@@ -79,6 +84,7 @@ export interface FiveStepBreakdown {
   // Step 5: Manufacturer Margin
   manufacturerMargin: number;      // 円表示
   manufacturerMarginKRW: number;   // 韓国ウォン表示
+  manufacturerMarginRate: string;   // マージン率（文字列表現）
   formula: string;      // 円計算式
   formulaKRW: string;   // 韓国ウォン計算式
 }
@@ -109,7 +115,12 @@ export function calculateFiveStepBreakdown(
     weightKg: m.weightKg,
     unitPriceKRW: m.unitPriceKRW,
     costJPY: m.costJPY,
-    costKRW: m.costKRW  // 既にウォン（KRW）で保存されている値を直接使用
+    costKRW: m.costKRW,  // 既にウォン（KRW）で保存されている値を直接使用
+    // 追加フィールド（詳細表示用）
+    areaM2: m.areaM2,
+    meters: m.meters,
+    widthM: m.widthM,
+    density: m.density
   })) || [];
 
   const rawMaterialTotalJPY = rawMaterialDetails.reduce((sum, m) => sum + m.costJPY, 0);
@@ -150,9 +161,25 @@ export function calculateFiveStepBreakdown(
   const surfaceTreatmentJPY = breakdown.surfaceTreatmentCost || 0;
   const postProcessingTotal = laminationJPY + slitterJPY + pouchJPY + surfaceTreatmentJPY;
 
-  // KRW変換（ pouchProcessingCost は既にKRWベースで計算されているため、直接変換）
-  const laminationKRW = Math.round(laminationJPY * JPY_TO_KRW_RATE);
-  const slitterKRW = Math.round(slitterJPY * JPY_TO_KRW_RATE);
+  // ラミネート・スリッターの数式パラメータ（表示用）
+  const hasALMaterial = filmCostDetails?.materialLayerDetails?.some(l => l.materialId === 'AL') || false;
+  const laminationPricePerMeterKRW = hasALMaterial ? 75 : 65;
+  const laminationCycles = filmCostDetails?.breakdown?.lamination?.count || ((filmCostDetails?.materialLayerDetails?.length || 1) - 1);
+  const materialWidthMM = filmCostDetails?.materialWidthMM || 590;
+  const materialWidthM = materialWidthMM / 1000;
+
+  // KRW値: filmCostDetails.breakdownから実際の計算値を優先使用（DB設定反映済み）
+  // フォールバック: 数式パラメータから計算 → JPY逆変換
+  const laminationKRW = filmCostDetails?.breakdown?.lamination?.cost
+    ?? ((laminationPricePerMeterKRW > 0 && totalMeters > 0)
+      ? Math.round(laminationPricePerMeterKRW * materialWidthM * laminationCycles * totalMeters)
+      : Math.round(laminationJPY * JPY_TO_KRW_RATE));
+
+  const slitterKRW = filmCostDetails?.breakdown?.slitter?.final
+    ?? (totalMeters > 0
+      ? Math.max(30000, Math.round(totalMeters * 10))
+      : Math.round(slitterJPY * JPY_TO_KRW_RATE));
+
   // 製袋加工費: unified-pricing-engine でKRW計算後にJPY変換されているため、元に戻す
   // pouchProcessingCostJPY = pouchProcessingCostKRW * 0.12
   const pouchKRW = pouchJPY > 0 ? Math.round(pouchJPY / 0.12) : 0;
@@ -161,12 +188,6 @@ export function calculateFiveStepBreakdown(
 
   // ラミネート表示: 基本単価（₩65/m or ₩75/m）を明示
   // ドキュメント: ラミネート費 = 実際使用幅(m) × 使用メートル数 × ラミ単価 × ラミ回数
-  const hasALMaterial = filmCostDetails?.materialLayerDetails?.some(l => l.materialId === 'AL') || false;
-  const laminationPricePerMeterKRW = hasALMaterial ? 75 : 65; // 基本単価
-  const laminationCycles = (filmCostDetails?.materialLayerDetails?.length || 1) - 1;
-  const materialWidthMM = filmCostDetails?.materialWidthMM || 590;
-  const materialWidthM = materialWidthMM / 1000;
-
   const laminationFormula = laminationJPY > 0 && totalMeters > 0
     ? `¥${Math.round(laminationJPY / totalMeters).toLocaleString()}/m × ${totalMeters.toFixed(1)}m`
     : undefined;

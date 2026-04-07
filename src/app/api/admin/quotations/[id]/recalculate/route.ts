@@ -94,41 +94,43 @@ export async function POST(
     const filmCostDetails = result.filmCostDetails || null;
 
     // Create cost_breakdown from result.breakdown
+    // 【修正】breakdownの値は円（JPY）です。filmCostDetailsの値はウォン（KRW）ですが、二重変換を防ぐためbreakdownを使用
     const costBreakdown = result.breakdown ? {
       materialCost: result.breakdown.material || 0,
-      laminationCost: filmCostDetails?.laminationCost || 0,
-      slitterCost: filmCostDetails?.slitterCost || 0,
-      surfaceTreatmentCost: filmCostDetails?.surfaceTreatmentCost || 0,
-      // pouchProcessingCostはresult.breakdown.processing（円貨）を使用
-      pouchProcessingCost: result.breakdown.processing || result.breakdown.pouchProcessingCost || filmCostDetails?.pouchProcessingCost || 0,
-      printingCost: filmCostDetails?.printingCost || 0,
-      manufacturingMargin: filmCostDetails?.manufacturingMargin || 0,
-      duty: filmCostDetails?.duty || 0,
-      delivery: filmCostDetails?.delivery || 0,
-      salesMargin: filmCostDetails?.salesMargin || 0,
+      laminationCost: result.breakdown.laminationCost || 0,  // 円（JPY）
+      slitterCost: result.breakdown.slitterCost || 0,  // 円（JPY）
+      surfaceTreatmentCost: result.breakdown.surfaceTreatmentCost || 0,  // 円（JPY）
+      pouchProcessingCost: result.breakdown.processing || result.breakdown.pouchProcessingCost || 0,  // 円（JPY）
+      printingCost: result.breakdown.printing || 0,  // 円（JPY）
+      manufacturingMargin: result.breakdown.manufacturingMargin || 0,
+      duty: result.breakdown.duty || 0,
+      delivery: result.breakdown.delivery || 0,
+      salesMargin: result.breakdown.salesMargin || 0,
       totalCost: result.breakdown.total || 0,
       baseCost: result.breakdown.baseCost || 0,
     } : null;
 
-    // Update both specifications.film_cost_details, film_cost_details column, and cost_breakdown
-    const updatedSpecs = { ...specs, film_cost_details: filmCostDetails };
+    // Update both specifications.film_cost_details and specifications.cost_breakdown
+    // film_cost_detailsカラムとcost_breakdownカラムは存在しないため、specifications内に保存
+    const updatedSpecs = {
+      ...specs,
+      film_cost_details: filmCostDetails,
+      cost_breakdown: costBreakdown  // specifications内に保存
+    };
 
     // デバッグ：保存する値を確認
     console.log('[Recalculate API] Saving to database:', {
       itemId: item.id,
-      pouchProcessingCostInBreakdown: costBreakdown?.pouchProcessingCost,
-      pouchProcessingCostInFilmCost: filmCostDetails?.pouchProcessingCost,
-      processingInBreakdown: result.breakdown?.processing,
-      expectedPouchProcessingCostFor15mm: 66000, // 80 KRW * 5000 + 150000 = 550000 KRW * 0.12 = 66000 JPY
-      expectedPouchProcessingCostFor18mm: 84000 // 110 KRW * 5000 + 150000 = 700000 KRW * 0.12 = 84000 JPY
+      hasCostBreakdown: !!costBreakdown,
+      hasFilmCostDetails: !!filmCostDetails,
+      costBreakdownKeys: costBreakdown ? Object.keys(costBreakdown) : [],
+      filmCostDetailsKeys: filmCostDetails ? Object.keys(filmCostDetails) : []
     });
 
     const { error: updateError } = await serviceClient
       .from('quotation_items')
       .update({
-        specifications: updatedSpecs,
-        film_cost_details: filmCostDetails,  // Also update dedicated column
-        cost_breakdown: costBreakdown  // Update cost_breakdown with new calculation
+        specifications: updatedSpecs
       })
       .eq('id', item.id);
 

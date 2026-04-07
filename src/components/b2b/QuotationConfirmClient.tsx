@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import type { Quotation, QuotationItem } from '@/types/database'
+import { POST_PROCESSING_JA, BAG_TYPE_JA, translateMaterialType } from '@/constants/enToJa'
 
 // ============================================================
 // Types
@@ -687,9 +688,58 @@ const PREFECTURES = [
 ]
 
 function formatSpecifications(spec: Record<string, unknown>): string {
-  return Object.entries(spec)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ')
+  if (!spec) return ''
+
+  const parts: string[] = []
+
+  // 後加工オプションの日本語変換
+  const postProcessingOptions = spec.postProcessingOptions as string[] | undefined
+  if (postProcessingOptions && Array.isArray(postProcessingOptions)) {
+    // シール幅オプションを除外して処理
+    const filteredOptions = postProcessingOptions.filter((opt: string) => !opt.startsWith('sealing-width-'))
+
+    // ロールフィルム/スパウトパウチの場合は光沢/マットのみ表示
+    const bagTypeId = spec.bagTypeId as string | undefined
+    const isLimitedPostProcessing = bagTypeId === 'roll_film' || bagTypeId === 'spout_pouch'
+    const displayOptions = isLimitedPostProcessing
+      ? filteredOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
+      : filteredOptions
+
+    // 日本語に変換
+    const translatedOptions = displayOptions
+      .map((opt: string) => POST_PROCESSING_JA[opt as keyof typeof POST_PROCESSING_JA] || opt)
+      .filter(Boolean)
+
+    if (translatedOptions.length > 0) {
+      parts.push(translatedOptions.join('、'))
+    }
+  }
+
+  // その他の仕様情報
+  const bagTypeId = spec.bagTypeId as string | undefined
+  if (bagTypeId) {
+    const bagTypeJa = BAG_TYPE_JA[bagTypeId as keyof typeof BAG_TYPE_JA] || bagTypeId
+    parts.push(`タイプ: ${bagTypeJa}`)
+  }
+
+  const materialId = spec.materialId as string | undefined
+  if (materialId) {
+    const materialJa = translateMaterialType(materialId) || materialId
+    parts.push(`素材: ${materialJa}`)
+  }
+
+  const printingType = spec.printingType as string | undefined
+  if (printingType) {
+    const printingJa = printingType === 'digital' ? 'デジタル印刷' : printingType === 'gravure' ? 'グラビア印刷' : printingType
+    parts.push(`印刷: ${printingJa}`)
+  }
+
+  const dimensions = spec.dimensions as string | undefined
+  if (dimensions) {
+    parts.push(`サイズ: ${dimensions}`)
+  }
+
+  return parts.join(' / ')
 }
 
 function getMinDeliveryDate(): string {

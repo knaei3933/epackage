@@ -14,9 +14,16 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui';
 import { ConfirmModal, useConfirmModal } from '@/components/ui/ConfirmModal';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types/dashboard';
+import {
+  computeSKUUploadStates,
+  isAllSKUUploaded,
+  getPendingSKUs,
+  type SKUUploadState
+} from '@/lib/sku-upload-state';
+import { SKUCardGrid } from '@/components/upload/SKUCardGrid';
 
 // =====================================================
 // Props & Types
@@ -84,6 +91,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const [pendingDeleteFile, setPendingDeleteFile] = useState<{ id: string; name: string } | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
+  const [skuUploadStates, setSkuUploadStates] = useState<SKUUploadState[]>([]);
   const [skuSubmissionStatus, setSkuSubmissionStatus] = useState<{
     totalSkus: number;
     submittedSkus: number;
@@ -111,6 +119,19 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       }
     }
   }, [order.items]);
+
+  // SKU状態を更新するヘルパー関数
+  const updateSKUStates = useCallback(() => {
+    if (orderItems.length > 0) {
+      const states = computeSKUUploadStates(orderItems, uploadedFiles);
+      setSkuUploadStates(states);
+    }
+  }, [orderItems, uploadedFiles]);
+
+  // orderItemsまたはuploadedFilesが変更されたら状態を更新
+  useEffect(() => {
+    updateSKUStates();
+  }, [updateSKUStates]);
 
   // Format SKU display name: "SKU번호_메인제품명_수량"
   const formatSkuDisplayName = (productName: string, quantity: number): string => {
@@ -269,7 +290,8 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         setSelectedFile(null);
         setDescription('');
         setProductName('');
-        loadUploadedFiles();
+        await loadUploadedFiles();
+        updateSKUStates();
 
         // Callback to notify parent component
         onFileUploaded?.();
@@ -390,42 +412,41 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
           )}
         </div>
 
-        {/* Partial SKU Submission Warning */}
-        {skuSubmissionStatus && skuSubmissionStatus.totalSkus > 1 && !skuSubmissionStatus.isComplete && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <svg
-                className="h-5 w-5 text-amber-600 mr-3 flex-shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-amber-800">
-                  すべてのSKUの入稿データをアップロードしてください
-                </h3>
-                <p className="text-sm text-amber-700 mt-1">
-                  {skuSubmissionStatus.submittedSkus} / {skuSubmissionStatus.totalSkus} SKUのデータがアップロードされています。
-                </p>
-                {skuSubmissionStatus.pendingSkus.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs font-medium text-amber-800 mb-1">未アップロードのSKU:</p>
-                    <ul className="text-xs text-amber-700 list-disc list-inside">
-                      {skuSubmissionStatus.pendingSkus.map((sku) => {
-                        const displayName = formatSkuDisplayName(sku.productName, sku.quantity);
-                        return <li key={sku.id}>{displayName}</li>;
-                      })}
-                    </ul>
+        {/* SKU Upload Progress Summary Banner */}
+        {skuSubmissionStatus && skuSubmissionStatus.totalSkus > 1 && (
+          <div className={`
+            rounded-xl p-4 border-2
+            ${skuSubmissionStatus.isComplete
+              ? 'bg-green-50 border-green-300'
+              : 'bg-amber-50 border-amber-300'
+            }
+          `}>
+            <div className="flex items-center gap-3">
+              {skuSubmissionStatus.isComplete ? (
+                <>
+                  <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-green-900">
+                      すべてのSKUの入稿データが完了しました
+                    </p>
+                    <p className="text-sm text-green-700">
+                      韓国担当者がデータを確認中です
+                    </p>
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-amber-900">
+                      {skuSubmissionStatus.totalSkus - skuSubmissionStatus.submittedSkus}件のSKUの入稿データが未完了です
+                    </p>
+                    <p className="text-sm text-amber-700">
+                      {skuSubmissionStatus.submittedSkus} / {skuSubmissionStatus.totalSkus} SKU完了
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -518,33 +539,19 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
             </p>
           </div>
 
-          {/* SKU Selector (conditional - only show when orderItems.length > 1) */}
-          {orderItems.length > 1 && (
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                SKU選択 <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedOrderItemId || ''}
-                onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
-                className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
-                disabled={isUploading}
-                required
-              >
-                <option value="">選択してください</option>
-                {orderItems.map((item) => {
-                  const displayName = formatSkuDisplayName(item.product_name, item.quantity);
-                  return (
-                    <option key={item.id} value={item.id}>
-                      {displayName}
-                    </option>
-                  );
-                })}
-              </select>
-              <p className="text-xs text-text-muted mt-1">
-                ※ 複数のSKUがある場合は、該当するSKUを選択してください
-              </p>
-            </div>
+          {/* SKU Selector - Card Grid (複数SKUの場合のみ表示) */}
+          <SKUCardGrid
+            skuStates={skuUploadStates}
+            selectedSkuId={selectedOrderItemId}
+            isUploading={isUploading}
+            onSelectSku={setSelectedOrderItemId}
+            formatSkuDisplayName={formatSkuDisplayName}
+            orderItems={orderItems}
+          />
+
+          {/* 単一SKUの場合の非表示入力（後方互換性） */}
+          {orderItems.length === 1 && (
+            <input type="hidden" value={orderItems[0].id} />
           )}
 
           {/* Description */}

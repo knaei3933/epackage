@@ -792,11 +792,20 @@ export class UnifiedPricingEngine {
       // 基本計算を実行してbreakdownを取得
       const baseResult = await this.performSKUCalculation(params);
 
-      // 割引価格で上書き
+      // 割引率を計算
+      const discountRate = params.originalUnitPrice
+        ? params.discountedUnitPrice / params.originalUnitPrice
+        : (params.twoColumnOptionApplied === 'same' ? 0.85 : 0.70);
+
+      // breakdownも割引率に合わせて調整
+      const discountedBreakdown = baseResult.breakdown ? this.adjustBreakdownForDiscount(baseResult.breakdown, discountRate) : undefined;
+
+      // 割引価格で上書き（breakdownも含める）
       return {
         ...baseResult,
         unitPrice: params.discountedUnitPrice,
-        totalPrice: params.discountedTotalPrice
+        totalPrice: params.discountedTotalPrice,
+        breakdown: discountedBreakdown || baseResult.breakdown
       };
     }
 
@@ -2722,6 +2731,33 @@ export class UnifiedPricingEngine {
     ]
 
     return keyParts.join('|')
+  }
+
+  /**
+   * 割引率に合わせてbreakdownを調整
+   * @param breakdown 元のbreakdown
+   * @param discountRate 割引率（0.85 = 15% OFF, 0.70 = 30% OFF）
+   * @returns 調整後のbreakdown
+   */
+  private adjustBreakdownForDiscount(breakdown: any, discountRate: number): any {
+    if (!breakdown) return breakdown;
+
+    const adjustedBreakdown: any = {};
+    const discountFields = [
+      'materialCost', 'laminationCost', 'slitterCost', 'surfaceTreatmentCost',
+      'pouchProcessingCost', 'printingCost', 'manufacturingMargin', 'duty',
+      'delivery', 'salesMargin', 'baseCost'
+    ];
+
+    for (const field of discountFields) {
+      if (typeof breakdown[field] === 'number') {
+        adjustedBreakdown[field] = Math.round(breakdown[field] * discountRate);
+      } else {
+        adjustedBreakdown[field] = breakdown[field];
+      }
+    }
+
+    return adjustedBreakdown;
   }
 
   /**

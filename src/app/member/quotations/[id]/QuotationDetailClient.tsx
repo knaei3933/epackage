@@ -413,6 +413,49 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
     setDownloadingPDF(true);
 
     try {
+      // 保存されたPDFがある場合はそれを直接使用（シミュレーターで生成したPDFを維持）
+      if (quotation.pdf_url) {
+        console.log('[handleDownloadPDF] Using saved PDF from Storage:', quotation.pdf_url);
+
+        // Supabase StorageからPDFをダウンロード
+        const response = await fetch(quotation.pdf_url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch saved PDF');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        // 新しいタブでPDFを開く
+        window.open(url, '_blank');
+
+        // Cleanup
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+
+        // Log PDF download to database
+        try {
+          await fetch('/api/member/documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              document_type: 'quote',
+              document_id: quotation.id,
+              quotation_id: quotation.id,
+              action: 'downloaded',
+            }),
+          });
+          // Refresh download history after logging
+          fetchDownloadHistory();
+        } catch (logError) {
+          console.error('Failed to log PDF download:', logError);
+          // Don't alert user about logging failure
+        }
+
+        return;
+      }
       console.log('[handleDownloadPDF] quotation.items:', quotation.items);
       console.log('[handleDownloadPDF] quotation.items[0]?.specifications:', JSON.stringify(quotation.items[0]?.specifications, null, 2));
       if (!quotation.items || quotation.items.length === 0) {
@@ -470,22 +513,24 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
         issueDate: formatDate(quotation.createdAt),
         expiryDate: formatDate(quotation.validUntil),
         quoteCreator: 'EPACKAGE Lab 見積システム',
-        customerName: userProfile?.kanji_last_name && userProfile?.kanji_first_name
-          ? `${userProfile.kanji_last_name} ${userProfile.kanji_first_name}`
-          : (userProfile?.company_name || userEmail?.split('@')[0] || 'お客様'),
-        customerNameKana: userProfile?.kana_last_name && userProfile?.kana_first_name
-          ? `${userProfile.kana_last_name} ${userProfile.kana_first_name}`
-          : '',
-        companyName: userProfile?.company_name || '',
-        postalCode: userProfile?.postal_code || '',
-        address: (userProfile?.prefecture || userProfile?.city || userProfile?.street)
-          ? `${userProfile?.prefecture || ''}${userProfile?.city || ''}${userProfile?.street || ''}`
-          : '',
-        contactPerson: userProfile?.kanji_last_name && userProfile?.kanji_first_name
-          ? `${userProfile.kanji_last_name} ${userProfile.kanji_first_name}`
-          : '',
-        phone: userProfile?.corporate_phone || userProfile?.personal_phone || '',
-        email: userEmail || '',
+        // 見積データに保存された顧客情報を優先使用（キャメルケースとスネークケースの両方に対応）
+        customerName: quotation.customerName || quotation.customer_name ||
+          (userProfile?.kanji_last_name && userProfile?.kanji_first_name
+            ? `${userProfile.kanji_last_name} ${userProfile.kanji_first_name}`
+            : (userProfile?.company_name || userEmail?.split('@')[0] || 'お客様')),
+        customerNameKana: quotation.customer_name_kana || '',
+        companyName: quotation.customer_company || userProfile?.company_name || '',
+        postalCode: quotation.customer_postal_code || userProfile?.postal_code || '',
+        address: quotation.customer_address ||
+          ((userProfile?.prefecture || userProfile?.city || userProfile?.street)
+            ? `${userProfile?.prefecture || ''}${userProfile?.city || ''}${userProfile?.street || ''}`
+            : ''),
+        contactPerson: quotation.customer_contact_person ||
+          (userProfile?.kanji_last_name && userProfile?.kanji_first_name
+            ? `${userProfile.kanji_last_name} ${userProfile.kanji_first_name}`
+            : ''),
+        phone: quotation.customerPhone || quotation.customer_phone || userProfile?.corporate_phone || userProfile?.personal_phone || '',
+        email: quotation.customerEmail || quotation.customer_email || userEmail || '',
         items: quoteItems,
         specifications: (() => {
           console.log('[handleDownloadPDF] Calling mapSpecificationsToPDF with:', quotation.items[0]?.specifications);

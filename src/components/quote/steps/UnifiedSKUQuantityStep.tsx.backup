@@ -15,7 +15,6 @@ import { useQuoteState, useQuote } from '@/contexts/QuoteContext';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { unifiedPricingEngine } from '@/lib/unified-pricing-engine';
 import { validateMOQ, isKraftMaterial } from '@/lib/pricing/validators/moq-validator';
-import { determineMaterialWidth } from '@/lib/material-width-selector';
 import { EconomicQuantityProposal } from '../shared/EconomicQuantityProposal';
 import { StatusIndicator } from '../shared/StatusIndicator';
 import { CurrentStateSummary } from '../shared/CurrentStateSummary';
@@ -75,38 +74,16 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   // ★컴포넌트 마운트 시 항상 할인 초기화 (뒤로가기 대응)
   // 키보드 왼쪽 화살표나 뒤로가기 버튼으로 돌아올 때 할인 상태를 초기화
   useEffect(() => {
-    // 既にクリア済みの場合는スキップ（オプション適用後の再レンダリング対応）
+    // 既にクリア済みの場合はスキップ（オプション適用後の再レンダリング対応）
     if (didClearOnMountRef.current) {
       console.log('[UnifiedSKUQuantityStep] Skipping clear - already cleared on mount');
       return;
     }
-    // マウント될 때 항상 적용된 옵션을初期化
-    // ただし、2列生産オプションが適用されている場合で、かつ割引価格が設定されている場合はスキップ
-    // （オプション適用直後の再マウントではクリアしない）
-    const shouldClear = (
-      (quoteState.twoColumnOptionApplied || quoteState.appliedOption !== null) &&
-      // 2列生産オプション適用直後（割引価格が現在の単価と一致する場合）はクリアしない
-      !(quoteState.twoColumnOptionApplied &&
-        quoteState.discountedUnitPrice !== undefined &&
-        quoteState.discountedUnitPrice === quoteState.unitPrice)
-    );
-
-    if (shouldClear) {
-      console.log('[UnifiedSKUQuantityStep] Component mounted, clearing applied discount', {
-        twoColumnOptionApplied: quoteState.twoColumnOptionApplied,
-        appliedOption: quoteState.appliedOption,
-        discountedUnitPrice: quoteState.discountedUnitPrice,
-        unitPrice: quoteState.unitPrice,
-        shouldClear
-      });
+    // マ운ト될 때 항상 적용된 옵션을 초기화
+    if (quoteState.twoColumnOptionApplied || quoteState.appliedOption !== null) {
+      console.log('[UnifiedSKUQuantityStep] Component mounted, clearing applied discount');
       clearAppliedOption();
       didClearOnMountRef.current = true;
-    } else {
-      console.log('[UnifiedSKUQuantityStep] Skipping clear on mount - option just applied', {
-        twoColumnOptionApplied: quoteState.twoColumnOptionApplied,
-        discountedUnitPrice: quoteState.discountedUnitPrice,
-        unitPrice: quoteState.unitPrice
-      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
@@ -292,47 +269,12 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
         depth: quoteState.depth || 0
       };
       const pouchType = quoteState.bagTypeId || '';
-      const materialId = quoteState.materialId;
-
-      // パウチタイプに基づいて2列生産のフィルム幅を計算
-      // pouch-cost-calculator.tsのcalculateFilmWidthメソッドと同じロジック
-      const { height: H = 0, width: W = 0, depth: G = 0 } = dimensions;
-      let filmWidthFor2Columns = 0;
-
-      switch (pouchType) {
-        case 'roll_film':
-          filmWidthFor2Columns = W * 2;
-          break;
-        case 'flat_3_side':
-        case 'three_side':
-        case 'zipper':
-          filmWidthFor2Columns = (H * 4) + 71;
-          break;
-        case 'stand_up':
-        case 'zipper_stand':
-          // 2列: (H × 4) + (G × 2) + 40
-          filmWidthFor2Columns = (H * 4) + (G * 2) + 40;
-          break;
-        case 't_shape':
-          filmWidthFor2Columns = (W * 4) + 64;
-          break;
-        case 'box':
-          filmWidthFor2Columns = (G + W) * 4 + 84;
-          break;
-        default:
-          filmWidthFor2Columns = (H * 4) + 71;
-      }
-
-      // 原反幅を決定（2列生産フィルム幅に基づいて）
-      // determineMaterialWidth: 幅が570mm以下→590mm原反、570mm超過→760mm原反
-      const materialWidth = determineMaterialWidth(filmWidthFor2Columns, materialId);
 
       const options = pouchCostCalculator.calculateTwoColumnProductionOptions(
         totalQuantity,
         baseUnitPrice,
         pouchType,
-        dimensions,
-        materialWidth
+        dimensions
       );
 
       console.log('[UnifiedSKUQuantityStep] Two column options calculated:', {
@@ -760,31 +702,8 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       return;
     }
 
-    // 既に2列生産オプションが適用されている場合は、一旦クリアして元の数量に戻す
-    if (quoteState.twoColumnOptionApplied && quoteState.originalUnitPrice) {
-      console.log('[handleApplyTwoColumnOption] Clearing previous option, restoring original quantity:', quoteState.quantity);
-
-      // 元の単価と数量を復元
-      const originalQuantity = quoteState.quantity || 10000;
-      updateField('unitPrice', quoteState.originalUnitPrice);
-      updateField('totalPrice', quoteState.originalUnitPrice * originalQuantity);
-      updateField('quantity', originalQuantity);
-      setSKUQuantities([originalQuantity]);
-
-      // 重要：オプション適用状態をクリア
-      // これによりtwoColumnOptionsが再計算される
-      console.log('[handleApplyTwoColumnOption] Option cleared, waiting for re-render...');
-
-      // 一旦ここで処理を中断し、ユーザーに再度クリックさせる
-      // Reactの再レンダリング後にtwoColumnOptionsが正しく再計算される
-      setIsApplying(false);
-      isApplyingTwoColumnRef.current = false;
-      return;
-    }
-
     console.log('[handleApplyTwoColumnOption] Proceeding with option application');
     setIsApplying(true);
-    isApplyingTwoColumnRef.current = true; // refも設定してuseEffectのクリアを防止
 
     try {
       // ロールフィルムの場合：列数を指定
@@ -910,11 +829,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       console.error('[handleApplyTwoColumnOption] Error applying option:', error);
     } finally {
       setIsApplying(false);
-      // refも遅延してfalseに戻す（状態更新後にuseEffectが実行されるのを防ぐ）
-      setTimeout(() => {
-        isApplyingTwoColumnRef.current = false;
-        console.log('[handleApplyTwoColumnOption] isApplyingTwoColumnRef set to false');
-      }, 100);
       console.log('[handleApplyTwoColumnOption] setIsApplying(false) called');
     }
   };
@@ -1517,18 +1431,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       )}
 
       {/* 【新規】経済的生産数量のご提案 - 2列生産オプションとSKU分割オプション */}
-      {(() => {
-        const showCondition = ((!isRollFilm && totalQuantity >= 1000) || (isRollFilm && totalQuantity >= 500)) && twoColumnOptions;
-        console.log('[UnifiedSKUQuantityStep] EconomicQuantityProposal render check:', {
-          isRollFilm,
-          totalQuantity,
-          twoColumnOptions,
-          showCondition,
-          pouchType: quoteState.bagTypeId,
-          bagTypeId: quoteState.bagTypeId
-        });
-        return showCondition;
-      })() && (
+      {((!isRollFilm && totalQuantity >= 1000) || (isRollFilm && totalQuantity >= 500)) && twoColumnOptions && (
         <EconomicQuantityProposal
           suggestion={{
             orderQuantity: totalQuantity,

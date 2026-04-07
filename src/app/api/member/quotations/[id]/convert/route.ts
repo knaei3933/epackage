@@ -299,18 +299,44 @@ export async function POST(
       );
     }
 
-    // Copy quotation items to order items
+    // Copy quotation items to order items with SKU split support
     if (quotationItems && quotationItems.length > 0) {
-      const orderItems = quotationItems.map((item: any) => ({
-        order_id: order.id,
-        product_id: item.product_id,
-        product_name: item.product_name,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        specifications: item.specifications,
-        // Note: total_price is a generated column (unit_price * quantity)
-        // sku_index is not in order_items table
-      }));
+      const orderItems: any[] = [];
+
+      for (const item of quotationItems) {
+        const specs = item.specifications || {};
+        const skuQuantities = specs.sku_quantities;
+
+        // Check if SKU split exists
+        if (skuQuantities && Array.isArray(skuQuantities) && skuQuantities.length > 1) {
+          // Create separate order items for each SKU
+          skuQuantities.forEach((skuQty: number, index: number) => {
+            orderItems.push({
+              order_id: order.id,
+              product_id: item.product_id,
+              product_name: `${item.product_name} (SKU${index + 1})`,
+              quantity: skuQty,
+              unit_price: item.unit_price,
+              specifications: {
+                ...specs,
+                sku_index: index,
+                sku_total: skuQuantities.length,
+              },
+            });
+          });
+          console.log('[Convert to Order] Split item into', skuQuantities.length, 'SKUs');
+        } else {
+          // No SKU split, copy as-is
+          orderItems.push({
+            order_id: order.id,
+            product_id: item.product_id,
+            product_name: item.product_name,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            specifications: item.specifications,
+          });
+        }
+      }
 
       const { error: itemsInsertError } = await supabaseAdmin
         .from('order_items')

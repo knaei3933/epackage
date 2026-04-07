@@ -405,9 +405,11 @@ export class PouchCostCalculator {
 
     // 【修正】スパウトパウチは常に1列生産を使用（ユーザードキュメント基準）
     // 2列生産は複雑で効率が悪いため、1列生産+固定ロス400m方式を採用
-    if (pouchType.includes('spout') || pouchType.includes('stand')) {
-      return 1; // スパウト・スタンドパウチ: 常に1列
+    if (pouchType.includes('spout')) {
+      return 1; // スパウトパウチ: 常に1列
     }
+    // 【修正】スタンドパウチは2列生産を許可（計算ドキュメント05-스탠드파우치_시나리오.md基準）
+    // フィルム幅700mm ≤ 740mm（760mm原反の印刷可能幅）で2列生産可能
 
     // 小量生産の場合は1列のみ使用（2列は大量生産時のみ効率的）
     if (totalQuantity < 500) {
@@ -1906,16 +1908,18 @@ export class PouchCostCalculator {
    * @param currentUnitPrice 現在の単価
    * @param pouchType パウチタイプ
    * @param dimensions パウチ寸法
+   * @param materialWidth 原反幅（590 or 760、デフォルト: 590）
    * @returns 2列生産オプション（2列生産不可能な場合はnull）
    */
   calculateTwoColumnProductionOptions(
     currentQuantity: number,
     currentUnitPrice: number,
     pouchType: string,
-    dimensions: PouchDimensions
+    dimensions: PouchDimensions,
+    materialWidth: number = 590
   ): TwoColumnProductionOptions | null {
-    // 2列生産が可能かチェック
-    if (!this.canUseTwoColumnProduction(pouchType, dimensions, currentQuantity)) {
+    // 2列生産が可能かチェック（実際の原反幅を渡す）
+    if (!this.canUseTwoColumnProduction(pouchType, dimensions, currentQuantity, materialWidth)) {
       return null; // 2列生産不可能
     }
 
@@ -1962,17 +1966,21 @@ export class PouchCostCalculator {
       doubleQuantityPrice: Math.round(doubleQuantityPrice)
     });
 
+    // 丸め済みの単価を使用して総額を計算（表示価格との整合性を確保）
+    const roundedSameQuantityUnitPrice = Math.round(sameQuantityPrice);
+    const roundedDoubleQuantityUnitPrice = Math.round(doubleQuantityPrice);
+
     return {
       sameQuantity: {
         quantity: currentQuantity, // ユーザー入力の数量を保持
-        unitPrice: Math.round(sameQuantityPrice),
-        totalPrice: Math.round(sameQuantityPrice * currentQuantity),
+        unitPrice: roundedSameQuantityUnitPrice,
+        totalPrice: roundedSameQuantityUnitPrice * currentQuantity,
         savingsRate: 15
       },
       doubleQuantity: {
         quantity: doubleQuantity,
-        unitPrice: Math.round(doubleQuantityPrice),
-        totalPrice: Math.round(doubleQuantityPrice * doubleQuantity),
+        unitPrice: roundedDoubleQuantityUnitPrice,
+        totalPrice: roundedDoubleQuantityUnitPrice * doubleQuantity,
         savingsRate: 30
       }
     };
@@ -1988,10 +1996,12 @@ export class PouchCostCalculator {
   private canUseTwoColumnProduction(
     pouchType: string,
     dimensions: PouchDimensions,
-    currentQuantity: number
+    currentQuantity: number,
+    materialWidth: number = 590 // 実際の原反幅（デフォルト: 590mm）
   ): boolean {
     // ロールフィルム、合掌袋、ボックス型パウチ、スパウトパウチには2列生産を適用しない
     // （これらは既存の並列生産オプションで対応、または構造的に2列生産が不可能）
+    // 【修正】スタンドパウチは2列生産を許可（計算ドキュメント05-스탠드파우치_시나리오.md基準）
     if (pouchType === 'roll_film' ||
         pouchType === 'spout_pouch' ||
         pouchType.includes('t_shape') ||
@@ -2003,9 +2013,19 @@ export class PouchCostCalculator {
     // 2列分のフィルム幅を計算
     const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
 
-    // 最大原反幅（760mm）の印刷可能幅（740mm）に収まるかチェック
-    const MAX_PRINTABLE_WIDTH = 740; // 760mm原反の印刷可能幅
-    if (filmWidth2Columns > MAX_PRINTABLE_WIDTH) {
+    // 実際の原反幅に基づいて印刷可能幅を計算
+    const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
+
+    // 2列分のフィルム幅が実際の原反幅の印刷可能幅に収まるかチェック
+    if (filmWidth2Columns > printableWidth) {
+      console.log('[canUseTwoColumnProduction] 2列生産不可能:', {
+        pouchType,
+        dimensions,
+        materialWidth,
+        printableWidth,
+        filmWidth2Columns,
+        reason: `2列分幅${filmWidth2Columns}mm > 印刷可能幅${printableWidth}mm（原反幅${materialWidth}mm）`
+      });
       return false;
     }
 

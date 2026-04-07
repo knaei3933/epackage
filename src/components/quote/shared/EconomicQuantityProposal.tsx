@@ -74,6 +74,13 @@ export function EconomicQuantityProposal({
   // 2列生産オプションがある場合のみ表示
   const hasOptions = twoColumnProductionOptions
 
+  console.log('[EconomicQuantityProposal] Render check:', {
+    isRollFilm,
+    hasOptions,
+    twoColumnProductionOptions,
+    appliedOption
+  })
+
   // ロールフィルム用多列オプション
   const multiColumnOptions = twoColumnProductionOptions?.multiColumn || []
 
@@ -188,7 +195,7 @@ export function EconomicQuantityProposal({
                 <div className={`rounded-lg p-4 transition-colors ${
                   appliedOption === 'same'
                     ? 'bg-green-50 border-2 border-green-400'
-                    : 'bg-white border border-info-200 hover:border-info-400'
+                    : 'bg-white border-2 border-info-200 hover:border-info-400'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-bold text-info-900">同数量（15% OFF）</span>
@@ -232,7 +239,7 @@ export function EconomicQuantityProposal({
                       className={`w-full py-2 px-4 rounded-lg font-bold transition-colors text-sm ${
                         appliedOption === 'same'
                           ? 'bg-green-600 text-white cursor-default'
-                          : 'bg-info-600 text-white hover:bg-info-700'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
                     >
                       {appliedOption === 'same' ? '適用済み' : '15% OFFを適用'}
@@ -244,7 +251,7 @@ export function EconomicQuantityProposal({
                 <div className={`rounded-lg p-4 transition-colors ${
                   appliedOption === 'double'
                     ? 'bg-green-50 border-2 border-green-400'
-                    : 'bg-white border border-info-200 hover:border-info-400'
+                    : 'bg-white border-2 border-info-200 hover:border-info-400'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-bold text-info-900">倍数量（30% OFF）</span>
@@ -254,7 +261,7 @@ export function EconomicQuantityProposal({
                           適用中
                         </span>
                       )}
-                      <span className="text-xs bg-brixa-primary-600 text-white px-2 py-1 rounded">
+                      <span className="text-xs bg-info-600 text-white px-2 py-1 rounded">
                         30% OFF
                       </span>
                     </div>
@@ -288,7 +295,7 @@ export function EconomicQuantityProposal({
                       className={`w-full py-2 px-4 rounded-lg font-bold transition-colors text-sm ${
                         appliedOption === 'double'
                           ? 'bg-green-600 text-white cursor-default'
-                          : 'bg-brixa-primary-600 text-white hover:bg-brixa-primary-700'
+                          : 'bg-info-600 text-white hover:bg-info-700'
                       }`}
                     >
                       {appliedOption === 'double' ? '適用済み' : '30% OFFを適用'}

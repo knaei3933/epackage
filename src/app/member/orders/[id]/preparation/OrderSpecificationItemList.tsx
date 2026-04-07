@@ -177,7 +177,7 @@ function OrderSpecificationItem({
           {specs.printing_colors && (
             <div>
               <span className="text-text-muted">色数:</span>
-              <span className="ml-1">{specs.printing_colors}色</span>
+              <span className="ml-1">フルカラー</span>
             </div>
           )}
           {specs.thicknessSelection && (

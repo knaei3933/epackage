@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Card, Button, Badge } from '@/components/ui';
-import { Eye, Download, Trash2, FileText, Calendar, Clock, Package, AlertCircle } from 'lucide-react';
+import { Eye, Download, Trash2, FileText, Calendar, Clock, Package, AlertCircle, FileQuestion, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { QuotationStatusBadge } from '@/components/quotations/StatusBadge';
@@ -74,24 +74,36 @@ export function QuotationList({
   // 空状態
   if (quotations.length === 0) {
     return (
-      <Card className="p-12 text-center">
-        <p className="text-text-muted mb-4">
-          {emptyMessage || (
-            selectedStatus === 'all'
-              ? '見積依頼がありません'
-              : statusFilterOptions.find((o) => o.value === selectedStatus)?.label + "の見積はありません"
-          )}
-        </p>
-        <div className="flex gap-2 justify-center">
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            ↻ 更新
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => (window.location.href = '/quote-simulator')}
-          >
-            見積を作成する
-          </Button>
+      <Card className="p-16 text-center border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-blue-50/30">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+            <FileQuestion className="w-12 h-12 text-blue-500" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {selectedStatus === 'all'
+                ? '見積依頼がありません'
+                : `${statusFilterOptions.find((o) => o.value === selectedStatus)?.label || '選択したステータス'}の見積はありません`
+              }
+            </h3>
+            <p className="text-text-muted">
+              最初の見積もりを作成して、製品の価格をお試しください
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" onClick={() => window.location.reload()} className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              更新
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => (window.location.href = '/quote-simulator')}
+              className="gap-2 shadow-lg hover:shadow-xl"
+            >
+              <FileText className="w-4 h-4" />
+              見積を作成する
+            </Button>
+          </div>
         </div>
       </Card>
     );
@@ -100,9 +112,9 @@ export function QuotationList({
   return (
     <div className="space-y-6">
       {quotations.map((quotation) => (
-        <Card key={quotation.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-blue-200">
+        <Card key={quotation.id} className="overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-blue-400 shadow-md hover:-translate-y-1">
           {/* Top Section - Header with Meta Information */}
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+          <div className="bg-gradient-to-r from-blue-50 via-blue-50/75 to-indigo-50 px-6 py-5 border-b border-blue-100">
             <div className="flex items-start justify-between gap-6">
               {/* Left - Number and Status */}
               <div className="flex items-center gap-4">
@@ -151,11 +163,12 @@ export function QuotationList({
 
               {/* Right - Total Price and Creation Date */}
               <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900 mb-1">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
                   {formatPrice(quotation.totalAmount || quotation.total_amount || 0)}
-                  <span className="text-xl ml-1">円</span>
+                  <span className="text-xl ml-1 text-gray-700">円</span>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 flex items-center justify-end gap-1">
+                  <Clock className="w-3 h-3" />
                   {quotation.createdAt ? (
                     formatDistanceToNow(new Date(quotation.createdAt), {
                       addSuffix: true,
@@ -172,10 +185,10 @@ export function QuotationList({
           {/* Status Messages */}
           <div className="px-6 pt-4">
             {(quotation.status === 'DRAFT' || quotation.status === 'draft') && (
-              <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+              <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow-sm">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-amber-600" />
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                    <Clock className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-amber-900 mb-1">管理者による内容確認中</p>
@@ -186,10 +199,10 @@ export function QuotationList({
             )}
 
             {(quotation.status === 'APPROVED' || quotation.status === 'approved' || quotation.status === 'QUOTATION_APPROVED') && (
-              <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded-r-lg">
+              <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-green-600" />
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-md">
+                    <FileText className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-green-900 mb-1">承認完了 - 注文可能です</p>
@@ -408,9 +421,9 @@ export function QuotationList({
               {/* Right Sidebar - SKU Items and Actions */}
               <div className="space-y-4">
                 {/* SKU Items Card */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-300">
-                    <Package className="w-5 h-5 text-gray-700" />
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-blue-100 shadow-md">
+                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-200">
+                    <Package className="w-5 h-5 text-blue-600" />
                     <h4 className="font-bold text-gray-900">SKUアイテム</h4>
                   </div>
                   <div className="space-y-2">
@@ -420,7 +433,7 @@ export function QuotationList({
                       const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
 
                       return (
-                        <div key={item.id} className="p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
+                        <div key={item.id} className="p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all hover:-translate-y-0.5">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                               {hasMultipleSKUs ? (
@@ -460,15 +473,15 @@ export function QuotationList({
                       );
                     })}
                     {quotation.items && quotation.items.length > 3 && (
-                      <div className="text-center py-2 text-sm text-gray-500 bg-gray-100 rounded-lg">
-                        他 {quotation.items.length - 3} 点
+                      <div className="text-center py-2 px-3 text-sm text-blue-600 bg-blue-50 rounded-lg border border-blue-200 font-medium">
+                        + 他 {quotation.items.length - 3} 点
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Action Buttons Card */}
-                <div className="bg-white rounded-xl p-4 border-2 border-gray-200 shadow-sm">
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-blue-100 shadow-md">
                   <div className="flex flex-col gap-3">
                     {/* View Details */}
                     <a
@@ -482,7 +495,7 @@ export function QuotationList({
                       <Button
                         variant="secondary"
                         size="md"
-                        className="w-full group/btn font-semibold"
+                        className="w-full group/btn font-semibold gap-2 hover:bg-blue-50 transition-colors"
                       >
                         <Eye className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
                         詳細を見る
@@ -495,7 +508,7 @@ export function QuotationList({
                       size="md"
                       onClick={() => onDownloadPDF(quotation)}
                       disabled={downloadingQuoteId === quotation.id}
-                      className="w-full group/btn font-semibold border-2"
+                      className="w-full group/btn font-semibold gap-2 border-2 hover:border-blue-300 hover:bg-blue-50 transition-all"
                     >
                       <Download className={`w-5 h-5 transition-transform ${downloadingQuoteId === quotation.id ? 'animate-spin' : 'group-hover/btn:scale-110'}`} />
                       {downloadingQuoteId === quotation.id ? 'PDF作成中...' : 'PDFダウンロード'}
@@ -508,7 +521,7 @@ export function QuotationList({
                         size="md"
                         onClick={() => onDeleteQuotation(quotation.id)}
                         disabled={deletingQuoteId === quotation.id}
-                        className="w-full group/btn font-semibold"
+                        className="w-full group/btn font-semibold gap-2 hover:shadow-md transition-shadow"
                       >
                         <Trash2 className={`w-5 h-5 transition-transform ${deletingQuoteId === quotation.id ? 'animate-pulse' : 'group-hover/btn:scale-110'}`} />
                         {deletingQuoteId === quotation.id ? '削除中...' : '削除'}
@@ -521,7 +534,7 @@ export function QuotationList({
                         variant="primary"
                         size="md"
                         onClick={() => onConvertToOrder(quotation)}
-                        className="w-full group/btn font-bold shadow-lg hover:shadow-xl text-base py-3"
+                        className="w-full group/btn font-bold shadow-lg hover:shadow-xl text-base py-3 gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all"
                       >
                         <FileText className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
                         注文に変換
