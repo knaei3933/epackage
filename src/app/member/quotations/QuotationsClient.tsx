@@ -563,9 +563,11 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                         </div>
 
                         {/* Specification Display */}
-                        {quotation.items && quotation.items.length > 0 && (
-                          <MemberSpecificationDisplay item={quotation.items[0]} />
-                        )}
+                        {quotation.items && quotation.items.length > 0 && (() => {
+                          const item = quotation.items[0];
+                          const specs = item.breakdown?.specifications || item.specifications;
+                          return specs && <MemberSpecificationDisplay item={{ specifications: specs }} />;
+                        })()}
 
                         {/* Post Processing Preview */}
                         {quotation.items?.[0]?.breakdown?.specifications && (
