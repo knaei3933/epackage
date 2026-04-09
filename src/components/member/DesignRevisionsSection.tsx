@@ -18,6 +18,7 @@ import { CheckCircle, XCircle, FileImage, FileText, Download, Clock, User, Refre
 import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
 import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
 import { RejectionReasonModal } from '@/components/member/RejectionReasonModal';
+import { PostProcessingPositionDisplay } from '@/components/member/PostProcessingPositionDisplay';
 
 // =====================================================
 // Types
@@ -71,6 +72,9 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // 後加工位置情報State / 후가공 위치 정보 상태
+  const [postProcessingPositions, setPostProcessingPositions] = useState<Map<string, any>>(new Map());
+  const [loadingPostProcessing, setLoadingPostProcessing] = useState<string | null>(null);
   // Rejection modal state
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectingRevisionId, setRejectingRevisionId] = useState<string | null>(null);
@@ -128,6 +132,11 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
       } else {
         setError(result.error || 'デザイン改訂データの読み込みに失敗しました。');
       }
+
+      // 後加工位置情報を読み込み / 후가공 위치 정보 로드
+      if (result.success && result.revisions && result.revisions.length > 0) {
+        await loadPostProcessingPositions(result.revisions.map((r: DesignRevision) => r.id));
+      }
     } catch (err) {
       console.error('[DesignRevisionsSection] Load error:', err);
       setError('予期しないエラーが発生しました。');
@@ -135,6 +144,34 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
       setLoading(false);
     }
   }, [orderId]);
+
+  // 後加工位置情報読み込み関수 / 후가공 위치 정보 로드 함수
+  const loadPostProcessingPositions = useCallback(async (revisionIds: string[]) => {
+    if (revisionIds.length === 0) return;
+
+    setLoadingPostProcessing('loading');
+
+    const positionsMap = new Map<string, any>();
+
+    for (const revisionId of revisionIds) {
+      try {
+        const response = await fetch(`/api/design-revisions/${revisionId}/postprocessing-positions`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.positions) {
+            data.positions.forEach((pos: any) => {
+              positionsMap.set(pos.sku_name, pos);
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`[DesignRevisionsSection] Failed to load post-processing for revision ${revisionId}:`, err);
+      }
+    }
+
+    setPostProcessingPositions(positionsMap);
+    setLoadingPostProcessing(null);
+  }, []);
 
   // Respond to revision (approve/reject)
   const handleRespond = useCallback(async (revisionId: string, status: 'approved' | 'rejected') => {
@@ -312,14 +349,34 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     }).format(date);
   };
 
-  // Get status label
+  // Format revision name from "リビジョン N" to "第N版"
+  const formatRevisionName = (revisionName: string | null, revisionNumber: number) => {
+    if (revisionName && revisionName.includes('リビジョン')) {
+      return revisionName.replace(/リビジョン\s*(\d+)/, '第$1版');
+    }
+    return revisionName || `第${revisionNumber}版`;
+  };
+
+  // Get status label with improved styling
   const getStatusLabel = (status: string) => {
-    const labels: Record<string, { text: string; className: string }> = {
-      pending: { text: '承認待ち', className: 'bg-yellow-100 text-yellow-800' },
-      approved: { text: '承認済み', className: 'bg-green-100 text-green-800' },
-      rejected: { text: '却下', className: 'bg-red-100 text-red-800' },
+    const labels: Record<string, { text: string; className: string; icon: React.ReactNode }> = {
+      pending: {
+        text: '承認待ち',
+        className: 'bg-amber-50 text-amber-700 border-amber-200',
+        icon: <Clock className="w-3.5 h-3.5" />
+      },
+      approved: {
+        text: '承認済み',
+        className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        icon: <CheckCircle className="w-3.5 h-3.5" />
+      },
+      rejected: {
+        text: '却下',
+        className: 'bg-rose-50 text-rose-700 border-rose-200',
+        icon: <XCircle className="w-3.5 h-3.5" />
+      },
     };
-    return labels[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
+    return labels[status] || { text: status, className: 'bg-gray-50 text-gray-700 border-gray-200', icon: null };
   };
 
   // Get SKU name helper function
@@ -450,48 +507,75 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const hasRevisions = revisions.length > 0;
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <FileImage className="w-5 h-5" />
-          デザイン校正データ
-          {hasPendingRevisions && (
-            <span className="px-2 py-1 text-xs font-medium rounded bg-orange-100 text-orange-800">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+            <FileImage className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">デザイン校正データ</h2>
+            {revisions.length > 0 && (
+              <p className="text-sm text-gray-600 mt-0.5">全 {revisions.length} 件</p>
+            )}
+          </div>
+        </div>
+        {hasPendingRevisions && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-300 shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+            <span className="text-sm font-bold text-amber-800">
               {pendingRevisions.length} 件の承認待ち
             </span>
-          )}
-        </h2>
-        {revisions.length > 0 && (
-          <span className="text-sm text-muted-foreground">
-            全 {revisions.length} 件
-          </span>
+          </div>
         )}
       </div>
 
       {/* Error message */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mb-5 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-lg shadow-sm">
+          <div className="flex items-start gap-3">
+            <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-rose-900">エラーが発生しました</p>
+              <p className="text-sm text-rose-700 mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Success message */}
       {successMessage && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-800">{successMessage}</p>
+        <div className="mb-5 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-lg shadow-sm">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-emerald-900">完了しました</p>
+              <p className="text-sm text-emerald-700 mt-1">{successMessage}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Loading state */}
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">
-          データを読み込み中...
+        <div className="text-center py-16">
+          <div className="inline-flex items-center gap-3 px-6 py-4 bg-blue-50 rounded-2xl border border-blue-200">
+            <RefreshCw className="w-6 h-6 text-blue-600 animate-spin" />
+            <span className="text-blue-700 font-medium">データを読み込み中...</span>
+          </div>
         </div>
       ) : !hasRevisions ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <FileImage className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p>まだ校正データがありません。</p>
+        <div className="text-center py-16">
+          <div className="inline-flex flex-col items-center gap-4">
+            <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <FileImage className="w-10 h-10 text-gray-400" />
+            </div>
+            <div>
+              <p className="text-gray-700 font-medium mb-1">まだ校正データがありません</p>
+              <p className="text-sm text-gray-500">デザイナーが校正データをアップロードするまでお待ちください</p>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -503,57 +587,80 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
             return (
               <div
                 key={revision.id}
-                className={`border rounded-lg overflow-hidden ${
-                  isPending ? 'border-orange-200 bg-orange-50/30' : 'border-border-secondary'
+                className={`border rounded-xl overflow-hidden shadow-sm transition-all duration-200 ${
+                  isPending
+                    ? 'border-amber-300 bg-gradient-to-br from-amber-50/80 to-orange-50/50 hover:shadow-md'
+                    : 'border-gray-200 bg-white hover:shadow-sm'
                 }`}
               >
                 {/* Header */}
                 <div
-                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                  className={`p-5 cursor-pointer transition-colors ${
+                    isPending ? 'hover:bg-amber-100/50' : 'hover:bg-gray-50/50'
+                  }`}
                   onClick={() => setExpandedId(isExpanded ? null : revision.id)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-medium">
-                          {revision.revision_name}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      {/* Version Number and Status */}
+                      <div className="flex items-center gap-2.5 mb-2.5 flex-wrap">
+                        <h3 className="font-bold text-lg text-gray-900">
+                          {formatRevisionName(revision.revision_name, revision.revision_number)}
                         </h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded ${statusInfo.className}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full border ${statusInfo.className}`}>
+                          {statusInfo.icon}
                           {statusInfo.text}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+
+                      {/* SKU Badge */}
+                      <div className="mb-2">
+                        <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200">
                           {getSkuName(revision)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(revision.created_at)}
+
+                      {/* Date and Uploader */}
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="font-medium">{formatDate(revision.created_at)}</span>
                         {revision.uploaded_by_name && (
                           <>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              {revision.uploaded_by_name}
+                            <span className="text-gray-400">•</span>
+                            <span className="flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5" />
+                              <span className="font-medium">{revision.uploaded_by_name}</span>
                             </span>
                           </>
                         )}
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      {isExpanded ? '折りたたむ' : '詳細を表示'}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-shrink-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    >
+                      {isExpanded ? (
+                        <>折りたたむ</>
+                      ) : (
+                        <>詳細を表示</>
+                      )}
                     </Button>
                   </div>
                 </div>
 
                 {/* Expanded content */}
                 {isExpanded && (
-                  <div className="p-4 pt-0 space-y-4 border-t border-border-secondary">
+                  <div className="p-5 pt-0 space-y-5 border-t border-gray-200/60 mt-4">
                     {/* Partner comment - Bilingual Display */}
                     {(revision.partner_comment || revision.comment_ko || revision.comment_ja) && (
-                      <div>
-                        <p className="text-sm font-medium mb-2">パートナーコメント:</p>
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <p className="text-sm font-bold text-gray-800 mb-2.5 flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                          </svg>
+                          パートナーからのコメント
+                        </p>
                         {/* Use bilingual display when bilingual data is available OR uploaded by Korean designer */}
                         {(revision.uploaded_by_type === 'korea_designer' || revision.comment_ko || revision.comment_ja) ? (
                           <BilingualCommentDisplay
@@ -567,7 +674,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                           />
                         ) : (
                           /* Legacy display for admin uploads without bilingual data */
-                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                          <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
                             {revision.partner_comment}
                           </p>
                         )}
@@ -577,18 +684,30 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                     {/* Preview image */}
                     {revision.preview_image_url && (
                       <div>
-                        <p className="text-sm font-medium mb-2">プレビュー画像:</p>
+                        <p className="text-sm font-bold text-gray-800 mb-2.5 flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          プレビュー画像
+                        </p>
                         <a
                           href={getPreviewUrl(revision)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block"
+                          className="block group"
                         >
-                          <img
-                            src={getPreviewUrl(revision)}
-                            alt="プレビュー"
-                            className="max-w-full h-auto rounded-lg border border-border-secondary hover:opacity-80 transition-opacity"
-                          />
+                          <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 group-hover:border-blue-400 transition-colors">
+                            <img
+                              src={getPreviewUrl(revision)}
+                              alt="プレビュー"
+                              className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white bg-black/60 px-4 py-2 rounded-lg text-sm font-medium">
+                                クリックして拡大
+                              </span>
+                            </div>
+                          </div>
                         </a>
                       </div>
                     )}
@@ -600,14 +719,16 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                           href={getPreviewUrl(revision)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
+                          className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all group"
                         >
-                          <FileImage className="w-5 h-5 text-blue-600" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">プレビュー画像</p>
-                            <p className="text-xs text-muted-foreground">クリックして開く</p>
+                          <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 transition-colors">
+                            <FileImage className="w-5 h-5 text-white" />
                           </div>
-                          <Download className="w-4 h-4 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">プレビュー画像</p>
+                            <p className="text-xs text-gray-600">クリックして開く</p>
+                          </div>
+                          <Download className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors" />
                         </a>
                       )}
                       {revision.original_file_url && (
@@ -615,23 +736,39 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                           href={revision.original_file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"
+                          className="flex items-center gap-3 p-4 rounded-xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all group"
                         >
-                          <FileText className="w-5 h-5 text-purple-600" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">原版ファイル</p>
-                            <p className="text-xs text-muted-foreground">クリックして開く</p>
+                          <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-600 transition-colors">
+                            <FileText className="w-5 h-5 text-white" />
                           </div>
-                          <Download className="w-4 h-4 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">原版ファイル</p>
+                            <p className="text-xs text-gray-600">クリックして開く</p>
+                          </div>
+                          <Download className="w-5 h-5 text-purple-600 group-hover:text-purple-700 transition-colors" />
                         </a>
                       )}
                     </div>
 
+                    {/* 後加工位置情報表示 / 후가공 위치 정보 표시 */}
+                    {revision.sku_name && postProcessingPositions.has(revision.sku_name) && (
+                      <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                          <span>📏</span>
+                          <span>後加工位置情報 / 후가공 위치 정보</span>
+                        </h4>
+                        <PostProcessingPositionDisplay
+                          skuName={revision.sku_name}
+                          data={postProcessingPositions.get(revision.sku_name)}
+                        />
+                      </div>
+                    )}
+
                     {/* Customer response (for approved/rejected) */}
                     {!isPending && revision.customer_comment && (
-                      <div>
-                        <p className="text-sm font-medium mb-1">ご回答:</p>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded">
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <p className="text-sm font-bold text-gray-800 mb-2">ご回答:</p>
+                        <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
                           {revision.customer_comment}
                         </p>
                       </div>
@@ -642,43 +779,49 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                       <>
                         {/* Comment input */}
                         <div>
-                          <label className="text-sm font-medium mb-2 block">
-                            コメント (任意)
+                          <label className="text-sm font-bold text-gray-800 mb-2.5 flex items-center gap-1.5 block">
+                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            コメント（任意）
                           </label>
                           <textarea
                             value={customerComment}
                             onChange={(e) => setCustomerComment(e.target.value)}
-                            placeholder="承認/拒否の理由やコメントを入力してください..."
+                            placeholder="承認・却下の理由やご意見をご入力ください..."
                             rows={3}
-                            className="w-full px-3 py-2 border border-border-secondary rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all text-sm"
                             disabled={submitting === revision.id}
                           />
                         </div>
 
-                        {/* Action buttons - 强调样式 */}
-                        <div className="flex gap-3">
+                        {/* Action buttons - Improved styling */}
+                        <div className="flex gap-3 pt-2">
                           <Button
                             onClick={() => handleRespond(revision.id, 'approved')}
                             disabled={submitting === revision.id}
-                            className="flex-1 h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
+                            className="flex-1 h-14 text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:shadow-md"
                           >
-                            <CheckCircle className="w-5 h-5 mr-2" />
-                            承認する
+                            <CheckCircle className="w-6 h-6 mr-2" />
+                            承認して進める
                           </Button>
                           <Button
                             onClick={() => handleRespond(revision.id, 'rejected')}
                             disabled={submitting === revision.id}
                             variant="outline"
-                            className="flex-1 h-12 text-base border-2 border-red-300 text-red-700 hover:bg-red-50"
+                            className="flex-1 h-14 text-base font-bold border-2 border-rose-300 text-rose-700 hover:bg-rose-50 hover:border-rose-400 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:shadow-sm"
                           >
-                            <XCircle className="w-5 h-5 mr-2" />
-                            却下する
+                            <XCircle className="w-6 h-6 mr-2" />
+                            修正を依頼する
                           </Button>
                         </div>
 
                         {submitting === revision.id && (
-                          <div className="text-center text-sm text-muted-foreground">
-                            送信中...
+                          <div className="text-center py-2">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-200">
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                              送信中...
+                            </div>
                           </div>
                         )}
                       </>

@@ -299,6 +299,20 @@ export async function POST(
       );
     }
 
+    // Create initial status history entry
+    await supabaseAdmin
+      .from('order_status_history')
+      .insert({
+        order_id: order.id,
+        from_status: null,
+        to_status: 'DATA_UPLOAD_PENDING',
+        changed_by: user.email || 'SYSTEM',
+        changed_at: new Date().toISOString(),
+        reason: '見積もりから注文作成（初期ステータス）',
+      })
+      .then(() => console.log('[Convert to Order] Initial status history logged'))
+      .catch((err) => console.error('[Convert to Order] Failed to log status history:', err));
+
     // Copy quotation items to order items with SKU split support
     if (quotationItems && quotationItems.length > 0) {
       const orderItems: any[] = [];

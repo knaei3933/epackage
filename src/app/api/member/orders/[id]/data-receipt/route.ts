@@ -711,6 +711,10 @@ export async function POST(
       // ============================================================
       // Check for partial SKU submission and send warning email
       // ============================================================
+      let isAllSkuCompleted = false;
+      let totalSkus = 0;
+      let submittedSkus = 0;
+
       try {
         // Get all order items and current files to calculate SKU submission status
         const [orderItemsResult, filesResult] = await Promise.all([
@@ -726,45 +730,55 @@ export async function POST(
 
         const orderItems = orderItemsResult.data || [];
         const files = filesResult.data || [];
+        totalSkus = orderItems.length;
 
-        if (orderItems.length > 1) {
-          // Multiple SKUs - check for partial submission
-          const filesWithItems = files.filter(f => f.order_item_id);
-          const uniqueSubmittedSkus = new Set(filesWithItems.map(f => f.order_item_id));
-          const pendingSkus = orderItems.filter(item => !uniqueSubmittedSkus.has(item.id));
+        // Calculate SKU submission status
+        const filesWithItems = files.filter(f => f.order_item_id);
+        const uniqueSubmittedSkus = new Set(filesWithItems.map(f => f.order_item_id));
+        submittedSkus = uniqueSubmittedSkus.size;
+        const pendingSkus = orderItems.filter(item => !uniqueSubmittedSkus.has(item.id));
 
-          if (pendingSkus.length > 0) {
-            // Partial submission detected - send warning email
-            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
-            const customerEmail = user.email;
+        // Check if all SKUs have been uploaded
+        isAllSkuCompleted = orderItems.length > 0 && uniqueSubmittedSkus.size === orderItems.length;
 
-            if (customerEmail) {
-              await notifyPartialSKUSubmission(
-                {
-                  orderId,
-                  orderNumber: order.order_number,
-                  customerEmail,
-                  customerName: order.customer_name || 'お客様',
-                  viewUrl: `${baseUrl}/member/orders/${orderId}`,
-                },
-                {
-                  totalSkus: orderItems.length,
-                  submittedSkus: uniqueSubmittedSkus.size,
-                  pendingSkus: pendingSkus.map(item => ({
-                    id: item.id,
-                    productName: item.product_name,
-                    quantity: item.quantity,
-                  })),
-                }
-              );
+        console.log('[Data Receipt Upload] SKU submission status:', {
+          totalSkus: orderItems.length,
+          submittedSkus: uniqueSubmittedSkus.size,
+          isAllSkuCompleted,
+          pendingSkus: pendingSkus.length,
+        });
 
-              console.log('[Data Receipt Upload] Partial SKU submission warning email sent:', {
-                orderId: order.order_number,
-                email: customerEmail,
-                submittedSkus: uniqueSubmittedSkus.size,
+        // Send warning email for partial submission
+        if (orderItems.length > 1 && pendingSkus.length > 0) {
+          const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+          const customerEmail = user.email;
+
+          if (customerEmail) {
+            await notifyPartialSKUSubmission(
+              {
+                orderId,
+                orderNumber: order.order_number,
+                customerEmail,
+                customerName: order.customer_name || 'お客様',
+                viewUrl: `${baseUrl}/member/orders/${orderId}`,
+              },
+              {
                 totalSkus: orderItems.length,
-              });
-            }
+                submittedSkus: uniqueSubmittedSkus.size,
+                pendingSkus: pendingSkus.map(item => ({
+                  id: item.id,
+                  productName: item.product_name,
+                  quantity: item.quantity,
+                })),
+              }
+            );
+
+            console.log('[Data Receipt Upload] Partial SKU submission warning email sent:', {
+              orderId: order.order_number,
+              email: customerEmail,
+              submittedSkus: uniqueSubmittedSkus.size,
+              totalSkus: orderItems.length,
+            });
           }
         }
       } catch (skuCheckError) {
@@ -773,10 +787,12 @@ export async function POST(
       }
 
       // ============================================================
-      // Auto-transition: DATA_UPLOADED → CORRECTION_IN_PROGRESS
+      // Auto-transition: DATA_UPLOAD_PENDING → CORRECTION_IN_PROGRESS
+      // Only transition when ALL SKUs have been uploaded
       // ============================================================
-      if (order.status === 'DATA_UPLOAD_PENDING') {
+      if (order.status === 'DATA_UPLOAD_PENDING' && isAllSkuCompleted) {
         console.log('[Data Receipt Upload] Auto-transition: DATA_UPLOAD_PENDING → CORRECTION_IN_PROGRESS');
+        console.log('[Data Receipt Upload] All SKUs completed:', { totalSkus, submittedSkus });
 
         const currentStatus = order.status;
 
@@ -802,11 +818,17 @@ export async function POST(
               to_status: 'CORRECTION_IN_PROGRESS',
               changed_by: 'SYSTEM',
               changed_at: new Date().toISOString(),
-              reason: 'データ入稿完了による自動遷移',
+              reason: `全SKUデータ入稿完了（${totalSkus}個）による自動遷移`,
             })
             .then(() => console.log('[Data Receipt Upload] Status history logged'))
             .catch((err) => console.error('[Data Receipt Upload] History logging error:', err));
         }
+      } else if (order.status === 'DATA_UPLOAD_PENDING' && !isAllSkuCompleted) {
+        console.log('[Data Receipt Upload] Waiting for all SKUs to complete:', {
+          totalSkus,
+          submittedSkus,
+          remaining: totalSkus - submittedSkus,
+        });
       }
     } catch (notifyError) {
       console.error('[Data Receipt Upload] Notification error:', notifyError);

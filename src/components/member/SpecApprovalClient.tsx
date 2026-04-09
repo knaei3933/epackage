@@ -287,11 +287,11 @@ export function SpecApprovalClient({ order }: SpecApprovalClientProps) {
         </div>
       )}
 
-      {/* Revision Info */}
+      {/* Version Info */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            リビジョン #{currentRevision.revision_number}
+            第{currentRevision.revision_number}版
           </h2>
           <p className="text-sm text-gray-600">
             {new Date(currentRevision.created_at).toLocaleString('ja-JP')}
@@ -303,7 +303,7 @@ export function SpecApprovalClient({ order }: SpecApprovalClientProps) {
             size="sm"
             onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
             disabled={currentIndex === 0 || isSubmitting}
-            aria-label="前のリビジョンを表示 (←)"
+            aria-label="前の版を表示 (←)"
           >
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             前へ
@@ -316,14 +316,14 @@ export function SpecApprovalClient({ order }: SpecApprovalClientProps) {
             size="sm"
             onClick={() => setCurrentIndex(Math.min(revisions.length - 1, currentIndex + 1))}
             disabled={currentIndex === revisions.length - 1 || isSubmitting}
-            aria-label="次のリビジョンを表示 (→)"
+            aria-label="次の版を表示 (→)"
           >
             次へ
             <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          キーボード: ←→ リビジョン切り替え | A: 承認 | R: 修正要求 | C: キャンセル
+          キーボード: ←→ 版切り替え | A: 承認 | R: 修正要求 | C: キャンセル
         </p>
       </div>
 
@@ -333,7 +333,7 @@ export function SpecApprovalClient({ order }: SpecApprovalClientProps) {
         <div className="bg-gray-100 rounded-lg overflow-hidden">
           <img
             src={currentRevision.preview_image_url}
-            alt={`リビジョン #${currentRevision.revision_number}`}
+            alt={`第${currentRevision.revision_number}版のプレビュー`}
             className="w-full h-auto"
           />
         </div>

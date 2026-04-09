@@ -24,7 +24,7 @@ import type { Order } from '@/types/dashboard';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { OrderActions } from './OrderActions';
 import { OrderCommentsSectionWrapper, CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
-import { OrderInfoAccordion, OrderAddressInfo, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection, RevisionHistoryTimeline } from '@/components/member';
+import { OrderInfoAccordion, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection, RevisionHistoryTimeline } from '@/components/member';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
@@ -156,20 +156,14 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
       )}
 
       {/* =====================================================
-          情報系セクション（3列グリッドでコンパクト化）
+          情報系セクション（統合済み）
           ===================================================== */}
       <OrderInfoAccordion order={order} statusHistory={statusHistory} />
 
       {/* =====================================================
-          商品明細と納品先/請求先（2列グリッド）
+          商品明細
           ===================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 左列: 商品明細 */}
-        <OrderItemsSummary order={order} quotationId={order.quotation_id} />
-
-        {/* 右列: 納品先・請求先 */}
-        <OrderAddressInfo order={order} />
-      </div>
+      <OrderItemsSummary order={order} quotationId={order.quotation_id} />
 
       {/* =====================================================
           デザインワークフロー（2列レイアウト）

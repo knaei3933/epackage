@@ -28,6 +28,7 @@ import {
   Package,
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
+import { PostProcessingPositionInput } from '@/components/designer/PostProcessingPositionInput';
 
 // =====================================================
 // Types
@@ -167,6 +168,11 @@ export function DesignerOrderTokenClient({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [revisions, setRevisions] = useState<DesignRevision[]>(initialRevisions);
+
+  // 後加工位置情報State / 후가공 위치 정보 상태
+  const [showPostProcessingInput, setShowPostProcessingInput] = useState(false);
+  const [currentRevisionId, setCurrentRevisionId] = useState<string | null>(null);
+  const [postProcessingSaved, setPostProcessingSaved] = useState(false);
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -438,7 +444,15 @@ export function DesignerOrderTokenClient({
         const revisionsResponse = await fetch(`/api/designer/orders/${order.id}/revisions?token=${token}`);
         if (revisionsResponse.ok) {
           const revisionsData = await revisionsResponse.json();
-          setRevisions(revisionsData.revisions || []);
+          const newRevisions = revisionsData.revisions || [];
+          setRevisions(newRevisions);
+
+          // Show post-processing input for the latest revision
+          if (newRevisions.length > 0) {
+            const latestRevision = newRevisions[0]; // Most recent first
+            setCurrentRevisionId(latestRevision.id);
+            setShowPostProcessingInput(true);
+          }
         }
       }
     } catch (err) {
@@ -782,6 +796,46 @@ export function DesignerOrderTokenClient({
               수정 내용에 대한 설명을 고객에게 한국어로 입력해주세요 (선택 사항)
             </p>
           </div>
+
+          {/* 後加工位置入力フォーム / 후가공 위치 입력 폼 */}
+          {showPostProcessingInput && currentRevisionId && selectedOrderItemId && (
+            <div className="mt-6">
+              <PostProcessingPositionInput
+                skuName={
+                  order.items.find(item => item.id === selectedOrderItemId)?.sku_name ||
+                  order.items.find(item => item.id === selectedOrderItemId)?.product_name ||
+                  '미입력'
+                }
+                initialData={{}}
+                onSave={async (data) => {
+                  // 後加工位置情報を保存
+                  const response = await fetch(
+                    `/api/design-revisions/${currentRevisionId}/postprocessing-positions`,
+                    {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        sku_name: order.items.find(item => item.id === selectedOrderItemId)?.sku_name ||
+                                   order.items.find(item => item.id === selectedOrderItemId)?.product_name ||
+                                   '미입력',
+                        ...data,
+                      }),
+                    }
+                  );
+
+                  if (response.ok) {
+                    setSuccessMessage('후가공 위치 정보를 저장했습니다 / 後加工位置情報を保存しました');
+                    setPostProcessingSaved(true);
+                    setTimeout(() => setPostProcessingSaved(false), 3000);
+                  } else {
+                    const error = await response.json();
+                    setError(error.error || '저장에 실패했습니다 / 保存に失敗しました');
+                  }
+                }}
+                disabled={postProcessingSaved}
+              />
+            </div>
+          )}
 
           {/* Upload Progress */}
           {isUploading && (

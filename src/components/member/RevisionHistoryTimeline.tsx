@@ -302,7 +302,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                           <h3 className="font-medium">
                             {isSubmission
                               ? `入稿データ提出 #${entry.submission?.submission_number || '-'}`
-                              : `リビジョン ${entry.revision?.revision_number}`
+                              : `第${entry.revision?.revision_number}版`
                             }
                           </h3>
                           {!isSubmission && entry.revision && getStatusBadge(entry.revision.approval_status)}
