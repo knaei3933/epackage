@@ -570,14 +570,16 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                         })()}
 
                         {/* Post Processing Preview */}
-                        {quotation.items?.[0]?.breakdown?.specifications && (
-                          <PostProcessingPreview
-                            selectedOptions={convertToPreviewOptions(
-                              quotation.items[0].breakdown.specifications.postProcessingOptions || []
-                            )}
-                            className="mb-3"
-                          />
-                        )}
+                        {quotation.items && quotation.items.length > 0 && (() => {
+                          const item = quotation.items[0];
+                          const specs = item.breakdown?.specifications || item.specifications;
+                          return specs && specs.postProcessingOptions && specs.postProcessingOptions.length > 0 && (
+                            <PostProcessingPreview
+                              selectedOptions={convertToPreviewOptions(specs.postProcessingOptions)}
+                              className="mb-3"
+                            />
+                          );
+                        })()}
 
                         {/* SKU Items */}
                         <div className="text-sm text-text-muted space-y-1 mb-3">
