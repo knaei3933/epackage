@@ -15,7 +15,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import { verifyAdminAuth } from '@/lib/auth-helpers';
 import { generateUploadToken } from '@/lib/designer-tokens';
 import { sendTemplatedEmail, createRecipient } from '@/lib/email';
 import type { DesignerTokenUploadEmailData } from '@/lib/email-templates';
@@ -26,7 +27,6 @@ import type { DesignerTokenUploadEmailData } from '@/lib/email-templates';
 
 interface CreateTokenRequest {
   designer_id?: string;        // Optional: specific designer
-  assignment_id?: string;      // Optional: link to task assignment
   expires_in_days?: number;    // Default: 30 (changed from 7)
   send_email?: boolean;        // Default: true
   designer_email?: string;     // Required if send_email is true
@@ -53,18 +53,27 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 管理者認証チェック
+    const auth = await verifyAdminAuth(request);
+    if (!auth) {
+      return NextResponse.json(
+        { error: '管理者権限が必要です。' },
+        { status: 401 }
+      );
+    }
+
     const params = await context.params;
     const { id: orderId } = params;
 
     console.log('[Admin Upload Token] ========================================');
     console.log('[Admin Upload Token] POST request received');
     console.log('[Admin Upload Token] Order ID:', orderId);
+    console.log('[Admin Upload Token] Admin User ID:', auth.userId);
 
     // Parse request body
     const body = await request.json() as CreateTokenRequest;
     const {
       designer_id,
-      assignment_id,
       expires_in_days = 30,
       send_email = true,
       designer_email = process.env.DEFAULT_DESIGNER_EMAIL || 'arwg22@gmail.com',
@@ -87,14 +96,18 @@ export async function POST(
       );
     }
 
-    // Service clientを使用（RLS回避）
-    const supabase = createServiceClient();
-    console.log('[Admin Upload Token] Service client created');
+    // Service clientを使用（RLS回避、監査ログ付き）
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'generate_upload_token',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/upload-token',
+    });
+    console.log('[Admin Upload Token] Authenticated service client created');
 
     // Verify order exists
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, order_number, customer_id')
+      .select('id, order_number, user_id')
       .eq('id', orderId)
       .single();
 
@@ -144,11 +157,10 @@ export async function POST(
       token_prefix: tokenPrefix,
       order_id: orderId,
       designer_id: designer_id || null,
-      assignment_id: assignment_id || null,
       designer_name: designer_name || null,
       designer_email: designer_email || null,
       expires_at: expiresAt.toISOString(),
-      created_by: systemUserId(), // Will be set to a system user ID
+      created_by: auth.userId, // Use authenticated admin user ID
     };
 
     const { data: insertedToken, error: insertError } = await supabase
@@ -159,34 +171,21 @@ export async function POST(
 
     if (insertError || !insertedToken) {
       console.error('[Admin Upload Token] Failed to insert token:', insertError);
-      return NextResponse.json(
-        { error: 'トークンの保存に失敗しました。' },
-        { status: 500 }
-      );
+      // 開発環境では詳細なエラー情報を返す
+      const errorResponse: any = { error: 'トークンの保存に失敗しました。' };
+      if (process.env.NODE_ENV === 'development') {
+        errorResponse.details = insertError;
+        errorResponse.code = insertError?.code;
+        errorResponse.message = insertError?.message;
+        errorResponse.hint = insertError?.hint;
+      }
+      return NextResponse.json(errorResponse, { status: 500 });
     }
 
     console.log('[Admin Upload Token] Token saved:', {
       id: insertedToken.id,
       prefix: insertedToken.token_prefix
     });
-
-    // Update designer_task_assignments if assignment_id provided
-    if (assignment_id) {
-      const { error: assignmentUpdateError } = await supabase
-        .from('designer_task_assignments')
-        .update({
-          upload_token_id: insertedToken.id,
-          token_email_sent_at: send_email ? new Date().toISOString() : null,
-          token_email_status: send_email ? 'sent' : 'pending',
-        })
-        .eq('id', assignment_id);
-
-      if (assignmentUpdateError) {
-        console.warn('[Admin Upload Token] Failed to update assignment:', assignmentUpdateError);
-      } else {
-        console.log('[Admin Upload Token] Assignment updated:', assignment_id);
-      }
-    }
 
     // Send email if requested
     let emailSent = false;
