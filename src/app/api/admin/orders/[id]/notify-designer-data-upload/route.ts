@@ -246,33 +246,37 @@ export async function POST(
 
     const translatedSpecs = specs ? translateSpecs(specs) : undefined;
 
+    // Send one notification per order (not per file)
+    // 파일별이 아니라 주문별로 알림 발송
     for (const designerEmail of designerEmails) {
-      // Send notification for each file
-      for (const file of files || []) {
-        const result = await sendDesignerDataUploadNotification({
-          to: designerEmail,
-          orderNumber: order.order_number,
-          customerName: order.customer_name || 'お客様',
-          fileName: file.original_filename,
-          uploadUrl: `${baseUrl}/designer/orders/${orderId}`, // Fallback URL
-          uploadedAt: file.uploaded_at,
-          fileType: file.file_type,
-          productName: orderItems && orderItems.length > 0 ? orderItems[0].product_name : undefined,
-          specifications: translatedSpecs,
-          // Use token-based URL for Korean designers
-          // 韓国人デザイナーにはトークンベースURLを使用
-          useTokenUrl: !!accessToken,
-          accessToken: accessToken,
-          baseUrl: baseUrl, // 本番環境のベースURLを渡す
-        });
+      const result = await sendDesignerDataUploadNotification({
+        to: designerEmail,
+        orderNumber: order.order_number,
+        customerName: order.customer_name || 'お客様',
+        fileName: files && files.length > 0 ? `${files.length}개의 파일` : undefined,
+        uploadUrl: `${baseUrl}/designer-order/${accessToken}`, // Token-based URL
+        uploadedAt: new Date().toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        fileType: undefined,
+        productName: orderItems && orderItems.length > 0 ? orderItems[0].product_name : undefined,
+        specifications: translatedSpecs,
+        // Use token-based URL for Korean designers
+        // 韓国人デザイナーにはトークンベースURLを使用
+        useTokenUrl: !!accessToken,
+        accessToken: accessToken,
+        baseUrl: baseUrl,
+      });
 
-        results.push({
-          email: designerEmail,
-          file: file.original_filename,
-          success: result.success,
-          error: result.error,
-        });
-      }
+      results.push({
+        email: designerEmail,
+        success: result.success,
+        error: result.error,
+      });
     }
 
     return NextResponse.json({
