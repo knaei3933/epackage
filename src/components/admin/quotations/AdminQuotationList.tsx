@@ -294,93 +294,58 @@ export function AdminQuotationList({
                         </div>
 
                         {/* 印刷 */}
-                        {details.printingDisplay !== '-' ? (
+                        {details.printingDisplay && details.printingDisplay !== '-' && (
                           <div className="flex items-center">
                             <span className="text-gray-500 w-16 shrink-0">印刷:</span>
                             <span className="text-gray-900">{details.printingDisplay}</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">印刷:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
                         )}
 
                         {/* 色数 */}
-                        {details.colorsDisplay !== '-' ? (
+                        {details.colorsDisplay && details.colorsDisplay !== '-' && (
                           <div className="flex items-center">
                             <span className="text-gray-500 w-16 shrink-0">色数:</span>
                             <span className="text-gray-900">{details.colorsDisplay}</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">色数:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
                         )}
 
                         {/* 厚さ */}
-                        {details.thicknessDisplay !== '-' && details.thicknessDisplay !== details.materialDisplay ? (
+                        {details.thicknessDisplay && details.thicknessDisplay !== '-' && details.thicknessDisplay !== details.materialDisplay && (
                           <div className="flex items-start">
                             <span className="text-gray-500 w-16 shrink-0">厚さ:</span>
                             <span className="text-gray-900">{details.thicknessDisplay}</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">厚さ:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
                         )}
 
                         {/* 重量 */}
-                        {details.weightDisplay !== '-' ? (
+                        {details.weightDisplay && details.weightDisplay !== '-' && (
                           <div className="flex items-center">
                             <span className="text-gray-500 w-16 shrink-0">重量:</span>
                             <span className="text-gray-900">{details.weightDisplay}</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">重量:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
                         )}
 
                         {/* ジッパー */}
-                        {details.zipperDisplay !== '-' ? (
+                        {details.zipperDisplay && details.zipperDisplay !== '-' && (
                           <div className="flex items-center">
                             <span className="text-gray-500 w-16 shrink-0">ジッパー:</span>
                             <span className="text-gray-900">{details.zipperDisplay}</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">ジッパー:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
                         )}
 
                         {/* SKU数 */}
-                        {details.skuCountDisplay !== '-' ? (
+                        {details.skuCountDisplay && details.skuCountDisplay !== '-' && (
                           <div className="flex items-center">
                             <span className="text-gray-500 w-16 shrink-0">SKU数:</span>
                             <span className="text-gray-900">{details.skuCountDisplay}</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">SKU数:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
                         )}
 
                         {/* 後加工 */}
-                        {details.postProcessingJapanese ? (
+                        {details.postProcessingJapanese && (
                           <div className="flex items-start">
                             <span className="text-gray-500 w-16 shrink-0">後加工:</span>
                             <span className="text-gray-900">{details.postProcessingJapanese}</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">後加工:</span>
-                            <span className="text-gray-400">データなし</span>
                           </div>
                         )}
                       </div>
