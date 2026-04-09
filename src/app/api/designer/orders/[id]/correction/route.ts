@@ -143,35 +143,60 @@ export async function POST(
 
     // Get product/SKU info from order item
     let skuCode = '';
+    let productName = '';
+
     if (orderItemId) {
       const { data: orderItem } = await supabase
         .from('order_items')
-        .select('product_name, specifications')
+        .select('product_name, specifications, sku_name')
         .eq('id', orderItemId)
         .single();
+
+      // Extract actual product name from sku_name (format: "ProductType - ActualName (SKU N)")
+      if (orderItem?.sku_name) {
+        const nameMatch = orderItem.sku_name.match(/-\s*([^(]+?)\s*\(SKU\s*\d+\)/);
+        if (nameMatch && nameMatch[1]) {
+          productName = nameMatch[1].trim();
+        }
+      }
+
+      // Fallback: extract from specifications
+      if (!productName && orderItem?.specifications?.customProductName) {
+        productName = orderItem.specifications.customProductName;
+      }
 
       // Extract SKU code from specifications.sku_info or product_name
       if (orderItem?.specifications?.sku_info?.sku_code) {
         skuCode = orderItem.specifications.sku_info.sku_code;
       } else {
-        // Fallback: extract SKU code from product_name (e.g., "SKU-2_..." -> "SKU-2")
-        const match = orderItem?.product_name?.match(/^(SKU-\d+)/);
-        skuCode = match ? match[1] : '';
+        // Use product name as SKU code if no SKU code found
+        skuCode = productName || orderItem?.product_name || '';
       }
     } else {
       // Get first order item if no specific item selected
       const { data: firstItem } = await supabase
         .from('order_items')
-        .select('product_name, specifications')
+        .select('product_name, specifications, sku_name')
         .eq('order_id', orderId)
         .limit(1)
         .single();
 
+      // Extract actual product name from sku_name
+      if (firstItem?.sku_name) {
+        const nameMatch = firstItem.sku_name.match(/-\s*([^(]+?)\s*\(SKU\s*\d+\)/);
+        if (nameMatch && nameMatch[1]) {
+          productName = nameMatch[1].trim();
+        }
+      }
+
+      if (!productName && firstItem?.specifications?.customProductName) {
+        productName = firstItem.specifications.customProductName;
+      }
+
       if (firstItem?.specifications?.sku_info?.sku_code) {
         skuCode = firstItem.specifications.sku_info.sku_code;
       } else {
-        const match = firstItem?.product_name?.match(/^(SKU-\d+)/);
-        skuCode = match ? match[1] : '';
+        skuCode = productName || firstItem?.product_name || '';
       }
     }
 
