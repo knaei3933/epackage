@@ -1038,6 +1038,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 contentsType: state.contentsType,
                 mainIngredient: state.mainIngredient,
                 distributionEnvironment: state.distributionEnvironment,
+                // 【追加】表示用フィールド（AdminQuotationListとの互換性）
+                colors: state.printingColors ? 'フルカラー' : undefined,
+                zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // ロールフィルム専用フィールド
                 ...(state.bagTypeId === 'roll_film' && {
                   materialWidth: state.materialWidth,
@@ -1112,6 +1115,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 contentsType: state.contentsType,
                 mainIngredient: state.mainIngredient,
                 distributionEnvironment: state.distributionEnvironment,
+                // 【追加】表示用フィールド（AdminQuotationListとの互換性）
+                colors: state.printingColors ? 'フルカラー' : undefined,
+                zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // ロールフィルム専用フィールド
                 ...(state.bagTypeId === 'roll_film' && {
                   materialWidth: state.materialWidth,
