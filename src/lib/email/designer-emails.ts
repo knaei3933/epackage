@@ -182,18 +182,24 @@ export async function sendDesignerDataUploadNotification(
   const subject = `[EPackage Lab] 데이터 업로드 알림: ${data.orderNumber}`;
 
   // Generate token-based URL if useTokenUrl is true
-  // useTokenUrlがtrueの場合、トークンベースURLを生成
+  // useTokenUrl이 true인 경우 토큰 기반 URL을 생성
   let uploadUrl = data.uploadUrl;
   if (data.useTokenUrl && data.accessToken) {
-    // Use provided baseUrl first, otherwise extract from uploadUrl
-    // まず提供されたbaseUrlを使用し、なければuploadUrlから抽出
+    // Use provided baseUrl first, otherwise extract from uploadUrl, otherwise use default
+    // 제공된 baseUrl을 먼저 사용하고, 없으면 uploadUrl에서 추출하며, 그래도 없으면 기본값 사용
     let baseUrl = data.baseUrl;
     if (!baseUrl) {
-      const url = new URL(data.uploadUrl);
-      baseUrl = `${url.protocol}//${url.host}`;
+      try {
+        const url = new URL(data.uploadUrl);
+        baseUrl = `${url.protocol}//${url.host}`;
+      } catch {
+        // If uploadUrl is invalid, use environment variable or default
+        // uploadUrl이 유효하지 않은 경우 환경 변수 또는 기본값 사용
+        baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://package-lab.com';
+      }
     }
     // Use token-based designer order URL
-    // トークンベースのデザイナー注文URLを使用
+    // 토큰 기반 디자이너 주문 URL 사용
     uploadUrl = `${baseUrl}/designer-order/${data.accessToken}`;
   }
 
