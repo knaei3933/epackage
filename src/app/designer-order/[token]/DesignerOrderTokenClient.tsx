@@ -193,6 +193,45 @@ export function DesignerOrderTokenClient({
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
+  // Simple Japanese to Korean product name dictionary for common terms
+  const jaKoProductNames: Record<string, string> = {
+    'ヴァセリン': '바세린',
+    'バセリン': '바세린',
+    'ヴァセリン2': '바세린2',
+    'バセリン2': '바세린2',
+    'オリーブオイル': '올리브 오일',
+    'コーヒー': '커피',
+    '醤油': '간장',
+    'シャンプー': '샴푸',
+    '洗剤': '세제',
+    '化粧水': '화장수',
+    // Add more mappings as needed
+  };
+
+  // Simple Japanese detection (check for common Japanese characters)
+  function isJapanese(text: string): boolean {
+    return /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
+  }
+
+  // Translate Japanese product name to Korean (simple version)
+  function translateProductName(jaName: string): string {
+    // Remove common suffixes
+    const cleanName = jaName.replace(/\(.*?\)/g, '').trim();
+
+    // Check dictionary first
+    if (jaKoProductNames[cleanName]) {
+      return jaKoProductNames[cleanName];
+    }
+
+    // If it's Japanese but not in dictionary, return with (일본어) suffix
+    if (isJapanese(cleanName)) {
+      return `${cleanName} (일본어)`;
+    }
+
+    // Otherwise return as is
+    return cleanName;
+  }
+
   // Format SKU name: SKU-{番号}_{商品名/미입력}_{製品タイプ}_{数量}
   const formatSkuName = (item: OrderItem, index: number): string => {
     // Extract sequential number from sku_name (e.g., "1" from "(SKU 1)")
@@ -266,6 +305,9 @@ export function DesignerOrderTokenClient({
 
     // Clean up productName - remove trailing "(SKU...)" if present
     productName = productName.replace(/\(SKU\s*\d+\)/g, '').trim();
+
+    // Translate Japanese product name to Korean if it's Japanese
+    productName = translateProductName(productName);
 
     // Get quantity
     const quantity = item.quantity;
