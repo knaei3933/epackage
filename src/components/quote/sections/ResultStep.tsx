@@ -1041,6 +1041,16 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 // 【追加】表示用フィールド（AdminQuotationListとの互換性）
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
+                // 印刷表示用
+                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'uv' ? 'UV印刷' : undefined,
+                // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
+                weight_range: (() => {
+                  if (!state.materialId || !state.thicknessSelection) return undefined;
+                  const { MATERIAL_THICKNESS_OPTIONS } = require('@/lib/unified-pricing-engine');
+                  const options = MATERIAL_THICKNESS_OPTIONS[state.materialId];
+                  const option = options?.find((opt: any) => opt.id === state.thicknessSelection);
+                  return option?.weightRange;
+                })(),
                 // ロールフィルム専用フィールド
                 ...(state.bagTypeId === 'roll_film' && {
                   materialWidth: state.materialWidth,
@@ -1118,6 +1128,16 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 // 【追加】表示用フィールド（AdminQuotationListとの互換性）
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
+                // 印刷表示用
+                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'uv' ? 'UV印刷' : undefined,
+                // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
+                weight_range: (() => {
+                  if (!state.materialId || !state.thicknessSelection) return undefined;
+                  const { MATERIAL_THICKNESS_OPTIONS } = require('@/lib/unified-pricing-engine');
+                  const options = MATERIAL_THICKNESS_OPTIONS[state.materialId];
+                  const option = options?.find((opt: any) => opt.id === state.thicknessSelection);
+                  return option?.weightRange;
+                })(),
                 // ロールフィルム専用フィールド
                 ...(state.bagTypeId === 'roll_film' && {
                   materialWidth: state.materialWidth,
