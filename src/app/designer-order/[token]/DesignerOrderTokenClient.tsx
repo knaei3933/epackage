@@ -203,18 +203,28 @@ export function DesignerOrderTokenClient({
         productType = typeMatch[1].trim();
         // Map Japanese product types
         const typeMap: Record<string, string> = {
-          'スタンドパウチ': 'スタンドパウチ',
-          '三方パウチ': '三方パウチ',
-          'チャック付き袋': 'チャック付き袋',
-          'ガセット袋': 'ガセット袋',
-          '平袋': '平袋',
+          'スタンドパウチ': '스탠드 파우치',
+          '三方パウチ': '삼방 봉투',
+          'チャック付き袋': '지퍼백',
+          'ガセット袋': '가셋봉투',
+          '平袋': '플랫 봉투',
         };
         productType = typeMap[productType] || productType;
       }
     }
 
-    // Get product name (or "미입력" if empty)
-    const productName = item.product_name?.trim() || '미입력';
+    // Get product name - use actual name if available, otherwise use default
+    // If product_name is "カスタム製品", that's a placeholder, so we should use the name from specifications or sku_name
+    let productName = item.product_name?.trim() || '미입력';
+
+    // Extract the actual product name from specifications if available
+    if (item.specifications) {
+      const specs = item.specifications;
+      // Check if there's a custom product name in specifications
+      if (specs.customProductName) {
+        productName = specs.customProductName;
+      }
+    }
 
     // Get quantity
     const quantity = item.quantity;

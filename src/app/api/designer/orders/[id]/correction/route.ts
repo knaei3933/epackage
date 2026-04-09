@@ -176,14 +176,10 @@ export async function POST(
     }
 
     if (!skuCode) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'SKU情報が見つかりません。',
-          errorEn: 'SKU information not found.',
-        },
-        { status: 400 }
-      );
+      // Fallback to order number if SKU code not found
+      // SKUコードが見つからない場合は注文番号を使用
+      console.log('[Designer Correction Upload] SKU code not found, using order number as fallback');
+      skuCode = order.order_number;
     }
 
     // Get revision number
