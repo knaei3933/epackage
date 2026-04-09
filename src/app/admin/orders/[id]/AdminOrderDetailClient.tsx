@@ -214,6 +214,7 @@ export default function AdminOrderDetailClient({
   const [adminNotes, setAdminNotes] = useState(initialAdminNotes);
   const [sendingToKorea, setSendingToKorea] = useState(false);
   const [koreaMessage, setKoreaMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notifyingDesigner, setNotifyingDesigner] = useState(false);
 
   // 商品明細更新後に注文データを再取得
   const [currentOrder, setCurrentOrder] = useState(initialOrder);
@@ -295,6 +296,33 @@ export default function AdminOrderDetailClient({
     setTimeout(() => setKoreaMessage(null), 5000);
   };
 
+  // Handle notifying Korean designer about data upload
+  const handleNotifyDesigner = async () => {
+    try {
+      setNotifyingDesigner(true);
+      setKoreaMessage(null);
+
+      const response = await adminFetch(`/api/admin/orders/${orderId}/notify-designer-data-upload`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setKoreaMessage({ type: 'success', text: '한국 디자이너에게 알림을 보냈습니다. 이메일을 확인해주세요.' });
+      } else {
+        setKoreaMessage({ type: 'error', text: result.error || '알림 전송에 실패했습니다.' });
+      }
+    } catch (error) {
+      console.error('Failed to notify designer:', error);
+      setKoreaMessage({ type: 'error', text: '알림 전송에 실패했습니다.' });
+    } finally {
+      setNotifyingDesigner(false);
+    }
+
+    setTimeout(() => setKoreaMessage(null), 5000);
+  };
+
   // Handle sending email to customer
   const handleSendEmail = () => {
     if (!order?.customer_email) {
@@ -345,6 +373,24 @@ export default function AdminOrderDetailClient({
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={handleNotifyDesigner}
+                disabled={notifyingDesigner}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                title="한국 디자이너에게 데이터 입고 알림"
+              >
+                {notifyingDesigner ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    전송 중...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    한국 디자이너 알림
+                  </>
+                )}
+              </button>
               <button
                 onClick={handleSendEmail}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
