@@ -217,18 +217,30 @@ export function DesignerOrderTokenClient({
       }
     }
 
-    // Get product name - use actual name if available, otherwise use default
-    // If product_name is "カスタム製品", that's a placeholder, so we should use the name from specifications or sku_name
+    // Get product name - extract from sku_name first, then fallback to specifications or product_name
     let productName = item.product_name?.trim() || '미입력';
 
-    // Extract the actual product name from specifications if available
-    if (item.specifications) {
-      const specs = item.specifications;
-      // Check if there's a custom product name in specifications
-      if (specs.customProductName) {
-        productName = specs.customProductName;
+    // Try to extract actual product name from sku_name (format: "ProductType - ActualName (SKU N)")
+    if (item.sku_name) {
+      // Match pattern like "スタンドパウチ - 実際の製品名 (SKU 1)"
+      const nameMatch = item.sku_name.match(/-\s*([^(]+?)\s*\(SKU\s*\d+\)/);
+      if (nameMatch && nameMatch[1]) {
+        productName = nameMatch[1].trim();
       }
     }
+
+    // Fallback: extract from specifications if available
+    if (productName === 'カスタム製品' || productName === '미입력') {
+      if (item.specifications) {
+        const specs = item.specifications;
+        if (specs.customProductName) {
+          productName = specs.customProductName;
+        }
+      }
+    }
+
+    // Clean up productName - remove trailing "(SKU...)" if present
+    productName = productName.replace(/\(SKU\s*\d+\)/g, '').trim();
 
     // Get quantity
     const quantity = item.quantity;
