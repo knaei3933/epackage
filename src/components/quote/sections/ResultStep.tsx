@@ -1364,17 +1364,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           notes: null,
           // 【追加】見積全体の原価内訳
           cost_breakdown: result.skuCostDetails?.costPerSKU?.[0]?.costBreakdown || result.breakdown?.baseCost ? {
-            materialCost: Math.round((result.breakdown?.baseCost || 0) * 0.4),
-            laminationCost: Math.round((result.breakdown?.baseCost || 0) * 0.06),
-            slitterCost: Math.round((result.breakdown?.baseCost || 0) * 0.03),
-            surfaceTreatmentCost: 0,
-            pouchProcessingCost: Math.round((result.breakdown?.baseCost || 0) * 0.15),
-            printingCost: Math.round((result.breakdown?.baseCost || 0) * 0.1),
-            manufacturingMargin: Math.round((result.breakdown?.baseCost || 0) * 0.4),
-            duty: Math.round((result.breakdown?.baseCost || 0) * 0.05),
-            delivery: Math.round((result.breakdown?.baseCost || 0) * 0.08),
-            salesMargin: Math.round((result.breakdown?.baseCost || 0) * 0.2),
-            totalCost: Math.round(result.breakdown?.baseCost || 0)
+            materialCost: Math.round(result.breakdown?.filmCost || (result.breakdown?.baseCost || 0) * 0.4),
+            laminationCost: Math.round(result.breakdown?.laminationCost || (result.breakdown?.baseCost || 0) * 0.06),
+            slitterCost: Math.round(result.breakdown?.slitterCost || (result.breakdown?.baseCost || 0) * 0.03),
+            surfaceTreatmentCost: Math.round(result.breakdown?.surfaceTreatmentCost || 0),
+            pouchProcessingCost: Math.round(result.breakdown?.pouchProcessingCost || (result.breakdown?.baseCost || 0) * 0.15),
+            printingCost: Math.round(result.breakdown?.printing || (result.breakdown?.baseCost || 0) * 0.1),
+            manufacturingMargin: Math.round(result.breakdown?.manufacturingMargin || (result.breakdown?.baseCost || 0) * 0.4),
+            duty: Math.round(result.breakdown?.duty || (result.breakdown?.baseCost || 0) * 0.05),
+            delivery: Math.round(result.breakdown?.delivery || (result.breakdown?.baseCost || 0) * 0.08),
+            salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.2),
+            totalCost: Math.round(result.breakdown?.baseCost || result.breakdown?.totalCost || 0)
           } : {},
           items: itemsToSave.map(item => ({
             product_name: item.productName,

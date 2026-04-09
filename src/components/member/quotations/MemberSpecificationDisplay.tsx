@@ -10,9 +10,9 @@ import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessi
  * 製品の詳細仕様を表示する
  */
 export function MemberSpecificationDisplay({ item }: { item: any }) {
-  if (!item.specifications) return null;
-
-  const specs = item.specifications;
+  // breakdown.specificationsを優先、なければitem.specificationsを使用
+  const specs = item.breakdown?.specifications || item.specifications;
+  if (!specs) return null;
 
   // 日本語変換マップ
   const bagTypeFallback: Record<string, string> = {
