@@ -236,9 +236,18 @@ export function DesignerOrderTokenClient({
         upload.file_name.includes('_入稿データ_')
       );
 
-      if (itemUploads.length > 0) {
-        // Extract product name from file name: "바셀린_入稿データ_ORD-..." -> "바셀린"
-        const fileMatch = itemUploads[0].file_name.match(/^([^_]+)_入稿データ_/);
+      // Use the file that matches the SKU index (SKU1 = first file, SKU2 = second file, etc.)
+      // Sort by upload date to ensure consistent ordering
+      const sortedUploads = [...itemUploads].sort((a, b) =>
+        new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime()
+      );
+
+      // Find the file that corresponds to this SKU based on index
+      // SKU index 0 = first file, SKU index 1 = second file, etc.
+      const skuIndex = order.items.findIndex(i => i.id === item.id);
+      if (skuIndex >= 0 && skuIndex < sortedUploads.length) {
+        const matchingFile = sortedUploads[skuIndex];
+        const fileMatch = matchingFile.file_name.match(/^([^_]+)_入稿データ_/);
         if (fileMatch && fileMatch[1]) {
           productName = fileMatch[1];
         }
