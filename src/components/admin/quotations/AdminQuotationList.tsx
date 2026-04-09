@@ -94,29 +94,38 @@ export function AdminQuotationList({
       thicknessDisplay = specifications.thickness_display || specifications.thickness;
     }
 
-    // 後加工表示
-    const postProcessingDisplay = specifications.post_processing_display || specifications.post_processing || [];
+    // 後加工表示 - postProcessingOptionsから取得
+    const postProcessingOptions = specifications.postProcessingOptions || specifications.post_processing_display || specifications.post_processing || [];
 
     // 後加工を配列に変換
-    const postProcessingList = Array.isArray(postProcessingDisplay)
-      ? postProcessingDisplay
-      : typeof postProcessingDisplay === 'string'
-        ? postProcessingDisplay.split(',').map(s => s.trim())
+    const postProcessingList = Array.isArray(postProcessingOptions)
+      ? postProcessingOptions
+      : typeof postProcessingOptions === 'string'
+        ? postProcessingOptions.split(',').map(s => s.trim())
         : [];
 
-    // 後加工の日本語表示マップ
+    // 後加工の日本語表示マップ（POST_PROCESSING_JAと一致させる）
     const postProcessingLabels: Record<string, string> = {
       'zipper-yes': 'ジッパー付き',
+      'zipper-no': 'ジッパーなし',
       'zipper': 'ジッパー',
-      'matte': 'マット仕上げ',
-      'glossy': '光沢仕上げ',
-      'round_corner': '角丸',
-      'hanging_hole': '吊り下げ穴 (6mm)',
-      'notch': 'ノッチ付き',
-      'valve': 'バルブなし',
-      'top_open': '上端開封',
-      'seal_width_5mm': 'シール幅 5mm',
-      'no_matte_print': 'マチ印刷なし',
+      'matte': 'マット紙',
+      'glossy': '光沢紙',
+      'corner-round': '角丸',
+      'corner-square': '角直角',
+      'hang-hole-6mm': '吊り下げ穴 (6mm)',
+      'hang-hole-8mm': '吊り下げ穴 (8mm)',
+      'hang-hole-no': '吊り穴なし',
+      'notch-yes': 'ノッチ付き',
+      'notch-no': 'ノッチなし',
+      'valve-yes': 'バルブ付き',
+      'valve-no': 'バルブなし',
+      'top-open': '上端開封',
+      'bottom-open': '下端開封',
+      'machi-printing-yes': 'マチ印刷あり',
+      'machi-printing-no': 'マチ印刷なし',
+      'easy-cut': 'イージーカット',
+      'embossing': 'エンボス加工',
     };
 
     const postProcessingJapanese = postProcessingList
