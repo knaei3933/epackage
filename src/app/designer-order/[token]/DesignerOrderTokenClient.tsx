@@ -38,6 +38,10 @@ interface OrderItem {
   product_name: string;
   quantity: number;
   sku_name: string | null;
+  specifications?: {
+    customProductName?: string;
+    [key: string]: any;
+  } | null;
 }
 
 interface Order {
