@@ -44,7 +44,7 @@ const testData = {
     {
       productId: 'prod-001',
       productName: '平袋（ヒラブクロ）',
-      productCategory: 'flat_pouch',
+      productCategory: 'flat_3_side',
       quantity: 1
     },
     {

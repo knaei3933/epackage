@@ -30,8 +30,7 @@ const supabase = createClient(
 
 function getBagTypeName(bagTypeId: string): string {
   const names: Record<string, string> = {
-    flat_pouch: '平袋',
-    flat_3_side: '合掌袋',
+    flat_3_side: '三方シール平袋',
     stand_up: 'スタンドパウチ',
     gazette: 'ガゼットパウチ',
     roll_film: 'ロールフィルム',
@@ -73,8 +72,7 @@ function generateProductName(specifications: any): string {
   // タイプ（袋の種類）
   if (specifications.bagTypeId) {
     const typeMap: Record<string, string> = {
-      flat_pouch: '平袋',
-      flat_3_side: '合掌袋',
+      flat_3_side: '三方シール平袋',
       stand_up: 'スタンドパウチ',
       gazette: 'ガゼットパウチ',
       roll_film: 'ロールフィルム',

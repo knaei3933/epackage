@@ -18,8 +18,8 @@ import type { Layer } from '@/types/aiFile';
 export enum PouchType {
   /** スタンドパウチ / Stand pouch */
   STAND_POUCH = 'stand_pouch',
-  /** フラットパウチ / Flat pouch */
-  FLAT_POUCH = 'flat_pouch',
+  /** フラットパウチ / Flat pouch (三方シール平袋) */
+  FLAT_POUCH = 'flat_3_side',
   /** ジッパーパウチ / Zipper pouch */
   ZIPPER_POUCH = 'zipper_pouch',
   /** ガセットパウチ / Gusset pouch */

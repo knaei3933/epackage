@@ -85,7 +85,7 @@ test.describe('見積結果ページ 自動PDF生成検証', () => {
     console.log('=== ステップ3: 見積もり手順を進める ===');
 
     // 基本仕様ステップ: 製品タイプを選択（平袋）
-    const flatPouchOption = page.locator('[data-testid="bag-type-flat_pouch"], label:has-text("平袋")');
+    const flatPouchOption = page.locator('[data-testid="bag-type-flat_3_side"], label:has-text("平袋")');
     await expect(flatPouchOption).toBeVisible({ timeout: 10000 });
     await flatPouchOption.click();
     console.log('製品タイプを選択: 平袋');
@@ -211,7 +211,7 @@ test.describe('見積結果ページ 自動PDF生成検証', () => {
     await page.goto('/quote-simulator');
 
     // 基本入力
-    const flatPouchOption = page.locator('[data-testid="bag-type-flat_pouch"], label:has-text("平袋")');
+    const flatPouchOption = page.locator('[data-testid="bag-type-flat_3_side"], label:has-text("平袋")');
     await flatPouchOption.click();
 
     const contentsInput = page.locator('input[name="contents"], [data-testid="input-contents"]');

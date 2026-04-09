@@ -82,7 +82,7 @@ const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' 
 function getBagTypeName(bagTypeId: string): string {
   // 標準定義を優先使用し、不足分のみフォールバック
   const fallbackNames: Record<string, string> = {
-    'flat_pouch': 'ピローパウチ',
+    'flat_3_side': '三方シール平袋',
     'three_side_seal': '三方シール平袋',
     'lap_seal': '合掌袋',
     'stand_pouch': 'スタンドパウチ',

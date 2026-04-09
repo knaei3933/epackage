@@ -216,7 +216,7 @@ export async function mapDatabaseQuotationToExcel(
 
 /**
  * Extract product specifications from JSON
- * Handles both pouch types (stand_pouch, flat_pouch, gusset, gassho) and roll_film
+ * Handles both pouch types (stand_pouch, flat_3_side, gusset, gassho) and roll_film
  * For roll_film: pouch-only fields are set to null/empty
  */
 function extractProductSpecifications(

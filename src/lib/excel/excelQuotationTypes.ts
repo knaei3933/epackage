@@ -54,7 +54,7 @@ export interface ProductSpecifications {
   specNumber: string           // 仕様番号: L
   pouchType: string            // 袋タイプ: スタンドパウチ / ロールフィルム
   pouchTypeEn?: string         // Stand Pouch / Roll Film
-  productType?: string         // 製品タイプ: stand_pouch, roll_film, flat_pouch, etc.
+  productType?: string         // 製品タイプ: stand_pouch, roll_film, flat_3_side, etc.
   contents: string             // 内容物: 粉体
   size: string                 // サイズ: 130×130×60 (mm) / 幅: 356mm、ピッチ: 86mm (roll film)
   material: string             // 素材: PET12μ+AL7μ+PET12μ+LLDPE60

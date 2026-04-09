@@ -25,12 +25,11 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
   // 제품 타입 라벨
   const getBagTypeLabel = (bagTypeId: string): string => {
     const labels: Record<string, string> = {
-      'flat_3_side': '三方シール平袋',
+      'flat_3_side': '平袋',
       'stand_up': 'スタンドパウチ',
       'box': 'ガゼットパウチ',
       'spout_pouch': 'スパウトパウチ',
       'roll_film': 'ロールフィルム',
-      'flat_pouch': '平袋',
       'stand_pouch': 'スタンドパウチ',
       'zipper_pouch': 'チャック付パウチ',
       't_shape': '合掌パウチ',

@@ -16,7 +16,7 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
 
   // 日本語変換マップ
   const bagTypeFallback: Record<string, string> = {
-    'flat_pouch': 'ピローパウチ',
+    'flat_3_side': 'ピローパウチ',
     'lap_seal': '合掌袋',
   };
 

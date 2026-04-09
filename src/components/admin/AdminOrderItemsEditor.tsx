@@ -81,7 +81,6 @@ function getItemValue(item: any, camelCaseKey: string, snakeCaseKey: string): an
 
 function getBagTypeLabel(value: string): string {
   const labels: Record<string, string> = {
-    'flat_pouch': '平袋',
     'flat_3_side': '三方シール平袋',
     'stand_up': 'スタンドパウチ',
     'gazette': 'ガゼットパウチ',
@@ -264,7 +263,6 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
 
   // オプション定義
   const bagTypeOptions = [
-    { value: 'flat_pouch', label: '平袋' },
     { value: 'flat_3_side', label: '三方シール平袋' },
     { value: 'stand_up', label: 'スタンドパウチ' },
     { value: 'gazette', label: 'ガゼットパウチ' },

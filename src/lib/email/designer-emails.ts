@@ -52,7 +52,7 @@ export interface DesignerDataUploadNotificationData {
 const SPEC_TRANSLATIONS = {
   // Bag types
   'stand_up': '스탠드 파우치',
-  'flat_pouch': '플랫 파우치',
+  'flat_3_side': '플랫 파우치',
   'zipper': '지퍼백',
 
   // Materials

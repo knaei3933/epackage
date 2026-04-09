@@ -36,7 +36,7 @@ export class DimensionsExtractor {
 
     // 2. 形状パターンベース (優先順位2)
     const outline = this.findOutlinePath(paths);
-    if (!outline) return 'flat_pouch';
+    if (!outline) return 'flat_3_side';
 
     const aspectRatio = this.calculateAspectRatio(outline);
     const hasZipper = this.detectZipperFromPaths(paths);
@@ -244,7 +244,7 @@ export class DimensionsExtractor {
     } else if (hasGusset) {
       return 'gusset';
     }
-    return 'flat_pouch';
+    return 'flat_3_side';
   }
 
   /**

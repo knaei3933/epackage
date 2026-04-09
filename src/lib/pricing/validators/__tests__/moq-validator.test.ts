@@ -66,7 +66,7 @@ describe('MOQ Validator', () => {
       });
 
       it('should allow any quantity for flat pouches', () => {
-        expect(validateMOQ(materialId, 'flat_pouch', 300)).toEqual({
+        expect(validateMOQ(materialId, 'flat_3_side', 300)).toEqual({
           valid: true,
           error: undefined
         });
@@ -90,7 +90,7 @@ describe('MOQ Validator', () => {
           valid: true,
           error: undefined
         });
-        expect(validateMOQ('pet_cpp', 'flat_pouch', 300)).toEqual({
+        expect(validateMOQ('pet_cpp', 'flat_3_side', 300)).toEqual({
           valid: true,
           error: undefined
         });

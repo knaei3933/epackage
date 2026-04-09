@@ -132,7 +132,7 @@ describe('detectPouchType', () => {
       ],
     });
 
-    expect(detectPouchType(aiData)).toBe('flat_pouch');
+    expect(detectPouchType(aiData)).toBe('flat_3_side');
   });
 
   it('should detect zipper pouch', () => {
@@ -802,7 +802,7 @@ describe('crossCheckWithQuotation', () => {
 
   it('should detect pouch type mismatch', () => {
     const specs: ProductSpecifications = {
-      pouchType: 'flat_pouch',
+      pouchType: 'flat_3_side',
       dimensions: { width: 150, height: 200, gusset: 0, tolerance: 2 },
       materials: [
         { layer: 'outer', material: 'PET', thickness: 12 },

@@ -18,7 +18,7 @@ export type SupportedFileType = 'ai' | 'pdf' | 'psd';
 export type LegacyEnvelopeType =
   | 'stand_pouch'      // スタンドパウチ
   | 'box_pouch'        // ボックスパウチ
-  | 'flat_pouch'       // 平面パウチ
+  | 'flat_3_side'      // 平面パウチ（三方シール）
   | 'gusset'           // ギャセット封筒
   | 'zipper_bag'       // ジッパーバッグ
   | 'three_side_seal'; // 3方シール

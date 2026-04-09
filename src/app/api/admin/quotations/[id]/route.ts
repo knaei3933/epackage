@@ -185,7 +185,6 @@ interface CostBreakdown {
 
 function getBagTypeName(bagTypeId: string): string {
   const types: Record<string, string> = {
-    'flat_pouch': '平袋',
     'flat_3_side': '三方シール平袋',
     'stand_up': 'スタンドパウチ',
     'gazette': 'ガゼットパウチ',

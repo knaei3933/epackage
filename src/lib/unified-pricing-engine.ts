@@ -2313,7 +2313,7 @@ export class UnifiedPricingEngine {
     height: number,
     depth: number,
     materialId: string,
-    bagTypeId: string = 'flat_pouch',
+    bagTypeId: string = 'flat_3_side',
     rollCount?: number,
     rollFilmParams?: {
       lengthInMeters?: number    // ロールフィルムの長さ（m）

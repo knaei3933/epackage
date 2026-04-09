@@ -176,7 +176,6 @@ const MATERIAL_LABELS: Record<string, string> = {
 
 // 袋タイプの日本語マッピング
 const BAG_TYPE_LABELS: Record<string, string> = {
-  'flat_pouch': '平袋',
   'flat_3_side': '三方シール平袋',
   'stand_up': 'スタンドパウチ',
   'gazette': 'ガゼットパウチ',

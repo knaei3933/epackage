@@ -137,7 +137,7 @@ describe('getReviewTask', () => {
 describe('getReviewTasks', () => {
   it('should return all tasks when no filter', () => {
     const specs1 = createMockSpecifications();
-    const specs2 = createMockSpecifications({ pouchType: 'flat_pouch' });
+    const specs2 = createMockSpecifications({ pouchType: 'flat_3_side' });
 
     createReviewTask(specs1);
     createReviewTask(specs2);

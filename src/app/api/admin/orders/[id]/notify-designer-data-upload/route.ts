@@ -196,7 +196,7 @@ export async function POST(
       return {
         dimensions: specs.dimensions,
         bagType: specs.bagTypeId === 'stand_up' ? '스탠드 파우치' :
-                 specs.bagTypeId === 'flat_pouch' ? '플랫 파우치' : specs.bagTypeId,
+                 specs.bagTypeId === 'flat_3_side' ? '플랫 파우치' : specs.bagTypeId,
         material: specs.materialId === 'pet_al' ? 'PET/AL (알루미늄 박 라미네이트)' :
                   specs.materialId === 'pet' ? 'PET' : specs.materialId,
         materialDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
