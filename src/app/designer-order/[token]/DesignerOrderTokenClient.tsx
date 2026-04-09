@@ -229,8 +229,24 @@ export function DesignerOrderTokenClient({
       }
     }
 
+    // Fallback: extract from uploaded file names (format: "ProductName_入稿データ_OrderNumber_Date.pdf")
+    if (productName === 'カスタム製品' || productName === '미입력' || productName.includes('カスタム製品')) {
+      // Find files uploaded for this order item
+      const itemUploads = initialCustomerUploads.filter(upload =>
+        upload.file_name.includes('_入稿データ_')
+      );
+
+      if (itemUploads.length > 0) {
+        // Extract product name from file name: "바셀린_入稿データ_ORD-..." -> "바셀린"
+        const fileMatch = itemUploads[0].file_name.match(/^([^_]+)_入稿データ_/);
+        if (fileMatch && fileMatch[1]) {
+          productName = fileMatch[1];
+        }
+      }
+    }
+
     // Fallback: extract from specifications if available
-    if (productName === 'カスタム製品' || productName === '미입력') {
+    if (productName === 'カスタム製品' || productName === '미입력' || productName.includes('カスタム製品')) {
       if (item.specifications) {
         const specs = item.specifications;
         if (specs.customProductName) {
