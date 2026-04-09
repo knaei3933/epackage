@@ -583,54 +583,68 @@ export async function POST(
             // ============================================================
             const translateSpecs = (specs: any) => {
               if (!specs) return undefined;
+
+              // Get material specification from actual data or use defaults
+              const materialSpec = specs.material_specification ||
+                (specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ' :
+                 specs.materialId === 'pet_ldpe' ? 'PET 12μ + LLDPE 70μ' :
+                 specs.materialId === 'ny_lldpe' ? 'NY 15μ + LLDPE 70μ' :
+                 specs.materialId === 'pet_vmpet' ? 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' :
+                 specs.materialId === 'pet_ny_al' ? 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' :
+                 specs.materialId === 'kraft_vmpet_lldpe' ? 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ' :
+                 specs.materialId === 'kraft_pet_lldpe' ? 'Kraft 50g/m² + PET 12μ + LLDPE 70μ' :
+                 undefined);
+
               return {
                 dimensions: specs.dimensions,
                 bagType: specs.bagTypeId === 'stand_up' ? '스탠드 파우치' :
                          specs.bagTypeId === 'flat_pouch' ? '플랫 파우치' : specs.bagTypeId,
                 material: specs.materialId === 'pet_al' ? 'PET/AL (알루미늄 박 라미네이트)' :
                           specs.materialId === 'pet' ? 'PET' : specs.materialId,
-                materialDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
+                materialDetail: materialSpec,
                 weight: specs.thicknessSelection === 'medium' ? '~500g' :
                          specs.thicknessSelection === 'light' ? '~300g' :
                          specs.thicknessSelection === 'heavy' ? '~1kg' : undefined,
                 thickness: specs.thicknessSelection === 'medium' ? '표준 타입 (~500g)' :
                            specs.thicknessSelection === 'light' ? '경량 (~300g)' :
                            specs.thicknessSelection === 'heavy' ? '중량 (~1kg)' : undefined,
-                thicknessDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
-                printingType: specs.printingType === 'digital' ? '디지털 인쇄' :
-                              specs.printingType === 'gravure' ? '그라비아 인쇄' : specs.printingType,
-                colors: specs.printingColors === 1 ? '1색' :
-                        specs.printingColors === 2 ? '2색' :
-                        specs.printingColors === 4 ? '4색' : '풀 컬러',
+                thicknessDetail: materialSpec,
+                printingType: specs.printingType === 'digital' ? '디지털 인쇄 (풀 컬러)' :
+                              specs.printingType === 'gravure' ? '그라비아 인쇄 (풀 컬러)' : specs.printingType,
+                colors: specs.printingColors === 4 ? '풀 컬러' :
+                        specs.printingColors === 1 ? '1색' :
+                        specs.printingColors === 2 ? '2색' : '풀 컬러',
                 urgency: specs.urgency === 'standard' ? '표준' :
                           specs.urgency === 'urgent' ? '긴급' :
                           specs.urgency === 'express' ? '특급' : specs.urgency,
                 deliveryLocation: specs.deliveryLocation === 'domestic' ? '국내' :
                                   specs.deliveryLocation === 'international' ? '해외' : specs.deliveryLocation,
-                postProcessing: specs.postProcessingOptions?.map((opt: string) => {
-                  const map: Record<string, string> = {
-                    'corner-round': '모서리 둥글게',
-                    'glossy': '광택 처리',
-                    'matte': '무광 처리',
-                    'hang-hole-6mm': '걸이 구멍 6mm',
-                    'hang-hole-4mm': '걸이 구멍 4mm',
-                    'machi-printing-yes': '마치 인쇄 있음',
-                    'machi-printing-no': '마치 인쇄 없음',
-                    'notch-yes': 'V 노치',
-                    'notch-no': 'V 노치 없음',
-                    'sealing-width-5mm': '밀봉폭 5mm',
-                    'sealing-width-8mm': '밀봉폭 8mm',
-                    'sealing-width-10mm': '밀봉폭 10mm',
-                    'top-open': '상단 개봉',
-                    'bottom-open': '하단 개봉',
-                    'side-open': '측면 개봉',
-                    'valve-yes': '밸브 있음',
-                    'valve-no': '밸브 없음',
-                    'zipper-yes': '지퍼 있음',
-                    'zipper-no': '지퍼 없음',
-                  };
-                  return map[opt] || opt;
-                }),
+                sealWidth: specs.sealWidth ? `${specs.sealWidth}mm` :
+                          (specs.postProcessingOptions || []).find((opt: string) => opt.startsWith('sealing-width-'))
+                            ?.replace('sealing-width-', '')?.replace('-', '.') + 'mm' || undefined,
+                postProcessing: specs.postProcessingOptions
+                  ?.filter((opt: string) => !opt.startsWith('sealing-width-'))
+                  .map((opt: string) => {
+                    const map: Record<string, string> = {
+                      'corner-round': '모서리 둥글게',
+                      'glossy': '광택 처리',
+                      'matte': '무광 처리',
+                      'hang-hole-6mm': '걸이 구멍 6mm',
+                      'hang-hole-4mm': '걸이 구멍 4mm',
+                      'machi-printing-yes': '마치 인쇄 있음',
+                      'machi-printing-no': '마치 인쇄 없음',
+                      'notch-yes': 'V 노치',
+                      'notch-no': 'V 노치 없음',
+                      'top-open': '상단 개봉',
+                      'bottom-open': '하단 개봉',
+                      'side-open': '측면 개봉',
+                      'valve-yes': '밸브 있음',
+                      'valve-no': '밸브 없음',
+                      'zipper-yes': '지퍼 있음',
+                      'zipper-no': '지퍼 없음',
+                    };
+                    return map[opt] || opt;
+                  }),
               };
             };
 
