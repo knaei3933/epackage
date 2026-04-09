@@ -87,6 +87,49 @@ export interface FiveStepBreakdown {
   manufacturerMarginRate: string;   // マージン率（文字列表現）
   formula: string;      // 円計算式
   formulaKRW: string;   // 韓国ウォン計算式
+
+  // ========================================
+  // NEW: Extended Cost Breakdown Structure
+  // ========================================
+
+  // Step 6: Manufacturing Cost Total (製造業原価 = baseCost + manufacturerMargin)
+  manufacturingCost: {
+    totalKRW: number;      // 製造業原価（ウォン）
+    totalJPY: number;      // 製造業原価（円）
+  };
+
+  // Additional Costs (追加費用)
+  additionalCosts: {
+    duty: number;          // 関税（円）
+    dutyKRW: number;       // 関税（ウォン）
+    delivery: number;      // 配送料（円）
+    deliveryKRW: number;   // 配送料（ウォン）
+    totalKRW: number;      // 追加費用合計（ウォン）
+    totalJPY: number;      // 追加費用合計（円）
+  };
+
+  // Total Cost (総原価 = 製造業原価 + 追加費用)
+  totalCost: {
+    totalKRW: number;      // 総原価（ウォン）
+    totalJPY: number;      // 総原価（円）
+  };
+
+  // Sales Price & Profit (販売価格と利益)
+  salesAndProfit: {
+    salesPrice: number;       // 販売価格（円）- 実際の見積価格
+    salesPriceKRW: number;    // 販売価格（ウォン）
+    calculatedPrice: number;  // 計算上の販売価格（小計×1.2）
+    calculatedPriceKRW: number; // 計算上の販売価格（ウォン）
+    priceAdjustment: number;  // 価格調整（見積価格 - 計算価格）
+    priceAdjustmentKRW: number; // 価格調整（ウォン）
+    salesMargin: number;      // 販売マージン（円）= 小計 × 20%
+    salesMarginKRW: number;   // 販売マージン（ウォン）
+    salesMarginRate: string;  // 販売マージン率（ドキュメント準拠20%）
+    profit: number;           // 純利益（円）= 販売価格 - 総原価
+    profitKRW: number;        // 純利益（ウォン）
+    profitRate: string;       // 利益率（実際の利益/販売価格）
+    actualMarginRate: string; // 実際のマージン率（利益/総原価）
+  };
 }
 
 /**
@@ -103,8 +146,26 @@ export interface FiveStepBreakdown {
 export function calculateFiveStepBreakdown(
   breakdown: DetailedCostBreakdownProps['breakdown'],
   filmCostDetails: DetailedCostBreakdownProps['filmCostDetails'],
-  specifications?: DetailedCostBreakdownProps['specifications']
+  specifications?: DetailedCostBreakdownProps['specifications'],
+  quotationSubtotal?: number  // 実際の見積価格（小計）
 ): FiveStepBreakdown {
+  // ========================================
+  // 配送料の取得（複数ソースから優先順位で取得）
+  // ========================================
+  // 1. cost_breakdown.delivery（優先）
+  // 2. film_cost_details.deliveryCostJPY
+  // 3. film_cost_details.breakdownの配送料計算結果
+  // 4. デフォルト配送料（ドキュメント準拠: 127,980ウォン × 0.12 = 15,358円）
+  const DEFAULT_DELIVERY_KRW = 127980;  // ドキュメント準拠のデフォルト配送料
+  // 注: KRW_TO_JPY_RATE は312行目で定義済み
+
+  const deliveryFromBreakdown = breakdown.delivery || 0;
+  const deliveryFromFilmDetails = (filmCostDetails as any)?.deliveryCostJPY || 0;
+  const deliveryFromFilmBreakdown = (filmCostDetails as any)?.breakdown?.deliveryCost || 0;
+  const defaultDeliveryJPY = Math.round(DEFAULT_DELIVERY_KRW * 0.12);  // ≈15,358円
+
+  // 配送料の決定（優先順位: breakdown > filmDetails > filmBreakdown > default）
+  const deliveryJPY = deliveryFromBreakdown || deliveryFromFilmDetails || deliveryFromFilmBreakdown || defaultDeliveryJPY;
   // 為替レート: 1円 = 約8.33ウォン
   const JPY_TO_KRW_RATE = 8.33;
 
@@ -242,22 +303,107 @@ export function calculateFiveStepBreakdown(
   const surfaceTreatmentFormula = surfaceTreatmentJPY > 0 ? `¥${surfaceTreatmentJPY.toLocaleString()}` : undefined;
   const surfaceTreatmentFormulaKRW = surfaceTreatmentKRW > 0 ? `₩${surfaceTreatmentKRW.toLocaleString()}` : undefined;
 
-  // Step 4: Base Cost
-  const sumBasedBaseCostJPY = rawMaterialTotalJPY + printingCostJPY + postProcessingTotal;
-  const sumBasedBaseCostKRW = rawMaterialTotalKRW + printingCostKRW + postProcessingTotalKRW;
-  const legacyBaseCost = (breakdown.materialCost || 0) > 0
-    ? Math.round((breakdown.materialCost || 0) / 0.4)
-    : 0;
-  const baseCost = (breakdown as any).baseCost || sumBasedBaseCostJPY || legacyBaseCost;
-  // baseCostKRWはステップ1+2+3のKRW合計を使用
-  const baseCostKRW = sumBasedBaseCostKRW;
+  // ========================================
+  // ドキュメント準拠の価格計算フロー
+  // Reference: docs/reports/calcultae/06-마진_및_최종가격.md
+  // ========================================
 
-  // Step 5: Manufacturer Margin
-  const MANUFACTURER_MARGIN_RATE = 0.3; // 30%
-  const manufacturerMargin = Math.round(baseCost * MANUFACTURER_MARGIN_RATE);
+  // 為替レート: 1円 = 約8.33ウォン (0.12 = ウォン→円)
+  const KRW_TO_JPY_RATE = 0.12;
+
+  // Step 4: 基礎原価 (KRW) = 原材料費 + 印刷費 + 後加工費
+  const baseCostKRW = rawMaterialTotalKRW + printingCostKRW + postProcessingTotalKRW;
+
+  // Step 5: 製造者マージン (40%)
+  const MANUFACTURER_MARGIN_RATE = 0.4; // 40%
   const manufacturerMarginKRW = Math.round(baseCostKRW * MANUFACTURER_MARGIN_RATE);
-  const marginFormula = `¥${baseCost.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
   const marginFormulaKRW = `₩${baseCostKRW.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
+
+  // Step 6: 製造者価格 (KRW) = 基礎原価 + 製造者マージン
+  const manufacturerPriceKRW = baseCostKRW + manufacturerMarginKRW;
+
+  // Step 7: 円貨製造者価格 (JPY) = 製造者価格 × 0.12 (為替レート適用)
+  const manufacturerPriceJPY = Math.round(manufacturerPriceKRW * KRW_TO_JPY_RATE);
+
+  // Step 8: 関税 (JPY) = 円貨製造者価格 × 5%
+  const DUTY_RATE = 0.05; // 5%
+  const dutyJPY = Math.round(manufacturerPriceJPY * DUTY_RATE);
+
+  // Step 10: 小計 (JPY) = 円貨製造者価格 + 関税 + 配送料
+  // （配送料は関数先頭で既に取得済み）
+  const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
+
+  // Step 11: 販売者マージン (20%)
+  const SALES_MARGIN_RATE = 0.2; // 20%
+  const salesMarginJPY = Math.round(subtotalJPY * SALES_MARGIN_RATE);
+
+  // Step 12: 最終販売価格 (JPY) = 小計 × 1.2（販売者マージン20%追加）
+  // ドキュメント準拠の計算
+  const calculatedFinalPriceJPY = Math.round(subtotalJPY * (1 + SALES_MARGIN_RATE));
+
+  // 実際の見積価格がある場合、差異を利益調整として計算
+  const actualQuotationPrice = quotationSubtotal || 0;
+  const priceAdjustment = actualQuotationPrice > 0 ? actualQuotationPrice - calculatedFinalPriceJPY : 0;
+
+  // 最終販売価格：見積価格がある場合はそれを使用、なければ計算値
+  const finalPriceJPY = actualQuotationPrice > 0 ? actualQuotationPrice : calculatedFinalPriceJPY;
+
+  // ========================================
+  // 表示用の値を計算
+  // ========================================
+
+  // 基礎原価のJPY表示
+  const baseCost = Math.round(baseCostKRW * KRW_TO_JPY_RATE);
+  const marginFormula = `¥${baseCost.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
+  const manufacturerMargin = Math.round(manufacturerMarginKRW * KRW_TO_JPY_RATE);
+
+  // 追加費用のKRW表示
+  const dutyKRW = Math.round(dutyJPY / KRW_TO_JPY_RATE);
+  const deliveryKRW = Math.round(deliveryJPY / KRW_TO_JPY_RATE);
+
+  // 製造業原価
+  const manufacturingCostKRW = manufacturerPriceKRW;
+  const manufacturingCostJPY = manufacturerPriceJPY;
+
+  // 追加費用合計
+  const additionalCostsTotalKRW = dutyKRW + deliveryKRW;
+  const additionalCostsTotalJPY = dutyJPY + deliveryJPY;
+
+  // 総原価
+  const totalCostKRW = Math.round(subtotalJPY / KRW_TO_JPY_RATE);
+  const totalCostJPY = subtotalJPY;
+
+  // 販売価格と利益
+  const salesPriceJPY = finalPriceJPY;
+  const salesPriceKRW = Math.round(salesPriceJPY / KRW_TO_JPY_RATE);
+
+  // 計算上の販売価格（ドキュメント準拠）
+  const calculatedPriceJPY = calculatedFinalPriceJPY;
+  const calculatedPriceKRW = Math.round(calculatedPriceJPY / KRW_TO_JPY_RATE);
+
+  // 価格調整（見積価格 - 計算価格）
+  const priceAdjustmentJPY = priceAdjustment;
+  const priceAdjustmentKRW = Math.round(priceAdjustmentJPY / KRW_TO_JPY_RATE);
+
+  // 利益 = 販売価格 - 総原価
+  const profitJPY = salesPriceJPY - totalCostJPY;
+  const profitKRW = salesPriceKRW - totalCostKRW;
+
+  // 販売マージン（利益と同義）
+  const salesMarginKRW = profitKRW;
+
+  // マージン率（ドキュメント準拠: 20%）
+  const salesMarginRate = `${(SALES_MARGIN_RATE * 100).toFixed(0)}%`;
+
+  // 実際のマージン率（利益/総原価）
+  const actualMarginRate = totalCostJPY > 0
+    ? ((profitJPY / totalCostJPY) * 100).toFixed(1)
+    : '0.0';
+
+  // 利益率（利益/販売価格）
+  const profitRate = salesPriceJPY > 0
+    ? ((profitJPY / salesPriceJPY) * 100).toFixed(1)
+    : '0.0';
 
   return {
     rawMaterialCost: {
@@ -302,6 +448,39 @@ export function calculateFiveStepBreakdown(
     manufacturerMarginKRW,
     manufacturerMarginRate: `${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`,
     formula: marginFormula,
-    formulaKRW: marginFormulaKRW
+    formulaKRW: marginFormulaKRW,
+
+    // NEW: Extended fields
+    manufacturingCost: {
+      totalKRW: manufacturingCostKRW,
+      totalJPY: manufacturingCostJPY
+    },
+    additionalCosts: {
+      duty: dutyJPY,
+      dutyKRW,
+      delivery: deliveryJPY,
+      deliveryKRW,
+      totalKRW: additionalCostsTotalKRW,
+      totalJPY: additionalCostsTotalJPY
+    },
+    totalCost: {
+      totalKRW: totalCostKRW,
+      totalJPY: totalCostJPY
+    },
+    salesAndProfit: {
+      salesPrice: salesPriceJPY,
+      salesPriceKRW,
+      calculatedPrice: calculatedPriceJPY,
+      calculatedPriceKRW,
+      priceAdjustment: priceAdjustmentJPY,
+      priceAdjustmentKRW,
+      salesMargin: salesMarginJPY,
+      salesMarginKRW,
+      salesMarginRate,
+      profit: profitJPY,
+      profitKRW,
+      profitRate: `${profitRate}%`,
+      actualMarginRate: `${actualMarginRate}%`
+    }
   };
 }

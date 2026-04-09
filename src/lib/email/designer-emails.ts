@@ -227,7 +227,7 @@ ${uploadUrl}
 검토 후 필요한 수정 사항이 있다면 관리자에게 알려주십시오.
 
 본 메일은 시스템에 의해 자동으로 발송되었습니다.
-문의사항이 있으시면 support@epackage-lab.com으로 연락해 주십시오.
+문의사항이 있으시면 design@package-lab.com으로 연락해 주십시오.
 
 Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.
 `.trim();
@@ -400,7 +400,7 @@ Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.
     </div>
     <div class="footer">
       <p style="margin: 5px 0;"><strong>Epackage Lab</strong></p>
-      <p style="margin: 5px 0;">Email: support@epackage-lab.com</p>
+      <p style="margin: 5px 0;">Email: design@package-lab.com</p>
       <p style="margin: 5px 0;">URL: https://epackage-lab.com</p>
       <p style="margin: 15px 0 5px 0;">본 메일은 시스템에 의해 자동으로 발송되었습니다.</p>
       <p style="margin: 5px 0;">Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.</p>

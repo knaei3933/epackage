@@ -286,7 +286,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       const result = await response.json();
 
       if (result.success) {
-        setSuccessMessage('入稿データをアップロードしました。韓国担当者に送信されました。');
+        setSuccessMessage('入稿データをアップロードしました。担当者に送信されました。');
         setSelectedFile(null);
         setDescription('');
         setProductName('');

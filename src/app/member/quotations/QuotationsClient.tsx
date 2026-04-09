@@ -549,7 +549,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                               </span>
                             )}
                           </p>
-                          <p>金額: {formatPrice(quotation.totalAmount)}</p>
+                          <p>金額: {formatPrice((quotation.subtotal_amount || 0) + (quotation.tax_amount || 0))}</p>
                           {downloadStats[quotation.id] && (
                             <p className="text-xs">
                               ダウンロード回数: {downloadStats[quotation.id].count}回
@@ -632,7 +632,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                         </div>
 
                         <div className="text-lg font-semibold text-text-primary">
-                          合計: {formatPrice(quotation.totalAmount || quotation.total_amount || 0)}円
+                          合計: {formatPrice((quotation.subtotal_amount || 0) + (quotation.tax_amount || 0))}円
                         </div>
 
                         {/* Download History Indicator */}
@@ -720,7 +720,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                               className="group/btn shadow-md hover:shadow-lg"
                             >
                               <FileText className="w-4 h-4 mr-1.5 transition-transform group-hover/btn:scale-110" />
-                              注文に変換
+                              注文する
                             </Button>
                           )}
                         </div>

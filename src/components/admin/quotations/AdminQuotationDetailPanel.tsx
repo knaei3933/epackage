@@ -352,12 +352,16 @@ export function AdminQuotationDetailPanel({
                 // cost_breakdownを優先して使用（各コスト内訳が含まれているため）
                 const breakdownForDisplay = itemHasCostBreakdown ? costBreakdown : (filmCostDetails || {});
 
+                // 見積小計（subtotalまたはunit_price * quantityから計算）
+                const itemSubtotal = item.subtotal || (item.unit_price * item.quantity) || 0;
+
                 return (
                   <div key={item.id || index} className="border border-gray-200 rounded-lg p-3 bg-white">
                     <DetailedCostBreakdown
                       breakdown={breakdownForDisplay}
                       filmCostDetails={filmCostDetails}
                       specifications={specs}
+                      quotationSubtotal={itemSubtotal}
                       showFormula={showFormula}
                     />
                   </div>

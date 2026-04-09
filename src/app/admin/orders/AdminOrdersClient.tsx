@@ -46,7 +46,7 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(10); // 1페이지당 10개씩 표시
   const [total, setTotal] = useState(0);
 
   // 注文リスト取得
@@ -78,9 +78,9 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
       }
 
       const result = await response.json();
-      console.log('[AdminOrdersClient] Received orders:', result.data?.length || 0);
+      console.log('[AdminOrdersClient] Received orders:', result.data?.length || 0, 'Total:', result.total);
       setOrders(result.data || []);
-      setTotal(result.pagination?.total || 0);
+      setTotal(result.total || 0); // API는 직접 total 필드를 반환
     } catch (error) {
       console.error('注文リスト取得失敗:', error);
     } finally {

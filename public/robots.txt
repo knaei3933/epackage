@@ -2,6 +2,13 @@
 # Last Updated: 2026-02-18
 
 User-agent: *
+# Allow locale paths for i18n
+Allow: /en/
+Allow: /ko/
+Allow: /ja/
+Allow: /zh/
+Allow: /zh-CN/
+Allow: /zh-TW/
 Allow: /
 
 # Sitemap location
@@ -29,6 +36,13 @@ Crawl-delay: 1
 
 # Popular search engines
 User-agent: Googlebot
+# Allow locale paths for i18n
+Allow: /en/
+Allow: /ko/
+Allow: /ja/
+Allow: /zh/
+Allow: /zh-CN/
+Allow: /zh-TW/
 Allow: /
 
 User-agent: Bingbot

@@ -43,10 +43,10 @@ const DEFAULT_BANK_INFO: BankInfo = {
 const DEFAULT_COMPANY_INFO: CompanyInfo = {
   company_name_ja: 'イーパックラボ',
   company_name_en: 'EPackage Lab',
-  support_email: 'support@epackage-lab.com',
-  support_phone: 'XX-XXXX-XXXX',
-  postal_code: '000-0000',
-  address: '東京都〇〇区〇〇1-2-3',
+  support_email: 'design@package-lab.com',
+  support_phone: '050-1793-8500',
+  postal_code: '673-0846',
+  address: '兵庫県明石市上ノ丸2-11-21',
 };
 
 // Generate bank info text synchronously (with optional bankInfo parameter)
@@ -149,7 +149,7 @@ const createBaseHtml = (content: string, headerColor: string = 'linear-gradient(
     ${content}
     <div class="footer">
       <p style="margin: 5px 0;"><strong>Epackage Lab (EPackage Lab)</strong></p>
-      <p style="margin: 5px 0;">Email: support@epackage-lab.com</p>
+      <p style="margin: 5px 0;">Email: design@package-lab.com</p>
       <p style="margin: 5px 0;">URL: https://epackage-lab.com</p>
       <p style="margin: 15px 0 5px 0;">本メールはシステムにより自動送信されています。</p>
       <p style="margin: 5px 0;">Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.</p>
@@ -1271,7 +1271,7 @@ ${data.view_url}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Epackage Lab (이패키지랩)
-Email: support@epackage-lab.com
+Email: design@package-lab.com
 URL: https://epackage-lab.com
 
 본 이메일은 시스템에 의해 자동 발송되었습니다.
@@ -1318,7 +1318,7 @@ Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.
       </div>
       <div class="footer" style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px;">
         <p style="margin: 5px 0;"><strong>Epackage Lab (이패키지랩)</strong></p>
-        <p style="margin: 5px 0;">Email: support@epackage-lab.com</p>
+        <p style="margin: 5px 0;">Email: design@package-lab.com</p>
         <p style="margin: 5px 0;">URL: https://epackage-lab.com</p>
         <p style="margin: 15px 0 5px 0;">본 이메일은 시스템에 의해 자동 발송되었습니다.</p>
         <p style="margin: 5px 0;">Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.</p>

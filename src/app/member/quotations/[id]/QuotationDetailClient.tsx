@@ -706,16 +706,16 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   }
 
   const status = quotation?.status?.toUpperCase() || 'DRAFT';
-  // 세금 불포함 금액 (税抜き価格)
-  const subtotal = quotation?.subtotal || quotation?.subtotalAmount || quotation?.totalAmount * 0.909;
-  // 소비세: 데이터베이스 값 우선, 없으면 계산 (반올림하여 정확도 향상)
-  const taxAmount = quotation?.taxAmount || Math.round(subtotal * 0.1);
-  // 세금 포함 총액
-  const totalWithTax = subtotal + taxAmount;
-  // 주의: totalAmount는 데이터베이스 저장값 (소비세 포함 또는 미포함)
-  const databaseTotalAmount = quotation?.totalAmount || quotation?.total_amount || 0;
-  // 표시용 총액은 계산된 정확한 값을 사용
-  const displayTotalAmount = totalWithTax;
+  // ========================================
+  // 価格計算: データベース保存値を優先
+  // リスト表示と一致させるため、計算ではなくDB値を使用
+  // ========================================
+  // 税抜き価格: DB保存値を優先
+  const subtotal = quotation?.subtotal || quotation?.subtotalAmount || quotation?.subtotal_amount || 0;
+  // 消費税: DB保存値を優先、なければ小計の10%を四捨五入
+  const taxAmount = quotation?.taxAmount || quotation?.tax_amount || Math.round(subtotal * 0.1);
+  // 合計: 小計 + 消費税を計算（常に正しい計算)
+  const displayTotalAmount = subtotal + taxAmount;
   // 注文変換可能か: APPROVED状態で注文未作成の場合のみ（大文字小文字を区別せずチェック）
   const canConvert = quotation?.status?.toLowerCase() === 'approved';
 
@@ -1116,12 +1116,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
               ¥{displayTotalAmount.toLocaleString()}
             </span>
           </div>
-          {/* データ�ース保存値との差異がある場合は表示 */}
-          {databaseTotalAmount !== displayTotalAmount && (
-            <div className="text-xs text-gray-500 text-right mt-1">
-              （データベース保存値: ¥{databaseTotalAmount.toLocaleString()}）
-            </div>
-          )}
         </div>
       </Card>
 

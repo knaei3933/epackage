@@ -45,6 +45,70 @@ import {
 export { createRecipient } from './email-templates';
 
 // =====================================================
+// Test Email Storage (for E2E testing)
+// =====================================================
+
+interface TestEmail {
+  id: string;
+  to: string;
+  from: string;
+  subject: string;
+  text: string;
+  html: string;
+  timestamp: number;
+  messageId?: string;
+  previewUrl?: string;
+}
+
+// In-memory email store for testing
+const emailStore: Map<string, TestEmail[]> = new Map();
+
+/**
+ * Store sent email for test retrieval
+ */
+function storeTestEmail(email: TestEmail) {
+  const recipient = email.to;
+
+  if (!emailStore.has(recipient)) {
+    emailStore.set(recipient, []);
+  }
+
+  const emails = emailStore.get(recipient)!;
+  emails.push(email);
+
+  // Keep only the most recent 100 emails per recipient
+  if (emails.length > 100) {
+    emails.splice(0, emails.length - 100);
+  }
+}
+
+/**
+ * Get stored emails (exported for test utilities)
+ */
+export function getStoredEmails(recipient?: string): TestEmail[] {
+  if (recipient) {
+    return emailStore.get(recipient) || [];
+  }
+
+  const allEmails: TestEmail[] = [];
+  for (const emails of emailStore.values()) {
+    allEmails.push(...emails);
+  }
+  return allEmails;
+}
+
+/**
+ * Clear stored emails (exported for test utilities)
+ */
+export function clearStoredEmails(recipient?: string): void {
+  if (recipient) {
+    emailStore.delete(recipient);
+  } else {
+    emailStore.clear();
+  }
+}
+
+// =====================================================
 // Security: HTML Sanitization Helper
 // =====================================================
 
@@ -799,12 +863,28 @@ async function sendEmail(
     };
 
     // Etherealの場合はpreview URLを提供
+    let previewUrl: string | undefined;
     if (transportType === 'ethereal' && nodemailer.getTestMessageUrl) {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
+      previewUrl = nodemailer.getTestMessageUrl(info);
       if (previewUrl) {
         result.previewUrl = previewUrl;
         console.log('[Email] Ethereal preview URL:', result.previewUrl);
       }
+    }
+
+    // Store email for test retrieval (in development/test environments)
+    if (process.env.NODE_ENV !== 'production') {
+      storeTestEmail({
+        id: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        to,
+        from: FROM_EMAIL,
+        subject,
+        text,
+        html,
+        timestamp: Date.now(),
+        messageId: info.messageId,
+        previewUrl,
+      });
     }
 
     console.log('[Email] Email sent successfully:', {

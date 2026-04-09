@@ -42,7 +42,7 @@ ${data.contract_url}
 --------------------
 EPackage Lab B2Bシステム
 このメールはシステムにより自動送信されています。
-お問い合わせ: support@epackage-lab.com
+お問い合わせ: design@package-lab.com
 --------------------
 `.trim()
 }
@@ -106,7 +106,7 @@ export const html = (data: ContractSignatureRequestData): string => {
     </div>
     <div class="footer">
       <p>このメールはシステムにより自動送信されています。</p>
-      <p>お問い合わせ: support@epackage-lab.com</p>
+      <p>お問い合わせ: design@package-lab.com</p>
       <p>© ${new Date().getFullYear()} EPackage Lab. All rights reserved.</p>
     </div>
   </div>

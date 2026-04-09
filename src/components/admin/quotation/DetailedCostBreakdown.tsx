@@ -61,6 +61,8 @@ export interface DetailedCostBreakdownProps {
     // 基本原価 (Korea-friendly display)
     baseCost?: number;
   };
+  // 実際の見積価格（小計）- 販売価格として使用
+  quotationSubtotal?: number;
   specifications?: {
     // 基本情報
     bag_type?: string;
@@ -88,6 +90,7 @@ export interface DetailedCostBreakdownProps {
     post_processing_display?: string[];
     zipper?: boolean;
     spout?: boolean;
+    spoutSize?: number; // スパウトサイズ（パイ）
     // その他
     urgency?: string;
     contents?: string;
@@ -108,6 +111,7 @@ export interface DetailedCostBreakdownProps {
     laminationCost?: number;
     slitterCost?: number;
     surfaceTreatmentCost?: number;
+    quantity?: number; // 製造数量
     // 各素材レイヤーの詳細（完全な計算情報）
     materialLayerDetails?: Array<{
       materialId: string;
@@ -167,6 +171,7 @@ export function DetailedCostBreakdown({
   specifications,
   sku_info,
   filmCostDetails,
+  quotationSubtotal,  // 実際の見積価格（小計）
   showFormula = true  // デフォルトで計算式を表示
 }: DetailedCostBreakdownProps) {
   const [exchangeRateKRWToJPY, setExchangeRateKRWToJPY] = useState<number>(0.14); // デフォルト: 1ウォン = 0.14円
@@ -210,7 +215,7 @@ export function DetailedCostBreakdown({
 
   // Calculate 5-step breakdown using helper
   // IMPORTANT: Use fiveStep.baseCost instead of local calculation
-  const fiveStep = calculateFiveStepBreakdown(breakdown, filmCostDetails, specifications);
+  const fiveStep = calculateFiveStepBreakdown(breakdown, filmCostDetails, specifications, quotationSubtotal);
 
   // SKU追加料金があれば計算
   const skuSurcharge = sku_info && sku_info.count > 1 ? (sku_info.count - 1) * 10000 : 0;
@@ -434,21 +439,162 @@ export function DetailedCostBreakdown({
           </div>
         </div>
 
-        {/* Step 6: Total (Base Cost + Manufacturer Margin) */}
+        {/* Step 6: Manufacturing Cost (製造業原価) */}
         <div className="bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg p-3">
           <div className="flex items-start gap-2">
             <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">6</span>
             <div className="flex-1 min-w-0">
-              <h5 className="font-semibold text-gray-900">合計</h5>
+              <h5 className="font-semibold text-gray-900">製造業原価</h5>
               <p className="text-xs text-gray-600">基礎原価 + 製造者マージン</p>
             </div>
-            <span className="font-bold text-xl text-purple-900 shrink-0">₩{(fiveStep.baseCostKRW + fiveStep.manufacturerMarginKRW).toLocaleString()}</span>
+            <span className="font-bold text-xl text-purple-900 shrink-0">₩{fiveStep.manufacturingCost.totalKRW.toLocaleString()}</span>
           </div>
           <div className="ml-8 mt-2 text-xs text-gray-700">
-            ₩{fiveStep.baseCostKRW.toLocaleString()} + ₩{fiveStep.manufacturerMarginKRW.toLocaleString()} = ₩{(fiveStep.baseCostKRW + fiveStep.manufacturerMarginKRW).toLocaleString()}
+            ₩{fiveStep.baseCostKRW.toLocaleString()} + ₩{fiveStep.manufacturerMarginKRW.toLocaleString()} = ₩{fiveStep.manufacturingCost.totalKRW.toLocaleString()}
           </div>
         </div>
       </div>
+
+      {/* ============================================ */}
+      {/* Additional Costs (追加費用)                   */}
+      {/* ============================================ */}
+      {(fiveStep.additionalCosts.duty > 0 || fiveStep.additionalCosts.delivery > 0) && (
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <h4 className="text-sm font-semibold text-orange-800 mb-3 flex items-center gap-2">
+            <span className="text-lg">📦</span>
+            追加費用
+          </h4>
+          <div className="space-y-2 text-sm">
+            {fiveStep.additionalCosts.duty > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">関税</span>
+                <div className="text-right">
+                  <span className="font-medium text-gray-900">¥{fiveStep.additionalCosts.duty.toLocaleString()}</span>
+                  <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.additionalCosts.dutyKRW.toLocaleString()})</span>
+                </div>
+              </div>
+            )}
+            {fiveStep.additionalCosts.delivery > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">配送料</span>
+                <div className="text-right">
+                  <span className="font-medium text-gray-900">¥{fiveStep.additionalCosts.delivery.toLocaleString()}</span>
+                  <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.additionalCosts.deliveryKRW.toLocaleString()})</span>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-2 border-t border-orange-300">
+              <span className="font-semibold text-gray-900">追加費用合計</span>
+              <div className="text-right">
+                <span className="font-semibold text-orange-700">¥{fiveStep.additionalCosts.totalJPY.toLocaleString()}</span>
+                <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.additionalCosts.totalKRW.toLocaleString()})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* Total Cost (総原価)                           */}
+      {/* ============================================ */}
+      {fiveStep.totalCost && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-4">
+          <h4 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
+            <span className="text-lg">🏗️</span>
+            総原価（製造業原価 + 追加費用）
+          </h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">製造業原価</span>
+              <div className="text-right">
+                <span className="font-medium text-gray-900">₩{fiveStep.manufacturingCost?.totalKRW?.toLocaleString() || 0}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">追加費用</span>
+              <div className="text-right">
+                <span className="font-medium text-gray-900">₩{fiveStep.additionalCosts?.totalKRW?.toLocaleString() || 0}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-green-300">
+              <span className="font-bold text-gray-900">総原価</span>
+              <div className="text-right">
+                <span className="font-bold text-lg text-green-700">₩{fiveStep.totalCost?.totalKRW?.toLocaleString() || 0}</span>
+                <span className="text-xs text-gray-500 ml-2">(¥{fiveStep.totalCost?.totalJPY?.toLocaleString() || 0})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* Sales Price & Profit (販売価格と利益)          */}
+      {/* ============================================ */}
+      {fiveStep.salesAndProfit && fiveStep.salesAndProfit.salesPrice > 0 && (
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-4 mb-4">
+          <h4 className="text-sm font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+            <span className="text-lg">💰</span>
+            販売価格と利益
+          </h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">総原価</span>
+              <div className="text-right">
+                <span className="font-medium text-gray-900">¥{fiveStep.totalCost?.totalJPY?.toLocaleString() || 0}</span>
+                <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.totalCost?.totalKRW?.toLocaleString() || 0})</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">基準販売マージン ({fiveStep.salesAndProfit?.salesMarginRate || '20%'})</span>
+              <div className="text-right">
+                <span className="font-medium text-gray-900">¥{fiveStep.salesAndProfit?.salesMargin?.toLocaleString() || 0}</span>
+                <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.salesAndProfit?.salesMarginKRW?.toLocaleString() || 0})</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">計算上の販売価格</span>
+              <div className="text-right">
+                <span className="font-medium text-gray-600">¥{fiveStep.salesAndProfit?.calculatedPrice?.toLocaleString() || 0}</span>
+                <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.salesAndProfit?.calculatedPriceKRW?.toLocaleString() || 0})</span>
+              </div>
+            </div>
+            {/* 価格調整がある場合 */}
+            {(fiveStep.salesAndProfit?.priceAdjustment || 0) !== 0 && (
+              <div className="flex justify-between items-center bg-amber-50 rounded p-2">
+                <span className="text-amber-800">価格調整</span>
+                <div className="text-right">
+                  <span className={`font-medium ${(fiveStep.salesAndProfit?.priceAdjustment || 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(fiveStep.salesAndProfit?.priceAdjustment || 0) > 0 ? '+' : ''}¥{(fiveStep.salesAndProfit?.priceAdjustment || 0).toLocaleString()}
+                  </span>
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({(fiveStep.salesAndProfit?.priceAdjustmentKRW || 0) > 0 ? '+' : ''}₩{(fiveStep.salesAndProfit?.priceAdjustmentKRW || 0).toLocaleString()})
+                  </span>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-2 border-t border-indigo-300">
+              <span className="font-bold text-gray-900">実際の販売価格</span>
+              <div className="text-right">
+                <span className="font-bold text-lg text-indigo-700">¥{fiveStep.salesAndProfit?.salesPrice?.toLocaleString() || 0}</span>
+                <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.salesAndProfit?.salesPriceKRW?.toLocaleString() || 0})</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-indigo-300 bg-indigo-100 rounded p-2">
+              <div>
+                <span className="font-bold text-indigo-900">📈 利益</span>
+                <span className="text-xs text-indigo-700 ml-2">(実際のマージン率: {fiveStep.salesAndProfit?.actualMarginRate || '0%'})</span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-lg text-indigo-900">¥{fiveStep.salesAndProfit?.profit?.toLocaleString() || 0}</span>
+                <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.salesAndProfit?.profitKRW?.toLocaleString() || 0})</span>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              ※ 利益率: {fiveStep.salesAndProfit?.profitRate || '0%'} = 利益 ÷ 販売価格
+            </div>
+          </div>
+        </div>
+      )}
       {/* End 6-Step Korea-Friendly Cost Breakdown */}
 
       {/* SKU情報 */}

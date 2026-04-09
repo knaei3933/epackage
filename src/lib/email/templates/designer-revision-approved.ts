@@ -44,7 +44,7 @@ ${data.designer_name} 님께,
 --------------------
 Epackage Lab B2B 시스템
 본 메일은 시스템에 의해 자동 발송됩니다.
-문의: support@epackage-lab.com
+문의: info@package-lab.com
 --------------------
 `.trim()
 }
@@ -112,7 +112,7 @@ export const html = (data: DesignerRevisionApprovedEmailData): string => {
     </div>
     <div class="footer">
       <p>본 메일은 시스템에 의해 자동 발송됩니다.</p>
-      <p>문의: support@epackage-lab.com</p>
+      <p>문의: info@package-lab.com</p>
       <p>© ${new Date().getFullYear()} Epackage Lab. All rights reserved.</p>
     </div>
   </div>
@@ -156,7 +156,7 @@ ${data.designer_name} 様
 --------------------
 EPackage Lab B2Bシステム
 このメールはシステムにより自動送信されています。
-お問い合わせ: support@epackage-lab.com
+お問い合わせ: info@package-lab.com
 --------------------
 `.trim()
 }
@@ -224,7 +224,7 @@ export const htmlJa = (data: DesignerRevisionApprovedEmailData): string => {
     </div>
     <div class="footer">
       <p>このメールはシステムにより自動送信されています。</p>
-      <p>お問い合わせ: support@epackage-lab.com</p>
+      <p>お問い合わせ: info@package-lab.com</p>
       <p>© ${new Date().getFullYear()} EPackage Lab. All rights reserved.</p>
     </div>
   </div>
