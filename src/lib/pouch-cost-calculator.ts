@@ -871,8 +871,9 @@ export class PouchCostCalculator {
 
       case 'stand_up':
       case 'zipper_stand':
-        // 1열: (H × 2) + G + 35, 2열: (H × 4) + (G × 2) + 40
-        return columnCount === 1 ? (H * 2) + G + 35 : (H * 4) + (G * 2) + 40;
+        // 1列: (H × 2) + (G × 2) + 35, 2列: (H × 4) + (G × 2) + 40
+        // depth(G)は片面の値なので、両面分はG × 2（1列・2列共通）
+        return columnCount === 1 ? (H * 2) + (G * 2) + 35 : (H * 4) + (G * 2) + 40;
 
       case 't_shape':
         // 合掌袋（T封）: 1列=(W×2)+22, 2列=(W×4)+64 (2×A+20, A=(W×2)+22)

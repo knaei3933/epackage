@@ -113,9 +113,9 @@ export function calculatePouchFilmWidth(
       return columns === 1 ? (height * 2) + 41 : (height * 4) + 71;
 
     case 'stand_up':
-      // スタンドアップ: 1列: (H × 2) + G + 35, 2列: (H × 4) + (G × 2) + 40
-      // 2列では各列にマチが必要なためG×2
-      return columns === 1 ? (height * 2) + depth + 35 : (height * 4) + (depth * 2) + 40;
+      // スタンドアップ: 1列: (H × 2) + (G × 2) + 35, 2列: (H × 4) + (G × 2) + 40
+      // depthは片面の値なので、両面分はdepth × 2（1列・2列共通）
+      return columns === 1 ? (height * 2) + (depth * 2) + 35 : (height * 4) + (depth * 2) + 40;
 
     case 'lap_seal':
       // 合掌袋: W × 2 + 余白(ドキュメント: 02-필름폭_계산공식.md)
