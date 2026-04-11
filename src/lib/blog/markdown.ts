@@ -115,11 +115,11 @@ export async function parseMarkdown(
     cleanMarkdown = content;
   } catch {
     // If frontmatter parsing fails, try custom regex removal
-    // Remove meta_title/meta_description pattern: **key**: "value"
+    // Remove lines with **meta_title**: "..." and **meta_description**: "..."
     cleanMarkdown = markdown.replace(/^\*\*meta_title\*\*:\s*"[^"]*"\s*\n?/gm, '');
     cleanMarkdown = cleanMarkdown.replace(/^\*\*meta_description\*\*:\s*"[^"]*"\s*\n?/gm, '');
-    // Remove horizontal lines around metadata
-    cleanMarkdown = cleanMarkdown.replace(/^---\s*\n/gm, '');
+    // Also remove standalone --- lines
+    cleanMarkdown = cleanMarkdown.replace(/^---\s*\n?/gm, '');
   }
 
   // Configure marked options
