@@ -9,6 +9,23 @@ import sanitizeHtml from 'sanitize-html';
 import matter from 'gray-matter';
 
 // =====================================================
+// Utility Functions
+// =====================================================
+
+/**
+ * Generate slug from text
+ */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/[^\w\s-]/g, '') // Remove special chars
+    .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+// =====================================================
 // Type Definitions
 // =====================================================
 
@@ -70,13 +87,18 @@ function getWebPPath(originalPath: string): string {
 marked.setOptions({
   gfm: true,
   breaks: true,
-  headerIds: true,
-  mangle: false,
 });
 
-// Custom renderer for image optimization
-const customRenderer = {
-  image({ href, title, text }: { href: string; title: string | null; text: string }): string {
+// Custom renderer for image optimization and heading IDs
+class CustomRenderer extends marked.Renderer {
+  heading(token: any) {
+    const text = this.parser.parseInline(token.tokens);
+    const plainText = text.replace(/<[^>]*>/g, '');
+    const id = slugify(plainText);
+    return `<h${token.depth} id="${id}">${text}</h${token.depth}>\n`;
+  }
+
+  image(href: string, title: string | null, text: string) {
     if (!href) return '';
     const webpSrc = getWebPPath(href);
     const imageType = detectImageType(href);
@@ -88,10 +110,12 @@ const customRenderer = {
   <source srcset="${webpSrc}" type="image/webp">
   <img src="${href}" alt="${altText}"${titleAttr} loading="lazy" width="${dims.width}" height="${dims.height}" style="max-width: 100%; height: auto;">
 </picture>`;
-  },
-};
+  }
+}
 
-marked.use({ renderer: customRenderer });
+marked.setOptions({
+  renderer: new CustomRenderer(),
+});
 
 // =====================================================
 // Main Parser Function
@@ -126,7 +150,6 @@ export async function parseMarkdown(
   marked.setOptions({
     gfm,
     breaks,
-    headerIds: true,
     mangle: false,
   });
 
@@ -286,17 +309,6 @@ function calculateReadingTime(wordCount: number): number {
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 }
 
-/**
- * Generate slug from text
- */
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special chars
-    .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with hyphens
-    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-}
 
 // =====================================================
 // Export utilities
