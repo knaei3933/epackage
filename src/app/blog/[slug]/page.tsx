@@ -191,9 +191,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="flex flex-col lg:flex-row gap-8">
             {/* Main Content */}
-            <article className="lg:col-span-2 min-w-0">
+            <article className="flex-1 min-w-0 lg:w-2/3">
               {/* Article Header */}
               <header className="mb-8">
                 {/* Category Badge */}
@@ -318,7 +318,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </article>
 
             {/* Sidebar */}
-            <aside className="lg:col-span-1 sticky top-24 self-start">
+            <aside className="lg:w-1/3 lg:flex-shrink-0 sticky top-24 self-start h-fit">
               {/* Table of Contents */}
               {headings.length > 0 && (
                 <TableOfContents headings={headings} />
