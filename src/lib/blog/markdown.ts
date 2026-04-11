@@ -13,16 +13,17 @@ import matter from 'gray-matter';
 // =====================================================
 
 /**
- * Generate slug from text
+ * Generate slug from text (supports Japanese text)
  */
 function slugify(text: string): string {
   return text
     .toLowerCase()
     .trim()
     .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/[^\w\s-]/g, '') // Remove special chars
+    .replace(/[^\w\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\s-]/g, '') // Keep CJK, alphanumeric, spaces, hyphens
     .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with hyphens
-    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .substring(0, 50); // Limit length
 }
 
 // =====================================================
