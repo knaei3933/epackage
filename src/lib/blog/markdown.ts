@@ -143,13 +143,15 @@ export async function parseMarkdown(
     const { content } = matter(markdown);
     cleanMarkdown = content;
   } catch {
-    // If frontmatter parsing fails, try custom regex removal
-    // Remove lines with **meta_title**: "..." and **meta_description**: "..."
-    cleanMarkdown = markdown.replace(/^\*\*meta_title\*\*:\s*"[^"]*"\s*\n?/gm, '');
-    cleanMarkdown = cleanMarkdown.replace(/^\*\*meta_description\*\*:\s*"[^"]*"\s*\n?/gm, '');
-    // Also remove standalone --- lines
-    cleanMarkdown = cleanMarkdown.replace(/^---\s*\n?/gm, '');
+    // If frontmatter parsing fails, use original markdown
+    cleanMarkdown = markdown;
   }
+
+  // Always remove meta_title/meta_description patterns (even after gray-matter)
+  cleanMarkdown = cleanMarkdown.replace(/^\*\*meta_title\*\*:\s*"[^"]*"\s*\n?/gm, '');
+  cleanMarkdown = cleanMarkdown.replace(/^\*\*meta_description\*\*:\s*"[^"]*"\s*\n?/gm, '');
+  // Remove standalone --- lines
+  cleanMarkdown = cleanMarkdown.replace(/^---\s*\n?/gm, '');
 
   // Configure marked options
   marked.setOptions({
