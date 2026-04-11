@@ -335,7 +335,7 @@ export class PouchCostCalculator {
   /**
    * FilmCostSettings形式でDB設定をロード
    */
-  private async loadFilmCostSettings(): Promise<import('./film-cost-calculator').FilmCostSettings> {
+  async loadFilmCostSettings(): Promise<import('./film-cost-calculator').FilmCostSettings> {
     return {
       PET_unit_price: await this.getSetting('film_material', 'PET_unit_price', undefined),
       AL_unit_price: await this.getSetting('film_material', 'AL_unit_price', undefined),
@@ -474,10 +474,21 @@ export class PouchCostCalculator {
     // ========================================
     // 原反幅の決定（先に決定する必要がある）
     // ========================================
-    // 原反幅自動決定 (パウチ幅/インク印刷幅基準)
-    // クラフト材料: 780mm(印刷可能760mm)/1190mm(印刷可能1170mm)
-    // 通常材料: 590mm(印刷可能570mm)/760mm(印刷可能740mm)
-    const materialWidth = this.selectMaterialWidth(dimensions.width, materialId);
+    // 2列生産の可能性を事前に確認（原反幅選定用）
+    const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
+
+    // 2列生産フィルム幅が570mmを超える場合は760mm原反を使用
+    // 例: 145×145×30mmのスタンドパウチ2列: (145×4) + (30×2) + 40 = 650mm > 570mm → 760mm原反
+    // 例: 130×130×30mmのスタンドパウチ2列: (130×4) + (30×2) + 40 = 620mm > 570mm → 760mm原反
+    let materialWidth: number;
+    if (filmWidth2Columns > 570) {
+      // 2列フィルム幅が570mmを超える場合は760mm原反を使用（印刷可能幅740mm）
+      materialWidth = 760;
+    } else {
+      // それ以外はパウチ幅に基づいて選択
+      materialWidth = this.selectMaterialWidth(dimensions.width, materialId);
+    }
+
     const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
 
     // ========================================
@@ -1898,7 +1909,7 @@ export class PouchCostCalculator {
   }
 
   /**
-   * 2列生産推奨オプション計算（15% OFF、31% OFF）
+   * 2列生産推奨オプション計算（15% OFF、30% OFF）
    *
    * docs/reports/calcultae/07-SKU_및_병렬생산.md 参照
    *
@@ -1911,6 +1922,11 @@ export class PouchCostCalculator {
    * @param pouchType パウチタイプ
    * @param dimensions パウチ寸法
    * @param materialWidth 原反幅（590 or 760、デフォルト: 590）
+   * @param filmLayers フィルム構造レイヤー（正確な原価計算用）
+   * @param materialId 素材ID（正確な原価計算用）
+   * @param thicknessSelection 厚み選択
+   * @param postProcessingOptions 後加工オプション
+   * @param dbSettings フィルム原価設定（正確な原価計算用）
    * @returns 2列生産オプション（2列生産不可能な場合はnull）
    */
   calculateTwoColumnProductionOptions(
@@ -1918,7 +1934,12 @@ export class PouchCostCalculator {
     currentUnitPrice: number,
     pouchType: string,
     dimensions: PouchDimensions,
-    materialWidth: number = 590
+    materialWidth: number = 590,
+    filmLayers?: FilmLayer[],
+    materialId?: string,
+    thicknessSelection?: string,
+    postProcessingOptions?: string[],
+    dbSettings?: import('./film-cost-calculator').FilmCostSettings
   ): TwoColumnProductionOptions | null {
     // 2列生産が可能かチェック（実際の原反幅を渡す）
     if (!this.canUseTwoColumnProduction(pouchType, dimensions, currentQuantity, materialWidth)) {
@@ -1926,34 +1947,114 @@ export class PouchCostCalculator {
     }
 
     // ========================================
-    // 経済的数量を計算（ドキュメントに基づく）
-    // docs/reports/calcultae/07-SKU_및_병렬생산.md
+    // 2列生産の正確な原価計算
     // ========================================
 
     const pitchMM = dimensions.width;
-    const pouchesPerMeter = 1000 / pitchMM;
+    const pouchesPerMeter1Col = 1000 / pitchMM; // 1列生産の個数/m
 
-    // 理論メートル = 注文数量 ÷ (1,000 ÷ ピッチ)
-    const theoreticalMeters = currentQuantity / pouchesPerMeter;
+    // 1列生産の理論メートル（参考）
+    const theoreticalMeters1Col = currentQuantity / pouchesPerMeter1Col;
 
-    // 総フィルム量 = 理論メートル + 400m（ロス）
+    // 2列生産の理論メートル（半減）
+    const theoreticalMeters2Col = theoreticalMeters1Col / 2;
+
+    // 2列生産の総フィルム量（理論メートル + 400mロス）
     const LOSS_METERS = 400;
-    const totalFilmUsage = theoreticalMeters + LOSS_METERS;
+    const totalFilmUsage2Col = theoreticalMeters2Col + LOSS_METERS;
 
-    // 経済的数量 = 総フィルム量で生産可能な数量
-    const economicQuantity = Math.floor(totalFilmUsage * pouchesPerMeter);
+    // 経済的数量（2列生産の総フィルム量で生産可能な数量）
+    const economicQuantity = Math.floor(totalFilmUsage2Col * (pouchesPerMeter1Col * 2)); // 2列なので個数/mを2倍
+
+    console.log('[calculateTwoColumnProductionOptions] 2列生産メートル計算:', {
+      currentQuantity,
+      pitchMM,
+      pouchesPerMeter1Col: pouchesPerMeter1Col.toFixed(2),
+      theoreticalMeters1Col: theoreticalMeters1Col.toFixed(1),
+      theoreticalMeters2Col: theoreticalMeters2Col.toFixed(1),
+      totalFilmUsage2Col: totalFilmUsage2Col.toFixed(1),
+      economicQuantity,
+      materialWidth,
+      note: '2列生産: 理論メートルは1列生産の半分'
+    });
 
     // ========================================
-    // 2列生産オプションを計算
+    // 2列生産オプション価格計算
     // ========================================
+
+    let sameQuantityPrice: number;
+    let doubleQuantityPrice: number;
+
+    if (filmLayers && filmLayers.length > 0 && dbSettings) {
+      // 正確な原価計算：filmLayersとdbSettingsがある場合は実際の2列生産原価を計算
+      // dbSettingsは呼び出し元で事前にロードして渡す
+
+      // 印刷可能幅を計算
+      const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
+
+      // マット仕上げ選択確認
+      const hasMatteFinishing = postProcessingOptions?.includes('matte') ?? false;
+
+      // 2列生産のフィルム原価計算（760mm原反、2列メートル数）
+      const filmCostResult = this.filmCalculator.calculateCostWithDBSettings({
+        layers: filmLayers,
+        width: printableWidth,
+        length: totalFilmUsage2Col,
+        lossRate: 0, // 固定400mロスを既に含めているため、追加のロス率は0
+        hasPrinting: true,
+        printingType: hasMatteFinishing ? 'matte' : 'basic',
+        colors: 1,
+        materialWidth: printableWidth,
+        postProcessingOptions: postProcessingOptions
+      }, dbSettings);
+
+      // 2列生産割引適用（7.5% OFF = 92.5%）
+      const discountableCost = filmCostResult.materialCost +
+        filmCostResult.printingCost +
+        filmCostResult.laminationCost +
+        (filmCostResult.surfaceTreatmentCost || 0);
+      const nonDiscountableCost = filmCostResult.slitterCost +
+        filmCostResult.deliveryCostJPY;
+      const discountedCost = discountableCost * 0.925; // 7.5% OFF
+      const totalCost2Col = discountedCost + nonDiscountableCost;
+
+      // 単価（総額 / 数量）
+      const unitPrice2Col = totalCost2Col / currentQuantity;
+
+      // 15% OFF: 実際の2列生産原価からさらに15% OFF（顧客への割引）
+      sameQuantityPrice = unitPrice2Col * 0.85;
+
+      // 30% OFF: 倍数量の場合は効率がさらに向上するため、さらに割引
+      doubleQuantityPrice = unitPrice2Col * 0.70; // 30% OFF
+
+      console.log('[calculateTwoColumnProductionOptions] 2列生産正確原価計算:', {
+        materialCost: Math.round(filmCostResult.materialCost),
+        printingCost: Math.round(filmCostResult.printingCost),
+        laminationCost: Math.round(filmCostResult.laminationCost),
+        totalCost2Col: Math.round(totalCost2Col),
+        unitPrice2Col: unitPrice2Col.toFixed(2),
+        sameQuantityPrice: Math.round(sameQuantityPrice),
+        doubleQuantityPrice: Math.round(doubleQuantityPrice)
+      });
+    } else {
+      // フォールバック：filmLayersがない場合は従来の計算方法（1列生産単価に割引）
+      // 15% OFF: 同じ数量
+      sameQuantityPrice = currentUnitPrice * 0.85;
+      // 30% OFF: 倍の数量
+      doubleQuantityPrice = currentUnitPrice * 0.70;
+
+      console.log('[calculateTwoColumnProductionOptions] フォールバック計算（filmLayersなし）:', {
+        currentUnitPrice,
+        sameQuantityPrice: Math.round(sameQuantityPrice),
+        doubleQuantityPrice: Math.round(doubleQuantityPrice)
+      });
+    }
 
     // 15% OFF: 同じ数量（経済的数量を100単位で切り捨て）
     const roundedQuantity = this.roundDownToHundreds(economicQuantity);
-    const sameQuantityPrice = currentUnitPrice * 0.85; // ドキュメント: 原価削減30% → 顧客割引15%
 
     // 30% OFF: 倍の数量（経済的数量×2を100単位で切り捨て）
     const doubleQuantity = this.roundDownToHundreds(economicQuantity * 2);
-    const doubleQuantityPrice = currentUnitPrice * 0.70; // 原価削減50%: 顧客30% OFF + 販売者マージン20%追加
 
     console.log('[calculateTwoColumnProductionOptions] 計算結果:', {
       currentQuantity,

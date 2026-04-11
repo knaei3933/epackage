@@ -140,6 +140,9 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   const previousPriceRef = useRef<number | null>(null);
   const isCalculatingPriceRef = useRef(false);
 
+  // 2列生産オプションの状態（非同期計算用）
+  const [twoColumnOptions, setTwoColumnOptions] = useState<TwoColumnProductionOptions | null>(null);
+
   // 元に戻すための前の状態を保存
   const [previousState, setPreviousState] = useState<{
     skuCount: number;
@@ -166,187 +169,181 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     ? quoteState.originalUnitPrice
     : null;
 
-  // 2列生産オプションとSKU分割オプションを計算（useMemoでキャッシュ）
-  const twoColumnOptions = useMemo(() => {
-    // オプション適用後も推奨変更のため計算を続ける
-    // 適用済みオプションは appliedOption prop で処理する
-    const isRollFilm = quoteState.bagTypeId === 'roll_film';
+  // 2列生産オプションを非同期計算（useEffectでdbSettingsをロード）
+  useEffect(() => {
+    const calculateTwoColumnOptions = async () => {
+      // オプション適用後も推奨変更のため計算を続ける
+      // 適用済みオプションは appliedOption prop で処理する
+      const isRollFilm = quoteState.bagTypeId === 'roll_film';
 
-    // ロールフィルムの場合：幅条件なしで2〜5列生産オプションを提供
-    if (isRollFilm) {
-      // 数量はメートル単位で500m以上必要
-      if (totalQuantity < 500) {
-        return null;
+      // ロールフィルムの場合：幅条件なしで2〜5列生産オプションを提供
+      if (isRollFilm) {
+        // 数量はメートル単位で500m以上必要
+        if (totalQuantity < 500) {
+          setTwoColumnOptions(null);
+          return;
+        }
+
+        const baseUnitPrice = localUnitPrice || quoteState.originalUnitPrice || quoteState.unitPrice || 50;
+        if (baseUnitPrice <= 0) {
+          setTwoColumnOptions(null);
+          return;
+        }
+
+        const width = quoteState.width || 0;
+
+        // 原反幅制約を考慮した最大列数の計算
+        // 760mm原反の有効幅は740mm（両端20mmマージン考慮）
+        const MAX_PRINTABLE_WIDTH = 740;
+        const maxColumns = Math.floor(MAX_PRINTABLE_WIDTH / width);
+        const minColumns = 2;
+
+        // 2列未満の場合はオプションを提供しない
+        if (maxColumns < minColumns) {
+          console.log('[UnifiedSKUQuantityStep] Width exceeds printable area:', {
+            width,
+            maxColumns,
+            minColumns,
+            message: `${width}mm exceeds limit for ${minColumns}-column production (max: ${MAX_PRINTABLE_WIDTH}mm)`
+          });
+          setTwoColumnOptions(null);
+          return;
+        }
+
+        const possibleMaxColumns = maxColumns;
+
+        // ロールフィルム用多列生産オプション（2〜possibleMaxColumns）
+        const multiColumnOptions: {
+          columnCount: number;
+          columnWidth: number;
+          quantity: number;
+          unitPrice: number;
+          totalPrice: number;
+          savingsRate: number;
+        }[] = [];
+
+        // 割引率（2026-01-30 再設計）
+        const discountRates: Record<number, number> = {
+          2: 0.40,   // 40% OFF
+          3: 0.48,   // 48% OFF
+          4: 0.55,   // 55% OFF
+          5: 0.58,   // 58% OFF
+          6: 0.61,   // 61% OFF
+          7: 0.64    // 64% OFF - 最大割引
+        };
+
+        // 可能な列数までのみ生成
+        for (let columns = minColumns; columns <= possibleMaxColumns; columns++) {
+          const discountRate = discountRates[columns];
+          const discountedUnitPrice = Math.round(baseUnitPrice * (1 - discountRate));
+          const actualTotalLength = totalQuantity * columns;
+          const totalPrice = Math.round(discountedUnitPrice * actualTotalLength);
+
+          multiColumnOptions.push({
+            columnCount: columns,
+            columnWidth: width,
+            quantity: actualTotalLength,
+            unitPrice: discountedUnitPrice,
+            totalPrice: totalPrice,
+            savingsRate: Math.round(discountRate * 10000) / 100
+          });
+        }
+
+        setTwoColumnOptions({
+          sameQuantity: multiColumnOptions[0],
+          doubleQuantity: multiColumnOptions[1],
+          multiColumn: multiColumnOptions
+        });
+        return;
       }
 
+      // パウチ製品：従来のロジック
+      // 総数量が1000個以上の場合のみ計算
+      if (totalQuantity < 1000) {
+        setTwoColumnOptions(null);
+        return;
+      }
+
+      // 重要：localUnitPrice（現在の基本価格）を使用して2列生産オプションを計算
       const baseUnitPrice = localUnitPrice || quoteState.originalUnitPrice || quoteState.unitPrice || 50;
+
+      // 単価が取得できなかった場合はスキップ
       if (baseUnitPrice <= 0) {
-        return null;
+        setTwoColumnOptions(null);
+        return;
       }
 
-      const width = quoteState.width || 0;
+      // 2列生産オプションを計算
+      try {
+        const dimensions = {
+          width: quoteState.width || 0,
+          height: quoteState.height || 0,
+          depth: quoteState.depth || 0
+        };
+        const pouchType = quoteState.bagTypeId || '';
+        const materialId = quoteState.materialId;
 
-      // 原反幅制約を考慮した最大列数の計算
-      // 760mm原反の有効幅は740mm（両端20mmマージン考慮）
-      const MAX_PRINTABLE_WIDTH = 740;
-      const maxColumns = Math.floor(MAX_PRINTABLE_WIDTH / width);
-      const minColumns = 2;
+        // パウチタイプに基づいて2列生産のフィルム幅を計算
+        const { height: H = 0, width: W = 0, depth: G = 0 } = dimensions;
+        let filmWidthFor2Columns = 0;
 
-      // 2列未満の場合はオプションを提供しない
-      if (maxColumns < minColumns) {
-        console.log('[UnifiedSKUQuantityStep] Width exceeds printable area:', {
-          width,
-          maxColumns,
-          minColumns,
-          message: `${width}mm exceeds limit for ${minColumns}-column production (max: ${MAX_PRINTABLE_WIDTH}mm)`
+        switch (pouchType) {
+          case 'roll_film':
+            filmWidthFor2Columns = W * 2;
+            break;
+          case 'flat_3_side':
+          case 'three_side':
+          case 'zipper':
+            filmWidthFor2Columns = (H * 4) + 71;
+            break;
+          case 'stand_up':
+          case 'zipper_stand':
+            filmWidthFor2Columns = (H * 4) + (G * 2) + 40;
+            break;
+          case 't_shape':
+            filmWidthFor2Columns = (W * 4) + 64;
+            break;
+          case 'box':
+            filmWidthFor2Columns = (G + W) * 4 + 84;
+            break;
+          default:
+            filmWidthFor2Columns = (H * 4) + 71;
+        }
+
+        // 原反幅を決定（2列生産フィルム幅に基づいて）
+        const materialWidth = determineMaterialWidth(filmWidthFor2Columns, materialId);
+
+        // DB設定を非同期ロード
+        const dbSettings = await pouchCostCalculator.loadFilmCostSettings();
+
+        const options = pouchCostCalculator.calculateTwoColumnProductionOptions(
+          totalQuantity,
+          baseUnitPrice,
+          pouchType,
+          dimensions,
+          materialWidth,
+          quoteState.filmLayers,
+          materialId,
+          quoteState.thicknessSelection,
+          quoteState.postProcessingOptions,
+          dbSettings
+        );
+
+        console.log('[UnifiedSKUQuantityStep] Two column options calculated:', {
+          baseUnitPrice,
+          totalQuantity,
+          options
         });
-        return null;
+
+        setTwoColumnOptions(options);
+      } catch (error) {
+        console.error('[UnifiedSKUQuantityStep] Error calculating two column options:', error);
+        setTwoColumnOptions(null);
       }
+    };
 
-      const possibleMaxColumns = maxColumns;
-
-      // ロールフィルム用多列生産オプション（2〜possibleMaxColumns）
-      // 各列の幅 = width / 列数
-      // 割引率: 2列15%, 3列22%, 4列28%, 5列33%
-      const multiColumnOptions: {
-        columnCount: number;
-        columnWidth: number;
-        quantity: number;
-        unitPrice: number;
-        totalPrice: number;
-        savingsRate: number;
-      }[] = [];
-
-      // 割引率（2026-01-30 再設計）
-      // 設計原則:
-      // 1. インシコストは1回のみ（大量生産の恩恵を顧客に還元）
-      // 2. 最大販売マージン60%を維持
-      // 3. 7列総額 = 1列 × 3.0倍（真正な大量割引を提供）
-      // 4. 列数が多いほど顧客メリットが大きくなる
-      const discountRates: Record<number, number> = {
-        2: 0.40,   // 40% OFF (1列の1.5倍価格)
-        3: 0.48,   // 48% OFF (1列の1.8倍価格)
-        4: 0.55,   // 55% OFF (1列の2.1倍価格)
-        5: 0.58,   // 58% OFF (1列の2.4倍価格)
-        6: 0.61,   // 61% OFF (1列の2.7倍価格)
-        7: 0.64    // 64% OFF (1列の3.0倍価格) - 最大割引
-      };
-
-      // 可能な列数までのみ生成
-      // ★新設計（2026-01-30）:
-      // 1. 顧客が設定した幅は変更しない（200mmはそのまま200mm）
-      // 2. 原反幅（740mm）を活用して並列生産を提案
-      // 3. 例: 200mm幅 → 2列は「200mm×2個」、3列は「200mm×3個」
-      // 4. 並列生産で総長さが増加（500m注文 → 2列で1,000m、3列で1,500m）
-      for (let columns = minColumns; columns <= possibleMaxColumns; columns++) {
-        const discountRate = discountRates[columns];
-        const discountedUnitPrice = Math.round(baseUnitPrice * (1 - discountRate));
-
-        // 顧客が設定した幅は維持（columnWidth = width）
-        // 原反幅の使用量 = width × columns
-        const usedWidth = width * columns;
-
-        // 並列生産で総長さが倍増: 500m × 2列 = 1,000m、500m × 3列 = 1,500m
-        const actualTotalLength = totalQuantity * columns;
-
-        // 総価格 = 割引単価 × 実際総長さ
-        const totalPrice = Math.round(discountedUnitPrice * actualTotalLength);
-
-        multiColumnOptions.push({
-          columnCount: columns,
-          columnWidth: width, // 顧客が設定した幅を維持（変更なし）
-          quantity: actualTotalLength, // 目標 길이에 가까운 실제 총 길이
-          unitPrice: discountedUnitPrice,
-          totalPrice: totalPrice,
-          savingsRate: Math.round(discountRate * 10000) / 100 // 小数点第2位まで（7.5, 10, 11.25など）
-        });
-      }
-
-      return {
-        sameQuantity: multiColumnOptions[0], // 2列
-        doubleQuantity: multiColumnOptions[1], // 3列
-        multiColumn: multiColumnOptions // 2〜5列全て
-      };
-    }
-
-    // パウチ製品：従来のロジック
-    // 総数量が1000個以上の場合のみ計算
-    if (totalQuantity < 1000) {
-      return null;
-    }
-
-    // 重要：localUnitPrice（現在の基本価格）を使用して2列生産オプションを計算
-    // QuoteContextの値ではなく、価格計算useEffectで計算された値を使用する
-    const baseUnitPrice = localUnitPrice || quoteState.originalUnitPrice || quoteState.unitPrice || 50;
-
-    // 単価が取得できなかった場合はスキップ
-    if (baseUnitPrice <= 0) {
-      return null;
-    }
-
-    // 2列生産オプションを計算
-    try {
-      const dimensions = {
-        width: quoteState.width || 0,
-        height: quoteState.height || 0,
-        depth: quoteState.depth || 0
-      };
-      const pouchType = quoteState.bagTypeId || '';
-      const materialId = quoteState.materialId;
-
-      // パウチタイプに基づいて2列生産のフィルム幅を計算
-      // pouch-cost-calculator.tsのcalculateFilmWidthメソッドと同じロジック
-      const { height: H = 0, width: W = 0, depth: G = 0 } = dimensions;
-      let filmWidthFor2Columns = 0;
-
-      switch (pouchType) {
-        case 'roll_film':
-          filmWidthFor2Columns = W * 2;
-          break;
-        case 'flat_3_side':
-        case 'three_side':
-        case 'zipper':
-          filmWidthFor2Columns = (H * 4) + 71;
-          break;
-        case 'stand_up':
-        case 'zipper_stand':
-          // 2列: (H × 4) + (G × 2) + 40
-          filmWidthFor2Columns = (H * 4) + (G * 2) + 40;
-          break;
-        case 't_shape':
-          filmWidthFor2Columns = (W * 4) + 64;
-          break;
-        case 'box':
-          filmWidthFor2Columns = (G + W) * 4 + 84;
-          break;
-        default:
-          filmWidthFor2Columns = (H * 4) + 71;
-      }
-
-      // 原反幅を決定（2列生産フィルム幅に基づいて）
-      // determineMaterialWidth: 幅が570mm以下→590mm原反、570mm超過→760mm原反
-      const materialWidth = determineMaterialWidth(filmWidthFor2Columns, materialId);
-
-      const options = pouchCostCalculator.calculateTwoColumnProductionOptions(
-        totalQuantity,
-        baseUnitPrice,
-        pouchType,
-        dimensions,
-        materialWidth
-      );
-
-      console.log('[UnifiedSKUQuantityStep] Two column options calculated:', {
-        baseUnitPrice,
-        totalQuantity,
-        options
-      });
-
-      return options;
-    } catch (error) {
-      console.error('[UnifiedSKUQuantityStep] Error calculating two column options:', error);
-      return null;
-    }
-  }, [totalQuantity, quoteState.skuQuantities, quoteState.width, quoteState.height, quoteState.depth, quoteState.bagTypeId, localUnitPrice, quoteState.originalUnitPrice, quoteState.unitPrice, quoteState.twoColumnOptionApplied]);
+    calculateTwoColumnOptions();
+  }, [totalQuantity, quoteState.skuQuantities, quoteState.width, quoteState.height, quoteState.depth, quoteState.bagTypeId, localUnitPrice, quoteState.originalUnitPrice, quoteState.unitPrice, quoteState.twoColumnOptionApplied, quoteState.filmLayers, materialId, quoteState.thicknessSelection, quoteState.postProcessingOptions]);
 
   const skuSplitOptions = useMemo(() => {
     // SKU分割オプションを計算
