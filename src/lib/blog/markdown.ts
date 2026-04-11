@@ -85,21 +85,18 @@ function getWebPPath(originalPath: string): string {
 // Configure marked
 // =====================================================
 
+// =====================================================
+// Configure marked
+// =====================================================
+
 marked.setOptions({
   gfm: true,
   breaks: true,
 });
 
-// Custom renderer for image optimization and heading IDs
-class CustomRenderer extends marked.Renderer {
-  heading(token: any) {
-    const text = this.parser.parseInline(token.tokens);
-    const plainText = text.replace(/<[^>]*>/g, '');
-    const id = slugify(plainText);
-    return `<h${token.depth} id="${id}">${text}</h${token.depth}>\n`;
-  }
-
-  image(href: string, title: string | null, text: string) {
+// Custom renderer for image optimization
+const customRenderer = {
+  image({ href, title, text }: { href: string; title: string | null; text: string }): string {
     if (!href) return '';
     const webpSrc = getWebPPath(href);
     const imageType = detectImageType(href);
@@ -111,12 +108,19 @@ class CustomRenderer extends marked.Renderer {
   <source srcset="${webpSrc}" type="image/webp">
   <img src="${href}" alt="${altText}"${titleAttr} loading="lazy" width="${dims.width}" height="${dims.height}" style="max-width: 100%; height: auto;">
 </picture>`;
-  }
-}
+  },
+};
 
-marked.setOptions({
-  renderer: new CustomRenderer(),
-});
+marked.use({ renderer: customRenderer });
+
+// Add heading IDs after parsing
+function addHeadingIds(html: string): string {
+  return html.replace(/<h([2-3])>(.*?)<\/h\1>/g, (match, level, content) => {
+    const plainText = content.replace(/<[^>]*>/g, '');
+    const id = slugify(plainText);
+    return `<h${level} id="${id}">${content}</h${level}>`;
+  });
+}
 
 // =====================================================
 // Main Parser Function
@@ -156,6 +160,9 @@ export async function parseMarkdown(
 
   // Parse markdown to HTML
   let html = await marked.parse(cleanMarkdown);
+
+  // Add heading IDs post-processing
+  html = addHeadingIds(html);
 
   // Sanitize HTML if needed
   if (sanitize) {
