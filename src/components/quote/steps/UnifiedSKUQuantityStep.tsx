@@ -264,8 +264,9 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
         return;
       }
 
-      // 重要：localUnitPrice（現在の基本価格）を使用して2列生産オプションを計算
-      const baseUnitPrice = localUnitPrice || quoteState.originalUnitPrice || quoteState.unitPrice || 50;
+      // 重要：originalUnitPrice（2列生産オプション適用前の元価格）を優先的に使用
+      // localUnitPriceは既に2列生産オプション適用後の割引価格の場合があるため
+      const baseUnitPrice = quoteState.originalUnitPrice || quoteState.unitPrice || localUnitPrice || 50;
 
       // 単価が取得できなかった場合はスキップ
       if (baseUnitPrice <= 0) {

@@ -102,10 +102,10 @@ export function determineMaterialWidth(productWidth: number, materialId?: string
  */
 export function calculatePouchFilmWidth(
   pouchType: string,
-  dimensions: { width: number; height: number; depth?: number; sideWidth?: number },
+  dimensions: { width: number; height: number; depth?: number },
   columns: 1 | 2
 ): number {
-  const { width, height, depth = 0, sideWidth = 0 } = dimensions;
+  const { width, height, depth = 0 } = dimensions;
 
   switch (pouchType) {
     case 'flat_3_side':
@@ -117,13 +117,21 @@ export function calculatePouchFilmWidth(
       // depthは片面の値なので、両面分はdepth × 2（1列・2列共通）
       return columns === 1 ? (height * 2) + (depth * 2) + 35 : (height * 4) + (depth * 2) + 40;
 
+    case 'spout_pouch':
+      // スパウトパウチ: スタンドパウチと同じ計算式（マチありの場合）
+      // 1列: (H × 2) + (G × 2) + 35, 2列: (H × 4) + (G × 2) + 40
+      // depthは片面の値なので、両面分はdepth × 2（1列・2列共通）
+      return columns === 1 ? (height * 2) + (depth * 2) + 35 : (height * 4) + (depth * 2) + 40;
+
     case 'lap_seal':
       // 合掌袋: W × 2 + 余白(ドキュメント: 02-필름폭_계산공식.md)
       return columns === 1 ? (width * 2) + 22 : (width * 2) + 22 + 20 + (width * 2) + 22;
 
     case 'box_pouch':
-      // ボックス型: (G + W) × 2 + 側面×2 + 余白
-      return columns === 1 ? (depth + width) * 2 + (sideWidth * 2) + 32 : ((depth + width) * 2 + (sideWidth * 2) + 15) * 2 + 30;
+      // ボックス型（M封）: (G + W) × 2 + 余白
+      // Gは側面幅（片面）、Wは正面幅
+      // 前面(G+W) + 背面(G+W) = (G+W)×2
+      return columns === 1 ? (depth + width) * 2 + 32 : ((depth + width) * 2 + 20 + (depth + width) * 2);
 
     default:
       // デフォルトは三方袋

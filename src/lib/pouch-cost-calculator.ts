@@ -875,6 +875,13 @@ export class PouchCostCalculator {
         // depth(G)は片面の値なので、両面分はG × 2（1列・2列共通）
         return columnCount === 1 ? (H * 2) + (G * 2) + 35 : (H * 4) + (G * 2) + 40;
 
+      case 'spout':
+      case 'spout_pouch':
+        // スパウトパウチ: スタンドパウチと同じ計算式（マチありの場合）
+        // 1列: (H × 2) + (G × 2) + 35, 2列: (H × 4) + (G × 2) + 40
+        // depth(G)は片面の値なので、両面分はG × 2（1列・2列共通）
+        return columnCount === 1 ? (H * 2) + (G * 2) + 35 : (H * 4) + (G * 2) + 40;
+
       case 't_shape':
         // 合掌袋（T封）: 1列=(W×2)+22, 2列=(W×4)+64 (2×A+20, A=(W×2)+22)
         return columnCount === 1 ? (W * 2) + 22 : (W * 4) + 64;
@@ -1999,11 +2006,11 @@ export class PouchCostCalculator {
       note: '1列生産単価に対する割引を適用（2列生産の生産効率を顧客に還元）'
     });
 
-    // 15% OFF: 同じ数量（経済的数量を100単位で切り捨て）
-    const roundedQuantity = this.roundDownToHundreds(economicQuantity);
+    // 15% OFF: 同じ数量（現在の数量）
+    const sameQuantity = currentQuantity;
 
-    // 30% OFF: 倍の数量（経済的数量×2を100単位で切り捨て）
-    const doubleQuantity = this.roundDownToHundreds(economicQuantity * 2);
+    // 30% OFF: 倍の数量（現在の数量×2を100単位で切り捨て）
+    const doubleQuantity = this.roundDownToHundreds(currentQuantity * 2);
 
     console.log('[calculateTwoColumnProductionOptions] 計算結果:', {
       currentQuantity,

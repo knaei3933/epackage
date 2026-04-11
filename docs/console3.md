@@ -1,2213 +1,479 @@
-forward-logs-shared.ts:95 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
-forward-logs-shared.ts:95 [HMR] connected
-site.webmanifest:1 Manifest: Line: 1, column: 1, Syntax error.
-QuoteContext.tsx:272 [QuoteContext] initialState created: {materialWidth: 590, filmLayers: Array(4), filmLayersCount: 4}
-QuoteContext.tsx:1727 [QuoteProvider] State updated: {materialWidth: 590, filmLayers: Array(4), filmLayersCount: 4, materialId: 'pet_al'}
-AuthContext.tsx:223 [AuthContext] Initializing auth context...
-AuthContext.tsx:149 [AuthContext] Fetching session from /api/auth/current-user... {fetchId: 1}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-AuthContext.tsx:174 [AuthContext] Session updated successfully {fetchId: 1}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-ImprovedQuotingWizard.tsx:4105 [RealTimePriceDisplay] Auth ready, user detected: 54fd7b31-b805-43cf-b92e-898ddd066875
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-site.webmanifest:1 Manifest: Line: 1, column: 1, Syntax error.
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:02.219Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 500, quantity: 500, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'flat_3_side|pet_al|200|300|0|500|[500]|medium|1.0|…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-pouch-cost-calculator.ts:473 [Film Width Calculation] {
-  "pouchType": "flat_3_side",
-  "dimensions": {
-    "width": 200,
-    "height": 300,
-    "depth": 0
-  },
-  "skuCount": 1,
-  "totalQuantity": 500,
-  "materialWidth": 590,
-  "printableWidth": 570,
-  "optimalColumnCount": 1,
-  "calculatedFilmWidth": 641,
-  "note": "パウチ: 1列生産"
-}
-pouch-cost-calculator.ts:882 [calculateTheoreticalMeters] {pouchType: 'flat_3_side', dimensions: {…}, pitch: 200, columnCount: 1, quantity: 500}
-pouch-cost-calculator.ts:895 [calculateTheoreticalMeters] result: {pouchesPerMeter: 5, result: 100}
-pouch-cost-calculator.ts:509 [calculateSKUCost] Total Film Calculation: {totalSecuredMeters: 100, lossMeters: 400, totalWithLossMeters: 500, isKraftMaterial: false, kraftMinimumApplied: false, …}
-pouch-cost-calculator.ts:969 [calculateFilmCost] DEBUG: {materialId: 'pet_al', thicknessSelection: 'medium', filmLayersReceived: Array(4), baseLayers: Array(4), adjustedLayers: Array(4), …}
- [PouchCostCalculator] Loaded pricing settings from DB: 66 settings
- [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.59, lengthWithLoss: 500}
- [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
- [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
- [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
- [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
- [calculateMaterialCost] RESULT: {totalCost: 124040.41999999998, totalWeight: 34.3439, totalCostRounded: 124040}
- [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.59, lengthWithLoss: 500, postProcessingOptions: Array(0), hasGlossy: false, hasMatte: false}
- [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
- [calculateSKUCost] Total Film Cost Breakdown: {materialCost: 124040, printingCost: 237500, laminationCost: 66375, slitterCost: 30000, surfaceTreatmentCost: 0, …}
- [Pouch Processing Cost] {pouchType: 'flat_3_side', finalPouchType: 'flat_3_side', widthCM: 20, quantity: 500, pricePerCm: 0.4, …}
- [calculateSKUCost] Total Processing Cost: {totalQuantity: 500, skuCount: 1, totalPouchProcessingCostKRW: 200000, note: '各SKUの固定費用を合算（按分なし）'}
- [calculateSKUCost] SKU 0 Allocation: {quantity: 500, quantityRatio: '100.0%', allocatedFilmCostKRW: 457915, allocatedPouchProcessingCostKRW: 200000}
- [calculateCostBreakdown] DEBUG: {filmCostTotalKRW: 457915, pouchProcessingCostKRW: 200000, baseCostKRW: 657915, quantity: 500, deliveryJPY: 15358}
- [PouchCostCalculator] manufacturerMargin: 0.3
- [PouchCostCalculator] salesMargin: 0.3
- [calculateCostBreakdown] PRICE CALC: {baseCostKRW: 657915, salesMargin: 0.3, customerMarkupRate: 0, quantity: 500, deliveryJPY: 15358}
- [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 657915,
-  "manufacturerPriceKRW": 855289.5,
-  "manufacturerPriceJPY": 102634.73999999999,
-  "dutyJPY": 5131.737,
-  "deliveryJPY": 15358,
-  "subtotalJPY": 123124.47699999998,
-  "salesMargin": 0.3,
-  "priceAfterSalesMargin": 160061.82009999998,
-  "salesMarginJPY": 36937.3431,
-  "customerMarkupRate": 0,
-  "customerDiscountJPY": 0,
-  "finalPriceJPY": 160061.82009999998
-}
- [calculateCostBreakdown] totalCost（小数点以下保持）: 160061.82009999998
- [calculateSKUCost] Delivery Calculation: {totalDeliveryWeight: 3.7722825000000006, deliveryBoxes: 1, totalDeliveryJPY: 15357.599999999999, perBoxCostJPY: 15357.599999999999}
- 【SKU後加工オプション】
- {
-  "後加工オプション": [],
-  "マット仕上げ": false,
-  "光沢仕上げ": false
-}
- [SKU Calculation - Using Glossy Finish] {hasGlossyFinishing: false, note: 'マット印刷追加費は適用されません'}
- 【SKU追加料金】
- {
-  "SKU数": 1,
-  "追加料金": "¥0",
-  "計算式": "(1 - 1) × ¥10,000 = ¥0"
-}
-unified-pricing-engine.ts:1665 [100円丸め] 丸め前 totalPrice: 160061.4201 (型: number )
-unified-pricing-engine.ts:1666 [100円丸め] 丸め後 roundedTotalPrice: 160100 (差分: 38.57990000001155 )
-unified-pricing-engine.ts:1667 [100円丸め] 計算式: Math.ceil( 160061.4201 / 100) * 100 = 1601 * 100 = 160100
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 160100 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:02.478Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 1000, quantity: 1000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'flat_3_side|pet_al|200|300|0|1000|[1000]|medium|1.…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-pouch-cost-calculator.ts:473 [Film Width Calculation] {
-  "pouchType": "flat_3_side",
-  "dimensions": {
-    "width": 200,
-    "height": 300,
-    "depth": 0
-  },
-  "skuCount": 1,
-  "totalQuantity": 1000,
-  "materialWidth": 590,
-  "printableWidth": 570,
-  "optimalColumnCount": 1,
-  "calculatedFilmWidth": 641,
-  "note": "パウチ: 1列生産"
-}
-pouch-cost-calculator.ts:882 [calculateTheoreticalMeters] {pouchType: 'flat_3_side', dimensions: {…}, pitch: 200, columnCount: 1, quantity: 1000}
-pouch-cost-calculator.ts:895 [calculateTheoreticalMeters] result: {pouchesPerMeter: 5, result: 200}
-pouch-cost-calculator.ts:509 [calculateSKUCost] Total Film Calculation: {totalSecuredMeters: 200, lossMeters: 400, totalWithLossMeters: 600, isKraftMaterial: false, kraftMinimumApplied: false, …}
-pouch-cost-calculator.ts:969 [calculateFilmCost] DEBUG: {materialId: 'pet_al', thicknessSelection: 'medium', filmLayersReceived: Array(4), baseLayers: Array(4), adjustedLayers: Array(4), …}
-film-cost-calculator.ts:542 [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.59, lengthWithLoss: 600}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
-film-cost-calculator.ts:594 [calculateMaterialCost] RESULT: {totalCost: 148848.50400000002, totalWeight: 41.212680000000006, totalCostRounded: 148849}
-film-cost-calculator.ts:714 [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.59, lengthWithLoss: 600, postProcessingOptions: Array(0), hasGlossy: false, hasMatte: false}
-film-cost-calculator.ts:727 [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
-pouch-cost-calculator.ts:531 [calculateSKUCost] Total Film Cost Breakdown: {materialCost: 148849, printingCost: 285000, laminationCost: 79650, slitterCost: 30000, surfaceTreatmentCost: 0, …}
-pouch-cost-calculator.ts:1138 [Pouch Processing Cost] {pouchType: 'flat_3_side', finalPouchType: 'flat_3_side', widthCM: 20, quantity: 1000, pricePerCm: 0.4, …}
-pouch-cost-calculator.ts:551 [calculateSKUCost] Total Processing Cost: {totalQuantity: 1000, skuCount: 1, totalPouchProcessingCostKRW: 200000, note: '各SKUの固定費用を合算（按分なし）'}
-pouch-cost-calculator.ts:595 [calculateSKUCost] SKU 0 Allocation: {quantity: 1000, quantityRatio: '100.0%', allocatedFilmCostKRW: 543499, allocatedPouchProcessingCostKRW: 200000}
-pouch-cost-calculator.ts:1180 [calculateCostBreakdown] DEBUG: {filmCostTotalKRW: 543499, pouchProcessingCostKRW: 200000, baseCostKRW: 743499, quantity: 1000, deliveryJPY: 15358}
-pouch-cost-calculator.ts:1190 [PouchCostCalculator] manufacturerMargin: 0.3
-pouch-cost-calculator.ts:1208 [PouchCostCalculator] salesMargin: 0.3
-pouch-cost-calculator.ts:1210 [calculateCostBreakdown] PRICE CALC: {baseCostKRW: 743499, salesMargin: 0.3, customerMarkupRate: 0, quantity: 1000, deliveryJPY: 15358}
-pouch-cost-calculator.ts:1228 [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 743499,
-  "manufacturerPriceKRW": 966548.7000000001,
-  "manufacturerPriceJPY": 115985.844,
-  "dutyJPY": 5799.2922,
-  "deliveryJPY": 15358,
-  "subtotalJPY": 137143.1362,
-  "salesMargin": 0.3,
-  "priceAfterSalesMargin": 178286.07706,
-  "salesMarginJPY": 41142.94086,
-  "customerMarkupRate": 0,
-  "customerDiscountJPY": 0,
-  "finalPriceJPY": 178286.07706
-}
-pouch-cost-calculator.ts:1276 [calculateCostBreakdown] totalCost（小数点以下保持）: 178286.07706
-pouch-cost-calculator.ts:638 [calculateSKUCost] Delivery Calculation: {totalDeliveryWeight: 7.544565000000001, deliveryBoxes: 1, totalDeliveryJPY: 15357.599999999999, perBoxCostJPY: 15357.599999999999}
-unified-pricing-engine.ts:48 【SKU後加工オプション】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [],
-  "マット仕上げ": false,
-  "光沢仕上げ": false
-}
-unified-pricing-engine.ts:1614 [SKU Calculation - Using Glossy Finish] {hasGlossyFinishing: false, note: 'マット印刷追加費は適用されません'}
-unified-pricing-engine.ts:48 【SKU追加料金】
-unified-pricing-engine.ts:49 {
-  "SKU数": 1,
-  "追加料金": "¥0",
-  "計算式": "(1 - 1) × ¥10,000 = ¥0"
-}
-unified-pricing-engine.ts:1665 [100円丸め] 丸め前 totalPrice: 178285.67706000002 (型: number )
-unified-pricing-engine.ts:1666 [100円丸め] 丸め後 roundedTotalPrice: 178300 (差分: 14.322939999983646 )
-unified-pricing-engine.ts:1667 [100円丸め] 計算式: Math.ceil( 178285.67706000002 / 100) * 100 = 1783 * 100 = 178300
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 178300 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:02.480Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 2000, quantity: 2000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'flat_3_side|pet_al|200|300|0|2000|[2000]|medium|1.…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-pouch-cost-calculator.ts:473 [Film Width Calculation] {
-  "pouchType": "flat_3_side",
-  "dimensions": {
-    "width": 200,
-    "height": 300,
-    "depth": 0
-  },
-  "skuCount": 1,
-  "totalQuantity": 2000,
-  "materialWidth": 590,
-  "printableWidth": 570,
-  "optimalColumnCount": 1,
-  "calculatedFilmWidth": 641,
-  "note": "パウチ: 1列生産"
-}
-pouch-cost-calculator.ts:882 [calculateTheoreticalMeters] {pouchType: 'flat_3_side', dimensions: {…}, pitch: 200, columnCount: 1, quantity: 2000}
-pouch-cost-calculator.ts:895 [calculateTheoreticalMeters] result: {pouchesPerMeter: 5, result: 400}
-pouch-cost-calculator.ts:509 [calculateSKUCost] Total Film Calculation: {totalSecuredMeters: 400, lossMeters: 400, totalWithLossMeters: 800, isKraftMaterial: false, kraftMinimumApplied: false, …}
-pouch-cost-calculator.ts:969 [calculateFilmCost] DEBUG: {materialId: 'pet_al', thicknessSelection: 'medium', filmLayersReceived: Array(4), baseLayers: Array(4), adjustedLayers: Array(4), …}
-film-cost-calculator.ts:542 [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.59, lengthWithLoss: 800}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
-film-cost-calculator.ts:594 [calculateMaterialCost] RESULT: {totalCost: 198464.67200000002, totalWeight: 54.95024, totalCostRounded: 198465}
-film-cost-calculator.ts:714 [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.59, lengthWithLoss: 800, postProcessingOptions: Array(0), hasGlossy: false, hasMatte: false}
-film-cost-calculator.ts:727 [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
-pouch-cost-calculator.ts:531 [calculateSKUCost] Total Film Cost Breakdown: {materialCost: 198465, printingCost: 380000, laminationCost: 106200, slitterCost: 30000, surfaceTreatmentCost: 0, …}
-pouch-cost-calculator.ts:1138 [Pouch Processing Cost] {pouchType: 'flat_3_side', finalPouchType: 'flat_3_side', widthCM: 20, quantity: 2000, pricePerCm: 0.4, …}
-pouch-cost-calculator.ts:551 [calculateSKUCost] Total Processing Cost: {totalQuantity: 2000, skuCount: 1, totalPouchProcessingCostKRW: 200000, note: '各SKUの固定費用を合算（按分なし）'}
- [calculateSKUCost] SKU 0 Allocation: {quantity: 2000, quantityRatio: '100.0%', allocatedFilmCostKRW: 714665, allocatedPouchProcessingCostKRW: 200000}
- [calculateCostBreakdown] DEBUG: {filmCostTotalKRW: 714665, pouchProcessingCostKRW: 200000, baseCostKRW: 914665, quantity: 2000, deliveryJPY: 15358}
- [PouchCostCalculator] manufacturerMargin: 0.3
- [PouchCostCalculator] salesMargin: 0.3
- [calculateCostBreakdown] PRICE CALC: {baseCostKRW: 914665, salesMargin: 0.3, customerMarkupRate: 0, quantity: 2000, deliveryJPY: 15358}
- [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 914665,
-  "manufacturerPriceKRW": 1189064.5,
-  "manufacturerPriceJPY": 142687.74,
-  "dutyJPY": 7134.387,
-  "deliveryJPY": 15358,
-  "subtotalJPY": 165180.12699999998,
-  "salesMargin": 0.3,
-  "priceAfterSalesMargin": 214734.16509999998,
-  "salesMarginJPY": 49554.038100000005,
-  "customerMarkupRate": 0,
-  "customerDiscountJPY": 0,
-  "finalPriceJPY": 214734.16509999998
-}
- [calculateCostBreakdown] totalCost（小数点以下保持）: 214734.16509999998
- [calculateSKUCost] Delivery Calculation: {totalDeliveryWeight: 15.089130000000003, deliveryBoxes: 1, totalDeliveryJPY: 15357.599999999999, perBoxCostJPY: 15357.599999999999}
- 【SKU後加工オプション】
- {
-  "後加工オプション": [],
-  "マット仕上げ": false,
-  "光沢仕上げ": false
-}
- [SKU Calculation - Using Glossy Finish] {hasGlossyFinishing: false, note: 'マット印刷追加費は適用されません'}
- 【SKU追加料金】
- {
-  "SKU数": 1,
-  "追加料金": "¥0",
-  "計算式": "(1 - 1) × ¥10,000 = ¥0"
-}
- [100円丸め] 丸め前 totalPrice: 214733.7651 (型: number )
- [100円丸め] 丸め後 roundedTotalPrice: 214800 (差分: 66.23490000001038 )
- [100円丸め] 計算式: Math.ceil( 214733.7651 / 100) * 100 = 2148 * 100 = 214800
- [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 214800 円
- [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:02.482Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 5000, quantity: 5000, …}
- [calculateQuote] CACHE CHECK: {cacheKey: 'flat_3_side|pet_al|200|300|0|5000|[5000]|medium|1.…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
- [calculateQuote] CACHE MISS - performing calculation
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- [Film Width Calculation] {
-  "pouchType": "flat_3_side",
-  "dimensions": {
-    "width": 200,
-    "height": 300,
-    "depth": 0
-  },
-  "skuCount": 1,
-  "totalQuantity": 5000,
-  "materialWidth": 590,
-  "printableWidth": 570,
-  "optimalColumnCount": 1,
-  "calculatedFilmWidth": 641,
-  "note": "パウチ: 1列生産"
-}
- [calculateTheoreticalMeters] {pouchType: 'flat_3_side', dimensions: {…}, pitch: 200, columnCount: 1, quantity: 5000}
- [calculateTheoreticalMeters] result: {pouchesPerMeter: 5, result: 1000}
- [calculateSKUCost] Total Film Calculation: {totalSecuredMeters: 1000, lossMeters: 400, totalWithLossMeters: 1400, isKraftMaterial: false, kraftMinimumApplied: false, …}
- [calculateFilmCost] DEBUG: {materialId: 'pet_al', thicknessSelection: 'medium', filmLayersReceived: Array(4), baseLayers: Array(4), adjustedLayers: Array(4), …}
- [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.59, lengthWithLoss: 1400}
- [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
- [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
-film-cost-calculator.ts:594 [calculateMaterialCost] RESULT: {totalCost: 347313.17600000004, totalWeight: 96.16292000000001, totalCostRounded: 347313}
-film-cost-calculator.ts:714 [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.59, lengthWithLoss: 1400, postProcessingOptions: Array(0), hasGlossy: false, hasMatte: false}
-film-cost-calculator.ts:727 [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
-pouch-cost-calculator.ts:531 [calculateSKUCost] Total Film Cost Breakdown: {materialCost: 347313, printingCost: 665000, laminationCost: 185850, slitterCost: 30000, surfaceTreatmentCost: 0, …}
-pouch-cost-calculator.ts:1138 [Pouch Processing Cost] {pouchType: 'flat_3_side', finalPouchType: 'flat_3_side', widthCM: 20, quantity: 5000, pricePerCm: 0.4, …}
-pouch-cost-calculator.ts:551 [calculateSKUCost] Total Processing Cost: {totalQuantity: 5000, skuCount: 1, totalPouchProcessingCostKRW: 200000, note: '各SKUの固定費用を合算（按分なし）'}
-pouch-cost-calculator.ts:595 [calculateSKUCost] SKU 0 Allocation: {quantity: 5000, quantityRatio: '100.0%', allocatedFilmCostKRW: 1228163, allocatedPouchProcessingCostKRW: 200000}
-pouch-cost-calculator.ts:1180 [calculateCostBreakdown] DEBUG: {filmCostTotalKRW: 1228163, pouchProcessingCostKRW: 200000, baseCostKRW: 1428163, quantity: 5000, deliveryJPY: 15358}
-pouch-cost-calculator.ts:1190 [PouchCostCalculator] manufacturerMargin: 0.3
-pouch-cost-calculator.ts:1208 [PouchCostCalculator] salesMargin: 0.3
-pouch-cost-calculator.ts:1210 [calculateCostBreakdown] PRICE CALC: {baseCostKRW: 1428163, salesMargin: 0.3, customerMarkupRate: 0, quantity: 5000, deliveryJPY: 15358}
-pouch-cost-calculator.ts:1228 [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 1428163,
-  "manufacturerPriceKRW": 1856611.9000000001,
-  "manufacturerPriceJPY": 222793.428,
-  "dutyJPY": 11139.671400000001,
-  "deliveryJPY": 15358,
-  "subtotalJPY": 249291.0994,
-  "salesMargin": 0.3,
-  "priceAfterSalesMargin": 324078.42922,
-  "salesMarginJPY": 74787.32981999998,
-  "customerMarkupRate": 0,
-  "customerDiscountJPY": 0,
-  "finalPriceJPY": 324078.42922
-}
-pouch-cost-calculator.ts:1264 [calculateCostBreakdown] Rounding inconsistency detected {sumOfRoundedItems: 324079, roundedFinalPriceJPY: 324078, difference: 1}
-pouch-cost-calculator.ts:1276 [calculateCostBreakdown] totalCost（小数点以下保持）: 324078.42922
-pouch-cost-calculator.ts:638 [calculateSKUCost] Delivery Calculation: {totalDeliveryWeight: 37.72282500000001, deliveryBoxes: 2, totalDeliveryJPY: 30715.199999999997, perBoxCostJPY: 15357.599999999999}
-unified-pricing-engine.ts:48 【SKU後加工オプション】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [],
-  "マット仕上げ": false,
-  "光沢仕上げ": false
-}
-unified-pricing-engine.ts:1614 [SKU Calculation - Using Glossy Finish] {hasGlossyFinishing: false, note: 'マット印刷追加費は適用されません'}
-unified-pricing-engine.ts:48 【SKU追加料金】
-unified-pricing-engine.ts:49 {
-  "SKU数": 1,
-  "追加料金": "¥0",
-  "計算式": "(1 - 1) × ¥10,000 = ¥0"
-}
-unified-pricing-engine.ts:1665 [100円丸め] 丸め前 totalPrice: 339435.62922 (型: number )
-unified-pricing-engine.ts:1666 [100円丸め] 丸め後 roundedTotalPrice: 339500 (差分: 64.37077999999747 )
-unified-pricing-engine.ts:1667 [100円丸め] 計算式: Math.ceil( 339435.62922 / 100) * 100 = 3395 * 100 = 339500
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 339500 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:02.488Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 10000, quantity: 10000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'flat_3_side|pet_al|200|300|0|10000|[10000]|medium|…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-pouch-cost-calculator.ts:473 [Film Width Calculation] {
-  "pouchType": "flat_3_side",
-  "dimensions": {
-    "width": 200,
-    "height": 300,
-    "depth": 0
-  },
-  "skuCount": 1,
-  "totalQuantity": 10000,
-  "materialWidth": 590,
-  "printableWidth": 570,
-  "optimalColumnCount": 1,
-  "calculatedFilmWidth": 641,
-  "note": "パウチ: 1列生産"
-}
-pouch-cost-calculator.ts:882 [calculateTheoreticalMeters] {pouchType: 'flat_3_side', dimensions: {…}, pitch: 200, columnCount: 1, quantity: 10000}
-pouch-cost-calculator.ts:895 [calculateTheoreticalMeters] result: {pouchesPerMeter: 5, result: 2000}
-pouch-cost-calculator.ts:509 [calculateSKUCost] Total Film Calculation: {totalSecuredMeters: 2000, lossMeters: 400, totalWithLossMeters: 2400, isKraftMaterial: false, kraftMinimumApplied: false, …}
-pouch-cost-calculator.ts:969 [calculateFilmCost] DEBUG: {materialId: 'pet_al', thicknessSelection: 'medium', filmLayersReceived: Array(4), baseLayers: Array(4), adjustedLayers: Array(4), …}
-film-cost-calculator.ts:542 [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.59, lengthWithLoss: 2400}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
-film-cost-calculator.ts:594 [calculateMaterialCost] RESULT: {totalCost: 595394.0160000001, totalWeight: 164.85072000000002, totalCostRounded: 595394}
-film-cost-calculator.ts:714 [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.59, lengthWithLoss: 2400, postProcessingOptions: Array(0), hasGlossy: false, hasMatte: false}
-film-cost-calculator.ts:727 [calculateSurfaceTreatmentCost] No surface treatment selected, returning cost: 0
-pouch-cost-calculator.ts:531 [calculateSKUCost] Total Film Cost Breakdown: {materialCost: 595394, printingCost: 1140000, laminationCost: 318600, slitterCost: 30000, surfaceTreatmentCost: 0, …}
-pouch-cost-calculator.ts:1138 [Pouch Processing Cost] {pouchType: 'flat_3_side', finalPouchType: 'flat_3_side', widthCM: 20, quantity: 10000, pricePerCm: 0.4, …}
-pouch-cost-calculator.ts:551 [calculateSKUCost] Total Processing Cost: {totalQuantity: 10000, skuCount: 1, totalPouchProcessingCostKRW: 200000, note: '各SKUの固定費用を合算（按分なし）'}
-pouch-cost-calculator.ts:595 [calculateSKUCost] SKU 0 Allocation: {quantity: 10000, quantityRatio: '100.0%', allocatedFilmCostKRW: 2083994, allocatedPouchProcessingCostKRW: 200000}
-pouch-cost-calculator.ts:1180 [calculateCostBreakdown] DEBUG: {filmCostTotalKRW: 2083994, pouchProcessingCostKRW: 200000, baseCostKRW: 2283994, quantity: 10000, deliveryJPY: 15358}
-pouch-cost-calculator.ts:1190 [PouchCostCalculator] manufacturerMargin: 0.3
-pouch-cost-calculator.ts:1208 [PouchCostCalculator] salesMargin: 0.3
-pouch-cost-calculator.ts:1210 [calculateCostBreakdown] PRICE CALC: {baseCostKRW: 2283994, salesMargin: 0.3, customerMarkupRate: 0, quantity: 10000, deliveryJPY: 15358}
-pouch-cost-calculator.ts:1228 [calculateCostBreakdown] Price Calculation Detail {
-  "baseCostKRW": 2283994,
-  "manufacturerPriceKRW": 2969192.2,
-  "manufacturerPriceJPY": 356303.064,
-  "dutyJPY": 17815.1532,
-  "deliveryJPY": 15358,
-  "subtotalJPY": 389476.2172,
-  "salesMargin": 0.3,
-  "priceAfterSalesMargin": 506319.08236000006,
-  "salesMarginJPY": 116842.86516000004,
-  "customerMarkupRate": 0,
-  "customerDiscountJPY": 0,
-  "finalPriceJPY": 506319.08236000006
-}
-pouch-cost-calculator.ts:1276 [calculateCostBreakdown] totalCost（小数点以下保持）: 506319.08236000006
-pouch-cost-calculator.ts:638 [calculateSKUCost] Delivery Calculation: {totalDeliveryWeight: 75.44565000000001, deliveryBoxes: 3, totalDeliveryJPY: 46072.799999999996, perBoxCostJPY: 15357.599999999999}
-unified-pricing-engine.ts:48 【SKU後加工オプション】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [],
-  "マット仕上げ": false,
-  "光沢仕上げ": false
-}
-unified-pricing-engine.ts:1614 [SKU Calculation - Using Glossy Finish] {hasGlossyFinishing: false, note: 'マット印刷追加費は適用されません'}
-unified-pricing-engine.ts:48 【SKU追加料金】
-unified-pricing-engine.ts:49 {
-  "SKU数": 1,
-  "追加料金": "¥0",
-  "計算式": "(1 - 1) × ¥10,000 = ¥0"
-}
-unified-pricing-engine.ts:1665 [100円丸め] 丸め前 totalPrice: 537033.88236 (型: number )
-unified-pricing-engine.ts:1666 [100円丸め] 丸め後 roundedTotalPrice: 537100 (差分: 66.1176399999531 )
-unified-pricing-engine.ts:1667 [100円丸め] 計算式: Math.ceil( 537033.88236 / 100) * 100 = 5371 * 100 = 537100
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 537100 円
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'flat_3_side', materialId: 'pet_al', width: 200, height: 300, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: true, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: false, hasDismiss: true, hasConfirm: true}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {bagTypeId: 'roll_film'}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:432 [SET_BASIC_SPECS] Product type changed from flat_3_side to roll_film - resetting SKU quantities
-processingConfig.ts:920 [getDefaultPostProcessingOptions] bagTypeId: roll_film isExcludedZipperCorner: false Returning defaults: (8) ['zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', 'corner-round', 'valve-no', 'top-open', 'machi-printing-no']
-QuoteContext.tsx:286 [calculatePostProcessingMultiplier] Input options: (8) ['zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', 'corner-round', 'valve-no', 'top-open', 'machi-printing-no']
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] zipper-yes (ジッパーあり): 1, 1 * 1 = 1
-QuoteContext.tsx:302 [calculatePostProcessingMultiplier] glossy excluded from multiplier (calculated as additional cost)
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] notch-yes (Vノッチ): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] hang-hole-6mm (吊り穴 6mm): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] corner-round (角丸): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] valve-no (バルブなし): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] top-open (上端開封): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] machi-printing-no (マチ印刷なし): 1, 1 * 1 = 1
-QuoteContext.tsx:317 [calculatePostProcessingMultiplier] Final multiplier: 1 Details: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
-QuoteContext.tsx:457 [SET_BASIC_SPECS] bagTypeId changed: flat_3_side -> roll_film
-QuoteContext.tsx:458 [SET_BASIC_SPECS] Updating post-processing options: (8) ['zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', 'corner-round', 'valve-no', 'top-open', 'machi-printing-no']
-QuoteContext.tsx:459 [SET_BASIC_SPECS] newPostProcessingMultiplier: 1
-QuoteContext.tsx:432 [SET_BASIC_SPECS] Product type changed from flat_3_side to roll_film - resetting SKU quantities
-processingConfig.ts:920 [getDefaultPostProcessingOptions] bagTypeId: roll_film isExcludedZipperCorner: false Returning defaults: (8) ['zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', 'corner-round', 'valve-no', 'top-open', 'machi-printing-no']
-QuoteContext.tsx:286 [calculatePostProcessingMultiplier] Input options: (8) ['zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', 'corner-round', 'valve-no', 'top-open', 'machi-printing-no']
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] zipper-yes (ジッパーあり): 1, 1 * 1 = 1
-QuoteContext.tsx:302 [calculatePostProcessingMultiplier] glossy excluded from multiplier (calculated as additional cost)
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] notch-yes (Vノッチ): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] hang-hole-6mm (吊り穴 6mm): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] corner-round (角丸): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] valve-no (バルブなし): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] top-open (上端開封): 1, 1 * 1 = 1
-QuoteContext.tsx:311 [calculatePostProcessingMultiplier] machi-printing-no (マチ印刷なし): 1, 1 * 1 = 1
-QuoteContext.tsx:317 [calculatePostProcessingMultiplier] Final multiplier: 1 Details: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
-QuoteContext.tsx:457 [SET_BASIC_SPECS] bagTypeId changed: flat_3_side -> roll_film
-QuoteContext.tsx:458 [SET_BASIC_SPECS] Updating post-processing options: (8) ['zipper-yes', 'glossy', 'notch-yes', 'hang-hole-6mm', 'corner-round', 'valve-no', 'top-open', 'machi-printing-no']
-QuoteContext.tsx:459 [SET_BASIC_SPECS] newPostProcessingMultiplier: 1
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 200, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 200, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:07.877Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 500, quantity: 500, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|200|0|0|500|[500]|medium|1.0|fals…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:736 [UnifiedPricingEngine] Loaded pricing settings from DB: 66 settings
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 900, laminationCostKRW: 119475, slitterCostKRW: 30000, processingCost: 17937}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "200×undefinedmm",
-  "数量": "500個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "900m",
-  "理論メートル": "100m",
-  "確保メートル": "500m",
-  "素材費_KRW": "219,169.188ウォン",
-  "素材費_JPY": "¥26,300.303"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 500, totalMeters: 900, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 2, totalDeliveryCostKRW: 161000, surcharge: 24150, totalWithSurcharge: 185150, deliveryCostJPY: 22218}
- [Delivery Cost Roll Film] {totalMeters: 900, deliveryMeters: 500, filmWidthM: 0.59, deliveryWeightKg: '33.53', packageCount: 2, …}
- [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 95537.30256
- 【最終価格計算】
- {
-  "製造者価格": "¥124,198.493",
-  "輸入原価": "¥130,408.418",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥39,122.525",
-  "配送料": "¥22,218",
-  "最終販売価格": "¥191,748.943",
-  "note": "配送料は販売マージン計算対象外"
-}
- 💰 最終価格サマリー
- (index)Value(index)Value数量'500個'単価'JPY383.498'総額'JPY191,749'Object
- [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 191749 円
- [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:08.116Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 1000, quantity: 1000, …}
- [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|200|0|0|1000|[1000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
- [calculateQuote] CACHE MISS - performing calculation
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
- {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 1400, laminationCostKRW: 185850, slitterCostKRW: 30000, processingCost: 25902}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "200×undefinedmm",
-  "数量": "1,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "1400m",
-  "理論メートル": "200m",
-  "確保メートル": "500m",
-  "素材費_KRW": "340,929.848ウォン",
-  "素材費_JPY": "¥40,911.582"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 1000, totalMeters: 1400, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 3, totalDeliveryCostKRW: 295500, surcharge: 44325, totalWithSurcharge: 339825, deliveryCostJPY: 40779}
- [Delivery Cost Roll Film] {totalMeters: 1400, deliveryMeters: 1000, filmWidthM: 0.59, deliveryWeightKg: '67.06', packageCount: 3, …}
- [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 146613.58176
- 【最終価格計算】
- {
-  "製造者価格": "¥190,597.656",
-  "輸入原価": "¥200,127.539",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥60,038.262",
-  "配送料": "¥40,779",
-  "最終販売価格": "¥300,944.801",
-  "note": "配送料は販売マージン計算対象外"
-}
- 💰 最終価格サマリー
- (index)Value(index)Value数量'1,000個'単価'JPY300.945'総額'JPY300,945'Object
- [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 300945 円
- [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:08.117Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 2000, quantity: 2000, …}
- [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|200|0|0|2000|[2000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
- [calculateQuote] CACHE MISS - performing calculation
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 2400, laminationCostKRW: 318600, slitterCostKRW: 30000, processingCost: 41832}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "200×undefinedmm",
-  "数量": "2,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "2400m",
-  "理論メートル": "400m",
-  "確保メートル": "500m",
-  "素材費_KRW": "584,451.168ウォン",
-  "素材費_JPY": "¥70,134.14"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 2000, totalMeters: 2400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 5, totalDeliveryCostKRW: 559500, surcharge: 83925, totalWithSurcharge: 643425, deliveryCostJPY: 77211}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 2400, deliveryMeters: 2000, filmWidthM: 0.59, deliveryWeightKg: '134.12', packageCount: 6, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 248766.14016
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥323,395.982",
-  "輸入原価": "¥339,565.781",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥101,869.734",
-  "配送料": "¥77,211",
-  "最終販売価格": "¥518,646.516",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'2,000個'単価'JPY259.324'総額'JPY518,647'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 518647 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:08.117Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 5000, quantity: 5000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|200|0|0|5000|[5000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 5400, laminationCostKRW: 716850, slitterCostKRW: 54000, processingCost: 92502}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "200×undefinedmm",
-  "数量": "5,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "5400m",
-  "理論メートル": "1000m",
-  "確保メートル": "1000m",
-  "素材費_KRW": "1,315,015.128ウォン",
-  "素材費_JPY": "¥157,801.815"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 5000, totalMeters: 5400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 13, totalDeliveryCostKRW: 1413500, surcharge: 212025, totalWithSurcharge: 1625524.9999999998, deliveryCostJPY: 195062.99999999997}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 5400, deliveryMeters: 5000, filmWidthM: 0.59, deliveryWeightKg: '335.30', packageCount: 13, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 558103.81536
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥725,534.96",
-  "輸入原価": "¥761,811.708",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥228,543.512",
-  "配送料": "¥195,063",
-  "最終販売価格": "¥1,185,418.22",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'5,000個'単価'JPY237.084'総額'JPY1,185,418'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 1185418 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:08.118Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 10000, quantity: 10000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|200|0|0|10000|[10000]|medium|1.0|…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 10400, laminationCostKRW: 1380600, slitterCostKRW: 104000, processingCost: 178152}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "200×undefinedmm",
-  "数量": "10,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "10400m",
-  "理論メートル": "2000m",
-  "確保メートル": "2000m",
-  "素材費_KRW": "2,532,621.728ウォン",
-  "素材費_JPY": "¥303,914.607"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 10000, totalMeters: 10400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 25, totalDeliveryCostKRW: 2799000, surcharge: 419850, totalWithSurcharge: 3218849.9999999995, deliveryCostJPY: 386261.99999999994}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 10400, deliveryMeters: 10000, filmWidthM: 0.59, deliveryWeightKg: '670.59', packageCount: 26, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 1074866.60736
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥1,397,326.59",
-  "輸入原価": "¥1,467,192.919",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥440,157.876",
-  "配送料": "¥386,262",
-  "最終販売価格": "¥2,293,612.795",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'10,000個'単価'JPY229.361'総額'JPY2,293,613'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 2293613 円
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {width: 1}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 1, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 1, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {width: 13}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 13, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 13, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {width: 130}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: undefined, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {pitch: 1}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: 1, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: 1, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {pitch: 13}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: 13, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: 13, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {pitch: 130}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 130, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: false, hasDismiss: true, hasConfirm: true}
- [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:09.980Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 500, quantity: 500, …}
- [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|130|0|0|500|[500]|medium|1.0|fals…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
- [calculateQuote] CACHE MISS - performing calculation
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
- {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 900, laminationCostKRW: 119475, slitterCostKRW: 30000, processingCost: 17937}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "130×undefinedmm",
-  "数量": "500個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "900m",
-  "理論メートル": "65m",
-  "確保メートル": "500m",
-  "素材費_KRW": "219,169.188ウォン",
-  "素材費_JPY": "¥26,300.303"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 500, totalMeters: 900, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 2, totalDeliveryCostKRW: 161000, surcharge: 24150, totalWithSurcharge: 185150, deliveryCostJPY: 22218}
- [Delivery Cost Roll Film] {totalMeters: 900, deliveryMeters: 500, filmWidthM: 0.59, deliveryWeightKg: '33.53', packageCount: 2, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 95537.30256
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥124,198.493",
-  "輸入原価": "¥130,408.418",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥39,122.525",
-  "配送料": "¥22,218",
-  "最終販売価格": "¥191,748.943",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'500個'単価'JPY383.498'総額'JPY191,749'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 191749 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:09.984Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 1000, quantity: 1000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|130|0|0|1000|[1000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 1400, laminationCostKRW: 185850, slitterCostKRW: 30000, processingCost: 25902}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "130×undefinedmm",
-  "数量": "1,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "1400m",
-  "理論メートル": "130m",
-  "確保メートル": "500m",
-  "素材費_KRW": "340,929.848ウォン",
-  "素材費_JPY": "¥40,911.582"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 1000, totalMeters: 1400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 3, totalDeliveryCostKRW: 295500, surcharge: 44325, totalWithSurcharge: 339825, deliveryCostJPY: 40779}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 1400, deliveryMeters: 1000, filmWidthM: 0.59, deliveryWeightKg: '67.06', packageCount: 3, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 146613.58176
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥190,597.656",
-  "輸入原価": "¥200,127.539",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥60,038.262",
-  "配送料": "¥40,779",
-  "最終販売価格": "¥300,944.801",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'1,000個'単価'JPY300.945'総額'JPY300,945'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 300945 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:09.986Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 2000, quantity: 2000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|130|0|0|2000|[2000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 2400, laminationCostKRW: 318600, slitterCostKRW: 30000, processingCost: 41832}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "130×undefinedmm",
-  "数量": "2,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "2400m",
-  "理論メートル": "260m",
-  "確保メートル": "500m",
-  "素材費_KRW": "584,451.168ウォン",
-  "素材費_JPY": "¥70,134.14"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 2000, totalMeters: 2400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 5, totalDeliveryCostKRW: 559500, surcharge: 83925, totalWithSurcharge: 643425, deliveryCostJPY: 77211}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 2400, deliveryMeters: 2000, filmWidthM: 0.59, deliveryWeightKg: '134.12', packageCount: 6, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 248766.14016
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥323,395.982",
-  "輸入原価": "¥339,565.781",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥101,869.734",
-  "配送料": "¥77,211",
-  "最終販売価格": "¥518,646.516",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'2,000個'単価'JPY259.324'総額'JPY518,647'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 518647 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:09.988Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 5000, quantity: 5000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|130|0|0|5000|[5000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 5400, laminationCostKRW: 716850, slitterCostKRW: 54000, processingCost: 92502}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "130×undefinedmm",
-  "数量": "5,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "5400m",
-  "理論メートル": "650m",
-  "確保メートル": "650m",
-  "素材費_KRW": "1,315,015.128ウォン",
-  "素材費_JPY": "¥157,801.815"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 5000, totalMeters: 5400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 13, totalDeliveryCostKRW: 1413500, surcharge: 212025, totalWithSurcharge: 1625524.9999999998, deliveryCostJPY: 195062.99999999997}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 5400, deliveryMeters: 5000, filmWidthM: 0.59, deliveryWeightKg: '335.30', packageCount: 13, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 558103.81536
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥725,534.96",
-  "輸入原価": "¥761,811.708",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥228,543.512",
-  "配送料": "¥195,063",
-  "最終販売価格": "¥1,185,418.22",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'5,000個'単価'JPY237.084'総額'JPY1,185,418'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 1185418 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:09.990Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 10000, quantity: 10000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|130|0|0|10000|[10000]|medium|1.0|…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 10400, laminationCostKRW: 1380600, slitterCostKRW: 104000, processingCost: 178152}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "130×undefinedmm",
-  "数量": "10,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "10400m",
-  "理論メートル": "1300m",
-  "確保メートル": "1300m",
-  "素材費_KRW": "2,532,621.728ウォン",
-  "素材費_JPY": "¥303,914.607"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 10000, totalMeters: 10400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 25, totalDeliveryCostKRW: 2799000, surcharge: 419850, totalWithSurcharge: 3218849.9999999995, deliveryCostJPY: 386261.99999999994}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 10400, deliveryMeters: 10000, filmWidthM: 0.59, deliveryWeightKg: '670.59', packageCount: 26, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 1074866.60736
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥1,397,326.59",
-  "輸入原価": "¥1,467,192.919",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥440,157.876",
-  "配送料": "¥386,262",
-  "最終販売価格": "¥2,293,612.795",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'10,000個'単価'JPY229.361'総額'JPY2,293,613'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 2293613 円
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {width: 1}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 1, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 1, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {width: 16}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 16, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 16, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: false, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: false, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {width: 160}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 130, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: false, hasDismiss: true, hasConfirm: true}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {pitch: 1}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 1, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 1, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {pitch: 16}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 16, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 16, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: false, hasDismiss: true, hasConfirm: false}
-QuoteContext.tsx:1738 [updateBasicSpecs] Called with specs: {pitch: 160}
-QuoteContext.tsx:1739 [updateBasicSpecs] sideWidth in payload: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:496 [SET_BASIC_SPECS] No bagTypeId change. action.payload.sideWidth: undefined state.sideWidth: undefined newSideWidth: undefined
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: specs state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1239 [checkStepComplete] specs result: {hasValidWidth: true, requiresHeight: false, hasValidHeight: true, hasBasicSpecs: true, requiresThickness: true, …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: false, hasDismiss: true, hasConfirm: true}
- [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:12.671Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 500, quantity: 500, …}
- [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|160|0|0|500|[500]|medium|1.0|fals…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
- [calculateQuote] CACHE MISS - performing calculation
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
- {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 900, laminationCostKRW: 119475, slitterCostKRW: 30000, processingCost: 17937}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "500個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "900m",
-  "理論メートル": "80m",
-  "確保メートル": "500m",
-  "素材費_KRW": "219,169.188ウォン",
-  "素材費_JPY": "¥26,300.303"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 500, totalMeters: 900, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 2, totalDeliveryCostKRW: 161000, surcharge: 24150, totalWithSurcharge: 185150, deliveryCostJPY: 22218}
- [Delivery Cost Roll Film] {totalMeters: 900, deliveryMeters: 500, filmWidthM: 0.59, deliveryWeightKg: '33.53', packageCount: 2, …}
- [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 95537.30256
- 【最終価格計算】
- {
-  "製造者価格": "¥124,198.493",
-  "輸入原価": "¥130,408.418",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥39,122.525",
-  "配送料": "¥22,218",
-  "最終販売価格": "¥191,748.943",
-  "note": "配送料は販売マージン計算対象外"
-}
- 💰 最終価格サマリー
- (index)Value(index)Value数量'500個'単価'JPY383.498'総額'JPY191,749'Object
- [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 191749 円
- [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:12.672Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 1000, quantity: 1000, …}
- [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|160|0|0|1000|[1000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
- [calculateQuote] CACHE MISS - performing calculation
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
- {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 1400, laminationCostKRW: 185850, slitterCostKRW: 30000, processingCost: 25902}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "1,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "1400m",
-  "理論メートル": "160m",
-  "確保メートル": "500m",
-  "素材費_KRW": "340,929.848ウォン",
-  "素材費_JPY": "¥40,911.582"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 1000, totalMeters: 1400, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 3, totalDeliveryCostKRW: 295500, surcharge: 44325, totalWithSurcharge: 339825, deliveryCostJPY: 40779}
- [Delivery Cost Roll Film] {totalMeters: 1400, deliveryMeters: 1000, filmWidthM: 0.59, deliveryWeightKg: '67.06', packageCount: 3, …}
- [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 146613.58176
- 【最終価格計算】
- {
-  "製造者価格": "¥190,597.656",
-  "輸入原価": "¥200,127.539",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥60,038.262",
-  "配送料": "¥40,779",
-  "最終販売価格": "¥300,944.801",
-  "note": "配送料は販売マージン計算対象外"
-}
- 💰 最終価格サマリー
- (index)Value(index)Value数量'1,000個'単価'JPY300.945'総額'JPY300,945'Object
- [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 300945 円
- [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:12.674Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 2000, quantity: 2000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|160|0|0|2000|[2000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 2400, laminationCostKRW: 318600, slitterCostKRW: 30000, processingCost: 41832}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "2,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "2400m",
-  "理論メートル": "320m",
-  "確保メートル": "500m",
-  "素材費_KRW": "584,451.168ウォン",
-  "素材費_JPY": "¥70,134.14"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 2000, totalMeters: 2400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 5, totalDeliveryCostKRW: 559500, surcharge: 83925, totalWithSurcharge: 643425, deliveryCostJPY: 77211}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 2400, deliveryMeters: 2000, filmWidthM: 0.59, deliveryWeightKg: '134.12', packageCount: 6, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 248766.14016
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥323,395.982",
-  "輸入原価": "¥339,565.781",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥101,869.734",
-  "配送料": "¥77,211",
-  "最終販売価格": "¥518,646.516",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'2,000個'単価'JPY259.324'総額'JPY518,647'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 518647 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:12.675Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 5000, quantity: 5000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|160|0|0|5000|[5000]|medium|1.0|fa…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 5400, laminationCostKRW: 716850, slitterCostKRW: 54000, processingCost: 92502}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "5,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "5400m",
-  "理論メートル": "800m",
-  "確保メートル": "800m",
-  "素材費_KRW": "1,315,015.128ウォン",
-  "素材費_JPY": "¥157,801.815"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 5000, totalMeters: 5400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 13, totalDeliveryCostKRW: 1413500, surcharge: 212025, totalWithSurcharge: 1625524.9999999998, deliveryCostJPY: 195062.99999999997}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 5400, deliveryMeters: 5000, filmWidthM: 0.59, deliveryWeightKg: '335.30', packageCount: 13, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 558103.81536
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥725,534.96",
-  "輸入原価": "¥761,811.708",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥228,543.512",
-  "配送料": "¥195,063",
-  "最終販売価格": "¥1,185,418.22",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'5,000個'単価'JPY237.084'総額'JPY1,185,418'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 1185418 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:12.676Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 10000, quantity: 10000, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|160|0|0|10000|[10000]|medium|1.0|…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 10400, laminationCostKRW: 1380600, slitterCostKRW: 104000, processingCost: 178152}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "10,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "10400m",
-  "理論メートル": "1600m",
-  "確保メートル": "1600m",
-  "素材費_KRW": "2,532,621.728ウォン",
-  "素材費_JPY": "¥303,914.607"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 10000, totalMeters: 10400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 25, totalDeliveryCostKRW: 2799000, surcharge: 419850, totalWithSurcharge: 3218849.9999999995, deliveryCostJPY: 386261.99999999994}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 10400, deliveryMeters: 10000, filmWidthM: 0.59, deliveryWeightKg: '670.59', packageCount: 26, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 1074866.60736
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥1,397,326.59",
-  "輸入原価": "¥1,467,192.919",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥440,157.876",
-  "配送料": "¥386,262",
-  "最終販売価格": "¥2,293,612.795",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'10,000個'単価'JPY229.361'総額'JPY2,293,613'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 2293613 円
-useKeyboardNavigation.ts:57 [useKeyboardNavigation] ArrowRight pressed. canProceed: true onNext exists: true
-useKeyboardNavigation.ts:60 [useKeyboardNavigation] Calling onNext handler
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: post-processing state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1344 [checkStepComplete] post-processing complete: {selectedCount: 1, requiredGroups: 1, optionalGroups: Array(7), isRollFilm: true}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: post-processing state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1344 [checkStepComplete] post-processing complete: {selectedCount: 1, requiredGroups: 1, optionalGroups: Array(7), isRollFilm: true}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: true, hasDismiss: true, hasConfirm: true}
-useKeyboardNavigation.ts:57 [useKeyboardNavigation] ArrowRight pressed. canProceed: true onNext exists: true
-useKeyboardNavigation.ts:60 [useKeyboardNavigation] Calling onNext handler
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: sku-quantity state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1264 [checkStepComplete] sku-quantity step check: {quantityMode: 'single', skuCount: 1, skuQuantities: Array(1), quantity: 500, twoColumnOptionApplied: null, …}
-QuoteContext.tsx:1295 [checkStepComplete] sku-quantity single mode valid: true
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: sku-quantity state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1264 [checkStepComplete] sku-quantity step check: {quantityMode: 'single', skuCount: 1, skuQuantities: Array(1), quantity: 500, twoColumnOptionApplied: null, …}
-QuoteContext.tsx:1295 [checkStepComplete] sku-quantity single mode valid: true
-UnifiedSKUQuantityStep.tsx:95 [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
-UnifiedSKUQuantityStep.tsx:337 [SKU Step] DIAGNOSTIC - calculateQuote PARAMS: {bagTypeId: 'roll_film', materialId: 'pet_al', skuCount: 1, skuQuantities: Array(1), totalQuantity: 500, …}
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:20.936Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 500, quantity: 500, …}
-unified-pricing-engine.ts:796 [calculateQuote] CACHE CHECK: {cacheKey: 'roll_film|pet_al|160|0|0|500|[500]|medium|1.0|fals…terialId":"LLDPE","thickness":70}]|none|none|none', hasCache: false}
-unified-pricing-engine.ts:807 [calculateQuote] CACHE MISS - performing calculation
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: undefined, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: true, hasDismiss: true, hasConfirm: true}
-UnifiedSKUQuantityStep.tsx:95 [UnifiedSKUQuantityStep] Discount cleared, resetting all related states
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 900, laminationCostKRW: 119475, slitterCostKRW: 30000, processingCost: 17937}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "500個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "900m",
-  "理論メートル": "80m",
-  "確保メートル": "500m",
-  "素材費_KRW": "219,169.188ウォン",
-  "素材費_JPY": "¥26,300.303"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 500, totalMeters: 900, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 2, totalDeliveryCostKRW: 161000, surcharge: 24150, totalWithSurcharge: 185150, deliveryCostJPY: 22218}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 900, deliveryMeters: 500, filmWidthM: 0.59, deliveryWeightKg: '33.53', packageCount: 2, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 95537.30256
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥124,198.493",
-  "輸入原価": "¥130,408.418",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥39,122.525",
-  "配送料": "¥22,218",
-  "最終販売価格": "¥191,748.943",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'500個'単価'JPY383.498'総額'JPY191,749'Object
-UnifiedSKUQuantityStep.tsx:382 [UnifiedSKUQuantityStep] Price calculated: {unitPrice: 383.498, totalPrice: 191749, quantity: 500}
-UnifiedSKUQuantityStep.tsx:657 [handleApplyTwoColumnOption] Called with optionType: 2 {twoColumnOptions: {…}, isApplying: false, quoteStateTwoColumnOptionApplied: null}
-UnifiedSKUQuantityStep.tsx:676 [handleApplyTwoColumnOption] Proceeding with option application
-UnifiedSKUQuantityStep.tsx:703 [handleApplyTwoColumnOption] Selected option: {columnCount: 2, columnWidth: 160, quantity: 1000, unitPrice: 230, totalPrice: 230000, …}
-UnifiedSKUQuantityStep.tsx:790 [UnifiedSKUQuantityStep] Applied 2-column 2 option: {option: {…}, preserveSKUCount: false, adjustedQuantityPerSKU: 1000, adjustedTotalQuantity: 1000}
-UnifiedSKUQuantityStep.tsx:796 [handleApplyTwoColumnOption] Option application completed successfully
-UnifiedSKUQuantityStep.tsx:801 [handleApplyTwoColumnOption] setIsApplying(false) called
-QuoteContext.tsx:995 [APPLY_TWO_COLUMN_OPTION] Applied option: {optionType: 2, unitPrice: 230, totalPrice: 230000, originalUnitPrice: 383.498, quantity: 1000}
-QuoteContext.tsx:1046 [APPLY_TWO_COLUMN_OPTION] Single SKU: {effectiveOriginalUnitPrice: 383.498, optionType: 2, unitPrice: 230, totalPrice: 230000}
-QuoteContext.tsx:995 [APPLY_TWO_COLUMN_OPTION] Applied option: {optionType: 2, unitPrice: 230, totalPrice: 230000, originalUnitPrice: 383.498, quantity: 1000}
-QuoteContext.tsx:1046 [APPLY_TWO_COLUMN_OPTION] Single SKU: {effectiveOriginalUnitPrice: 383.498, optionType: 2, unitPrice: 230, totalPrice: 230000}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: sku-quantity state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1264 [checkStepComplete] sku-quantity step check: {quantityMode: 'sku', skuCount: 1, skuQuantities: Array(1), quantity: 1000, twoColumnOptionApplied: 2, …}
-QuoteContext.tsx:1282 [checkStepComplete] 2列生産総数量チェック: {currentTotalQuantity: 1000, fixedTotalQuantity: 1000, totalQuantityValid: true}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: sku-quantity state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1264 [checkStepComplete] sku-quantity step check: {quantityMode: 'sku', skuCount: 1, skuQuantities: Array(1), quantity: 1000, twoColumnOptionApplied: 2, …}
-QuoteContext.tsx:1282 [checkStepComplete] 2列生産総数量チェック: {currentTotalQuantity: 1000, fixedTotalQuantity: 1000, totalQuantityValid: true}
-UnifiedSKUQuantityStep.tsx:308 [UnifiedSKUQuantityStep] Price calculation skipped - 2-column option applied
-UnifiedSKUQuantityStep.tsx:442 [UnifiedSKUQuantityStep] Skipping clear - 2-column option just applied
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: true, hasDismiss: true, hasConfirm: true}
- [RealTimePriceDisplay] 計算開始 - 数量: 500 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:25.498Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 500, quantity: 500, …}
- 【2列生産割引適用】
- {
-  "適用オプション": "倍数量（31% OFF）",
-  "割引単価": "¥230/個",
-  "割引総額": "¥230,000"
-}
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
- {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 900, laminationCostKRW: 119475, slitterCostKRW: 30000, processingCost: 17937}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "500個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "900m",
-  "理論メートル": "80m",
-  "確保メートル": "500m",
-  "素材費_KRW": "219,169.188ウォン",
-  "素材費_JPY": "¥26,300.303"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 500, totalMeters: 900, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 2, totalDeliveryCostKRW: 161000, surcharge: 24150, totalWithSurcharge: 185150, deliveryCostJPY: 22218}
- [Delivery Cost Roll Film] {totalMeters: 900, deliveryMeters: 500, filmWidthM: 0.59, deliveryWeightKg: '33.53', packageCount: 2, …}
- [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 95537.30256
- 【最終価格計算】
- {
-  "製造者価格": "¥124,198.493",
-  "輸入原価": "¥130,408.418",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥39,122.525",
-  "配送料": "¥22,218",
-  "最終販売価格": "¥191,748.943",
-  "note": "配送料は販売マージン計算対象外"
-}
- 💰 最終価格サマリー
- (index)Value(index)Value数量'500個'単価'JPY383.498'総額'JPY191,749'Object
- [RealTimePriceDisplay] 計算結果 - 数量: 500 価格: 230000 円
- [RealTimePriceDisplay] 計算開始 - 数量: 1000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:25.500Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 1000, quantity: 1000, …}
- 【2列生産割引適用】
- {
-  "適用オプション": "倍数量（31% OFF）",
-  "割引単価": "¥230/個",
-  "割引総額": "¥230,000"
-}
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
- {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
- [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 1400, laminationCostKRW: 185850, slitterCostKRW: 30000, processingCost: 25902}
- 【素材費計算】
- {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "1,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "1400m",
-  "理論メートル": "160m",
-  "確保メートル": "500m",
-  "素材費_KRW": "340,929.848ウォン",
-  "素材費_JPY": "¥40,911.582"
-}
- [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 1000, totalMeters: 1400, lossMeters: 400, perColorPerMeter: 475, …}
- 【表面仕上げ】
- {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
- 【光沢仕上げ】
- {
-  "note": "マット印刷追加費は適用されません"
-}
- [Delivery Cost By Weight] {packageCount: 3, totalDeliveryCostKRW: 295500, surcharge: 44325, totalWithSurcharge: 339825, deliveryCostJPY: 40779}
- [Delivery Cost Roll Film] {totalMeters: 1400, deliveryMeters: 1000, filmWidthM: 0.59, deliveryWeightKg: '67.06', packageCount: 3, …}
- [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 146613.58176
- 【最終価格計算】
- {
-  "製造者価格": "¥190,597.656",
-  "輸入原価": "¥200,127.539",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥60,038.262",
-  "配送料": "¥40,779",
-  "最終販売価格": "¥300,944.801",
-  "note": "配送料は販売マージン計算対象外"
-}
- 💰 最終価格サマリー
- (index)Value(index)Value数量'1,000個'単価'JPY300.945'総額'JPY300,945'Object
- [RealTimePriceDisplay] 計算結果 - 数量: 1000 価格: 230000 円
- [RealTimePriceDisplay] 計算開始 - 数量: 2000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
- [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:25.501Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 2000, quantity: 2000, …}
- 【2列生産割引適用】
- {
-  "適用オプション": "倍数量（31% OFF）",
-  "割引単価": "¥230/個",
-  "割引総額": "¥230,000"
-}
- [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
- [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
- 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 2400, laminationCostKRW: 318600, slitterCostKRW: 30000, processingCost: 41832}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "2,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "2400m",
-  "理論メートル": "320m",
-  "確保メートル": "500m",
-  "素材費_KRW": "584,451.168ウォン",
-  "素材費_JPY": "¥70,134.14"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 2000, totalMeters: 2400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 5, totalDeliveryCostKRW: 559500, surcharge: 83925, totalWithSurcharge: 643425, deliveryCostJPY: 77211}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 2400, deliveryMeters: 2000, filmWidthM: 0.59, deliveryWeightKg: '134.12', packageCount: 6, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 248766.14016
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥323,395.982",
-  "輸入原価": "¥339,565.781",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥101,869.734",
-  "配送料": "¥77,211",
-  "最終販売価格": "¥518,646.516",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'2,000個'単価'JPY259.324'総額'JPY518,647'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 2000 価格: 230000 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 5000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:25.502Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 5000, quantity: 5000, …}
-unified-pricing-engine.ts:48 【2列生産割引適用】
-unified-pricing-engine.ts:49 {
-  "適用オプション": "倍数量（31% OFF）",
-  "割引単価": "¥230/個",
-  "割引総額": "¥230,000"
-}
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 5400, laminationCostKRW: 716850, slitterCostKRW: 54000, processingCost: 92502}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "5,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "5400m",
-  "理論メートル": "800m",
-  "確保メートル": "800m",
-  "素材費_KRW": "1,315,015.128ウォン",
-  "素材費_JPY": "¥157,801.815"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 5000, totalMeters: 5400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 13, totalDeliveryCostKRW: 1413500, surcharge: 212025, totalWithSurcharge: 1625524.9999999998, deliveryCostJPY: 195062.99999999997}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 5400, deliveryMeters: 5000, filmWidthM: 0.59, deliveryWeightKg: '335.30', packageCount: 13, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 558103.81536
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥725,534.96",
-  "輸入原価": "¥761,811.708",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥228,543.512",
-  "配送料": "¥195,063",
-  "最終販売価格": "¥1,185,418.22",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'5,000個'単価'JPY237.084'総額'JPY1,185,418'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 5000 価格: 230000 円
-ImprovedQuotingWizard.tsx:4161 [RealTimePriceDisplay] 計算開始 - 数量: 10000 markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:25.503Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 10000, quantity: 10000, …}
-unified-pricing-engine.ts:48 【2列生産割引適用】
-unified-pricing-engine.ts:49 {
-  "適用オプション": "倍数量（31% OFF）",
-  "割引単価": "¥230/個",
-  "割引総額": "¥230,000"
-}
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 10400, laminationCostKRW: 1380600, slitterCostKRW: 104000, processingCost: 178152}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "10,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "10400m",
-  "理論メートル": "1600m",
-  "確保メートル": "1600m",
-  "素材費_KRW": "2,532,621.728ウォン",
-  "素材費_JPY": "¥303,914.607"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 10000, totalMeters: 10400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 25, totalDeliveryCostKRW: 2799000, surcharge: 419850, totalWithSurcharge: 3218849.9999999995, deliveryCostJPY: 386261.99999999994}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 10400, deliveryMeters: 10000, filmWidthM: 0.59, deliveryWeightKg: '670.59', packageCount: 26, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 1074866.60736
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥1,397,326.59",
-  "輸入原価": "¥1,467,192.919",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥440,157.876",
-  "配送料": "¥386,262",
-  "最終販売価格": "¥2,293,612.795",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'10,000個'単価'JPY229.361'総額'JPY2,293,613'Object
-ImprovedQuotingWizard.tsx:4192 [RealTimePriceDisplay] 計算結果 - 数量: 10000 価格: 230000 円
-useKeyboardNavigation.ts:57 [useKeyboardNavigation] ArrowRight pressed. canProceed: true onNext exists: true
-useKeyboardNavigation.ts:60 [useKeyboardNavigation] Calling onNext handler
-ImprovedQuotingWizard.tsx:4405 [handleNext] Current state: {quantityMode: 'sku', skuCount: 1, skuQuantities: Array(1), quantity: 1000}
-ImprovedQuotingWizard.tsx:4430 [handleNext] hasValidSKUData Check:
-ImprovedQuotingWizard.tsx:4431 [handleNext] - skuCount > 1: false (skuCount = 1 )
-ImprovedQuotingWizard.tsx:4432 [handleNext] - skuQuantities exists: true
-ImprovedQuotingWizard.tsx:4433 [handleNext] - skuQuantities: [1000]
-ImprovedQuotingWizard.tsx:4434 [handleNext] - Length check: 1 === 1 : true
-ImprovedQuotingWizard.tsx:4435 [handleNext] - Every check (all >= 100): true
-ImprovedQuotingWizard.tsx:4436 [handleNext] - FINAL hasValidSKUData: true
-ImprovedQuotingWizard.tsx:4440 [handleNext] SKU mode detected (via hasValidSKUData), quantities: [1000]
-ImprovedQuotingWizard.tsx:4449 [handleNext] Calculated total quantity: 1000
-ImprovedQuotingWizard.tsx:4458 [handleNext] Calculating quote for SKU mode, total quantity: 1000
-ImprovedQuotingWizard.tsx:4462 [handleNext] デフォルトmarkupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: sku-quantity state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1264 [checkStepComplete] sku-quantity step check: {quantityMode: 'sku', skuCount: 1, skuQuantities: Array(1), quantity: 1000, twoColumnOptionApplied: 2, …}
-QuoteContext.tsx:1282 [checkStepComplete] 2列生産総数量チェック: {currentTotalQuantity: 1000, fixedTotalQuantity: 1000, totalQuantityValid: true}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: sku-quantity state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1264 [checkStepComplete] sku-quantity step check: {quantityMode: 'sku', skuCount: 1, skuQuantities: Array(1), quantity: 1000, twoColumnOptionApplied: 2, …}
-QuoteContext.tsx:1282 [checkStepComplete] 2列生産総数量チェック: {currentTotalQuantity: 1000, fixedTotalQuantity: 1000, totalQuantityValid: true}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: true, hasPrevious: true, hasDismiss: true, hasConfirm: true}
-ImprovedQuotingWizard.tsx:4475 [handleNext] Customer markup rate: 0
-ImprovedQuotingWizard.tsx:4484 [handleNext] DIAGNOSTIC - calculateQuote PARAMS: {bagTypeId: 'roll_film', materialId: 'pet_al', skuCount: 1, skuQuantities: Array(1), totalQuantity: 1000, …}
-unified-pricing-engine.ts:763 [calculateQuote] DIAGNOSTIC ENTRY: {timestamp: '2026-03-18T21:30:33.291Z', useSKUCalculation: true, skuQuantities: Array(1), totalSKUQuantity: 1000, quantity: 1000, …}
-unified-pricing-engine.ts:48 【2列生産割引適用】
-unified-pricing-engine.ts:49 {
-  "適用オプション": "倍数量（31% OFF）",
-  "割引単価": "¥230/個",
-  "割引総額": "¥230,000"
-}
-unified-pricing-engine.ts:1470 [performSKUCalculation] ENTRY: {markupRate_param: 0, markupRate_will_default_to: 0, skuQuantities: Array(1)}
-unified-pricing-engine.ts:1493 [performSKUCalculation] AFTER DESTRUCTURING: {markupRate_used: 0}
-unified-pricing-engine.ts:48 【後加工乗数】
-unified-pricing-engine.ts:49 {
-  "後加工オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ],
-  "適用乗数": "1.00"
-}
-unified-pricing-engine.ts:891 [Processing Cost] Roll film: lamination + slitter only {materialWidthM: 0.59, totalMeters: 1400, laminationCostKRW: 185850, slitterCostKRW: 30000, processingCost: 25902}
-unified-pricing-engine.ts:48 【素材費計算】
-unified-pricing-engine.ts:49 {
-  "パウチタイプ": "roll_film",
-  "サイズ": "160×undefinedmm",
-  "数量": "1,000個",
-  "原反幅": "590mm (0.59m)",
-  "総使用メートル": "1400m",
-  "理論メートル": "160m",
-  "確保メートル": "500m",
-  "素材費_KRW": "340,929.848ウォン",
-  "素材費_JPY": "¥40,911.582"
-}
-unified-pricing-engine.ts:2157 [Printing Cost Roll Film] {filmWidthM: 0.59, lengthInMeters: 1000, totalMeters: 1400, lossMeters: 400, perColorPerMeter: 475, …}
-unified-pricing-engine.ts:48 【表面仕上げ】
-unified-pricing-engine.ts:49 {
-  "マット仕上げ": false,
-  "光沢仕上げ": true,
-  "選択オプション": [
-    "corner-round",
-    "glossy",
-    "hang-hole-6mm",
-    "machi-printing-no",
-    "notch-yes",
-    "top-open",
-    "valve-no",
-    "zipper-yes"
-  ]
-}
-unified-pricing-engine.ts:48 【光沢仕上げ】
-unified-pricing-engine.ts:49 {
-  "note": "マット印刷追加費は適用されません"
-}
-unified-pricing-engine.ts:2440 [Delivery Cost By Weight] {packageCount: 3, totalDeliveryCostKRW: 295500, surcharge: 44325, totalWithSurcharge: 339825, deliveryCostJPY: 40779}
-unified-pricing-engine.ts:2312 [Delivery Cost Roll Film] {totalMeters: 1400, deliveryMeters: 1000, filmWidthM: 0.59, deliveryWeightKg: '67.06', packageCount: 3, …}
-unified-pricing-engine.ts:1146 [UnifiedPricingEngine] manufacturerMargin: 0.3 baseCost: 146613.58176
-unified-pricing-engine.ts:48 【最終価格計算】
-unified-pricing-engine.ts:49 {
-  "製造者価格": "¥190,597.656",
-  "輸入原価": "¥200,127.539",
-  "販売マージン率": "30%",
-  "販売マージン額": "¥60,038.262",
-  "配送料": "¥40,779",
-  "最終販売価格": "¥300,944.801",
-  "note": "配送料は販売マージン計算対象外"
-}
-unified-pricing-engine.ts:65 💰 最終価格サマリー
-unified-pricing-engine.ts:66 (index)Value(index)Value数量'1,000個'単価'JPY300.945'総額'JPY300,945'Object
-ImprovedQuotingWizard.tsx:4526 [handleNext] 価格計算完了 - 総額: 230000 円, markupRate: 0 ユーザーID: 54fd7b31-b805-43cf-b92e-898ddd066875
-ImprovedQuotingWizard.tsx:4548 [handleNext] Enhanced result: {unitPrice: 230, totalPrice: 230000, currency: 'JPY', quantity: 1000, filmUsage: 1400, …}
-ImprovedQuotingWizard.tsx:4549 [handleNext] Setting result with hasValidSKUData: true
-ImprovedQuotingWizard.tsx:4550 [handleNext] Setting result with skuQuantities: [1000]
-ImprovedQuotingWizard.tsx:4556 [handleNext] About to change step to result
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: result state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-QuoteContext.tsx:1187 [checkStepComplete] Called with step: result state: {bagTypeId: 'roll_film', materialId: 'pet_al', width: 160, height: undefined, pitch: 160, …}
-ImprovedQuotingWizard.tsx:3773 [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1), …}
-ImprovedQuotingWizard.tsx:3773 [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1), …}
-useKeyboardNavigation.ts:28 [useKeyboardNavigation] handlersRef updated: {hasNext: false, hasPrevious: true, hasDismiss: true, hasConfirm: false}
-pouch-cost-calculator.ts:309 [PouchCostCalculator] Loaded pricing settings from DB: 66 settings
-pouch-cost-calculator.ts:1606 [ParallelProductionOption] Start {count: 2, rollWidth: 590, effectiveMaterialWidth: 570, filmWidth: 160, totalFilmWidth: 320, …}
-film-cost-calculator.ts:542 [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.57, lengthWithLoss: 1400}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
-film-cost-calculator.ts:594 [calculateMaterialCost] RESULT: {totalCost: 335539.848, totalWeight: 92.90316, totalCostRounded: 335540}
-film-cost-calculator.ts:714 [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.57, lengthWithLoss: 1400, postProcessingOptions: Array(8), hasGlossy: true, hasMatte: false}
-film-cost-calculator.ts:735 [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
-pouch-cost-calculator.ts:1635 [ParallelProductionOption] filmCostResult {materialCost: 335540, printingCost: 665000, laminationCost: 179550, slitterCost: 30000, deliveryCostJPY: 56311.2, …}
-pouch-cost-calculator.ts:1672 [ParallelProductionOption] Discount Applied {count: 2, discountableCost: 1180090, nonDiscountableCost: 86311, discountedCost: 2183167, totalDiscountedCost: 2269478, …}
-pouch-cost-calculator.ts:1606 [ParallelProductionOption] Start {count: 3, rollWidth: 590, effectiveMaterialWidth: 570, filmWidth: 160, totalFilmWidth: 480, …}
-pouch-cost-calculator.ts:1635 [ParallelProductionOption] filmCostResult {materialCost: 335540, printingCost: 665000, laminationCost: 179550, slitterCost: 30000, deliveryCostJPY: 56311.2, …}
-pouch-cost-calculator.ts:1672 [ParallelProductionOption] Discount Applied {count: 3, discountableCost: 1180090, nonDiscountableCost: 86311, discountedCost: 3186243, totalDiscountedCost: 3272554, …}
-pouch-cost-calculator.ts:1606 [ParallelProductionOption] Start {count: 4, rollWidth: 760, effectiveMaterialWidth: 740, filmWidth: 160, totalFilmWidth: 640, …}
-film-cost-calculator.ts:542 [calculateMaterialCost] INPUT: {layers: Array(4), widthM: 0.74, lengthWithLoss: 1400}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'AL', grammage: undefined, thickness: 7, effectiveThickness: 7, thicknessMm: 0.007, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'PET', grammage: undefined, thickness: 12, effectiveThickness: 12, thicknessMm: 0.012, …}
-film-cost-calculator.ts:569 [calculateMaterialCost] LAYER: {materialId: 'LLDPE', grammage: undefined, thickness: 70, effectiveThickness: 70, thicknessMm: 0.07, …}
-film-cost-calculator.ts:594 [calculateMaterialCost] RESULT: {totalCost: 435613.13600000006, totalWeight: 120.61112000000001, totalCostRounded: 435613}
-film-cost-calculator.ts:714 [calculateSurfaceTreatmentCost] DEBUG: {widthM: 0.74, lengthWithLoss: 1400, postProcessingOptions: Array(8), hasGlossy: true, hasMatte: false}
-film-cost-calculator.ts:735 [calculateSurfaceTreatmentCost] Glossy treatment - no additional cost
-pouch-cost-calculator.ts:1635 [ParallelProductionOption] filmCostResult {materialCost: 435613, printingCost: 665000, laminationCost: 233100, slitterCost: 30000, deliveryCostJPY: 70389, …}
-pouch-cost-calculator.ts:1672 [ParallelProductionOption] Discount Applied {count: 4, discountableCost: 1333713, nonDiscountableCost: 100389, discountedCost: 4734681, totalDiscountedCost: 4835070, …}
-ImprovedQuotingWizard.tsx:3773 [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1), …}
-ImprovedQuotingWizard.tsx:3773 [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1), …}
-pouch-cost-calculator.ts:309 [PouchCostCalculator] Loaded pricing settings from DB: 66 settings
-pouch-cost-calculator.ts:1606 [ParallelProductionOption] Start {count: 2, rollWidth: 590, effectiveMaterialWidth: 570, filmWidth: 160, totalFilmWidth: 320, …}
-pouch-cost-calculator.ts:1635 [ParallelProductionOption] filmCostResult {materialCost: 335540, printingCost: 665000, laminationCost: 179550, slitterCost: 30000, deliveryCostJPY: 56311.2, …}
-pouch-cost-calculator.ts:1672 [ParallelProductionOption] Discount Applied {count: 2, discountableCost: 1180090, nonDiscountableCost: 86311, discountedCost: 2183167, totalDiscountedCost: 2269478, …}
-pouch-cost-calculator.ts:1606 [ParallelProductionOption] Start {count: 3, rollWidth: 590, effectiveMaterialWidth: 570, filmWidth: 160, totalFilmWidth: 480, …}
-pouch-cost-calculator.ts:1635 [ParallelProductionOption] filmCostResult {materialCost: 335540, printingCost: 665000, laminationCost: 179550, slitterCost: 30000, deliveryCostJPY: 56311.2, …}
-pouch-cost-calculator.ts:1672 [ParallelProductionOption] Discount Applied {count: 3, discountableCost: 1180090, nonDiscountableCost: 86311, discountedCost: 3186243, totalDiscountedCost: 3272554, …}
-pouch-cost-calculator.ts:1606 [ParallelProductionOption] Start {count: 4, rollWidth: 760, effectiveMaterialWidth: 740, filmWidth: 160, totalFilmWidth: 640, …}
-pouch-cost-calculator.ts:1635 [ParallelProductionOption] filmCostResult {materialCost: 435613, printingCost: 665000, laminationCost: 233100, slitterCost: 30000, deliveryCostJPY: 70389, …}
-pouch-cost-calculator.ts:1672 [ParallelProductionOption] Discount Applied {count: 4, discountableCost: 1333713, nonDiscountableCost: 100389, discountedCost: 4734681, totalDiscountedCost: 4835070, …}
-ImprovedQuotingWizard.tsx:3773 [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1), …}
-ImprovedQuotingWizard.tsx:3773 [ResultStep] Debug: {resultHasValidSKUData: true, resultSkuQuantities: Array(1), resultSkuCount: 1, stateSkuCount: 1, stateSkuQuantities: Array(1), …}
+
+<!DOCTYPE html><html lang="ja" data-scroll-behavior="smooth"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/chunks/%5Broot-of-the-server%5D__a9dc16e9._.css" data-precedence="next_static/chunks/[root-of-the-server]__a9dc16e9._.css"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_6ff2a80e._.js"/><script src="/_next/static/chunks/8defa_next_dist_compiled_react-dom_55c3ed08._.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_compiled_react-server-dom-turbopack_2dcc8303._.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_compiled_next-devtools_index_31b4e442.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_compiled_09831e78._.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_client_611a725e._.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_fce9020c._.js" async=""></script><script src="/_next/static/chunks/4abac_%40swc_helpers_cjs_f34ed7dc._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_a0ff3932._.js" async=""></script><script src="/_next/static/chunks/turbopack-02_Homepage_Dev_02_epac_homepagever1_1_6eddf249._.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_ef674e8b._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js" async=""></script><script src="/_next/static/chunks/8defa_next_d6af6aa7._.js" async=""></script><script src="/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js" async=""></script><script src="/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js" async=""></script><script src="/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js" async=""></script><script src="/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js" async=""></script><script src="/_next/static/chunks/0b2b4_zod_f3d48eff._.js" async=""></script><script src="/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js" async=""></script><script src="/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js" async=""></script><script src="/_next/static/chunks/5b656_swr_dist_1df8173e._.js" async=""></script><script src="/_next/static/chunks/43a1a__pnpm_d13f81ad._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js" async=""></script><script src="/_next/static/chunks/8defa_next_dist_client_components_builtin_global-error_c9b9caf7.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_9c6298e2._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_error_tsx_2df985b3._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_not-found_tsx_9ff1ecb2._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_not-found_tsx_2df985b3._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js" async=""></script><script src="/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js" async=""></script><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/><link rel="dns-prefetch" href="//api.supabase.io"/><meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="color-scheme" content="light dark"/><meta name="supported-color-schemes" content="light dark"/><meta name="theme-color" content="#1A365D"/><meta name="msapplication-TileColor" content="#1A365D"/><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/><link rel="manifest" href="/site.webmanifest"/><meta name="next-size-adjust" content=""/><script src="/_next/static/chunks/8defa_next_dist_build_polyfills_polyfill-nomodule.js" noModule=""></script></head><body class="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable noto_sans_jp_39eb56f8-module__5Khw0a__variable antialiased font-sans"><div hidden=""><!--$?--><template id="B:0"></template><!--/$--></div><!--$?--><template id="B:1"></template><div class="min-h-screen flex items-center justify-center">読み込み中...</div><!--/$--><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T4PL5XMC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script id="_R_">self.__next_r="NCHkVjE1DM78gUw9QZQP7"</script><script src="/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_6ff2a80e._.js" async=""></script><div hidden id="S:1"><header class="sticky top-0 z-50 w-full border-b border-border-medium/50 bg-bg-primary/80 backdrop-blur-md transition-all duration-200 shadow-sm" role="banner"><div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between"><a class="flex items-center space-x-3 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:ring-offset-2 rounded-lg" aria-label="Epackage Lab - ホーム" href="/"><div class="relative h-8 w-8 md:h-10 md:w-10"><img alt="Epackage Lab Logo" decoding="async" data-nimg="fill" class="object-contain" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;object-fit:contain;color:transparent" src="/logo.svg"/></div><span class="hidden sm:block text-lg md:text-xl font-bold text-text-primary font-sans tracking-tight">Epackage Lab</span></a><nav class="hidden lg:flex items-center space-x-1" role="navigation" aria-label="Main navigation"><div class="relative" data-dropdown="true"><a class="px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="Epackage Labトップページ" href="/"><span>ホーム</span></a></div><div class="relative" data-dropdown="true"><a class="px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="パウチ製品一覧" href="/catalog"><span>製品カタログ</span></a></div><div class="relative" data-dropdown="true"><button class="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary" aria-expanded="false" aria-haspopup="true"><span>サービス</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down h-4 w-4 transition-transform duration-200" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div><div class="relative" data-dropdown="true"><a class="px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="包装資材・印刷の最新情報" href="/blog"><span>導入事例</span></a></div><div class="relative" data-dropdown="true"><button class="px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="AI即時見積もり・ご相談" aria-label="お見積り"><span>お見積り</span></button></div></nav><div class="flex items-center space-x-4"><div class="hidden md:block"><a class="inline-flex" href="/contact"><button class="inline-flex items-center justify-center transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap relative overflow-hidden group bg-gradient-to-br from-[var(--brixa-primary-500)] to-[var(--brixa-primary-700)] text-white hover:from-[var(--brixa-primary-600)] hover:to-[var(--brixa-primary-800)] focus-visible:ring-[var(--brixa-primary-500)] shadow-md hover:shadow-lg active:scale-[0.98] active:shadow-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500 h-8 px-3 text-xs gap-1.5 w-auto rounded-md font-medium"><span class="truncate">今すぐ相談</span></button></a></div><button class="font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap relative overflow-hidden group hover:bg-[var(--brixa-primary-50)] focus-visible:ring-[var(--brixa-primary-500)] dark:text-[var(--brixa-primary-400)] dark:hover:bg-opacity-30 dark:hover:text-[var(--brixa-primary-300)] active:bg-[var(--brixa-primary-100)] dark:active:bg-opacity-30 px-3 text-xs gap-1.5 rounded-md lg:hidden flex items-center justify-center w-12 h-12 text-text-secondary hover:text-text-primary" aria-label="メニューを開く" aria-expanded="false" aria-controls="mobile-navigation"><span class="truncate"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-6 w-6" aria-hidden="true"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></span></button></div></div><div id="mobile-navigation" class="lg:hidden border-t border-border-medium bg-bg-primary hidden" role="navigation" aria-label="Mobile navigation"><div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto"><nav class="space-y-1"><div class="border-b border-border-medium/50 last:border-0"><a class="block px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="Epackage Labトップページ" href="/"><span>ホーム</span></a></div><div class="border-b border-border-medium/50 last:border-0"><a class="block px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="パウチ製品一覧" href="/catalog"><span>製品カタログ</span></a></div><div class="border-b border-border-medium/50 last:border-0"><div><button class="w-full px-4 py-3 text-left text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary flex items-center justify-between"><span>サービス</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down h-4 w-4 transition-transform duration-200" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div></div><div class="border-b border-border-medium/50 last:border-0"><a class="block px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="包装資材・印刷の最新情報" href="/blog"><span>導入事例</span></a></div><div class="border-b border-border-medium/50 last:border-0"><button class="block w-full text-left px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full" title="AI即時見積もり・ご相談" aria-label="お見積り"><span>お見積り</span></button></div><div class="pt-4 border-t border-border-medium mt-4 space-y-3"><a class="inline-flex w-full" href="/contact"><button class="inline-flex items-center transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap relative overflow-hidden group text-[var(--brixa-primary-600)] hover:bg-[var(--brixa-primary-50)] hover:text-[var(--brixa-primary-700)] focus-visible:ring-[var(--brixa-primary-500)] dark:text-[var(--brixa-primary-400)] dark:hover:bg-opacity-30 dark:hover:text-[var(--brixa-primary-300)] active:bg-[var(--brixa-primary-100)] dark:active:bg-opacity-30 h-10 px-4 py-2 text-sm gap-2 w-full rounded-md justify-center font-medium" aria-label="お問い合わせ - mobile CTA"><span class="truncate">お問い合わせ</span></button></a></div></nav></div></div></header><nav aria-label="Breadcrumb" class="flex items-center space-x-2 text-sm py-4" role="navigation"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ホーム","item":"https://www.package-lab.com/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://www.package-lab.com/blog"},{"@type":"ListItem","position":3,"name":"Variable Printing","item":"https://www.package-lab.com/blog/variable-printing"}]}</script><div class="flex items-center space-x-2"><a class="text-text-secondary hover:text-brixa-600 transition-colors flex items-center space-x-1" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house w-4 h-4" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span>ホーム</span></a></div><div class="flex items-center space-x-2"><span class="text-gray-400" aria-hidden="true">/</span><a class="text-text-secondary hover:text-brixa-600 transition-colors flex items-center space-x-1" href="/blog"><span>Blog</span></a></div><div class="flex items-center space-x-2"><span class="text-gray-400" aria-hidden="true">/</span><span class="text-brixa-600 font-medium" aria-current="page">Variable Printing</span></div></nav><main><template id="P:2"></template><!--$?--><template id="B:3"></template><!--/$--></main><button class="fixed bottom-8 right-8 z-50 p-3 bg-gradient-to-r from-brixa-600 to-brixa-700 text-white rounded-full shadow-xl hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:ring-offset-2 transition-all duration-500 transform hover:scale-110 opacity-0 translate-y-10 pointer-events-none" aria-label="ページ上部に移動"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up h-5 w-5" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg></button><footer class="relative bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700" role="contentinfo"><div class="absolute inset-0 opacity-5 dark:opacity-10"><div class="absolute inset-0" style="background-image:url(&quot;data:image/svg+xml,%3Csvg width=&#x27;60&#x27; height=&#x27;60&#x27; viewBox=&#x27;0 0 60 60&#x27; xmlns=&#x27;http://www.w3.org/2000/svg&#x27;%3E%3Cg fill=&#x27;none&#x27; fill-rule=&#x27;evenodd&#x27;%3E%3Cg fill=&#x27;%239C92AC&#x27; fill-opacity=&#x27;0.4&#x27;%3E%3Cpath d=&#x27;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z&#x27;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&quot;)"></div></div><div class="relative"><div class="mx-auto max-w-7xl sm:px-6 lg:px-8 px-6 py-16 lg:py-20"><div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16"><div class="lg:col-span-4 space-y-6 opacity-0 translate-y-4" style="transition:all 0.6s ease-out 0.1s"><a class="inline-flex items-center space-x-3 group" aria-label="Epackage Lab - ホームへ戻る" href="/"><div class="relative h-10 w-10"><img alt="Epackage Lab Logo" loading="lazy" decoding="async" data-nimg="fill" class="object-contain" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;object-fit:contain;color:transparent" src="/logo.svg"/></div><span class="text-xl font-bold text-text-primary font-sans tracking-tight">Epackage Lab</span></a><p class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm lg:text-base max-w-sm">先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。</p><div class="space-y-3"><div class="flex items-center space-x-3 text-slate-600 dark:text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail h-4 w-4 text-brixa-500" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg><span class="text-sm">info@package-lab.com</span></div><div class="flex items-center space-x-3 text-slate-600 dark:text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone h-4 w-4 text-brixa-500" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg><span class="text-sm">050-1793-6500</span></div><div class="flex items-start space-x-3 text-slate-600 dark:text-slate-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin h-4 w-4 text-brixa-500 mt-0.5 flex-shrink-0" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg><div class="text-sm"><div>本社：兵庫県明石市上ノ丸2-11-21</div><div class="text-xs mt-1">ロジスティクス：兵庫県加古郡稲美町六分一486</div></div></div></div></div><div class="lg:col-span-4 opacity-0 translate-y-4" style="transition:all 0.6s ease-out 0.2s"><h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-6">プライバシーとご利用規約</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><a class="group p-4 rounded-xl bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:border-brixa-200 dark:hover:border-brixa-800 block" href="/privacy"><div class="flex items-start space-x-3"><div class="flex-shrink-0 w-8 h-8 bg-brixa-100 dark:bg-brixa-900 text-brixa-600 rounded-lg flex items-center justify-center group-hover:bg-brixa-600 group-hover:text-white transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield h-4 w-4" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></div><div><h4 class="text-sm font-medium text-slate-900 dark:text-white mb-1 group-hover:text-brixa-600 transition-colors">個人情報保護方針</h4><p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">お客様の個人情報を適切に管理・保護する方針についてご説明します</p></div></div></a><a class="group p-4 rounded-xl bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:border-brixa-200 dark:hover:border-brixa-800 block" href="/terms"><div class="flex items-start space-x-3"><div class="flex-shrink-0 w-8 h-8 bg-brixa-100 dark:bg-brixa-900 text-brixa-600 rounded-lg flex items-center justify-center group-hover:bg-brixa-600 group-hover:text-white transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text h-4 w-4" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></div><div><h4 class="text-sm font-medium text-slate-900 dark:text-white mb-1 group-hover:text-brixa-600 transition-colors">利用規約</h4><p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">当社サービスの利用条件と規約について詳しくご確認いただけます</p></div></div></a><a class="group p-4 rounded-xl bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:border-brixa-200 dark:hover:border-brixa-800 block" href="/legal"><div class="flex items-start space-x-3"><div class="flex-shrink-0 w-8 h-8 bg-brixa-100 dark:bg-brixa-900 text-brixa-600 rounded-lg flex items-center justify-center group-hover:bg-brixa-600 group-hover:text-white transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users h-4 w-4" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg></div><div><h4 class="text-sm font-medium text-slate-900 dark:text-white mb-1 group-hover:text-brixa-600 transition-colors">特定商取引法</h4><p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">表示事項に基づく事業内容と販売条件の詳細情報</p></div></div></a><a class="group p-4 rounded-xl bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:border-brixa-200 dark:hover:border-brixa-800 block" href="/csr"><div class="flex items-start space-x-3"><div class="flex-shrink-0 w-8 h-8 bg-brixa-100 dark:bg-brixa-900 text-brixa-600 rounded-lg flex items-center justify-center group-hover:bg-brixa-600 group-hover:text-white transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart h-4 w-4" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path></svg></div><div><h4 class="text-sm font-medium text-slate-900 dark:text-white mb-1 group-hover:text-brixa-600 transition-colors">社会的責任</h4><p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">環境配慮と社会的責任に関する当社の取り組みについて</p></div></div></a></div></div><div class="lg:col-span-4 opacity-0 translate-y-4" style="transition:all 0.6s ease-out 0.3s"><div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 border border-slate-100 dark:border-slate-700"><div class="text-center mb-6"><div class="w-12 h-12 bg-gradient-to-br from-brixa-500 to-brixa-600 rounded-full flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart h-6 w-6 text-white" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path></svg></div><h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">最新情報をお届け</h3><p class="text-sm text-slate-600 dark:text-slate-400">新製品情報や限定オファーをメールでお知らせします</p></div><form class="space-y-3"><div class="space-y-2"><div class="relative flex-1"><div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail h-4 w-4 text-slate-400" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg></div><input id="input-_R_rbamlb_" class="flex border transition-all duration-fast file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-brixa-700 placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:file:text-brixa-300 border-border-medium bg-bg-primary text-text-primary focus-visible:border-brixa-500 focus-visible:ring-brixa-500 dark:border-border-dark dark:bg-bg-secondary dark:text-text-primary h-10 px-3 py-2 text-sm rounded-md pl-10 w-full text-center" aria-describedby="" aria-required="true" type="email" placeholder="メールアドレスを入力" value=""/></div></div><button class="inline-flex items-center justify-center font-medium ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap relative overflow-hidden group text-white focus-visible:ring-[var(--brixa-primary-500)] active:scale-[0.98] active:shadow-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500 h-10 px-4 py-2 text-sm gap-2 w-full rounded-md bg-gradient-to-r from-brixa-600 to-brixa-700 hover:from-brixa-700 hover:to-brixa-800 shadow-lg hover:shadow-xl transition-all duration-300" type="submit"><span class="truncate"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send h-4 w-4 mr-2" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>購読する</span></button></form></div></div></div><div class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-700 opacity-0 translate-y-4" style="transition:all 0.6s ease-out 0.4s"><div class="text-center mb-6"><h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">ソーシャルメディアでフォロー</h3><p class="text-sm text-slate-600 dark:text-slate-400">最新ニュースや製品情報をお届けしています</p></div><div class="flex justify-center space-x-3"><a target="_blank" rel="noopener noreferrer" class="group relative w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:bg-blue-600 hover:text-white" aria-label="Facebookでフォローする" style="transition:all 0.3s ease-out;transition-delay:0s" href="https://facebook.com/epackagelab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-facebook h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors duration-300" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg><div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div></a><a target="_blank" rel="noopener noreferrer" class="group relative w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:bg-sky-500 hover:text-white" aria-label="Twitterでフォローする" style="transition:all 0.3s ease-out;transition-delay:0.05s" href="https://twitter.com/epackagelab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-twitter h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors duration-300" aria-hidden="true"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg><div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div></a><a target="_blank" rel="noopener noreferrer" class="group relative w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:bg-blue-700 hover:text-white" aria-label="LinkedInでフォローする" style="transition:all 0.3s ease-out;transition-delay:0.1s" href="https://linkedin.com/company/epackagelab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors duration-300" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg><div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div></a><a target="_blank" rel="noopener noreferrer" class="group relative w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:text-white" aria-label="Instagramでフォローする" style="transition:all 0.3s ease-out;transition-delay:0.15000000000000002s" href="https://instagram.com/epackagelab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors duration-300" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg><div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div></a><a target="_blank" rel="noopener noreferrer" class="group relative w-12 h-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:bg-red-600 hover:text-white" aria-label="YouTubeでフォローする" style="transition:all 0.3s ease-out;transition-delay:0.2s" href="https://youtube.com/epackagelab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-youtube h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors duration-300" aria-hidden="true"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"></path><path d="m10 15 5-3-5-3z"></path></svg><div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div></a></div></div></div><div class="border-t border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"><div class="mx-auto max-w-7xl sm:px-6 lg:px-8 px-6 py-6"><div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0"><div class="text-center md:text-left"><p class="text-sm text-slate-600 dark:text-slate-400">© <!-- -->2026<!-- --> Epackage Lab. 全著作権所有.</p></div><div class="flex items-center space-x-6"><a class="text-sm text-slate-600 dark:text-slate-400 hover:text-brixa-600 dark:hover:text-brixa-400 transition-colors duration-200" href="/privacy">個人情報保護方針</a><a class="text-sm text-slate-600 dark:text-slate-400 hover:text-brixa-600 dark:hover:text-brixa-400 transition-colors duration-200" href="/terms">利用規約</a><a class="text-sm text-slate-600 dark:text-slate-400 hover:text-brixa-600 dark:hover:text-brixa-400 transition-colors duration-200" href="/sitemap">サイトマップ</a></div></div></div></div></div></footer><!--$!--><template data-dgst="BAILOUT_TO_CLIENT_SIDE_RENDERING" data-msg="Switched to client rendering because the server rendering errored:
+
+Bail out to client-side rendering: next/dynamic" data-stck="Switched to client rendering because the server rendering errored:
+
+Error: Bail out to client-side rendering: next/dynamic
+    at BailoutToCSR (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\8defa_next_733db5c4._.js:14271:37)
+    at Object.react_stack_bottom_frame (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:308269)
+    at renderWithHooks (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:117637)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:132309)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:212370)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:189428)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at finishFunctionComponent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:118647)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:133818)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:194251)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:212370)
+    at renderChildrenArray (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:206931)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201694)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:192636)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at finishFunctionComponent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:118647)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:133818)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:194251)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:192636)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at finishFunctionComponent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:118647)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:133818)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:194251)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:192636)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at finishFunctionComponent (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:118647)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:133818)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:194251)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:212370)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:189428)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)
+    at renderElement (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:192636)
+    at retryNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:201217)
+    at renderNodeDestructive (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:2:200452)" data-cstck="
+    at BailoutToCSR (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\8defa_next_733db5c4._.js:14269:25)
+    at Suspense (&lt;anonymous&gt;)
+    at LoadableComponent (&lt;anonymous&gt;)
+    at LanguageProvider (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\02_Homepage_Dev_02_epac_homepagever1_1_src_750de1e0._.js:1912:29)
+    at CatalogProvider (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\02_Homepage_Dev_02_epac_homepagever1_1_src_750de1e0._.js:2759:28)
+    at AuthProvider (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\02_Homepage_Dev_02_epac_homepagever1_1_src_750de1e0._.js:2131:25)
+    at Suspense (&lt;anonymous&gt;)
+    at ThemeProvider (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\02_Homepage_Dev_02_epac_homepagever1_1_src_components_298c2f2c._.js:23:26)
+    at body (&lt;anonymous&gt;)
+    at html (&lt;anonymous&gt;)
+    at RootLayout [Server] (&lt;anonymous&gt;)
+    at SegmentViewNode (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\.next\dev\server\chunks\ssr\8defa_next_dist_7e63ba9a._.js:9197:28)
+    at __next_root_layout_boundary__ (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:68371)
+    at RedirectErrorBoundary (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:66031)
+    at RedirectBoundary (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:66666)
+    at AppDevOverlayErrorBoundary (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:22:9548)
+    at HotReload (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:22:22242)
+    at Router (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:70182)
+    at ErrorBoundaryHandler (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:20:22652)
+    at ErrorBoundary (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:20:23705)
+    at RootErrorBoundary (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:67598)
+    at AppRouter (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:77000)
+    at ServerInsertedHTMLProvider (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:37:690)
+    at app_render_App (C:\Users\kanei\claudecode\02.Homepage_Dev\02.epac_homepagever1.1\node_modules\.pnpm\next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.dev.js:41:33107)"></template><!--/$--></div><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"8:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"SegmentViewNode\"]\na:\"$Sreact.fragment\"\n"])</script><script>self.__next_f.push([1,"2a:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/client/script.js [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"\"]\n"])</script><script>self.__next_f.push([1,"3b:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/client/components/layout-router.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"default\"]\n3d:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/client/components/render-from-template-context.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"default\"]\n4c:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/client/components/builtin/global-error.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_client_components_builtin_global-error_c9b9caf7.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"5d:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/theme/ThemeProvider.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"ThemeProvider\"]\n"])</script><script>self.__next_f.push([1,"5f:\"$Sreact.suspense\"\n"])</script><script>self.__next_f.push([1,"62:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/contexts/AuthContext.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"AuthProvider\",1]\n"])</script><script>self.__next_f.push([1,"64:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/contexts/CatalogContext.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"CatalogProvider\"]\n"])</script><script>self.__next_f.push([1,"66:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/contexts/LanguageContext.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"LanguageProvider\"]\n"])</script><script>self.__next_f.push([1,"68:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/app/components/ModalWrapper.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"ModalWrapper\",1]\n"])</script><script>self.__next_f.push([1,"6a:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/layout/HeaderWrapper.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"HeaderWrapper\",1]\n"])</script><script>self.__next_f.push([1,"6c:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/seo/BreadcrumbList.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"BreadcrumbList\"]\n"])</script><script>self.__next_f.push([1,"6f:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/app/error.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_9c6298e2._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_error_tsx_2df985b3._.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"76:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/app/not-found.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_not-found_tsx_9ff1ecb2._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_not-found_tsx_2df985b3._.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"7b:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/layout/Footer.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"Footer\"]\n"])</script><script>self.__next_f.push([1,"7d:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/chat/ChatWidgetWrapper.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\"],\"ChatWidget\"]\n"])</script><script>self.__next_f.push([1,"83:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"OutletBoundary\"]\n8d:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"ViewportBoundary\"]\n94:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"MetadataBoundary\"]\n:HL[\"/_next/static/chunks/%5Broot-of-the-server%5D__a9dc16e9._.css\",\"style\"]\n:HL[\"/_next/static/media/797e433ab948586e-s.p.dbea232f.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/media/ad9c66e761fed85a-s.p.bd81a64b.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/media/caa3a2e1cccd8315-s.p.853070df.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:N1775893368769.1826\n3:\"$EObject.defineProperty(()=\u003e{ctx.componentMod.preloadStyle(fullHref,ctx.renderOpts.crossOrigin,ctx.nonce)},\\\"name\\\",{value:\\\"\\\"})\"\n4:\"$EObject.defineProperty(()=\u003e{ctx.componentMod.preloadFont(href,type,ctx.renderOpts.crossOrigin,ctx.nonce)},\\\"name\\\",{value:\\\"\\\"})\"\n5:\"$EObject.defineProperty(()=\u003e{ctx.componentMod.preloadFont(href,type,ctx.renderOpts.crossOrigin,ctx.nonce)},\\\"name\\\",{value:\\\"\\\"})\"\n6:\"$EObject.defineProperty(()=\u003e{ctx.componentMod.preloadFont(href,type,ctx.renderOpts.crossOrigin,ctx.nonce)},\\\"name\\\",{value:\\\"\\\"})\"\n2:{\"name\":\"Preloads\",\"key\":null,\"env\":\"Server\",\"stack\":[],\"props\":{\"preloadCallbacks\":[\"$3\",\"$4\",\"$5\",\"$6\"]}}\n7:[]\n9:[]\nb:[[\"Array.map\",\"\",0,0,0,0,false]]\nc:[[\"Array.map\",\"\",0,0,0,0,false]]\nd:[[\"Array.map\",\"\",0,0,0,0,false]]\ne:[[\"Array.map\",\"\",0,0,0,0,false]]\nf:[[\"Array.map\",\"\",0,0,0,0,false]]\n10:[[\"Array.map\",\"\",0,0,0,0,false]]\n11:[[\"Array.map\",\"\",0,0,0,0,false]]\n12:[[\"Array.map\",\"\",0,0,0,0,false]]\n13:[[\"Array.map\",\"\",0,0,0,0,false]]\n14:[[\"Array.map\",\"\",0,0,0,0,false]]\n15:[[\"Array.map\",\"\",0,0,0,0,false]]\n16:[[\"Array.map\",\"\",0,0,0,0,false]]\n17:[[\"Array.map\",\"\",0,0,0,0,false]]\n18:[[\"Array.map\",\"\",0,0,0,0,false]]\n19:[[\"Array.map\",\"\",0,0,0,0,false]]\n1a:[[\"Array.map\",\"\",0,0,0,0,false]]\n1b:[[\"Array.map\",\"\",0,0,0,0,false]]\n1c:[[\"Array.map\",\"\",0,0,0,0,false]]\n1d:[[\"Array.map\",\"\",0,0,0,0,false]]\n1e:[[\"Array.map\",\"\",0,0,0,0,false]]\n21:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/client/components/layout-router.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"23:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/app/error.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_9c6298e2._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_error_tsx_2df985b3._.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"24:{\"type\":\"error\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/error.tsx\",\"children\":[]}\n25:[[\"Promise.all\",\"\",0,0,0,0,true]]\n22:{\"parallelRouterKey\":\"children\",\"error\":\"$23\",\"errorStyles\":[\"$\",\"$L8\",null,\"$24\",null,\"$25\",0],\"errorScripts\":\"$Y\",\"template\":\"$Y\",\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$Y\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\",\"segmentViewBoundaries\":\"$Y\"}\n26:[[\"Promise.all\",\"\",0,0,0,0,true]]\n20:{\"name\":\"RootLayout\",\"key\":null,\"env\":\"Server\",\"stack\":[],\"props\":{\"children\":[\"$\",\"$L21\",null,\"$22\",null,\"$26\",1],\"params\":\"$Y\"}}\n27:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",587,428,584,1,false]]\n28:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",592,429,584,1,false]]\n29:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",594,437,584,1,false]]\n39:[[\"Promise.all\",\"\",0,0,0,0,true]]\n3a:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n3c:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n3e:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n3f:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n40:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n41:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n42:[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]]\n44:{\"name\":\"BlogPostPage\",\"key\":null,\"env\":\"Server\",\"stack\":[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]],\"props\":{\"params\":\"$@45\",\"searchParams\":\"$@46\"}}\n47:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false],[\"Promise.all\",\"\",0,0,0,0,true]]\n48:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false],[\"Promise.all\",\"\",0,0,0,0,true]]\n4e:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",616,437,584,1,false]]\n4f:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",624,437,584,1,false]]\n50:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",633,437,584,1,false]]\n51:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",641,437,584,1,false]]\n52:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",649,437,584,1,false]]\n53:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",657,437,584,1,false]]\n54:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",665,437,584,1,false]]\n55:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",673,437,584,1,false]]\n56:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",681,437,584,1,false]]\n57:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",689,437,584,1,false]]\n58:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02."])</script><script>self.__next_f.push([1,"epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",698,437,584,1,false]]\n59:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",708,437,584,1,false]]\n5a:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",718,437,584,1,false]]\n5b:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",732,429,584,1,false]]\n5c:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",736,437,584,1,false]]\n5e:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",740,451,584,1,false]]\n60:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",741,455,584,1,false]]\n61:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",749,455,584,1,false]]\n63:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",750,459,584,1,false]]\n65:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",751,463,584,1,false]]\n67:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",753,461,584,1,false]]\n69:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",758,461,584,1,false]]\n6b:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",763,461,584,1,false]]\n6d:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",768,461,584,1,false]]\n6e:[[\"Promise.all\",\"\",0,0,0,0,true]]\n70:[[\"Promise.all\",\"\",0,0,0,0,true]]\n71:[[\"Array.map\",\"\",0,0,0,0,false]]\n72:[[\"Array.map\",\"\",0,0,0,0,false]]\n73:[[\"Promise.all\",\"\",0,0,0,0,true]]\n74:[]\n75:[]\n77:[[\"Promise.all\",\"\",0,0,0,0,true]]\n78:[[\"Promise.all\",\"\",0,0,0,0,true]]\n79:[[\"Promise.all\",\"\",0,0,0,0,true]]\n7a:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",775,461,584,1,false]]\n7c:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",780,461,584,1,false]]\n7f:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",812,451,584,1,false]]\n80:[[\"RootLayout\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__1557522c._.js\",811,437,584,1,false]]\n81:{\"name\":\"Next.MetadataOutlet\",\"key\":null,\"env\":\"Server\",\"stack\":[[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true],[\"Promise.all\",\"\",0,0,0,0,true]],\"props\":{}}\n82:[]\n84:[]\n86:[]\n"])</script><script>self.__next_f.push([1,"89:\"$EObject.defineProperty(function(type,config,children){for(var propName,i=2;i\u003carguments.length;i++)validateChildKeys(arguments[i]);i={};var key=null;if(null!=config)for(propName in didWarnAboutOldJSXRuntime||!(\\\"__self\\\"in config)||\\\"key\\\"in config||(didWarnAboutOldJSXRuntime=!0,console.warn(\\\"Your app (or one of its dependencies) is using an outdated JSX transform. Update to the modern JSX transform for faster performance: https://react.dev/link/new-jsx-transform\\\")),hasValidKey(config)\u0026\u0026(checkKeyStringCoercion(config.key),key=\\\"\\\"+config.key),config)hasOwnProperty.call(config,propName)\u0026\u0026\\\"key\\\"!==propName\u0026\u0026\\\"__self\\\"!==propName\u0026\u0026\\\"__source\\\"!==propName\u0026\u0026(i[propName]=config[propName]);var childrenLength=arguments.length-2;if(1===childrenLength)i.children=children;else if(1\u003cchildrenLength){for(var childArray=Array(childrenLength),_i=0;_i\u003cchildrenLength;_i++)childArray[_i]=arguments[_i+2];Object.freeze\u0026\u0026Object.freeze(childArray),i.children=childArray}if(type\u0026\u0026type.defaultProps)for(propName in childrenLength=type.defaultProps)void 0===i[propName]\u0026\u0026(i[propName]=childrenLength[propName]);return key\u0026\u0026function(props,displayName){function warnAboutAccessingKey(){specialPropKeyWarningShown||(specialPropKeyWarningShown=!0,console.error(\\\"%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://react.dev/link/special-props)\\\",displayName))}warnAboutAccessingKey.isReactWarning=!0,Object.defineProperty(props,\\\"key\\\",{get:warnAboutAccessingKey,configurable:!0})}(i,\\\"function\\\"==typeof type?type.displayName||type.name||\\\"Unknown\\\":type),(propName=1e4\u003eReactSharedInternals.recentlyCreatedOwnerStacks++)?(childArray=Error.stackTraceLimit,Error.stackTraceLimit=10,childrenLength=Error(\\\"react-stack-top-frame\\\"),Error.stackTraceLimit=childArray):childrenLength=unknownOwnerDebugStack,ReactElement(type,key,i,getOwner(),childrenLength,propName?createTask(getTaskName(type)):unknownOwnerDebugTask)},\\\"name\\\",{value:\\\"\\\"})\"\n"])</script><script>self.__next_f.push([1,"88:{\"name\":\"NonIndex\",\"key\":null,\"env\":\"Server\",\"stack\":[],\"props\":{\"createElement\":\"$89\",\"pagePath\":\"/blog/[slug]\",\"statusCode\":200,\"isPossibleServerAction\":false}}\n8b:{\"name\":\"ViewportWrapper\",\"key\":null,\"env\":\"Server\",\"stack\":[],\"props\":{}}\n8c:[]\n8f:{\"name\":\"Next.Viewport\",\"key\":null,\"env\":\"Server\",\"owner\":\"$8b\",\"stack\":[],\"props\":{}}\n91:{\"name\":\"MetadataWrapper\",\"key\":null,\"env\":\"Server\",\"stack\":[],\"props\":{}}\n92:[]\n93:[]\n95:[]\n97:{\"name\":\"Next.Metadata\",\"key\":null,\"env\":\"Server\",\"owner\":\"$91\",\"stack\":[],\"props\":{}}\n98:[]\n99:[]\n45:{\"slug\":\"variable-printing\"}\n46:\n9a:[]\n9b:[]\n1:D{\"time\":0.23880000039935112}\n1:D\"$2\"\n1:D{\"time\":0.2752999998629093}\n1:null\n1f:D{\"time\":1.255400002002716}\n1f:D\"$20\"\n1f:D{\"time\":1.678600002080202}\n1f:[\"$\",\"html\",null,{\"lang\":\"ja\",\"suppressHydrationWarning\":true,\"data-scroll-behavior\":\"smooth\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"$L2a\",null,{\"id\":\"gtm-head\",\"strategy\":\"afterInteractive\",\"dangerouslySetInnerHTML\":{\"__html\":\"\\n    window.dataLayer = window.dataLayer || [];\\n    function gtag(){dataLayer.push(arguments);}\\n    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\\n    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\\n    j=d.createElement(s),dl=l!='dataLayer'?'\u0026l='+l:'';j.async=true;j.src=\\n    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\\n    })(window,document,'script','dataLayer','GTM-T4PL5XMC');\\n    gtag('js', new Date());\\n    gtag('config', 'G-VBCB77P21T');\\n    gtag('config', 'AW-17981675917');\\n  \"}},\"$20\",\"$29\",1],\"$L2b\",\"$L2c\",\"$L2d\",\"$L2e\",\"$L2f\",\"$L30\",\"$L31\",\"$L32\",\"$L33\",\"$L34\",\"$L35\",\"$L36\",\"$L37\"]},\"$20\",\"$28\",1],\"$L38\"]},\"$20\",\"$27\",1]\n43:D{\"time\":2.4992999993264675}\n43:D\"$44\"\n4b:[]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":\"$1\",\"b\":\"development\",\"c\":[\"\",\"blog\",\"variable-printing\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"blog\",{\"children\":[[\"slug\",\"variable-printing\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[[\"$\",\"$L8\",\"layout\",{\"type\":\"layout\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/layout.tsx\",\"children\":[\"$\",\"$a\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/chunks/%5Broot-of-the-server%5D__a9dc16e9._.css\",\"precedence\":\"next_static/chunks/[root-of-the-server]__a9dc16e9._.css\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"},null,\"$b\",0],[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$c\",0],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$d\",0],[\"$\",\"script\",\"script-2\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$e\",0],[\"$\",\"script\",\"script-3\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$f\",0],[\"$\",\"script\",\"script-4\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$10\",0],[\"$\",\"script\",\"script-5\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$11\",0],[\"$\",\"script\",\"script-6\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$12\",0],[\"$\",\"script\",\"script-7\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$13\",0],[\"$\",\"script\",\"script-8\",{\"src\":\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$14\",0],[\"$\",\"script\",\"script-9\",{\"src\":\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$15\",0],[\"$\",\"script\",\"script-10\",{\"src\":\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$16\",0],[\"$\",\"script\",\"script-11\",{\"src\":\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$17\",0],[\"$\",\"script\",\"script-12\",{\"src\":\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$18\",0],[\"$\",\"script\",\"script-13\",{\"src\":\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$19\",0],[\"$\",\"script\",\"script-14\",{\"src\":\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$1a\",0],[\"$\",\"script\",\"script-15\",{\"src\":\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$1b\",0],[\"$\",\"script\",\"script-16\",{\"src\":\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$1c\",0],[\"$\",\"script\",\"script-17\",{\"src\":\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$1d\",0],[\"$\",\"script\",\"script-18\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$1e\",0]],\"$1f\"]},null,\"$9\",1]},null,\"$7\",0],{\"children\":[[\"$\",\"$a\",\"c\",{\"children\":[null,[\"$\",\"$L3b\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L3d\",null,{},null,\"$3c\",1],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\",\"segmentViewBoundaries\":[\"$undefined\",\"$undefined\",\"$undefined\",\"$undefined\"]},null,\"$3a\",1]]},null,\"$39\",0],{\"children\":[[\"$\",\"$a\",\"c\",{\"children\":[null,[\"$\",\"$L3b\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L3d\",null,{},null,\"$40\",1],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\",\"segmentViewBoundaries\":[\"$undefined\",\"$undefined\",\"$undefined\",\"$undefined\"]},null,\"$3f\",1]]},null,\"$3e\",0],{\"children\":[[\"$\",\"$a\",\"c\",{\"children\":[[\"$\",\"$L8\",\"c-page\",{\"type\":\"page\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/blog/[slug]/page.tsx\",\"children\":\"$L43\"},null,\"$42\",1],[[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$47\",0],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js\",\"async\":true,\"nonce\":\"$undefined\"},null,\"$48\",0]],\"$L49\"]},null,\"$41\",0],{},null,false,false]},null,false,false]},null,false,false]},null,false,false],\"$L4a\",false]],\"m\":\"$W4b\",\"G\":[\"$4c\",\"$L4d\"],\"S\":false}\n"])</script><script>self.__next_f.push([1,"2b:D{\"time\":3.107099998742342}\n2b:[\"$\",\"link\",null,{\"rel\":\"preconnect\",\"href\":\"https://fonts.googleapis.com\"},\"$20\",\"$4e\",1]\n2c:D{\"time\":3.135800000280142}\n2c:[\"$\",\"link\",null,{\"rel\":\"preconnect\",\"href\":\"https://fonts.gstatic.com\",\"crossOrigin\":\"\"},\"$20\",\"$4f\",1]\n2d:D{\"time\":3.170099999755621}\n2d:[\"$\",\"link\",null,{\"rel\":\"dns-prefetch\",\"href\":\"//api.supabase.io\"},\"$20\",\"$50\",1]\n2e:D{\"time\":3.2017000019550323}\n2e:[\"$\",\"meta\",null,{\"name\":\"referrer\",\"content\":\"strict-origin-when-cross-origin\"},\"$20\",\"$51\",1]\n2f:D{\"time\":3.2377000004053116}\n2f:[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1, maximum-scale=5\"},\"$20\",\"$52\",1]\n30:D{\"time\":3.2758000008761883}\n30:[\"$\",\"meta\",null,{\"name\":\"color-scheme\",\"content\":\"light dark\"},\"$20\",\"$53\",1]\n31:D{\"time\":3.3046000003814697}\n31:[\"$\",\"meta\",null,{\"name\":\"supported-color-schemes\",\"content\":\"light dark\"},\"$20\",\"$54\",1]\n32:D{\"time\":3.325100000947714}\n32:[\"$\",\"meta\",null,{\"name\":\"theme-color\",\"content\":\"#1A365D\"},\"$20\",\"$55\",1]\n33:D{\"time\":3.350000001490116}\n33:[\"$\",\"meta\",null,{\"name\":\"msapplication-TileColor\",\"content\":\"#1A365D\"},\"$20\",\"$56\",1]\n34:D{\"time\":3.3793000020086765}\n34:[\"$\",\"link\",null,{\"rel\":\"apple-touch-icon\",\"sizes\":\"180x180\",\"href\":\"/apple-touch-icon.png\"},\"$20\",\"$57\",1]\n35:D{\"time\":3.4136999994516373}\n35:[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/png\",\"sizes\":\"32x32\",\"href\":\"/favicon-32x32.png\"},\"$20\",\"$58\",1]\n36:D{\"time\":3.4495000019669533}\n36:[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/png\",\"sizes\":\"16x16\",\"href\":\"/favicon-16x16.png\"},\"$20\",\"$59\",1]\n37:D{\"time\":3.4780000001192093}\n37:[\"$\",\"link\",null,{\"rel\":\"manifest\",\"href\":\"/site.webmanifest\"},\"$20\",\"$5a\",1]\n38:D{\"time\":3.50899999961257}\n7e:[\"$\",\"iframe\",null,{\"src\":\"https://www.googletagmanager.com/ns.html?id=GTM-T4PL5XMC\",\"height\":\"0\",\"width\":\"0\",\"style\":{\"display\":\"none\",\"visibility\":\"hidden\"}},\"$20\",\"$7f\",1]\n"])</script><script>self.__next_f.push([1,"38:[\"$\",\"body\",null,{\"className\":\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable noto_sans_jp_39eb56f8-module__5Khw0a__variable antialiased font-sans\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"$L5d\",null,{\"defaultTheme\":\"light\",\"enableSystem\":true,\"attribute\":\"class\",\"children\":[\"$\",\"$5f\",null,{\"fallback\":[\"$\",\"div\",null,{\"className\":\"min-h-screen flex items-center justify-center\",\"children\":\"読み込み中...\"},\"$20\",\"$60\",0],\"children\":[\"$\",\"$L62\",null,{\"children\":[\"$\",\"$L64\",null,{\"children\":[\"$\",\"$L66\",null,{\"children\":[[\"$\",\"$L68\",null,{},\"$20\",\"$67\",1],[\"$\",\"$L6a\",null,{},\"$20\",\"$69\",1],[\"$\",\"$L6c\",null,{},\"$20\",\"$6b\",1],[\"$\",\"main\",null,{\"children\":[\"$\",\"$L3b\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$6f\",\"errorStyles\":[\"$\",\"$L8\",null,{\"type\":\"error\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/error.tsx\",\"children\":[]},null,\"$70\",0],\"errorScripts\":[[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_9c6298e2._.js\",\"async\":true},null,\"$71\",0],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_error_tsx_2df985b3._.js\",\"async\":true},null,\"$72\",0]],\"template\":[\"$\",\"$L3d\",null,{},null,\"$73\",1],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[\"$\",\"$L8\",\"c-not-found\",{\"type\":\"not-found\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/not-found.tsx\",\"children\":[[\"$\",\"$L76\",null,{},null,\"$75\",1],[]]},null,\"$74\",0],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\",\"segmentViewBoundaries\":[[\"$\",\"$L8\",null,{\"type\":\"boundary:not-found\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/not-found.tsx@boundary\"},null,\"$77\",1],\"$undefined\",[\"$\",\"$L8\",null,{\"type\":\"boundary:error\",\"pagePath\":\"/02.Homepage_Dev/02.epac_homepagever1.1/src/app/error.tsx@boundary\"},null,\"$78\",1],[\"$\",\"$L8\",null,{\"type\":\"boundary:global-error\",\"pagePath\":\"__next_builtin__global-error.js\"},null,\"$79\",1]]},null,\"$6e\",1]},\"$20\",\"$6d\",1],[\"$\",\"$L7b\",null,{},\"$20\",\"$7a\",1],[\"$\",\"$L7d\",null,{},\"$20\",\"$7c\",1]]},\"$20\",\"$65\",1]},\"$20\",\"$63\",1]},\"$20\",\"$61\",1]},\"$20\",\"$5e\",1]},\"$20\",\"$5c\",1],[\"$\",\"noscript\",null,{\"children\":\"$7e\"},\"$20\",\"$80\",1]]},\"$20\",\"$5b\",1]\n"])</script><script>self.__next_f.push([1,"49:D{\"time\":4.774900000542402}\n49:D\"$81\"\n49:D{\"time\":7.073800001293421}\n49:[\"$\",\"$L83\",null,{\"children\":[\"$\",\"$5f\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@85\"},\"$81\",\"$84\",1]},\"$81\",\"$82\",1]\n4a:D{\"time\":7.558899998664856}\n87:D{\"time\":7.696699999272823}\n87:D\"$88\"\n87:D{\"time\":7.714000001549721}\n87:null\n8a:D{\"time\":7.775499999523163}\n8a:D\"$8b\"\n8a:D{\"time\":7.891600001603365}\n8e:D{\"time\":8.0168999992311}\n8e:D\"$8f\"\n8a:[\"$\",\"$L8d\",null,{\"children\":\"$L8e\"},\"$8b\",\"$8c\",1]\n90:D{\"time\":8.420900002121925}\n90:D\"$91\"\n90:D{\"time\":8.504900000989437}\n96:D{\"time\":8.616700001060963}\n96:D\"$97\"\n90:[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$L94\",null,{\"children\":[\"$\",\"$5f\",null,{\"name\":\"Next.Metadata\",\"children\":\"$L96\"},\"$91\",\"$95\",1]},\"$91\",\"$93\",1]},\"$91\",\"$92\",1]\n4a:[\"$\",\"$a\",\"h\",{\"children\":[\"$87\",\"$8a\",\"$90\",[\"$\",\"meta\",null,{\"name\":\"next-size-adjust\",\"content\":\"\"},null,\"$98\",1]]},null,\"$86\",0]\n4d:D{\"time\":8.946299999952316}\n4d:[\"$\",\"$L8\",\"ge-svn\",{\"type\":\"global-error\",\"pagePath\":\"__next_builtin__global-error.js\",\"children\":[]},null,\"$99\",0]\n8e:D{\"time\":14.012499999254942}\n8e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"},\"$81\",\"$9a\",0],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"},\"$81\",\"$9b\",0]]\n"])</script><script>self.__next_f.push([1,"c1:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/lib/metadata/generate/icon-mark.js [app-client] (ecmascript)\",[\"/_next/static/chunks/8defa_next_dist_ef674e8b._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_favicon_ico_mjs_ed2f7ddf._.js\"],\"IconMark\"]\n9c:J{\"name\":\"\",\"start\":410.68809999898076,\"end\":415.3713000006974,\"env\":\"Server\",\"owner\":\"$44\",\"value\":\"$@9d\"}\n9e:[[\"getPublishedPostBySlug\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",598,51,587,1,false],[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",1967,234,1965,1,false]]\n9f:[[\"getPublishedPostBySlug\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",598,51,587,1,false],[\"Module.generateMetadata\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",1911,234,1909,1,false]]\na0:[[\"getPublishedPostBySlug\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",598,51,587,1,false],[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",1967,234,1965,1,false]]\na1:[[\"getPublishedPostBySlug\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",598,51,587,1,false],[\"Module.generateMetadata\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",1911,234,1909,1,false]]\n9d:\"$undefined\"\na2:[]\na3:[]\na4:[]\na5:[]\na6:[]\na7:[]\na8:[]\na9:[]\naa:[[\"Array.map\",\"\",0,0,0,0,false]]\nab:[]\nac:[]\nad:[]\nae:[]\naf:[]\nb0:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false]]\nb1:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false]]\nb2:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false]]\nb3:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false]]\nb4:[]\nb5:[]\nb6:[]\nb7:[]\nb8:[[\"Array.map\",\"\",0,0,0,0,false]]\nb9:[[\"Array.map\",\"\",0,0,0,0,false]]\nba:[]\nbb:[]\nbc:[]\nbd:[]\nbe:[[\"Array.map\",\"\",0,0,0,0,false],[\"Array.map\",\"\",0,0,0,0,false]]\nbf:[[\"Array.map\",\"\",0,0,0,0,false]]\nc0:[]\n85:D{\"time\":10.854299999773502}\n85:D{\"awaited\":\"$9c\",\"env\":\"Server\",\"owner\":\"$44\",\"stack\":\"$9e\"}\n85:D{\"time\":415.77899999916553}\n85:D{\"awaited\":\"$9c\",\"env\":\"Server\",\"owner\":\"$81\",\"stack\":\"$9f\"}\n85:D{\"time\":415.7802999988198}\n96:D{\"time\":10.854299999773502}\n96:D{\"awaited\":\"$9c\",\"env\":\"Server\",\"owner\":\"$44\",\"stack\":\"$a0\"}\n96:D{\"time\":415.77899999916553}\n96:D{\"awaited\":\"$9c\",\"env\":\"Server\",\"owner\":\"$81\",\"stack\":\"$a1\"}\n96:D{\"time\":415.7802999988198}\n85:D{\"time\":431.6156000010669}\n85:null\n96:D{\"time\":431.63610000163317}\n"])</script><script>self.__next_f.push([1,"96:[[\"$\",\"title\",\"0\",{\"children\":\"【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術 | Epackage Lab ブログ | Epackage Lab\"},\"$81\",\"$a2\",0],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。\"},\"$81\",\"$a3\",0],[\"$\",\"meta\",\"2\",{\"name\":\"creator\",\"content\":\"Epackage Lab\"},\"$81\",\"$a4\",0],[\"$\",\"meta\",\"3\",{\"name\":\"publisher\",\"content\":\"Epackage Lab\"},\"$81\",\"$a5\",0],[\"$\",\"meta\",\"4\",{\"name\":\"robots\",\"content\":\"index, follow\"},\"$81\",\"$a6\",0],[\"$\",\"meta\",\"5\",{\"name\":\"googlebot\",\"content\":\"index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1\"},\"$81\",\"$a7\",0],[\"$\",\"link\",\"6\",{\"rel\":\"canonical\",\"href\":\"https://package-lab.net/blog/variable-printing\"},\"$81\",\"$a8\",0],[\"$\",\"meta\",\"7\",{\"name\":\"format-detection\",\"content\":\"telephone=no, address=no, email=no\"},\"$81\",\"$a9\",0],[\"$\",\"meta\",\"8\",{\"name\":\"google-site-verification\",\"content\":\"F0MGJt4bRFH71oNsaalw0yVyTZn5FTLScKHxI1bihHw\"},\"$81\",\"$aa\",0],[\"$\",\"meta\",\"9\",{\"property\":\"og:title\",\"content\":\"【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術\"},\"$81\",\"$ab\",0],[\"$\",\"meta\",\"10\",{\"property\":\"og:description\",\"content\":\"バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。\"},\"$81\",\"$ac\",0],[\"$\",\"meta\",\"11\",{\"property\":\"og:url\",\"content\":\"http://localhost:3000/blog/variable-printing\"},\"$81\",\"$ad\",0],[\"$\",\"meta\",\"12\",{\"property\":\"og:site_name\",\"content\":\"Epackage Lab\"},\"$81\",\"$ae\",0],[\"$\",\"meta\",\"13\",{\"property\":\"og:locale\",\"content\":\"ja_JP\"},\"$81\",\"$af\",0],[\"$\",\"meta\",\"14\",{\"property\":\"og:image\",\"content\":\"http://localhost:3000/images/blog/02-variable-printing/02-thumb-01.webp\"},\"$81\",\"$b0\",0],[\"$\",\"meta\",\"15\",{\"property\":\"og:image:width\",\"content\":\"1200\"},\"$81\",\"$b1\",0],[\"$\",\"meta\",\"16\",{\"property\":\"og:image:height\",\"content\":\"630\"},\"$81\",\"$b2\",0],[\"$\",\"meta\",\"17\",{\"property\":\"og:image:alt\",\"content\":\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\"},\"$81\",\"$b3\",0],[\"$\",\"meta\",\"18\",{\"property\":\"og:type\",\"content\":\"article\"},\"$81\",\"$b4\",0],[\"$\",\"meta\",\"19\",{\"property\":\"article:published_time\",\"content\":\"2025-02-27T00:00:00+00:00\"},\"$81\",\"$b5\",0],[\"$\",\"meta\",\"20\",{\"property\":\"article:modified_time\",\"content\":\"2026-04-11T07:42:42.603969+00:00\"},\"$81\",\"$b6\",0],[\"$\",\"meta\",\"21\",{\"property\":\"article:section\",\"content\":\"印刷技術\"},\"$81\",\"$b7\",0],[\"$\",\"meta\",\"22\",{\"property\":\"article:tag\",\"content\":\"印刷知識\"},\"$81\",\"$b8\",0],[\"$\",\"meta\",\"23\",{\"property\":\"article:tag\",\"content\":\"印刷\"},\"$81\",\"$b9\",0],[\"$\",\"meta\",\"24\",{\"name\":\"twitter:card\",\"content\":\"summary_large_image\"},\"$81\",\"$ba\",0],[\"$\",\"meta\",\"25\",{\"name\":\"twitter:creator\",\"content\":\"@epackage_lab\"},\"$81\",\"$bb\",0],[\"$\",\"meta\",\"26\",{\"name\":\"twitter:title\",\"content\":\"【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術\"},\"$81\",\"$bc\",0],[\"$\",\"meta\",\"27\",{\"name\":\"twitter:description\",\"content\":\"バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。\"},\"$81\",\"$bd\",0],[\"$\",\"meta\",\"28\",{\"name\":\"twitter:image\",\"content\":\"http://localhost:3000/images/blog/02-variable-printing/02-thumb-01.webp\"},\"$81\",\"$be\",0],[\"$\",\"link\",\"29\",{\"rel\":\"icon\",\"href\":\"/favicon.ico?favicon.0b3bf435.ico\",\"sizes\":\"256x256\",\"type\":\"image/x-icon\"},\"$81\",\"$bf\",0],[\"$\",\"$Lc1\",\"30\",{},\"$81\",\"$c0\",0]]\n"])</script><title>【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術 | Epackage Lab ブログ | Epackage Lab</title><meta name="description" content="バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。"/><meta name="creator" content="Epackage Lab"/><meta name="publisher" content="Epackage Lab"/><meta name="robots" content="index, follow"/><meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"/><link rel="canonical" href="https://package-lab.net/blog/variable-printing"/><meta name="format-detection" content="telephone=no, address=no, email=no"/><meta name="google-site-verification" content="F0MGJt4bRFH71oNsaalw0yVyTZn5FTLScKHxI1bihHw"/><meta property="og:title" content="【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術"/><meta property="og:description" content="バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。"/><meta property="og:url" content="http://localhost:3000/blog/variable-printing"/><meta property="og:site_name" content="Epackage Lab"/><meta property="og:locale" content="ja_JP"/><meta property="og:image" content="http://localhost:3000/images/blog/02-variable-printing/02-thumb-01.webp"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image:alt" content="【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン"/><meta property="og:type" content="article"/><meta property="article:published_time" content="2025-02-27T00:00:00+00:00"/><meta property="article:modified_time" content="2026-04-11T07:42:42.603969+00:00"/><meta property="article:section" content="印刷技術"/><meta property="article:tag" content="印刷知識"/><meta property="article:tag" content="印刷"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:creator" content="@epackage_lab"/><meta name="twitter:title" content="【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術"/><meta name="twitter:description" content="バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。"/><meta name="twitter:image" content="http://localhost:3000/images/blog/02-variable-printing/02-thumb-01.webp"/><link rel="icon" href="/favicon.ico?favicon.0b3bf435.ico" sizes="256x256" type="image/x-icon"/><script >document.querySelectorAll('body link[rel="icon"], body link[rel="apple-touch-icon"]').forEach(el => document.head.appendChild(el))</script><div hidden id="S:3"></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:3","S:3")</script><div hidden id="S:0"></div><script>$RC("B:0","S:0")</script><script>self.__next_f.push([1,"c7:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/blog/ScrollToAnchor.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js\"],\"ScrollToAnchor\"]\n"])</script><script>self.__next_f.push([1,"d2:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/node_modules/.pnpm/next@16.1.6_@babel+core@7.2_8caa08a4fd0e2d2799f9a91d49ad05f2/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js\"],\"\"]\n"])</script><script>self.__next_f.push([1,"df:\"$Sreact.forward_ref\"\n:HL[\"/images/blog/02-variable-printing/02-thumb-01.webp\",\"image\"]\nc2:[[\"getPublishedPostBySlug\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",598,51,587,1,false],[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",1967,234,1965,1,false]]\nc3:J{\"name\":\"\",\"start\":430.4257000014186,\"end\":1227.165300000459,\"env\":\"Server\",\"owner\":\"$44\",\"value\":\"$@c4\"}\nc5:[[\"getRelatedPosts\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",630,8,609,1,false],[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",1983,235,1965,1,false]]\nc4:\"$undefined\"\nc6:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2022,429,1965,1,false]]\nc8:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2027,429,1965,1,false]]\nc9:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2037,429,1965,1,false]]\nca:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2047,429,1965,1,false]]\ncb:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2050,437,1965,1,false]]\ncc:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2053,451,1965,1,false]]\ncd:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2055,455,1965,1,false]]\nce:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2058,453,1965,1,false]]\nd0:{\"name\":\"LinkComponent\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2059,467,1965,1,false]],\"props\":{\"href\":\"/\",\"className\":\"text-gray-500 hover:text-[#8380FF] transition-colors\",\"children\":\"ホーム\"}}\nd1:[]\nd3:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2073,453,1965,1,false]]\nd4:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2081,453,1965,1,false]]\nd6:{\"name\":\"LinkComponent\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2082,467,1965,1,false]],\"props\":{\"href\":\"/blog\",\"className\":\"text-gray-500 hover:text-[#8380FF] transition-colors\",\"children\":\"導入事例\"}}\nd7:[]\nd8:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2096,453,1965,1,false]]\nd9:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2104,453,1965,1,false]]\nda:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__a"])</script><script>self.__next_f.push([1,"f10c506._.js\",2128,437,1965,1,false]]\ndb:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2130,451,1965,1,false]]\n"])</script><script>self.__next_f.push([1,"e0:\"$EObject.defineProperty(({ className, ...props }, ref)=\u003e(0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$1$2e$6_$40$babel$2b$core$40$7$2e$2_8caa08a4fd0e2d2799f9a91d49ad05f2$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"createElement\\\"])(__TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$Icon$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"default\\\"], {\\n            ref,\\n            iconNode,\\n            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"mergeClasses\\\"])(`lucide-${(0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"toKebabCase\\\"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"toPascalCase\\\"])(iconName))}`, `lucide-${iconName}`, className),\\n            ...props\\n        }),\\\"name\\\",{value:\\\"ArrowLeft\\\"})\"\n"])</script><script>self.__next_f.push([1,"de:{\"$$typeof\":\"$df\",\"render\":\"$e0\"}\ne1:{\"className\":\"w-4 h-4\"}\ne2:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2136,453,1965,1,false]]\ndd:{\"name\":\"LinkComponent\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2132,455,1965,1,false]],\"props\":{\"href\":\"/blog\",\"className\":\"inline-flex items-center gap-2 text-[#8380FF] hover:text-[#6b5dd6] transition-colors\",\"children\":[[\"$\",\"$de\",null,\"$e1\",\"$44\",\"$e2\",1],\"導入事例一覧に戻る\"]}}\ne3:[]\ne5:{\"name\":\"ArrowLeft\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2136,453,1965,1,false]],\"props\":\"$e1\"}\ne6:{\"name\":\"\",\"key\":null,\"env\":\"Server\",\"owner\":\"$e5\",\"stack\":[[\"ArrowLeft\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18644,821,18644,405,false]],\"props\":{\"ref\":\"$undefined\",\"iconNode\":[[\"path\",{\"d\":\"m12 19-7-7 7-7\",\"key\":\"1l729n\"}],[\"path\",{\"d\":\"M19 12H5\",\"key\":\"x3x0zl\"}]],\"className\":\"lucide-arrow-left w-4 h-4\"}}\ne7:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18604,909,18604,396,false]]\ne8:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\ne9:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\nea:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2160,437,1965,1,false]]\neb:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2162,451,1965,1,false]]\nec:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2165,449,1965,1,false]]\ned:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2168,457,1965,1,false]]\nee:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2171,465,1965,1,false]]\nf0:{\"name\":\"LinkComponent\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2173,479,1965,1,false]],\"props\":{\"href\":\"/blog/category/printing-tech\",\"className\":\"inline-block px-3 py-1 text-sm font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20 hover:bg-[#8380FF]/20 transition-colors\",\"children\":\"印刷技術\"}}\nf1:[]\nf2:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2187,465,1965,1,false]]\nf3:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root"])</script><script>self.__next_f.push([1,"-of-the-server]__af10c506._.js\",2195,465,1965,1,false]]\nf4:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2198,494,1965,1,false]]\nf6:{\"name\":\"Calendar\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2201,481,1965,1,false]],\"props\":{\"className\":\"w-4 h-4\"}}\nf7:{\"name\":\"\",\"key\":null,\"env\":\"Server\",\"owner\":\"$f6\",\"stack\":[[\"Calendar\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18644,821,18644,405,false]],\"props\":{\"ref\":\"$undefined\",\"iconNode\":[[\"path\",{\"d\":\"M8 2v4\",\"key\":\"1cmpym\"}],[\"path\",{\"d\":\"M16 2v4\",\"key\":\"4m81vk\"}],[\"rect\",{\"width\":\"18\",\"height\":\"18\",\"x\":\"3\",\"y\":\"4\",\"rx\":\"2\",\"key\":\"1hopcy\"}],\"$Y\"],\"className\":\"lucide-calendar w-4 h-4\"}}\nf8:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18604,909,18604,396,false]]\nf9:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\nfa:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\nfb:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\nfc:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\nfd:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2208,481,1965,1,false]]\nfe:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2226,473,1965,1,false]]\n100:{\"name\":\"Clock\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2229,481,1965,1,false]],\"props\":{\"className\":\"w-4 h-4\"}}\n101:{\"name\":\"\",\"key\":null,\"env\":\"Server\",\"owner\":\"$100\",\"stack\":[[\"Clock\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18644,821,18644,405,false]],\"props\":{\"ref\":\"$undefined\",\"iconNode\":[[\"path\",{\"d\":\"M12 6v6l4 2\",\"key\":\"mmk7yg\"}],[\"circle\",{\"cx\":\"12\",\"cy\":\"12\",\"r\":\"10\",\"key\":\"1mglay\"}]],\"className\":\"lucide-clock w-4 h-4\"}}\n102:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18604,909,18604,396,false]]\n103:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-t"])</script><script>self.__next_f.push([1,"he-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\n104:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\n105:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2236,481,1965,1,false]]\n106:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2281,502,1965,1,false]]\n108:{\"name\":\"LinkComponent\",\"key\":\"印刷知識\",\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2283,500,2283,77,false],[\"Array.map\",\"\",0,0,0,0,false],[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2283,73,1965,1,false]],\"props\":{\"href\":\"/blog/tag/%E5%8D%B0%E5%88%B7%E7%9F%A5%E8%AD%98\",\"className\":\"px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200\",\"children\":[\"#\",\"印刷知識\"]}}\n109:[]\n10b:{\"name\":\"LinkComponent\",\"key\":\"印刷\",\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2283,500,2283,77,false],[\"Array.map\",\"\",0,0,0,0,false],[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2283,73,1965,1,false]],\"props\":{\"href\":\"/blog/tag/%E5%8D%B0%E5%88%B7\",\"className\":\"px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200\",\"children\":[\"#\",\"印刷\"]}}\n10c:[]\n10d:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2306,479,1965,1,false]]\n10e:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2308,471,1965,1,false]]\n10f:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2322,457,1965,1,false]]\n110:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2325,465,1965,1,false]]\n43:D{\"time\":10.854299999773502}\n43:D{\"awaited\":\"$9c\",\"env\":\"Server\",\"owner\":\"$44\",\"stack\":\"$c2\"}\n43:D{\"time\":415.77899999916553}\n43:D{\"time\":423.01709999889135}\n43:D{\"awaited\":\"$c3\",\"env\":\"Server\",\"owner\":\"$44\",\"stack\":\"$c5\"}\n43:D{\"time\":1230.9490000009537}\n43:D{\"time\":1232.9184000007808}\ncf:D{\"time\":1233.5802999995649}\ncf:D\"$d0\"\ncf:D{\"time\":1233.7390000000596}\ncf:[\"$\",\"$Ld2\",null,{\"href\":\"/\",\"className\":\"text-gray-500 hover:text-[#8380FF] transition-colors\",\"children\":\"ホーム\"},\"$d0\",\"$d1\",1]\nd5:D{\"time\":1234.0597000010312}\nd5:D\"$d6\"\nd5:D{\"time\":1234.1376000009477}\nd5:[\"$\",\"$Ld2\",null,{\"href\":\"/blog\",\"className\":\"text-gray-500 hover:text-[#8380FF] transition-colors\",\"children\":\"導入事例\"},\"$d6\",\"$d7\",1]\ndc:D{\"time\":1234.3247000016272}\ndc:D\"$dd\"\ndc:D{\"time\":1234.3678999990225}\ne4:D{\"time\":1234.3900999985635}\ne4:D\"$e5\"\ne4:D{\"time\":1234.5410000011325}\ne4:D\"$e6\"\ne4:D{\"time\":1234.7534999996424}\ne4:[\"$\",\"svg\",null,{\"ref\":\"$undefined\",\"xmlns"])</script><script>self.__next_f.push([1,"\":\"http://www.w3.org/2000/svg\",\"width\":24,\"height\":24,\"viewBox\":\"0 0 24 24\",\"fill\":\"none\",\"stroke\":\"currentColor\",\"strokeWidth\":2,\"strokeLinecap\":\"round\",\"strokeLinejoin\":\"round\",\"className\":\"lucide lucide-arrow-left w-4 h-4\",\"aria-hidden\":\"true\",\"children\":[[\"$\",\"path\",\"1l729n\",{\"d\":\"m12 19-7-7 7-7\"},\"$e6\",\"$e8\",0],[\"$\",\"path\",\"x3x0zl\",{\"d\":\"M19 12H5\"},\"$e6\",\"$e9\",0],\"$undefined\"]},\"$e6\",\"$e7\",1]\ndc:[\"$\",\"$Ld2\",null,{\"href\":\"/blog\",\"className\":\"inline-flex items-center gap-2 text-[#8380FF] hover:text-[#6b5dd6] transition-colors\",\"children\":[\"$e4\",\"導入事例一覧に戻る\"]},\"$dd\",\"$e3\",1]\nef:D{\"time\":1234.9917999990284}\nef:D\"$f0\"\nef:D{\"time\":1235.0364999994636}\nef:[\"$\",\"$Ld2\",null,{\"href\":\"/blog/category/printing-tech\",\"className\":\"inline-block px-3 py-1 text-sm font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20 hover:bg-[#8380FF]/20 transition-colors\",\"children\":\"印刷技術\"},\"$f0\",\"$f1\",1]\nf5:D{\"time\":1235.1361999996006}\nf5:D\"$f6\"\nf5:D{\"time\":1235.2263000011444}\nf5:D\"$f7\"\nf5:D{\"time\":1235.3383000008762}\nf5:[\"$\",\"svg\",null,{\"ref\":\"$undefined\",\"xmlns\":\"http://www.w3.org/2000/svg\",\"width\":24,\"height\":24,\"viewBox\":\"0 0 24 24\",\"fill\":\"none\",\"stroke\":\"currentColor\",\"strokeWidth\":2,\"strokeLinecap\":\"round\",\"strokeLinejoin\":\"round\",\"className\":\"lucide lucide-calendar w-4 h-4\",\"aria-hidden\":\"true\",\"children\":[[\"$\",\"path\",\"1cmpym\",{\"d\":\"M8 2v4\"},\"$f7\",\"$f9\",0],[\"$\",\"path\",\"4m81vk\",{\"d\":\"M16 2v4\"},\"$f7\",\"$fa\",0],[\"$\",\"rect\",\"1hopcy\",{\"width\":\"18\",\"height\":\"18\",\"x\":\"3\",\"y\":\"4\",\"rx\":\"2\"},\"$f7\",\"$fb\",0],[\"$\",\"path\",\"8toen8\",{\"d\":\"M3 10h18\"},\"$f7\",\"$fc\",0],\"$undefined\"]},\"$f7\",\"$f8\",1]\nff:D{\"time\":1235.7193999998271}\nff:D\"$100\"\nff:D{\"time\":1235.8326000012457}\nff:D\"$101\"\nff:D{\"time\":1235.9351000003517}\nff:[\"$\",\"svg\",null,{\"ref\":\"$undefined\",\"xmlns\":\"http://www.w3.org/2000/svg\",\"width\":24,\"height\":24,\"viewBox\":\"0 0 24 24\",\"fill\":\"none\",\"stroke\":\"currentColor\",\"strokeWidth\":2,\"strokeLinecap\":\"round\",\"strokeLinejoin\":\"round\",\"className\":\"lucide lucide-clock w-4 h-4\",\"aria-hidden\":\"true\",\"children\":[[\"$\",\"path\",\"mmk7yg\",{\"d\":\"M12 6v6l4 2\"},\"$101\",\"$103\",0],[\"$\",\"circle\",\"1mglay\",{\"cx\":\"12\",\"cy\":\"12\",\"r\":\"10\"},\"$101\",\"$104\",0],\"$undefined\"]},\"$101\",\"$102\",1]\n107:D{\"time\":1236.1658999994397}\n107:D\"$108\"\n107:D{\"time\":1236.2432000003755}\n107:[\"$\",\"$Ld2\",\"印刷知識\",{\"href\":\"/blog/tag/%E5%8D%B0%E5%88%B7%E7%9F%A5%E8%AD%98\",\"className\":\"px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200\",\"children\":[\"#\",\"印刷知識\"]},\"$108\",\"$109\",1]\n10a:D{\"time\":1236.3398000001907}\n10a:D\"$10b\"\n10a:D{\"time\":1236.390799999237}\n10a:[\"$\",\"$Ld2\",\"印刷\",{\"href\":\"/blog/tag/%E5%8D%B0%E5%88%B7\",\"className\":\"px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200\",\"children\":[\"#\",\"印刷\"]},\"$10b\",\"$10c\",1]\n111:T1637,"])</script><script>self.__next_f.push([1,"\u003ch1 id=\"section-cofcyqbwo200\"\u003e【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\u003c/h1\u003e\u003cp\u003e\u003cstrong\u003e2025.02.25\u003c/strong\u003e | #印刷知識 #デジタル印刷\u003c/p\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-d0dqfk\"\u003eリード文\u003c/h2\u003e\u003cp\u003e「小ロットでパッケージを作りたいけれど、初期費用が高くて諦めていませんか？」\u003c/p\u003e\n\u003cp\u003e従来のグラビア印刷では版を作成する必要があるため、数千枚単位の発注が当たり前でした。しかし、デジタル印刷の登場により、事情は一変しました。版を作らずに短納期で高品質な印刷が可能になっています。\u003c/p\u003e\n\u003cp\u003eこの記事では、Package-Labが専門とするデジタル印刷の仕組み、メリット・デメリット、グラビア印刷との違いを分かりやすく解説します。自社に最適な印刷方式を選べるようになります。\u003c/p\u003e\n\u003cp\u003e\u003cpicture\u003e\n  \u003csource srcset=\"/images/blog/02-variable-printing/02-hero-01.webp\" type=\"image/webp\"\u003e\u003c/source\u003e\n  \u003cimg src=\"/images/blog/02-variable-printing/02-hero-01.png\" alt=\"デジタル印刷のイメージ\" loading=\"lazy\" width=\"1200\" height=\"630\" style=\"max-width:100%;height:auto\" /\u003e\n\u003c/picture\u003e\u003c/p\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-ivhp\"\u003e目次\u003c/h2\u003e\u003cp\u003e본記事では以下の内容を解説します。\u003c/p\u003e\n\u003col\u003e\n\u003cli\u003eデジタル印刷とは\u003c/li\u003e\n\u003cli\u003eグラビア印刷との違い\u003c/li\u003e\n\u003cli\u003eデジタル印刷のメリット\u003c/li\u003e\n\u003cli\u003e診断チャート：自社に最適な印刷方式を見つける\u003c/li\u003e\n\u003cli\u003e発注方法\u003c/li\u003e\n\u003cli\u003eまとめ\u003c/li\u003e\n\u003c/ol\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-3h1ew31u5x\"\u003e1. デジタル印刷とは\u003c/h2\u003e\u003cp\u003eデジタル印刷は、デジタルデータを直接印刷機に送って印刷する方式です。紙の印刷でいうインクジェットプリンターと同じ仕組みです。\u003c/p\u003e\n\u003ch3 id=\"section-cjnq63\"\u003e基本概念\u003c/h3\u003e\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eデジタル印刷\u003c/strong\u003e: データを直接印刷機に送り、インクを吹き付ける方式\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e版不要\u003c/strong\u003e: グラビア印刷のような版を作成する必要がない\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eOn-Demand印刷\u003c/strong\u003e: 必要な枚数を必要な時に印刷可能\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-7v558aqbwjk0\"\u003ePackage-Labのデジタル印刷専門性\u003c/h3\u003e\u003cp\u003ePackage-Labはデジタル印刷に特化しています。\u003c/p\u003e\n\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e特徴\u003c/th\u003e\n\u003cth\u003e説明\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e最小ロット\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e500枚から対応可能（業界最小クラス）\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e短納期\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e最短21日、平均28日で納品\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e版代無料\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e初期費用0円\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e高品質\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e最新機種でグラビアに迫る品質\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-2q2gud5n8ja0\"\u003e2. グラビア印刷との違い\u003c/h2\u003e\u003ch3 id=\"section-fwzdl0n\"\u003e方式の比較\u003c/h3\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e項目\u003c/th\u003e\n\u003cth\u003eデジタル印刷\u003c/th\u003e\n\u003cth\u003eグラビア印刷\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e版の要否\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e不要（0円）\u003c/td\u003e\n\u003ctd\u003e必要（10万〜50万円）\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e最小ロット\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e500枚〜\u003c/td\u003e\n\u003ctd\u003e3,000〜5,000枚〜\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e納期\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e21〜28日\u003c/td\u003e\n\u003ctd\u003e30〜45日\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e初期費用\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003eなし\u003c/td\u003e\n\u003ctd\u003e版代が必要\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e単価\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e小ロットで有利\u003c/td\u003e\n\u003ctd\u003e大量で有利\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e色再現性\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e優秀（最新機）\u003c/td\u003e\n\u003ctd\u003e最も優秀\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003eデザイン変更\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e容易\u003c/td\u003e\n\u003ctd\u003e困難（版作り直し）\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003ch3 id=\"section-3hpi7fezvv\"\u003e費用比較イメージ\u003c/h3\u003e\u003cp\u003e\u003cstrong\u003e1,000枚のパッケージ製造の場合:\u003c/strong\u003e\u003c/p\u003e\n\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e費用項目\u003c/th\u003e\n\u003cth\u003eデジタル印刷\u003c/th\u003e\n\u003cth\u003eグラビア印刷\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e初期費用（版代）\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e0円\u003c/td\u003e\n\u003ctd\u003e12万円（4色×3万円/色）\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e製造単価\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e150円/枚\u003c/td\u003e\n\u003ctd\u003e120円/枚\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e総額\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e15万円\u003c/td\u003e\n\u003ctd\u003e27万円\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003cp\u003e→ \u003cstrong\u003e1,000枚以下ならデジタル印刷が圧倒的に安い\u003c/strong\u003e\u003c/p\u003e\n\u003cp\u003e\u003cstrong\u003e注意\u003c/strong\u003e: グラビア印刷は一般的に1万枚以上の製造で検討されます。1万枚未満では版代のコストパフォーマンスが悪くなります。\u003c/p\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-2lafc26x4mc0\"\u003e3. デジタル印刷のメリット\u003c/h2\u003e\u003ch3 id=\"section-461ba3zvqvy0\"\u003eメリット1: 版を作らない\u003c/h3\u003e\u003cp\u003e最大のメリットは、版を作成する必要がない点です。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003e初期費用0円\u003c/strong\u003e: 版代がかからない\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eデザイン変更自由\u003c/strong\u003e: デザインの修正も追加費用なし\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e短納期\u003c/strong\u003e: 版作成のリードタイムなし\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-d7im33xiu6\"\u003eメリット2: 500枚から製造可能\u003c/h3\u003e\u003cp\u003e業界最小クラスの小ロット対応です。\u003c/p\u003e\n\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e数量\u003c/th\u003e\n\u003cth\u003eグラビア印刷\u003c/th\u003e\n\u003cth\u003eデジタル印刷\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\u003ctr\u003e\n\u003ctd\u003e500枚\u003c/td\u003e\n\u003ctd\u003e不可\u003c/td\u003e\n\u003ctd\u003e可能\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e500枚\u003c/td\u003e\n\u003ctd\u003e不可\u003c/td\u003e\n\u003ctd\u003e可能\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e1,000枚\u003c/td\u003e\n\u003ctd\u003e可能（高単価）\u003c/td\u003e\n\u003ctd\u003e可能（競争力あり）\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e5,000枚\u003c/td\u003e\n\u003ctd\u003e可能\u003c/td\u003e\n\u003ctd\u003e可能\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003cp\u003e→ \u003cstrong\u003eテスト販売、A/Bテストに最適\u003c/strong\u003e\u003c/p\u003e\n"])</script><script>self.__next_f.push([1,"43:[[\"$\",\"$Lc7\",null,{},\"$44\",\"$c6\",1],[\"$\",\"script\",null,{\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":\"{\\\"@context\\\":\\\"https://schema.org\\\",\\\"@type\\\":\\\"BlogPosting\\\",\\\"headline\\\":\\\"【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術\\\",\\\"description\\\":\\\"バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。\\\",\\\"image\\\":\\\"http://localhost:3000/images/blog/02-variable-printing/02-thumb-01.webp\\\",\\\"author\\\":{\\\"@type\\\":\\\"Organization\\\",\\\"name\\\":\\\"Epackage Lab\\\"},\\\"publisher\\\":{\\\"@type\\\":\\\"Organization\\\",\\\"name\\\":\\\"Epackage Lab\\\",\\\"logo\\\":{\\\"@type\\\":\\\"ImageObject\\\",\\\"url\\\":\\\"http://localhost:3000/logo.png\\\"}},\\\"datePublished\\\":\\\"2025-02-27T00:00:00+00:00\\\",\\\"dateModified\\\":\\\"2026-04-11T07:42:42.603969+00:00\\\",\\\"mainEntityOfPage\\\":{\\\"@type\\\":\\\"WebPage\\\",\\\"@id\\\":\\\"https://package-lab.net/blog/variable-printing\\\"},\\\"articleSection\\\":\\\"printing-tech\\\",\\\"keywords\\\":\\\"印刷知識, 印刷\\\",\\\"wordCount\\\":2653,\\\"timeRequired\\\":\\\"PT14M\\\"}\"}},\"$44\",\"$c8\",1],[\"$\",\"script\",null,{\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":\"\\\"{\\\\\\\"@context\\\\\\\":\\\\\\\"https://schema.org\\\\\\\",\\\\\\\"@type\\\\\\\":\\\\\\\"BreadcrumbList\\\\\\\",\\\\\\\"itemListElement\\\\\\\":[{\\\\\\\"@type\\\\\\\":\\\\\\\"ListItem\\\\\\\",\\\\\\\"position\\\\\\\":1,\\\\\\\"name\\\\\\\":\\\\\\\"ホーム\\\\\\\",\\\\\\\"item\\\\\\\":\\\\\\\"/\\\\\\\"},{\\\\\\\"@type\\\\\\\":\\\\\\\"ListItem\\\\\\\",\\\\\\\"position\\\\\\\":2,\\\\\\\"name\\\\\\\":\\\\\\\"ブログ\\\\\\\",\\\\\\\"item\\\\\\\":\\\\\\\"/blog\\\\\\\"},{\\\\\\\"@type\\\\\\\":\\\\\\\"ListItem\\\\\\\",\\\\\\\"position\\\\\\\":3,\\\\\\\"name\\\\\\\":\\\\\\\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\\\\\\\",\\\\\\\"item\\\\\\\":\\\\\\\"/blog/variable-printing\\\\\\\"}]}\\\"\"}},\"$44\",\"$c9\",1],[\"$\",\"div\",null,{\"className\":\"min-h-screen bg-[#F7F7FF]\",\"children\":[[\"$\",\"nav\",null,{\"className\":\"bg-white border-b border-gray-100\",\"aria-label\":\"パンくずリスト\",\"children\":[\"$\",\"div\",null,{\"className\":\"max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3\",\"children\":[\"$\",\"ol\",null,{\"className\":\"flex items-center gap-2 text-sm\",\"children\":[[\"$\",\"li\",null,{\"children\":\"$cf\"},\"$44\",\"$ce\",1],[\"$\",\"li\",null,{\"className\":\"text-gray-400\",\"children\":\"/\"},\"$44\",\"$d3\",1],[\"$\",\"li\",null,{\"children\":\"$d5\"},\"$44\",\"$d4\",1],[\"$\",\"li\",null,{\"className\":\"text-gray-400\",\"children\":\"/\"},\"$44\",\"$d8\",1],[\"$\",\"li\",null,{\"className\":\"text-gray-900 line-clamp-1\",\"children\":\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\"},\"$44\",\"$d9\",1]]},\"$44\",\"$cd\",1]},\"$44\",\"$cc\",1]},\"$44\",\"$cb\",1],[\"$\",\"div\",null,{\"className\":\"bg-white border-b border-gray-100\",\"children\":[\"$\",\"div\",null,{\"className\":\"max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4\",\"children\":\"$dc\"},\"$44\",\"$db\",1]},\"$44\",\"$da\",1],[\"$\",\"div\",null,{\"className\":\"max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12\",\"children\":[\"$\",\"div\",null,{\"className\":\"grid grid-cols-1 lg:grid-cols-3 gap-8\",\"children\":[[\"$\",\"article\",null,{\"className\":\"lg:col-span-2 min-w-0\",\"children\":[[\"$\",\"header\",null,{\"className\":\"mb-8\",\"children\":[[\"$\",\"div\",null,{\"className\":\"mb-4\",\"children\":\"$ef\"},\"$44\",\"$ee\",1],[\"$\",\"h1\",null,{\"className\":\"text-3xl md:text-5xl font-bold text-[#1D1D1F] mb-6 leading-tight\",\"children\":\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\"},\"$44\",\"$f2\",1],[\"$\",\"div\",null,{\"className\":\"flex flex-wrap items-center gap-4 text-sm text-gray-500\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-1\",\"children\":[\"$f5\",[\"$\",\"time\",null,{\"dateTime\":\"2025-02-27T00:00:00+00:00\",\"children\":\"2025年2月27日\"},\"$44\",\"$fd\",1]]},\"$44\",\"$f4\",1],[\"$\",\"div\",null,{\"className\":\"flex items-center gap-1\",\"children\":[\"$ff\",[\"$\",\"span\",null,{\"children\":[14,\"分で読めます\"]},\"$44\",\"$105\",1]]},\"$44\",\"$fe\",1],\"$undefined\"]},\"$44\",\"$f3\",1],[\"$\",\"div\",null,{\"className\":\"mt-4 flex flex-wrap gap-2\",\"children\":[\"$107\",\"$10a\"]},\"$44\",\"$106\",1]]},\"$44\",\"$ed\",1],[\"$\",\"div\",null,{\"className\":\"mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100\",\"children\":[\"$\",\"img\",null,{\"src\":\"/images/blog/02-variable-printing/02-thumb-01.webp\",\"alt\":\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\",\"className\":\"w-full h-auto\"},\"$44\",\"$10e\",1]},\"$44\",\"$10d\",1],[\"$\",\"div\",null,{\"className\":\"space-y-8\",\"children\":[[\"$\",\"div\",null,{\"className\":\"prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700\",\"dangerouslySetInnerHTML\":{\"__html\":\"$111\"}},\"$44\",\"$110\",1],\"$L112\",\"$L113\",\"$L114\"]},\"$44\",\"$10f\",1],\"$L115\",\"$undefined\"]},\"$44\",\"$ec\",1],\"$L116\"]},\"$44\",\"$eb\",1]},\"$44\",\"$ea\",1]]},\"$44\",\"$ca\",1]]\n"])</script><script>self.__next_f.push([1,"119:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/blog/ArticleCTA.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js\"],\"ArticleCTA\"]\n"])</script><script>self.__next_f.push([1,"121:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/blog/ShareButtons.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js\"],\"ShareButtons\"]\n"])</script><script>self.__next_f.push([1,"125:I[\"[project]/02.Homepage_Dev/02.epac_homepagever1.1/src/components/blog/TableOfContents.tsx [app-client] (ecmascript)\",[\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_87658348._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_ui_6a7281bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_auth_48f4e128._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_catalog_cf5da81f._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_layout_1b76b0a3._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_contact_f350a193._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_components_4c6736bc._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_6a0eca4f._.js\",\"/_next/static/chunks/8defa_next_d6af6aa7._.js\",\"/_next/static/chunks/d445d_tailwind-merge_dist_bundle-mjs_mjs_661751ae._.js\",\"/_next/static/chunks/6317c_%40supabase_realtime-js_dist_module_db94a772._.js\",\"/_next/static/chunks/4bfbe_%40supabase_auth-js_dist_module_069614e1._.js\",\"/_next/static/chunks/847ab_react-hook-form_dist_index_esm_mjs_ce47dac5._.js\",\"/_next/static/chunks/0b2b4_zod_f3d48eff._.js\",\"/_next/static/chunks/e53b3_motion-dom_dist_es_584d126c._.js\",\"/_next/static/chunks/1b2be_framer-motion_dist_es_6dc162e6._.js\",\"/_next/static/chunks/5b656_swr_dist_1df8173e._.js\",\"/_next/static/chunks/43a1a__pnpm_d13f81ad._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_layout_tsx_c9b9caf7._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_d6c7f262._.js\",\"/_next/static/chunks/02_Homepage_Dev_02_epac_homepagever1_1_src_app_blog_%5Bslug%5D_page_tsx_2df985b3._.js\"],\"TableOfContents\"]\n"])</script><script>self.__next_f.push([1,"12c:\"$Sreact.forward_ref\"\n117:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2335,478,1965,1,false]]\n118:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2337,479,1965,1,false]]\n11a:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2349,477,1965,1,false]]\n11b:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2351,479,1965,1,false]]\n11d:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2366,465,1965,1,false]]\n11e:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2368,479,1965,1,false]]\n11f:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2386,457,1965,1,false]]\n120:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2388,471,1965,1,false]]\n122:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2433,449,1965,1,false]]\n123:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2436,480,1965,1,false]]\n124:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2438,471,1965,1,false]]\n126:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2464,518,1965,1,false]]\n127:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2467,465,1965,1,false]]\n128:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2470,473,1965,1,false]]\n"])</script><script>self.__next_f.push([1,"12d:\"$EObject.defineProperty(({ className, ...props }, ref)=\u003e(0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$1$2e$6_$40$babel$2b$core$40$7$2e$2_8caa08a4fd0e2d2799f9a91d49ad05f2$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"createElement\\\"])(__TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$Icon$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"default\\\"], {\\n            ref,\\n            iconNode,\\n            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"mergeClasses\\\"])(`lucide-${(0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"toKebabCase\\\"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$02$2e$Homepage_Dev$2f$02$2e$epac_homepagever1$2e$1$2f$node_modules$2f2e$pnpm$2f$lucide$2d$react$40$0$2e$554$2e$0_react$40$19$2e$2$2e$4$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$shared$2f$src$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\\\"toPascalCase\\\"])(iconName))}`, `lucide-${iconName}`, className),\\n            ...props\\n        }),\\\"name\\\",{value:\\\"ArrowRight\\\"})\"\n"])</script><script>self.__next_f.push([1,"12b:{\"$$typeof\":\"$12c\",\"render\":\"$12d\"}\n12e:{\"className\":\"w-4 h-4\"}\n12f:[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2492,473,1965,1,false]]\n12a:{\"name\":\"LinkComponent\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2485,465,1965,1,false]],\"props\":{\"href\":\"/blog/category/printing-tech\",\"className\":\"inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors\",\"children\":[\"すべての\",\"印刷技術\",\"記事を見る\",[\"$\",\"$12b\",null,\"$12e\",\"$44\",\"$12f\",1]]}}\n130:[]\n132:{\"name\":\"ArrowRight\",\"key\":null,\"env\":\"Server\",\"owner\":\"$44\",\"stack\":[[\"BlogPostPage\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__af10c506._.js\",2492,473,1965,1,false]],\"props\":\"$12e\"}\n133:{\"name\":\"\",\"key\":null,\"env\":\"Server\",\"owner\":\"$132\",\"stack\":[[\"ArrowRight\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18644,821,18644,405,false]],\"props\":{\"ref\":\"$undefined\",\"iconNode\":[[\"path\",{\"d\":\"M5 12h14\",\"key\":\"1ays0h\"}],[\"path\",{\"d\":\"m12 5 7 7-7 7\",\"key\":\"xquz4c\"}]],\"className\":\"lucide-arrow-right w-4 h-4\"}}\n134:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18604,909,18604,396,false]]\n135:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\n136:[[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,425,18617,25,false],[\"Array.map\",\"\",0,0,0,0,false],[\"\",\"C:\\\\Users\\\\kanei\\\\claudecode\\\\02.Homepage_Dev\\\\02.epac_homepagever1.1\\\\.next\\\\dev\\\\server\\\\chunks\\\\ssr\\\\[root-of-the-server]__dbd1ba67._.js\",18617,21,18604,396,false]]\n112:D{\"time\":1242.3172999992967}\n112:[\"$\",\"div\",null,{\"className\":\"my-12\",\"children\":[\"$\",\"$L119\",null,{\"variant\":\"mid-article\"},\"$44\",\"$118\",1]},\"$44\",\"$117\",1]\n113:D{\"time\":1242.7324000000954}\n11c:T1c03,"])</script><script>self.__next_f.push([1,"\u003c!-- CTA:mid-article --\u003e\u003ch3 id=\"section-6ffddkrvsts0\"\u003eメリット3: 多品種小ロットに対応\u003c/h3\u003e\u003cp\u003e複数のデザインを少量ずつ製造可能です。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e\u003cstrong\u003eフレーバー違い\u003c/strong\u003e: 3種類×100枚ずつ\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e地域限定\u003c/strong\u003e: 店舗別のデザイン\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003eテストマーケティング\u003c/strong\u003e: 販売結果に応じて本格生産\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-2l9exlypahq0\"\u003eメリット4: データ更新が容易\u003c/h3\u003e\u003cp\u003eデザインの修正・更新が簡単です。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e価格変更\u003c/li\u003e\n\u003cli\u003e成分表示の更新\u003c/li\u003e\n\u003cli\u003e法規制対応\u003c/li\u003e\n\u003c/ul\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-5f1eru1iif80\"\u003e4. 診断チャート：自社に最適な印刷方式を見つける\u003c/h2\u003e\u003cp\u003e\u003cstrong\u003e【診断チャートあり】\u003c/strong\u003e 自社に最適な印刷方式を選びましょう。\u003c/p\u003e\n\u003cpre\u003e\u003ccode\u003eQ1. 製造数量は？\n\n├── 3,000枚未満\n│   **Q2. 予算は限られているか？**\n│   ├── はい → 【デジタル印刷】版代0円で開始\n│   └── いいえ（余裕がある） → Q3へ\n│\n└── 3,000枚以上\n    **Q4. 将来的にデザイン変更の可能性は？**\n    ├── ある → 【デジタル印刷】柔軟に対応\n    └── ない → 【グラビア印刷】大量生産に最適\n\nQ3（3,000枚未満・予報余裕）. 納期は急ぎか？\n\n├── 急ぐ（1ヶ月以内） → 【デジタル印刷】最短21日\n└── 急がない → 【グラビア印刷】検討可能\n\n※ 詳しい選定基準は本文で解説します。\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003cstrong\u003e診断結果の解説:\u003c/strong\u003e\u003c/p\u003e\n\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e診断結果\u003c/th\u003e\n\u003cth\u003e特徴\u003c/th\u003e\n\u003cth\u003e最適なケース\u003c/th\u003e\n\u003cth\u003e注意点\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003eデジタル印刷推奨\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e版不要・短納期\u003c/td\u003e\n\u003ctd\u003eテスト販売、A/Bテスト、3,000枚未満\u003c/td\u003e\n\u003ctd\u003e大量（5,000枚以上）は単価上がる\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003eグラビア印刷推奨\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e大量生産に最適\u003c/td\u003e\n\u003ctd\u003e5,000枚以上、デザイン固定\u003c/td\u003e\n\u003ctd\u003e版代がかかる、納期が長い\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003cp\u003e\u003cstrong\u003e印刷方式選択チェック:\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode\u003eあなたの状況に当てはまるものはいくつありますか？\n\n□ 3,000枚未満の発注を予定\n□ 複数のデザインを少量ずつ試したい\n□ 初期費用を抑えたい\n□ 短納期（1ヶ月以内）で必要\n□ デザイン変更の可能性がある\n\nチェック数:\n・0〜1個: グラビア印刷も検討可\n・2〜3個: デジタル印刷推奨\n・4〜5個: デジタル印刷が最適\n\u003c/code\u003e\u003c/pre\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-e5lhjq\"\u003e5. 発注方法\u003c/h2\u003e\u003cp\u003ePackage-Labでのデジタル印刷発注は、以下の流れで進めます。\u003c/p\u003e\n\u003ch3 id=\"section-2qsgil6nf980\"\u003eSTEP1: スマート見積りで条件入力\u003c/h3\u003e\u003cp\u003eまずは見積もりシステムで基本条件を入力します。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eパッケージタイプ（スタンドパウチ、平袋など）\u003c/li\u003e\n\u003cli\u003eサイズ（幅×高さ（マチ））\u003c/li\u003e\n\u003cli\u003e素材（PET/AL/PE、PET/VMPET/PEなど）\u003c/li\u003e\n\u003cli\u003e印刷色数（1色〜10色）\u003c/li\u003e\n\u003cli\u003e数量（500枚〜）\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-4ehehhbc7o20\"\u003eSTEP2: 見積内容の確認\u003c/h3\u003e\u003cp\u003e入力完了後、即座に以下の情報が表示されます。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e製造単価\u003c/li\u003e\n\u003cli\u003e合計金額\u003c/li\u003e\n\u003cli\u003e納期目安（最短21日、平均28日）\u003c/li\u003e\n\u003cli\u003e費用の内訳\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-2pq4mkltnts0\"\u003eSTEP3: 見積の保存（会員登録）\u003c/h3\u003e\u003cp\u003e見積を保存して続きをする場合は、会員登録（無料）が必要です。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e価格確認のみなら会員登録不要\u003c/li\u003e\n\u003cli\u003e見積履歴の保存・管理には会員登録が必要\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-2l1t1gu38p00\"\u003eSTEP4: デザインデータ入稿\u003c/h3\u003e\u003cp\u003eデザインデータをアップロードします。\u003c/p\u003e\n\u003ch4 id=\"section-brzsyzx\"\u003eデータ仕様\u003c/h4\u003e\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e項目\u003c/th\u003e\n\u003cth\u003e推奨仕様\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003eフォーマット\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003ePDF, AI形式\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003eカラーモード\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003eCMYK\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003e解像度\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e300dpi以上\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\u003cstrong\u003eサイズ\u003c/strong\u003e\u003c/td\u003e\n\u003ctd\u003e実寸プラス塗り足し3mm\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003ch4 id=\"section-56vu102ha3g\"\u003eデザインがない場合\u003c/h4\u003e\u003cul\u003e\n\u003cli\u003eデザインデータはお客様ご用意ください\u003c/li\u003e\n\u003cli\u003eテンプレートも提供しております\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3 id=\"section-2l9qw43lz440\"\u003eSTEP5: データチェック・製造\u003c/h3\u003e\u003cp\u003e入稿されたデータをチェックし、製造〜納品となります。\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eデータチェック（無料）\u003c/li\u003e\n\u003cli\u003eデジタルproofの確認\u003c/li\u003e\n\u003cli\u003e実機見本の郵送（オプション）\u003c/li\u003e\n\u003cli\u003e製造（最短21日、平均28日）\u003c/li\u003e\n\u003cli\u003e納品\u003c/li\u003e\n\u003c/ul\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-7c9cn\"\u003e6. まとめ\u003c/h2\u003e\u003cp\u003eデジタル印刷は、小ロット多品種のパッケージ製造を実現する最適な方式です。\u003c/p\u003e\n\u003cp\u003e\u003cstrong\u003eポイントをおさらい:\u003c/strong\u003e\u003c/p\u003e\n\u003col\u003e\n\u003cli\u003e版を作らないため初期費用0円\u003c/li\u003e\n\u003cli\u003e500枚から製造可能でテスト販売に最適\u003c/li\u003e\n\u003cli\u003e最短21日、平均28日で短納期対応\u003c/li\u003e\n\u003cli\u003eグラビア印刷に迫る高品質を実現\u003c/li\u003e\n\u003c/ol\u003e\n\u003cp\u003ePackage-Labでは、最新のデジタル印刷機により、高品質なパッケージ製造を提供しています。小ロットでコストを抑えつつ、プロフェッショナルな品質を実現したい方は、まずはスマート見積りで idealなパッケージの費用をシミュレーションしてみませんか？\u003c/p\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-2pyrl29t8xi0\"\u003e30秒でこの記事を理解する\u003c/h2\u003e\u003cp\u003e· デジタル印刷は版を作らずデータを直接印刷する方式で、初期費用がかかりません\u003cbr /\u003e· グラビア印刷は版を作る必要があり、版代が10万〜50万円かかります\u003cbr /\u003e· 3,000枚未満ならデジタル印刷が圧倒的にコストパフォーマンスに優れています\u003cbr /\u003e· Package-Labでは500枚から製造可能で、最短21日、平均28日で納品できます\u003cbr /\u003e· \u003cstrong\u003e価格確認は会員登録なしでOK\u003c/strong\u003e（見積保存には会員登録が必要）\u003cbr /\u003e· 複数デザインの小ロット製造、テスト販売、A/Bテストに最適です\u003c/p\u003e\n\u003chr /\u003e\n\u003ch2 id=\"section-ahkbd8\"\u003e関連記事\u003c/h2\u003e\u003cul\u003e\n\u003cli\u003e\u003ca href=\"/blog/articles/05-printing-comparison.md\"\u003e【印刷知識】袋の印刷方式比較｜グラビア vs デジタル印刷 どっちが得？\u003c/a\u003e\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/blog/articles/03-small-lot-guide.md\"\u003e【初心者向け】小ロットOEMパッケージの始め方｜見積もりから発注までの完全ガイド\u003c/a\u003e\u003c/li\u003e\n\u003cli\u003e\u003ca href=\"/blog/articles/04-stand-pouch.md\"\u003e【製品紹介】スタンドパウチ｜陳列効果を高める「自立する」袋の特徴\u003c/a\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003chr /\u003e\n\u003cp\u003e\u003cstrong\u003eパッケージに関するお問い合わせはPackage-Labまで！\u003c/strong\u003e\u003c/p\u003e\n\u003cp\u003e[スマート見積りを試す] | [お問い合わせフォーム]\u003c/p\u003e\n"])</script><script>self.__next_f.push([1,"113:[\"$\",\"div\",null,{\"className\":\"relative\",\"children\":[\"$\",\"div\",null,{\"className\":\"prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700\",\"dangerouslySetInnerHTML\":{\"__html\":\"$11c\"}},\"$44\",\"$11b\",1]},\"$44\",\"$11a\",1]\n114:D{\"time\":1242.7928999997675}\n114:[\"$\",\"div\",null,{\"className\":\"my-12\",\"children\":[\"$\",\"$L119\",null,{\"variant\":\"end-article\"},\"$44\",\"$11e\",1]},\"$44\",\"$11d\",1]\n115:D{\"time\":1242.8275999985635}\n115:[\"$\",\"div\",null,{\"className\":\"mt-12\",\"children\":[\"$\",\"$L121\",null,{\"url\":\"http://localhost:3000/blog/variable-printing\",\"title\":\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\",\"description\":\"デジタル印刷は版を作らずにデータを直接印刷する方式で、初期費用がかかりません。Package-Labが専門とするデジタル印刷の仕組み、グラビア印刷との違い、メリットを分かりやすく解説します。\"},\"$44\",\"$120\",1]},\"$44\",\"$11f\",1]\n116:D{\"time\":1242.8907000012696}\n129:D{\"time\":1243.1165000014007}\n129:D\"$12a\"\n129:D{\"time\":1243.1889999993145}\n131:D{\"time\":1243.2093000002205}\n131:D\"$132\"\n131:D{\"time\":1243.282499998808}\n131:D\"$133\"\n131:D{\"time\":1243.3601999990642}\n131:[\"$\",\"svg\",null,{\"ref\":\"$undefined\",\"xmlns\":\"http://www.w3.org/2000/svg\",\"width\":24,\"height\":24,\"viewBox\":\"0 0 24 24\",\"fill\":\"none\",\"stroke\":\"currentColor\",\"strokeWidth\":2,\"strokeLinecap\":\"round\",\"strokeLinejoin\":\"round\",\"className\":\"lucide lucide-arrow-right w-4 h-4\",\"aria-hidden\":\"true\",\"children\":[[\"$\",\"path\",\"1ays0h\",{\"d\":\"M5 12h14\"},\"$133\",\"$135\",0],[\"$\",\"path\",\"xquz4c\",{\"d\":\"m12 5 7 7-7 7\"},\"$133\",\"$136\",0],\"$undefined\"]},\"$133\",\"$134\",1]\n129:[\"$\",\"$Ld2\",null,{\"href\":\"/blog/category/printing-tech\",\"className\":\"inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors\",\"children\":[\"すべての\",\"印刷技術\",\"記事を見る\",\"$131\"]},\"$12a\",\"$130\",1]\n"])</script><script>self.__next_f.push([1,"116:[\"$\",\"aside\",null,{\"className\":\"lg:col-span-1 self-start\",\"children\":[[\"$\",\"div\",null,{\"className\":\"mb-6 sticky top-20\",\"children\":[\"$\",\"$L125\",null,{\"headings\":[{\"id\":\"section-d0dqfk\",\"text\":\"リード文\",\"level\":2},{\"id\":\"section-ivhp\",\"text\":\"目次\",\"level\":2},{\"id\":\"section-3h1ew31u5x\",\"text\":\"1. デジタル印刷とは\",\"level\":2,\"children\":[{\"id\":\"section-cjnq63\",\"text\":\"基本概念\",\"level\":3},{\"id\":\"section-7v558aqbwjk0\",\"text\":\"Package-Labのデジタル印刷専門性\",\"level\":3}]},{\"id\":\"section-2q2gud5n8ja0\",\"text\":\"2. グラビア印刷との違い\",\"level\":2,\"children\":[{\"id\":\"section-fwzdl0n\",\"text\":\"方式の比較\",\"level\":3},{\"id\":\"section-3hpi7fezvv\",\"text\":\"費用比較イメージ\",\"level\":3}]},{\"id\":\"section-2lafc26x4mc0\",\"text\":\"3. デジタル印刷のメリット\",\"level\":2,\"children\":[{\"id\":\"section-461ba3zvqvy0\",\"text\":\"メリット1: 版を作らない\",\"level\":3},{\"id\":\"section-d7im33xiu6\",\"text\":\"メリット2: 500枚から製造可能\",\"level\":3},{\"id\":\"section-6ffddkrvsts0\",\"text\":\"メリット3: 多品種小ロットに対応\",\"level\":3},{\"id\":\"section-2l9exlypahq0\",\"text\":\"メリット4: データ更新が容易\",\"level\":3}]},{\"id\":\"section-5f1eru1iif80\",\"text\":\"4. 診断チャート：自社に最適な印刷方式を見つける\",\"level\":2},{\"id\":\"section-e5lhjq\",\"text\":\"5. 発注方法\",\"level\":2,\"children\":[{\"id\":\"section-2qsgil6nf980\",\"text\":\"STEP1: スマート見積りで条件入力\",\"level\":3},{\"id\":\"section-4ehehhbc7o20\",\"text\":\"STEP2: 見積内容の確認\",\"level\":3},{\"id\":\"section-2pq4mkltnts0\",\"text\":\"STEP3: 見積の保存（会員登録）\",\"level\":3},{\"id\":\"section-2l1t1gu38p00\",\"text\":\"STEP4: デザインデータ入稿\",\"level\":3},{\"id\":\"section-2l9qw43lz440\",\"text\":\"STEP5: データチェック・製造\",\"level\":3}]},{\"id\":\"section-7c9cn\",\"text\":\"6. まとめ\",\"level\":2},{\"id\":\"section-2pyrl29t8xi0\",\"text\":\"30秒でこの記事を理解する\",\"level\":2},{\"id\":\"section-ahkbd8\",\"text\":\"関連記事\",\"level\":2}]},\"$44\",\"$124\",1]},\"$44\",\"$123\",1],[\"$\",\"div\",null,{\"className\":\"bg-white rounded-lg shadow-md p-6\",\"children\":[[\"$\",\"h3\",null,{\"className\":\"text-lg font-bold text-gray-900 mb-4\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-blue-600\",\"children\":\"印刷技術\"},\"$44\",\"$128\",1],\"の記事をもっと見る\"]},\"$44\",\"$127\",1],\"$129\"]},\"$44\",\"$126\",1]]},\"$44\",\"$122\",1]\n"])</script><link rel="preload" href="/images/blog/02-variable-printing/02-thumb-01.webp" as="image"/><div hidden id="S:2"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"【印刷知識】バリアブル印刷とは？｜小ロット多品種を実現する印刷技術","description":"バリアブル印刷（可変印刷）の仕組み、メリット・デメリット、活用事例を分かりやすく解説。小ロット多品種のパッケージ製造を実現する印刷技術が理解できます。","image":"http://localhost:3000/images/blog/02-variable-printing/02-thumb-01.webp","author":{"@type":"Organization","name":"Epackage Lab"},"publisher":{"@type":"Organization","name":"Epackage Lab","logo":{"@type":"ImageObject","url":"http://localhost:3000/logo.png"}},"datePublished":"2025-02-27T00:00:00+00:00","dateModified":"2026-04-11T07:42:42.603969+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://package-lab.net/blog/variable-printing"},"articleSection":"printing-tech","keywords":"印刷知識, 印刷","wordCount":2653,"timeRequired":"PT14M"}</script><script type="application/ld+json">"{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"ホーム\",\"item\":\"/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"ブログ\",\"item\":\"/blog\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン\",\"item\":\"/blog/variable-printing\"}]}"</script><div class="min-h-screen bg-[#F7F7FF]"><nav class="bg-white border-b border-gray-100" aria-label="パンくずリスト"><div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3"><ol class="flex items-center gap-2 text-sm"><li><a class="text-gray-500 hover:text-[#8380FF] transition-colors" href="/">ホーム</a></li><li class="text-gray-400">/</li><li><a class="text-gray-500 hover:text-[#8380FF] transition-colors" href="/blog">導入事例</a></li><li class="text-gray-400">/</li><li class="text-gray-900 line-clamp-1">【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン</li></ol></div></nav><div class="bg-white border-b border-gray-100"><div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4"><a class="inline-flex items-center gap-2 text-[#8380FF] hover:text-[#6b5dd6] transition-colors" href="/blog"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left w-4 h-4" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>導入事例一覧に戻る</a></div></div><div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12"><div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><article class="lg:col-span-2 min-w-0"><header class="mb-8"><div class="mb-4"><a class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20 hover:bg-[#8380FF]/20 transition-colors" href="/blog/category/printing-tech">印刷技術</a></div><h1 class="text-3xl md:text-5xl font-bold text-[#1D1D1F] mb-6 leading-tight">【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン</h1><div class="flex flex-wrap items-center gap-4 text-sm text-gray-500"><div class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar w-4 h-4" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg><time dateTime="2025-02-27T00:00:00+00:00">2025年2月27日</time></div><div class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock w-4 h-4" aria-hidden="true"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="10"></circle></svg><span>14<!-- -->分で読めます</span></div></div><div class="mt-4 flex flex-wrap gap-2"><a class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200" href="/blog/tag/%E5%8D%B0%E5%88%B7%E7%9F%A5%E8%AD%98">#<!-- -->印刷知識</a><a class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200" href="/blog/tag/%E5%8D%B0%E5%88%B7">#<!-- -->印刷</a></div></header><div class="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100"><img src="/images/blog/02-variable-printing/02-thumb-01.webp" alt="【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン" class="w-full h-auto"/></div><div class="space-y-8"><div class="prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"><h1 id="section-cofcyqbwo200">【印刷知識】デジタル印刷とは？グラビア印刷との違いと最適な活用シーン</h1><p><strong>2025.02.25</strong> | #印刷知識 #デジタル印刷</p>
+<hr />
+<h2 id="section-d0dqfk">リード文</h2><p>「小ロットでパッケージを作りたいけれど、初期費用が高くて諦めていませんか？」</p>
+<p>従来のグラビア印刷では版を作成する必要があるため、数千枚単位の発注が当たり前でした。しかし、デジタル印刷の登場により、事情は一変しました。版を作らずに短納期で高品質な印刷が可能になっています。</p>
+<p>この記事では、Package-Labが専門とするデジタル印刷の仕組み、メリット・デメリット、グラビア印刷との違いを分かりやすく解説します。自社に最適な印刷方式を選べるようになります。</p>
+<p><picture>
+  <source srcset="/images/blog/02-variable-printing/02-hero-01.webp" type="image/webp"></source>
+  <img src="/images/blog/02-variable-printing/02-hero-01.png" alt="デジタル印刷のイメージ" loading="lazy" width="1200" height="630" style="max-width:100%;height:auto" />
+</picture></p>
+<hr />
+<h2 id="section-ivhp">目次</h2><p>본記事では以下の内容を解説します。</p>
+<ol>
+<li>デジタル印刷とは</li>
+<li>グラビア印刷との違い</li>
+<li>デジタル印刷のメリット</li>
+<li>診断チャート：自社に最適な印刷方式を見つける</li>
+<li>発注方法</li>
+<li>まとめ</li>
+</ol>
+<hr />
+<h2 id="section-3h1ew31u5x">1. デジタル印刷とは</h2><p>デジタル印刷は、デジタルデータを直接印刷機に送って印刷する方式です。紙の印刷でいうインクジェットプリンターと同じ仕組みです。</p>
+<h3 id="section-cjnq63">基本概念</h3><ul>
+<li><strong>デジタル印刷</strong>: データを直接印刷機に送り、インクを吹き付ける方式</li>
+<li><strong>版不要</strong>: グラビア印刷のような版を作成する必要がない</li>
+<li><strong>On-Demand印刷</strong>: 必要な枚数を必要な時に印刷可能</li>
+</ul>
+<h3 id="section-7v558aqbwjk0">Package-Labのデジタル印刷専門性</h3><p>Package-Labはデジタル印刷に特化しています。</p>
+<table>
+<thead>
+<tr>
+<th>特徴</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>最小ロット</strong></td>
+<td>500枚から対応可能（業界最小クラス）</td>
+</tr>
+<tr>
+<td><strong>短納期</strong></td>
+<td>最短21日、平均28日で納品</td>
+</tr>
+<tr>
+<td><strong>版代無料</strong></td>
+<td>初期費用0円</td>
+</tr>
+<tr>
+<td><strong>高品質</strong></td>
+<td>最新機種でグラビアに迫る品質</td>
+</tr>
+</tbody></table>
+<hr />
+<h2 id="section-2q2gud5n8ja0">2. グラビア印刷との違い</h2><h3 id="section-fwzdl0n">方式の比較</h3><table>
+<thead>
+<tr>
+<th>項目</th>
+<th>デジタル印刷</th>
+<th>グラビア印刷</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>版の要否</strong></td>
+<td>不要（0円）</td>
+<td>必要（10万〜50万円）</td>
+</tr>
+<tr>
+<td><strong>最小ロット</strong></td>
+<td>500枚〜</td>
+<td>3,000〜5,000枚〜</td>
+</tr>
+<tr>
+<td><strong>納期</strong></td>
+<td>21〜28日</td>
+<td>30〜45日</td>
+</tr>
+<tr>
+<td><strong>初期費用</strong></td>
+<td>なし</td>
+<td>版代が必要</td>
+</tr>
+<tr>
+<td><strong>単価</strong></td>
+<td>小ロットで有利</td>
+<td>大量で有利</td>
+</tr>
+<tr>
+<td><strong>色再現性</strong></td>
+<td>優秀（最新機）</td>
+<td>最も優秀</td>
+</tr>
+<tr>
+<td><strong>デザイン変更</strong></td>
+<td>容易</td>
+<td>困難（版作り直し）</td>
+</tr>
+</tbody></table>
+<h3 id="section-3hpi7fezvv">費用比較イメージ</h3><p><strong>1,000枚のパッケージ製造の場合:</strong></p>
+<table>
+<thead>
+<tr>
+<th>費用項目</th>
+<th>デジタル印刷</th>
+<th>グラビア印刷</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>初期費用（版代）</strong></td>
+<td>0円</td>
+<td>12万円（4色×3万円/色）</td>
+</tr>
+<tr>
+<td><strong>製造単価</strong></td>
+<td>150円/枚</td>
+<td>120円/枚</td>
+</tr>
+<tr>
+<td><strong>総額</strong></td>
+<td>15万円</td>
+<td>27万円</td>
+</tr>
+</tbody></table>
+<p>→ <strong>1,000枚以下ならデジタル印刷が圧倒的に安い</strong></p>
+<p><strong>注意</strong>: グラビア印刷は一般的に1万枚以上の製造で検討されます。1万枚未満では版代のコストパフォーマンスが悪くなります。</p>
+<hr />
+<h2 id="section-2lafc26x4mc0">3. デジタル印刷のメリット</h2><h3 id="section-461ba3zvqvy0">メリット1: 版を作らない</h3><p>最大のメリットは、版を作成する必要がない点です。</p>
+<ul>
+<li><strong>初期費用0円</strong>: 版代がかからない</li>
+<li><strong>デザイン変更自由</strong>: デザインの修正も追加費用なし</li>
+<li><strong>短納期</strong>: 版作成のリードタイムなし</li>
+</ul>
+<h3 id="section-d7im33xiu6">メリット2: 500枚から製造可能</h3><p>業界最小クラスの小ロット対応です。</p>
+<table>
+<thead>
+<tr>
+<th>数量</th>
+<th>グラビア印刷</th>
+<th>デジタル印刷</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>500枚</td>
+<td>不可</td>
+<td>可能</td>
+</tr>
+<tr>
+<td>500枚</td>
+<td>不可</td>
+<td>可能</td>
+</tr>
+<tr>
+<td>1,000枚</td>
+<td>可能（高単価）</td>
+<td>可能（競争力あり）</td>
+</tr>
+<tr>
+<td>5,000枚</td>
+<td>可能</td>
+<td>可能</td>
+</tr>
+</tbody></table>
+<p>→ <strong>テスト販売、A/Bテストに最適</strong></p>
+</div><div class="my-12"><div class="
+        my-8 rounded-2xl border border-[#8380FF]/20 bg-gradient-to-r from-[#8380FF]/5 to-[#8380FF]/10
+        py-4 px-4 sm:py-5 sm:px-6 lg:py-6 lg:px-8
+      "><h3 class="
+          font-bold text-[#1D1D1F] mb-2
+          text-sm sm:text-base
+        ">お気軽にご相談ください</h3><p class="
+          text-gray-600 mb-4
+          text-xs sm:text-sm
+        ">最適なパッケージソリューションをご提案いたします。</p><div class="flex flex-col sm:flex-row gap-3"><a class="   inline-flex items-center justify-center gap-2   min-h-[44px] min-w-[44px]   px-5 py-3   bg-[#8380FF] text-white   font-medium text-sm sm:text-base   rounded-xl   hover:bg-[#6B6AFF] transition-colors   focus:outline-none focus:ring-2 focus:ring-[#8380FF] focus:ring-offset-2   " href="/contact"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square w-4 h-4" aria-hidden="true"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>お問い合わせ</a><a class="   inline-flex items-center justify-center gap-2   min-h-[44px] min-w-[44px]   px-5 py-3   bg-white text-[#8380FF]   font-medium text-sm sm:text-base   rounded-xl   border border-[#8380FF]   hover:bg-[#8380FF]/5 transition-colors   focus:outline-none focus:ring-2 focus:ring-[#8380FF] focus:ring-offset-2   " href="/quote-simulator"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>見積もり依頼</a></div></div></div><div class="relative"><div class="prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"><!-- CTA:mid-article --><h3 id="section-6ffddkrvsts0">メリット3: 多品種小ロットに対応</h3><p>複数のデザインを少量ずつ製造可能です。</p>
+<ul>
+<li><strong>フレーバー違い</strong>: 3種類×100枚ずつ</li>
+<li><strong>地域限定</strong>: 店舗別のデザイン</li>
+<li><strong>テストマーケティング</strong>: 販売結果に応じて本格生産</li>
+</ul>
+<h3 id="section-2l9exlypahq0">メリット4: データ更新が容易</h3><p>デザインの修正・更新が簡単です。</p>
+<ul>
+<li>価格変更</li>
+<li>成分表示の更新</li>
+<li>法規制対応</li>
+</ul>
+<hr />
+<h2 id="section-5f1eru1iif80">4. 診断チャート：自社に最適な印刷方式を見つける</h2><p><strong>【診断チャートあり】</strong> 自社に最適な印刷方式を選びましょう。</p>
+<pre><code>Q1. 製造数量は？
+
+├── 3,000枚未満
+│   **Q2. 予算は限られているか？**
+│   ├── はい → 【デジタル印刷】版代0円で開始
+│   └── いいえ（余裕がある） → Q3へ
+│
+└── 3,000枚以上
+    **Q4. 将来的にデザイン変更の可能性は？**
+    ├── ある → 【デジタル印刷】柔軟に対応
+    └── ない → 【グラビア印刷】大量生産に最適
+
+Q3（3,000枚未満・予報余裕）. 納期は急ぎか？
+
+├── 急ぐ（1ヶ月以内） → 【デジタル印刷】最短21日
+└── 急がない → 【グラビア印刷】検討可能
+
+※ 詳しい選定基準は本文で解説します。
+</code></pre>
+<p><strong>診断結果の解説:</strong></p>
+<table>
+<thead>
+<tr>
+<th>診断結果</th>
+<th>特徴</th>
+<th>最適なケース</th>
+<th>注意点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>デジタル印刷推奨</strong></td>
+<td>版不要・短納期</td>
+<td>テスト販売、A/Bテスト、3,000枚未満</td>
+<td>大量（5,000枚以上）は単価上がる</td>
+</tr>
+<tr>
+<td><strong>グラビア印刷推奨</strong></td>
+<td>大量生産に最適</td>
+<td>5,000枚以上、デザイン固定</td>
+<td>版代がかかる、納期が長い</td>
+</tr>
+</tbody></table>
+<p><strong>印刷方式選択チェック:</strong></p>
+<pre><code>あなたの状況に当てはまるものはいくつありますか？
+
+□ 3,000枚未満の発注を予定
+□ 複数のデザインを少量ずつ試したい
+□ 初期費用を抑えたい
+□ 短納期（1ヶ月以内）で必要
+□ デザイン変更の可能性がある
+
+チェック数:
+・0〜1個: グラビア印刷も検討可
+・2〜3個: デジタル印刷推奨
+・4〜5個: デジタル印刷が最適
+</code></pre>
+<hr />
+<h2 id="section-e5lhjq">5. 発注方法</h2><p>Package-Labでのデジタル印刷発注は、以下の流れで進めます。</p>
+<h3 id="section-2qsgil6nf980">STEP1: スマート見積りで条件入力</h3><p>まずは見積もりシステムで基本条件を入力します。</p>
+<ul>
+<li>パッケージタイプ（スタンドパウチ、平袋など）</li>
+<li>サイズ（幅×高さ（マチ））</li>
+<li>素材（PET/AL/PE、PET/VMPET/PEなど）</li>
+<li>印刷色数（1色〜10色）</li>
+<li>数量（500枚〜）</li>
+</ul>
+<h3 id="section-4ehehhbc7o20">STEP2: 見積内容の確認</h3><p>入力完了後、即座に以下の情報が表示されます。</p>
+<ul>
+<li>製造単価</li>
+<li>合計金額</li>
+<li>納期目安（最短21日、平均28日）</li>
+<li>費用の内訳</li>
+</ul>
+<h3 id="section-2pq4mkltnts0">STEP3: 見積の保存（会員登録）</h3><p>見積を保存して続きをする場合は、会員登録（無料）が必要です。</p>
+<ul>
+<li>価格確認のみなら会員登録不要</li>
+<li>見積履歴の保存・管理には会員登録が必要</li>
+</ul>
+<h3 id="section-2l1t1gu38p00">STEP4: デザインデータ入稿</h3><p>デザインデータをアップロードします。</p>
+<h4 id="section-brzsyzx">データ仕様</h4><table>
+<thead>
+<tr>
+<th>項目</th>
+<th>推奨仕様</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>フォーマット</strong></td>
+<td>PDF, AI形式</td>
+</tr>
+<tr>
+<td><strong>カラーモード</strong></td>
+<td>CMYK</td>
+</tr>
+<tr>
+<td><strong>解像度</strong></td>
+<td>300dpi以上</td>
+</tr>
+<tr>
+<td><strong>サイズ</strong></td>
+<td>実寸プラス塗り足し3mm</td>
+</tr>
+</tbody></table>
+<h4 id="section-56vu102ha3g">デザインがない場合</h4><ul>
+<li>デザインデータはお客様ご用意ください</li>
+<li>テンプレートも提供しております</li>
+</ul>
+<h3 id="section-2l9qw43lz440">STEP5: データチェック・製造</h3><p>入稿されたデータをチェックし、製造〜納品となります。</p>
+<ul>
+<li>データチェック（無料）</li>
+<li>デジタルproofの確認</li>
+<li>実機見本の郵送（オプション）</li>
+<li>製造（最短21日、平均28日）</li>
+<li>納品</li>
+</ul>
+<hr />
+<h2 id="section-7c9cn">6. まとめ</h2><p>デジタル印刷は、小ロット多品種のパッケージ製造を実現する最適な方式です。</p>
+<p><strong>ポイントをおさらい:</strong></p>
+<ol>
+<li>版を作らないため初期費用0円</li>
+<li>500枚から製造可能でテスト販売に最適</li>
+<li>最短21日、平均28日で短納期対応</li>
+<li>グラビア印刷に迫る高品質を実現</li>
+</ol>
+<p>Package-Labでは、最新のデジタル印刷機により、高品質なパッケージ製造を提供しています。小ロットでコストを抑えつつ、プロフェッショナルな品質を実現したい方は、まずはスマート見積りで idealなパッケージの費用をシミュレーションしてみませんか？</p>
+<hr />
+<h2 id="section-2pyrl29t8xi0">30秒でこの記事を理解する</h2><p>· デジタル印刷は版を作らずデータを直接印刷する方式で、初期費用がかかりません<br />· グラビア印刷は版を作る必要があり、版代が10万〜50万円かかります<br />· 3,000枚未満ならデジタル印刷が圧倒的にコストパフォーマンスに優れています<br />· Package-Labでは500枚から製造可能で、最短21日、平均28日で納品できます<br />· <strong>価格確認は会員登録なしでOK</strong>（見積保存には会員登録が必要）<br />· 複数デザインの小ロット製造、テスト販売、A/Bテストに最適です</p>
+<hr />
+<h2 id="section-ahkbd8">関連記事</h2><ul>
+<li><a href="/blog/articles/05-printing-comparison.md">【印刷知識】袋の印刷方式比較｜グラビア vs デジタル印刷 どっちが得？</a></li>
+<li><a href="/blog/articles/03-small-lot-guide.md">【初心者向け】小ロットOEMパッケージの始め方｜見積もりから発注までの完全ガイド</a></li>
+<li><a href="/blog/articles/04-stand-pouch.md">【製品紹介】スタンドパウチ｜陳列効果を高める「自立する」袋の特徴</a></li>
+</ul>
+<hr />
+<p><strong>パッケージに関するお問い合わせはPackage-Labまで！</strong></p>
+<p>[スマート見積りを試す] | [お問い合わせフォーム]</p>
+</div></div><div class="my-12"><div class="
+        my-8 rounded-2xl border border-[#8380FF]/20 bg-gradient-to-r from-[#8380FF]/5 to-[#8380FF]/10
+        py-6 px-4 sm:py-8 sm:px-6 lg:py-10 lg:px-8
+      "><h3 class="
+          font-bold text-[#1D1D1F] mb-2
+          text-base sm:text-lg
+        ">パッケージ制作のご相談はこちら</h3><p class="
+          text-gray-600 mb-4
+          text-sm sm:text-base
+        ">お客様のニーズに合わせた最適なパッケージをご提案いたします。お気軽にお問い合わせください。</p><div class="flex flex-col sm:flex-row gap-3"><a class="   inline-flex items-center justify-center gap-2   min-h-[44px] min-w-[44px]   px-5 py-3   bg-[#8380FF] text-white   font-medium text-sm sm:text-base   rounded-xl   hover:bg-[#6B6AFF] transition-colors   focus:outline-none focus:ring-2 focus:ring-[#8380FF] focus:ring-offset-2   " href="/contact"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square w-4 h-4" aria-hidden="true"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>お問い合わせ</a><a class="   inline-flex items-center justify-center gap-2   min-h-[44px] min-w-[44px]   px-5 py-3   bg-white text-[#8380FF]   font-medium text-sm sm:text-base   rounded-xl   border border-[#8380FF]   hover:bg-[#8380FF]/5 transition-colors   focus:outline-none focus:ring-2 focus:ring-[#8380FF] focus:ring-offset-2   " href="/quote-simulator"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>見積もり依頼</a></div></div></div></div><div class="mt-12"><div class="bg-white rounded-lg shadow-md p-6"><h3 class="text-lg font-bold text-gray-900 mb-4">シェア</h3><div class="flex flex-wrap gap-3"><button class="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors" aria-label="Share on X (Twitter)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-twitter w-5 h-5" aria-hidden="true"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg><span class="hidden sm:inline">Xでシェア</span></button><button class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" aria-label="Share on Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-facebook w-5 h-5" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg><span class="hidden sm:inline">Facebook</span></button><button class="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors" aria-label="Share on LinkedIn"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg><span class="hidden sm:inline">LinkedIn</span></button><button class="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200" aria-label="Copy link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link w-5 h-5" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg><span class="hidden sm:inline">リンクをコピー</span></button></div></div></div></article><aside class="lg:col-span-1 self-start"><div class="mb-6 sticky top-20"><div class="bg-white rounded-lg shadow-md p-6"><h3 class="flex items-center gap-2 text-lg font-bold text-gray-900 mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list w-5 h-5" aria-hidden="true"><path d="M3 5h.01"></path><path d="M3 12h.01"></path><path d="M3 19h.01"></path><path d="M8 5h13"></path><path d="M8 12h13"></path><path d="M8 19h13"></path></svg>目次</h3><nav aria-label="Table of contents"><ul class="space-y-2"><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">リード文</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">目次</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">1. デジタル印刷とは</button><ul class="mt-1 space-y-1"><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">基本概念</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">Package-Labのデジタル印刷専門性</button></div></li></ul></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">2. グラビア印刷との違い</button><ul class="mt-1 space-y-1"><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">方式の比較</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">費用比較イメージ</button></div></li></ul></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">3. デジタル印刷のメリット</button><ul class="mt-1 space-y-1"><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">メリット1: 版を作らない</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">メリット2: 500枚から製造可能</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">メリット3: 多品種小ロットに対応</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">メリット4: データ更新が容易</button></div></li></ul></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">4. 診断チャート：自社に最適な印刷方式を見つける</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">5. 発注方法</button><ul class="mt-1 space-y-1"><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">STEP1: スマート見積りで条件入力</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">STEP2: 見積内容の確認</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">STEP3: 見積の保存（会員登録）</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">STEP4: デザインデータ入稿</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:24px">STEP5: データチェック・製造</button></div></li></ul></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">6. まとめ</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">30秒でこの記事を理解する</button></div></li><li><div><button class="
+          block w-full text-left py-1 px-2 rounded text-sm transition-colors
+          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+        " style="padding-left:8px">関連記事</button></div></li></ul></nav></div></div><div class="bg-white rounded-lg shadow-md p-6"><h3 class="text-lg font-bold text-gray-900 mb-4"><span class="text-blue-600">印刷技術</span>の記事をもっと見る</h3><a class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors" href="/blog/category/printing-tech">すべての<!-- -->印刷技術<!-- -->記事を見る<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div></aside></div></div></div></div><script>$RS=function(a,b){a=document.getElementById(a);b=document.getElementById(b);for(a.parentNode.removeChild(a);a.firstChild;)b.parentNode.insertBefore(a.firstChild,b);b.parentNode.removeChild(b)};$RS("S:2","P:2")</script><script>$RC("B:1","S:1")</script></body></html>
