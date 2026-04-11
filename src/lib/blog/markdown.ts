@@ -6,6 +6,7 @@
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
+import matter from 'gray-matter';
 
 // =====================================================
 // Type Definitions
@@ -107,6 +108,16 @@ export async function parseMarkdown(
     breaks = true,
   } = options;
 
+  // Remove frontmatter if present
+  let cleanMarkdown = markdown;
+  try {
+    const { content } = matter(markdown);
+    cleanMarkdown = content;
+  } catch {
+    // If frontmatter parsing fails, use original markdown
+    cleanMarkdown = markdown;
+  }
+
   // Configure marked options
   marked.setOptions({
     gfm,
@@ -116,7 +127,7 @@ export async function parseMarkdown(
   });
 
   // Parse markdown to HTML
-  let html = await marked.parse(markdown);
+  let html = await marked.parse(cleanMarkdown);
 
   // Sanitize HTML if needed
   if (sanitize) {
@@ -152,10 +163,10 @@ export async function parseMarkdown(
   const headings = extractHeadings(html);
 
   // Generate excerpt
-  const excerpt = generateExcerpt(markdown);
+  const excerpt = generateExcerpt(cleanMarkdown);
 
   // Calculate word count and reading time
-  const wordCount = countWords(markdown);
+  const wordCount = countWords(cleanMarkdown);
   const readingTime = calculateReadingTime(wordCount);
 
   return {
