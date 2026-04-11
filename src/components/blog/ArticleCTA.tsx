@@ -63,7 +63,7 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
         </Link>
 
         <Link
-          href="/quote"
+          href="/quote-simulator"
           className="
             inline-flex items-center justify-center gap-2
             min-h-[44px] min-w-[44px]
