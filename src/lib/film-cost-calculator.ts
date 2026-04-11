@@ -702,9 +702,9 @@ export class FilmCostCalculator {
     // DB 설정값 또는 기본값
     const printingCostPerM2 = dbSettings?.printing_cost_per_m2 ?? PRINTING_COST_PER_M2;
 
-    // 기본 인쇄비 = 1m × 미터수 × 인쇄 단가 (ガイド準拠: 1m固定)
-    // docs/reports/tjfrP/계산가이드 기준: "항상 1m 폭으로 계산"
-    const basic = 1 * lengthWithLoss * printingCostPerM2;
+    // 기본 인쇄비 = 필름 폭(m) × 미터수 × 인쇄 단가
+    // 실제 필름 폭을 사용하여 계산 (예: 590mm=0.59m, 740mm=0.74m)
+    const basic = widthM * lengthWithLoss * printingCostPerM2;
 
     // 매트 인쇄 추가비 계산 (요구사항 수정)
     // 매트 인쇄 추가비(원) = 필름 폭(m) × 40원/m × 사용 미터수

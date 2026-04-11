@@ -7,22 +7,9 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { requireAdminAuth } from '../loader';
+import { getAdminAuth } from '../loader';
 import AdminQuotationsClient from './AdminQuotationsClient';
 import { FullPageSpinner } from '@/components/ui';
-
-// ============================================================
-// Types
-// ============================================================
-
-interface AuthContext {
-  userId: string;
-  role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
-  userName: string;
-  companyId?: string;
-  permissions?: string[];
-}
 
 // ============================================================
 // Server-Side Data Fetching
@@ -30,15 +17,7 @@ interface AuthContext {
 
 async function QuotationsContent({ searchParams }: { searchParams: { status?: string } }) {
   // RBAC認証チェック
-  let authContext: AuthContext;
-  try {
-    authContext = await requireAdminAuth(['quotation:read']);
-  } catch (error) {
-    if (error instanceof Error && 'digest' in error) {
-      throw error;
-    }
-    redirect('/auth/signin?redirect=/admin/quotations');
-  }
+  const authContext = await getAdminAuth(['quotation:read'], '/auth/signin?redirect=/admin/quotations');
 
   // URLパラメータからステータスを取得
   const initialStatus = searchParams.status || 'all';

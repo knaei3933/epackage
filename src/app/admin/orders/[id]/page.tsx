@@ -7,8 +7,7 @@
  * - Client Componentでインタラクティブ操作
  */
 
-import { redirect } from 'next/navigation';
-import { requireAdminAuth } from '../../loader';
+import { getAdminAuth } from '../../loader';
 import AdminOrderDetailClient from './AdminOrderDetailClient';
 import { createServiceClient } from '@/lib/supabase';
 
@@ -74,15 +73,7 @@ async function OrderDetailContent({ params }: { params: Promise<{ id: string }> 
   const { id: orderId } = await params;
 
   // RBAC認証チェック
-  let authContext;
-  try {
-    authContext = await requireAdminAuth(['order:read']);
-  } catch (error) {
-    if (error instanceof Error && 'digest' in error) {
-      throw error;
-    }
-    redirect('/auth/signin?redirect=/admin/orders');
-  }
+  const authContext = await getAdminAuth(['order:read'], '/auth/signin?redirect=/admin/orders');
 
   // サーバーサイドで注文データを取得
   const supabaseService = createServiceClient();

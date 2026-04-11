@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export async function DELETE(
   request: NextRequest,
@@ -15,6 +16,7 @@ export async function DELETE(
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
@@ -38,6 +40,11 @@ export async function DELETE(
         },
       },
     });
+
+    // Create service role client for admin operations (bypasses RLS)
+    const supabaseAdmin = supabaseServiceKey
+      ? createClient(supabaseUrl, supabaseServiceKey)
+      : null;
 
     // Get user ID from middleware header or authenticate
     const userIdFromMiddleware = request.headers.get('x-user-id');
@@ -100,29 +107,70 @@ export async function DELETE(
       );
     }
 
-    // Delete the file from database
-    const { error: deleteError } = await supabase
+    // Delete the file from database using service role client (bypasses RLS)
+    const deleteClient = supabaseAdmin || supabase;
+
+    // Get original filename before deletion for order_file_uploads lookup
+    const originalFilename = fileRecord.original_filename;
+
+    // Delete from files table (member uploads)
+    const { error: deleteError } = await deleteClient
       .from('files')
       .delete()
       .eq('id', fileId);
 
     if (deleteError) {
-      console.error('Error deleting file:', deleteError);
+      console.error('[Delete File] Error deleting file from files table:', deleteError);
+    }
+
+    // Also delete from order_file_uploads table by matching filename and order_id
+    // (designer page uses this table)
+    const { error: deleteUploadError } = await deleteClient
+      .from('order_file_uploads')
+      .delete()
+      .eq('order_id', orderId)
+      .eq('file_name', originalFilename);
+
+    if (deleteUploadError) {
+      console.error('[Delete File] Error deleting file from order_file_uploads table:', deleteUploadError);
+    }
+
+    // Consider it successful if files table deletion succeeded
+    if (deleteError) {
       return NextResponse.json(
         { error: 'ファイルの削除中にエラーが発生しました' },
         { status: 500 }
       );
     }
 
-    // Delete from storage if needed
-    if (fileRecord.file_path) {
-      const { error: storageError } = await supabase.storage
-        .from('production-files')
-        .remove([fileRecord.file_path]);
+    console.log('[Delete File] Successfully deleted file from database:', fileId);
 
-      if (storageError) {
-        console.warn('[Delete File] Failed to delete from storage:', storageError);
-        // Don't fail the request if storage deletion fails
+    // Delete from Google Drive (file_path contains Google Drive file ID)
+    if (fileRecord.file_path) {
+      try {
+        // Get admin access token for Google Drive operations
+        const { getAdminAccessTokenForUpload } = await import('@/lib/google-drive');
+        const accessToken = await getAdminAccessTokenForUpload();
+
+        // Delete from Google Drive
+        const deleteResponse = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${fileRecord.file_path}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          console.warn('[Delete File] Google Drive deletion failed:', deleteResponse.status);
+        } else {
+          console.log('[Delete File] Google Drive file deleted successfully');
+        }
+      } catch (driveError) {
+        console.warn('[Delete File] Failed to delete from Google Drive:', driveError);
+        // Don't fail the request if Drive deletion fails
       }
     }
 

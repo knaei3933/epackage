@@ -168,6 +168,8 @@ export function DesignerOrderTokenClient({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [revisions, setRevisions] = useState<DesignRevision[]>(initialRevisions);
+  const [customerUploads, setCustomerUploads] = useState<CustomerFileUpload[]>(initialCustomerUploads);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
 
   // 後加工位置情報State / 후가공 위치 정보 상태
   const [showPostProcessingInput, setShowPostProcessingInput] = useState(false);
@@ -378,6 +380,42 @@ export function DesignerOrderTokenClient({
     }
   }, [handlePreviewFileSelect, handleOriginalFileSelect]);
 
+  // Handle file deletion
+  const handleDeleteFile = async (fileId: string) => {
+    if (!confirm('このファイルを削除してもよろしいですか？')) {
+      return;
+    }
+
+    setDeletingFileId(fileId);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/designer/orders/${order.id}/data-receipt/${fileId}?token=${encodeURIComponent(token)}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '削除に失敗しました');
+      }
+
+      // Reload customer uploads
+      const uploadsResponse = await fetch(`/api/designer/orders/${order.id}?token=${encodeURIComponent(token)}`);
+      if (uploadsResponse.ok) {
+        const uploadsData = await uploadsResponse.json();
+        setCustomerUploads(uploadsData.customerUploads || []);
+        setSuccessMessage('ファイルを削除しました');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
+    } finally {
+      setDeletingFileId(null);
+    }
+  };
+
   // Upload correction
   const handleUpload = async () => {
     if (!previewFile || !originalFile) {
@@ -571,15 +609,15 @@ export function DesignerOrderTokenClient({
         )}
 
         {/* Customer Upload Files */}
-        {initialCustomerUploads.length > 0 && (
+        {customerUploads.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <FileText className="w-6 h-6 text-green-600" />
-              고객 입고 데이터 ({initialCustomerUploads.length})
+              고객 입고 데이터 ({customerUploads.length})
             </h2>
 
             <div className="space-y-3">
-              {initialCustomerUploads.map((file) => (
+              {customerUploads.map((file) => (
                 <div
                   key={file.id}
                   className="p-4 bg-green-50 rounded-lg border border-green-200 flex items-center justify-between"
@@ -614,6 +652,15 @@ export function DesignerOrderTokenClient({
                       <Download className="w-4 h-4" />
                       다운로드
                     </a>
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDeleteFile(file.id)}
+                      disabled={deletingFileId === file.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <X className="w-4 h-4" />
+                      {deletingFileId === file.id ? '삭제 중...' : '삭제'}
+                    </button>
                   </div>
                 </div>
               ))}

@@ -37,9 +37,7 @@ export default async function QuotationDetailPage({
   // =====================================================
   let user;
   try {
-    console.log('[QuotationDetailPage] Calling requireAuth...');
     user = await requireAuth();
-    console.log('[QuotationDetailPage] requireAuth SUCCESS:', user.id);
   } catch (error) {
     console.error('[QuotationDetailPage] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {

@@ -252,8 +252,6 @@ async function getAllPermissions(): Promise<Permission[]> {
  * これによりビルド時のデータベース接続問題を回避します。
  */
 async function getPermissionsForRole(role: string): Promise<Permission[]> {
-  // デフォルト権限を即座に返す（DB呼び出しを完全にスキップ）
-  console.log('[RBAC] Using default permissions for role:', role);
   return getDefaultPermissionsForRole(role);
 }
 
@@ -315,87 +313,42 @@ function normalizeRole(role: string): Role {
  * Always call this function from within a Server Component's render function or async handler.
  */
 export async function getRBACContext(): Promise<RBACContext | null> {
-  const callStack = new Error().stack;
-  console.log('[RBAC] getRBACContext() called');
-  console.log('[RBAC] Environment:', { NODE_ENV: process.env.NODE_ENV, NEXT_PHASE: process.env.NEXT_PHASE });
-  console.log('[RBAC] Call stack:', callStack?.split('\n').slice(1, 4).join('\n'));
-
-  // =====================================================
   // BUILD-TIME GUARD: Skip ALL async operations during build
-  // =====================================================
-  // Multiple checks to detect build context and fail fast without calling cookies()/headers()
-  //
-  // Check 1: Next.js build phase environment variable
   if (process.env.NEXT_PHASE === 'phase-build') {
-    console.log('[RBAC] Build phase detected (NEXT_PHASE), returning null context');
     return null;
   }
 
-  // Check 2: Standalone mode indicates build time
   if (process.env.NEXT_STANDALONE_MODE === 'true') {
-    console.log('[RBAC] Standalone mode detected, returning null context');
     return null;
   }
 
-  // Check 3: If running in CI/CD without request context, return null
-  // This is a safety check for build servers
   if (process.env.CI === 'true' && typeof window === 'undefined') {
-    // In CI, check if we have a request context by trying to access a safe API
-    // We use a try-catch with a synchronous check first
     try {
-      // This will throw during build time in Turbopack
-      // We use it as a canary to detect build context
       const { headers } = await import('next/headers');
-      // The import alone doesn't trigger the hang
-      // But calling headers() will, so we check another way
+      void headers; // suppress unused warning
     } catch {
-      console.log('[RBAC] Import failed during build, returning null context');
       return null;
     }
   }
 
-  // Check 4: Production build without explicit request context
-  // During `next build`, there's no actual HTTP request
-  // We detect this by checking if critical environment variables for runtime are missing
   const hasRuntimeContext =
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!hasRuntimeContext) {
-    console.log('[RBAC] No runtime context (missing env vars), returning null context');
     return null;
   }
 
-  // =====================================================
   // First try: Check middleware headers (fastest path)
-  // =====================================================
-  // Middleware sets x-user-id, x-user-role, x-user-status headers
-  // This is the most reliable way to get auth info in Server Components
-  console.log('[RBAC] Checking middleware headers...');
   try {
-    // CRITICAL: Dynamic import to avoid build-time hang
     const { headers } = await import('next/headers');
     const headersList = await headers();
-
-    // Debug: Log ALL headers to see what's available
-    console.log('[RBAC] All available headers:', Array.from(headersList.entries()));
 
     const userId = headersList.get('x-user-id');
     const userRole = headersList.get('x-user-role');
     const userStatus = headersList.get('x-user-status');
 
-    console.log('[RBAC] Middleware headers found:', {
-      hasUserId: !!userId,
-      hasUserRole: !!userRole,
-      hasUserStatus: !!userStatus,
-      userId,
-      userRole,
-      userStatus
-    });
-
     if (userId && userRole && userStatus) {
-      console.log('[RBAC] Found auth in middleware headers:', { userId, userRole, userStatus });
-
       const normalizedRole = normalizeRole(userRole);
       const permissions = await getPermissionsForRole(normalizedRole);
 
@@ -407,23 +360,13 @@ export async function getRBACContext(): Promise<RBACContext | null> {
         isDevMode: false,
       };
     }
-    console.log('[RBAC] Middleware headers incomplete, falling back to cookie auth');
-  } catch (error) {
+  } catch {
     // headers() might fail in some contexts, continue to cookie check
-    console.log('[RBAC] Could not read headers, trying cookies...', error);
   }
 
-  // =====================================================
   // Second try: Read cookies directly (for edge cases)
-  // =====================================================
-  // CRITICAL: Dynamic import to avoid build-time hang
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
-
-  // Debug: Log all available cookies
-  const allCookies = cookieStore.getAll();
-  const sbCookies = allCookies.filter(c => c.name.startsWith('sb-'));
-  console.log('[RBAC] Supabase cookies found:', sbCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
 
   // DEV_MODE: Check for mock user cookie first
   const isDevMode = process.env.ENABLE_DEV_MOCK_AUTH === 'true' && process.env.NODE_ENV === 'development';
@@ -432,10 +375,7 @@ export async function getRBACContext(): Promise<RBACContext | null> {
     const devMockUserId = cookieStore.get('dev-mock-user-id')?.value;
 
     if (devMockUserId) {
-      console.log('[RBAC] DEV_MODE: Using mock user:', devMockUserId);
-
-      // Determine role based on user ID (admin if contains specific pattern)
-      const role = 'admin'; // Default to admin for dev mode
+      const role = 'admin';
 
       return {
         userId: devMockUserId,
@@ -445,21 +385,14 @@ export async function getRBACContext(): Promise<RBACContext | null> {
         isDevMode: true,
       };
     }
-    console.log('[RBAC] DEV_MODE enabled but no mock user cookie found');
   }
 
-  console.log('[RBAC] Creating Supabase server client...');
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () => {
-          const allCookies = cookieStore.getAll();
-          console.log('[RBAC] getAll() called, found', allCookies.length, 'cookies');
-          console.log('[RBAC] Supabase cookies:', allCookies.filter(c => c.name.startsWith('sb-')).map(c => c.name));
-          return allCookies;
-        },
+        getAll: () => cookieStore.getAll(),
         setAll: () => {
           // Server Component에서는 쿠키 설정 불필요
         },
@@ -467,25 +400,19 @@ export async function getRBACContext(): Promise<RBACContext | null> {
     }
   );
 
-  // 本番認証: getUser()を使用してユーザー情報を取得
-  console.log('[RBAC] Calling supabase.auth.getUser()...');
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error) {
-    console.error('[RBAC] Supabase auth error:', error.message, error.status);
+    console.error('[RBAC] Auth error:', error.message);
     return null;
   }
 
   if (!user) {
-    console.log('[RBAC] No user found from supabase.auth.getUser()');
     return null;
   }
 
-  console.log('[RBAC] User found from Supabase:', user.id, user.email);
   const userId = user.id;
 
-  // プロフィールを取得（Service Role clientを使用してRLS를 우회）
-  console.log('[RBAC] Fetching profile from database...');
   const { createServiceClient } = await import('@/lib/supabase');
   const serviceClient = createServiceClient();
 
@@ -496,22 +423,16 @@ export async function getRBACContext(): Promise<RBACContext | null> {
     .maybeSingle();
 
   if (profileError) {
-    console.error('[RBAC] Profile query error:', profileError.message, profileError.code);
+    console.error('[RBAC] Profile query error:', profileError.message);
     return null;
   }
 
   if (!profile) {
-    console.log('[RBAC] Profile not found for user:', userId);
     return null;
   }
 
-  console.log('[RBAC] Profile found:', profile.role, profile.status);
-
-  // Normalize role from uppercase (database) to lowercase (code)
   const normalizedRole = normalizeRole(profile.role);
   const permissions = await getPermissionsForRole(normalizedRole);
-
-  console.log('[RBAC] User authenticated successfully:', userId, 'Role:', normalizedRole, 'Status:', profile.status);
 
   return {
     userId,

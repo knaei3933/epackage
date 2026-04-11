@@ -32,14 +32,10 @@ function formatDateToISO(date: string | Date | null | undefined): string {
 // =====================================================
 
 async function EditContent() {
-  console.log('[EditContent] START: Rendering edit content');
-
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
-    console.log('[EditContent] Calling requireAuth...');
     user = await requireAuth();
-    console.log('[EditContent] requireAuth SUCCESS:', user.id);
   } catch (error) {
     console.error('[EditContent] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {
@@ -56,13 +52,6 @@ async function EditContent() {
   // Contact info
   const userCorporatePhone = userMetadata.corporate_phone || '';
   const userPersonalPhone = userMetadata.personal_phone || '';
-
-  console.log('[EditContent] User data extracted:', {
-    userId,
-    userEmail,
-    userCorporatePhone,
-    userPersonalPhone,
-  });
 
   return (
     <EditSignOutProvider

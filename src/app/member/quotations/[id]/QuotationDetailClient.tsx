@@ -9,7 +9,6 @@
  * - 承認済み見積の注文変換
  */
 
-// @ts-nocheck - Temporarily disable type checking due to complexity
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -223,13 +222,11 @@ function getContentsDisplay(specs: Record<string, unknown> | undefined): string 
  * Map database specifications to PDF template format
  */
 function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Record<string, string | boolean | number> {
-  console.log('[mapSpecificationsToPDF] Input specs:', JSON.stringify(specs, null, 2));
   if (!specs) return {};
 
   const bagTypeId = specs?.bagTypeId as string | undefined;
   const materialId = specs?.materialId as string | undefined;
   const postProcessingOptions = specs?.postProcessingOptions as string[] | undefined;
-  console.log('[mapSpecificationsToPDF] postProcessingOptions:', postProcessingOptions);
 
   // サイズ表示 - ロールフィルムの場合は常に「幅: ○mm、ピッチ: ○mm」
   // 旧データ（二重ネスト）と新データ（修正後）の両方に対応
@@ -329,7 +326,6 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
     cornerR: postProcessingOptions?.includes('corner-round') ? 'R5' : postProcessingOptions?.includes('corner-square') ? 'R0' : 'R5',
     machiPrinting: postProcessingOptions?.includes('machi-printing-yes') ? 'あり' : 'なし',
   };
-  console.log('[mapSpecificationsToPDF] Result:', JSON.stringify(result, null, 2));
   return result;
 }
 
@@ -407,7 +403,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   }, [userId, quotationId]);
 
   const handleDownloadPDF = async () => {
-    console.log('[handleDownloadPDF] ========== START ==========');
     if (!quotation) return;
 
     setDownloadingPDF(true);
@@ -415,7 +410,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
     try {
       // 保存されたPDFがある場合はそれを直接使用（シミュレーターで生成したPDFを維持）
       if (quotation.pdf_url) {
-        console.log('[handleDownloadPDF] Using saved PDF from Storage:', quotation.pdf_url);
 
         // Supabase StorageからPDFをダウンロード
         const response = await fetch(quotation.pdf_url);
@@ -456,8 +450,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
 
         return;
       }
-      console.log('[handleDownloadPDF] quotation.items:', quotation.items);
-      console.log('[handleDownloadPDF] quotation.items[0]?.specifications:', JSON.stringify(quotation.items[0]?.specifications, null, 2));
       if (!quotation.items || quotation.items.length === 0) {
         throw new Error('見積明細がありません');
       }
@@ -533,9 +525,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
         email: quotation.customerEmail || quotation.customer_email || userEmail || '',
         items: quoteItems,
         specifications: (() => {
-          console.log('[handleDownloadPDF] Calling mapSpecificationsToPDF with:', quotation.items[0]?.specifications);
           const mappedSpecs = mapSpecificationsToPDF(quotation.items[0]?.specifications);
-          console.log('[handleDownloadPDF] mapSpecificationsToPDF returned:', mappedSpecs);
 
           // 製品タイプ固有のフィールド（spoutSize, spoutPosition, hasGusset, rollFilmSpecs, sideWidthなど）を元データから引き継ぐ
           const originalSpecs = quotation.items[0]?.specifications as Record<string, unknown> | undefined;
@@ -617,7 +607,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
           body: JSON.stringify({ pdfData: dataUrl }),
         });
 
-        console.log('[handleDownloadPDF] PDF saved to Supabase Storage, pdf_url updated');
       } catch (saveError) {
         console.error('[handleDownloadPDF] Failed to save PDF to storage:', saveError);
         // 保存失敗はダウンロード失敗として扱わない

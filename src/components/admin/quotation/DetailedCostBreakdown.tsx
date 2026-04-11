@@ -289,7 +289,7 @@ export function DetailedCostBreakdown({
                   {/* 重量計算式 */}
                   <div className="text-gray-700 bg-gray-50 p-2 rounded text-center">
                     <div className="text-gray-500 text-[10px] mb-1">重量計算</div>
-                    {m.areaM2.toFixed(2)}m² × {m.thicknessMicron}μm × {m.density} / 1,000,000 × {m.meters.toFixed(1)}m
+                    {m.thicknessMicron}μm / 1,000 × {m.widthM.toFixed(3)}m × {m.meters.toFixed(1)}m × {m.density}
                   </div>
 
                   {/* 最終重量と費用 */}

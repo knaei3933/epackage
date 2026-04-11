@@ -74,14 +74,10 @@ interface FetchPendingMembersResponse {
   };
 }
 
-interface AuthContext {
-  userId: string;
-  role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
-  userName: string;
-}
+import type { AdminAuthContext } from '@/types/admin';
 
 interface AdminApprovalsClientProps {
-  authContext: AuthContext;
+  authContext: AdminAuthContext;
 }
 
 // ============================================================

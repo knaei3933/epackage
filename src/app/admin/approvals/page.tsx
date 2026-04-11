@@ -8,8 +8,7 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { requireAdminAuth } from '../loader';
+import { getAdminAuth } from '../loader';
 import AdminApprovalsClient from './AdminApprovalsClient';
 import { FullPageSpinner } from '@/components/ui';
 
@@ -59,15 +58,7 @@ interface FetchPendingMembersResponse {
 
 async function ApprovalsContent() {
   // RBAC認証チェック（ユーザー承認権限必須）
-  let authContext;
-  try {
-    authContext = await requireAdminAuth(['user:approve']);
-  } catch (error) {
-    if (error instanceof Error && 'digest' in error) {
-      throw error;
-    }
-    redirect('/auth/signin?redirect=/admin/approvals');
-  }
+  const authContext = await getAdminAuth(['user:approve'], '/auth/signin?redirect=/admin/approvals');
 
   // Pass auth context to client component for API calls
   return (

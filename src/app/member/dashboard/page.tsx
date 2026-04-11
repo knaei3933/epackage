@@ -59,17 +59,13 @@ function safeGet<T>(value: T | undefined | null, defaultValue: T): T {
 // =====================================================
 
 async function DashboardContent() {
-  console.log('[DashboardContent] START: Rendering dashboard content');
-
   // ⚡ OPTIMIZATION: 並列実行でFCP改善
   // requireAuth, getUnifiedDashboardStats, getDashboardStats を同時実行
 
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
-    console.log('[DashboardContent] Calling requireAuth...');
     user = await requireAuth();
-    console.log('[DashboardContent] requireAuth SUCCESS:', user.id);
   } catch (error) {
     console.error('[DashboardContent] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {
@@ -77,8 +73,6 @@ async function DashboardContent() {
     }
     throw error;
   }
-
-  console.log('[DashboardContent] Fetching stats...');
 
   // ⚡ OPTIMIZATION: Promise.all()で並列実行
   const [initialStats, stats] = await Promise.all([
@@ -109,14 +103,10 @@ async function DashboardContent() {
     }),
   ]);
 
-  console.log('[DashboardContent] Stats fetched:', { initialStats, stats });
-
   // ユーザー名の取得
   const userName = user.user_metadata?.kanji_last_name ||
                    user.user_metadata?.name_kanji ||
                    'テスト';
-
-  console.log('[DashboardContent] userName:', userName);
 
   // 安全に各属性を抽出
   const orders = safeGet(stats.orders, { new: [], processing: [], total: 0 });
@@ -126,8 +116,6 @@ async function DashboardContent() {
   const announcements = safeGet(stats.announcements, []);
   const contracts = safeGet(stats.contracts, { pending: [], signed: 0, total: 0 });
   const notifications = safeGet(stats.notifications, []);
-
-  console.log('[DashboardContent] About to render JSX');
 
   return (
     <div className="space-y-6">

@@ -15,11 +15,7 @@ import { OrderStatus, getStatusLabel, ORDER_STATUS_LABELS } from '@/types/order-
 import { OrderStatusBadge } from '@/components/orders';
 import { cn } from '@/lib/utils';
 
-interface AuthContext {
-  userId: string;
-  role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
-  userName: string;
-}
+import type { AdminAuthContext } from '@/types/admin';
 
 interface Order {
   id: string;
@@ -32,13 +28,12 @@ interface Order {
 }
 
 interface AdminOrdersClientProps {
-  authContext: AuthContext;
   initialStatus: string;
   initialOrders?: Order[];
   quotationFilter?: string;
 }
 
-function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = [], quotationFilter }: AdminOrdersClientProps) {
+function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotationFilter }: AdminOrdersClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -207,7 +202,7 @@ function AdminOrdersClientContent({ authContext, initialStatus, initialOrders = 
               注文管理
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              ようこそ、{authContext.userName}さん
+              ようこそ、管理者さん
             </p>
             {quotationFilter && (
               <p className="text-xs text-blue-600 mt-1">

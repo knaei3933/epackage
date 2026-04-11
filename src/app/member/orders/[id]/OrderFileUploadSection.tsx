@@ -160,18 +160,22 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   };
 
   // Load uploaded files
-  const loadUploadedFiles = async () => {
+  const loadUploadedFiles = async (): Promise<UploadedFile[]> => {
     try {
       const response = await fetchFn(`/api/member/orders/${order.id}/data-receipt`, {
         credentials: 'include',
       });
       if (response.ok) {
         const data = await response.json();
-        setUploadedFiles(data.data.files || []);
+        const newFiles = data.data.files || [];
+        setUploadedFiles(newFiles);
         setSkuSubmissionStatus(data.data.skuSubmissionStatus || null);
+        return newFiles;
       }
+      return [];
     } catch (err) {
       console.error('Failed to load uploaded files:', err);
+      return [];
     }
   };
 
@@ -327,21 +331,32 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     setDeletingFileId(fileId);
 
     try {
-      const response = await fetch(`/api/member/orders/${order.id}/data-receipt/files/${fileId}`, {
+      console.log('[Delete File] Starting deletion for file:', fileId);
+      const response = await fetch(`/api/member/orders/${order.id}/data-receipt/${fileId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
 
+      console.log('[Delete File] Response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('[Delete File] Error response:', errorData);
         throw new Error(errorData.error || '削除に失敗しました');
       }
 
+      const result = await response.json();
+      console.log('[Delete File] Success response:', result);
+
       // Reload the file list
-      await loadUploadedFiles();
+      console.log('[Delete File] Reloading file list...');
+      const newFiles = await loadUploadedFiles();
+      console.log('[Delete File] File list reloaded. New files count:', newFiles.length);
+
       setSuccessMessage('ファイルを削除しました');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
+      console.error('[Delete File] Error:', err);
       setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
       setTimeout(() => setError(null), 5000);
     } finally {

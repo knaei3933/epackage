@@ -209,10 +209,10 @@ export function calculateFiveStepBreakdown(
     : (calculatedPrintingKRW > 0 ? calculatedPrintingKRW : Math.round(printingCostJPY * JPY_TO_KRW_RATE));
 
   const printingFormula = totalMeters > 0
-    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × 1m(固定) × ${totalMeters.toFixed(1)}m`
+    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × ${materialWidthM.toFixed(2)}m × ${totalMeters.toFixed(1)}m`
     : '印刷費';
   const printingFormulaKRW = totalMeters > 0
-    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × 1m(固定) × ${totalMeters.toFixed(1)}m${printingMatteKRW > 0 ? ' + マット仕上げ追加費 ₩' + printingMatteKRW.toLocaleString() : ''} = ₩${printingCostKRW.toLocaleString()}`
+    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × ${materialWidthM.toFixed(2)}m × ${totalMeters.toFixed(1)}m${printingMatteKRW > 0 ? ' + マット仕上げ追加費 ₩' + printingMatteKRW.toLocaleString() : ''} = ₩${printingCostKRW.toLocaleString()}`
     : '印刷費';
 
   // Step 3: Post-processing Cost
@@ -418,7 +418,7 @@ export function calculateFiveStepBreakdown(
       formulaKRW: printingFormulaKRW,
       formulaDetails: {
         unitPriceKRW: PRINTING_UNIT_PRICE_KRW,
-        widthM: 1,
+        widthM: materialWidthM,
         totalMeters: totalMeters
       }
     },

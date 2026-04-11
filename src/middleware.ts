@@ -540,7 +540,7 @@ export async function middleware(request: NextRequest) {
   // Skip middleware auth for token-based endpoints.
   if (pathname.startsWith('/api/designer')) {
     // Skip middleware for token-based endpoints
-    if (pathname.match(/^\/api\/designer\/orders\/[^\/]+\/(correction|revisions)/)) {
+    if (pathname.match(/^\/api\/designer\/orders\/[^\/]+\/(correction|revisions|data-receipt\/[^\/]+)/)) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[Middleware] Skipping auth for token-based endpoint:', pathname);
       }

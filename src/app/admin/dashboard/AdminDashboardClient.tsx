@@ -70,14 +70,10 @@ const defaultStats = {
   },
 };
 
-interface AuthContext {
-  userId: string;
-  role: 'admin' | 'operator' | 'sales' | 'accounting';
-  userName: string;
-}
+import type { AdminAuthContext } from '@/types/admin';
 
 interface AdminDashboardClientProps {
-  authContext: AuthContext;
+  authContext: AdminAuthContext;
   initialOrderStats: any;
   initialQuotationStats: any;
   initialPeriod: number;

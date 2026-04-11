@@ -16,14 +16,10 @@ import { InvoicesClient } from './InvoicesClient';
 // =====================================================
 
 async function InvoicesContent() {
-  console.log('[InvoicesContent] START: Rendering invoices content');
-
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
-    console.log('[InvoicesContent] Calling requireAuth...');
     user = await requireAuth();
-    console.log('[InvoicesContent] requireAuth SUCCESS:', user.id);
   } catch (error) {
     console.error('[InvoicesContent] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {
@@ -33,10 +29,6 @@ async function InvoicesContent() {
   }
 
   const userId = user.id || '';
-
-  console.log('[InvoicesContent] User data extracted:', {
-    userId,
-  });
 
   return <InvoicesClient userId={userId} />;
 }

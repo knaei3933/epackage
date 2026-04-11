@@ -23,16 +23,9 @@ import {
 import { normalizeStatus, STATUS_LABELS } from '@/components/admin/quotations/quotation-utils';
 import type { Quotation } from '@/types/quotation';
 
-interface AuthContext {
-  userId: string;
-  role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
-  userName: string;
-  companyId?: string;
-  permissions?: string[];
-}
+import type { AdminAuthContext } from '@/types/admin';
 
 interface AdminQuotationsClientProps {
-  authContext: AuthContext;
   initialStatus: string;
 }
 

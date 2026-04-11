@@ -103,14 +103,14 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    timeout: 120000,
-    reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3000',
+  //   timeout: 120000,
+  //   reuseExistingServer: !process.env.CI,
+  //   stdout: 'pipe',
+  //   stderr: 'pipe',
+  // },
 
   // Output directory for test artifacts
   outputDir: 'test-results/artifacts',

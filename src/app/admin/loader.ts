@@ -10,17 +10,10 @@ import { createServiceClient } from '@/lib/supabase';
 import { redirect } from 'next/navigation';
 import { getRBACContext, hasPermission } from '@/lib/rbac/rbac-helpers';
 import type { Permission } from '@/lib/rbac/rbac-helpers';
+import type { AdminAuthContext } from '@/types/admin';
 
-// =====================================================
-// Types
-// =====================================================
-
-export interface AdminAuthContext {
-  userId: string;
-  role: 'admin' | 'operator' | 'sales' | 'accounting';
-  userName: string;
-  isDevMode: boolean;
-}
+// Re-export canonical type for convenience
+export type { AdminAuthContext } from '@/types/admin';
 
 // =====================================================
 // Authentication
@@ -73,6 +66,7 @@ export async function requireAdminAuth(
     userId: context.userId,
     role: context.role as 'admin' | 'operator' | 'sales' | 'accounting',
     userName,
+    permissions: context.permissions,
     isDevMode: context.isDevMode,
   };
 }
@@ -93,65 +87,30 @@ async function getUserName(userId: string): Promise<string> {
 }
 
 // =====================================================
-// Data Fetching Helpers
+// Convenience Helper
 // =====================================================
 
 /**
- * 注文統計取得
+ * 管理者認証チェック（try/catch/redirectボイラープレート省略用）
+ *
+ * requireAdminAuthをラップし、Next.js redirectエラーは透過的にスロー、
+ * その他エラーは指定リダイレクト先へ遷移させます。
+ *
+ * @param permissions - 必要な権限リスト
+ * @param redirectPath - 認証失敗時のリダイレクト先（デフォルト: /auth/signin）
+ * @returns 認証コンテキスト
  */
-export async function fetchOrderStats(period: number = 30) {
-  const supabase = createServiceClient();
-
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - period);
-
-  const { data, error } = await supabase
-    .from('orders')
-    .select('status, total_amount, created_at')
-    .gte('created_at', startDate.toISOString())
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('[Loader] Order stats fetch error:', error);
-    return null;
+export async function getAdminAuth(
+  permissions: Permission[] = [],
+  redirectPath = '/auth/signin'
+): Promise<AdminAuthContext> {
+  try {
+    return await requireAdminAuth(permissions);
+  } catch (error) {
+    if (error instanceof Error && 'digest' in error) {
+      throw error; // Next.js redirect - 透過的にスロー
+    }
+    redirect(redirectPath);
   }
-
-  // 統計集計
-  const stats = {
-    total: data?.length || 0,
-    pending: data?.filter(o => o.status === 'PENDING').length || 0,
-    processing: data?.filter(o => o.status === 'PROCESSING').length || 0,
-    completed: data?.filter(o => o.status === 'COMPLETED').length || 0,
-    totalRevenue: data?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0,
-    ordersByStatus: [] as any[],
-    monthlyRevenue: [] as any[],
-  };
-
-  return stats;
 }
 
-/**
- * 見積統計取得
- */
-export async function fetchQuotationStats() {
-  const supabase = createServiceClient();
-
-  const { data, error } = await supabase
-    .from('quotations')
-    .select('status, total_amount')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('[Loader] Quotation stats fetch error:', error);
-    return null;
-  }
-
-  return {
-    total: data?.length || 0,
-    draft: data?.filter(q => q.status === 'draft').length || 0,
-    sent: data?.filter(q => q.status === 'sent').length || 0,
-    approved: data?.filter(q => q.status === 'approved').length || 0,
-    rejected: data?.filter(q => q.status === 'rejected').length || 0,
-    totalAmount: data?.reduce((sum, q) => sum + (q.total_amount || 0), 0) || 0,
-  };
-}

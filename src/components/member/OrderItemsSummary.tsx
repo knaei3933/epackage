@@ -403,8 +403,15 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
   const subtotal = getOrderValue(order, 'subtotal', 'subtotal');
   const taxAmount = getOrderValue(order, 'taxAmount', 'tax_amount');
   const totalAmount = getOrderValue(order, 'totalAmount', 'total_amount');
-  const originalTotal = subtotal ? subtotal + (taxAmount || 0) : totalAmount;
-  const finalTotal = discountAmount > 0 ? originalTotal - discountAmount : totalAmount;
+
+  // 消費税を正しく計算（小計の10%、1円単位で丸め）
+  const calculatedTax = subtotal ? Math.round(subtotal * 0.1) : (taxAmount || 0);
+
+  // 合計を小計+消費税で計算（DBのtotalAmountは個別SKU計算のため不整合がある）
+  const baseTotal = (subtotal || 0) + calculatedTax;
+
+  // クーポン適用時はdiscountAmountを差し引く
+  const finalTotal = discountAmount > 0 ? baseTotal - discountAmount : baseTotal;
 
   const items = order.items || [];
   const specifications = items.length > 0 ? items[0].specifications : null;

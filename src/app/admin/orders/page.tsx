@@ -8,8 +8,7 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { requireAdminAuth } from '../loader';
+import { getAdminAuth } from '../loader';
 import AdminOrdersClient from './AdminOrdersClient';
 import { FullPageSpinner } from '@/components/ui';
 import { createServiceClient } from '@/lib/supabase';
@@ -17,12 +16,6 @@ import { createServiceClient } from '@/lib/supabase';
 // ============================================================
 // Types
 // ============================================================
-
-interface AuthContext {
-  userId: string;
-  role: 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
-  userName: string;
-}
 
 interface Order {
   id: string;
@@ -40,15 +33,7 @@ interface Order {
 
 async function OrdersContent({ searchParams }: { searchParams: { status?: string; quotation?: string } }) {
   // RBAC認証チェック
-  let authContext: AuthContext;
-  try {
-    authContext = await requireAdminAuth(['order:read']);
-  } catch (error) {
-    if (error instanceof Error && 'digest' in error) {
-      throw error;
-    }
-    redirect('/auth/signin?redirect=/admin/orders');
-  }
+  const authContext = await getAdminAuth(['order:read'], '/auth/signin?redirect=/admin/orders');
 
   // URLパラメータからステータスと見積もりIDを取得
   const initialStatus = searchParams.status || 'all';
@@ -74,10 +59,9 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
 
   console.log('[AdminOrdersPage] Server-side fetched orders:', orders?.length || 0, 'quotation filter:', quotationId || 'none');
 
-  // Pass auth context and initial orders to client component
+  // Pass initial orders to client component
   return (
     <AdminOrdersClient
-      authContext={authContext}
       initialStatus={initialStatus}
       initialOrders={(orders as Order[]) || []}
       quotationFilter={quotationId}

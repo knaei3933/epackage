@@ -158,7 +158,6 @@ export async function getCurrentUser(): Promise<{
       const devMockUserId = cookieStore.get('dev-mock-user-id')?.value;
 
       if (devMockUserId) {
-        console.log('[getCurrentUser] DEV_MODE: Using mock user:', devMockUserId);
         return {
           id: devMockUserId,
           email: 'dev-admin@test.com',
@@ -204,7 +203,6 @@ export async function getCurrentUser(): Promise<{
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (error || !user) {
-        console.log('[getCurrentUser] No authenticated user found');
         return null;
       }
 
@@ -253,30 +251,22 @@ export async function requireAuth(): Promise<{
     name_kana?: string;
   };
 }> {
-  console.log('[requireAuth] START: Authentication check initiated');
-
   try {
     // ============================================================
     // Use RBAC context for consistent authentication (same as admin)
     // ============================================================
     let context;
     try {
-      console.log('[requireAuth] Importing getRBACContext...');
       const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
-      console.log('[requireAuth] Calling getRBACContext()...');
       context = await getRBACContext();
-      console.log('[requireAuth] getRBACContext returned:', context ? 'CONTEXT' : 'NULL', context);
     } catch (rbacError) {
       console.error('[requireAuth] getRBACContext failed:', rbacError);
       throw new AuthRequiredError();
     }
 
     if (!context) {
-      console.log('[requireAuth] No RBAC context found, throwing AuthRequiredError');
       throw new AuthRequiredError();
     }
-
-    console.log('[requireAuth] Got user from RBAC context:', context.userId, 'Role:', context.role, 'Status:', context.status);
 
     // Fetch profile data for user metadata
     const serviceClient = createServiceClient();
@@ -340,7 +330,6 @@ export async function getCurrentUserId(): Promise<string | null> {
         if (devModeHeader === 'true') {
           const userId = headersList.get('x-user-id');
           if (userId && userId !== '00000000-0000-0000-0000-000000000000') {
-            console.log('[getCurrentUserId] DEV_MODE: Found user ID from middleware headers:', userId);
             return userId;
           }
         }
@@ -357,10 +346,8 @@ export async function getCurrentUserId(): Promise<string | null> {
       );
       if (mockUserIdCookie) {
         const userId = mockUserIdCookie.split('=')[1].trim();
-        console.log('[getCurrentUserId] DEV_MODE: Found mock user ID from cookie:', userId);
         return userId;
       }
-      console.warn('[getCurrentUserId] DEV_MODE: dev-mock-user-id cookie not found in document.cookie');
     }
 
     // Server-side: cookies() API使用 (この関数はasyncなので可能)
@@ -370,10 +357,8 @@ export async function getCurrentUserId(): Promise<string | null> {
         const cookieStore = await cookies();
         const mockUserIdCookie = cookieStore.get('dev-mock-user-id');
         if (mockUserIdCookie) {
-          console.log('[getCurrentUserId] DEV_MODE: Found mock user ID from server cookie:', mockUserIdCookie.value);
           return mockUserIdCookie.value;
         }
-        console.warn('[getCurrentUserId] DEV_MODE: dev-mock-user-id cookie not found in server cookies');
       } catch (e) {
         console.warn('[getCurrentUserId] DEV_MODE: Could not read server cookies:', e);
       }
@@ -385,7 +370,6 @@ export async function getCurrentUserId(): Promise<string | null> {
         const mockUserStr = localStorage.getItem('dev-mock-user');
         if (mockUserStr) {
           const mockUserData = JSON.parse(mockUserStr);
-          console.log('[getCurrentUserId] DEV_MODE: Found mock user ID from localStorage:', mockUserData.id);
           return mockUserData.id;
         }
       } catch (e) {
@@ -395,7 +379,6 @@ export async function getCurrentUserId(): Promise<string | null> {
 
     // DEV_MODEでユーザーIDが見つからない場合 - 自動的にモックID生成
     const mockUserId = 'dev-mock-user-12345';
-    console.log('[getCurrentUserId] DEV_MODE: No user ID found, using mock ID:', mockUserId);
 
     // クライアントサイドでlocalStorageに保存
     if (typeof document !== 'undefined') {
@@ -430,7 +413,6 @@ export async function getCurrentUserId(): Promise<string | null> {
 
       const userId = headersList.get('x-user-id');
       if (userId) {
-        console.log('[getCurrentUserId] Server-side: Found user ID from headers:', userId);
         return userId;
       }
     } catch (e) {
@@ -443,7 +425,6 @@ export async function getCurrentUserId(): Promise<string | null> {
       const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
       const context = await getRBACContext();
       if (context?.userId) {
-        console.log('[getCurrentUserId] Server-side: Found user ID from RBAC context:', context.userId);
         return context.userId;
       }
     } catch (e) {
@@ -1907,5 +1888,117 @@ async function fetchMemberDashboardStats(
       responded: respondedInquiriesResult.count || 0,
     },
     period,
+  };
+}
+
+// =====================================================
+// Member Auth Helper
+// =====================================================
+
+/**
+ * 会員認証ヘルパー
+ * 会員ページで使用する認証情報を取得します
+ *
+ * @returns 認証情報（認証されていない場合はnull）
+ */
+export async function getMemberAuth(): Promise<{
+  userId: string;
+  email?: string;
+  profile?: {
+    kanjiLastName?: string;
+    kanjiFirstName?: string;
+    kanaLastName?: string;
+    kanaFirstName?: string;
+    companyName?: string;
+  };
+} | null> {
+  try {
+    // RBACコンテキストから認証情報を取得
+    const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
+    const context = await getRBACContext();
+
+    if (!context || context.role !== 'member') {
+      return null;
+    }
+
+    // プロフィール情報を取得
+    const serviceClient = createServiceClient();
+    const { data: profile } = await serviceClient
+      .from('profiles')
+      .select('kanji_last_name, kanji_first_name, kana_last_name, kana_first_name, company_name, email')
+      .eq('id', context.userId)
+      .maybeSingle();
+
+    return {
+      userId: context.userId,
+      email: (profile as any)?.email,
+      profile: {
+        kanjiLastName: (profile as any)?.kanji_last_name,
+        kanjiFirstName: (profile as any)?.kanji_first_name,
+        kanaLastName: (profile as any)?.kana_last_name,
+        kanaFirstName: (profile as any)?.kana_first_name,
+        companyName: (profile as any)?.company_name,
+      },
+    };
+  } catch (error) {
+    console.error('[getMemberAuth] Authentication error:', error);
+    return null;
+  }
+}
+
+/**
+ * 会員認証を要求し、認証情報を返します
+ * 認証されていない場合、AuthRequiredErrorをスローします
+ *
+ * @throws AuthRequiredError 認証されていない場合
+ */
+export async function requireMemberAuth(): Promise<{
+  userId: string;
+  email?: string;
+  profile?: {
+    kanjiLastName?: string;
+    kanjiFirstName?: string;
+    kanaLastName?: string;
+    kanaFirstName?: string;
+    companyName?: string;
+  };
+}> {
+  const auth = await getMemberAuth();
+
+  if (!auth) {
+    throw new AuthRequiredError();
+  }
+
+  return auth;
+}
+
+/**
+ * ユーザーメタデータを抽出するヘルパー関数
+ * プロフィールデータから表示用のメタデータを作成します
+ *
+ * @param profile - プロフィールデータ
+ * @returns 表示用メタデータ
+ */
+export function extractMemberMetadata(profile: any): {
+  kanjiLastName?: string;
+  kanjiFirstName?: string;
+  kanaLastName?: string;
+  kanaFirstName?: string;
+  companyName?: string;
+  fullName?: string;
+  fullNameKana?: string;
+} {
+  return {
+    kanjiLastName: profile?.kanji_last_name,
+    kanjiFirstName: profile?.kanji_first_name,
+    kanaLastName: profile?.kana_last_name,
+    kanaFirstName: profile?.kana_first_name,
+    companyName: profile?.company_name,
+    fullName: profile?.kanji_last_name && profile?.kanji_first_name
+      ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
+      : undefined,
+    fullNameKana: profile?.kana_last_name && profile?.kana_first_name
+      ? `${profile.kana_last_name} ${profile.kana_first_name}`
+      : undefined,
   };
 }

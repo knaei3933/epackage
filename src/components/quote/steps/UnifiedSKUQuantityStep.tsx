@@ -343,7 +343,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     };
 
     calculateTwoColumnOptions();
-  }, [totalQuantity, quoteState.skuQuantities, quoteState.width, quoteState.height, quoteState.depth, quoteState.bagTypeId, localUnitPrice, quoteState.originalUnitPrice, quoteState.unitPrice, quoteState.twoColumnOptionApplied, quoteState.filmLayers, materialId, quoteState.thicknessSelection, quoteState.postProcessingOptions]);
+  }, [totalQuantity, quoteState.skuQuantities, quoteState.width, quoteState.height, quoteState.depth, quoteState.bagTypeId, localUnitPrice, quoteState.originalUnitPrice, quoteState.unitPrice, quoteState.twoColumnOptionApplied, quoteState.filmLayers, quoteState.materialId, quoteState.thicknessSelection, quoteState.postProcessingOptions]);
 
   const skuSplitOptions = useMemo(() => {
     // SKU分割オプションを計算

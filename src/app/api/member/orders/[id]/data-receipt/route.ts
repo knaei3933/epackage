@@ -312,7 +312,8 @@ export async function POST(
 
       // Generate file name: {製品名}_入稿データ_{注文番号}_{日付}
       const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-      const sanitizedProductName = productName.trim().replace(/[^a-zA-Z0-9-_가-힣]/g, '_');
+      // 日本語、韓国語、中国語を含むUTF-8文字を許可
+      const sanitizedProductName = productName.trim().replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
       driveFileName = `${sanitizedProductName}_入稿データ_${order.order_number}_${dateStr}${file.name.substring(file.name.lastIndexOf('.'))}`;
 
       console.log('[Data Receipt Upload] Generated file name:', driveFileName);

@@ -1985,70 +1985,18 @@ export class PouchCostCalculator {
     let sameQuantityPrice: number;
     let doubleQuantityPrice: number;
 
-    if (filmLayers && filmLayers.length > 0 && dbSettings) {
-      // 正確な原価計算：filmLayersとdbSettingsがある場合は実際の2列生産原価を計算
-      // dbSettingsは呼び出し元で事前にロードして渡す
+    // 1列生産単価に対する割引を計算（2列生産の生産効率を反映）
+    // 15% OFF: 同じ数量
+    sameQuantityPrice = currentUnitPrice * 0.85;
+    // 30% OFF: 倍の数量
+    doubleQuantityPrice = currentUnitPrice * 0.70;
 
-      // 印刷可能幅を計算
-      const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
-
-      // マット仕上げ選択確認
-      const hasMatteFinishing = postProcessingOptions?.includes('matte') ?? false;
-
-      // 2列生産のフィルム原価計算（760mm原反、2列メートル数）
-      const filmCostResult = this.filmCalculator.calculateCostWithDBSettings({
-        layers: filmLayers,
-        width: printableWidth,
-        length: totalFilmUsage2Col,
-        lossRate: 0, // 固定400mロスを既に含めているため、追加のロス率は0
-        hasPrinting: true,
-        printingType: hasMatteFinishing ? 'matte' : 'basic',
-        colors: 1,
-        materialWidth: printableWidth,
-        postProcessingOptions: postProcessingOptions
-      }, dbSettings);
-
-      // 2列生産割引適用（7.5% OFF = 92.5%）
-      const discountableCost = filmCostResult.materialCost +
-        filmCostResult.printingCost +
-        filmCostResult.laminationCost +
-        (filmCostResult.surfaceTreatmentCost || 0);
-      const nonDiscountableCost = filmCostResult.slitterCost +
-        filmCostResult.deliveryCostJPY;
-      const discountedCost = discountableCost * 0.925; // 7.5% OFF
-      const totalCost2Col = discountedCost + nonDiscountableCost;
-
-      // 単価（総額 / 数量）
-      const unitPrice2Col = totalCost2Col / currentQuantity;
-
-      // 15% OFF: 実際の2列生産原価からさらに15% OFF（顧客への割引）
-      sameQuantityPrice = unitPrice2Col * 0.85;
-
-      // 30% OFF: 倍数量の場合は効率がさらに向上するため、さらに割引
-      doubleQuantityPrice = unitPrice2Col * 0.70; // 30% OFF
-
-      console.log('[calculateTwoColumnProductionOptions] 2列生産正確原価計算:', {
-        materialCost: Math.round(filmCostResult.materialCost),
-        printingCost: Math.round(filmCostResult.printingCost),
-        laminationCost: Math.round(filmCostResult.laminationCost),
-        totalCost2Col: Math.round(totalCost2Col),
-        unitPrice2Col: unitPrice2Col.toFixed(2),
-        sameQuantityPrice: Math.round(sameQuantityPrice),
-        doubleQuantityPrice: Math.round(doubleQuantityPrice)
-      });
-    } else {
-      // フォールバック：filmLayersがない場合は従来の計算方法（1列生産単価に割引）
-      // 15% OFF: 同じ数量
-      sameQuantityPrice = currentUnitPrice * 0.85;
-      // 30% OFF: 倍の数量
-      doubleQuantityPrice = currentUnitPrice * 0.70;
-
-      console.log('[calculateTwoColumnProductionOptions] フォールバック計算（filmLayersなし）:', {
-        currentUnitPrice,
-        sameQuantityPrice: Math.round(sameQuantityPrice),
-        doubleQuantityPrice: Math.round(doubleQuantityPrice)
-      });
-    }
+    console.log('[calculateTwoColumnProductionOptions] 2列生産オプション価格計算:', {
+      currentUnitPrice,
+      sameQuantityPrice: Math.round(sameQuantityPrice),
+      doubleQuantityPrice: Math.round(doubleQuantityPrice),
+      note: '1列生産単価に対する割引を適用（2列生産の生産効率を顧客に還元）'
+    });
 
     // 15% OFF: 同じ数量（経済的数量を100単位で切り捨て）
     const roundedQuantity = this.roundDownToHundreds(economicQuantity);
@@ -2059,9 +2007,10 @@ export class PouchCostCalculator {
     console.log('[calculateTwoColumnProductionOptions] 計算結果:', {
       currentQuantity,
       pitchMM,
-      pouchesPerMeter: pouchesPerMeter.toFixed(2),
-      theoreticalMeters: theoreticalMeters.toFixed(0),
-      totalFilmUsage: totalFilmUsage.toFixed(0),
+      pouchesPerMeter: pouchesPerMeter1Col.toFixed(2),
+      theoreticalMeters1Col: theoreticalMeters1Col.toFixed(0),
+      theoreticalMeters2Col: theoreticalMeters2Col.toFixed(0),
+      totalFilmUsage2Col: totalFilmUsage2Col.toFixed(0),
       economicQuantity,
       roundedQuantity,
       doubleQuantity,

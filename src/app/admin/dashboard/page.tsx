@@ -8,8 +8,8 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { requireAdminAuth, fetchOrderStats, fetchQuotationStats } from '../loader';
+import { getAdminAuth } from '../loader';
+import { fetchOrderStats, fetchQuotationStats } from './data';
 import AdminDashboardClient from './AdminDashboardClient';
 import { FullPageSpinner } from '@/components/ui';
 
@@ -19,16 +19,7 @@ interface PageProps {
 
 async function DashboardContent({ period }: { period?: string }) {
   // RBAC認証チェック（管理者権限必須）
-  let authContext;
-  try {
-    authContext = await requireAdminAuth(['order:read', 'quotation:read']);
-  } catch (error) {
-    // requireAdminAuth内でredirectされるため、ここには到達しないはず
-    if (error instanceof Error && 'digest' in error) {
-      throw error; // Next.js redirect
-    }
-    redirect('/auth/signin?redirect=/admin/dashboard');
-  }
+  const authContext = await getAdminAuth(['order:read', 'quotation:read'], '/auth/signin?redirect=/admin/dashboard');
 
   // 並列データフェッチ
   const [orderStats, quotationStats] = await Promise.all([

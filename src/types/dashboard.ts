@@ -344,6 +344,77 @@ export interface NotificationBadge {
 }
 
 // =====================================================
+// Member Types
+// =====================================================
+
+/**
+ * 会員用請求先住所（APIレスポンス構造に一致）
+ */
+export interface MemberBillingAddress {
+  id: string;
+  userId: string;
+  companyName: string;
+  postalCode: string;
+  prefecture: string;
+  city: string;
+  address: string;
+  building?: string;
+  taxNumber?: string;
+  email?: string;
+  phone?: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * 会員用契約ステータス
+ */
+export type MemberContractStatus =
+  | 'pending'    // 保留中
+  | 'active'     // 有効
+  | 'completed'  // 完了
+  | 'cancelled'; // キャンセル
+
+/**
+ * 会員用契約情報
+ */
+export interface MemberContract {
+  id: string;
+  contractNumber: string;
+  status: MemberContractStatus;
+  totalAmount: number;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * 会員用通知タイプ
+ */
+export type MemberNotificationType =
+  | 'order'      // 注文関連
+  | 'quotation'  // 見積関連
+  | 'shipment'   // 配送関連
+  | 'system';    // システム通知
+
+/**
+ * 会員用通知
+ */
+export interface MemberNotification {
+  id: string;
+  userId: string;
+  type: MemberNotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  actionUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// =====================================================
 // Filter and Pagination Types
 // =====================================================
 
@@ -352,6 +423,28 @@ export interface OrderFilters {
   dateFrom?: string;
   dateTo?: string;
   search?: string;
+}
+
+/**
+ * お問い合わせフィルターステート
+ */
+export interface InquiryFilterState {
+  type?: InquiryType;
+  status?: InquiryStatus;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+}
+
+/**
+ * 汎用フィルター設定
+ */
+export interface FilterConfig<T> {
+  filters: T;
+  page: number;
+  limit: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginationParams {

@@ -16,14 +16,10 @@ import { ProfileClient } from './ProfileClient';
 // =====================================================
 
 async function ProfileContent() {
-  console.log('[ProfileContent] START: Rendering profile content');
-
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
-    console.log('[ProfileContent] Calling requireAuth...');
     user = await requireAuth();
-    console.log('[ProfileContent] requireAuth SUCCESS:', user.id);
   } catch (error) {
     console.error('[ProfileContent] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {
@@ -72,13 +68,6 @@ async function ProfileContent() {
   // Fallback chain for userName: lastName + firstName -> email -> 'テスト'
   const fullName = `${userLastName} ${userFirstName}`.trim();
   const userName = fullName || userEmail || 'テスト';
-
-  console.log('[ProfileContent] User data extracted:', {
-    userId,
-    userEmail,
-    userName,
-    userStatus,
-  });
 
   return (
     <ProfileClient

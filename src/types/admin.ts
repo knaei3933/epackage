@@ -1,4 +1,43 @@
 import { OrderStatus } from './database';
+import type { Permission } from '@/lib/rbac/rbac-helpers';
+
+// =====================================================
+// Admin Auth Types (Canonical)
+// =====================================================
+
+/**
+ * Admin認証コンテキスト
+ *
+ * Server Component (loader.ts) と Client Component 間で共有される
+ * 正規の認証情報型。各ページやコンポーネントで個別に定義せず、
+ * この型をインポートして使用すること。
+ */
+export interface AdminAuthContext {
+  userId: string;
+  role: 'admin' | 'operator' | 'sales' | 'accounting';
+  userName: string;
+  permissions: Permission[];
+  isDevMode: boolean;
+}
+
+/**
+ * Client Component用の最小限のProps型
+ *
+ * Server ComponentからClient ComponentにauthContextを渡す際の
+ * 共通Props。各ページのClient Componentはこの型を拡張して使用する。
+ *
+ * @example
+ * interface MyPageClientProps extends AdminClientProps {
+ *   initialData: SomeData;
+ * }
+ */
+export interface AdminClientProps {
+  authContext: AdminAuthContext;
+}
+
+// =====================================================
+// Dashboard Types
+// =====================================================
 
 export interface DashboardStatistics {
   // 注文統計（Order Statistics）
