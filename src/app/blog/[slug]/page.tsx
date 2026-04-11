@@ -318,7 +318,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </article>
 
             {/* Sidebar */}
-            <aside className="lg:w-1/3 lg:flex-shrink-0 sticky top-24 self-start h-fit">
+            <aside className="lg:w-1/3 lg:flex-shrink-0 sticky top-24">
               {/* Table of Contents */}
               {headings.length > 0 && (
                 <TableOfContents headings={headings} />
