@@ -13,6 +13,7 @@ import { TableOfContents } from '@/components/blog/TableOfContents';
 import { ShareButtons } from '@/components/blog/ShareButtons';
 import { RelatedPosts } from '@/components/blog/RelatedPosts';
 import { ArticleCTA } from '@/components/blog/ArticleCTA';
+import { ScrollToAnchor } from '@/components/blog/ScrollToAnchor';
 import { getCategoryLabel } from '@/lib/types/blog';
 import { seoUtils } from '@/lib/blog/seo';
 import { Calendar, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -143,6 +144,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
+      <ScrollToAnchor />
       {/* Structured Data */}
       <script
         type="application/ld+json"
@@ -189,7 +191,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Main Content */}
             <article className="lg:col-span-2 min-w-0">
               {/* Article Header */}
@@ -316,12 +318,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </article>
 
             {/* Sidebar */}
-            <aside className="lg:col-span-1">
+            <aside className="lg:col-span-1 self-start h-fit">
               {/* Table of Contents */}
               {headings.length > 0 && (
-                <div className="mb-6">
-                  <TableOfContents headings={headings} />
-                </div>
+                <TableOfContents headings={headings} />
               )}
 
               {/* Related Posts */}
