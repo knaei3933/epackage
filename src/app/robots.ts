@@ -7,7 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        // 명시적으로 허용할 경로 (다국어 지원)
+        allow: ['/en/', '/ko/', '/ja/', '/zh/', '/zh-CN/', '/zh-TW/', '/'],
         disallow: [
           // Admin and authenticated areas
           '/api/',
@@ -38,7 +39,8 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        // Googlebot에 명시적으로 허용
+        allow: ['/en/', '/ko/', '/ja/', '/zh/', '/zh-CN/', '/zh-TW/', '/'],
         disallow: [
           '/api/',
           '/admin/',

@@ -30,39 +30,24 @@ export function HeroSection() {
       <div className="absolute inset-0">
         {/* Professional manufacturing facility background - WebP optimized */}
         <div className="absolute inset-0 relative h-full w-full">
-          <Image
-            src="/images/main/main15.png"
-            alt="オリジナ包装材専用 - 高品質なスタンドパウチ製造"
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
-            className="object-cover opacity-60"
-            priority
-            quality={95}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
+          <picture>
+            <source srcSet="/images/main/main15.webp" type="image/webp" />
+            <Image
+              src="/images/main/main15.png"
+              alt="オリジナ包装材専用 - 高品質なスタンドパウチ製造"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+              className="object-cover opacity-60"
+              priority
+              quality={80}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+            />
+          </picture>
         </div>
 
         {/* Single optimized gradient overlay for LCP performance */}
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/75 to-gray-900/60"></div>
-
-        {/* Floating product images - WebP optimized with lazy loading */}
-        <div className="absolute top-1/4 right-1/4 w-64 h-48 hidden lg:block">
-          <div className="relative w-full h-full transform rotate-3 hover:rotate-6 transition-transform duration-700">
-            <Image
-              src="/images/products/granola-standpouch-real.jpg"
-              alt="高品質スタンドパウチ製品コレクションション"
-              fill
-              sizes="(max-width: 1200px) 0vw, 256px"
-              className="object-cover rounded-lg shadow-2xl"
-              quality={95}
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-            />
-            <div className="absolute inset-0 bg-gradient-to-tr from-brixa-secondary-600/20 to-transparent rounded-lg"></div>
-          </div>
-        </div>
       </div>
 
       {/* Enhanced Content container */}

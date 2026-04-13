@@ -1,8 +1,9 @@
 # Epackage Lab robots.txt
-# Last Updated: 2026-02-18
+# Last Updated: 2026-04-13
+# Generated from src/app/robots.ts
 
 User-agent: *
-# Allow locale paths for i18n
+# Explicitly allow locale paths for i18n
 Allow: /en/
 Allow: /ko/
 Allow: /ja/
@@ -11,32 +12,31 @@ Allow: /zh-CN/
 Allow: /zh-TW/
 Allow: /
 
-# Sitemap location
-Sitemap: https://package-lab.com/sitemap.xml
-
 # Disallow administrative and private areas
-Disallow: /admin/
 Disallow: /api/
+Disallow: /admin/
 Disallow: /auth/
 Disallow: /member/
-Disallow: /cart/
-Disallow: /compare/
-Disallow: /csr/
-Disallow: /data-templates/
-Disallow: /design-system/
-Disallow: /premium-content/
+Disallow: /portal/
+Disallow: /b2b/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /quote-simulator
+Disallow: /compare
+Disallow: /data-templates
+Disallow: /print
+Disallow: /premium-content
+Disallow: /inquiry
+Disallow: /flow
+Disallow: /profile
+Disallow: /members
 
-# Disallow test and development paths
-Disallow: /test/
-Disallow: /tmp/
-Disallow: /.well-known/
-
-# Crawl-delay for respectful crawling (optional)
-Crawl-delay: 1
+# Sitemap location
+Sitemap: https://www.package-lab.com/sitemap.xml
 
 # Popular search engines
 User-agent: Googlebot
-# Allow locale paths for i18n
 Allow: /en/
 Allow: /ko/
 Allow: /ja/
@@ -44,6 +44,10 @@ Allow: /zh/
 Allow: /zh-CN/
 Allow: /zh-TW/
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /member/
 
 User-agent: Bingbot
 Allow: /
@@ -51,7 +55,7 @@ Allow: /
 User-agent: Slurp
 Allow: /
 
-# Disallow specific bots if needed
+# Disallow specific bots
 User-agent: AhrefsBot
 Disallow: /
 
