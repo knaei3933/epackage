@@ -193,7 +193,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Main Content */}
-            <article className="flex-1 min-w-0 lg:w-2/3 lg:pr-80">
+            <article className="flex-1 min-w-0 lg:w-2/3 lg:pr-8">
               {/* Article Header */}
               <header className="mb-8">
                 {/* Category Badge */}
@@ -318,7 +318,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </article>
 
             {/* Sidebar */}
-            <aside className="lg:w-1/3 lg:flex-shrink-0 lg:absolute lg:right-0 lg:top-12 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+            <aside className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
               <div className="lg:sticky lg:top-24">
               {/* Table of Contents */}
               {headings.length > 0 && (
