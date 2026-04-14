@@ -145,6 +145,7 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
     console.log('[Contact API] Sending emails...');
     const emailResult = await sendContactEmail({
       name: customerName,
+      nameKana: customerNameKana,
       email: validatedData.email,
       company: validatedData.company,
       inquiryType: validatedData.inquiryType,

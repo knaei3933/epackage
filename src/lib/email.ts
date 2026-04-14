@@ -333,6 +333,7 @@ initializeTransporter();
 
 export interface ContactEmailData {
   name: string;
+  nameKana?: string;
   email: string;
   company?: string;
   inquiryType: string;
@@ -396,15 +397,15 @@ ${data.company ? data.company + '\n' : ''}${data.name} 様
 
 【お問い合わせ種類】${data.inquiryType}
 【件名】${data.subject}
-【おしい内容】
+【お問い合わせ内容】
 ${sanitizeUserMessage(data.message)}
 
 --------------------------------
 お問い合わせ者情報
 --------------------------------
 【お名前】${data.name}
-【メールアドレス】${data.email}
-${data.company ? `【会社名】${data.company}\n` : ''}${data.urgency ? `【緊急度】${data.urgency}\n` : ''}${data.preferredContact ? `【ご希望の連絡方法】${data.preferredContact}\n` : ''}
+${data.nameKana ? `【フリガナ】${data.nameKana}\n` : ''}【メールアドレス】${data.email}
+${data.company ? `【会社名】${data.company}\n` : ''}${data.phone ? `【電話番号】${data.phone}\n` : ''}${data.postalCode ? `【郵便番号】${data.postalCode}\n` : ''}${data.address ? `【住所】${data.address}\n` : ''}${data.urgency ? `【緊急度】${data.urgency}\n` : ''}${data.preferredContact ? `【ご希望の連絡方法】${data.preferredContact}\n` : ''}
 
 ================================
 担当者より折り返しご連絡させていただきます。
@@ -459,10 +460,14 @@ https://epackage-lab.com
         <h3 style="margin-top: 0; color: #667eea;">お問い合わせ者情報</h3>
         <div class="label">お名前</div>
         <div class="value">${data.name}</div>
+        ${data.nameKana ? `<div class="label">フリガナ</div><div class="value">${data.nameKana}</div>` : ''}
 
         <div class="label">メールアドレス</div>
         <div class="value">${data.email}</div>
         ${data.company ? `<div class="label">会社名</div><div class="value">${data.company}</div>` : ''}
+        ${data.phone ? `<div class="label">電話番号</div><div class="value">${data.phone}</div>` : ''}
+        ${data.postalCode ? `<div class="label">郵便番号</div><div class="value">${data.postalCode}</div>` : ''}
+        ${data.address ? `<div class="label">住所</div><div class="value">${data.address}</div>` : ''}
         ${data.urgency ? `<div class="label">緊急度</div><div class="value">${data.urgency}</div>` : ''}
         ${data.preferredContact ? `<div class="label">ご希望の連絡方法</div><div class="value">${data.preferredContact}</div>` : ''}
       </div>
@@ -502,7 +507,7 @@ const getContactAdminNotificationEmail = (data: ContactEmailData & { requestId: 
 お客様情報
 --------------------------------
 【お名前】${data.name}
-【メールアドレス】${data.email}
+${data.nameKana ? `【フリガナ】${data.nameKana}\n` : ''}【メールアドレス】${data.email}
 【電話番号】${data.phone || '未入力'}
 ${data.fax ? `【FAX】${data.fax}\n` : ''}${data.company ? `【会社名】${data.company}\n` : ''}${data.postalCode ? `【郵便番号】${data.postalCode}\n` : ''}${data.address ? `【住所】${data.address}\n` : ''}【ご希望の連絡方法】${data.preferredContact || '未指定'}
 
@@ -554,6 +559,7 @@ Epackage Lab 管理画面
       <h3>お客様情報</h3>
       <div class="label">お名前</div>
       <div class="value">${data.name}</div>
+      ${data.nameKana ? `<div class="label">フリガナ</div><div class="value">${data.nameKana}</div>` : ''}
 
       <div class="label">メールアドレス</div>
       <div class="value"><a href="mailto:${data.email}">${data.email}</a></div>

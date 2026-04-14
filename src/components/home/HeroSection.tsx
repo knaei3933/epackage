@@ -20,7 +20,7 @@ export function HeroSection() {
 
   return (
     <motion.section
-      className="relative min-h-[70vh] flex items-center justify-center overflow-hidden py-20"
+      className="relative min-h-[50vh] flex items-center justify-center overflow-hidden py-12"
       variants={heroVariants}
       initial="hidden"
       animate="visible"
@@ -155,7 +155,7 @@ export function HeroSection() {
               <Button
                 variant="primary"
                 size="lg"
-                className="justify-center px-10 py-5 text-lg font-bold bg-gradient-to-r from-brixa-600 to-brixa-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 group-hover:scale-105 border-2 border-brixa-400 relative overflow-hidden"
+                className="justify-center px-12 py-6 text-lg font-bold bg-gradient-to-br from-brixa-500 via-brixa-600 to-brixa-800 text-white shadow-2xl hover:shadow-4xl transition-all duration-300 group-hover:scale-105 border-2 border-brixa-300 relative overflow-hidden"
                 onClick={() => {
                   // Conversion tracking
                   if (typeof window !== 'undefined' && window.gtag) {
@@ -168,22 +168,24 @@ export function HeroSection() {
                 }}
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-brixa-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                <span className="relative flex items-center">
-                  <Package className="mr-3 h-5 w-5" />
-                  製品を見る
-                  <ArrowRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-2" />
+                <span className="relative flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
+                    <Package className="h-6 w-6" />
+                  </div>
+                  <span className="text-xl">製品を見る</span>
+                  <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
-              <div className="absolute -top-2 -right-2 bg-brixa-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
                 人気
               </div>
             </Link>
 
-            <Link href="/quote-simulator" className="inline-flex group">
+            <Link href="/quote-simulator" className="inline-flex group relative">
               <Button
                 variant="secondary"
                 size="lg"
-                className="justify-center px-10 py-5 text-lg font-bold bg-gradient-to-r from-brixa-secondary-600 to-brixa-secondary-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 group-hover:scale-105 border-2 border-brixa-secondary-400"
+                className="justify-center px-12 py-6 text-lg font-bold bg-gradient-to-br from-brixa-secondary-500 via-brixa-secondary-600 to-brixa-secondary-800 text-white shadow-2xl hover:shadow-4xl transition-all duration-300 group-hover:scale-105 border-2 border-brixa-secondary-300"
                 onClick={() => {
                   if (typeof window !== 'undefined' && window.gtag) {
                     window.gtag('event', 'click', {
@@ -194,31 +196,36 @@ export function HeroSection() {
                   }
                 }}
               >
-                <span className="flex items-center">
-                  <Calculator className="mr-3 h-5 w-5" />
-                  即時見積もり
+                <span className="absolute inset-0 bg-gradient-to-r from-brixa-secondary-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                <span className="relative flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
+                    <Calculator className="h-6 w-6" />
+                  </div>
+                  <span className="text-xl">即時見積もり</span>
                 </span>
               </Button>
             </Link>
 
-            <Link href="/samples" className="inline-flex group">
+            <Link href="/samples" className="inline-flex group relative">
               <Button
                 variant="outline"
                 size="lg"
-                className="justify-center px-10 py-5 text-lg font-bold bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+                className="justify-center px-12 py-6 text-lg font-bold bg-white/95 backdrop-blur-md border-3 border-white/40 text-gray-800 hover:bg-white hover:border-white hover:shadow-2xl transition-all duration-300 group-hover:scale-105"
                 onClick={() => {
                   if (typeof window !== 'undefined' && window.gtag) {
                     window.gtag('event', 'click', {
                       event_category: 'cta_button',
-                      event_label: 'samples_hero',
+                      event_label: 'samples',
                       value: 1
                     })
                   }
                 }}
               >
-                <span className="flex items-center">
-                  <Truck className="mr-3 h-5 w-5" />
-                  無料サンプル
+                <span className="relative flex items-center gap-3">
+                  <div className="bg-gray-100 p-2 rounded-lg group-hover:bg-gray-200 transition-colors">
+                    <Truck className="h-6 w-6 text-gray-700" />
+                  </div>
+                  <span className="text-xl text-gray-800">無料サンプル</span>
                 </span>
               </Button>
             </Link>
