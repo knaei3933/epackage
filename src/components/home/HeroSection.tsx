@@ -266,8 +266,8 @@ export function HeroSection() {
               >
                 21日
               </motion.div>
-              <p className="text-sm text-brixa-secondary-100 font-medium">平均納期</p>
-              <div className="text-xs text-brixa-secondary-200 mt-2">緊急対応可能</div>
+              <p className="text-sm text-white font-medium">平均納期</p>
+              <div className="text-xs text-white mt-2">緊急対応可能</div>
             </motion.div>
 
             {/* 品質 - Enhanced */}
@@ -311,8 +311,8 @@ export function HeroSection() {
               >
                 30%
               </motion.div>
-              <p className="text-sm text-brixa-secondary-100 font-medium">コスト削減</p>
-              <div className="text-xs text-brixa-secondary-200 mt-2">日本製比</div>
+              <p className="text-sm text-white font-medium">コスト削減</p>
+              <div className="text-xs text-white mt-2">日本製比</div>
             </motion.div>
           </motion.div>
 
@@ -334,7 +334,7 @@ export function HeroSection() {
               whileHover="hover"
               className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-white/30"
             >
-              <CheckCircle className="h-5 w-5 text-brixa-secondary-400" />
+              <CheckCircle className="h-5 w-5 text-green-400" />
               <span className="text-sm font-medium text-white">厳格な品質管理</span>
             </motion.div>
             <motion.div
