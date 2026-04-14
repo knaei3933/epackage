@@ -20,7 +20,7 @@ export function HeroSection() {
 
   return (
     <motion.section
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-[70vh] flex items-center justify-center overflow-hidden py-20"
       variants={heroVariants}
       initial="hidden"
       animate="visible"
