@@ -97,22 +97,23 @@ export function HeroSection() {
                   </div>
                 </motion.div>
 
-                {/* 早期10日納品 */}
+                {/* 21日平均納期緊急対応可能 */}
                 <motion.div
                   variants={statVariants}
                   whileHover="hover"
                   className="bg-gradient-to-r from-brixa-secondary-500 via-brixa-secondary-600 to-brixa-secondary-700 text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center space-x-3 border-2 border-brixa-secondary-400/30 min-w-[280px]"
                 >
-                  <Zap className="w-7 h-7 flex-shrink-0" />
+                  <Clock className="w-7 h-7 flex-shrink-0" />
                   <div className="text-center flex-1">
                     <motion.div
                       variants={numberVariants}
                       animate="pulse"
                       className="text-4xl md:text-5xl font-black text-white drop-shadow-lg"
                     >
-                      10
+                      21日
                     </motion.div>
-                    <div className="text-sm md:text-base font-semibold">早期納品</div>
+                    <div className="text-sm md:text-base font-semibold">平均納期</div>
+                    <div className="text-xs text-white/80 mt-1">緊急対応可能</div>
                   </div>
                 </motion.div>
 
@@ -242,79 +243,6 @@ export function HeroSection() {
             </a> */}
           </motion.div>
 
-          {/* Enhanced Data-Driven Trust Factors */}
-          <motion.div
-            variants={ctaVariants}
-            className="flex flex-col sm:flex-row justify-center items-center gap-6 max-w-4xl mx-auto"
-          >
-            {/* 納期 - Enhanced */}
-            <motion.div
-              variants={statVariants}
-              whileHover="hover"
-              className="bg-gradient-to-br from-brixa-secondary-500 to-brixa-secondary-700 rounded-2xl p-8 text-center shadow-2xl border-2 border-brixa-secondary-400 flex-1 min-w-[200px]"
-            >
-              <motion.div
-                className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
-                whileHover={{ scale: 1.1 }}
-              >
-                <Clock className="h-8 w-8 text-white" />
-              </motion.div>
-              <motion.div
-                className="text-3xl font-bold text-white mb-2"
-                variants={numberVariants}
-                animate="pulse"
-              >
-                21日
-              </motion.div>
-              <p className="text-sm text-white font-medium">平均納期</p>
-              <div className="text-xs text-white mt-2">緊急対応可能</div>
-            </motion.div>
-
-            {/* 品質 - Enhanced */}
-            <motion.div
-              variants={statVariants}
-              whileHover="hover"
-              className="bg-gradient-to-br from-brixa-600 to-brixa-700 rounded-2xl p-8 text-center shadow-2xl border-2 border-brixa-400 flex-1 min-w-[200px]"
-            >
-              <motion.div
-                className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
-                whileHover={{ scale: 1.1 }}
-              >
-                <Shield className="h-8 w-8 text-white" />
-              </motion.div>
-              <motion.div
-                className="text-3xl font-bold text-white mb-2"
-                variants={numberVariants}
-                animate="pulse"
-              >
-                100%
-              </motion.div>
-              <p className="text-sm text-brixa-100 font-medium">全検査合格</p>
-            </motion.div>
-
-            {/* コスト - Enhanced */}
-            <motion.div
-              variants={statVariants}
-              whileHover="hover"
-              className="bg-gradient-to-br from-brixa-secondary-600 to-brixa-secondary-800 rounded-2xl p-8 text-center shadow-2xl border-2 border-brixa-secondary-400 flex-1 min-w-[200px]"
-            >
-              <motion.div
-                className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
-                whileHover={{ scale: 1.1 }}
-              >
-                <Calculator className="h-8 w-8 text-white" />
-              </motion.div>
-              <motion.div
-                className="text-3xl font-bold text-white mb-2"
-                variants={numberVariants}
-                animate="pulse"
-              >
-                30%
-              </motion.div>
-              <p className="text-sm text-white font-medium">コスト削減</p>
-              <div className="text-xs text-white mt-2">日本製比</div>
-            </motion.div>
-          </motion.div>
 
           {/* Enhanced Technical Features */}
           <motion.div
