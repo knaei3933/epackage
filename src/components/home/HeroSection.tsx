@@ -120,7 +120,7 @@ export function HeroSection() {
                 <motion.div
                   variants={statVariants}
                   whileHover="hover"
-                  className="bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center space-x-3 border-2 border-green-400/30 min-w-[280px]"
+                  className="bg-gradient-to-r from-brixa-500 via-brixa-600 to-brixa-700 text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center space-x-3 border-2 border-brixa-400/30 min-w-[280px]"
                 >
                   <Shield className="w-7 h-7 flex-shrink-0" />
                   <div className="text-center flex-1">
