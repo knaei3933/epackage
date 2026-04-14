@@ -334,7 +334,7 @@ export function HeroSection() {
               whileHover="hover"
               className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-white/30"
             >
-              <CheckCircle className="h-5 w-5 text-green-400" />
+              <CheckCircle className="h-5 w-5 text-brixa-400" />
               <span className="text-sm font-medium text-white">厳格な品質管理</span>
             </motion.div>
             <motion.div
