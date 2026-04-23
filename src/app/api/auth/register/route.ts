@@ -160,6 +160,12 @@ async function handleRegisterPost(request: NextRequest) {
 
     if (authError) {
       console.error('Auth user creation error:', authError)
+      console.error('Auth error details:', JSON.stringify({
+        name: authError.name,
+        message: authError.message,
+        status: authError.status,
+        statusText: authError.statusText
+      }))
 
       // 이미 존재하는 이메일인지 확인
       if (authError.message.includes('already') ||
