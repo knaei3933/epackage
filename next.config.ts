@@ -201,7 +201,7 @@ const nextConfig: NextConfig = {
   // Additional optimization for LCP
   // =====================================================
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // 一時的に無効化してCSSの問題を解決
     optimizePackageImports: [
       'lucide-react',
       'date-fns',
