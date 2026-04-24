@@ -101,6 +101,7 @@ const PUBLIC_ROUTES = [
   '/upload', // Phase 4: Token-based designer upload (public, no auth required)
   '/designer-order', // Phase 5: Token-based designer order access (no auth required)
   '/sitemap.xml', // SEO: Search engine sitemap access
+  '/rss.xml', // SEO: RSS feed access
   '/robots.txt', // SEO: Crawler instructions access
   '/site.webmanifest', // PWA manifest
   '/favicon.ico', // Favicon

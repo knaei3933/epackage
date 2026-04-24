@@ -185,14 +185,29 @@ const nextConfig: NextConfig = {
     'zwitch',
   ],
   images: {
-    unoptimized: true, // 画像最適化を無効化して400エラーを解決
-    // formats: ['image/avif', 'image/webp'], // unoptimizedの時は不要
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 1080, 1920],
     imageSizes: [16, 64, 256],
     minimumCacheTTL: 86400,
     dangerouslyAllowSVG: true,
-    // contentDispositionType: 'attachment', // コメントアウト - 画像表示の問題を解決
-    // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;", // コメントアウト - CSPを緩和
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.google.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'googleads.g.doubleclick.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.g.doubleclick.net',
+      },
+    ],
   },
   compress: true,
   poweredByHeader: false,

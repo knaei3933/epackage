@@ -20,20 +20,28 @@ import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  adjustFontFallback: true,
+  fallback: ["system-ui", "arial"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  fallback: ["monospace"],
 });
 
-// Noto Sans JP for Japanese content - preload for faster LCP
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
   subsets: ["latin"],
   weight: ["400", "500", "700", "900"],
   display: "swap",
   preload: true,
+  adjustFontFallback: "Arial",
+  fallback: ["Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -42,7 +50,7 @@ export const metadata: Metadata = {
     default: "Epackage Lab - 小ロットから大ロットまで経済的 | 最小500枚・最短28日納品のパッケージ製造",
     template: "%s | Epackage Lab"
   },
-  description: "小ロット500枚〜大ロット大量生産対応、最短28日納品の韓国品質パッケージ製造。500社以上実績。スタンドパウチ、スパウトパウチ等豊富な製品。化粧品・食品・医薬品向け最適な包装ソリューション。無料見積もりでコスト削減。",
+  description: "小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。",
   authors: [{ name: "Epackage Lab" }],
   creator: "Epackage Lab",
   publisher: "Epackage Lab",
@@ -54,6 +62,9 @@ export const metadata: Metadata = {
   // alternates: {
   //   canonical: '/',  // Removed to allow per-page canonical URLs
   // },
+  other: {
+    'rss': '/rss.xml',
+  },
   // Use metadataBase for absolute URLs
   metadataBase: new URL('https://www.package-lab.com'),
   openGraph: {
@@ -61,8 +72,8 @@ export const metadata: Metadata = {
     locale: 'ja_JP',
     url: 'https://www.package-lab.com',
     siteName: 'Epackage Lab',
-    title: 'Epackage Lab | 小ロットから大ロットまで経済的なパッケージ製造',
-    description: '小ロット（500枚〜）から大ロット（大量生産）まで、あらゆるロットサイズに対応するパッケージ製造プラットフォーム。大ロットはスケールメリットで経済的に。',
+    title: 'Epackage Lab | 小ロット500枚〜大ロット対応のパッケージ製造',
+    description: '小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。',
     images: [
       {
         url: '/images/og-image.jpg',
@@ -74,8 +85,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Epackage Lab | 小ロットから大ロットまで経済的なパッケージ製造',
-    description: '小ロット（500枚〜）から大ロット（大量生産）まで、あらゆるロットサイズに対応するパッケージ製造プラットフォーム。大ロットはスケールメリットで経済的に。',
+    title: 'Epackage Lab | 小ロット500枚〜大ロット対応のパッケージ製造',
+    description: '小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。',
     images: ['/images/og-image.jpg'],
     creator: '@epackage_lab',
   },
@@ -106,10 +117,10 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* GTM Head - defer for better LCP on static pages */}
+        {/* GTM Head - lazyOnload to prioritize LCP over analytics */}
         <Script
           id="gtm-head"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
     window.dataLayer = window.dataLayer || [];

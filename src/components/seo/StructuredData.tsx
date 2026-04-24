@@ -3,7 +3,7 @@
 import React from 'react'
 
 interface StructuredDataProps {
-  type: 'Organization' | 'Product' | 'LocalBusiness' | 'FAQ' | 'HowTo'
+  type: 'Organization' | 'Product' | 'LocalBusiness' | 'FAQ' | 'HowTo' | 'WebSite'
   data: Record<string, any>
 }
 
@@ -205,6 +205,28 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           }))
         }
 
+      case 'WebSite':
+        return {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Epackage Lab',
+          alternateName: 'イーパッケージラボ',
+          url: 'https://www.package-lab.com',
+          inLanguage: 'ja',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: {
+              '@type': 'EntryPoint',
+              urlTemplate: 'https://www.package-lab.com/products?q={search_term_string}',
+              actionPlatform: [
+                'https://schema.org/DesktopWebPlatform',
+                'https://schema.org/MobileWebPlatform'
+              ]
+            },
+            'query-input': 'required name=search_term_string'
+          }
+        }
+
       default:
         return {}
     }
@@ -311,4 +333,8 @@ export function HowToSchema({
       data={{ name, description, image, supplies, steps }}
     />
   )
+}
+
+export function WebSiteSchema() {
+  return <StructuredData type="WebSite" data={{}} />
 }

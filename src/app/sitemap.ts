@@ -185,6 +185,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug, updated_at, published_at')
       .eq('status', 'published')
       .order('published_at', { ascending: false })
+      .limit(1000)
 
     if (blogPosts) {
       for (const post of blogPosts) {

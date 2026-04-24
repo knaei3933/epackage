@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
-import { OrganizationSchema, LocalBusinessSchema, FAQSchema, ProductSchema } from '@/components/seo/StructuredData'
+import { OrganizationSchema, LocalBusinessSchema, FAQSchema, ProductSchema, WebSiteSchema } from '@/components/seo/StructuredData'
 import { HeroSection, ProductShowcaseSection, BeforeAfterSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
 import { getFeaturedProducts } from '@/lib/products'
@@ -62,6 +62,7 @@ export default async function Home() {
   return (
     <>
       {/* Structured Data for SEO */}
+      <WebSiteSchema />
       <OrganizationSchema />
       <LocalBusinessSchema />
       <FAQSchema faqs={faqData} />
