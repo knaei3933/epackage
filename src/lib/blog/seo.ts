@@ -20,7 +20,7 @@ import type {
  * Site configuration (should be moved to environment variables or config file)
  */
 const SITE_CONFIG = {
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://epackage-lab.com',
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com',
   siteName: 'Epackage Lab',
   defaultTitle: 'Epackage Lab - 小ロットパッケージ製造の専門家',
   defaultDescription: 'AI即時見積もりシステムで、小ロットパッケージ製造を革命。包装資材調達の新しいスタイルを提案します。',

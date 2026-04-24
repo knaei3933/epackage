@@ -59,9 +59,15 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  // alternates: {
-  //   canonical: '/',  // Removed to allow per-page canonical URLs
-  // },
+  alternates: {
+    canonical: 'https://www.package-lab.com',
+    languages: {
+      'ja': 'https://www.package-lab.com',
+      'en': 'https://www.package-lab.com/en',
+      'ko': 'https://www.package-lab.com/ko',
+      'x-default': 'https://www.package-lab.com',
+    },
+  },
   other: {
     'rss': '/rss.xml',
   },
@@ -144,9 +150,6 @@ export default function RootLayout({
 
         {/* Security headers */}
         <meta name="referrer" content="strict-origin-when-cross-origin" />
-
-        {/* Viewport optimization */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 
         {/* Color scheme for browser UI consistency */}
         <meta name="color-scheme" content="light dark" />

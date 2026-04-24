@@ -41,7 +41,7 @@ export async function generateMetadata(
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
   const url = `${baseUrl}/blog/${post.slug}`;
   const imageUrl = post.og_image_path
     ? (post.og_image_path.startsWith('http') ? post.og_image_path : `${baseUrl}${post.og_image_path}`)
@@ -140,7 +140,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
 
   return (
     <>
