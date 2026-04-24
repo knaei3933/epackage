@@ -74,6 +74,18 @@ const staticPages = [
     priority: 0.6,
     lastmod: new Date()
   },
+  {
+    url: '/terms',
+    changefreq: 'yearly' as const,
+    priority: 0.3,
+    lastmod: new Date()
+  },
+  {
+    url: '/privacy',
+    changefreq: 'yearly' as const,
+    priority: 0.3,
+    lastmod: new Date()
+  },
   // 業界ページ
   {
     url: '/industry/cosmetics',
