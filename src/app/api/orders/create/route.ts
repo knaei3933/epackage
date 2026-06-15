@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch the specific quotation item
     const { data: quotationItem, error: itemError } = await supabaseAdmin
-      .from('quotation_item')
+      .from('quotation_items')
       .select('id, product_name, quantity, unit_price, total_price, specifications, order_id')
       .eq('id', quotationItemId)
       .eq('quotation_id', quotationId)
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
 
     // Update quotation item with order_id reference
     const { error: updateError } = await supabaseAdmin
-      .from('quotation_item')
+      .from('quotation_items')
       .update({ order_id: order.id })
       .eq('id', quotationItemId);
 

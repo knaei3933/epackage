@@ -170,7 +170,7 @@ export async function POST(
       if (newQuotation) {
         // 新しい見積アイテムを作成
         await supabase
-          .from('quotation_item')
+          .from('quotation_items')
           .insert({
             quotation_id: newQuotation.id,
             product_id: orderItems.product_id,

@@ -196,7 +196,7 @@ export const POST = withApiHandler(
 
     // Update quotation items with order_id reference
     await supabase
-      .from('quotation_item')
+      .from('quotation_items')
       .update({ order_id: order.id })
       .eq('quotation_id', quotation.id);
 
