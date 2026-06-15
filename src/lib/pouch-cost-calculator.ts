@@ -7,6 +7,7 @@
 
 import { FilmCostCalculator, FilmCostResult, FilmStructureLayer } from './film-cost-calculator';
 import { determineMaterialWidth, MaterialWidthType } from './material-width-selector';
+import { PRICING_CONSTANTS } from './pricing/core/constants';
 
 // ========================================
 // タイプ定義
@@ -329,7 +330,17 @@ export class PouchCostCalculator {
   private async getSetting(category: string, key: string, defaultValue: any): Promise<any> {
     const settings = await this.loadSystemSettings();
     const fullKey = `${category}.${key}`;
-    return settings.get(fullKey) ?? defaultValue;
+    const dbValue = settings.get(fullKey);
+    // S1.6: フォールバック発動を可視化（unified-pricing-engine.ts:764-778 と対称）。
+    // defaultValue が明示的に指定（undefined でない）されており、DB に値がない場合のみ警告。
+    // defaultValue=undefined の呼び出し（設定不在を許容するケース）は警告対象外。
+    if (dbValue === undefined && defaultValue !== undefined) {
+      console.warn(
+        `[PouchCostCalculator][getSetting] フォールバック発動: ${fullKey} がDBに存在しません。` +
+        `デフォルト値 ${defaultValue} を使用します。`
+      );
+    }
+    return dbValue ?? defaultValue;
   }
 
   /**
@@ -1263,8 +1274,9 @@ export class PouchCostCalculator {
       deliveryJPY
     });
 
-    // 2. 製造者価格 (KRW) - DB設定から製造者マージン率を取得（デフォルト30%）
-    const MANUFACTURER_MARGIN = await this.getSetting('pricing', 'manufacturer_margin', 0.3);
+    // 2. 製造者価格 (KRW) - DB設定から製造者マージン率を取得
+    // AC-Q6/S1.2: フォールバックは PRICING_CONSTANTS.MANUFACTURER_MARGIN(0.4 ガイド準拠)
+    const MANUFACTURER_MARGIN = await this.getSetting('pricing', 'manufacturer_margin', PRICING_CONSTANTS.MANUFACTURER_MARGIN);
     console.log('[PouchCostCalculator] manufacturerMargin:', MANUFACTURER_MARGIN);
     const manufacturerPriceKRW = baseCostKRW * (1 + MANUFACTURER_MARGIN);
     const manufacturingMarginKRW = manufacturerPriceKRW - baseCostKRW;
@@ -1281,8 +1293,9 @@ export class PouchCostCalculator {
     // 6. 小計 (JPY) - 円貨製造者価格 + 関税 + 配送料
     const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
 
-    // 7. 販売マージン適用 - DB設定から販売マージン率を取得（デフォルト20%）
-    const SALES_MARGIN = await this.getSetting('pricing', 'default_markup_rate', 0.2);
+    // 7. 販売マージン適用 - DB設定から販売マージン率を取得
+    // AC-Q6/S1.2: フォールバックは PRICING_CONSTANTS.SALES_MARGIN(0.2 ガイド準拠)
+    const SALES_MARGIN = await this.getSetting('pricing', 'default_markup_rate', PRICING_CONSTANTS.SALES_MARGIN);
     console.log('[PouchCostCalculator] salesMargin:', SALES_MARGIN);
 
     console.log('[calculateCostBreakdown] PRICE CALC:', {
@@ -1987,29 +2000,33 @@ export class PouchCostCalculator {
     });
 
     // ========================================
-    // 2列生産オプション価格計算
+    // 2列生産オプション価格計算（S0.5 ガイド導出準拠）
     // ========================================
+    // ガイド docs/reports/calcultae/06-마진_및_최종가격.md:120-181「Win-Win価格構造」
+    //
+    // S0.5 検証結果: ガイド :124-171 を精読すると、ガイド自体が
+    //   「2列同数 = 1列単価に対して15% OFF（=×0.85）、結果35円」
+    //   「2列倍量 = 1列単価に対して30% OFF（=×0.70）、結果24円」
+    // と明示的に定義している。よって従来の割引率（×0.85 / ×0.70）は
+    // ガイド導出と**完全に等価**（非等価仮説は誤り）。
+    // 内部的な原価削減(×0.7)→マージンアップ(×1.35/1.4)→結果の変換経路は異なるが、
+    // 顧客提示単価はガイドの数値例（41→35→24）と一致する。
+    //
+    // したがって実装は割引率を維持し、savingsRate をガイド値（15/30）に固定する。
+    const sameQuantityPrice = currentUnitPrice * 0.85; // ガイド: 2列同数 15% OFF
+    const doubleQuantityPrice = currentUnitPrice * 0.70; // ガイド: 2列倍量 30% OFF
 
-    let sameQuantityPrice: number;
-    let doubleQuantityPrice: number;
-
-    // 1列生産単価に対する割引を計算（2列生産の生産効率を反映）
-    // 15% OFF: 同じ数量
-    sameQuantityPrice = currentUnitPrice * 0.85;
-    // 30% OFF: 倍の数量
-    doubleQuantityPrice = currentUnitPrice * 0.70;
-
-    console.log('[calculateTwoColumnProductionOptions] 2列生産オプション価格計算:', {
+    console.log('[calculateTwoColumnProductionOptions] 2列生産オプション価格計算（ガイド準拠）:', {
       currentUnitPrice,
       sameQuantityPrice: Math.round(sameQuantityPrice),
       doubleQuantityPrice: Math.round(doubleQuantityPrice),
-      note: '1列生産単価に対する割引を適用（2列生産の生産効率を顧客に還元）'
+      note: 'ガイド 06:148,170: 同数15% OFF(×0.85) / 倍量30% OFF(×0.70)'
     });
 
-    // 15% OFF: 同じ数量（現在の数量）
+    // 同数量（現在の数量）
     const sameQuantity = currentQuantity;
 
-    // 30% OFF: 倍の数量（現在の数量×2を100単位で切り捨て）
+    // 倍の数量（現在の数量×2を100単位で切り捨て）
     const doubleQuantity = this.roundDownToHundreds(currentQuantity * 2);
 
     console.log('[calculateTwoColumnProductionOptions] 計算結果:', {
@@ -2020,7 +2037,6 @@ export class PouchCostCalculator {
       theoreticalMeters2Col: theoreticalMeters2Col.toFixed(0),
       totalFilmUsage2Col: totalFilmUsage2Col.toFixed(0),
       economicQuantity,
-      roundedQuantity,
       doubleQuantity,
       sameQuantityPrice: Math.round(sameQuantityPrice),
       doubleQuantityPrice: Math.round(doubleQuantityPrice)
@@ -2035,13 +2051,13 @@ export class PouchCostCalculator {
         quantity: currentQuantity, // ユーザー入力の数量を保持
         unitPrice: roundedSameQuantityUnitPrice,
         totalPrice: roundedSameQuantityUnitPrice * currentQuantity,
-        savingsRate: 15
+        savingsRate: 15 // ガイド 06:148 顧客割引 15% OFF
       },
       doubleQuantity: {
         quantity: doubleQuantity,
         unitPrice: roundedDoubleQuantityUnitPrice,
         totalPrice: roundedDoubleQuantityUnitPrice * doubleQuantity,
-        savingsRate: 30
+        savingsRate: 30 // ガイド 06:170 顧客割引 30% OFF
       }
     };
   }

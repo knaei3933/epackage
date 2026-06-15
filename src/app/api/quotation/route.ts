@@ -59,7 +59,7 @@ async function createSupabaseClient() {
 // POST: 新しい見積を作成
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseClient();
 
     // セッション確認 (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .select('status')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!profile || profile.status !== 'ACTIVE') {
       return NextResponse.json(
@@ -105,11 +105,10 @@ export async function POST(request: NextRequest) {
     // 見積番号生成 (Q + 年 + 月 + 日 + 連番)
     const quotationNumber = `Q${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Date.now().toString(36).toUpperCase()}`;
 
-    // 価格計算
+    // 価格計算（S1.3: 税加算を削除。ガイド準拠の単価は既に税抜最終価格。
+    // 消費税は会計時点で別途処理されるべきであり、見積価格に含めない。）
     const unitPrice = data.unitPrice || 0;
     const totalPrice = unitPrice * data.quantity;
-    const tax = Math.floor(totalPrice * 0.1); // 10%消費税
-    const grandTotal = totalPrice + tax;
 
     // 見積作成 (Supabase quotationsテーブル)
     const { data: quotation, error: insertError } = await supabase
@@ -117,7 +116,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: user.id,
         quotation_number: quotationNumber,
-        total_amount: grandTotal,
+        total_amount: totalPrice,
         status: 'draft',
         valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         notes: data.notes,
@@ -182,7 +181,7 @@ export async function POST(request: NextRequest) {
 // GET: 見積一覧を取得
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseClient();
 
     // セッション確認 (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: userError } = await supabase.auth.getUser();

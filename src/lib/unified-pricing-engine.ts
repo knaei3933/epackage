@@ -12,6 +12,7 @@ import type {
 } from './pouch-cost-calculator'
 import { determineMaterialWidth } from './material-width-selector'
 import { processingOptionsConfig, type ProcessingOptionConfig } from '../components/quote/shared/processingConfig'
+import { PRICING_CONSTANTS } from './pricing/core/constants'
 
 // ========================================
 // ヘルパー関数
@@ -605,12 +606,14 @@ const CONSTANTS = {
   ROLL_FILM_SLITTER_COST_PER_M: 10,    // 원/m
 
   // 필름 원가 계산 설정 (새로운 기능)
-  MANUFACTURER_MARGIN: 0.3, // 제조업체 마진율 30%
-  SALES_MARGIN: 0.3, // 판매 마진율 30%
-  DEFAULT_MARKUP_RATE: 0.3, // デフォルトマージン率 30%
-  // 총 마진율 = (1 + 0.3) × (1 + 0.3) - 1 = 0.69 (69%)
-  DEFAULT_LOSS_RATE: 0.4, // 기본 로스율 40%
-  DEFAULT_MATERIAL_WIDTH: 760, // 기본 원단 폭 (590 또는 760)
+  // ガイド準拠値（AC-Q6/S1.1）: pricing/core/constants.ts の PRICING_CONSTANTS を正とする
+  // 製造者マージン40%・販売マージン20%（ガイド 06-마진:115-117）
+  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.4（ガイド準拠）
+  SALES_MARGIN: PRICING_CONSTANTS.SALES_MARGIN, // 0.2（ガイド準拠）
+  DEFAULT_MARKUP_RATE: PRICING_CONSTANTS.SALES_MARGIN, // 0.2（販売マージン=ガイド準拠）
+  // 총 마진율 = (1 + 0.4) × (1 + 0.2) - 1 = 0.68 (68%)
+  DEFAULT_LOSS_RATE: PRICING_CONSTANTS.DEFAULT_LOSS_RATE, // 0.4（기본 로스율 40%）
+  DEFAULT_MATERIAL_WIDTH: PRICING_CONSTANTS.DEFAULT_MATERIAL_WIDTH, // 760（기본 원단 폭）
 
   // 파우치 가공비 계산식 (원화/cm) - 가로CM × 계수
   // 최소단가 적용: 삼방 ₩200,000, 스탠드 ₩250,000, T/M방 ₩440,000
@@ -761,7 +764,17 @@ export class UnifiedPricingEngine {
   private async getSetting(category: string, key: string, defaultValue: any): Promise<any> {
     const settings = await this.loadSystemSettings()
     const fullKey = `${category}.${key}`
-    return settings.get(fullKey) ?? defaultValue
+    const dbValue = settings.get(fullKey)
+    // S1.6: フォールバック発動を可視化。
+    // defaultValue が明示的に指定（undefined でない）されており、DB に値がない場合のみ警告。
+    // defaultValue=undefined の呼び出し（設定不在を許容するケース）は警告対象外。
+    if (dbValue === undefined && defaultValue !== undefined) {
+      console.warn(
+        `[UnifiedPricingEngine][getSetting] フォールバック発動: ${fullKey} がDBに存在しません。` +
+        `デフォルト値 ${defaultValue} を使用します。`
+      )
+    }
+    return dbValue ?? defaultValue
   }
 
   /**
@@ -1180,27 +1193,30 @@ export class UnifiedPricingEngine {
     console.log('[UnifiedPricingEngine] manufacturerMargin:', manufacturerMargin, 'baseCost:', baseCost);
     const manufacturerPrice = baseCost * (1 + manufacturerMargin);
 
-    // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
+    // Step 2: 製造者価格 × 関税1.05 = 輸入原価
     const importCost = manufacturerPrice * 1.05;
 
-    // Step 3: 輸入原価 + 配送費 + 販売マージン = 最終販売価格
-    // ドキュメント仕様: フィルムロール20%、パウチ加工品20%
-    // DB設定から販売マージン率を取得（デフォルト20%）
-    const salesMargin = await this.getSetting('pricing', 'default_markup_rate', 0.20);
+    // Step 3: 小計 = 輸入原価 + 配送料 → 最終販売価格 = 小計 × (1 + 販売マージン)
+    // ガイド準拠（AC-Q1）: 配送料も販売マージン計算対象
+    //   docs/reports/calcultae/06-마진_및_최종가격.md:139
+    //   最終価格 = (円貨製造者価格 + 関税 + 配送料) × 1.2
+    // DB設定から販売マージン率を取得（フォールバック=CONSTANTS.SALES_MARGIN=0.2 ガイド準拠）
+    const salesMargin = await this.getSetting('pricing', 'default_markup_rate', CONSTANTS.SALES_MARGIN);
 
-    // ガイド準拠: 配送料はマージン計算対象外
-    // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
-    // 輸入原価は既に製造者マージン40% + 関税5%が含まれている
-    const total = importCost * (1 + salesMargin) + deliveryCost;
+    // AC-Q6/S1.1: :1115 の既存 subtotal（中間計算）と同名衝突を避けるため別名。
+    // これは最終価格計算の「輸入原価+配送料」の小計（販売マージン乗算のベース）。
+    const subtotalWithDelivery = importCost + deliveryCost;
+    const total = subtotalWithDelivery * (1 + salesMargin);
 
     logPriceCalculationDetail('最終価格計算', {
       製造者価格: `¥${manufacturerPrice.toLocaleString()}`,
       輸入原価: `¥${importCost.toLocaleString()}`,
-      販売マージン率: `${(salesMargin * 100).toFixed(0)}%`,
-      販売マージン額: `¥${(importCost * salesMargin).toLocaleString()}`,
       配送料: `¥${deliveryCost.toLocaleString()}`,
+      小計: `¥${subtotalWithDelivery.toLocaleString()}`,
+      販売マージン率: `${(salesMargin * 100).toFixed(0)}%`,
+      販売マージン額: `¥${(subtotalWithDelivery * salesMargin).toLocaleString()}`,
       最終販売価格: `¥${total.toLocaleString()}`,
-      note: '配送料は販売マージン計算対象外'
+      note: 'ガイド準拠: 配送料も販売マージン計算対象'
     });
 
     // 12. リードタイム計算
@@ -1212,8 +1228,8 @@ export class UnifiedPricingEngine {
     )
 
     // 13. 結果構成
-    // totalPrice は丸めるが、unitPrice は小数点を保持して正確な単価を表示
-    const roundedTotal = Math.round(total);
+    // AC-Q5: 100円単位切り上げに統一（performFilmCostCalculation:1445 と一致）
+    const roundedTotal = Math.ceil(total / 100) * 100;
     const result: UnifiedQuoteResult = {
       unitPrice: roundedTotal / quantity, // 小数点を保持（例: 36.6円）
       totalPrice: roundedTotal,
@@ -1399,16 +1415,19 @@ export class UnifiedPricingEngine {
     // Step 1: 基礎原価 + 製造者マージン = 製造者価格
     const manufacturerPrice = postProcessingAdjustedBaseCost * (1 + filmCostSettings.pricing_manufacturer_margin);
 
-    // Step 2: 製造者価格 × 関税1.05 = 輸入原価（配送料は含まない）
+    // Step 2: 製造者価格 × 関税1.05 = 輸入原価
     const importCost = manufacturerPrice * 1.05;
 
-    // Step 3: 輸入原価 + 販売マージン = 最終販売価格
-    // 顧客別マークアップ率を適用（デフォルト20%、負の値は割引）
+    // Step 3: 小計 = 輸入原価 + 配送料 → 最終販売価格 = 小計 × (1 + 販売マージン)
+    // ガイド準拠（AC-Q1）: 配送料も販売マージン計算対象
+    //   docs/reports/calcultae/06-마진_및_최종가격.md:139
+    //   最終価格 = (円貨製造者価格 + 関税 + 配送料) × 1.2
+    // 顧客別マークアップ率を適用（デフォルト0%、負の値は割引）
     const salesMargin = markupRate;  // 顧客別マージン率を適用
 
-    // ガイド準拠: 配送料はマージン計算対象外
-    // 最終販売価格 = (輸入原価 × 販売マージン) + 配送料
-    const totalPrice = importCost * (1 + salesMargin) + deliveryCost;
+    // ガイド準拠: 配送料も販売マージン計算対象
+    const subtotalFilm = importCost + deliveryCost;
+    const totalPrice = subtotalFilm * (1 + salesMargin);
 
     // ========================================
     // 最小価格適用は無効化（ドキュメント通りの計算のみ）

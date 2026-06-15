@@ -24,16 +24,20 @@ export const PRICING_CONSTANTS = {
   /** ロールフィルム固定ロス（m） */
   ROLL_FILM_LOSS_METERS: 400,
 
-  /** 製造者マージン率 */
+  /** 製造者マージン率（ガイド 06-마진:115 準拠。DB system_settings.manufacturer_margin=0.4 と一致） */
   MANUFACTURER_MARGIN: 0.4,
-  /** 販売マージン率 */
+  /** 販売マージン率（ガイド 06-마진:117 準拠値=0.2。フォールバック専用。
+   *  注意: 実運用の販売マージンは DB system_settings.default_markup_rate=0.3（ユーザー承認の現状維持）。
+   *  ガイド文書の20%表記とDB30%の不一致は「ユーザー承認の既知事項」（team-lead 確定 2026-06-15）。
+   *  このフォールバック値は DB 設定不在時の最終手段であり、ガイド SSoT 値を保持する。 */
   SALES_MARGIN: 0.2,
   /** 関税率 */
   DUTY_RATE: 0.05,
   /** 為替レート（KRW→JPY） */
   EXCHANGE_RATE_KRW_TO_JPY: 0.12,
 
-  /** デフォルトマークアップ率 */
+  /** デフォルトマークアップ率（フォールバック専用、SALES_MARGIN に等しい=ガイド準拠0.2。
+   *  実運用値は DB system_settings.default_markup_rate=0.3） */
   DEFAULT_MARKUP_RATE: 0.2,
   /** デフォルトロス率 */
   DEFAULT_LOSS_RATE: 0.4,

@@ -1181,7 +1181,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           }
         ];
 
-      const totalAmountFromItems = itemsToSave.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+      // AC-Q5: unitPrice*quantity の再計算ではなく、丸め済みの totalPrice を優先（整合性確保）。
+      // totalPrice は各 item 構築箇所で「100円単位切り上げ済み」の正確な合計。
+      // totalPrice がない item のみ unitPrice*quantity にフォールバック。
+      const totalAmountFromItems = (itemsToSave as Array<{ totalPrice?: number; unitPrice: number; quantity: number }>).reduce((sum, item) => sum + (item.totalPrice ?? item.unitPrice * item.quantity), 0);
 
       // デバッグ: stateのsideWidthとsealWidthを確認
       console.log('[saveQuotationToDatabase] DEBUG state:', {
@@ -1361,7 +1364,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             }
           ];
 
-      const totalAmountFromItems = itemsToSave.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+      // AC-Q5: unitPrice*quantity の再計算ではなく、丸め済みの totalPrice を優先（整合性確保）。
+      // totalPrice は各 item 構築箇所で「100円単位切り上げ済み」の正確な合計。
+      // totalPrice がない item のみ unitPrice*quantity にフォールバック。
+      const totalAmountFromItems = (itemsToSave as Array<{ totalPrice?: number; unitPrice: number; quantity: number }>).reduce((sum, item) => sum + (item.totalPrice ?? item.unitPrice * item.quantity), 0);
 
       const quotationData = {
         userId: user.id,
