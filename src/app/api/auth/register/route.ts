@@ -133,6 +133,7 @@ async function handleRegisterPost(request: NextRequest) {
       email: validatedData.email,
       password: validatedData.password,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/pending`,
         data: {
           // 모든 등록 정보를 user_metadata에 저장
           kanji_last_name: validatedData.kanjiLastName,
@@ -154,7 +155,6 @@ async function handleRegisterPost(request: NextRequest) {
           city: validatedData.city || null,
           street: validatedData.street || null,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com'}/auth/pending`,
       },
     })
 
