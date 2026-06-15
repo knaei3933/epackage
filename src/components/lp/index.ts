@@ -1,3 +1,3 @@
 // LP Optimization Components
-export { TrustSignals, CertificationBadges } from './TrustSignals'
+export { TrustSignals } from './TrustSignals'
 export { StrongCTA } from './StrongCTA'
