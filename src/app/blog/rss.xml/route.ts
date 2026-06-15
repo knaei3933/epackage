@@ -7,15 +7,14 @@
 
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
-import { RSSFeed } from '@/types/rss'
+
+// Revalidate every hour
+export const revalidate = 3600
 
 // Site configuration
-const SITE_URL = 'https://package-lab.com'
+const SITE_URL = 'https://www.package-lab.com'
 const BLOG_TITLE = 'EPackage Lab ブログ'
 const BLOG_DESCRIPTION = '包装資材・印刷の最新情報と技術情報をお届けします'
-
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 
 /**
  * Generate RSS 2.0 feed
