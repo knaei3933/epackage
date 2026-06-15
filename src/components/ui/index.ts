@@ -26,7 +26,6 @@ export type { AlertProps, AlertTitleProps, AlertDescriptionProps } from './Alert
 
 // Animation Components
 export { MotionWrapper } from './MotionWrapper';
-export type { MotionWrapperProps } from './MotionWrapper';
 
 // Form Components
 export { Button, buttonVariants } from './Button';
@@ -34,7 +33,7 @@ export type { ButtonProps } from './Button';
 
 // Card Component
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
-export type { CardProps, CardHeaderProps, CardTitleProps, CardDescriptionProps, CardContentProps, CardFooterProps } from './Card';
+export type { CardProps, CardHeaderProps, CardFooterProps } from './Card';
 
 // Grid Component
 export { Grid, GridItem } from './Grid';
@@ -69,3 +68,14 @@ export type { LoadingStateProps } from './LoadingState';
 
 // Empty State
 export { EmptyState } from './EmptyState';
+
+// Dialog Component (shadcn/ui compatible)
+export {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from './dialog';
