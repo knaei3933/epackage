@@ -53,6 +53,7 @@ export interface FilmCostSettings {
   // 기본값
   production_default_loss_rate?: number
   pricing_default_markup_rate?: number
+  pricing_manufacturer_margin?: number
 }
 
 export interface FilmMaterial {
