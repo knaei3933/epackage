@@ -608,7 +608,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                                   <span className="text-text-primary font-semibold">
                                     {formatPrice(item.unitPrice * item.quantity)}円
                                   </span>
-                                  {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
+                                  {quotation.status.toLowerCase() === 'converted' ? (
                                     item.orderId ? (
                                       <a
                                         href={`/member/orders/${item.orderId}`}
@@ -695,7 +695,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                           </Button>
 
                           {/* Delete Button - DRAFT status only */}
-                          {(quotation.status === 'DRAFT' || quotation.status === 'draft' || quotation.status === 'QUOTATION_PENDING') && (
+                          {['draft', 'quotation_pending'].includes(quotation.status.toLowerCase()) && (
                             <Button
                               variant="destructive"
                               size="sm"
@@ -713,7 +713,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                           )}
 
                           {/* Convert to Order - APPROVED status only */}
-                          {(quotation.status === 'APPROVED' || quotation.status === 'approved' || quotation.status === 'QUOTATION_APPROVED') && (
+                          {['approved', 'quotation_approved'].includes(quotation.status.toLowerCase()) && (
                             <Button
                               variant="primary"
                               size="sm"
