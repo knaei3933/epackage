@@ -46,8 +46,6 @@ const CANCELLABLE_STATUSES = [
 
 export async function POST(request: NextRequest) {
   try {
-    // Next.js 16: cookies() now returns a Promise and must be awaited
-    const cookieStore = await cookies()
     const { client: supabase } = await createSupabaseSSRClient(request);
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
