@@ -335,6 +335,34 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host');
 
+  // DEV_MODE configuration - defined early; used by auth-route + dev bypass blocks
+  const isNonProduction = process.env.NODE_ENV !== 'production';
+  const isDevMode = isNonProduction && process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+
+  // =====================================================
+  // SECURITY (S2.0): Strip inbound x-user-* / x-dev-mode headers
+  // =====================================================
+  // These headers are an INTERNAL contract set ONLY by this middleware after
+  // getUser() + DB profile lookup. Any inbound value is untrusted (attacker-
+  // injectable) and MUST be removed before we decide what (if anything) to set.
+  // This is the single defense against header-spoofing privilege escalation.
+  const USER_HEADERS = ['x-user-id', 'x-user-role', 'x-user-status', 'x-dev-mode'];
+  const inboundUserHeaders: Record<string, string | null> = {};
+  let hadInboundUserHeaders = false;
+  for (const h of USER_HEADERS) {
+    const v = request.headers.get(h);
+    if (v !== null) {
+      inboundUserHeaders[h] = v;
+      hadInboundUserHeaders = true;
+    }
+    request.headers.delete(h);
+  }
+  // SECURITY AUDIT (S2.4 AC-A6 保持分類): header-spoofing 検知は本番監視必須。
+  // development ゲートを外し、production でも必ず記録する。
+  if (hadInboundUserHeaders) {
+    console.warn('[Middleware][SECURITY] Stripped inbound user headers (possible privilege-escalation attempt):', Object.keys(inboundUserHeaders));
+  }
+
   // =====================================================
   // EARLY RETURN: Static Assets (BEFORE any Supabase client creation)
   // =====================================================
@@ -356,10 +384,68 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================================================
-  // EARLY RETURN: Auth API routes (let them handle their own logic)
+  // SECURITY (S2.0): Auth API routes — authenticate + set x-user-* headers
   // =====================================================
+  // Previously /api/auth/* bypassed middleware entirely, which meant
+  // /api/auth/session NEVER received x-user-* headers (its header branch was
+  // dead code) AND any inbound spoofed headers passed through unstripped.
+  // Now: we strip above, authenticate here, and set DB-verified headers so
+  // session/route.ts can trust them (its fallback was removed in S2.0).
+  // We do NOT redirect auth routes to /auth/signin — they handle 401/null
+  // session themselves.
   if (pathname.startsWith('/api/auth')) {
-    return addSecurityHeaders(NextResponse.next());
+    // Public auth endpoints that must work without a session
+    const PUBLIC_AUTH_PATHS = [
+      '/api/auth/signin',
+      '/api/auth/register',
+      '/api/auth/forgot-password',
+      '/api/auth/reset-password',
+      '/api/auth/signout',
+      '/api/auth/verify-email',
+      '/api/auth/google',       // OAuth callback
+      '/api/auth/pending',
+      '/api/auth/suspended',
+    ];
+    const isPublicAuthPath = PUBLIC_AUTH_PATHS.some(p => pathname.startsWith(p));
+
+    // DEV_MODE short-circuit (sets headers from mock cookie)
+    if (isDevMode) {
+      const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
+      if (devMockUserId) {
+        const response = NextResponse.next();
+        response.headers.set('x-user-id', devMockUserId);
+        response.headers.set('x-user-role', 'MEMBER');
+        response.headers.set('x-user-status', 'ACTIVE');
+        response.headers.set('x-dev-mode', 'true');
+        return addSecurityHeaders(response);
+      }
+    }
+
+    if (isPublicAuthPath) {
+      return addSecurityHeaders(NextResponse.next());
+    }
+
+    // Protected auth endpoints (e.g. /api/auth/session, /api/auth/current-user):
+    // authenticate and set verified headers.
+    try {
+      const { supabase, response: authResponse } = createMiddlewareClient(request);
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (user && !error) {
+        const profile = await getUserProfile(supabase, user.id);
+        // Only set headers when we have a verified ACTIVE profile.
+        // Missing/inactive profile => no headers => downstream returns 401.
+        if (profile) {
+          authResponse.headers.set('x-user-id', user.id);
+          authResponse.headers.set('x-user-role', profile.role);
+          authResponse.headers.set('x-user-status', profile.status);
+        }
+      }
+      return addSecurityHeaders(authResponse);
+    } catch (err) {
+      console.error('[Middleware] Auth-route authentication error:', err);
+      return addSecurityHeaders(NextResponse.next());
+    }
   }
 
   // =====================================================
@@ -380,9 +466,8 @@ export async function middleware(request: NextRequest) {
     console.log('[Middleware] EXECUTING for path:', pathname);
   }
 
-  // DEV_MODE configuration - must be defined early for use in route handlers
-  const isNonProduction = process.env.NODE_ENV !== 'production';
-  const isDevMode = isNonProduction && process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+  // DEV_MODE configuration - isNonProduction/isDevMode are defined at the top
+  // of this function (before header stripping) so all route handlers can use them.
 
   // =====================================================
   // B2B Routes - Return 404 (Deleted Routes)
@@ -458,15 +543,9 @@ export async function middleware(request: NextRequest) {
   // =====================================================
   // CRITICAL: API Route Exemptions - MUST BE FIRST CHECK
   // =====================================================
-  // These routes handle their own authentication and must bypass ALL middleware logic
-  // Check this BEFORE any other logic to prevent redirect loops
-  if (pathname.startsWith('/api/auth')) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Middleware] EARLY EXEMPTION for /api/auth route:', pathname);
-    }
-    return addSecurityHeaders(NextResponse.next());
-  }
-
+  // NOTE: /api/auth/* is handled above (S2.0) — it authenticates and sets
+  // x-user-* headers; it is NOT exempted. Removing the old early-exemption was
+  // the S2.0 fix that lets session/route.ts trust the headers.
   // /api/debug routes for debugging (no auth required)
   if (pathname.startsWith('/api/debug')) {
     if (process.env.NODE_ENV === 'development') {
@@ -507,14 +586,15 @@ export async function middleware(request: NextRequest) {
       // Get user profile for role and status
       const profile = await getUserProfile(supabase, user.id);
 
-      // Only add headers for admin users
-      if (profile?.role === 'ADMIN') {
+      // Only add headers for ACTIVE admin users
+      // SECURITY (S2.0): require explicit ACTIVE status; no 'ACTIVE' fallback.
+      if (profile?.role === 'ADMIN' && profile.status === 'ACTIVE') {
         authResponse.headers.set('x-user-id', user.id);
         authResponse.headers.set('x-user-role', profile.role);
-        authResponse.headers.set('x-user-status', profile.status || 'ACTIVE');
+        authResponse.headers.set('x-user-status', profile.status);
 
         if (process.env.NODE_ENV === 'development') {
-          console.log('[Middleware] Added auth headers for /api/admin:', user.id, profile?.role, profile?.status);
+          console.log('[Middleware] Added auth headers for /api/admin:', user.id, profile.role, profile.status);
         }
       } else {
         if (process.env.NODE_ENV === 'development') {
@@ -561,14 +641,15 @@ export async function middleware(request: NextRequest) {
     if (user && !error) {
       const profile = await getUserProfile(supabase, user.id);
 
-      // Only add headers for designer users
-      if (profile?.role === 'KOREA_DESIGNER') {
+      // Only add headers for ACTIVE designer users
+      // SECURITY (S2.0): require explicit ACTIVE status; no 'ACTIVE' fallback.
+      if (profile?.role === 'KOREA_DESIGNER' && profile.status === 'ACTIVE') {
         authResponse.headers.set('x-user-id', user.id);
         authResponse.headers.set('x-user-role', profile.role);
-        authResponse.headers.set('x-user-status', profile.status || 'ACTIVE');
+        authResponse.headers.set('x-user-status', profile.status);
 
         if (process.env.NODE_ENV === 'development') {
-          console.log('[Middleware] Added auth headers for /api/designer:', user.id, profile?.role, profile?.status);
+          console.log('[Middleware] Added auth headers for /api/designer:', user.id, profile.role, profile.status);
         }
       } else {
         // Not a designer - return 403
@@ -656,14 +737,22 @@ export async function middleware(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (user && !error) {
-      // Get user profile for role and status
+      // SECURITY (S2.0): only set headers when we have a VERIFIED profile from DB.
+      // Previously fell back to role:'MEMBER'/status:'ACTIVE' on lookup failure,
+      // which let a user with no/empty profile reach member APIs as ACTIVE.
       const profile = await getUserProfile(supabase, user.id);
-      authResponse.headers.set('x-user-id', user.id);
-      authResponse.headers.set('x-user-role', profile?.role || 'MEMBER');
-      authResponse.headers.set('x-user-status', profile?.status || 'ACTIVE');
+      if (profile) {
+        authResponse.headers.set('x-user-id', user.id);
+        authResponse.headers.set('x-user-role', profile.role);
+        authResponse.headers.set('x-user-status', profile.status);
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Middleware] Added auth headers for /api/member:', user.id, profile?.role, profile?.status);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] Added auth headers for /api/member:', user.id, profile.role, profile.status);
+        }
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Middleware] No profile for /api/member - no headers set, API will 401');
+        }
       }
     } else {
       if (process.env.NODE_ENV === 'development') {

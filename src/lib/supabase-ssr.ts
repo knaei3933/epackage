@@ -98,52 +98,35 @@ export async function createSupabaseSSRClient(request: NextRequest): Promise<Sup
       getAll() {
         return request.cookies.getAll();
       },
-      // ✅ CRITICAL: Use setAll() pattern for proper cookie handling in Next.js 15/16
+      // ✅ S2.3: Standard @supabase/ssr setAll pattern.
+      // Uses response.cookies.set() (Next.js cookie API) instead of manually
+      // building Set-Cookie headers. @supabase/ssr@0.8.0's SetAllCookies type
+      // takes a single `cookies` argument (no cacheHeaders — that arrived in
+      // 0.10+). CDN cache-prevention for auth responses is therefore handled
+      // by the route handler itself setting Cache-Control on its NextResponse,
+      // not via @supabase/ssr.
       setAll(cookiesToSet) {
-        console.log('[supabase-ssr] setAll called with', cookiesToSet.length, 'cookies');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[supabase-ssr] setAll called with', cookiesToSet.length, 'cookies');
+        }
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
-            console.log('[supabase-ssr] Setting cookie:', name, 'value length:', value?.length || 0);
-
-            // Build cookie options with proper domain handling
-            const cookieOptions: any = {
+            // Merge @supabase/ssr-provided options with our security defaults.
+            const cookieOptions = {
               ...options,
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
+              sameSite: 'lax' as const,
               path: '/',
               maxAge: SESSION_MAX_AGE,
+              domain: process.env.NODE_ENV === 'production' ? COOKIE_DOMAIN : undefined,
             };
 
-            // CRITICAL: Handle domain attribute
-            if (process.env.NODE_ENV === 'production' && COOKIE_DOMAIN) {
-              cookieOptions.domain = COOKIE_DOMAIN;
-            } else {
-              delete cookieOptions.domain;
-            }
-
-            // ✅ CRITICAL: Construct Set-Cookie header manually
-            // This is the ONLY reliable way to set cookies in Next.js 16 API Route Handlers
-            const cookieParts = [`${name}=${value}`];
-            cookieParts.push(`HttpOnly`);
-            if (process.env.NODE_ENV === 'production') {
-              cookieParts.push(`Secure`);
-            }
-            cookieParts.push(`SameSite=${cookieOptions.sameSite}`);
-            cookieParts.push(`Path=${cookieOptions.path}`);
-            cookieParts.push(`Max-Age=${cookieOptions.maxAge}`);
-            if (cookieOptions.domain) {
-              cookieParts.push(`Domain=${cookieOptions.domain}`);
-            }
-
-            const setCookieHeader = cookieParts.join('; ');
-            response.headers.append('Set-Cookie', setCookieHeader);
-
-            console.log('[supabase-ssr] Set-Cookie header set for:', name);
+            // Update request cookies for immediate downstream reads in this request
+            request.cookies.set({ name, value, ...cookieOptions });
+            // Set on the response so the browser receives the updated session cookie
+            response.cookies.set({ name, value, ...cookieOptions });
           });
-
-          const finalSetCookieHeaders = response.headers.getSetCookie();
-          console.log('[supabase-ssr] Final response has', finalSetCookieHeaders.length, 'Set-Cookie headers');
         } catch (error) {
           console.error('[supabase-ssr] Error in setAll:', error);
         }
@@ -205,6 +188,82 @@ export async function getAuthenticatedUser(request: NextRequest) {
 }
 
 // ============================================================
+// Helper: Get Authenticated User from Middleware Headers (S2.1/S2.5)
+// ============================================================
+
+/**
+ * Lightweight auth context derived from middleware-verified headers.
+ *
+ * SECURITY (S2.0): middleware strips inbound x-user-* headers on EVERY request
+ * before setting its own DB-verified values. Therefore any header present here
+ * was produced by this app's middleware after getUser() + profiles lookup —
+ * it is NOT attacker-injectable. This is the foundation that lets us skip the
+ * redundant getUser()/getSession() RTT on every API call.
+ *
+ * Fallback: when headers are absent (Server Action / middleware-not-run path /
+ * misconfigured matcher), we fall back to getUser() so we NEVER trust absence
+ * as "anonymous-admin". Absent headers => re-authenticate, not assume.
+ *
+ * @returns AuthContext (id/role/status) + reusable supabase client, or null.
+ */
+export interface AuthContext {
+  id: string;
+  role: string;
+  status: string;
+  /** Reusable anon SSR client bound to the request cookies (RLS-aware). */
+  supabase: ReturnType<typeof createServerClient>;
+}
+
+export async function getAuthenticatedUserFromHeaders(
+  request: NextRequest,
+): Promise<AuthContext | null> {
+  const { client: supabase } = await createSupabaseSSRClient(request);
+
+  const userId = request.headers.get('x-user-id');
+  const userRole = request.headers.get('x-user-role');
+  const userStatus = request.headers.get('x-user-status');
+
+  if (userId && userRole && userStatus) {
+    // Headers present = middleware verified this request.
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[getAuthenticatedUserFromHeaders] Using middleware headers:', userId, userRole, userStatus);
+    }
+    return { id: userId, role: userRole, status: userStatus, supabase };
+  }
+
+  // Fallback for middleware-not-run paths (Server Actions, internal calls).
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[getAuthenticatedUserFromHeaders] No headers and no valid user');
+    }
+    return null;
+  }
+
+  // Headers missing but user authenticated — must verify role/status from DB
+  // before granting (we cannot infer role/status from getUser() alone).
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, status')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[getAuthenticatedUserFromHeaders] Authenticated user has no profile');
+    }
+    return null;
+  }
+
+  return {
+    id: user.id,
+    role: (profile as { role: string }).role,
+    status: (profile as { status: string }).status,
+    supabase,
+  };
+}
+
+// ============================================================
 // Helper: Check if User has Admin Role
 // ============================================================
 
@@ -227,9 +286,10 @@ export async function isAdminUser(request: NextRequest): Promise<boolean> {
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
-  return profile?.role?.toLowerCase() === 'admin';
+  const role = (profile as { role?: string } | null)?.role;
+  return role?.toLowerCase() === 'admin';
 }
 
 // ============================================================

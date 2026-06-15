@@ -10,7 +10,20 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
-import { auth, createServiceClient } from '@/lib/supabase';
+import { createServiceClient } from '@/lib/supabase';
+
+// Auth レスポンスは絶対に CDN/ブラウザキャッシュさせてはならない
+// （セッショントークン更新レスポンスのキャッシュ = セッション漏洩）。
+// S2.3: @supabase/ssr@0.8.0 は cacheHeaders を扱わないため、ここで直接担保する。
+const AUTH_RESPONSE_HEADERS: Record<string, string> = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
+function authJson(body: unknown, status = 200): NextResponse {
+  return NextResponse.json(body, { status, headers: AUTH_RESPONSE_HEADERS });
+}
 
 // =====================================================
 // GET /api/auth/session
@@ -22,26 +35,25 @@ export async function GET(request: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 500 }
-      );
+      return authJson({ error: 'Supabase not configured' }, 500);
     }
 
     // =====================================================
     // PRIORITY 1: Check middleware headers (most reliable)
     // =====================================================
-    // Middleware has already validated the session and set these headers
-    // This is more reliable than getSession() because middleware handles token refresh
+    // Middleware has already validated the session and set x-user-id.
+    // role/status は middleware ヘッダから読まず、DB profile から取得する
+    // （境界防御: 最新 profile で ACTIVE を再確認）。
     const userIdFromHeader = request.headers.get('x-user-id');
-    const userRoleFromHeader = request.headers.get('x-user-role');
-    const userStatusFromHeader = request.headers.get('x-user-status');
-    const isDevMode = request.headers.get('x-dev-mode') === 'true';
 
     if (userIdFromHeader) {
-      console.log('[Session API] Using middleware headers for user:', userIdFromHeader);
+      // SECURITY (S2.0): middleware headers are the source of truth for id/role/status.
+      // They are set exclusively by middleware AFTER getUser() + DB profile lookup,
+      // and middleware strips inbound x-user-* headers (see middleware.ts).
+      // We MUST NOT synthesize a profile with MEMBER/ACTIVE defaults on DB lookup
+      // failure — that created a privilege-escalation vector. On lookup failure return 401.
 
-      // Fetch complete profile from database
+      // Fetch complete profile from database (display fields only)
       const serviceClient = createServiceClient();
       const { data: profile, error: profileError } = await serviceClient
         .from('profiles')
@@ -50,20 +62,38 @@ export async function GET(request: NextRequest) {
         .maybeSingle();
 
       if (profileError) {
-        console.error('[Session API] Profile fetch error from headers:', profileError);
+        console.warn('[Session API] Profile fetch error from headers:', profileError.message);
       }
 
-      // Construct session object from header data
-      return NextResponse.json({
+      // SECURITY: profile lookup failure = reject. No synthesized fallback.
+      if (!profile) {
+        return authJson(
+          { error: 'プロファイルが見つかりません', session: null, profile: null },
+          401,
+        );
+      }
+
+      // Reject non-ACTIVE users at the session boundary (defense in depth).
+      // role/status come from the middleware header (DB-verified upstream),
+      // but we re-check the freshly fetched profile to catch concurrent status changes.
+      if (profile.status !== 'ACTIVE') {
+        return authJson(
+          { error: 'アカウントが無効です', session: null, profile: null },
+          401,
+        );
+      }
+
+      // Construct session object from header data + verified profile
+      return authJson({
         session: {
           user: {
             id: userIdFromHeader,
-            email: profile?.email || 'user@epackage-lab.com',
+            email: profile.email || 'user@epackage-lab.com',
             user_metadata: {
-              name_kanji: profile?.kanji_last_name && profile?.kanji_first_name
+              name_kanji: profile.kanji_last_name && profile.kanji_first_name
                 ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
                 : 'ユーザー',
-              name_kana: profile?.kana_last_name && profile?.kana_first_name
+              name_kana: profile.kana_last_name && profile.kana_first_name
                 ? `${profile.kana_last_name} ${profile.kana_first_name}`
                 : 'ユーザー',
             },
@@ -73,12 +103,8 @@ export async function GET(request: NextRequest) {
           expires_in: 1800,
           token_type: 'bearer',
         },
-        profile: profile || {
-          id: userIdFromHeader,
-          email: 'user@epackage-lab.com',
-          role: userRoleFromHeader || 'MEMBER',
-          status: userStatusFromHeader || 'ACTIVE',
-        },
+        // role/status sourced from verified profile, not from injectable headers
+        profile,
       });
     }
 
@@ -92,9 +118,11 @@ export async function GET(request: NextRequest) {
       const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
 
       if (devMockUserId) {
-        console.log('[Session API] DEV_MODE: Returning mock session for:', devMockUserId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Session API] DEV_MODE: Returning mock session for:', devMockUserId);
+        }
 
-        return NextResponse.json({
+        return authJson({
           session: {
             user: {
               id: devMockUserId,
@@ -159,8 +187,8 @@ export async function GET(request: NextRequest) {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError || !session?.user) {
-      console.log('[Session API] No valid session found', sessionError?.message);
-      return NextResponse.json({
+      // 未認証は正常状態（public page からの呼び出し）。warn ログ不要。
+      return authJson({
         session: null,
         profile: null,
       });
@@ -178,12 +206,10 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (profileError) {
-      console.error('[Session API] Profile fetch error:', profileError);
+      console.warn('[Session API] Profile fetch error:', profileError.message);
     }
 
-    console.log('[Session API] User found for:', user.email, 'Profile:', profile ? 'Found' : 'Not found');
-
-    return NextResponse.json({
+    return authJson({
       session: {
         user: {
           id: user.id,
@@ -199,9 +225,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Session API] Error:', error);
-    return NextResponse.json(
+    return authJson(
       { error: 'セッション確認中にエラーが発生しました' },
-      { status: 500 }
+      500,
     );
   }
 }
