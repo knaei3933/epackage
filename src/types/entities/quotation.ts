@@ -191,6 +191,13 @@ export interface QuotationItem {
     breakdown?: CostBreakdown;
     filmCostDetails?: FilmCostDetails;
   };
+
+  // camelCase エイリアス（member API detail / loader が実行時に提供）
+  // task #8 型拡張方針: 実行時ロジック不変・TS型エラー解消のみ。snake_case が正。
+  productId?: string | null;
+  productName?: string;
+  unitPrice?: number;
+  totalPrice?: number;
 }
 
 // =====================================================
@@ -224,6 +231,24 @@ export interface QuotationBase {
   sent_at: string | null;
   approved_at: string | null;
   rejected_at: string | null;
+
+  // camelCase エイリアス（member API detail / loader が実行時に提供）
+  // task #8 型拡張方針: 実行時ロジック不変・TS型エラー解消のみ。snake_case が正。
+  quotationNumber?: string;
+  customerName?: string;
+  customerEmail?: string;
+  userId?: string;
+  remarks?: string | null;
+  pdfUrl?: string | null;
+  totalAmount?: number;
+  subtotalAmount?: number;
+  taxAmount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  validUntil?: string | null;
+  sentAt?: string | null;
+  approvedAt?: string | null;
+  rejectedAt?: string | null;
 }
 
 /**

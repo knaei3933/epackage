@@ -21,6 +21,13 @@ export interface QuotationItem {
   notes: string | null;
   display_order: number;
   order_id: string | null;
+
+  // camelCase エイリアス（fetchQuotationsServerSide が実行時に提供）
+  // task #8 型拡張方針: 実行時ロジック不変・TS型エラー解消のみ。snake_case が正。
+  productName?: string;
+  unitPrice?: number;
+  totalPrice?: number;
+  orderId?: string | null;
 }
 
 export interface Quotation {
@@ -38,6 +45,17 @@ export interface Quotation {
   created_at: string;
   pdf_url: string | null;  // 保存されたPDFのURL
   quotation_items: QuotationItem[];
+
+  // camelCase エイリアス（fetchQuotationsServerSide が実行時に提供）
+  // task #8 型拡張方針: 実行時ロジック不変・TS型エラー解消のみ。snake_case が正。
+  quotationNumber?: string;
+  totalAmount?: number;
+  validUntil?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  sentAt?: string | null;
+  approvedAt?: string | null;
+  pdfUrl?: string | null;
 }
 
 export interface QuotationsData {
