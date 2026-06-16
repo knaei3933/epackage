@@ -40,12 +40,6 @@ export * from './features/quotation';
 // Order feature
 export * from './features/order';
 
-// Inventory feature
-export * from './features/inventory';
-
-// Production feature
-export * from './features/production';
-
 // Shipment feature
 export * from './features/shipment';
 
@@ -168,18 +162,12 @@ export * from './api-validation';
 // 以下のファイルは新しい構造と重複するため、個別に必要な型のみエクスポート
 
 // Shipment (original) - Enums and types that don't conflict
-export type { DeliveryType, DeliveryDestination } from './shipment';
+// task #8: DeliveryType/DeliveryDestination は ./shipment でなく ./database が正規ソース
+export type { DeliveryType, DeliveryDestination } from './database';
 export { CarrierType, ShipmentStatus as ShipmentStatusEnum, ShippingServiceType, DeliveryTimeSlot, CARRIER_NAMES } from './shipment';
 
-// Contract (original) - 重複を回避
-export type { QuoteData, QuoteDataWithValidation } from './contract';
-
-// Production (original) - 重複を回避
-export type {
-  ProductionUpdate,
-  ProductionLogFormData,
-  ProductionImageFormData,
-} from './production';
+// task #8: ./contract の QuoteData/QuoteDataWithValidation は存在せず（QuoteData は ../lib/pdf-generator に正あり）
+// task #8: ./production モジュールは存在しないため参照削除
 
 // =====================================================
 // PDF Generator Types (from lib)
@@ -203,3 +191,74 @@ export type { Database } from './database';
 // =====================================================
 import { ORDER_STATUS_LABELS as _ORDER_STATUS_LABELS } from './order-status';
 export const OrderStatusLabels = _ORDER_STATUS_LABELS;
+
+// =====================================================
+// task #8: 重複エクスポート解消（TS2308）
+// -----------------------------------------------------
+// 複数モジュールが同名メンバーを export するため、barrel の `export *` が衝突し
+// TS2308「Module X has already exported a member named Y」が発生していた。
+// 正規ソースから明示的に re-export することで TS が曖昧性を解決する
+// （TS 仕様: 明示的 `export` は `export *` より優先される）。
+//
+// 正規ソース方針:
+//   - entities 系（Order/Quotation/...）→ ./entities（統一エンティティ・task #7）
+//   - core/common 系（基本型）         → ./core/common
+//   - core/api 系                      → ./core/api
+//   - core/database 系（DB enum/マスター）→ ./core/database
+//   - feature 系                       → ./features/*
+//   - 同名異義（User/DashboardStats 等）→ 先勝ち＝現状実質挙動を固定化（実行時不変）
+//
+// 実行時ロジック不変（型解決のみ）。
+// =====================================================
+
+// --- core/common 系（基本型・先勝ちと一致） ---
+export type {
+  Json,
+  Address,
+  PaginatedResponse,
+  PaginationParams,
+  SearchParams,
+} from './core/common';
+
+// --- core/api 系 ---
+export type { FileUploadResponse } from './core/api';
+
+// --- core/database 系（DB enum / マスター） ---
+export type {
+  ProductionDataType,
+  SpecSheetStatus,
+  NotificationType,
+  InquiryStatus,
+  InquiryType,
+  BusinessType,
+  ProductCategory,
+  UserRole,
+  UserStatus,
+  ContractStatus,
+} from './core/database';
+
+// --- entities 系（統一エンティティ・task #7 正規） ---
+// NOTE: QuotationStatus は core/database と値集合が完全一致（6種）のため entities 正規で安全
+export type {
+  QuotationStatus,
+  Quotation,
+  QuotationItem,
+  Order,
+  OrderItem,
+  OrderFilters,
+  OrderStatusHistory,
+} from './entities';
+
+// --- feature 系 ---
+export type { Contract } from './features/contract';
+export type { DeliveryAddress } from './features/shipment';
+
+// --- 同名異義: 先勝ち＝現状実質挙動を固定化（実行時不変） ---
+// DashboardStats: ./portal が先（./dashboard と重複）
+// User: ./dashboard が先でかつ緩い型（auth User も構造的部分型で代入可能・新エラー最少）
+// ValidationResult: ./aiFile が先
+// ValidationError: ./multi-quantity が先
+export type { DashboardStats } from './portal';
+export type { User } from './dashboard';
+export type { ValidationResult } from './aiFile';
+export type { ValidationError } from './multi-quantity';
