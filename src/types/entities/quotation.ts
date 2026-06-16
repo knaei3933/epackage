@@ -120,6 +120,21 @@ export interface QuotationItemSpecifications {
   deliveryLocation?: string;
   distributionEnvironment?: string;
   sealWidth?: string;
+
+  // task #8: よく使われる仕様キーを型付きで追加（index signature の unknown → 具体型）
+  materialId?: string;
+  thicknessSelection?: string;
+  printingType?: string;
+  printingColors?: string | number;
+  sku_quantities?: number[];
+  pitch?: number;
+  sideWidth?: number;
+  estimateSize?: boolean | string;
+  machiPrinting?: boolean;
+  postProcessingOptions?: string[];
+
+  // index signature（DB jsonb 互換・任意キーアクセス許可・task #8 specifications union 解消）
+  [key: string]: unknown;
 }
 
 // =====================================================
@@ -172,7 +187,7 @@ export interface QuotationItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  specifications: (QuotationItemSpecifications & Partial<SpoutPouchFields>) | Json | null;
+  specifications: QuotationItemSpecifications | null;
   notes: string | null;
   display_order: number;
   created_at: string;
@@ -232,6 +247,13 @@ export interface QuotationBase {
   approved_at: string | null;
   rejected_at: string | null;
 
+  // customer 詳細（QuotationDetailClient が使用・DB/API提供想定）
+  customer_name_kana?: string | null;
+  customer_company?: string | null;
+  customer_postal_code?: string | null;
+  customer_address?: string | null;
+  customer_contact_person?: string | null;
+
   // camelCase エイリアス（member API detail / loader が実行時に提供）
   // task #8 型拡張方針: 実行時ロジック不変・TS型エラー解消のみ。snake_case が正。
   quotationNumber?: string;
@@ -249,6 +271,11 @@ export interface QuotationBase {
   sentAt?: string | null;
   approvedAt?: string | null;
   rejectedAt?: string | null;
+
+  // 追加 camelCase エイリアス（QuotationDetailClient が使用）
+  customerPhone?: string | null;
+  estimatedDeliveryDate?: string | null;
+  salesRep?: string | null;
 }
 
 /**
