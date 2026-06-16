@@ -236,7 +236,7 @@ async function saveFileRecord(
   } as unknown as Database['public']['Tables']['files']['Insert']);
 
   if (error) {
-    throw new Error(`Failed to save file record: ${error.message}`);
+    throw new Error(`Failed to save file record: ${(error as any).message}`);
   }
 
   return data as StoredFileRecord;

@@ -192,7 +192,7 @@ export function ShipmentEditModal({
       await onUpdateShipment(shipment.id, updateData);
 
       // Update delivery address if changed and order_id exists
-      const orderId = shipment.order?.id || shipment.order_id;
+      const orderId = (shipment.order as any)?.id || shipment.order_id;
       console.log('[ShipmentEditModal] Updating delivery address:', {
         shipmentId: shipment.id,
         orderId,

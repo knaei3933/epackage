@@ -264,7 +264,7 @@ function sanitizeText(content: string): string {
 /**
  * Format Japanese date
  */
-function formatDateJP(dateStr: string): string {
+export function formatDateJP(dateStr: string): string {
   const date = new Date(dateStr);
   const era = date.getFullYear() > 2019 ? '令和' : '平成';
   const year = date.getFullYear() - (date.getFullYear() > 2019 ? 2019 : 1989);
@@ -288,7 +288,7 @@ function formatCurrencyJP(amount: number): string {
  * Generate common Japanese email header
  * - Sanitizes inputs to prevent XSS attacks
  */
-function getJapaneseEmailHeader(
+export function getJapaneseEmailHeader(
   recipientName: string,
   recipientCompany?: string
 ): string {
@@ -304,7 +304,7 @@ function getJapaneseEmailHeader(
 /**
  * Generate common Japanese email footer
  */
-function getJapaneseEmailFooter(companyName = 'Epackage Lab'): string {
+export function getJapaneseEmailFooter(companyName = 'Epackage Lab'): string {
   const currentDate = new Date();
   return `
 ================================

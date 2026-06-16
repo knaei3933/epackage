@@ -149,12 +149,10 @@ const QUALITY_CHECKPOINTS_TEMPLATE: QualityCheckpoint[] = [
 
 /**
  * Type-safe insert helper for work_orders table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function insertWorkOrder(supabase: ReturnType<typeof createSupabaseClient>, data: Database['public']['Tables']['work_orders']['Insert']) {
   return supabase
     .from('work_orders')
-    // @ts-expect-error - Supabase JSONB columns need explicit type handling
     .insert(data)
     .select('*')
     .single();
@@ -162,24 +160,20 @@ function insertWorkOrder(supabase: ReturnType<typeof createSupabaseClient>, data
 
 /**
  * Type-safe update helper for orders table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function updateOrder(supabase: ReturnType<typeof createSupabaseClient>, orderId: string, data: Database['public']['Tables']['orders']['Update']) {
   return supabase
     .from('orders')
-    // @ts-expect-error - Supabase JSONB columns need explicit type handling
     .update(data)
     .eq('id', orderId);
 }
 
 /**
  * Type-safe insert helper for order_status_history table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function insertOrderStatusHistory(supabase: ReturnType<typeof createSupabaseClient>, data: Omit<Database['public']['Tables']['order_status_history']['Insert'], 'changed_at'>) {
   return supabase
     .from('order_status_history')
-    // @ts-expect-error - Supabase JSONB columns need explicit type handling
     .insert({
       ...data,
       changed_at: new Date().toISOString(),
@@ -188,12 +182,10 @@ function insertOrderStatusHistory(supabase: ReturnType<typeof createSupabaseClie
 
 /**
  * Type-safe insert helper for production_logs table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function insertProductionLog(supabase: ReturnType<typeof createSupabaseClient>, data: Omit<Database['public']['Tables']['production_logs']['Insert'], 'logged_at'>) {
   return supabase
     .from('production_logs')
-    // @ts-expect-error - Supabase JSONB columns need explicit type handling
     .insert({
       ...data,
       logged_at: new Date().toISOString(),
@@ -202,12 +194,10 @@ function insertProductionLog(supabase: ReturnType<typeof createSupabaseClient>, 
 
 /**
  * Type-safe insert helper for order_audit_log table
- * @ts-expect-error - Supabase type system limitation: .from() doesn't recognize dynamically added tables
  */
 function insertOrderAuditLog(supabase: ReturnType<typeof createSupabaseClient>, data: Omit<Database['public']['Tables']['order_audit_log']['Insert'], 'changed_at'>) {
   return supabase
     .from('order_audit_log')
-    // @ts-expect-error - Supabase JSONB columns need explicit type handling
     .insert({
       ...data,
       changed_at: new Date().toISOString(),
@@ -498,14 +488,14 @@ export async function POST(request: NextRequest) {
     // Use type-safe helper for orders update
     const { error: updateError } = await updateOrder(supabase, order_id, {
       status: 'production_start' as Database['public']['Tables']['orders']['Row']['status'],
-      current_state: 'design_received' as Database['public']['Tables']['orders']['Row']['current_state'],
+      current_state: 'design_received',
       state_metadata: {
         work_order_id: workOrder?.id,
         work_order_number: workOrderNumber,
         estimated_completion: estimatedCompletionDate,
         production_started_at: new Date().toISOString(),
-      } as Database['public']['Tables']['orders']['Insert']['state_metadata'],
-    });
+      },
+    } as any);
 
     if (updateError) {
       console.error('[Work Order] Order update error:', updateError);

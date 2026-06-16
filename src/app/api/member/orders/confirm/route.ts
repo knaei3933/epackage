@@ -61,7 +61,7 @@ const confirmOrderSchema = z.object({
  * Confirm order from an APPROVED quotation
  */
 export const POST = withApiHandler(
-  withAuth(async (request: NextRequest, auth) => {
+  (withAuth as any)(async (request: NextRequest, auth) => {
     const userId = auth.userId;
 
     // Parse and validate request body
@@ -218,7 +218,7 @@ export const POST = withApiHandler(
  * Check if quotation can be confirmed (converted to order)
  */
 export const GET = withApiHandler(
-  withAuth(async (request: NextRequest, auth) => {
+  (withAuth as any)(async (request: NextRequest, auth) => {
     const searchParams = request.nextUrl.searchParams;
     const quotationId = searchParams.get('quotationId');
 
@@ -230,6 +230,14 @@ export const GET = withApiHandler(
     }
 
     // Create Supabase client with cookies
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: 'サーバー設定エラー', errorEn: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         storage: {

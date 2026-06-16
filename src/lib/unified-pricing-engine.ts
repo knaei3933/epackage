@@ -947,8 +947,7 @@ export class UnifiedPricingEngine {
         bagTypeId,
         width,
         quantity,
-        postProcessingOptions,
-        spoutSize  // スパウトサイズ（スパウトパウチ用）
+        postProcessingOptions
       )
       console.log('[Processing Cost] Pouch: using calculatePouchProcessingCost')
     }
@@ -1791,7 +1790,7 @@ export class UnifiedPricingEngine {
       skuCostDetails: skuCostResult,
       // 필름 폭 계산 정보
       calculatedFilmWidth: skuCostResult.calculatedFilmWidth,
-      materialWidth: skuCostResult.materialWidth,
+      materialWidth: skuCostResult.materialWidth as unknown as (590 | 760),
       theoreticalMeters: skuCostResult.costPerSKU[0]?.theoreticalMeters,
       securedMeters: skuCostResult.summary.totalSecuredMeters,
       totalMeters: skuCostResult.summary.totalWithLossMeters
@@ -2215,7 +2214,7 @@ export class UnifiedPricingEngine {
         if (hasKraft) return 700;
         return hasAL ? 400 : 300;
       };
-      const lossMeters = getLossMeters(rollFilmParams.filmLayers);
+      const lossMeters = getLossMeters((rollFilmParams as any).filmLayers);
       const totalMeters = rollFilmParams.lengthInMeters + lossMeters;
 
       // ロールフィルム印刷費は幅無関係、常に475元/mで計算

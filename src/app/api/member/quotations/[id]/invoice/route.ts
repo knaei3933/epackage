@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,8 +46,10 @@ export async function POST(
     const params = await context.params;
     const { id: quotationId } = params;
 
-    // Get authenticated user
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { success: false, error: '認証されていません。', errorEn: 'Authentication required' },

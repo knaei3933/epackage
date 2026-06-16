@@ -14,6 +14,15 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
  * Helper: Get authenticated user
  */
 async function getAuthenticatedUser(request: NextRequest) {
+  // Task #27: middleware 検証済み header があれば userId を 0 RTT で返却
+  // (getAuthenticatedUserFromHeaders と同一の header 条件: id+role+status)。
+  // fallback は従来通り getUser() を実行し、認証結果（誰が認証されるか）は不変。
+  const headerUserId = request.headers.get('x-user-id');
+  const headerRole = request.headers.get('x-user-role');
+  const headerStatus = request.headers.get('x-user-status');
+  if (headerUserId && headerRole && headerStatus) {
+    return { userId: headerUserId, user: { id: headerUserId } };
+  }
   // Normal auth: Use cookie-based auth with createSupabaseSSRClient
   const { client: supabase } = await createSupabaseSSRClient(request);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -113,7 +122,7 @@ export async function POST(
         assigned_to: userId,
         photo_url: photoUrl,
         notes: notes
-      })
+      } as any)
       .select()
       .single();
 
@@ -142,7 +151,7 @@ export async function POST(
         to_status: 'PRODUCTION',
         changed_by: userId,
         reason: `生産進捗: ${subStatus} (${progressPercentage}%)`
-      });
+      } as any);
 
     return NextResponse.json({
       success: true,
@@ -199,7 +208,7 @@ export async function GET(
       .eq('id', userId)
       .single();
 
-    const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'OPERATOR';
+    const isAdmin = profile?.role === 'ADMIN' || (profile?.role as string) === 'OPERATOR';
     const isOwner = order.user_id === userId;
 
     if (!isAdmin && !isOwner) {

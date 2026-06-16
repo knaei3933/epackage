@@ -11,6 +11,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
+/**
+ * production_orders テーブルの Row 型。
+ * 注: production_orders テーブルは Database 型に未定義のため、
+ * 使用フィールドに基づき最小限の Row 型を定義。
+ */
+interface ProductionJobRow {
+  id: string;
+  current_stage?: string;
+  started_at?: string | null;
+  actual_completion_date?: string | null;
+  progress_percentage?: number | null;
+  updated_at?: string;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -98,7 +112,7 @@ export async function POST(
   } catch (error: unknown) {
     console.error('Error updating production status:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update production status' },
+      { error: (error as Error).message || 'Failed to update production status' },
       { status: 500 }
     );
   }
@@ -161,7 +175,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error fetching production order:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch production order' },
+      { error: (error as Error).message || 'Failed to fetch production order' },
       { status: 500 }
     );
   }

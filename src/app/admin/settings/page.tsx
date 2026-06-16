@@ -23,7 +23,7 @@ async function SettingsContent() {
     redirect('/auth/signin?redirect=/admin/settings');
   }
 
-  return <AdminSettingsClient authContext={authContext} />;
+  return <AdminSettingsClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminSettingsPage() {

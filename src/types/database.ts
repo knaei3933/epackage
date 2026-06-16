@@ -125,8 +125,44 @@ export interface ProductPackagingInfo {
     weight?: string
 }
 
-export interface Product {
+/**
+ * Partial Product interface for static catalog data (without timestamps).
+ * Used by catalog client components that consume static product data
+ * via getAllProducts() and similar static-data helpers.
+ */
+export interface ProductBase {
     id: string
+    name?: string
+    name_ja?: string
+    name_en?: string
+    name_ko?: string
+    category?: string
+    description?: string | null
+    description_ja?: string | null
+    description_en?: string | null
+    description_ko?: string | null
+    specifications?: Json
+    materials?: string[]
+    image?: string | null
+    pricing_formula?: Json
+    min_order_quantity?: number
+    lead_time_days?: number
+    sort_order?: number
+    is_active?: boolean
+    tags?: string[]
+    applications?: string[]
+    features?: string[]
+    faq?: ProductFAQ[]
+    downloads?: ProductDownload[]
+    related_case_studies?: string[]
+    certifications?: ProductCertification[]
+    technical_diagrams?: ProductTechnicalDiagram[]
+    reviews?: ProductReview[]
+    customization_options?: ProductCustomizationOption[]
+    packaging_info?: ProductPackagingInfo
+}
+
+export interface Product extends ProductBase {
     category: 'flat_3_side' | 'stand_up' | 'gusset' | 'box' | 'flat_with_zip' | 'special' | 'soft_pouch' | 'spout_pouch' | 'roll_film'
     name_ja: string
     name_en: string
@@ -356,6 +392,10 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                // task #8 第5段階: postgrest-js v1.19+ の select 型推論が
+                // Relationships 未定義テーブルを SelectQueryError→never に短絡する問題の回避。
+                // 空配列で `[] extends GenericRelationship[]` = true とし ProcessNodes を有効化。
+                Relationships: []
             }
 
             // Orders table
@@ -387,6 +427,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Order items table
@@ -405,6 +446,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['order_items']['Row']>
+                Relationships: []
             }
 
             // Delivery addresses table
@@ -426,6 +468,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['delivery_addresses']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['delivery_addresses']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Billing addresses table
@@ -448,6 +491,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['billing_addresses']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['billing_addresses']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Quotations table - B2B拡張 (Extended for B2B)
@@ -484,6 +528,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['quotations']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['quotations']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Quotation items table - B2B拡張 (Extended for B2B)
@@ -504,6 +549,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['quotation_items']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['quotation_items']['Row']>
+                Relationships: []
             }
 
             // Sample requests table
@@ -522,6 +568,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['sample_requests']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['sample_requests']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Sample items table
@@ -537,6 +584,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['sample_items']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['sample_items']['Row']>
+                Relationships: []
             }
 
             // Inquiries table (extended for contact form)
@@ -572,6 +620,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['inquiries']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['inquiries']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Announcements table
@@ -589,6 +638,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['announcements']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['announcements']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Legacy table (kept for compatibility - not in Supabase)
@@ -626,6 +676,7 @@ export type Database = {
                     position?: string | null
                     industry?: string | null
                 }
+                Relationships: []
             }
 
             // Additional table for quotation requests (not in Supabase yet)
@@ -681,6 +732,7 @@ export type Database = {
                     created_at?: string
                     updated_at?: string
                 }
+                Relationships: []
             }
 
             // ============================================================
@@ -703,6 +755,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['companies']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['companies']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Contracts table - 契約書管理 (Enhanced for Japan e-Signature Law)
@@ -744,6 +797,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['contracts']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['contracts']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Work Orders table - 作業標準書
@@ -770,6 +824,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['work_orders']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['work_orders']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Production Logs table - 生産進捗ログ
@@ -789,6 +844,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['production_logs']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['production_logs']['Row']>
+                Relationships: []
             }
 
             // Files table - ファイル管理
@@ -823,6 +879,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>
                 Update: Partial<Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>>
+                Relationships: []
             }
 
             // Design Revisions table - デザイン修正・承認管理
@@ -865,6 +922,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['design_revisions']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Customer File Submissions table - カスタマーファイル提出管理 (Design Revision Workflow v2)
@@ -888,6 +946,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['customer_file_submissions']['Row'], 'id' | 'uploaded_at'>
                 Update: Partial<Database['public']['Tables']['customer_file_submissions']['Row']>
+                Relationships: []
             }
 
             // Revision Notifications table - リビジョン通知管理 (Design Revision Workflow v2)
@@ -907,6 +966,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['revision_notifications']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['revision_notifications']['Row']>
+                Relationships: []
             }
 
             // Order Status History table - ステータス変更履歴
@@ -923,6 +983,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['order_status_history']['Row'], 'id' | 'changed_at'>
                 Update: Partial<Database['public']['Tables']['order_status_history']['Row']>
+                Relationships: []
             }
 
             // Order Audit Log table - 監査ログ
@@ -942,6 +1003,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['order_audit_log']['Row'], 'id' | 'changed_at'>
                 Update: Partial<Database['public']['Tables']['order_audit_log']['Row']>
+                Relationships: []
             }
 
             // ============================================================
@@ -978,6 +1040,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['products']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['products']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Inventory table - 在庫管理 (Inventory Management)
@@ -997,6 +1060,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['inventory']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['inventory']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Inventory transactions table - 在庫移動履歴 (Inventory Transaction History)
@@ -1021,6 +1085,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['inventory_transactions']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['inventory_transactions']['Row']>
+                Relationships: []
             }
 
             // Production jobs table - 生産ジョブ (Production Jobs)
@@ -1063,6 +1128,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['production_jobs']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['production_jobs']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Production data table - データ入稿 (Data Received)
@@ -1096,6 +1162,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['production_data']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['production_data']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Spec sheets table - 仕様書 (Specification Sheets)
@@ -1125,6 +1192,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['spec_sheets']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['spec_sheets']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Spec sections table - 仕様書セクション (Spec Sections)
@@ -1145,6 +1213,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['spec_sections']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['spec_sections']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Shipments table - 出荷管理 (Shipment Management)
@@ -1178,6 +1247,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['shipments']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['shipments']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Shipment tracking table - 配送追跡 (Shipment Tracking)
@@ -1196,6 +1266,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['shipment_tracking']['Row'], 'id' | 'received_at'>
                 Update: Partial<Database['public']['Tables']['shipment_tracking']['Row']>
+                Relationships: []
             }
 
             // Company invitations table - 会社招待管理 (Company Invitations)
@@ -1217,6 +1288,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['company_invitations']['Row'], 'id' | 'created_at'>
                 Update: Partial<Omit<Database['public']['Tables']['company_invitations']['Row'], 'id' | 'created_at'>>
+                Relationships: []
             }
 
             // ============================================================
@@ -1251,6 +1323,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['signatures']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['signatures']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Signature Events table - 署名イベント監査ログ (Signature Audit Trail)
@@ -1265,6 +1338,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['signature_events']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['signature_events']['Row']>
+                Relationships: []
             }
 
             // Hanko Images table - はんこ画像 (Japanese Seal Images)
@@ -1284,6 +1358,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['hanko_images']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['hanko_images']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Web Vitals table - Webパフォーマンス指標
@@ -1302,6 +1377,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['web_vitals']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['web_vitals']['Row']>
+                Relationships: []
             }
 
             // Audit Logs table - 監査ログ (Audit Logs for Electronic Signature System)
@@ -1329,6 +1405,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['audit_logs']['Row']>
+                Relationships: []
             }
 
             // Customer Notifications table - カスタマー通知 (Customer Notifications)
@@ -1356,6 +1433,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['customer_notifications']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['customer_notifications']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Payment Confirmations table - 支払確認 (Task 108)
@@ -1375,6 +1453,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['payment_confirmations']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['payment_confirmations']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // ============================================================
@@ -1399,6 +1478,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['system_settings']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['system_settings']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Coupons table - 쿠폰 관리
@@ -1429,6 +1509,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['coupons']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['coupons']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
             }
 
             // Coupon Usage table - 쿠폰 사용 기록
@@ -1446,6 +1527,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['coupon_usage']['Row'], 'id' | 'used_at'>
                 Update: Partial<Database['public']['Tables']['coupon_usage']['Row']>
+                Relationships: []
             }
 
             // ============================================================
@@ -1467,6 +1549,7 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>
                 Update: Partial<Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>>
+                Relationships: []
             }
 
             // Designer Task Assignments table - デザイナータスク割り当て
@@ -1489,13 +1572,47 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>
                 Update: Partial<Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>>
+                Relationships: []
             }
         }
         Views: {
             [_ in never]: never
         }
         Functions: {
-            [_ in never]: never
+            // task #8 Phase 2: .rpc() で呼ばれる関数の型定義（never 型短絡を解消）。
+            // 本番DB未存在の関数も含む。実行時の存在・スキーマ整合は Task #20 で別途対応。
+
+            // 注文作成（quotation → order）。本番DB未適用（Task #20）。
+            create_order_from_quotation: {
+                Args: {
+                    p_quotation_id: string
+                    p_user_id: string
+                    p_order_number: string | null
+                }
+                Returns: {
+                    success: boolean
+                    order_id: string | null
+                    order_number: string | null
+                    error_message: string | null
+                }[]
+            }
+
+            // メンバーダッシュボード統計（本番DB定義あり、SETOF TABLE(...)）
+            get_dashboard_stats: {
+                Args: {
+                    p_user_id?: string
+                    p_is_admin?: boolean
+                }
+                Returns: {
+                    total_orders: number
+                    pending_orders: number
+                    completed_orders: number
+                    total_quotations: number
+                    pending_quotations: number
+                    total_samples: number
+                    processing_samples: number
+                }[]
+            }
         }
         Enums: {
             // Business types

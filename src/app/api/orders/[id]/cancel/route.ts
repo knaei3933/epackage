@@ -38,7 +38,10 @@ interface CancelOrderRequest {
 // Constants: Cancellable statuses
 // ============================================================
 
-const CANCELLABLE_STATUSES: OrderStatus[] = [
+// 注: 配列要素はDB内で新旧ステータス値が混在するため string 型で保持。
+// OrderStatus 型には古い設計値(PENDING/QUOTATION 等)が存在しないため、
+// 型を壊さず新旧両方を受け入れるため string[] とする（実行時ロジック不変）。
+const CANCELLABLE_STATUSES: string[] = [
   'PENDING',
   'QUOTATION',
   'DATA_RECEIVED',
@@ -163,7 +166,9 @@ export async function POST(
     const cancelledState = mapOrderStatusToState('CANCELLED');
 
     // Verify status is in cancellable list
-    const normalizedStatus = order.status?.toUpperCase() as OrderStatus;
+    // 注: DB内 status は新旧値が混在するため、OrderStatus 型に依存せず
+    // string として比較する（実行時ロジック・分岐条件は不変）。
+    const normalizedStatus = (order.status as unknown as string)?.toUpperCase();
     if (!CANCELLABLE_STATUSES.includes(normalizedStatus)) {
       return NextResponse.json(
         {

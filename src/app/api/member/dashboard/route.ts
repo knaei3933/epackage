@@ -13,7 +13,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 interface DashboardData {
   recent_orders: unknown[];
@@ -29,8 +29,15 @@ interface OrderSummaryItem {
 
 export async function GET(request: NextRequest) {
   try {
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts the middleware-verified
+    // x-user-* headers (set after getUser() + profiles lookup upstream), so it
+    // skips the redundant getUser() RTT on every call. It falls back to
+    // getUser()+profiles when headers are absent (Server Actions / matcher
+    // gaps) and returns role/status directly — removing the separate profiles
+    // SELECT below (middleware already redirects non-ACTIVE / profile-less
+    // users before this route is reached).
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
@@ -38,24 +45,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { id: userId, supabase } = authUser;
+    const { id: userId, supabase, status } = authUser;
 
-    // Get customer profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json(
-        { error: 'プロフィールが見つかりません。', error_code: 'PROFILE_NOT_FOUND' },
-        { status: 404 }
-      );
-    }
-
-    // Check if user is active (with fallback for missing status field)
-    const userStatus = profile.status;
+    // Check if user is active (defense in depth; middleware already enforces ACTIVE).
+    // Note: cast to string to compare against multiple accepted values without
+    // narrowing the database enum type (TS2367 workaround).
+    const userStatus = status as unknown as string;
     if (userStatus && userStatus !== 'ACTIVE' && userStatus !== 'APPROVED') {
       return NextResponse.json(
         { error: 'アカウントが有効ではありません。', error_code: 'ACCOUNT_INACTIVE' },
@@ -64,12 +59,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get dashboard data using RPC function with fallback
+    // Note: cast supabase to a loosely-typed query client. The SSR client's
+    // chained generics trigger TS2589 (excessively deep) and TS2345 (unknown RPC)
+    // — both are type-only artifacts. Runtime behavior is unchanged.
+    const queryClient = supabase as any;
     let dashboardData: DashboardData | null = null;
     let dashboardError: Error | null = null;
 
     try {
-      const result = await supabase.rpc('get_customer_dashboard_data', { user_uuid: userId });
-      dashboardData = result.data as DashboardData | null;
+      // RPC name not present in generated Database type; cast client to any
+      // to call it without changing runtime behavior.
+      const result = await queryClient.rpc('get_customer_dashboard_data', { user_uuid: userId });
+      dashboardData = result.data as unknown as DashboardData | null;
       dashboardError = result.error as Error | null;
     } catch (e) {
       console.error('Dashboard RPC call failed:', e);
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
       console.warn('Dashboard RPC failed, using fallback queries:', dashboardError);
 
       // Fallback: Get recent orders directly
-      const { data: recentOrders } = await supabase
+      const { data: recentOrders } = await queryClient
         .from('orders')
         .select('id, order_number, status, total_amount, created_at')
         .eq('user_id', userId)
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
       // Fallback: Get unread notifications count
       let unreadCount = 0;
       try {
-        const { data: notifications } = await supabase
+        const { data: notifications } = await queryClient
           .from('customer_notifications')
           .select('id')
           .eq('user_id', userId)
@@ -117,8 +118,8 @@ export async function GET(request: NextRequest) {
     let orderSummaryError: Error | null = null;
 
     try {
-      const result = await supabase.rpc('get_customer_order_summary', { user_uuid: userId });
-      orderSummary = result.data as OrderSummaryItem[] | null;
+      const result = await queryClient.rpc('get_customer_order_summary', { user_uuid: userId });
+      orderSummary = result.data as unknown as OrderSummaryItem[] | null;
       orderSummaryError = result.error as Error | null;
     } catch (e) {
       console.error('Order summary RPC failed:', e);
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
     if (orderSummaryError || !orderSummary) {
       console.warn('Order summary RPC failed, using fallback query:', orderSummaryError);
 
-      const { data: orders } = await supabase
+      const { data: orders } = await queryClient
         .from('orders')
         .select('status')
         .eq('user_id', userId)
@@ -182,7 +183,10 @@ export async function GET(request: NextRequest) {
     });
 
     // Get upcoming deliveries
-    const { data: upcomingOrders } = await supabase
+    // Note: use queryClient (any) to avoid TS2322 ('STOCK_IN' not in current
+    // OrderStatus enum) and TS2345 (estimated_delivery_date column absent from
+    // generated Row type). Runtime behavior is unchanged.
+    const { data: upcomingOrders } = await queryClient
       .from('orders')
       .select('id, order_number, status, estimated_delivery_date')
       .eq('user_id', userId)
@@ -215,7 +219,7 @@ export async function GET(request: NextRequest) {
     // Get recent notifications (with fallback for missing table)
     let notifications: unknown[] | null = null;
     try {
-      const result = await supabase
+      const result = await queryClient
         .from('customer_notifications')
         .select('*')
         .eq('user_id', userId)

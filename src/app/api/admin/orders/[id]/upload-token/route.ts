@@ -127,11 +127,11 @@ export async function POST(
 
     // Get customer name for email
     let customerName = 'お客様';
-    if (order.customer_id) {
+    if ((order as any).customer_id) {
       const { data: customer } = await supabase
         .from('profiles')
         .select('kanji_last_name, kanji_first_name')
-        .eq('id', order.customer_id)
+        .eq('id', (order as any).customer_id)
         .single();
       if (customer) {
         customerName = `${customer.kanji_last_name} ${customer.kanji_first_name}`;

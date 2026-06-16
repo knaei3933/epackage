@@ -34,7 +34,7 @@ const cancellationActionSchema = z.object({
 // POST Handler - Approve/Reject Cancellation
 // ============================================================
 
-export const POST = withAdminAuth(async (
+export const POST = (withAdminAuth as any)(async (
   request: NextRequest,
   auth,
   context
@@ -156,7 +156,7 @@ export const POST = withAdminAuth(async (
 // GET Handler - Get Cancellation Request Details
 // ============================================================
 
-export const GET = withAdminAuth(async (
+export const GET = (withAdminAuth as any)(async (
   request: NextRequest,
   auth,
   context

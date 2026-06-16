@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getUnifiedDashboardStats,
 } from '@/lib/dashboard';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,19 +31,18 @@ export async function GET(request: NextRequest) {
       ? parseInt(searchParams.get('period')!)
       : 30;
 
-    // Cookie-based authentication (primary method)
-    // getAuthenticatedUser handles DEV_MODE fallback automatically
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream: ADMIN+ACTIVE), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
 
-    if (!authUser || !authUser.id) {
+    if (!authUser) {
       console.warn('[API] Admin dashboard stats: Unauthorized');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-
-    console.log('[API] Admin dashboard stats: User authenticated:', authUser.id);
 
     // 統計取得
     const stats = await getUnifiedDashboardStats(

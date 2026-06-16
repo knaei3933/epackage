@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import EnvelopePreview from '../EnvelopePreview';
+import EnvelopePreview from '../previews/EnvelopePreview';
 
 // Mock DOMPurify
 jest.mock('dompurify', () => ({

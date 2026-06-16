@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const recipientType = body.recipientType || 'member';
 
-    const service = createNotificationService();
+    const service = await createNotificationService();
     await service.markAllAsRead(userId || 'dev-mock-user', recipientType);
 
     return NextResponse.json({ success: true });

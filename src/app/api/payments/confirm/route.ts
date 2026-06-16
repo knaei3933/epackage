@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: authResult.error || 'Authentication failed',
-        } as PaymentConfirmationResponse,
+        } as unknown as PaymentConfirmationResponse,
         { status: 401 }
       );
     }
@@ -137,12 +137,12 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Validation failed',
           errors: errors.map(e => `${e.field}: ${e.message}`).join(', '),
-        } as PaymentConfirmationResponse,
+        } as unknown as PaymentConfirmationResponse,
         { status: 400 }
       );
     }
 
-    const paymentData: PaymentConfirmationRequest = validationResult.data;
+    const paymentData = validationResult.data as PaymentConfirmationRequest;
 
     // Additional business logic validation
     const businessValidation = validatePaymentConfirmation(paymentData);
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Validation failed',
           errors: businessValidation.errors.map(e => `${e.field}: ${e.message}`).join(', '),
-        } as PaymentConfirmationResponse,
+        } as unknown as PaymentConfirmationResponse,
         { status: 400 }
       );
     }
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
             confirmation_id: existingConfirmation.id,
             order_id: existingConfirmation.order_id || undefined,
             message: 'Payment already confirmed (idempotent request)',
-          } as PaymentConfirmationResponse,
+          } as unknown as PaymentConfirmationResponse,
           { status: 200 }
         );
       }
@@ -414,7 +414,7 @@ async function sendPaymentConfirmationEmail(
   paymentData: PaymentConfirmationRequest
 ): Promise<void> {
   // Import email library
-  const { sendEmail } = await import('@/lib/email');
+  const { sendEmail } = await import('@/lib/email/notificationService');
 
   // Fetch order details
   const cookieStore = await cookies();
@@ -471,7 +471,7 @@ async function sendPaymentConfirmationEmail(
     to: order.customer_email,
     subject: `【Epackage Lab】入金確認 (${orderNumber})`,
     html: htmlContent,
-  });
+  } as any);
 }
 
 // ============================================================

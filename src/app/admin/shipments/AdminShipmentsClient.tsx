@@ -683,7 +683,7 @@ export default function AdminShipmentsClient() {
               {/* Tracking Timeline */}
               <div>
                 <h3 className="font-medium mb-4">追跡履歴</h3>
-                <TrackingTimeline events={selectedShipment.tracking_history || []} />
+                <TrackingTimeline events={selectedShipment.tracking_history || []} currentStatus={selectedShipment.status as ShipmentStatus} />
               </div>
             </div>
           </div>

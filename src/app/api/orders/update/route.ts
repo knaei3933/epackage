@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     if (deliveryAddress) {
       const addressResult = await updateOrderDeliveryAddress(
         orderId,
-        deliveryAddress
+        deliveryAddress as any
       )
 
       if (addressResult.error) {

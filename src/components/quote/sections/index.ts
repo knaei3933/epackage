@@ -10,7 +10,7 @@ export type { QuoteSimulatorHeaderProps, TrustIndicator } from './QuoteSimulator
 export { QuickActionsSection } from './QuickActionsSection';
 
 export { BasicInfoSection } from './BasicInfoSection';
-export type { BagTypeOption } from './BasicInfoSection';
+export type { BagTypeOption } from '@/types/quote-wizard';
 
 export { SizeSpecification } from './SizeSpecification';
 

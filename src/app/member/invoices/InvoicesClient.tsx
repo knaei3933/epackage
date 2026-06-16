@@ -399,7 +399,7 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
                         </span>
                         <StatusBadge status={invoice.status} />
                         {isOverdue && (
-                          <Badge variant="danger" className="animate-pulse">
+                          <Badge variant={"danger" as any} className="animate-pulse">
                             <AlertCircle className="w-3 h-3 mr-1" />
                             支払期限超過
                           </Badge>

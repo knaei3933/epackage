@@ -774,7 +774,7 @@ export async function getOrderStats(): Promise<Record<OrderStatus, number>> {
   if (error) throw error;
 
   // Initialize stats with all possible OrderStatus values
-  const stats: Record<OrderStatus, number> = {
+  const stats: Record<string, number> = {
     PENDING: 0,
     QUOTATION: 0,
     DATA_RECEIVED: 0,

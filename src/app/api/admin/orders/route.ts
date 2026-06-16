@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,18 +84,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: data || [], total: count || 0 });
     }
 
-    // Standard authentication flow
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream: ADMIN+ACTIVE), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    // NOTE: role 認可は引き続き下の profiles SELECT で検証（認可ロジック不変）。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
 
-    if (!authUser || !authUser.id) {
+    if (!authUser) {
       console.warn('[API] Admin orders: Unauthorized');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-
-    console.log('[API] Admin orders: User authenticated:', authUser.id);
 
     // Get service role client for RLS bypass
     const { createClient: createServiceClient } = await import('@supabase/supabase-js');

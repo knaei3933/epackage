@@ -11,12 +11,48 @@
  */
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 
-// PDFライブラリを動的import - ボタンクリック時のみロード（+80KB節約）
-const jsPDF = dynamic(() => import('jspdf').then(mod => ({ default: mod.default || mod })), { ssr: false })
-const html2canvas = dynamic(() => import('html2canvas').then(mod => ({ default: mod.default || mod })), { ssr: false })
-const DOMPurify = dynamic(() => import('dompurify').then(mod => ({ default: mod.default || mod })), { ssr: false })
+// PDFライブラリを遅延ロード - ボタンクリック時のみロード（+80KB節約）。
+// next/dynamic はコンポーネント用のため、ここではモジュール遅延 import を使用。
+type JsPDFConstructor = new (options?: Record<string, unknown>) => {
+  addImage: (...args: unknown[]) => void
+  save: (filename: string) => void
+}
+type Html2CanvasFn = (
+  element: HTMLElement,
+  options?: Record<string, unknown>
+) => Promise<HTMLCanvasElement>
+type DOMPurifyFn = {
+  sanitize: (html: string, config?: Record<string, unknown>) => string
+}
+
+let _jsPDF: JsPDFConstructor | null = null
+let _html2canvas: Html2CanvasFn | null = null
+let _DOMPurify: DOMPurifyFn | null = null
+
+async function loadJsPDF(): Promise<JsPDFConstructor> {
+  if (!_jsPDF) {
+    const mod = await import('jspdf')
+    _jsPDF = (mod.default || mod) as JsPDFConstructor
+  }
+  return _jsPDF
+}
+
+async function loadHtml2Canvas(): Promise<Html2CanvasFn> {
+  if (!_html2canvas) {
+    const mod = await import('html2canvas')
+    _html2canvas = (mod.default || mod) as Html2CanvasFn
+  }
+  return _html2canvas
+}
+
+async function loadDOMPurify(): Promise<DOMPurifyFn> {
+  if (!_DOMPurify) {
+    const mod = await import('dompurify')
+    _DOMPurify = (mod.default || mod) as DOMPurifyFn
+  }
+  return _DOMPurify
+}
 
 import { Button } from '@/components/ui/Button'
 import { getOrdersForExport } from '@/lib/supabase-mcp'
@@ -396,6 +432,7 @@ export function OrderHistoryPDFButton({
         container.style.margin = '0'
 
         // HTMLをセット（サニタイズ）
+        const DOMPurify = await loadDOMPurify()
         container.innerHTML = DOMPurify.sanitize(html, {
           ALLOWED_TAGS: [
             'div', 'span', 'p', 'br', 'strong', 'em', 'b', 'i', 'u',
@@ -414,6 +451,7 @@ export function OrderHistoryPDFButton({
         await new Promise(resolve => setTimeout(resolve, 500))
 
         // キャプチャ
+        const html2canvas = await loadHtml2Canvas()
         const canvas = await html2canvas(container, {
           scale: 2,
           useCORS: true,
@@ -438,7 +476,8 @@ export function OrderHistoryPDFButton({
         const contentWidth = a4Width - marginLeft - marginRight
         const contentHeight = a4Height - marginTop - marginBottom
 
-        const doc = new jsPDF({
+        const JsPDFConstructor = await loadJsPDF()
+        const doc = new JsPDFConstructor({
           orientation: 'portrait',
           unit: 'mm',
           format: 'a4',

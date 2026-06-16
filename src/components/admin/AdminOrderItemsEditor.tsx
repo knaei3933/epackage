@@ -316,19 +316,19 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
   const updateSpec = (key: string, value: any) => {
     const updated = { ...localSpecs, [key]: value };
     setLocalSpecs(updated);
-    onEditChange(updated, localQuantity, localUnitPrice);
+    onEditChange(localProductName, updated, localQuantity, localUnitPrice);
   };
 
   const updateQuantity = (value: string) => {
     const num = parseInt(value) || 0;
     setLocalQuantity(num);
-    onEditChange(localSpecs, num, localUnitPrice);
+    onEditChange(localProductName, localSpecs, num, localUnitPrice);
   };
 
   const updateUnitPrice = (value: string) => {
     const num = parseInt(value) || 0;
     setLocalUnitPrice(num);
-    onEditChange(localSpecs, localQuantity, num);
+    onEditChange(localProductName, localSpecs, localQuantity, num);
   };
 
   const togglePostProcessing = (option: string) => {
@@ -362,7 +362,7 @@ function OrderItemEditRow({ item, isEditing, onEditChange }: OrderItemEditRowPro
                 placeholder="商品名を入力"
               />
             ) : (
-              <p className="font-medium text-text-primary truncate">{localProductName || productName}</p>
+              <p className="font-medium text-text-primary truncate">{localProductName || originalProductName}</p>
             )}
             {isEditing ? (
               <div className="flex items-center gap-3 mt-1 text-sm">
@@ -1022,7 +1022,7 @@ export function AdminOrderItemsEditor({ order, editable = false, onUpdate }: Adm
             key={item.id}
             item={item}
             isEditing={isEditing}
-            onEditChange={(specs, qty, price) => handleItemChange(item.id, specs, qty, price)}
+            onEditChange={(productName, specs, qty, price) => handleItemChange(item.id, productName, specs, qty, price)}
           />
         ))}
       </div>

@@ -24,13 +24,13 @@ const CONTRACT_TEMPLATE_PATH = path.join(
   'contract_ja_kanei_trade_improved.html'
 );
 
-const DEFAULT_CONTRACT_PDF_OPTIONS: Required<PdfGenerationOptions> = {
+const DEFAULT_CONTRACT_PDF_OPTIONS = {
   format: 'A4',
   orientation: 'portrait',
   displayHeaderFooter: false,
   printBackground: true,
   outputPath: '',
-};
+} as Required<PdfGenerationOptions>;
 
 // ============================================================
 // Contract PDF Generator Class
@@ -234,7 +234,7 @@ export function validateContractData(
   data: ContractData
 ): { isValid: boolean; errors: string[] } {
   const generator = new ContractPdfGenerator();
-  return generator.validateData(data);
+  return (generator as any).validateData(data);
 }
 
 /**
@@ -243,7 +243,7 @@ export function validateContractData(
  */
 export function estimateContractPdfSize(data: ContractData): number {
   const generator = new ContractPdfGenerator();
-  return generator.estimateSize(data);
+  return (generator as any).estimateSize(data);
 }
 
 /**

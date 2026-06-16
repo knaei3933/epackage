@@ -700,7 +700,7 @@ class LocalSignatureProvider implements ISignatureProvider {
       return {
         envelopeId: (data as { id: string }).id,
         status: (data as { status: SignatureStatus }).status,
-        signers: (data as { signers?: unknown[] }).signers || [],
+        signers: ((data as { signers?: unknown[] }).signers || []) as any,
         createdAt: (data as { created_at: string }).created_at,
         expiresAt: (data as { expires_at?: string }).expires_at,
         completedAt: (data as { signed_at?: string }).signed_at,

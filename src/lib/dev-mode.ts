@@ -76,7 +76,7 @@ export function isDevMode(): boolean {
  * ```
  */
 export function createMockUser(overrides: Partial<User> = {}): User {
-  const { UserRole, UserStatus } = require('@/types/auth');
+  const { UserRole, UserStatus, BusinessType, ProductCategory } = require('@/types/auth');
 
   const defaultUser: User = {
     id: DEV_MODE_USER_ID,
@@ -88,13 +88,13 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     kanaFirstName: 'タロウ',
     corporatePhone: '03-1234-5678',
     personalPhone: '090-1234-5678',
-    businessType: 'CORPORATION',
+    businessType: BusinessType.CORPORATION,
     companyName: '開発株式会社',
     legalEntityNumber: '1234567890123',
     position: '開発担当',
     department: '技術部',
     companyUrl: 'https://dev-example.com',
-    productCategory: 'COSMETICS',
+    productCategory: ProductCategory.COSMETICS,
     acquisitionChannel: 'Web',
     postalCode: '100-0001',
     prefecture: '東京都',
@@ -151,12 +151,19 @@ export function createMockProfile(overrides: Partial<Profile> = {}): Profile {
     building: '東京駅前ビル10F',
     role: 'MEMBER',
     status: 'ACTIVE',
+    designer_name_ko: null,
+    designer_name_en: null,
+    preferred_language: 'ja',
+    notification_settings: null,
     founded_year: '2020',
     capital: '10,000,000円',
     representative_name: '開発 次郎',
     business_document_path: '/dev/business.pdf',
     verification_token: null,
     verification_expires_at: null,
+    settings: null,
+    markup_rate: 0.5,
+    markup_rate_note: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     last_login_at: new Date().toISOString(),
@@ -182,6 +189,7 @@ export function createMockProfile(overrides: Partial<Profile> = {}): Profile {
 export function createMockRegistrationData(
   overrides: Partial<RegistrationFormData> = {}
 ): RegistrationFormData {
+  const { BusinessType, ProductCategory } = require('@/types/auth');
   const defaultData: RegistrationFormData = {
     // Authentication
     email: 'dev@example.com',
@@ -199,7 +207,7 @@ export function createMockRegistrationData(
     personalPhone: '090-1234-5678',
 
     // Business type
-    businessType: 'CORPORATION',
+    businessType: BusinessType.CORPORATION,
 
     // Company information
     companyName: '開発株式会社',
@@ -209,7 +217,7 @@ export function createMockRegistrationData(
     companyUrl: 'https://dev-example.com',
 
     // Product category
-    productCategory: 'COSMETICS',
+    productCategory: ProductCategory.COSMETICS,
 
     // Acquisition channel
     acquisitionChannel: 'Web',

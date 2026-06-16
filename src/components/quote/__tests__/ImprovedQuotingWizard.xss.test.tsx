@@ -10,7 +10,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { useMultiQuantityQuote } from '../../ImprovedQuotingWizard';
+import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 
 // Mock DOMPurify
 jest.mock('dompurify', () => ({

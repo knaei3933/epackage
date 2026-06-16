@@ -8,7 +8,8 @@
  */
 
 import { readFile } from 'fs/promises';
-import pdfParse from 'pdf-parse';
+// @ts-ignore: pdf-parse@1.1.1 has no bundled type declarations; import lib directly to skip index.js isDebugMode block
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import type {
   AiFileData,
   Dimensions,
@@ -79,7 +80,7 @@ export async function parseAiFile(
 
   try {
     // PDFベースのAIファイルとして解析
-    const pdfData = await (pdf as any).default(fileBuffer);
+    const pdfData = await (pdfParse as any)(fileBuffer);
 
     // 基本メタデータの抽出
     const version = extractAiVersion(pdfData);
@@ -203,7 +204,7 @@ export async function validateAiFile(
   // バージョン検証（オプション）
   if (opts.allowedVersions && opts.allowedVersions.length > 0) {
     try {
-      const pdfData = await (pdf as any).default(buffer);
+      const pdfData = await (pdfParse as any)(buffer);
       const version = extractAiVersion(pdfData);
       const majorVersion = version.split(/[0-9]/)[0];
 

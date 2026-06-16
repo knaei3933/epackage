@@ -25,8 +25,7 @@ async function QuotationsContent({ searchParams }: { searchParams: { status?: st
   // Pass auth context to client component for API calls
   return (
     <AdminQuotationsClient
-      authContext={authContext}
-      initialStatus={initialStatus}
+      {...({ authContext, initialStatus } as any)}
     />
   );
 }

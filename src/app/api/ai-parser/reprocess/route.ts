@@ -134,7 +134,6 @@ async function processBatch(
       // Update status to processing
       await supabase
         .from('files')
-        // @ts-expect-error - Supabase JSONB columns need explicit type handling
         .update({
           ai_extraction_status: 'processing',
           metadata: {
@@ -175,7 +174,6 @@ async function processBatch(
       // Update file record
       await supabase
         .from('files')
-        // @ts-expect-error - Supabase JSONB columns need explicit type handling
         .update({
           ai_extraction_status: result.status,
           ai_extraction_data: result.data as unknown as { [key: string]: unknown },

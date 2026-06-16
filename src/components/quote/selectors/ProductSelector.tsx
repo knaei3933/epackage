@@ -314,7 +314,7 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                       specifications: {
                                         ...product.specifications,
                                         width: parseInt(e.target.value) || 0
-                                      }
+                                      } as ProductFormData['specifications']
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -333,7 +333,7 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                       specifications: {
                                         ...product.specifications,
                                         height: parseInt(e.target.value) || 0
-                                      }
+                                      } as ProductFormData['specifications']
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -352,7 +352,7 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                       specifications: {
                                         ...product.specifications,
                                         thickness: parseInt(e.target.value) || 0
-                                      }
+                                      } as ProductFormData['specifications']
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -370,7 +370,7 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                       specifications: {
                                         ...product.specifications,
                                         materialType: e.target.value as ProductFormData['specifications']['materialType']
-                                      }
+                                      } as ProductFormData['specifications']
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
@@ -394,7 +394,7 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
                                       specifications: {
                                         ...product.specifications,
                                         printingColors: parseInt(e.target.value) || 0
-                                      }
+                                      } as ProductFormData['specifications']
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"

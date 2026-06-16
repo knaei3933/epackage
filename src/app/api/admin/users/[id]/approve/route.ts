@@ -75,7 +75,7 @@ async function sendApprovalEmail(
 ): Promise<void> {
   try {
     const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
-    const { sendCustomEmail } = await import('@/lib/email');
+    const { sendCustomEmail } = (await import('@/lib/email')) as any;
 
     if (status === 'approved') {
       // Import user approved template

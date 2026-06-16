@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[Sample Request API] Creating sample request record...');
 
-    const sampleRequestInsert: Database['public']['Tables']['sample_requests']['Insert'] = {
+    const sampleRequestInsert = {
       user_id: userId,
       request_number: requestId,
       status: 'received',
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       shipped_at: null
-    };
+    } as Database['public']['Tables']['sample_requests']['Insert'];
 
     // Use Supabase client to insert (simpler than raw SQL for INSERT with RETURNING)
     const { data: savedSampleRequest, error: sampleRequestError } = await insertSampleRequest(
@@ -229,14 +229,14 @@ export async function POST(request: NextRequest) {
     console.log('[Sample Request API] Inserting sample items...');
 
     for (const sample of validatedData.samples) {
-      const sampleItemInsert: Database['public']['Tables']['sample_items']['Insert'] = {
+      const sampleItemInsert = {
         sample_request_id: sampleRequestId,
         product_id: sample.productId || null,
         product_name: sample.productName,
         category: sample.category,
         quantity: sample.quantity,
         created_at: new Date().toISOString()
-      };
+      } as Database['public']['Tables']['sample_items']['Insert'];
 
       const { error: itemError } = await insertSampleItem(supabase, sampleItemInsert);
 

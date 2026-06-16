@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
 
     // Create invitation record
     const { data: invitation, error: inviteError } = await supabase
-      .from('company_invitations')
+      .from('company_invitations' as any)
       .insert({
         email: validatedData.email,
         company_id: inviter.company_name || inviter.id,
@@ -291,10 +291,10 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Invitation sent successfully',
       invitation: {
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        expiresAt: invitation.expires_at,
+        id: (invitation as any).id,
+        email: (invitation as any).email,
+        role: (invitation as any).role,
+        expiresAt: (invitation as any).expires_at,
       },
     };
 

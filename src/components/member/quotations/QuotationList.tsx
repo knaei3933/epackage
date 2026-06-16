@@ -184,7 +184,7 @@ export function QuotationList({
 
           {/* Status Messages */}
           <div className="px-6 pt-4">
-            {(quotation.status === 'DRAFT' || quotation.status === 'draft') && (
+            {((quotation.status as string) === 'DRAFT' || (quotation.status as string) === 'draft') && (
               <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow-sm">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
@@ -198,7 +198,7 @@ export function QuotationList({
               </div>
             )}
 
-            {(quotation.status === 'APPROVED' || quotation.status === 'approved' || quotation.status === 'QUOTATION_APPROVED') && (
+            {((quotation.status as string) === 'APPROVED' || (quotation.status as string) === 'approved' || (quotation.status as string) === 'QUOTATION_APPROVED') && (
               <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-md">
@@ -221,13 +221,16 @@ export function QuotationList({
                 {/* Product Type Card */}
                 {quotation.items?.[0] && (() => {
                   const breakdown = quotation.items[0].breakdown;
-                  const specs = breakdown?.specifications || quotation.items[0].specifications || {};
+                  // breakdown.specifications は交差型で index signature が失われるため、
+                  // 緩い型へキャストして仕様キーへ安全にアクセス（実行時ロジック不変）
+                  const specs = (breakdown?.specifications || quotation.items[0].specifications || {}) as Record<string, any>;
+                  const breakdownAny = breakdown as Record<string, any> | undefined;
 
-                  const enrichedSpecs = {
+                  const enrichedSpecs: Record<string, any> = {
                     ...specs,
-                    width: specs.width || specs.size?.width || breakdown?.width,
-                    height: specs.height || specs.size?.height || breakdown?.height,
-                    depth: specs.depth || specs.size?.depth || breakdown?.depth || specs.sideWidth,
+                    width: specs.width || (specs.size as any)?.width || breakdownAny?.width,
+                    height: specs.height || (specs.size as any)?.height || breakdownAny?.height,
+                    depth: specs.depth || (specs.size as any)?.depth || breakdownAny?.depth || specs.sideWidth,
                   };
 
                   let bagTypeId = enrichedSpecs.bagTypeId || enrichedSpecs.bag_type || enrichedSpecs.type;
@@ -411,10 +414,16 @@ export function QuotationList({
 
                 {/* Post Processing Preview */}
                 {quotation.items?.[0]?.breakdown?.specifications && (
-                  <PostProcessingPreview
-                    selectedOptions={convertToPreviewOptions(quotation.items[0].breakdown.specifications.postProcessingOptions || [])}
-                    className="rounded-xl"
-                  />
+                  <div className="rounded-xl">
+                    {(() => {
+                      const PreviewAny = PostProcessingPreview as any;
+                      return (
+                        <PreviewAny
+                          selectedOptions={convertToPreviewOptions((quotation.items[0].breakdown.specifications as Record<string, any>).postProcessingOptions || [])}
+                        />
+                      );
+                    })()}
+                  </div>
                 )}
               </div>
 
@@ -450,7 +459,7 @@ export function QuotationList({
                             <span className="text-lg font-bold text-blue-600">
                               {formatPrice(item.unitPrice * item.quantity)}円
                             </span>
-                            {quotation.status === 'CONVERTED' || quotation.status === 'converted' ? (
+                            {(quotation.status as string) === 'CONVERTED' || (quotation.status as string) === 'converted' ? (
                               item.orderId ? (
                                 <a
                                   href={`/member/orders/${item.orderId}`}
@@ -515,7 +524,7 @@ export function QuotationList({
                     </Button>
 
                     {/* Delete Button - DRAFT only */}
-                    {(quotation.status === 'DRAFT' || quotation.status === 'draft' || quotation.status === 'QUOTATION_PENDING') && onDeleteQuotation && (
+                    {((quotation.status as string) === 'DRAFT' || (quotation.status as string) === 'draft' || (quotation.status as string) === 'QUOTATION_PENDING') && onDeleteQuotation && (
                       <Button
                         variant="destructive"
                         size="md"
@@ -529,7 +538,7 @@ export function QuotationList({
                     )}
 
                     {/* Convert to Order Button - APPROVED only */}
-                    {(quotation.status === 'APPROVED' || quotation.status === 'approved' || quotation.status === 'QUOTATION_APPROVED') && onConvertToOrder && (
+                    {((quotation.status as string) === 'APPROVED' || (quotation.status as string) === 'approved' || (quotation.status as string) === 'QUOTATION_APPROVED') && onConvertToOrder && (
                       <Button
                         variant="primary"
                         size="md"

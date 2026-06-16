@@ -342,7 +342,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
         quoteCreator: 'EPACKAGE Lab 見積システム',
         customerName: profile?.kanji_last_name && profile?.kanji_first_name
           ? `${profile.kanji_last_name} ${profile.kanji_first_name}`
-          : (profile?.companyName || user?.email?.split('@')[0] || 'お客様'),
+          : (profile?.company_name || user?.email?.split('@')[0] || 'お客様'),
         customerNameKana: profile?.kana_last_name && profile?.kana_first_name
           ? `${profile.kana_last_name} ${profile.kana_first_name}`
           : '',
@@ -500,7 +500,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-text-primary">見積一覧</h1>
           <p className="text-sm text-text-muted mt-1">
-            ようこそ、{profile?.companyName || user?.email}さん
+            ようこそ、{profile?.company_name || user?.email}さん
           </p>
         </div>
 
@@ -739,8 +739,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
             <QuotationPagination
               currentPage={page}
               totalPages={totalPages}
-              total={initialData.pagination.total}
-              pageSize={initialData.pagination.limit}
+              totalItems={initialData.pagination.total}
               onPageChange={handlePageChange}
             />
 

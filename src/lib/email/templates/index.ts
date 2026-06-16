@@ -15,8 +15,8 @@ export { subject as subjectUserApproved, plainText as plainTextUserApproved, htm
 export { subject as subjectPremiumContentDownload, plainText as plainTextPremiumContentDownload, html as htmlPremiumContentDownload } from './premium_content_download'
 export { subject as subjectContractSignatureRequest, plainText as plainTextContractSignatureRequest, html as htmlContractSignatureRequest } from './contract_signature_request'
 export { subject as subjectOrderStatusUpdated, plainText as plainTextOrderStatusUpdated, html as htmlOrderStatusUpdated } from './order_status_updated'
-export { subject, plainText, html, subjectJa, plainTextJa, htmlJa } from './designer_revision_rejected'
-export { subject as subjectDesignerApproved, plainText as plainTextDesignerApproved, html as htmlDesignerApproved, subjectJa as subjectDesignerApprovedJa, plainTextJa as plainTextDesignerApprovedJa, htmlJa as htmlDesignerApprovedJa } from './designer_revision_approved'
+export { subject as subjectDesignerRejected, plainText as plainTextDesignerRejected, html as htmlDesignerRejected, subjectJa as subjectDesignerRejectedJa, plainTextJa as plainTextDesignerRejectedJa, htmlJa as htmlJaDesignerRejectedJa } from './designer-revision-rejected'
+export { subject as subjectDesignerApproved, plainText as plainTextDesignerApproved, html as htmlDesignerApproved, subjectJa as subjectDesignerApprovedJa, plainTextJa as plainTextDesignerApprovedJa, htmlJa as htmlDesignerApprovedJa } from './designer-revision-approved'
 
 /**
  * テンプレートIDとテンプレート関数のマッピング
@@ -31,8 +31,8 @@ import * as userApproved from './user_approved'
 import * as premiumContentDownload from './premium_content_download'
 import * as contractSignatureRequest from './contract_signature_request'
 import * as orderStatusUpdated from './order_status_updated'
-import * as designerRevisionRejected from './designer_revision_rejected'
-import * as designerRevisionApproved from './designer_revision_approved'
+import * as designerRevisionRejected from './designer-revision-rejected'
+import * as designerRevisionApproved from './designer-revision-approved'
 
 export const emailTemplates = {
   quote_created_admin: quoteCreatedAdmin,

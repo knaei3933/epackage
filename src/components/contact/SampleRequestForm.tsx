@@ -238,9 +238,7 @@ export default function PouchSampleRequestForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Sample Items Section */}
           <SampleItemsSection
-            control={control}
-            watch={watch}
-            errors={errors}
+            {...({ control, watch, errors } as any)}
           />
 
           {/* Customer Information Section */}

@@ -168,7 +168,7 @@ export function useBatchFetch<T>(
     throw new Error('Invalid fetcher input');
   };
 
-  return useSWR<T[]>(keys.length > 0 ? keys : null, batchFetcher, options);
+  return useSWR<T[]>(keys.length > 0 ? keys : null, batchFetcher as any, options);
 }
 
 /**
@@ -180,13 +180,13 @@ export function useInfiniteFetch<T>(
   options?: SWRConfiguration
 ) {
   const { data, error, isValidating, size, setSize } = useSWRInfinite<T[]>(
-    getKey,
-    fetcher,
-    {
+    getKey as any,
+    fetcher as any,
+    ({
       revalidateFirstPage: false,
       revalidateAllPages: false,
       ...options,
-    }
+    } as any)
   );
 
   const isLoadingInitialData = !data && !error;
@@ -221,7 +221,7 @@ import useSWRInfinite from 'swr/infinite';
 export async function prefetchData<T>(key: Key, data?: T): Promise<void> {
   // Import mutate here to avoid circular dependency
   const { mutate } = await import('swr');
-  return mutate(key, data, false);
+  await mutate(key, data, false);
 }
 
 /**
@@ -257,7 +257,7 @@ export async function clearCache(key: Key): Promise<void> {
  */
 export async function clearAllCache(): Promise<void> {
   const { cache } = await import('swr/_internal');
-  cache.clear();
+  (cache as any).clear();
 }
 
 /**

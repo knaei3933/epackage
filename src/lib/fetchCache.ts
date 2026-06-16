@@ -61,7 +61,7 @@ export function createCachedFetch<T>(
 ): () => Promise<T> {
   const { revalidate = CACHE_DURATIONS.MEDIUM, tags = [] } = options;
 
-  return unstable_cache(fetchFn, {
+  return (unstable_cache as any)(fetchFn, {
     revalidate,
     tags,
   });
@@ -70,7 +70,7 @@ export function createCachedFetch<T>(
 /**
  * 제품 데이터 캐시 fetch
  */
-export async function getCachedProducts(
+export async function getCachedProducts<T = unknown>(
   category?: string,
   options: CacheOptions = {}
 ): Promise<T[]> {
@@ -100,7 +100,7 @@ export async function getCachedProducts(
 /**
  * 인기 제품 캐시 fetch
  */
-export async function getCachedFeaturedProducts(
+export async function getCachedFeaturedProducts<T = unknown>(
   limit = 6,
   options: CacheOptions = {}
 ): Promise<T[]> {
@@ -129,7 +129,7 @@ export async function getCachedFeaturedProducts(
 /**
  * 공지사항 캐시 fetch
  */
-export async function getCachedAnnouncements(
+export async function getCachedAnnouncements<T = unknown>(
   limit = 5,
   options: CacheOptions = {}
 ): Promise<T[]> {
@@ -155,7 +155,7 @@ export async function getCachedAnnouncements(
 /**
  * 대시보드 통계 캐시 fetch
  */
-export async function getCachedDashboardStats(
+export async function getCachedDashboardStats<T = unknown>(
   userId: string,
   options: CacheOptions = {}
 ): Promise<T> {

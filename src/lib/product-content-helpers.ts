@@ -7,6 +7,7 @@
 import type { TradeRecord } from '@/types/archives'
 import { sampleRecords } from '@/lib/archive-data'
 import type { Product } from '@/types/database'
+import { Info, Ruler, Package, TrendingUp, HelpCircle, Download, BookOpen, MessageSquare, Settings } from 'lucide-react'
 
 /**
  * 関連導入事例を取得
@@ -115,13 +116,15 @@ export function getCertificationIcon(name: string): string {
  * @returns 利用可能なタブの配列
  */
 export function getProductTabs(product: Product) {
-  import { Info, Ruler, Package, TrendingUp, HelpCircle, Download, BookOpen, MessageSquare, Settings } from 'lucide-react'
-
-  const tabs = [
-    { id: 'overview' as const, label: '概要', icon: Info },
-    { id: 'specifications' as const, label: '仕様', icon: Ruler },
-    { id: 'applications' as const, label: '用途', icon: Package },
-    { id: 'pricing' as const, label: '価格', icon: TrendingUp },
+  const tabs: Array<{
+    id: 'overview' | 'specifications' | 'applications' | 'pricing' | 'faq' | 'downloads' | 'cases' | 'reviews' | 'customization';
+    label: string;
+    icon: typeof Info;
+  }> = [
+    { id: 'overview', label: '概要', icon: Info },
+    { id: 'specifications', label: '仕様', icon: Ruler },
+    { id: 'applications', label: '用途', icon: Package },
+    { id: 'pricing', label: '価格', icon: TrendingUp },
   ]
 
   // Phase 1: 基本拡張タブ

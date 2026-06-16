@@ -20,7 +20,7 @@ export function mapQuotationDataToQuoteData(quotationData: QuotationData): Quote
   // Map order items to quote items
   const items: QuoteItem[] = quotationData.orders.map((order, index) => ({
     id: `item-${index + 1}`,
-    name: order.name || `SKU ${order.skuCount}`,
+    name: (order as any).name || `SKU ${order.skuCount}`,
     description: specs.size ? `サイズ: ${specs.size}` : undefined,
     quantity: order.quantity,
     unit: '枚',
@@ -76,11 +76,11 @@ export function mapQuotationDataToQuoteData(quotationData: QuotationData): Quote
     email: quotationData.customer.email,
     items,
     specifications,
-    optionalProcessing,
+    optionalProcessing: optionalProcessing as any,
     paymentTerms: quotationData.paymentTerms.paymentMethod,
     deliveryDate: quotationData.paymentTerms.deliveryDate,
-    deliveryLocation: quotationData.paymentTerms.deliveryLocation,
-    validityPeriod: quotationData.paymentTerms.quotationExpiry || '見積日から30日間',
+    deliveryLocation: (quotationData.paymentTerms as any).deliveryLocation,
+    validityPeriod: (quotationData.paymentTerms as any).quotationExpiry || '見積日から30日間',
     remarks: quotationData.notes,
     skuData: {
       count: quotationData.orderSummary.totalSkuCount,

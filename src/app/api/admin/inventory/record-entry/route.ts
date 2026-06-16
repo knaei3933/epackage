@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
+type TransactionInsert = Database['public']['Tables']['inventory_transactions']['Insert'];
+
 export async function POST(request: NextRequest) {
   try {
     // ✅ Verify admin authentication first
@@ -116,15 +118,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Create transaction record with enhanced fields
-    const transactionData: TransactionInsert = {
+    const transactionData: any = {
       inventory_id: inventoryId,
       transaction_type: 'receipt',
       quantity: quantity,
       quantity_before: quantityBefore,
       quantity_after: quantityAfter,
       reason: 'Inventory entry',
-      performed_by: user.id,
-      notes: notes ? { notes } : null,
+      performed_by: auth.userId,
+      notes: (notes ? { notes } : null) as unknown as string,
       reference_number: referenceNumber.trim(),
       supplier_name: supplierName?.trim() || null,
       entry_date: entryDate || new Date().toISOString(),
@@ -154,7 +156,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: error.message || 'サーバーエラーが発生しました' },
+      { error: (error as Error).message || 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -203,7 +205,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: error.message || 'サーバーエラーが発生しました' },
+      { error: (error as Error).message || 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }

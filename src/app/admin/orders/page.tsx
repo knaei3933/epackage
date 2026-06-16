@@ -63,7 +63,7 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
   return (
     <AdminOrdersClient
       initialStatus={initialStatus}
-      initialOrders={(orders as Order[]) || []}
+      initialOrders={(orders as any) || []}
       quotationFilter={quotationId}
     />
   );

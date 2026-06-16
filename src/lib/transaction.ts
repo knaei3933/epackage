@@ -106,7 +106,7 @@ export async function updateWithOptimisticLock<T = Record<string, unknown>>(
 
   return {
     success: true,
-    data,
+    data: data as any,
   };
 }
 
@@ -267,7 +267,7 @@ export async function callRpcFunction<T = unknown>(
     return {
       success: false,
       error: errorMessage,
-      details: error,
+      details: error as any,
     };
   }
 }

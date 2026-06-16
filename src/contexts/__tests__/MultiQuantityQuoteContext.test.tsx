@@ -2,8 +2,35 @@ import React from 'react'
 import { render, screen, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MultiQuantityQuoteProvider, useMultiQuantityQuote } from '../MultiQuantityQuoteContext'
-import { createMockMultiQuantityRequest, createMockQuoteResult } from '../../../jest.setup'
 import type { MultiQuantityRequest } from '@/types/multi-quantity'
+import type { UnifiedQuoteResult } from '@/lib/unified-pricing-engine'
+
+// ============================================================
+// Mock Helpers (previously provided by jest.setup)
+// ============================================================
+
+function createMockQuoteResult(
+  overrides?: Partial<UnifiedQuoteResult> & Record<string, any>
+): UnifiedQuoteResult {
+  return {
+    unitPrice: overrides?.unitPrice ?? 100,
+    totalPrice: overrides?.totalPrice ?? overrides?.totalCost ?? 10000,
+    currency: 'JPY',
+    breakdown: {
+      material: 5000,
+      processing: 2000,
+      printing: 2000,
+      setup: 1000,
+      discount: 0,
+      delivery: 0,
+      subtotal: 9000,
+      total: 9000,
+    },
+    leadTimeDays: overrides?.leadTimeDays ?? 14,
+    validUntil: new Date('2025-12-31'),
+    minOrderQuantity: 100,
+  }
+}
 
 // Mock the multi-quantity calculator
 jest.mock('@/lib/multi-quantity-calculator', () => ({

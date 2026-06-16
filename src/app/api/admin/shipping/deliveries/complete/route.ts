@@ -14,6 +14,7 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { sendDeliveryCompletionEmail } from '@/lib/email';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import type { Database } from '@/types/database';
 
 // ============================================================
 // Types
@@ -104,7 +105,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Update shipment status to delivered
-    const updateData: Partial<Database["public"]["Tables"]["shipments"]["Row"]> = {
+    // 注: actual_delivery_date/delivery_note_url/signature_image_url/admin_notes は
+    // shipments テーブル実列に非存在（delivered_at/delivery_signature_url/delivery_notes 等）。
+    // 実行時ロジック・設定フィールドを維持するため updateData は Record<string, any> で受ける。
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {
       status: 'delivered',
       actual_delivery_date: actualDeliveryDate || new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -194,7 +199,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Delivery Completion] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error)?.message || 'Internal server error' },
       { status: 500 }
     );
   }

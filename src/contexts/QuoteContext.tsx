@@ -101,6 +101,10 @@ export interface QuoteState {
   isLoadingSave?: boolean; // Loading state for save/load operations
   exportUrl?: string | null; // Export URL for generated files
   shareUrl?: string | null; // Share URL for comparisons
+  // task #8: UnifiedSKUQuantityStep等が参照する計算結果フィールド（2列生産オプション割引適用判定用）
+  unitPrice?: number;            // 現在の計算単価（discountedUnitPrice と比較して割引適用判定）
+  totalPrice?: number;           // 現在の計算合計価格
+  appliedOption?: string | null; // 適用された2列生産オプション名
 }
 
 // Action types

@@ -47,7 +47,7 @@ export default async function QuotationsPage({ searchParams }: PageProps) {
   // Pass data to client component
   return (
     <QuotationsClient
-      initialData={data}
+      initialData={data as any}
       initialStatus={status}
       currentPage={currentPage}
       totalPages={totalPages}

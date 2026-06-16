@@ -104,7 +104,7 @@ function mapAdminOrderToDashboardOrder(adminOrder: Order): DashboardOrder {
     isDefault: adminOrder.billing_address.is_default,
   } : undefined;
 
-  return {
+  return ({
     id: adminOrder.id,
     userId: adminOrder.user_id,
     orderNumber: adminOrder.order_number,
@@ -130,17 +130,17 @@ function mapAdminOrderToDashboardOrder(adminOrder: Order): DashboardOrder {
       specifications: item.specifications,
     })) || [],
     // 주소 정보 (camelCase로 변환)
-    deliveryAddress,
-    billingAddress,
+    deliveryAddress: deliveryAddress as any,
+    billingAddress: billingAddress as any,
     // 기타 필드
-    notes: adminOrder.notes,
+    ...(adminOrder.notes ? { notes: adminOrder.notes } : {}),
     requested_delivery_date: adminOrder.requested_delivery_date,
     estimated_delivery_date: adminOrder.estimated_delivery_date,
     delivery_notes: adminOrder.delivery_notes,
     // 수동 할인 필드
     manualDiscountPercentage: adminOrder.manual_discount_percentage,
     manualDiscountAmount: adminOrder.manual_discount_amount,
-  };
+  }) as any;
 }
 
 // 後加工オプションの日本語マッピング (標準定義: src/constants/enToJa.ts より)

@@ -5,7 +5,7 @@
  * Unit tests for contract PDF generation functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import {
   generateContractPdf,
   generateContractPdfBase64,

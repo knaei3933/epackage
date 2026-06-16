@@ -157,7 +157,6 @@ export async function parseMarkdown(
   marked.setOptions({
     gfm,
     breaks,
-    mangle: false,
   });
 
   // Parse markdown to HTML

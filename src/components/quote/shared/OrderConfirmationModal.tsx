@@ -102,7 +102,7 @@ export function OrderConfirmationModal({
       setResult({
         success: false,
         error: error instanceof Error ? error.message : '注文の作成に失敗しました',
-      });
+      } as any);
     } finally {
       setIsSubmitting(false);
     }

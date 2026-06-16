@@ -23,7 +23,7 @@ async function CustomerManagementContent() {
     redirect('/auth/signin?redirect=/admin/customers/management');
   }
 
-  return <AdminCustomerManagementClient authContext={authContext} />;
+  return <AdminCustomerManagementClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminCustomerManagementPage() {

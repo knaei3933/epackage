@@ -19,6 +19,16 @@ import {
 import { mapProcessingOptionsToExcel, formatProcessingOptionsForDisplay } from './processingOptionMapper'
 
 // ============================================================
+// Type Re-exports
+// ============================================================
+
+/**
+ * Alias for QuotationData, used by tests and PDF converter.
+ * Kept for backward compatibility with existing test imports.
+ */
+export type ExcelQuotationData = QuotationData;
+
+// ============================================================
 // Cell Location Constants (from quote_data_mapping.md)
 // ============================================================
 
@@ -134,19 +144,19 @@ export async function mapDatabaseQuotationToExcel(
   // Extract customer information
   const customer: CustomerInfo = {
     companyName: userProfile?.company_name || dbQuotation.customer_name || 'お客様',
-    companyNameEn: userProfile?.company_name_en || userProfile?.company_name || '', // Would need translation
-    postalCode: userProfile?.postal_code || dbQuotation.customer_postal_code || '〒000-0000',
+    companyNameEn: userProfile?.company_name || '', // Would need translation
+    postalCode: userProfile?.postal_code || '〒000-0000',
     address: formatJapaneseAddress(
       userProfile?.prefecture,
       userProfile?.city,
       userProfile?.street
-    ) || dbQuotation.customer_address || '',
+    ) || '',
     contactPerson: formatFullName(
       userProfile?.kanji_last_name || dbQuotation.customer_name,
       userProfile?.kanji_first_name || ''
     ) || dbQuotation.customer_name || 'お客様',
     email: dbQuotation.customer_email || userProfile?.email || '',
-    phone: dbQuotation.customer_phone || userProfile?.phone || undefined
+    phone: dbQuotation.customer_phone || userProfile?.corporate_phone || undefined
   }
 
   // Use default supplier
@@ -313,7 +323,7 @@ function extractProductSpecifications(
   }
 
   // Base specifications that apply to all product types
-  const baseSpecs: ProductSpecifications = {
+  const baseSpecs = {
     specNumber: specs.specNumber || 'L',
     pouchType: isRollFilm ? 'ロールフィルム' : (specs.pouchType || 'スタンドパウチ'),
     pouchTypeEn: isRollFilm ? 'Roll Film' : (specs.pouchTypeEn || 'Stand Pouch'),
@@ -322,7 +332,7 @@ function extractProductSpecifications(
     size: specs.size || specs.dimensions || '',
     material: specs.material || '',
     surfaceFinish: surfaceFinish
-  }
+  } as ProductSpecifications
 
   // For roll_film: pouch-only fields should be null/empty
   // Extract roll film specific fields from specs

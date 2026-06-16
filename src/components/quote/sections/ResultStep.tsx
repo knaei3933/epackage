@@ -19,7 +19,7 @@ import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
-import { RefreshCw, Download, List } from 'lucide-react';
+import { RefreshCw, Download, List, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -149,7 +149,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   }, []);
 
   // Check if user is admin
-  const isAdmin = user?.role === 'admin' || user?.user_metadata?.role === 'admin';
+  const isAdmin = (user?.role as string) === 'admin' || ((user as any)?.user_metadata?.role as string) === 'admin';
 
   // Get multi-quantity state at component level (before any handlers)
   const { state: multiQuantityState } = useMultiQuantityQuote();
@@ -223,7 +223,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         );
 
         if (suggestion.parallelProductionOptions && suggestion.parallelProductionOptions.length > 0) {
-          setParallelProductionOptions(suggestion.parallelProductionOptions);
+          setParallelProductionOptions(suggestion.parallelProductionOptions as ParallelProductionOption[]);
           setShowOptimizationSuggestions(true);
         }
       })();
@@ -617,7 +617,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     }
 
     // Build specifications with defaults
-    const quoteSpecs: QuoteData['specifications'] = {
+    // machiPrinting は QuoteData['specifications'] 型に含まれない実行時専用キーだが、
+    // PDF生成・DB保存時に使用されるため、緩い型で保持（実行時ロジック不変）
+    const quoteSpecs: QuoteData['specifications'] & Record<string, any> = {
       bagType: getBagTypeDescriptionJa(state.bagTypeId) || '指定なし',
       contents,
       material: getMaterialLabelJa(state.materialId) || '指定なし',
@@ -710,7 +712,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         })
       } : undefined,
       specifications: quoteSpecs,
-      optionalProcessing: parseOptionalProcessing(),
+      optionalProcessing: parseOptionalProcessing() as unknown as QuoteData['optionalProcessing'],
       paymentTerms: '銀行振込（前払い）',
       deliveryDate: `校了から約${result.leadTimeDays}日`,
       deliveryLocation: state.deliveryLocation === 'domestic' ? '日本国内' : '海外',
@@ -731,7 +733,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       if (pdfResult.success && pdfResult.pdfBuffer) {
         // 2. 自動ダウンロード（バックグラウンド）
-        const blob = new Blob([pdfResult.pdfBuffer], { type: 'application/pdf' });
+        const blob = new Blob([pdfResult.pdfBuffer as BlobPart], { type: 'application/pdf' });
         const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = objectUrl;
@@ -747,7 +749,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         // 4. Storage保存（認証済みのみ）- エラーハンドリング追加
         if (savedQuotationId && pdfResult.pdfBuffer) {
           try {
-            const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer);
+            const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer as unknown as ArrayBuffer);
             const saveResponse = await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -808,7 +810,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         console.log('[handleDownloadPdf] Initiating PDF download...');
 
         if (pdfResult.pdfBuffer) {
-          const blob = new Blob([pdfResult.pdfBuffer], { type: 'application/pdf' });
+          const blob = new Blob([pdfResult.pdfBuffer as BlobPart], { type: 'application/pdf' });
 
           // URL.createObjectURL을 사용하여 다운로드
           const objectUrl = URL.createObjectURL(blob);
@@ -843,7 +845,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         if (savedQuotationId && user?.id && pdfResult.pdfBuffer) {
           try {
             console.log('[handleDownloadPdf] Saving PDF to Storage...');
-            const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer);
+            const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer as unknown as ArrayBuffer);
 
             const saveResponse = await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
               method: 'POST',
@@ -1276,6 +1278,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     setIsSaving(true);
     setSaveStatus('idle');
 
+    const totalSKUQuantity = state.skuQuantities?.reduce((sum, qty) => sum + (Number(qty) || 0), 0) || state.quantity;
+
     try {
       const itemsToSave = hasMultiQuantityResults && multiQuantityQuotes.length > 0
         ? multiQuantityQuotes.map((mq) => ({
@@ -1386,11 +1390,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         },
         credentials: 'include',
         body: JSON.stringify({
-          customer_name: user?.user_metadata?.kanji_last_name && user?.user_metadata?.kanji_first_name
-            ? `${user.user_metadata.kanji_last_name} ${user.user_metadata.kanji_first_name}`
+          customer_name: (user as any)?.user_metadata?.kanji_last_name && (user as any)?.user_metadata?.kanji_first_name
+            ? `${(user as any).user_metadata.kanji_last_name} ${(user as any).user_metadata.kanji_first_name}`
             : user?.email?.split('@')[0] || 'Guest',
           customer_email: user?.email || 'guest@example.com',
-          customer_phone: user?.user_metadata?.phone || null,
+          customer_phone: (user as any)?.user_metadata?.phone || null,
           status: 'DRAFT',
           validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           notes: null,
@@ -1406,7 +1410,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             duty: Math.round(result.breakdown?.duty || (result.breakdown?.baseCost || 0) * 0.05),
             delivery: Math.round(result.breakdown?.delivery || (result.breakdown?.baseCost || 0) * 0.08),
             salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.2),
-            totalCost: Math.round(result.breakdown?.baseCost || result.breakdown?.totalCost || 0)
+            totalCost: Math.round(result.breakdown?.baseCost || (result.breakdown as Record<string, any>)?.totalCost || 0)
           } : {},
           items: itemsToSave.map(item => ({
             product_name: item.productName,
@@ -1473,7 +1477,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       {/* Admin-only cost breakdown */}
       {isAdmin && result.skuCostDetails && (
         <CostBreakdownPanel
-          costBreakdown={result.skuCostDetails}
+          costBreakdown={result.skuCostDetails as any}
           markedUpPrice={result.totalPrice}
           marginRate={0.5}
         />
@@ -1486,7 +1490,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           <div>
             <h4 className="font-medium text-gray-700 mb-2">基本仕様</h4>
             <div className="text-sm space-y-1 text-gray-600">
-              {console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film')}
+              {(() => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
               {/* 内容物 - 一番上に表示 */}
               {(() => {
                 const PRODUCT_CATEGORY_LABELS: Record<string, string> = {

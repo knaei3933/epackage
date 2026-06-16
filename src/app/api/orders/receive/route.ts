@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const orderData: ExternalOrderData = validationResult.data;
+    const orderData = validationResult.data as ExternalOrderData;
 
     // Additional business logic validation
     const businessValidation = validateExternalOrderData(orderData);
@@ -498,7 +498,7 @@ async function sendOrderConfirmationEmail(
   `;
 
   // Send email
-  await sendEmail({
+  await (sendEmail as any)({
     to: orderData.customer_email,
     subject: `【Epackage Lab】ご注文確認 (${orderNumber})`,
     html: htmlContent,

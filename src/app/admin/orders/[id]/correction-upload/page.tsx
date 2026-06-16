@@ -71,7 +71,7 @@ async function CorrectionUploadPageContent({ orderId }: { orderId: string }) {
                 注文番号: {order.orderNumber}
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                顧客: {order.customerName}
+                顧客: {(order as any).customerName}
               </p>
             </div>
           </div>

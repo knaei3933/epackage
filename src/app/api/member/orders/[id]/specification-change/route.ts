@@ -54,7 +54,7 @@ export async function POST(
             return cookieStore.get(name)?.value;
           },
         },
-      }
+      } as any
     );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -137,6 +137,8 @@ export async function POST(
     // 仕様変更承認用見積を作成
     // =====================================================
 
+    let createdQuotationId: string | undefined;
+
     // 元の見積情報を取得
     const { data: originalQuotation } = await supabase
       .from('quotations')
@@ -168,6 +170,7 @@ export async function POST(
         .single();
 
       if (newQuotation) {
+        createdQuotationId = newQuotation.id;
         // 新しい見積アイテムを作成
         await supabase
           .from('quotation_items')
@@ -257,7 +260,7 @@ export async function POST(
               originalSpecs: specs,
               newSpecs: newSpecs,
               changeReason: body.changeReason,
-              newQuotationId,
+              newQuotationId: createdQuotationId,
               customerId: user.id,
               customerEmail: originalQuotation.customer_email
             },

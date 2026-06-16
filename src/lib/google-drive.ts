@@ -125,9 +125,9 @@ export async function uploadFileToDrive(
   if (file instanceof Blob) {
     fileBlob = file;
   } else if (file instanceof Buffer) {
-    fileBlob = new Blob([file], { type: mimeType });
+    fileBlob = new Blob([file as unknown as BlobPart], { type: mimeType });
   } else {
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await (file as any).arrayBuffer();
     fileBlob = new Blob([arrayBuffer], { type: mimeType });
   }
   formData.append('file', fileBlob, fileName);

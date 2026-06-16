@@ -476,7 +476,7 @@ export function MobileOptimizedPreview({
               </div>
               <div>
                 <p className="text-lg font-bold text-purple-600">
-                  {processingImpact.features.length}
+                  {(processingImpact as any).features.length}
                 </p>
                 <p className="text-xs text-gray-600">
                   {language === 'ja' ? '機能' : 'Features'}

@@ -18,8 +18,8 @@ import {
   validateRollFilmParams,
   calculateRollWeight,
   calculateRollFilmShippingCost,
-  type FilmStructureLayer
 } from '@/lib/roll-film-utils';
+import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
 
 // Get film layers from MATERIAL_THICKNESS_OPTIONS in unified-pricing-engine.ts
 // Patterns match the specifications for roll film weight calculation
@@ -314,7 +314,7 @@ function MultiQuantityStep() {
                         const newQuantities = state.quantities.filter(q => q !== length);
                         setQuantities(newQuantities);
                         quoteDispatch({
-                          type: 'SET_QUANTITIES',
+                          type: 'SET_COMPARISON_QUANTITIES',
                           payload: newQuantities
                         });
                       } else {
@@ -415,7 +415,7 @@ function MultiQuantityStep() {
                     if (confirm('すべてのパターンを削除しますか？')) {
                       setQuantities([]);
                       quoteDispatch({
-                        type: 'SET_QUANTITIES',
+                        type: 'SET_COMPARISON_QUANTITIES',
                         payload: []
                       });
                     }
@@ -430,7 +430,7 @@ function MultiQuantityStep() {
                 {state.quantities.map((length) => {
                   const weight = getRollWeight(length);
                   const isOverLimit = weight.totalWeight > 29000;
-                  const isSelected = length === state.quantity;
+                  const isSelected = length === state.selectedQuantity;
 
                   return (
                     <div
@@ -459,12 +459,8 @@ function MultiQuantityStep() {
                       <div
                         onClick={() => {
                           quoteDispatch({
-                            type: 'SET_QUANTITIES',
-                            payload: state.quantities
-                          });
-                          quoteDispatch({
-                            type: 'UPDATE_QUANTITY_OPTIONS',
-                            payload: { quantity: length }
+                            type: 'SET_QUANTITY_OPTIONS',
+                            payload: { quantities: state.quantities, quantity: length }
                           });
                         }}
                         className="cursor-pointer"

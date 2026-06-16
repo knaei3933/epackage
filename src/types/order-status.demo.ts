@@ -33,10 +33,10 @@ function updateOrderStatus(currentStatus: OrderStatus, newStatus: OrderStatus): 
 }
 
 // Valid transition
-updateOrderStatus('PENDING', 'QUOTATION'); // ✓
+updateOrderStatus('QUOTATION_PENDING', 'QUOTATION_APPROVED'); // ✓
 
 // Invalid transition
-updateOrderStatus('DELIVERED', 'PRODUCTION'); // ✗ Error: Invalid
+updateOrderStatus('SHIPPED', 'PRODUCTION'); // ✗ Error: Invalid
 
 // =====================================================
 // Example 2: Multilingual UI labels
@@ -58,9 +58,9 @@ function getOrderProgressPercentage(status: OrderStatus): number {
   return getStatusProgress(status);
 }
 
-console.log(getOrderProgressPercentage('PENDING')); // 0
+console.log(getOrderProgressPercentage('QUOTATION_PENDING')); // 0
 console.log(getOrderProgressPercentage('PRODUCTION')); // 70
-console.log(getOrderProgressPercentage('DELIVERED')); // 100
+console.log(getOrderProgressPercentage('SHIPPED')); // 100
 
 // =====================================================
 // Example 4: Legacy compatibility
@@ -91,7 +91,7 @@ function handleOrder(status: OrderStatus): void {
 }
 
 handleOrder('PRODUCTION'); // Order is in production phase
-handleOrder('DELIVERED'); // Order is in terminal state
+handleOrder('SHIPPED'); // Order is in terminal state
 
 // =====================================================
 // Example 6: Production sub-status

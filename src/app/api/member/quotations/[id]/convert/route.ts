@@ -132,9 +132,11 @@ export async function POST(
 
     // Check if quotation is approved (only if no existing order)
     // Support both legacy statuses (approved, APPROVED) and new workflow (QUOTATION_APPROVED)
-    const isApproved = quotation.status === 'approved' ||
-                      quotation.status === 'APPROVED' ||
-                      quotation.status === 'QUOTATION_APPROVED';
+    // Cast status to string to allow legacy/new comparisons without TS2367.
+    const quotationStatus = quotation.status as unknown as string;
+    const isApproved = quotationStatus === 'approved' ||
+                      quotationStatus === 'APPROVED' ||
+                      quotationStatus === 'QUOTATION_APPROVED';
 
     if (!isApproved) {
       return NextResponse.json(
@@ -159,8 +161,12 @@ export async function POST(
     const orderNumber = `ORD-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`;
 
     // Get or create delivery and billing addresses
-    let deliveryAddressId = quotation.delivery_address_id;
-    let billingAddressId = quotation.billing_address_id;
+    // Note: delivery_address_id / billing_address_id are not on the generated
+    // quotation Row type but exist in the actual schema (Json metadata or
+    // additional columns). Cast to access them without changing behavior.
+    const quotationRow = quotation as unknown as Record<string, any>;
+    let deliveryAddressId = quotationRow.delivery_address_id;
+    let billingAddressId = quotationRow.billing_address_id;
 
     // Priority for delivery address:
     // 1. Use quotation's delivery_address_id if exists
@@ -300,7 +306,9 @@ export async function POST(
     }
 
     // Create initial status history entry
-    await supabaseAdmin
+    // Note: cast the insert chain to Promise so .catch() is available
+    // (supabase types the resolved insert as PromiseLike<void> which lacks .catch).
+    await Promise.resolve(supabaseAdmin
       .from('order_status_history')
       .insert({
         order_id: order.id,
@@ -309,7 +317,7 @@ export async function POST(
         changed_by: user.email || 'SYSTEM',
         changed_at: new Date().toISOString(),
         reason: '見積もりから注文作成（初期ステータス）',
-      })
+      }))
       .then(() => console.log('[Convert to Order] Initial status history logged'))
       .catch((err) => console.error('[Convert to Order] Failed to log status history:', err));
 
@@ -462,9 +470,11 @@ export async function GET(
 
     // Check conversion eligibility
     // Support both legacy statuses (approved, APPROVED) and new workflow (QUOTATION_APPROVED)
-    const canConvert = quotation.status === 'approved' ||
-                      quotation.status === 'APPROVED' ||
-                      quotation.status === 'QUOTATION_APPROVED';
+    // Cast status to string to allow legacy/new comparisons without TS2367.
+    const quotationStatus = quotation.status as unknown as string;
+    const canConvert = quotationStatus === 'approved' ||
+                      quotationStatus === 'APPROVED' ||
+                      quotationStatus === 'QUOTATION_APPROVED';
     const isExpired =
       quotation.valid_until && new Date(quotation.valid_until) < new Date();
     const hasOrder = !!existingOrder;

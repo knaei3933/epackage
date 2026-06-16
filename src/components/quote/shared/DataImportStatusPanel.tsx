@@ -136,7 +136,7 @@ export function DataImportStatusPanel({ quotationId, orderId }: DataImportStatus
     fetchProductionData();
   }, [orderId]);
 
-  const productionData: ProductionDataItem[] = productionDataResponse?.data || [];
+  const productionData: ProductionDataItem[] = (productionDataResponse as any)?.data || [];
   const requiredModifications = productionDataResponse?.requiredModifications || [];
 
   const handlePaymentSuccess = () => {

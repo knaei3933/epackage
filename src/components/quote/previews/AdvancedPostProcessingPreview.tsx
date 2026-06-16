@@ -626,7 +626,7 @@ export function AdvancedPostProcessingPreview({
                     {language === 'ja' ? '機能数' : 'Features'}
                   </p>
                   <p className="text-2xl font-bold text-purple-900">
-                    {processingImpact.features.length}
+                    {(processingImpact as any).features.length}
                   </p>
                 </div>
                 <div className="bg-purple-200 rounded-full p-3">
@@ -644,7 +644,7 @@ export function AdvancedPostProcessingPreview({
                     {language === 'ja' ? '処理時間' : 'Processing Time'}
                   </p>
                   <p className="text-2xl font-bold text-orange-900">
-                    {language === 'ja' ? processingImpact.processingTimeJa : processingImpact.processingTime}
+                    {language === 'ja' ? processingImpact.processingTimeJa : (processingImpact as any).processingTime}
                   </p>
                 </div>
                 <div className="bg-orange-200 rounded-full p-3">

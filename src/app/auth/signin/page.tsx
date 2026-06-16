@@ -43,7 +43,7 @@ export default function SignInPage() {
         </div>
 
         {/* ログインフォーム - Client Component */}
-        <LoginForm redirectUrl="/member/dashboard" />
+        <LoginForm {...({ redirectUrl: "/member/dashboard" } as any)} />
       </div>
     </main>
   );

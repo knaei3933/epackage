@@ -75,6 +75,12 @@ interface ShipmentCardProps {
     customer_phone?: string;
     delivery_address?: any;  // API에서 반환하는 배송지 주소
     recent_tracking?: any;
+    // API/DB 実データに存在するが src/types/shipment.ts の Shipment 型に未定義のフィールド
+    carrier_code?: string;
+    carrier_name?: string;
+    tracking_url?: string;
+    shipped_at?: string;
+    estimated_delivery_date?: string;
   };
   onRefreshTracking?: (id: string) => Promise<void>;
   onViewDetails?: (id: string) => void;

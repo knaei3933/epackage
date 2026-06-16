@@ -54,7 +54,14 @@ export async function GET(
     }
 
     // 現在ユーザーの取得
-    const user = await getCurrentUser(request);
+    // Note: getCurrentUser() takes no arguments. Its declared return type omits
+    // role/email, but the runtime object may carry them (via user_metadata or
+    // extended session). Cast to an augmented shape to preserve the existing
+    // authorization checks without weakening them.
+    const user = await getCurrentUser() as Awaited<ReturnType<typeof getCurrentUser>> & {
+      role?: string;
+      email?: string;
+    };
 
     if (!user) {
       return NextResponse.json(
@@ -153,7 +160,13 @@ export async function POST(
     }
 
     // 現在ユーザーの取得
-    const user = await getCurrentUser(request);
+    // Note: getCurrentUser() takes no arguments. Its declared return type omits
+    // role/email, but the runtime object may carry them. Cast to an augmented
+    // shape to preserve the existing authorization checks without weakening them.
+    const user = await getCurrentUser() as Awaited<ReturnType<typeof getCurrentUser>> & {
+      role?: string;
+      email?: string;
+    };
 
     if (!user) {
       return NextResponse.json(

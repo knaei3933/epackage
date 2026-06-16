@@ -1747,7 +1747,7 @@ function ProductSpecTab({
             <input
               type="checkbox"
               checked={qualityControl}
-              onChange={e => setQualityControl(e.target.checked)}
+              onChange={e => setFoodSanitationAct(e.target.checked)}
               disabled={readOnly}
             />
             <span className="text-sm">厳格な品質管理準拠</span>

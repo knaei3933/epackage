@@ -164,7 +164,7 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
 
     return {
       userId,
-      role: typedProfile.role,
+      role: typedProfile.role as any,
       status: typedProfile.status,
     };
   } catch (error) {
@@ -331,7 +331,7 @@ export async function verifyMemberAuth(request: NextRequest): Promise<AdminAuthR
 
     return {
       userId,
-      role: typedProfile.role,
+      role: typedProfile.role as any,
       status: typedProfile.status,
     };
   } catch (error) {

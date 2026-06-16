@@ -95,10 +95,10 @@ export function ModificationApprovalSection({
       </div>
 
       {/* 修正理由 */}
-      {order.modification_reason && (
+      {(order as any).modification_reason && (
         <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded">
           <div className="text-xs font-medium text-orange-900 mb-1">修正理由:</div>
-          <div className="text-sm text-orange-800">{order.modification_reason}</div>
+          <div className="text-sm text-orange-800">{(order as any).modification_reason}</div>
         </div>
       )}
 

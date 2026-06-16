@@ -23,7 +23,7 @@ async function CouponsContent() {
     redirect('/auth/signin?redirect=/admin/coupons');
   }
 
-  return <AdminCouponsClient authContext={authContext} />;
+  return <AdminCouponsClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminCouponsPage() {

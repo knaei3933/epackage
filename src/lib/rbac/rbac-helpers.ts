@@ -117,12 +117,12 @@ export async function authenticateRequest(
   const normalizedRole = normalizeRole(profile.role);
   const permissions = await getPermissionsForRole(normalizedRole);
 
-  return {
+  return ({
     userId: user.id,
     role: normalizedRole,
     status: profile.status,
     permissions,
-  };
+  } as any);
 }
 
 /**

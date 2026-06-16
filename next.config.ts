@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
   productionBrowserSourceMaps: false,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // =====================================================
   // Remove console.log in production builds

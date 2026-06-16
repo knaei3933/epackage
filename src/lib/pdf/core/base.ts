@@ -289,7 +289,7 @@ export abstract class BasePdfGenerator<TInput = unknown, TOutput = PdfGeneration
         displayHeaderFooter: opts.displayHeaderFooter,
         printBackground: opts.printBackground,
         margin: opts.margin,
-      });
+      } as any);
 
       // ファイルに保存
       if (opts.outputPath) {
@@ -364,7 +364,7 @@ export abstract class BasePdfGenerator<TInput = unknown, TOutput = PdfGeneration
     }
 
     if (metadata) {
-      result.metadata = metadata;
+      result.metadata = metadata as any;
     }
 
     return result;

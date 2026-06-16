@@ -83,13 +83,16 @@ interface GetCommentsResponse {
 // GET Handler - List Order Comments (Admin)
 // ============================================================
 
-export const GET = withAdminAuth(async (
+export const GET = withAdminAuth<any>(async (
   request: NextRequest,
   auth,
   context
 ) => {
   // Next.js 16: params is provided in context as a Promise
-  const { id: orderId } = await context.params;
+  // 注: context.params の値型は string | string[]。動的ルート [id] は常に単一文字列だが、
+  // 型上 string | string[] になるため string へキャスト（実行時ロジック不変）。
+  const { id } = await context.params;
+  const orderId = id as string;
 
   if (!orderId) {
     return NextResponse.json(
@@ -174,13 +177,15 @@ export const GET = withAdminAuth(async (
 // POST Handler - Create Admin Comment with Email Notification
 // ============================================================
 
-export const POST = withAdminAuth(async (
+export const POST = withAdminAuth<any>(async (
   request: NextRequest,
   auth,
   context
 ) => {
   // Next.js 16: params is provided in context as a Promise
-  const { id: orderId } = await context.params;
+  // 注: GET ハンドラと同様に string へキャスト（実行時ロジック不変）。
+  const { id } = await context.params;
+  const orderId = id as string;
 
   if (!orderId) {
     return NextResponse.json(
@@ -375,8 +380,10 @@ Copyright (c) ${new Date().getFullYear()} EPackage Lab. All rights reserved.
       `;
 
       // Send email using epack-mailer
+      // 注: sendCustomEmail の to 引数は string | Array<{email,name?}>。
+      // 単体オブジェクトは受け取らないため配列でラップ（送信先・実行時ロジック不変）。
       const emailResult = await sendCustomEmail(
-        { email: order.customer_email, name: order.customer_name || undefined },
+        [{ email: order.customer_email, name: order.customer_name || undefined }],
         emailSubject,
         { html: emailHtml, text: emailText }
       );

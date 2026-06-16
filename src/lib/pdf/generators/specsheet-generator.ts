@@ -459,7 +459,7 @@ export function validateSpecSheetData(
   data: SpecSheetData
 ): { isValid: boolean; errors: string[] } {
   const generator = new SpecSheetPdfGenerator();
-  return generator.validateData(data);
+  return (generator as any).validateData(data);
 }
 
 /**
@@ -468,7 +468,7 @@ export function validateSpecSheetData(
  */
 export function estimateSpecSheetPdfSize(data: SpecSheetData): number {
   const generator = new SpecSheetPdfGenerator();
-  return generator.estimateSize(data);
+  return (generator as any).estimateSize(data);
 }
 
 /**

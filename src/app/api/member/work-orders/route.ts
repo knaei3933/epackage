@@ -311,7 +311,7 @@ export async function GET(request: NextRequest) {
 
     // Apply status filter
     if (status) {
-      query = query.eq('status', status.toUpperCase());
+      query = query.eq('status', status.toUpperCase() as any);
     }
 
     // Apply order filter

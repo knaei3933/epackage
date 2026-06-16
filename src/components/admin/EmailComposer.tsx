@@ -584,7 +584,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              variants={ANIMATION_VARIANTS.content}
+              variants={ANIMATION_VARIANTS.content as any}
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -1111,7 +1111,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
                 />
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                   <motion.div
-                    variants={ANIMATION_VARIANTS.content}
+                    variants={ANIMATION_VARIANTS.content as any}
                     initial="hidden"
                     animate="visible"
                     exit="exit"

@@ -397,7 +397,7 @@ export function BlogPostEditor({
               <div className="flex items-center border border-border-light rounded-md overflow-hidden">
                 <Button
                   size="sm"
-                  variant={!showPreview ? 'default' : 'ghost'}
+                  variant={(!showPreview ? 'default' : 'ghost') as any}
                   onClick={() => setShowPreview(false)}
                   className="h-8 rounded-none"
                 >
@@ -406,7 +406,7 @@ export function BlogPostEditor({
                 </Button>
                 <Button
                   size="sm"
-                  variant={showPreview ? 'default' : 'ghost'}
+                  variant={(showPreview ? 'default' : 'ghost') as any}
                   onClick={() => setShowPreview(true)}
                   className="h-8 rounded-none"
                 >

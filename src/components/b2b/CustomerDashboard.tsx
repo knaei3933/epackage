@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { LoadingState } from '@/components/ui';
+import { LoadingState } from '@/components/ui/LoadingState';
 import {
   FileText,
   Package,
@@ -131,7 +131,7 @@ export default function CustomerDashboard({ userId }: CustomerDashboardProps) {
   }, []);
 
   const getOrderStatusIcon = useCallback((status: OrderStatus) => {
-    switch (status) {
+    switch (status as unknown as string) {
       case 'DELIVERED':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'SHIPPED':

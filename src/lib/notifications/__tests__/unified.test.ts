@@ -60,7 +60,7 @@ jest.mock('@supabase/supabase-js', () => ({
 // Import after mocks are set up
 // ============================================================
 
-import { describe, it, expect, vi, beforeEach, afterEach } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import {
   sendNotification,
   sendTemplatedNotification,

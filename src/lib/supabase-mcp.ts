@@ -366,7 +366,7 @@ export async function getOrdersForExport(orderIds: string[]): Promise<SqlResult<
     GROUP BY o.id
     ORDER BY o.created_at DESC
     `,
-    [orderIds]
+    [orderIds] as any
   )
 }
 

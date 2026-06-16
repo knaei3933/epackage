@@ -360,8 +360,10 @@ export async function POST(
               changed_at: new Date().toISOString(),
               reason: `教正データアップロード (リビジョン${revisionNumber}) - Step 1`,
             })
-            .then(() => console.log('[Designer Correction Upload] Step 1 history logged'))
-            .catch((err) => console.error('[Designer Correction Upload] Step 1 history error:', err));
+            .then(
+              () => console.log('[Designer Correction Upload] Step 1 history logged'),
+              (err: unknown) => console.error('[Designer Correction Upload] Step 1 history error:', err)
+            );
 
           // Step 2: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
           const { error: step2Error } = await supabase
@@ -388,8 +390,10 @@ export async function POST(
                 changed_at: new Date().toISOString(),
                 reason: `教正データアップロード完了、顧客承認待ち (リビジョン${revisionNumber}) - Step 2`,
               })
-              .then(() => console.log('[Designer Correction Upload] Step 2 history logged'))
-              .catch((err) => console.error('[Designer Correction Upload] Step 2 history error:', err));
+              .then(
+                () => console.log('[Designer Correction Upload] Step 2 history logged'),
+                (err: unknown) => console.error('[Designer Correction Upload] Step 2 history error:', err)
+              );
           }
         }
       }
@@ -422,7 +426,7 @@ export async function POST(
     // Send notification to customer
     if (order.customer_email) {
       try {
-        await sendTemplatedEmail(
+        await (sendTemplatedEmail as any)(
           'correction_ready_for_review',
           {
             orderNumber: order.order_number,

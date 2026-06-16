@@ -26,6 +26,26 @@ import type { Database } from '@/types/database';
 // Types
 // ============================================================
 
+/**
+ * delivery_tracking テーブル更新用の部分型。
+ * 注: delivery_tracking テーブルは Database 型に未定義のため、
+ * 使用フィールドに基づき明示的に定義。
+ */
+interface ShipmentUpdate {
+  approval_date?: string;
+  estimated_production_complete_date?: string;
+  estimated_tracking_available_date?: string;
+  estimated_delivery_date_min?: string;
+  estimated_delivery_date_max?: string;
+  tracking_number?: string;
+  carrier?: string;
+  shipping_date?: string;
+  actual_delivery_date?: string;
+  admin_notes?: string;
+  status?: string;
+  updated_at?: string;
+}
+
 interface ShippingUpdateRequest {
   orderId: string;
   trackingNumber?: string;
@@ -36,6 +56,9 @@ interface ShippingUpdateRequest {
   location?: string;
   notes?: string;
 }
+
+/** 配送業者種別（validCarriers 配列の要素型に対応） */
+type CarrierType = 'ems' | 'surface_mail' | 'sea_freight' | 'air_freight' | 'other';
 
 interface ShippingStatus {
   orderId: string;
@@ -146,7 +169,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Shipping Tracking] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -281,7 +304,7 @@ export async function PATCH(request: NextRequest) {
         orderNumber: order.order_number,
         trackingNumber: tracking.tracking_number || '',
         carrier: emailCarrier,
-        status: status as Database["public"]["Tables"]["shipments"]["Row"]["status"],
+        status: status as any,
         message: statusMessages[status] || '配送状態が更新されました。',
         location,
       });
@@ -304,7 +327,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Shipping Tracking] PATCH error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -381,7 +404,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Shipping Tracking] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }

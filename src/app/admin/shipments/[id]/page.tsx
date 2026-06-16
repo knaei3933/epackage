@@ -23,7 +23,7 @@ async function ShipmentDetailContent({ params }: { params: Promise<{ id: string 
     redirect('/auth/signin?redirect=/admin/shipments');
   }
 
-  return <AdminShipmentDetailClient shipmentId={shipmentId} authContext={authContext} />;
+  return <AdminShipmentDetailClient {...({ shipmentId, authContext } as any)} />;
 }
 
 export default async function AdminShipmentDetailPage({

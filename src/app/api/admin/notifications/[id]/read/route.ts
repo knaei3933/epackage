@@ -25,8 +25,8 @@ export async function PATCH(
 
     // Mark as read using unified_notifications table
     const { data, error } = await supabase
-      .from('unified_notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .from('unified_notifications' as any)
+      .update({ is_read: true, read_at: new Date().toISOString() } as any)
       .eq('id', id)
       .select()
       .single()

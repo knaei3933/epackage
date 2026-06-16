@@ -28,7 +28,7 @@ export async function POST(
 
   try {
     // Create Supabase client from request cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const authCookie = cookieStore.get('sb-ijlgpzjdfipzmjvawofp-auth-token')?.value;
 
     if (!authCookie) {

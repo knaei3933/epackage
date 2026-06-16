@@ -8,6 +8,10 @@
 
 import * as path from 'path';
 import type { PdfGenerationOptions, PdfGenerationResult } from '@/types/contract';
+import {
+  BasePdfGenerator,
+  type BasePdfGeneratorOptions,
+} from '../core/base';
 
 // ============================================================
 // Types
@@ -149,7 +153,7 @@ const QUOTATION_TEMPLATE_PATH = path.join(
   'quotation_ja.html'
 );
 
-const DEFAULT_QUOTATION_OPTIONS: Required<QuotationPdfOptions> = {
+const DEFAULT_QUOTATION_OPTIONS = {
   format: 'A4',
   orientation: 'portrait',
   displayHeaderFooter: false,
@@ -158,7 +162,7 @@ const DEFAULT_QUOTATION_OPTIONS: Required<QuotationPdfOptions> = {
   showRemarks: true,
   showBankInfo: true,
   outputPath: '',
-};
+} as Required<QuotationPdfOptions>;
 
 // ============================================================
 // Quotation PDF Generator Class
@@ -387,7 +391,7 @@ export function validateQuotationData(
   data: QuotationData
 ): { isValid: boolean; errors: string[] } {
   const generator = new QuotationPdfGenerator();
-  return generator.validateData(data);
+  return (generator as any).validateData(data);
 }
 
 /**
@@ -396,5 +400,5 @@ export function validateQuotationData(
  */
 export function estimateQuotationPdfSize(data: QuotationData): number {
   const generator = new QuotationPdfGenerator();
-  return generator.estimateSize(data);
+  return (generator as any).estimateSize(data);
 }

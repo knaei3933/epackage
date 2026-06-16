@@ -240,7 +240,7 @@ export function CorrectionRevisionsManager({ order, orderId, fetchFn = fetch }: 
         <h3 className="text-lg font-semibold text-gray-900">校正データ管理</h3>
         <Button
           onClick={() => setIsAddingNew(!isAddingNew)}
-          variant={isAddingNew ? 'outline' : 'default'}
+          variant={(isAddingNew ? 'outline' : 'default') as any}
           className="flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />

@@ -2263,7 +2263,7 @@ export function ImprovedQuotingWizard() {
               skuMode: true,
               skuCount: state.skuCount,
               skuQuantities: state.skuQuantities,
-              skuNames: state.skuNames,
+              skuNames: (state as any).skuNames,
               totalQuantities: totalQuantity,
               hasValidSKUData: true,
               displayQuantities: state.skuQuantities

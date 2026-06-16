@@ -11,6 +11,7 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createServiceClient } from '@/lib/supabase';
 import type { Role } from './rbac-helpers';
 
 // =====================================================
@@ -109,10 +110,7 @@ export async function checkOrderAccess(
   }
 
   // 注文データ取得（Service RoleでRLSバイパス）
-  const supabase = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createServiceClient();
 
   const { data: order, error } = await supabase
     .from('orders')

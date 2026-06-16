@@ -23,7 +23,7 @@ async function GoogleDriveContent() {
     redirect('/auth/signin?redirect=/admin/settings/google-drive');
   }
 
-  return <AdminGoogleDriveClient authContext={authContext} />;
+  return <AdminGoogleDriveClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminGoogleDrivePage() {

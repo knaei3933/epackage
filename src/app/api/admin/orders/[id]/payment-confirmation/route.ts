@@ -211,7 +211,7 @@ export async function POST(
             paymentAmount,
             paymentDate: confirmedAt,
             totalAmount: order.total_amount,
-          },
+          } as any,
           {
             name: order.customer_name,
             email: order.customer_email,
@@ -248,7 +248,7 @@ export async function POST(
                 customerEmail: order.customer_email || '',
                 dataUploadUrl: `${appUrl}/member/orders/${orderId}/data-receipt`,
                 correctionUploadUrl: `${appUrl}/admin/orders/${orderId}/correction`,
-              },
+              } as any,
               {
                 name: '韓国デザイナー',
                 email,

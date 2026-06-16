@@ -403,8 +403,10 @@ export async function POST(
               changed_at: new Date().toISOString(),
               reason: `教正データアップロード (リビジョン${revisionNumber}) - Step 1`,
             })
-            .then(() => console.log('[Correction Upload] Step 1 history logged'))
-            .catch((err) => console.error('[Correction Upload] Step 1 history error:', err));
+            .then(
+              () => console.log('[Correction Upload] Step 1 history logged'),
+              (err: unknown) => console.error('[Correction Upload] Step 1 history error:', err)
+            );
 
           // Step 2: CORRECTION_COMPLETED → CUSTOMER_APPROVAL_PENDING
           const { error: step2Error } = await supabase
@@ -432,8 +434,10 @@ export async function POST(
                 changed_at: new Date().toISOString(),
                 reason: `教正データアップロード完了、顧客承認待ち (リビジョン${revisionNumber}) - Step 2`,
               })
-              .then(() => console.log('[Correction Upload] Step 2 history logged'))
-              .catch((err) => console.error('[Correction Upload] Step 2 history error:', err));
+              .then(
+                () => console.log('[Correction Upload] Step 2 history logged'),
+                (err: unknown) => console.error('[Correction Upload] Step 2 history error:', err)
+              );
           }
         }
       } else {
@@ -449,7 +453,7 @@ export async function POST(
       try {
         const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
-        await sendTemplatedEmail(
+        await (sendTemplatedEmail as any)(
           'correction_ready_for_review',
           {
             orderNumber: order.order_number,

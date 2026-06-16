@@ -4,7 +4,7 @@
  * 通知設定サービスユニットテスト
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, jest } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 
 // ============================================================
 // Mocks - IMPORTANT: These must be declared BEFORE jest.mock

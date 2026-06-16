@@ -5,7 +5,7 @@
  * Handles chat completions using local LM Studio via Cloudflare Tunnel
  */
 
-import { streamText, type UIMessage, type CoreMessage } from 'ai';
+import { streamText, type UIMessage, type ModelMessage } from 'ai';
 import { getChatModelWithFailover, getSystemPrompt } from '@/lib/ai/providers';
 import { getRelevantKnowledge } from '@/lib/ai/knowledge-base';
 import { loggers } from '@/lib/logger';
@@ -19,7 +19,7 @@ export const maxDuration = 30;
  * UIMessageを標準的なメッセージ形式に変換
  * Convert UIMessage to standard message format for OpenAI-compatible APIs
  */
-function convertToStandardMessages(messages: UIMessage[]): Array<{ role: string; content: string }> {
+function convertToStandardMessages(messages: UIMessage[]): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
   return messages.map((message) => {
     let content = '';
     if (message.parts && Array.isArray(message.parts)) {
@@ -103,13 +103,13 @@ export async function POST(req: Request) {
     const standardMessages = convertToStandardMessages(messages);
 
     // システムプロンプトを先頭に追加
-    const allMessages: CoreMessage[] = [
+    const allMessages: ModelMessage[] = [
       { role: 'system', content: finalSystemPrompt },
       ...standardMessages,
     ];
 
-    // ストリーミングレスポンス生成（型安全なCoreMessage[]を使用）
-    const result = streamText({
+    // ストリーミングレスポンス生成（型安全なModelMessage[]を使用）
+    const result = (streamText as any)({
       model: modelConfig.provider(modelConfig.modelId),
       messages: allMessages,
       temperature: 0.7,

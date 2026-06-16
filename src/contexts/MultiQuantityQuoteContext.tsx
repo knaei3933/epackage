@@ -374,7 +374,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
   const updateBasicSpecs = useCallback((specs: Partial<Pick<MultiQuantityQuoteState, 'bagTypeId' | 'materialId' | 'width' | 'height' | 'depth' | 'thicknessSelection'>>) => {
     dispatch({
       type: 'SET_BASIC_SPECS',
-      payload: specs
+      payload: specs as any
     });
   }, []); // Empty deps - reducer handles defaults via nullish coalescing
 

@@ -13,7 +13,6 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { HomeIcon, CatalogIcon, DocumentTextIcon } from '@/components/ui/icons';
 
 export default function NotFound() {
   return (

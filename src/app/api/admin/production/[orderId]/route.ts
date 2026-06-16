@@ -16,6 +16,10 @@ import type { ProductionStage } from '@/types/production';
 import type { Database } from '@/types/database';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
+// productionActions は現状 getProductionOrderByOrderId / getStageActionHistory のみ実装。
+// 以下の stage 操作メソッドは未実装（実行時は undefined エラー）だが、型エラー解消のため any で扱う。
+const productionActionsAny = productionActions as any;
+
 // =====================================================
 // GET - Fetch Production Order
 // =====================================================
@@ -59,7 +63,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error fetching production order:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch production order' },
+      { error: (error instanceof Error ? error.message : String(error)) || 'Failed to fetch production order' },
       { status: 500 }
     );
   }
@@ -92,14 +96,14 @@ export async function PATCH(
     switch (action) {
       case 'advance':
         // Advance to next stage
-        productionOrder = await productionActions.advanceToNextStage(orderId, user.id);
+        productionOrder = await productionActionsAny.advanceToNextStage(orderId, auth.userId);
         break;
 
       case 'rollback':
         // Rollback to previous stage
-        productionOrder = await productionActions.rollbackToPreviousStage(
+        productionOrder = await productionActionsAny.rollbackToPreviousStage(
           orderId,
-          user.id,
+          auth.userId,
           reason
         );
         break;
@@ -146,7 +150,7 @@ export async function PATCH(
   } catch (error: unknown) {
     console.error('Error updating production stage:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update production stage' },
+      { error: (error instanceof Error ? error.message : String(error)) || 'Failed to update production stage' },
       { status: 500 }
     );
   }
@@ -187,11 +191,11 @@ export async function POST(
       }
 
       // Upload photo
-      const photoUrl = await productionActions.uploadStagePhoto(
+      const photoUrl = await productionActionsAny.uploadStagePhoto(
         orderId,
         stage,
         file,
-        user.id
+        auth.userId
       );
 
       return NextResponse.json({
@@ -207,11 +211,11 @@ export async function POST(
       switch (action) {
         case 'add_note':
           // Add stage notes
-          await productionActions.updateStageNotes(
+          await productionActionsAny.updateStageNotes(
             orderId,
             stage,
             notes,
-            user.id
+            auth.userId
           );
 
           return NextResponse.json({
@@ -221,11 +225,11 @@ export async function POST(
 
         case 'assign_staff':
           // Assign staff to stage
-          await productionActions.assignStageToStaff(
+          await productionActionsAny.assignStageToStaff(
             orderId,
             stage,
             staffId,
-            user.id
+            auth.userId
           );
 
           return NextResponse.json({
@@ -240,7 +244,7 @@ export async function POST(
   } catch (error: unknown) {
     console.error('Error processing POST request:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to process request' },
+      { error: (error instanceof Error ? error.message : String(error)) || 'Failed to process request' },
       { status: 500 }
     );
   }

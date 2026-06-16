@@ -120,7 +120,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
               uniqueOrderItems.forEach((value, key) => {
                 const detailedItem = itemsMap.get(key);
                 if (detailedItem) {
-                  uniqueOrderItems.set(key, detailedItem);
+                  uniqueOrderItems.set(key, detailedItem as OrderItem);
                 }
               });
               setOrderItems(Array.from(uniqueOrderItems.values()));

@@ -26,7 +26,7 @@ export async function POST(
     // 権限チェック（自分の通知のみ既読化可能）
     // 管理者は全ての通知を既読化可能
 
-    const service = createNotificationService();
+    const service = await createNotificationService();
     await service.markAsRead(notificationId);
 
     return NextResponse.json({ success: true });

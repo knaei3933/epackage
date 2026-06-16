@@ -8,7 +8,7 @@
 
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { DeliveriesClient } from './DeliveriesClient';
+import DeliveriesClient from './DeliveriesClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,5 +24,5 @@ export default async function DeliveryAddressesPage() {
     throw error;
   }
 
-  return <DeliveriesClient userId={user.id} />;
+  return <DeliveriesClient {...({ userId: user.id } as any)} />;
 }

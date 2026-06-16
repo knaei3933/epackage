@@ -35,7 +35,7 @@ export function ProductShowcaseSection({ products }: ProductShowcaseSectionProps
             {products.map((product, index) => (
               <HomePageProductCard
                 key={product.id}
-                product={product}
+                {...({ product } as any)}
                 delay={0.3 + index * 0.1}
               />
             ))}

@@ -355,7 +355,7 @@ export type TemplateDataMap = {
 /**
  * テンプレートIDからデータ型を取得
  */
-export type GetTemplateData<T extends EmailTemplateId> = TemplateDataMap[T]
+export type GetTemplateData<T extends EmailTemplateId> = T extends keyof TemplateDataMap ? TemplateDataMap[T] : EmailTemplateData
 
 // ============================================================
 // Email Settings Types (Comprehensive Email Settings System)

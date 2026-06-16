@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: '테스트 이메일을 발송했습니다.',
       messageId: result.messageId,
-      previewUrl: result.previewUrl,
+      previewUrl: (result as any).previewUrl,
       config: {
         mode: config.mode,
         transportType: config.transportType,

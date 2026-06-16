@@ -8,12 +8,10 @@
  * - 通知タイプ
  */
 
-import type {
-  ContractStatus,
-  QuotationStatus,
-  InquiryStatus,
-  NotificationType,
-} from '@/types/dashboard';
+import type { ContractStatus } from '@/types/admin';
+import type { QuotationStatus } from '@/types/quotation';
+import type { InquiryStatus } from '@/types/dashboard';
+import type { NotificationType } from '@/types/portal';
 
 // =====================================================
 // Contract Status Configuration

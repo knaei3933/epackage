@@ -142,7 +142,7 @@ export function AdminQuotationList({
     const zipperDisplay = specifications.zipper || specifications.zipper === true ? 'あり' : '-';
 
     // SKU情報
-    const skuInfo = item.sku_info || item.breakdown?.sku_info;
+    const skuInfo = (item as any).sku_info || (item.breakdown as any)?.sku_info;
     const skuCountDisplay = skuInfo ? `${skuInfo.count}種類` : '-';
 
     return {

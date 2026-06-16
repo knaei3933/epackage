@@ -13,6 +13,7 @@ import {
   type SendEmailRequest,
   type SendEmailResult,
   type NotificationEvent,
+  type NotificationEventType,
   type BounceEvent,
   type EmailRecipient,
   type BounceType,
@@ -163,7 +164,7 @@ export async function sendEmail(request: SendEmailRequest): Promise<SendEmailRes
     const mailOptions: nodemailer.SendMailOptions = {
       from: FROM_EMAIL,
       replyTo: request.replyTo || REPLY_TO_EMAIL,
-      to: recipients.map(r => ({ email: r.email, name: r.name || '' })),
+      to: recipients.map(r => ({ email: r.email, name: r.name || '' })) as any,
       subject,
       text: plainText,
       html: html,

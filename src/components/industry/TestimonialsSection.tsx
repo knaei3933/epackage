@@ -205,7 +205,7 @@ export function TestimonialsSection({ industry }: TestimonialsSectionProps) {
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         {Object.entries(testimonial.results).map(([key, value]) => (
                           <div key={key} className="text-center">
-                            <div className="font-semibold text-green-700">{value}</div>
+                            <div className="font-semibold text-green-700">{value as any}</div>
                             <div className="text-green-600">
                               {key === 'costReduction' && 'コスト削減'}
                               {key === 'shelfLife' && '賞味期限延長'}

@@ -208,6 +208,9 @@ export function calculateFiveStepBreakdown(
     ? printingTotalKRW
     : (calculatedPrintingKRW > 0 ? calculatedPrintingKRW : Math.round(printingCostJPY * JPY_TO_KRW_RATE));
 
+  const materialWidthMM = filmCostDetails?.materialWidthMM || 590;
+  const materialWidthM = materialWidthMM / 1000;
+
   const printingFormula = totalMeters > 0
     ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × ${materialWidthM.toFixed(2)}m × ${totalMeters.toFixed(1)}m`
     : '印刷費';
@@ -226,8 +229,6 @@ export function calculateFiveStepBreakdown(
   const hasALMaterial = filmCostDetails?.materialLayerDetails?.some(l => l.materialId === 'AL') || false;
   const laminationPricePerMeterKRW = hasALMaterial ? 75 : 65;
   const laminationCycles = filmCostDetails?.breakdown?.lamination?.count || ((filmCostDetails?.materialLayerDetails?.length || 1) - 1);
-  const materialWidthMM = filmCostDetails?.materialWidthMM || 590;
-  const materialWidthM = materialWidthMM / 1000;
 
   // KRW値: filmCostDetails.breakdownから実際の計算値を優先使用（DB設定反映済み）
   // フォールバック: 数式パラメータから計算 → JPY逆変換

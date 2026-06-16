@@ -196,7 +196,7 @@ export const logDb = (table: string, message: string, level: LogLevel = 'info') 
 export const logError = (context: string, error: Error | unknown, message?: string) => {
   const logger = new Logger({ component: context });
   logger.error(
-    message || error instanceof Error ? error.message : String(error),
+    message || (error instanceof Error ? error.message : String(error)),
     error instanceof Error && { stack: error.stack }
   );
 };

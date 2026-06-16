@@ -23,7 +23,7 @@
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { Database } from '@/types/database';
@@ -116,7 +116,8 @@ async function verifyAuthentication(): Promise<{
 }> {
   try {
     // STEP 1: Create route handler client for auth check
-    const supabaseAuth = createRouteHandlerClient<Database>({ cookies });
+    const cookieStore = await cookies();
+    const supabaseAuth = createRouteHandlerClient<Database>({ cookies: async () => cookieStore });
 
     // STEP 2: Get user (SECURE: using getUser() instead of getSession())
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
@@ -298,7 +299,8 @@ export function withAuth<T = NextResponse>(
       });
     } else {
       // Use regular route handler client
-      supabase = createRouteHandlerClient<Database>({ cookies });
+      const routeCookieStore = await cookies();
+      supabase = createRouteHandlerClient<Database>({ cookies: async () => routeCookieStore });
     }
 
     // STEP 4: Execute handler with authenticated context
@@ -373,7 +375,17 @@ export async function getAdminUserId(request: NextRequest): Promise<string | nul
     if (!userId) return null;
 
     // Verify user is admin
-    const supabase = createServiceClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      return null;
+    }
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -490,7 +502,7 @@ export async function getAdminUserFromHeaders(request: NextRequest): Promise<{
     return null;
   }
 
-  return user;
+  return user as { id: string; role: string; status?: string };
 }
 
 /**
@@ -544,6 +556,7 @@ export function withAdminAuth<T = NextResponse>(
 
     // Create session object for handler
     const session = {
+      id: user.id,
       user: {
         id: user.id,
         email: '', // Not available in headers

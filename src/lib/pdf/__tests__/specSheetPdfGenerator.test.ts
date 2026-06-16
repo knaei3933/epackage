@@ -4,7 +4,7 @@
  * 仕様書PDFジェネレーターユニットテスト
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import {
   generateSpecSheetPdf,
   generateSpecSheetPdfBase64,

@@ -7,7 +7,7 @@
  * @jest-environment jsdom
  */
 
-import { describe, it, expect, beforeEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { POST } from '../route';
 import { NextRequest } from 'next/server';
 
@@ -17,13 +17,13 @@ import { NextRequest } from 'next/server';
 
 // Mock Supabase auth helpers
 const mockAuth = {
-  getSession: vi.fn(),
+  getSession: jest.fn(),
 };
 
-const mockFrom = vi.fn();
+const mockFrom = jest.fn();
 
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: vi.fn(() => ({
+  createRouteHandlerClient: jest.fn(() => ({
     auth: mockAuth,
     from: mockFrom,
   })),
@@ -31,11 +31,11 @@ jest.mock('@supabase/auth-helpers-nextjs', () => ({
 
 // Mock Supabase client
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(),
+  createClient: jest.fn(() => ({
+    from: jest.fn(() => ({
+      update: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          select: jest.fn(),
         })),
       })),
     })),
@@ -73,14 +73,16 @@ const mockMemberProfile = {
 // ============================================================
 
 describe('POST /api/dev/set-admin', () => {
+  const originalEnv = { ...process.env };
+
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co');
-    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key');
+    jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
+    process.env = { ...originalEnv };
   });
 
   describe('Authentication', () => {
@@ -137,9 +139,9 @@ describe('POST /api/dev/set-admin', () => {
 
       // Mock profile query returns MEMBER
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: mockMemberProfile,
               error: null,
             })),
@@ -172,9 +174,9 @@ describe('POST /api/dev/set-admin', () => {
 
       // Mock profile query returns not found
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: null,
               error: { message: 'Profile not found' },
             })),
@@ -209,9 +211,9 @@ describe('POST /api/dev/set-admin', () => {
 
       // Mock admin profile
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: mockAdminProfile,
               error: null,
             })),
@@ -244,9 +246,9 @@ describe('POST /api/dev/set-admin', () => {
 
       // Mock admin profile
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: mockAdminProfile,
               error: null,
             })),
@@ -280,9 +282,9 @@ describe('POST /api/dev/set-admin', () => {
       });
 
       // Mock admin profile query
-      const mockUpdate = vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(() => Promise.resolve({
+      const mockUpdate = jest.fn(() => ({
+        eq: jest.fn(() => ({
+          select: jest.fn(() => Promise.resolve({
             data: [{ id: 'user-123', email: 'test@example.com', role: 'ADMIN', status: 'ACTIVE' }],
             error: null,
           })),
@@ -290,9 +292,9 @@ describe('POST /api/dev/set-admin', () => {
       }));
 
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: mockAdminProfile,
               error: null,
             })),
@@ -303,7 +305,7 @@ describe('POST /api/dev/set-admin', () => {
       // Mock service role client
       const { createClient } = require('@supabase/supabase-js');
       (createClient as jest.Mock).mockReturnValue({
-        from: vi.fn(() => ({
+        from: jest.fn(() => ({
           update: mockUpdate,
         })),
       });
@@ -339,9 +341,9 @@ describe('POST /api/dev/set-admin', () => {
       });
 
       // Mock admin profile query
-      const mockUpdate = vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(() => Promise.resolve({
+      const mockUpdate = jest.fn(() => ({
+        eq: jest.fn(() => ({
+          select: jest.fn(() => Promise.resolve({
             data: [{ id: 'user-123', email: 'test@example.com', role: 'ADMIN', status: 'ACTIVE' }],
             error: null,
           })),
@@ -349,9 +351,9 @@ describe('POST /api/dev/set-admin', () => {
       }));
 
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: mockAdminProfile,
               error: null,
             })),
@@ -362,7 +364,7 @@ describe('POST /api/dev/set-admin', () => {
       // Mock service role client
       const { createClient } = require('@supabase/supabase-js');
       (createClient as jest.Mock).mockReturnValue({
-        from: vi.fn(() => ({
+        from: jest.fn(() => ({
           update: mockUpdate,
         })),
       });
@@ -397,9 +399,9 @@ describe('POST /api/dev/set-admin', () => {
 
       // Mock admin profile query
       mockFrom.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({
               data: mockAdminProfile,
               error: null,
             })),
@@ -410,10 +412,10 @@ describe('POST /api/dev/set-admin', () => {
       // Mock service role client with error
       const { createClient } = require('@supabase/supabase-js');
       (createClient as jest.Mock).mockReturnValue({
-        from: vi.fn(() => ({
-          update: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              select: vi.fn(() => Promise.resolve({
+        from: jest.fn(() => ({
+          update: jest.fn(() => ({
+            eq: jest.fn(() => ({
+              select: jest.fn(() => Promise.resolve({
                 data: null,
                 error: { message: 'Database connection failed' },
               })),

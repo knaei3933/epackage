@@ -83,7 +83,7 @@ export function InvoiceDownloadButton({
   return (
     <>
       <Button
-        variant={variant}
+        variant={variant as any}
         size={size}
         onClick={handleDownload}
         disabled={isLoading}

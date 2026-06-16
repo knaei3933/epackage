@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(fileName);
 
     // Use type-safe helper for files insert
-    const { data: fileRecord, error: fileError } = await insertFile(supabase, {
+    const { data: fileRecord, error: fileError } = await (insertFile as any)(supabase, {
       order_id: orderId,
       file_type: fileExtension.replace('.', '').toUpperCase() as Database['public']['Tables']['files']['Row']['file_type'],
       file_name: file.name,

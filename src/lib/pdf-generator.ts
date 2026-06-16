@@ -995,7 +995,7 @@ export async function generateQuotePDF(
       // Return based on options
       if (options.returnBase64) {
         // Convert Uint8Array to base64 (browser-compatible)
-        const binaryString = ArrayFrom(pdfUint8Array, byte => String.fromCharCode(byte)).join('');
+        const binaryString = Array.from(pdfUint8Array, byte => String.fromCharCode(byte)).join('');
         const base64 = btoa(binaryString);
         return {
           success: true,
@@ -1194,7 +1194,7 @@ function generateQuoteHTML(
   const isRollFilmOrSpout = specs.bagType === 'ロールフィルム' || specs.bagType === 'スパウトパウチ' ||
                           (specs as any).productType === 'roll_film' || (specs as any).productType === 'spout_pouch';
   if (isRollFilmOrSpout && !processing.surfaceFinish) {
-    processing = { ...processing, surfaceFinish: POST_PROCESSING_JA['glossy'] };
+    processing = { ...processing, surfaceFinish: POST_PROCESSING_JA['glossy'] as any };
     console.log('[PDF HTML Generator] Set default surfaceFinish to', POST_PROCESSING_JA['glossy'], 'for roll_film/spout_pouch (no user selection)');
   }
 
@@ -1205,7 +1205,7 @@ function generateQuoteHTML(
   console.log('[PDF HTML Generator] specs.hanging:', specs.hanging);
   console.log('[PDF HTML Generator] specs.hangingPosition:', specs.hangingPosition);
   console.log('[PDF HTML Generator] specs.cornerR:', specs.cornerR);
-  console.log('[PDF HTML Generator] specs.machiPrinting:', specs.machiPrinting, 'type:', typeof specs.machiPrinting, 'truthy:', !!specs.machiPrinting);
+  console.log('[PDF HTML Generator] specs.machiPrinting:', (specs as Record<string, any>).machiPrinting, 'type:', typeof (specs as Record<string, any>).machiPrinting, 'truthy:', !!((specs as Record<string, any>).machiPrinting));
   console.log('[PDF HTML Generator] processing after:', processing);
   console.log('[PDF HTML Generator] processing.surfaceFinish:', processing.surfaceFinish);
 
@@ -1955,7 +1955,7 @@ function generateQuoteHTML(
           <td class="spec-label">シール幅</td>
           <td>${specs.sealWidth || '指定なし'}</td>
         </tr>` : ''}
-        ${(specs.machiPrinting && specs.machiPrinting !== 'なし' && !isSpoutPouchIncompatible(specs.bagType)) ? `<tr><td class="spec-label">マチ印刷</td><td>${specs.machiPrinting}</td></tr>` : ''}
+        ${(((specs as Record<string, any>).machiPrinting && (specs as Record<string, any>).machiPrinting !== 'なし' && !isSpoutPouchIncompatible(specs.bagType)) ? `<tr><td class="spec-label">マチ印刷</td><td>${(specs as Record<string, any>).machiPrinting}</td></tr>` : '')}
         <tr>
           <td class="spec-label">封入方向</td>
           <td>${specs.sealDirection || '指定なし'}</td>
@@ -2138,9 +2138,9 @@ function generateQuoteHTML(
 
   // DEBUG: Verify machi printing is in the generated HTML
   const hasMachiPrintingRow = html.includes('マチ印刷');
-  console.log('[PDF HTML Generator] machiPrinting value:', specs.machiPrinting, 'type:', typeof specs.machiPrinting);
+  console.log('[PDF HTML Generator] machiPrinting value:', (specs as Record<string, any>).machiPrinting, 'type:', typeof (specs as Record<string, any>).machiPrinting);
   console.log('[PDF HTML Generator] Machi printing row in HTML:', hasMachiPrintingRow);
-  if (!hasMachiPrintingRow && specs.machiPrinting && specs.machiPrinting !== 'なし') {
+  if (!hasMachiPrintingRow && (specs as Record<string, any>).machiPrinting && (specs as Record<string, any>).machiPrinting !== 'なし') {
     console.error('[PDF HTML Generator] ERROR: machiPrinting is truthy but not in HTML!');
     // Log the specifications table section for debugging
     const specsTableStart = html.indexOf('<table class="spec-table">');
@@ -2668,25 +2668,5 @@ function generateInvoiceHTML(
 </body>
 </html>
   `.trim();
-
-  // DEBUG: Verify we reached this point
-  console.log('[PDF HTML Generator] === VERIFICATION CODE START ===');
-
-  // DEBUG: Verify machi printing is in the generated HTML
-  const hasMachiPrintingRow = html.includes('マチ印刷');
-  console.log('[PDF HTML Generator] machiPrinting value:', specs.machiPrinting, 'type:', typeof specs.machiPrinting);
-  console.log('[PDF HTML Generator] Machi printing row in HTML:', hasMachiPrintingRow);
-  if (!hasMachiPrintingRow && specs.machiPrinting && specs.machiPrinting !== 'なし') {
-    console.error('[PDF HTML Generator] ERROR: machiPrinting is truthy but not in HTML!');
-    // Log the specifications table section for debugging
-    const specsTableStart = html.indexOf('<table class="spec-table">');
-    const specsTableEnd = html.indexOf('</table>', specsTableStart) + '</table>'.length;
-    if (specsTableStart >= 0 && specsTableEnd > specsTableStart) {
-      const specsTable = html.substring(specsTableStart, specsTableEnd);
-      console.log('[PDF HTML Generator] Specifications table HTML:', specsTable);
-    }
-  }
-
-  return html;
 }
 

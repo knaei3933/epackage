@@ -426,7 +426,7 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
         <span className="text-sm text-text-muted">
           {(() => {
             const firstItemSpecs = items.length > 0 ? items[0].specifications || specifications : null;
-            const skuQuantities = firstItemSpecs?.sku_quantities;
+            const skuQuantities = (firstItemSpecs as any)?.sku_quantities;
             if (skuQuantities && Array.isArray(skuQuantities) && skuQuantities.length > 0) {
               return `${skuQuantities.length} SKU`;
             }
@@ -445,7 +445,7 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
           {(() => {
             // Check if items contain SKU split information
             const firstItemSpecs = items.length > 0 ? items[0].specifications || specifications : null;
-            const skuQuantities = firstItemSpecs?.sku_quantities;
+            const skuQuantities = (firstItemSpecs as any)?.sku_quantities;
 
             if (skuQuantities && Array.isArray(skuQuantities) && skuQuantities.length > 1) {
               // Display SKU split details

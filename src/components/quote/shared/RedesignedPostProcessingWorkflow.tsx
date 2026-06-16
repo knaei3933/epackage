@@ -204,7 +204,7 @@ export function RedesignedPostProcessingWorkflow({
         processingOptionsConfig.find(opt => opt.id === id)
       ).filter(Boolean),
       processingImpact,
-      timeline: new Date(Date.now() + processingImpact.processingTimeDays * 24 * 60 * 60 * 1000).toISOString(),
+      timeline: new Date(Date.now() + (processingImpact as any).processingTimeDays * 24 * 60 * 60 * 1000).toISOString(),
       estimatedCost: processingImpact.multiplier,
       budget,
       useCase
@@ -631,7 +631,7 @@ export function RedesignedPostProcessingWorkflow({
                         <p className="text-sm text-yellow-800">
                           {language === 'ja'
                             ? `標準生産時間 + ${processingImpact.processingTimeJa}`
-                            : `Standard production time + ${processingImpact.processingTime}`}
+                            : `Standard production time + ${(processingImpact as any).processingTime}`}
                         </p>
                       </div>
                     </div>

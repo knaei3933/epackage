@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   try {
     // ✅ STEP 1: Check authentication (SECURE: getUser() validates JWT on every request)
     // Initialize Supabase client using modern @supabase/ssr pattern
-    const { client: supabaseAuth } = await createSupabaseSSRClient(request);
+    const { client: supabaseAuth } = await createSupabaseSSRClient(req);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {

@@ -74,7 +74,7 @@ export function MaterialSelection({ showThicknessOptions = true }: MaterialSelec
   const isRollFilm = state.bagTypeId === 'roll_film';
   const isSpoutPouch = state.bagTypeId === 'spout_pouch';
   const availableMaterials = MATERIALS_DATA.filter(m =>
-    isRollFilm ? true : (isSpoutPouch ? !m.ecoFriendly : !m.rollFilmOnly)
+    isRollFilm ? true : (isSpoutPouch ? !m.ecoFriendly : !(m as any).rollFilmOnly)
   );
 
   // Group materials by category
@@ -183,9 +183,9 @@ export function MaterialSelection({ showThicknessOptions = true }: MaterialSelec
                           {material.recommendedFor}
                         </div>
                       )}
-                      {material.minQuantityMeters && (
+                      {(material as any).minQuantityMeters && (
                         <div className="mt-1 text-xs text-blue-600 font-medium">
-                          ⚠️ 最小注文数量: {material.minQuantityMeters}m
+                          ⚠️ 最小注文数量: {(material as any).minQuantityMeters}m
                         </div>
                       )}
                     </div>

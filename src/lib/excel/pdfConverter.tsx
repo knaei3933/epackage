@@ -457,7 +457,7 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
               <Text style={styles.specLabel}>吊り下げ加工:</Text>
               <Text>{data.specifications.hanging || 'なし'}</Text>
             </View>
-            {(data.specifications.hanging === 'あり' || data.specifications.hanging === true) && data.specifications.hangingPosition && (
+            {(data.specifications.hanging === 'あり' || (data.specifications.hanging as any) === true) && data.specifications.hangingPosition && (
               <View style={styles.specRow}>
                 <Text style={styles.specLabel}>吊り下げ位置:</Text>
                 <Text>{data.specifications.hangingPosition}</Text>
@@ -540,7 +540,7 @@ export const QuotationPDFDocument = ({ data }: { data: QuotationData }) => (
           </View>
           <View style={styles.optionRow}>
             <Text style={styles.optionLabel}>吊り下げ穴:</Text>
-            <Text>{data.specifications.hanging === 'あり' || data.specifications.hanging === true ? (data.specifications.hangingPosition || '○') : 'なし'}</Text>
+            <Text>{data.specifications.hanging === 'あり' || (data.specifications.hanging as any) === true ? (data.specifications.hangingPosition || '○') : 'なし'}</Text>
           </View>
           <View style={styles.optionRow}>
             <Text style={styles.optionLabel}>角丸:</Text>

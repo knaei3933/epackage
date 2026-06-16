@@ -23,7 +23,7 @@ async function ContractDetailContent({ params }: { params: Promise<{ id: string 
     redirect('/auth/signin?redirect=/admin/contracts');
   }
 
-  return <AdminContractDetailClient contractId={contractId} authContext={authContext} />;
+  return <AdminContractDetailClient {...({ contractId, authContext } as any)} />;
 }
 
 export default async function AdminContractDetailPage({

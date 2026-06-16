@@ -433,7 +433,7 @@ export function AIExtractionPreview({ fileId, orderId, onComplete }: AIExtractio
           {isProcessing ? '処理中...' : '再抽出'}
         </Button>
         <Button
-          variant="danger"
+          variant={"danger" as any}
           onClick={() => {
             const reason = prompt('拒否理由を入力してください:');
             if (reason) handleReject(reason);

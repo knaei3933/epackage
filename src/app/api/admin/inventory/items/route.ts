@@ -3,6 +3,25 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
+type InventoryRow = Database['public']['Tables']['inventory']['Row'];
+
+/** 変換後の在庫アイテム型（API レスポンス用） */
+interface TransformedInventoryItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productCode: string;
+  warehouseLocation: string | null;
+  binLocation: string | null;
+  quantityOnHand: number;
+  quantityAllocated: number;
+  quantityAvailable: number;
+  reorderPoint: number;
+  maxStockLevel: number | null;
+  needsReorder: boolean;
+  updatedAt: string;
+}
+
 /**
  * GET /api/admin/inventory/items
  * 在庫アイテム一覧を取得
@@ -51,8 +70,8 @@ export async function GET(request: NextRequest) {
     const transformedInventory = inventory?.map((item: InventoryRow) => ({
       id: item.id,
       productId: item.product_id,
-      productName: item.products?.name_ja || '',
-      productCode: item.products?.product_code || '',
+      productName: (item as any).products?.name_ja || '',
+      productCode: (item as any).products?.product_code || '',
       warehouseLocation: item.warehouse_location,
       binLocation: item.bin_location,
       quantityOnHand: item.quantity_on_hand,
@@ -67,7 +86,7 @@ export async function GET(request: NextRequest) {
     // 再注文のみフィルター
     let result = transformedInventory;
     if (reorderOnly) {
-      result = result.filter((item: InventoryRow) => item.needsReorder);
+      result = result.filter((item: TransformedInventoryItem) => item.needsReorder);
     }
 
     return NextResponse.json(result);

@@ -474,7 +474,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
             {/* Related Cases Tab - Phase 1 */}
             {selectedTab === 'cases' && (
-              <ProductRelatedCases product={product} />
+              <ProductRelatedCases {...({ product } as any)} />
             )}
 
             {/* Certifications Tab - Phase 1 */}

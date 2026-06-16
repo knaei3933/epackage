@@ -86,7 +86,7 @@ async function OrderPreparationContent({ orderId }: { orderId: string }) {
           <div>
             <dt className="text-text-muted">注文日時</dt>
             <dd className="text-text-primary mt-1">
-              {new Date(order.created_at).toLocaleString('ja-JP')}
+              {new Date(order.createdAt).toLocaleString('ja-JP')}
             </dd>
           </div>
           <div>
@@ -102,7 +102,7 @@ async function OrderPreparationContent({ orderId }: { orderId: string }) {
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-4">商品明細</h2>
         <OrderSpecificationItemList
-          items={order.items}
+          items={(order.items as any)}
           orderId={order.id}
           canModify={canModifySpec}
         />

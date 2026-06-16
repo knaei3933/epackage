@@ -66,6 +66,7 @@ export type ProductTabType =
   | 'cases'
   | 'reviews'
   | 'customization'
+  | 'certifications'
 
 export interface ProductTab {
   id: ProductTabType

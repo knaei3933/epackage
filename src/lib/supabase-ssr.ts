@@ -15,15 +15,23 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { SESSION_MAX_AGE, COOKIE_DOMAIN } from './auth-constants';
+
+// task #8 (never型根本解消): @supabase/ssr の createServerClient<Database> の戻り値型は、
+// postgrest-js の select-query-parser と組み合わせた際、select の行型を `never` に短絡させる
+// （TS2339 連鎖、約204件）。一方 supabase-js の createClient<Database> の戻り値型は never に
+// ならない（検証済み）。両者は同じ SupabaseClient 構造のため、戻り値の型だけ supabase-js 側に
+// 固定し、実行時は引き続き createServerClient（SSR cookie 連携）を使用する。
+type SupabaseDatabaseClient = ReturnType<typeof createClient<Database>>;
 
 // ============================================================
 // Type Definitions
 // ============================================================
 
 interface SupabaseSSRClientResult {
-  client: ReturnType<typeof createServerClient<Database>>;
+  client: SupabaseDatabaseClient;
   response: NextResponse;
 }
 
@@ -92,7 +100,7 @@ export async function createSupabaseSSRClient(request: NextRequest): Promise<Sup
   // Lazy load config to avoid build-time errors
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = getSupabaseConfig();
 
-  const client = createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const ssrClient = createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       // ✅ Use getAll() pattern recommended by Supabase SSR
       getAll() {
@@ -133,6 +141,9 @@ export async function createSupabaseSSRClient(request: NextRequest): Promise<Sup
       },
     },
   });
+
+  // 型だけ supabase-js 側に固定（実行時は createServerClient のまま、SSR cookie 連携を維持）
+  const client = ssrClient as unknown as SupabaseDatabaseClient;
 
   return { client, response };
 }
@@ -211,7 +222,7 @@ export interface AuthContext {
   role: string;
   status: string;
   /** Reusable anon SSR client bound to the request cookies (RLS-aware). */
-  supabase: ReturnType<typeof createServerClient>;
+  supabase: SupabaseDatabaseClient;
 }
 
 export async function getAuthenticatedUserFromHeaders(

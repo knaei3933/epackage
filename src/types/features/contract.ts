@@ -5,7 +5,8 @@
  * @module types/features/contract
  */
 
-import type { Json, ContractStatus } from '../database';
+import type { Json } from '../database';
+import type { ContractStatus } from '../core/database';
 
 // =====================================================
 // Contract Types

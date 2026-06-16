@@ -12,7 +12,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useQuoteState, useQuote } from '@/contexts/QuoteContext';
-import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
+import { pouchCostCalculator, type TwoColumnProductionOptions } from '@/lib/pouch-cost-calculator';
 import { unifiedPricingEngine } from '@/lib/unified-pricing-engine';
 import { validateMOQ, isKraftMaterial } from '@/lib/pricing/validators/moq-validator';
 import { determineMaterialWidth } from '@/lib/material-width-selector';
@@ -141,7 +141,11 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   const isCalculatingPriceRef = useRef(false);
 
   // 2列生産オプションの状態（非同期計算用）
-  const [twoColumnOptions, setTwoColumnOptions] = useState<TwoColumnProductionOptions | null>(null);
+  // 拡張型: multiColumn（ロールフィルム多列オプション）を含む。実行時ロジック不変。
+  type ExtendedTwoColumnOptions = TwoColumnProductionOptions & {
+    multiColumn?: Array<{ columnCount: number; columnWidth: number; quantity: number; unitPrice: number; totalPrice: number; savingsRate: number }>;
+  };
+  const [twoColumnOptions, setTwoColumnOptions] = useState<ExtendedTwoColumnOptions | null>(null);
 
   // 元に戻すための前の状態を保存
   const [previousState, setPreviousState] = useState<{
@@ -630,7 +634,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
         }
 
         // 新しい総数量を計算（tempQuantitiesベースで計算 - 他のSKUの変更も反映）
-        const newTotalQuantity = newTempQuantities.reduce((sum, qty) => {
+        const newTotalQuantity = newTempQuantities.reduce<number>((sum, qty) => {
           return sum + (typeof qty === 'number' ? qty : 0);
         }, 0);
 
@@ -712,7 +716,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
 
     // 2列生産オプション適用時の総数量チェック
     if (quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined) {
-      const currentTotalQuantity = tempQuantities.reduce((sum, qty) => {
+      const currentTotalQuantity = tempQuantities.reduce<number>((sum, qty) => {
         return sum + (typeof qty === 'number' ? qty : 0);
       }, 0);
 
@@ -836,12 +840,11 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       const preserveSKUCount = currentSKUCount > 1;
 
       applyTwoColumnOptionContext(
-        optionType,
-        option.unitPrice,
+        optionType as any,
+        option.unitPrice as any,
         preserveSKUCount ? adjustedTotalPrice : option.totalPrice,
         baseUnitPrice, // 元の単価を使う（割引価格でないことを保証）
-        preserveSKUCount ? adjustedTotalQuantity : option.quantity,
-        preserveSKUCount
+        preserveSKUCount ? adjustedTotalQuantity : option.quantity
       );
 
       const currentTotal = quoteState.totalPrice || 0;
@@ -1553,7 +1556,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
               totalQuantity: opt.totalQuantity,
               description: opt.description
             })) : undefined
-          }}
+          } as any}
           appliedOption={quoteState.twoColumnOptionApplied}
           isRollFilm={isRollFilm}
           onAcceptRecommendation={() => {

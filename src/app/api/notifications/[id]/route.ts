@@ -23,7 +23,7 @@ export async function DELETE(
 
     const { id: notificationId } = await params;
 
-    const service = createNotificationService();
+    const service = await createNotificationService();
     await service.deleteNotification(notificationId);
 
     return NextResponse.json({ success: true });

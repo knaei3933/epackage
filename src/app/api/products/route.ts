@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     if (category && category !== 'all') {
-      query = query.eq('category', category)
+      query = query.eq('category', category as any)
     }
 
     if (activeOnly) {

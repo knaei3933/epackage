@@ -210,7 +210,7 @@ export async function POST(
 
     // 9. Send email to Korea partner
     const result = await sendKoreaDataTransferWithAttachments(
-      emailData,
+      emailData as any,
       attachmentData,
       process.env.KOREA_PARTNER_EMAIL || 'info@package-lab.com'
     );

@@ -11,12 +11,14 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
@@ -37,7 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch download history for this quotation
-    const { data: history, error } = await supabase
+    const { data: history, error } = await (supabase as any)
       .from('document_access_log')
       .select('*')
       .eq('quotation_id', quotationId)

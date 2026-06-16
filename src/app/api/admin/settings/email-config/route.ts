@@ -210,7 +210,7 @@ export async function GET(request: NextRequest) {
     // Fetch all settings
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fetchSetting = async (key: string): Promise<any> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('notification_settings')
         .select('value')
         .eq('key', key)
@@ -370,7 +370,7 @@ export async function PUT(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const upsertSetting = async (key: string, value: any, description: string): Promise<any> => {
       // Use type assertion to avoid Supabase type inference issues
-      const table = supabase.from('notification_settings') as any;
+      const table = (supabase as any).from('notification_settings');
       const result = await table.upsert({
         key,
         value,

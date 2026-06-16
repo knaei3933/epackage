@@ -50,7 +50,7 @@ export async function generateMetadata(
   return {
     title: `${post.meta_title || post.title} | Epackage Lab ブログ`,
     description: post.meta_description || post.excerpt || '',
-    authors: post.author ? [{ name: post.author.name }] : undefined,
+    authors: post.author ? [{ name: (post.author as any).name }] : undefined,
     openGraph: {
       type: 'article',
       locale: 'ja_JP',
@@ -68,7 +68,7 @@ export async function generateMetadata(
       ],
       publishedTime: post.published_at || undefined,
       modifiedTime: post.updated_at,
-      authors: post.author ? [post.author.name] : undefined,
+      authors: post.author ? [(post.author as any).name] : undefined,
       section: getCategoryLabel(post.category, 'ja'),
       tags: post.tags,
     },
@@ -125,7 +125,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     tags: post.tags,
     publishedAt: post.published_at || null,
     updatedAt: post.updated_at,
-    author: post.author ? { name: post.author.name, email: post.author.email } : null,
+    author: post.author ? { name: (post.author as any).name, email: post.author.email } : null,
     ogImagePath: post.og_image_path || null,
     metaTitle: post.meta_title || null,
     metaDescription: post.meta_description || null,
@@ -234,7 +234,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   {post.author && (
                     <div className="flex items-center gap-1">
                       <User className="w-4 h-4" />
-                      <span>{post.author.name}</span>
+                      <span>{(post.author as any).name}</span>
                     </div>
                   )}
                 </div>
@@ -312,7 +312,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               {post.author && (
                 <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
                   <h3 className="text-lg font-bold text-[#1D1D1F] mb-2">著者について</h3>
-                  <p className="text-gray-700">{post.author.name}</p>
+                  <p className="text-gray-700">{(post.author as any).name}</p>
                 </div>
               )}
             </article>

@@ -21,8 +21,3 @@ export type { SpecificationDisplayProps } from './SpecificationDisplay';
 // QuotationCard
 export { QuotationCard } from './QuotationCard';
 export type { QuotationCardProps } from './QuotationCard';
-
-// Default exports
-export { default as QuotationStatusBadge } from './StatusBadge';
-export { default as SpecificationDisplay } from './SpecificationDisplay';
-export { default as QuotationCard } from './QuotationCard';

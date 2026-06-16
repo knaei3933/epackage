@@ -416,7 +416,7 @@ export class DefaultStateMachineExecutor implements StateMachineExecutor {
  * Map OrderStatus to OrderState
  */
 export function mapOrderStatusToState(status: OrderStatus): OrderState {
-  const mapping: Record<OrderStatus, OrderState> = {
+  const mapping: Record<string, OrderState> = {
     PENDING: 'pending',
     QUOTATION: 'quotation',
     DATA_RECEIVED: 'data_received',
@@ -436,7 +436,7 @@ export function mapOrderStatusToState(status: OrderStatus): OrderState {
  * Map OrderState to OrderStatus
  */
 export function mapStateToOrderStatus(state: OrderState): OrderStatus {
-  const mapping: Record<OrderState, OrderStatus> = {
+  const mapping: Record<OrderState, string> = {
     pending: 'PENDING',
     quotation: 'QUOTATION',
     data_received: 'DATA_RECEIVED',
@@ -449,7 +449,7 @@ export function mapStateToOrderStatus(state: OrderState): OrderStatus {
     delivered: 'DELIVERED',
     cancelled: 'CANCELLED',
   };
-  return mapping[state];
+  return mapping[state] as OrderStatus;
 }
 
 /**

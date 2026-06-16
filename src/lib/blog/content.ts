@@ -302,11 +302,11 @@ export function watchBlogDirectory(
 /**
  * Validate blog content structure
  */
-export function validateBlogContent(): {
+export async function validateBlogContent(): Promise<{
   valid: boolean;
   errors: string[];
   warnings: string[];
-} {
+}> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -323,7 +323,7 @@ export function validateBlogContent(): {
 
   for (const file of files) {
     try {
-      const content = parseMarkdownFile(file);
+      const content = await parseMarkdownFile(file);
 
       // Check for duplicate slugs
       const duplicateSlug = files.some(otherFile => {

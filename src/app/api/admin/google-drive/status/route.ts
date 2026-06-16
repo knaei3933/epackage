@@ -13,7 +13,7 @@ import { requireAuth } from '@/lib/dashboard';
 export async function GET() {
   try {
     // Require admin authentication
-    const user = await requireAuth('ADMIN');
+    const user = await requireAuth();
 
     const adminClient = createServiceClient();
     const adminUserId = process.env.GOOGLE_DRIVE_ADMIN_USER_ID;

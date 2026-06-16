@@ -61,7 +61,7 @@ async function syncBlog(options: BlogSyncOptions = {}): Promise<BlogSyncStats> {
     if (options.verbose) {
       console.log('📋 Validating blog content...');
     }
-    const validation = validateBlogContent();
+    const validation = await validateBlogContent();
 
     if (!validation.valid) {
       console.error('❌ Blog content validation failed:');

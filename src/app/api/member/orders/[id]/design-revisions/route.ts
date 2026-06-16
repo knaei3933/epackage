@@ -330,8 +330,10 @@ export async function PATCH(
                 changed_at: new Date().toISOString(),
                 reason: `교정 데이터 승인 (리비전 ${revision.revision_number})`,
               })
-              .then(() => console.log('[Design Revisions PATCH] Status history logged'))
-              .catch((err) => console.error('[Design Revisions PATCH] History logging error:', err));
+              .then(
+                () => console.log('[Design Revisions PATCH] Status history logged'),
+                (err: any) => console.error('[Design Revisions PATCH] History logging error:', err)
+              );
           }
         }
       } catch (transitionError) {

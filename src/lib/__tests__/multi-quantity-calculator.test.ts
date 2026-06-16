@@ -1,6 +1,53 @@
 import { MultiQuantityCalculator } from '../multi-quantity-calculator'
-import { createMockMultiQuantityRequest, createMockQuoteResult } from '../../../jest.setup'
 import type { MultiQuantityRequest } from '@/types/multi-quantity'
+import type { UnifiedQuoteResult } from '../unified-pricing-engine'
+
+// ============================================================
+// Mock Helpers (previously provided by jest.setup)
+// ============================================================
+
+function createMockMultiQuantityRequest(
+  overrides?: Partial<MultiQuantityRequest>
+): MultiQuantityRequest {
+  return {
+    baseParams: {
+      bagTypeId: 'flat_3_side',
+      materialId: 'pet_al',
+      width: 200,
+      height: 300,
+      depth: 50,
+      printingType: 'gravure',
+      printingColors: 4,
+      ...overrides?.baseParams,
+    },
+    quantities: overrides?.quantities ?? [100, 500, 1000, 5000],
+    comparisonMode: overrides?.comparisonMode ?? 'price',
+    includeRecommendations: overrides?.includeRecommendations ?? true,
+  }
+}
+
+function createMockQuoteResult(
+  overrides?: Partial<UnifiedQuoteResult> & Record<string, any>
+): UnifiedQuoteResult {
+  return {
+    unitPrice: overrides?.unitPrice ?? 100,
+    totalPrice: overrides?.totalPrice ?? overrides?.totalCost ?? 10000,
+    currency: 'JPY',
+    breakdown: {
+      material: overrides?.breakdown?.material ?? 5000,
+      processing: overrides?.breakdown?.processing ?? 2000,
+      printing: overrides?.breakdown?.printing ?? 2000,
+      setup: overrides?.breakdown?.setup ?? 1000,
+      discount: overrides?.breakdown?.discount ?? 0,
+      delivery: overrides?.breakdown?.delivery ?? 0,
+      subtotal: overrides?.breakdown?.subtotal ?? 9000,
+      total: overrides?.breakdown?.total ?? 9000,
+    },
+    leadTimeDays: overrides?.leadTimeDays ?? 14,
+    validUntil: overrides?.validUntil ?? new Date('2025-12-31'),
+    minOrderQuantity: overrides?.minOrderQuantity ?? 100,
+  }
+}
 
 // Mock the unified pricing engine
 jest.mock('../unified-pricing-engine', () => ({

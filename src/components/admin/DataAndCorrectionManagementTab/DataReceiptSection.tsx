@@ -112,7 +112,7 @@ export function DataReceiptSection({ orderId, fetchFn = fetch }: DataReceiptSect
       }
 
       // Create object URL with blob
-      const url = window.URL.createObjectURL(blob, { type: blob.type });
+      const url = window.URL.createObjectURL(blob);
 
       // Create anchor and trigger download
       const a = document.createElement('a');

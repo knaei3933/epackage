@@ -281,13 +281,13 @@ class ShipmentTrackingService {
     const details = await this.getShipmentTrackingDetails(shipmentId);
     if (!details) return null;
 
-    return {
+    return ({
       carrier: details.carrier,
       trackingNumber: details.trackingNumber || '',
       status: details.status,
       estimatedDelivery: details.estimatedDelivery,
       tracking_history: details.trackingEvents,
-    };
+    }) as any;
   }
 
   /**

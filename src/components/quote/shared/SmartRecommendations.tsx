@@ -132,7 +132,7 @@ export function SmartRecommendations({
           benefitsJa: ['顧客満足度が高い', '市場実績豊富', 'バランスの取れた機能性'],
           priority: 'high',
           priceImpact: impact.multiplier - 1,
-          timeImpact: impact.processingTime,
+          timeImpact: (impact as any).processingTime,
           timeImpactJa: impact.processingTimeJa,
           category: 'popular',
           reasoning: language === 'ja'
@@ -204,7 +204,7 @@ export function SmartRecommendations({
           benefitsJa: ['プレミアムな外観', 'ブランド価値向上', '製品差別化'],
           priority: 'medium',
           priceImpact: impact.multiplier - 1,
-          timeImpact: impact.processingTime,
+          timeImpact: (impact as any).processingTime,
           timeImpactJa: impact.processingTimeJa,
           category: 'premium',
           reasoning: language === 'ja'

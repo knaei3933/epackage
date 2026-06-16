@@ -11,7 +11,7 @@
  * 4. フィルム幅計算（マチあり: H×2+G+35, マチなし: H×2+41）
  */
 
-import { PouchCostCalculator } from '../pouch-cost-calculator';
+import { PouchCostCalculator, type SKUCostParams } from '../pouch-cost-calculator';
 
 describe('スパウトパウチ計算実データ検証', () => {
   let calculator: PouchCostCalculator;

@@ -26,7 +26,7 @@ export const dynamic = 'force-dynamic';
 // Temporarily disable email sending to avoid import errors
 // import { sendEmail } from '@/lib/email/notificationService';
 
-const sendEmail = async () => {
+const sendEmail = async (_request?: any) => {
   // Placeholder to avoid import errors
   console.log('[Payment API] Email sending disabled');
 };

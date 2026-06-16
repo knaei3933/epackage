@@ -251,7 +251,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           __html: JSON.stringify(jsonLd)
         }}
       />
-      <ProductDetailClient product={product} />
+      <ProductDetailClient product={product as any} />
     </>
   )
 }

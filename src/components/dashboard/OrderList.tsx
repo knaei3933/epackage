@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { Card, Badge } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import type { Order, OrderStatus, OrderFilters, PaginationParams } from '@/types/dashboard';
+import type { Order, OrderFilters, PaginationParams } from '@/types/dashboard';
 import { OrderStatusLabels } from '@/types/database';
 import { OrderHistoryPDFButton } from '@/components/orders/OrderHistoryPDFButton';
 import { safeMap } from '@/lib/array-helpers';
@@ -38,11 +38,15 @@ type SortOption = 'createdAt-desc' | 'createdAt-asc' | 'orderNumber-asc' | 'tota
 /**
  * Convert order status to uppercase for consistent handling
  * Handles both legacy (lowercase) and new (uppercase) formats
+ *
+ * NOTE: OrderStatus 型は10段階ワークフロー (QUOTATION_PENDING 等) だが、
+ * 本コンポーネントはダッシュボード表示用に従来の文字列ステータスを扱うため、
+ * 戻り値は string とする（型の整合性は呼び出し側で吸収）。
  */
-function normalizeOrderStatus(status: string): OrderStatus {
-  const upperStatus = status.toUpperCase() as OrderStatus;
-  // Validate it's a valid OrderStatus
-  const validStatuses: OrderStatus[] = [
+function normalizeOrderStatus(status: string): string {
+  const upperStatus = status.toUpperCase();
+  // Validate it's a valid status (legacy + workflow)
+  const validStatuses: string[] = [
     'PENDING', 'QUOTATION', 'DATA_RECEIVED', 'WORK_ORDER',
     'CONTRACT_SENT', 'CONTRACT_SIGNED', 'PRODUCTION', 'STOCK_IN',
     'SHIPPED', 'DELIVERED', 'CANCELLED'
@@ -51,7 +55,7 @@ function normalizeOrderStatus(status: string): OrderStatus {
     return upperStatus;
   }
   // Fallback mapping for legacy values
-  const legacyMap: Record<string, OrderStatus> = {
+  const legacyMap: Record<string, string> = {
     'PENDING': 'PENDING',
     'PROCESSING': 'PRODUCTION',
     'MANUFACTURING': 'PRODUCTION',
@@ -68,7 +72,7 @@ function normalizeOrderStatus(status: string): OrderStatus {
  */
 function getStatusLabel(status: string): string {
   const normalized = normalizeOrderStatus(status);
-  return OrderStatusLabels[normalized]?.ja || status;
+  return (OrderStatusLabels as Record<string, any>)[normalized]?.ja || status;
 }
 
 /**
@@ -76,7 +80,7 @@ function getStatusLabel(status: string): string {
  */
 function getStatusVariant(status: string): 'warning' | 'info' | 'success' | 'secondary' | 'error' | 'default' {
   const normalized = normalizeOrderStatus(status);
-  const variantMap: Record<OrderStatus, 'warning' | 'info' | 'success' | 'secondary' | 'error' | 'default'> = {
+  const variantMap: Record<string, 'warning' | 'info' | 'success' | 'secondary' | 'error' | 'default'> = {
     PENDING: 'warning',
     QUOTATION: 'info',
     DATA_RECEIVED: 'info',
@@ -106,7 +110,7 @@ const sortOptions = [
 
 export function OrderList({ orders, total, pageSize = 10 }: OrderListProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('createdAt-desc');
   const [currentPage, setCurrentPage] = useState(1);
 

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       p_product_name: product_name,
       p_product_code: product_code,
       p_quantity: quantity,
-      p_performed_by: user.id,
+      p_performed_by: auth.userId,
       p_warehouse_location: warehouse_location,
       p_bin_location: bin_location || null,
       p_reason: reason,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: error.message || 'サーバーエラーが発生しました' },
+      { error: (error as Error).message || 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: error.message || 'サーバーエラーが発生しました' },
+      { error: (error as Error).message || 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }

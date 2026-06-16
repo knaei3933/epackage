@@ -1,10 +1,13 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const authResult = await getAuthenticatedUser(request);
+  // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+  // headers (set for authenticated users with profiles via the general middleware
+  // fallthrough), skipping the redundant getUser() RTT. 認証結果は不変。
+  const authResult = await getAuthenticatedUserFromHeaders(request);
   if (!authResult) {
     return NextResponse.json({ success: false, error: '認証が必要です', code: 'UNAUTHORIZED' }, { status: 401 });
   }

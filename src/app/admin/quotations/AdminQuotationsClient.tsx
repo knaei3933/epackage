@@ -33,7 +33,7 @@ interface AdminQuotationsClientProps {
  * AdminQuotationsClient - メインの管理者用見積管理コンポーネント
  * 状態管理とデータフェッチ、コンポーネントの合成のみ担当
  */
-function AdminQuotationsClientContent({ authContext, initialStatus }: AdminQuotationsClientProps) {
+function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [quotations, setQuotations] = useState<Quotation[]>([]);

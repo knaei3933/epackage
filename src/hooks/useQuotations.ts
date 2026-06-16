@@ -343,7 +343,7 @@ export function useQuotations({
 
       // PDFダウンロード
       if (pdfResult.pdfBuffer) {
-        const pdfBlob = new Blob([pdfResult.pdfBuffer], { type: 'application/pdf' });
+        const pdfBlob = new Blob([pdfResult.pdfBuffer as any], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
@@ -426,5 +426,5 @@ export async function fetchQuotationsServerSide(
     '@/app/member/quotations/loader'
   );
 
-  return loaderFetch(userId, status, limit, offset);
+  return loaderFetch(userId, status, limit, offset) as any;
 }

@@ -117,7 +117,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
             name: error.name,
             message: error.message,
             stack: error.stack,
-            digest: error.digest,
+            digest: (error as any).digest,
           },
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,

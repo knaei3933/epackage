@@ -87,7 +87,7 @@ export async function POST(
         status: 'sent',
         subject: '契約書への署名をお願いします',
         message: message || '契約書が準備できました。以下のリンクから署名をお願いします。',
-        sent_by: user.id,
+        sent_by: auth.userId,
       });
 
     // TODO: Send email to customer
@@ -101,7 +101,7 @@ export async function POST(
   } catch (error: unknown) {
     console.error('Error sending contract:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send contract' },
+      { error: (error as Error).message || 'Failed to send contract' },
       { status: 500 }
     );
   }

@@ -575,7 +575,7 @@ export async function validateFileSecurity(
   if (opts.scanForViruses && opts.virusScanApiKey) {
     const startTime = Date.now();
     try {
-      scanResults = await scanForViruses(buffer, fileName, opts.virusScanApiKey);
+      scanResults = await scanForViruses(buffer, fileName, opts.virusScanApiKey) as any;
       if (!scanResults.clean) {
         for (const threat of scanResults.threats) {
           errors.push({
@@ -594,7 +594,7 @@ export async function validateFileSecurity(
         code: 'SCAN_FAILED',
         message_ja: ERROR_MESSAGES.SCAN_FAILED.ja,
         message_en: ERROR_MESSAGES.SCAN_FAILED.en,
-        category: 'virus-scan',
+        category: 'virus-scan' as any,
       });
     }
     scanResults.scanTime = Date.now() - startTime;

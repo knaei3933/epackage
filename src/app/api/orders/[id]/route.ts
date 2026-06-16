@@ -188,11 +188,11 @@ interface UpdateOrderRequest {
   deliveryNotes?: string | null;
 }
 
-const MODIFIABLE_STATUSES: OrderStatus[] = [
+const MODIFIABLE_STATUSES = [
   'PENDING',
   'QUOTATION',
   'DATA_RECEIVED',
-];
+] as unknown as OrderStatus[];
 
 export async function PUT(
   request: NextRequest,

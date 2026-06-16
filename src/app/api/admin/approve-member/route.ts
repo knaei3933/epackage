@@ -233,7 +233,7 @@ async function sendApprovalEmail(
     return { success: true };
   } catch (error: unknown) {
     console.error('Approval email error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 }
 
@@ -300,7 +300,7 @@ const { Resend } = await import('resend');
     return { success: true };
   } catch (error: unknown) {
     console.error('Rejection email error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 }
 

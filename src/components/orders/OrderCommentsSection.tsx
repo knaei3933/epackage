@@ -62,7 +62,7 @@ const DELETE_TIME_LIMIT_HOURS = 24; // 削除可能時間（時間）
 // Component
 // ============================================================
 
-export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, compact = false, maxHeight = '300px', isAdmin = false }: OrderCommentsSectionProps) {
+function OrderCommentsSectionBase({ orderId, currentUserId, fetchFn = fetch, compact = false, maxHeight = '300px', isAdmin = false }: OrderCommentsSectionProps) {
   const [comments, setComments] = useState<OrderComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -405,7 +405,7 @@ export function OrderCommentsSection({ orderId, currentUserId, fetchFn = fetch, 
 }
 
 // Memoize component to prevent unnecessary re-renders
-OrderCommentsSection = memo(OrderCommentsSection) as typeof OrderCommentsSection;
+export const OrderCommentsSection = memo(OrderCommentsSectionBase) as any;
 
 // ============================================================
 // Wrapper Component - Provides current user ID

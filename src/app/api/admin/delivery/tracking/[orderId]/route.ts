@@ -23,6 +23,26 @@ import type { Database } from '@/types/database';
 // Types
 // ============================================================
 
+/**
+ * delivery_tracking テーブル更新用の部分型。
+ * 注: delivery_tracking テーブルは Database 型に未定義のため、
+ * 使用フィールドに基づき明示的に定義。
+ */
+interface ShipmentUpdate {
+  approval_date?: string;
+  estimated_production_complete_date?: string;
+  estimated_tracking_available_date?: string;
+  estimated_delivery_date_min?: string;
+  estimated_delivery_date_max?: string;
+  tracking_number?: string;
+  carrier?: string;
+  shipping_date?: string;
+  actual_delivery_date?: string;
+  admin_notes?: string;
+  status?: string;
+  updated_at?: string;
+}
+
 interface TrackingUpdateRequest {
   approvalDate?: string;
   trackingNumber?: string;
@@ -189,7 +209,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Delivery Tracking] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -256,7 +276,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -349,7 +369,7 @@ export async function PATCH(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] PATCH error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -399,7 +419,7 @@ export async function DELETE(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] DELETE error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: (error as Error).message || 'Internal server error' },
       { status: 500 }
     );
   }

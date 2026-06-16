@@ -5,10 +5,14 @@ import { cn } from "@/lib/utils"
 export interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   variant?: 'default' | 'error' | 'success' | 'warning' | 'ghost' | 'filled';
+  label?: string;
+  error?: string;
+  helperText?: React.ReactNode;
+  showCharCount?: boolean;
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, variant = 'default', ...props }, ref) => {
+  ({ className, variant = 'default', label, error, helperText, showCharCount, ...props }, ref) => {
     const variantStyles = {
       default: 'border-[var(--border-medium)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus-visible:border-[var(--brixa-primary-500)] focus-visible:ring-[var(--brixa-primary-500)] dark:border-[var(--border-dark)] dark:bg-[var(--bg-secondary)]',
       error: 'border-[var(--error-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus-visible:border-[var(--error-500)] focus-visible:ring-[var(--error-500)] dark:bg-[var(--bg-secondary)]',
@@ -18,7 +22,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       filled: 'border-transparent bg-[var(--bg-secondary)] text-[var(--text-primary)] focus-visible:border-[var(--brixa-primary-500)] focus-visible:ring-[var(--brixa-primary-500)] dark:bg-[var(--bg-muted)]',
     };
 
-    return (
+    const textareaEl = (
       <textarea
         className={cn(
           "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-[var(--text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
@@ -28,6 +32,27 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         {...props}
       />
+    );
+
+    if (!label && !error && !helperText) {
+      return textareaEl;
+    }
+
+    return (
+      <div className="space-y-1 w-full">
+        {label && (
+          <label className="block text-sm font-medium text-[var(--text-primary)]">
+            {label}
+          </label>
+        )}
+        {textareaEl}
+        {error && (
+          <p className="text-xs text-[var(--error-500)]">{error}</p>
+        )}
+        {helperText && (
+          <p className="text-xs text-[var(--text-tertiary)]">{helperText}</p>
+        )}
+      </div>
     )
   }
 )

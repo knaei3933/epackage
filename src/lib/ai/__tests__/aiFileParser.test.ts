@@ -5,7 +5,7 @@
  * Unit tests for AI file parsing functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import {
   parseAiFile,
   extractAiDataFromBuffer,

@@ -395,7 +395,7 @@ export function CatalogClient() {
                   {filteredProducts && Array.isArray(filteredProducts) ? filteredProducts.map((product, index) => (
                     <EnhancedProductCard
                       key={product?.id || index}
-                      product={product}
+                      product={product as any}
                       index={index}
                       onSelect={() => product && setSelectedProduct(product)}
                     />
@@ -406,7 +406,7 @@ export function CatalogClient() {
                   {filteredProducts && Array.isArray(filteredProducts) && filteredProducts.map((product, index) => (
                     <ProductListItem
                       key={product?.id || index}
-                      product={product}
+                      product={product as any}
                       index={index}
                       onSelect={() => setSelectedProduct(product)}
                     />

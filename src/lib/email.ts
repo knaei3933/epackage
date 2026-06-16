@@ -827,7 +827,7 @@ ${data.message || 'なし'}
 /**
  * メール送信（環境別自動分岐）
  */
-async function sendEmail(
+export async function sendEmail(
   to: string,
   subject: string,
   text: string,
@@ -850,7 +850,10 @@ async function sendEmail(
   }
 
   try {
-    const info = await transporter.sendMail({
+    // nodemailer の sendMail オーバーロードは `charset` を標準 MailOptions に持たず
+    // オーバーロード解決が失敗するため、MailOptions として明示的にキャストする。
+    // 実行時の送信オプション・エンコーディング設定は一切変更しない。
+    const mailOptions = {
       from: FROM_EMAIL,
       to,
       subject,
@@ -858,10 +861,13 @@ async function sendEmail(
       text,
       html,
       // Japanese email encoding: UTF-8 with quoted-printable for proper character display
-      textEncoding: 'quoted-printable',
+      textEncoding: 'quoted-printable' as const,
       encoding: 'utf-8',
-      charset: 'utf-8'
-    });
+      charset: 'utf-8',
+    };
+    // sendMail は Promise<SentMessageInfo> を返すが、charset 未定義により
+    // TS がコールバック版 void オーバーロードに解決してしまうため明示的に型付する。
+    const info = await transporter.sendMail(mailOptions as nodemailer.SendMailOptions) as nodemailer.SentMessageInfo;
 
     const result: { success: boolean; error?: string; messageId?: string; previewUrl?: string } = {
       success: true,
@@ -871,7 +877,8 @@ async function sendEmail(
     // Etherealの場合はpreview URLを提供
     let previewUrl: string | undefined;
     if (transportType === 'ethereal' && nodemailer.getTestMessageUrl) {
-      previewUrl = nodemailer.getTestMessageUrl(info);
+      // getTestMessageUrl は string | false を返すため、false を undefined に正規化
+      previewUrl = nodemailer.getTestMessageUrl(info) || undefined;
       if (previewUrl) {
         result.previewUrl = previewUrl;
         console.log('[Email] Ethereal preview URL:', result.previewUrl);

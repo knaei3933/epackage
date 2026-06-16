@@ -156,7 +156,7 @@ export async function POST(
           customer_email: originalQuotation.customer_email,
           customer_phone: originalQuotation.customer_phone,
           subtotal_amount: newQuoteResult.breakdown.subtotal,
-          tax_amount: newQuoteResult.breakdown.tax || 0,
+          tax_amount: (newQuoteResult.breakdown as any).tax || 0,
           total_amount: newPrice,
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           notes: `【管理者による仕様変更】\n変更理由: ${body.changeReason || '未入力'}\n変更者: ${auth.userId}`,

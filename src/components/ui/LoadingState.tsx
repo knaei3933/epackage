@@ -121,11 +121,11 @@ export function LoadingState({
  * PageLoadingState - Preconfigured for full-page loading
  */
 export function PageLoadingState({
-  isLoading,
+  isLoading = true,
   error,
   children,
   message = '読み込み中...',
-}: Omit<LoadingStateProps, 'size' | 'fullScreen'>) {
+}: Partial<Omit<LoadingStateProps, 'size' | 'fullScreen'>>) {
   return (
     <LoadingState
       isLoading={isLoading}

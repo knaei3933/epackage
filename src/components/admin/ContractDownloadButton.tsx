@@ -103,8 +103,8 @@ export function ContractDownloadButton({
     <div className="flex items-center gap-2">
       <Button
         onClick={handleDownload}
-        variant={variant}
-        size={size}
+        variant={variant as any}
+        size={size as any}
         disabled={loading}
         className={className}
         title={pdfUrl ? 'PDFをダウンロード' : 'PDFを生成してダウンロード'}
@@ -198,8 +198,8 @@ export function ContractPreviewButton({
     <div className="flex items-center gap-2">
       <Button
         onClick={handlePreview}
-        variant={variant}
-        size={size}
+        variant={variant as any}
+        size={size as any}
         disabled={loading}
         className={className}
         title="契約書をプレビュー"

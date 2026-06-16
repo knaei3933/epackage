@@ -37,6 +37,8 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
     const data = validationResult.data;
     const { inventoryId, productId, quantity, transactionType, reason } = data;
 
+    const supabase = createServiceClient();
+
     // Get current inventory
     const { data: currentInventory, error: fetchError } = await supabase
       .from('inventory')

@@ -37,7 +37,7 @@ export async function DELETE(
 
     // Delete notification using unified_notifications table
     const { error } = await supabase
-      .from('unified_notifications')
+      .from('unified_notifications' as any)
       .delete()
       .eq('id', id)
 
@@ -96,7 +96,7 @@ export async function PUT(
 
     // Update notification using unified_notifications table
     const { data, error } = await supabase
-      .from('unified_notifications')
+      .from('unified_notifications' as any)
       .update(updateData)
       .eq('id', id)
       .select()

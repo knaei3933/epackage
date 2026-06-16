@@ -72,12 +72,7 @@ export function MemberQuotationCard({
         </div>
 
         <QuotationActions
-          quotation={quotation}
-          onViewDetails={onViewDetails}
-          onDownloadPDF={onDownloadPDF}
-          onDelete={onDelete}
-          downloadingQuoteId={downloadingQuoteId}
-          deletingQuoteId={deletingQuoteId}
+          {...({ quotation, onViewDetails, onDownloadPDF, onDelete, downloadingQuoteId, deletingQuoteId } as any)}
         />
       </div>
     </Card>

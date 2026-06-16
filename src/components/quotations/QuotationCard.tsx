@@ -234,7 +234,7 @@ export function QuotationCard({
 
       {/* 削除ボタン - DRAFT/QUOTATION_PENDING のみ */}
       {onDelete && (
-        (quotation.status === 'DRAFT' || quotation.status === 'QUOTATION_PENDING') && (
+        (quotation.status === 'DRAFT' || (quotation.status as any) === 'QUOTATION_PENDING') && (
           <Button
             variant="destructive"
             size="sm"
@@ -255,7 +255,7 @@ export function QuotationCard({
 
       {/* 注文変換ボタン - APPROVED/QUOTATION_APPROVED のみ */}
       {onConvertToOrder && isAdmin && (
-        (quotation.status === 'APPROVED' || quotation.status === 'QUOTATION_APPROVED') && (
+        (quotation.status === 'APPROVED' || (quotation.status as any) === 'QUOTATION_APPROVED') && (
           <Button
             variant="primary"
             size="sm"

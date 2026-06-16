@@ -106,7 +106,7 @@ function generateStructuredData(
 ): StructuredData {
   const title = post.meta_title || post.title;
   const description = post.meta_description || post.excerpt;
-  const wordCount = 'word_count' in post ? post.word_count : undefined;
+  const wordCount = ('word_count' in post ? post.word_count : undefined) as any;
 
   return {
     '@context': 'https://schema.org',

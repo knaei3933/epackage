@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const recipientType = (searchParams.get('recipientType') || 'member') as 'member' | 'admin';
 
-    const service = createNotificationService();
+    const service = await createNotificationService();
     const unreadCount = await service.getUnreadCount(
       userId || 'dev-mock-user',
       recipientType

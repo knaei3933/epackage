@@ -282,7 +282,7 @@ function calculateBreakdown(item: QuotationItem) {
   console.log('[calculateBreakdown] item.id:', item.id);
   console.log('[calculateBreakdown] item.specifications type:', typeof item.specifications);
   console.log('[calculateBreakdown] item.specifications keys:', item.specifications ? Object.keys(item.specifications) : 'undefined');
-  const specs = item.specifications || {};
+  const specs = (item.specifications || {}) as Record<string, any>;
   console.log('[calculateBreakdown] film_cost_details in specs:', 'film_cost_details' in specs);
   console.log('[calculateBreakdown] specs.film_cost_details type:', typeof specs.film_cost_details);
   console.log('[calculateBreakdown] specs.film_cost_details:', specs.film_cost_details);

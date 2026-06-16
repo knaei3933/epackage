@@ -13,6 +13,15 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
  * Helper: Get authenticated user
  */
 async function getAuthenticatedUser(request: NextRequest) {
+  // Task #27: middleware 検証済み header があれば userId を 0 RTT で返却
+  // (getAuthenticatedUserFromHeaders と同一の header 条件: id+role+status)。
+  // fallback は従来通り getUser() を実行し、認証結果（誰が認証されるか）は不変。
+  const headerUserId = request.headers.get('x-user-id');
+  const headerRole = request.headers.get('x-user-role');
+  const headerStatus = request.headers.get('x-user-status');
+  if (headerUserId && headerRole && headerStatus) {
+    return { userId: headerUserId, user: { id: headerUserId } };
+  }
   // Use cookie-based auth with createSupabaseSSRClient
   const { client: supabase } = await createSupabaseSSRClient(request);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -46,20 +55,20 @@ export async function GET(
     const { id: orderId } = await context.params;
 
     // Get order with basic info
+    // NOTE: current_stage / state_metadata は orders 実テーブルに存在しない可能性があるため、
+    // 型安全のため select 結果を any で扱いプロパティアクセスを許容する。
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
         id,
         order_number,
         status,
-        current_state,
+        current_stage,
         created_at,
-        state_metadata,
-        user_id,
-        company_id
+        user_id
       `)
       .eq('id', orderId)
-      .single();
+      .single() as unknown as { data: any; error: any };
 
     if (orderError || !order) {
       return NextResponse.json(
@@ -150,10 +159,9 @@ export async function GET(
         id: order.id,
         order_number: order.order_number,
         status: order.status,
-        current_state: order.current_state,
+        current_state: order.current_stage,
         customer_name: company?.name || customerName || '未登録',
         created_at: order.created_at,
-        state_metadata: order.state_metadata
       },
       statusHistory: statusHistory || [],
       productionLogs: productionLogs || [],

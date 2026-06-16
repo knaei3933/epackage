@@ -13,10 +13,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { withMemberAuth } from '@/lib/api-auth';
 import { withApiHandler } from '@/lib/api-error-handler';
-import type { Database } from '@/types/database';
-
-type InvoiceWithItems = Database['public']['Tables']['invoices']['Row'] & {
-  invoice_items?: Database['public']['Tables']['invoice_items']['Row'][];
+// NOTE: invoices / invoice_items tables are not present in the generated Database types.
+type InvoiceWithItems = Record<string, unknown> & {
+  invoice_items?: Record<string, unknown>[];
 };
 
 /**

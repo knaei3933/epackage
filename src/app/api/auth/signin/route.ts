@@ -22,6 +22,10 @@ import { createServiceClient } from '@/lib/supabase';
 
 const signinRateLimiter = createAuthRateLimiter();
 
+// Task #27: PII（メールアドレス等）を含むリクエスト詳細ログは開発環境のみ出力。
+// 本番での同期ログ I/O 削減 + 個人情報保護。実行時ロジックは不変（ログ出力のみ条件化）。
+const isDebugLog = process.env.NODE_ENV !== 'production';
+
 // =====================================================
 // Schema
 // =====================================================
@@ -37,7 +41,7 @@ const signinSchema = z.object({
 // =====================================================
 
 async function handleSignInPost(request: NextRequest) {
-  console.log('[Signin API] Received signin request');
+  if (isDebugLog) console.log('[Signin API] Received signin request');
 
   try {
     // Get Supabase URL for cookie naming
@@ -64,7 +68,8 @@ async function handleSignInPost(request: NextRequest) {
 
     const validatedData = signinSchema.parse(body);
 
-    console.log('[Signin API] Login attempt for:', validatedData.email);
+    // PII（メールアドレス）を含むため本番では出力しない（Task #27）
+    if (isDebugLog) console.log('[Signin API] Login attempt for:', validatedData.email);
 
     // =====================================================
     // DEV MODE: Mock login for testing (SECURE: server-side only)
@@ -73,7 +78,7 @@ async function handleSignInPost(request: NextRequest) {
                       process.env.ENABLE_DEV_MOCK_AUTH === 'true';
 
     if (isDevMode) {
-      console.log('[DEV MODE] Mock login for:', validatedData.email);
+      if (isDebugLog) console.log('[DEV MODE] Mock login for:', validatedData.email);
 
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -173,13 +178,13 @@ async function handleSignInPost(request: NextRequest) {
     // Create SSR client that can read/write cookies
     // IMPORTANT: createSupabaseSSRClient creates a response object that @supabase/ssr
     // uses to set cookies via the cookies.set callback
-    console.log('[Signin API] Creating SSR client...');
+    if (isDebugLog) console.log('[Signin API] Creating SSR client...');
     const { client: supabase, response: initialResponse } = await createSupabaseSSRClient(request);
 
     // Attempt login
     // When signInWithPassword succeeds, @supabase/ssr automatically sets session cookies
     // via the cookies.set callback in createSupabaseSSRClient
-    console.log('[Signin API] Attempting signInWithPassword...');
+    if (isDebugLog) console.log('[Signin API] Attempting signInWithPassword...');
     const { data, error } = await supabase.auth.signInWithPassword({
       email: validatedData.email,
       password: validatedData.password,
@@ -193,7 +198,7 @@ async function handleSignInPost(request: NextRequest) {
       );
     }
 
-    console.log('[Signin API] Login successful, user ID:', data.user.id);
+    if (isDebugLog) console.log('[Signin API] Login successful, user ID:', data.user.id);
 
     // Get user profile using SERVICE ROLE client
     // CRITICAL: Use service role to bypass RLS policies that block anon key access
@@ -258,7 +263,7 @@ async function handleSignInPost(request: NextRequest) {
       ? '/admin/dashboard'
       : redirectUrl;
 
-    console.log('[Signin API] Redirecting to:', finalRedirect, '(role:', userRole, ')');
+    if (isDebugLog) console.log('[Signin API] Redirecting to:', finalRedirect, '(role:', userRole, ')');
 
     // Add redirectUrl to response data
     // IMPORTANT: Return JSON response instead of redirect
@@ -280,7 +285,7 @@ async function handleSignInPost(request: NextRequest) {
     // Supabase SSR client uses response.headers.append('Set-Cookie', ...)
     // So we must use response.headers.getSetCookie() to retrieve them
     const setCookieHeaders = initialResponse.headers.getSetCookie();
-    console.log('[Signin API] Set-Cookie headers from initialResponse:', setCookieHeaders.length);
+    if (isDebugLog) console.log('[Signin API] Set-Cookie headers from initialResponse:', setCookieHeaders.length);
 
     // Create JSON response
     const finalResponse = NextResponse.json(responseData, {
@@ -296,8 +301,9 @@ async function handleSignInPost(request: NextRequest) {
       copiedCount++;
     });
 
-    console.log('[Signin API] Copied', copiedCount, 'Set-Cookie headers to finalResponse');
-    console.log('[Signin API] Login successful, cookies set for:', data.user.email);
+    if (isDebugLog) console.log('[Signin API] Copied', copiedCount, 'Set-Cookie headers to finalResponse');
+    // PII（メールアドレス）を含むため本番では出力しない（Task #27）
+    if (isDebugLog) console.log('[Signin API] Login successful, cookies set for:', data.user.email);
 
     // Return the response with cookies
     return finalResponse;
@@ -328,6 +334,9 @@ async function handleSignInPost(request: NextRequest) {
   }
 }
 
-// TEMPORARY: Bypass rate limiter to debug login issue
-// export const POST = withRateLimit(handleSignInPost, signinRateLimiter);
-export const POST = handleSignInPost as any;
+// Task #27: レートリミッターを有効化（ブルートフォース防御を復元）。
+// 以前の「TEMPORARY: Bypass ...」はログイン問題のデバッグ用残留だったが、
+// RateLimiter は in-memory Map (O(1) ルックアップ) のため正常ログインへの
+// 遅延影響は無視でき、認証保護の復元（認証バイパス厳禁の制約に合致）。
+// register route と同じ withRateLimit + createAuthRateLimiter パターン。
+export const POST = withRateLimit(handleSignInPost, signinRateLimiter);

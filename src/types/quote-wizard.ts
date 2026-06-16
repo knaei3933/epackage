@@ -293,10 +293,10 @@ export const validateWidth = (
   }
 
   // ガゼットパウチ: 幅+側面のチェック
-  if (bagTypeId === 'box' && limits.maxWidthPlusSide && depth) {
+  if (bagTypeId === 'box' && (limits as any).maxWidthPlusSide && depth) {
     const widthPlusSide = width + depth;
-    if (widthPlusSide > limits.maxWidthPlusSide) {
-      return `幅＋側面は${limits.maxWidthPlusSide}mm以下（現在: ${width}mm＋${depth}mm＝${widthPlusSide}mm）`;
+    if (widthPlusSide > (limits as any).maxWidthPlusSide) {
+      return `幅＋側面は${(limits as any).maxWidthPlusSide}mm以下（現在: ${width}mm＋${depth}mm＝${widthPlusSide}mm）`;
     }
   }
 

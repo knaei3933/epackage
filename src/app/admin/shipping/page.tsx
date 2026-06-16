@@ -23,7 +23,7 @@ async function ShippingContent() {
     redirect('/auth/signin?redirect=/admin/shipping');
   }
 
-  return <AdminShippingClient authContext={authContext} />;
+  return <AdminShippingClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminShippingPage() {

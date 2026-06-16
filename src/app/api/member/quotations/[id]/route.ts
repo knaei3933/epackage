@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,8 +22,10 @@ export async function GET(
     const params = await context.params;
     const { id: quotationId } = params;
 
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
@@ -107,7 +109,7 @@ export async function GET(
       status: quotation.status,
       userId: quotation.user_id,
       remarks: quotation.notes,
-      items: (quotation.quotation_items || []).map((item: any) => ({
+      items: ((quotation.quotation_items as any) || []).map((item: any) => ({
         id: item.id,
         productId: item.product_id,
         productName: item.product_name,
@@ -146,8 +148,10 @@ export async function DELETE(
     const params = await context.params;
     const { id: quotationId } = params;
 
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。' },
@@ -226,8 +230,10 @@ export async function PUT(
     const params = await context.params;
     const { id: quotationId } = params;
 
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },

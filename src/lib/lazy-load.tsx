@@ -119,7 +119,7 @@ export function createDynamicComponent<T extends ComponentType<any>>(
   } = options;
 
   return dynamic(() => importFn(), {
-    loading: LoadingComponent,
+    loading: () => <LoadingComponent />,
     ssr,
   });
 }
@@ -129,21 +129,10 @@ export function createDynamicComponent<T extends ComponentType<any>>(
 // ============================================================
 
 /**
- * Lazy load heavy admin components
- */
-export const LazyAdminDashboard = dynamic(
-  () => import('@/components/admin/dashboard/DashboardWidget'),
-  {
-    loading: () => <DefaultLoadingSkeleton />,
-    ssr: false,
-  }
-);
-
-/**
  * Lazy load chart components
  */
 export const LazyChart = dynamic(
-  () => import('recharts'),
+  (() => import('recharts')) as any,
   {
     loading: () => <DefaultLoadingSpinner />,
     ssr: false,
@@ -154,7 +143,7 @@ export const LazyChart = dynamic(
  * Lazy load PDF generation components
  */
 export const LazyPdfGenerator = dynamic(
-  () => import('@/lib/pdf-generator'),
+  () => import('@/lib/pdf-generator') as any,
   {
     loading: () => <DefaultLoadingSpinner />,
     ssr: false,
@@ -163,14 +152,16 @@ export const LazyPdfGenerator = dynamic(
 
 /**
  * Lazy load rich text editor
+ * NOTE: RichTextEditor component does not exist yet.
+ * Re-enable when @/components/editor/RichTextEditor is implemented.
  */
-export const LazyRichTextEditor = dynamic(
-  () => import('@/components/editor/RichTextEditor'),
-  {
-    loading: () => <DefaultLoadingSkeleton />,
-    ssr: false,
-  }
-);
+// export const LazyRichTextEditor = dynamic(
+//   () => import('@/components/editor/RichTextEditor'),
+//   {
+//     loading: () => <DefaultLoadingSkeleton />,
+//     ssr: false,
+//   }
+// );
 
 // ============================================================
 // Component Wrappers
@@ -263,7 +254,7 @@ export function LazyIntersectionImage({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && src) {
-            setImageSrc(src);
+            setImageSrc(src as string);
             observer.disconnect();
           }
         });

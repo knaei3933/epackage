@@ -15,15 +15,17 @@ export class PriceCalculator {
       await new Promise(resolve => setTimeout(resolve, delayMs));
     }
 
+    // SimulationState の実行時プロパティは型定義に含まれていないため any キャストで参照
+    const s = state as any;
     const cacheKey = JSON.stringify({
-      w: state.width,
-      h: state.height,
-      bag: state.bagType,
-      mat: state.materialGenre,
-      surf: state.surfaceMaterial,
-      comp: state.materialComposition,
-      qty: state.quantities,
-      order: state.orderType
+      w: s.width,
+      h: s.height,
+      bag: s.bagType,
+      mat: s.materialGenre,
+      surf: s.surfaceMaterial,
+      comp: s.materialComposition,
+      qty: s.quantities,
+      order: s.orderType
     });
 
     if (this.cache.has(cacheKey)) {
@@ -46,7 +48,8 @@ export class PriceCalculator {
   }
 
   private async calculateLogic(state: SimulationState): Promise<QuotationResult[]> {
-    const { width, height, quantities, bagType, materialComposition, surfaceMaterial, orderType } = state;
+    // SimulationState の実行時プロパティは型定義に含まれていないため any キャストで参照
+    const { width, height, quantities, bagType, materialComposition, surfaceMaterial, orderType } = state as any;
 
     // Map SimulationState to QuotePatternSpecification
     const bagSpecs: BagSpecifications = {
@@ -98,11 +101,11 @@ export class PriceCalculator {
           unitPrice: calculation.priceBreakdown.unitPrice,
           totalPrice: calculation.priceBreakdown.totalPrice,
           discountFactor: calculation.priceBreakdown.volumeDiscount
-        });
+        } as any as QuotationResult);
       } catch (error) {
         console.error(`Error calculating price for qty ${qty}:`, error);
         // Fallback or skip
-        results.push({ quantity: qty, unitPrice: 0, totalPrice: 0 });
+        results.push({ quantity: qty, unitPrice: 0, totalPrice: 0 } as any as QuotationResult);
       }
     }
 

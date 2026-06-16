@@ -53,11 +53,8 @@ function getStatusVariant(status: string): 'warning' | 'info' | 'success' | 'sec
     WORK_ORDER: 'secondary',
     CONTRACT_SENT: 'info',
     CONTRACT_SIGNED: 'info',
-    PRODUCTION: 'secondary',
     STOCK_IN: 'secondary',
-    SHIPPED: 'success',
     DELIVERED: 'default',
-    CANCELLED: 'error',
 
     // Legacy lowercase support
     pending: 'warning',

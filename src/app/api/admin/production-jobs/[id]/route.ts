@@ -30,8 +30,13 @@ export async function GET(
 
     const { id } = await params;
     const { client: supabase } = await createSupabaseSSRClient(request);
+    // production_orders / stage_action_history are not in the hand-written
+    // Database type (kept minimal). Use a loosely-typed alias so dynamic
+    // table access compiles without touching database.ts.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db: any = supabase;
     // Fetch production job details using execute_sql
-    const { data: productionJob, error: jobError } = await supabase
+    const { data: productionJob, error: jobError } = await db
       .from('production_orders')
       .select('*')
       .eq('id', id)
@@ -45,7 +50,7 @@ export async function GET(
     }
 
     // Fetch related order details
-    const { data: orderDetails } = await supabase
+    const { data: orderDetails } = await db
       .from('orders')
       .select(`
         id,
@@ -63,18 +68,20 @@ export async function GET(
       .single();
 
     // Transform the data to match expected format
-    const transformedOrderDetails = orderDetails ? {
-      id: orderDetails.id,
-      order_number: orderDetails.order_number,
-      total_amount: orderDetails.total_amount,
-      customer_name: orderDetails.profiles?.company_name ||
-        `${orderDetails.profiles?.kanji_last_name || ''} ${orderDetails.profiles?.kanji_first_name || ''}`.trim() ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const order: any = orderDetails;
+    const transformedOrderDetails = order ? {
+      id: order.id,
+      order_number: order.order_number,
+      total_amount: order.total_amount,
+      customer_name: order.profiles?.company_name ||
+        `${order.profiles?.kanji_last_name || ''} ${order.profiles?.kanji_first_name || ''}`.trim() ||
         'N/A',
-      customer_email: orderDetails.profiles?.email || 'N/A',
+      customer_email: order.profiles?.email || 'N/A',
     } : null;
 
     // Fetch stage action history
-    const { data: stageHistory } = await supabase
+    const { data: stageHistory } = await db
       .from('stage_action_history')
       .select('*')
       .eq('production_order_id', id)
@@ -88,7 +95,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error fetching production job:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch production job' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch production job' },
       { status: 500 }
     );
   }
@@ -111,11 +118,16 @@ export async function PATCH(
 
     const { id } = await params;
     const { client: supabase } = await createSupabaseSSRClient(request);
+    // production_orders / stage_action_history are not in the hand-written
+    // Database type (kept minimal). Use a loosely-typed alias so dynamic
+    // table access compiles without touching database.ts.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db: any = supabase;
     const body = await request.json();
     const { action, reason } = body;
 
     // Fetch current production order
-    const { data: currentOrder, error: fetchError } = await supabase
+    const { data: currentOrder, error: fetchError } = await db
       .from('production_orders')
       .select('*')
       .eq('id', id)
@@ -149,16 +161,18 @@ export async function PATCH(
       const nextStage = stages[currentIndex + 1];
 
       // Update stage data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const stageData: any = currentOrder.stage_data;
       const updatedStageData = {
-        ...currentOrder.stage_data,
+        ...stageData,
         [currentOrder.current_stage]: {
-          ...(currentOrder.stage_data[currentOrder.current_stage] || {}),
+          ...(stageData[currentOrder.current_stage] || {}),
           status: 'completed',
           completed_at: new Date().toISOString(),
-          completed_by: user.id,
+          completed_by: auth.userId,
         },
         [nextStage]: {
-          ...(currentOrder.stage_data[nextStage] || {}),
+          ...(stageData[nextStage] || {}),
           status: 'in_progress',
           started_at: new Date().toISOString(),
         },
@@ -168,7 +182,7 @@ export async function PATCH(
       const newProgress = Math.round(((currentIndex + 1) / stages.length) * 100);
 
       // Update production order
-      const { data } = await supabase
+      const { data } = await db
         .from('production_orders')
         .update({
           current_stage: nextStage,
@@ -183,11 +197,11 @@ export async function PATCH(
       updatedOrder = data;
 
       // Log action in history
-      await supabase.from('stage_action_history').insert({
+      await db.from('stage_action_history').insert({
         production_order_id: id,
         stage: nextStage,
         action: 'started',
-        performed_by: user.id,
+        performed_by: auth.userId,
         performed_at: new Date().toISOString(),
         notes: `Advanced from ${currentOrder.current_stage}`,
       });
@@ -213,15 +227,17 @@ export async function PATCH(
       const previousStage = stages[currentIndex - 1];
 
       // Update stage data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const stageData: any = currentOrder.stage_data;
       const updatedStageData = {
-        ...currentOrder.stage_data,
+        ...stageData,
         [currentOrder.current_stage]: {
-          ...(currentOrder.stage_data[currentOrder.current_stage] || {}),
+          ...(stageData[currentOrder.current_stage] || {}),
           status: 'pending',
           started_at: null,
         },
         [previousStage]: {
-          ...(currentOrder.stage_data[previousStage] || {}),
+          ...(stageData[previousStage] || {}),
           status: 'in_progress',
         },
       };
@@ -230,7 +246,7 @@ export async function PATCH(
       const newProgress = Math.round((currentIndex / stages.length) * 100);
 
       // Update production order
-      const { data } = await supabase
+      const { data } = await db
         .from('production_orders')
         .update({
           current_stage: previousStage,
@@ -245,11 +261,11 @@ export async function PATCH(
       updatedOrder = data;
 
       // Log action in history
-      await supabase.from('stage_action_history').insert({
+      await db.from('stage_action_history').insert({
         production_order_id: id,
         stage: previousStage,
         action: 'rolled_back',
-        performed_by: user.id,
+        performed_by: auth.userId,
         performed_at: new Date().toISOString(),
         notes: reason || `Rolled back from ${currentOrder.current_stage}`,
       });
@@ -265,7 +281,7 @@ export async function PATCH(
   } catch (error: unknown) {
     console.error('Error updating production job:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update production job' },
+      { error: error instanceof Error ? error.message : 'Failed to update production job' },
       { status: 500 }
     );
   }

@@ -40,7 +40,7 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
   display: "swap",
   preload: true,
-  adjustFontFallback: "Arial",
+  adjustFontFallback: true,
   fallback: ["Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", "sans-serif"],
 });
 
@@ -71,8 +71,6 @@ export const metadata: Metadata = {
   other: {
     'rss': '/rss.xml',
   },
-  // Use metadataBase for absolute URLs
-  metadataBase: new URL('https://www.package-lab.com'),
   openGraph: {
     type: 'website',
     locale: 'ja_JP',

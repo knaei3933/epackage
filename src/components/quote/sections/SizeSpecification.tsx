@@ -722,7 +722,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
           <select
             value={state.spoutSize || ''}
             onChange={(e) => {
-              const spoutSize = e.target.value as '9' | '15' | '18' | '22' | '28' | undefined;
+              const spoutSize = (e.target.value || undefined) as unknown as 9 | 15 | 18 | 22 | 28 | undefined;
               updateBasicSpecs({ spoutSize });
             }}
             className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"

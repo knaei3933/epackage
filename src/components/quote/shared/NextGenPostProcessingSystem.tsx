@@ -447,7 +447,7 @@ export function NextGenPostProcessingSystem({
                           {language === 'ja' ? '処理時間' : 'Processing Time'}
                         </span>
                         <Badge variant="outline">
-                          {language === 'ja' ? processingImpact.processingTimeJa : processingImpact.processingTime}
+                          {language === 'ja' ? processingImpact.processingTimeJa : (processingImpact as any).processingTime}
                         </Badge>
                       </div>
                     </div>

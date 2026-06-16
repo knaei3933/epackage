@@ -176,7 +176,7 @@ export class ClientPdfAdapter {
 
       for (let i = 0; i < elements.length; i++) {
         const element = typeof elements[i] === 'string'
-          ? document.querySelector(elements[i]) as HTMLElement
+          ? document.querySelector(elements[i] as string) as HTMLElement
           : elements[i];
 
         if (!element) {

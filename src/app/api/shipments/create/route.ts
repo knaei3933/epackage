@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     // =====================================================
 
     // Use user-provided tracking number or auto-generate
-    const trackingNumber = body.tracking_number || carrierResponse.trackingNumber;
+    const trackingNumber = (body as any).tracking_number || carrierResponse.trackingNumber;
 
     const { data: shipment, error: shipmentError } = await (supabase as any)
       .from('shipments')

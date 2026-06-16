@@ -91,13 +91,13 @@ export async function POST(
         {
           orderNumber: order.order_number,
           shipmentNumber: order.order_number,
-          trackingNumber: order.tracking_number_domestic || '',
+          trackingNumber: (order as any).tracking_number_domestic || '',
           carrierName: 'EPACKAGE Lab',
           carrier: 'yamato',
           deliveredAt: order.delivered_at || new Date().toISOString(),
           customerName: order.customer_name,
           customerPhone: order.customer_phone || '',
-        },
+        } as any,
         {
           name: order.customer_name,
           email: order.customer_email,

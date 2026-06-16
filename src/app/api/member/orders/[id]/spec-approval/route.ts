@@ -293,7 +293,7 @@ export async function POST(
         if (designerEmails.length > 0) {
           // 各デザイナーにメール送信
           for (const email of designerEmails) {
-            await sendTemplatedEmail(
+            await (sendTemplatedEmail as any)(
               'correction_rejected',
               {
                 orderNumber: order.order_number,

@@ -412,6 +412,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     const cookieStore = await cookies();
+    const supabaseUrlTyped = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKeyTyped = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrlTyped || !supabaseAnonKeyTyped) {
+      return NextResponse.json(
+        { error: 'サーバー設定エラー' },
+        { status: 500 }
+      );
+    }
     const supabase = createClient(supabaseUrlTyped, supabaseAnonKeyTyped, {
       auth: {
         storage: {

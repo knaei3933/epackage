@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
     if (metadataJson) {
       try {
         const parsed = JSON.parse(metadataJson);
-        metadata = uploadSchema.parse(parsed);
+        metadata = uploadSchema.parse(parsed) as any;
       } catch {
         return NextResponse.json(
           { error: 'Invalid metadata format', code: 'INVALID_METADATA' },

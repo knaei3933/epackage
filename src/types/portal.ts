@@ -458,7 +458,7 @@ export interface PortalLoadingState {
 // Constants
 // =====================================================
 
-export const PORTAL_ORDER_STATUS_LABELS: Record<OrderStatus, { ja: string; color: string }> = {
+export const PORTAL_ORDER_STATUS_LABELS: Record<string, { ja: string; color: string }> = {
   PENDING: { ja: '見積中', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   QUOTATION: { ja: '見積提出済', color: 'bg-blue-100 text-blue-800 border-blue-200' },
   DATA_RECEIVED: { ja: 'データ入稿済', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },

@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
     // =====================================================
     // Create Supabase client
     // =====================================================
-    const supabase = createSupabaseClient()
+    const supabase = await createSupabaseClient()
 
     // =====================================================
     // Check session first (Supabase may have already verified email)
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
     const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
       token: token,
       type: 'email',
-    })
+    } as any)
 
     if (verifyError) {
       console.log('[EmailVerification] Token verification error:', verifyError.message)

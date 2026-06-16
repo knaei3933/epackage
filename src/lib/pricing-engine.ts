@@ -150,7 +150,7 @@ export class PricingEngine {
     }
 
     // Calculate individual cost components
-    const materialCost = this.calculateMaterialCost(specifications)
+    const materialCost = this.calculateMaterialCost(specifications as any)
     // Cast category to match Product['category'] because Zod enum is just string union
     const processingCost = this.calculateProcessingCost(product.category as Product['category'], quantity)
     const printingCost = this.calculatePrintingCost(customOptions?.printing, quantity)
@@ -167,7 +167,7 @@ export class PricingEngine {
     const deliveryCost = this.calculateDeliveryCost(
       customOptions?.deliveryLocation,
       quantity,
-      specifications
+      specifications as any
     )
 
     const total = subtotal - discountAmount + deliveryCost

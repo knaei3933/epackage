@@ -49,7 +49,7 @@ export { ModificationApprovalSection } from './ModificationApprovalSection';
 
 export { AddressSelectModal } from './AddressSelectModal';
 export { RejectionReasonModal } from './RejectionReasonModal';
-export { SpecApprovalModal } from './SpecApprovalModal';
+export { default as SpecApprovalModal } from './SpecApprovalModal';
 
 // =====================================================
 // File Components

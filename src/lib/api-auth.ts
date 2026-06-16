@@ -126,7 +126,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     // カスタムロール確認
-    if (options.allowedRoles && !options.allowedRoles.includes(authResult.role)) {
+    if (options.allowedRoles && !options.allowedRoles.includes(authResult.role as UserRole)) {
       console.warn('[Auth] Role not allowed:', {
         userId: authResult.userId,
         role: authResult.role,
@@ -140,7 +140,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     // カスタムステータス確認
-    if (options.allowedStatuses && !options.allowedStatuses.includes(authResult.status)) {
+    if (options.allowedStatuses && !options.allowedStatuses.includes(authResult.status as UserStatus)) {
       console.warn('[Auth] Status not allowed:', {
         userId: authResult.userId,
         status: authResult.status,
@@ -336,7 +336,7 @@ export function authErrorResponse(error: 'unauthorized' | 'forbidden', message?:
  * @returns ロールが許可されている場合true
  */
 export function hasRole(auth: AdminAuthResult, roles: UserRole[]): boolean {
-  return roles.includes(auth.role);
+  return roles.includes(auth.role as UserRole);
 }
 
 /**

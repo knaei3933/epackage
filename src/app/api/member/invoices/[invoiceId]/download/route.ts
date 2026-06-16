@@ -80,7 +80,7 @@ export async function GET(
     const pdfBytes = await generateInvoicePDF(pdfData);
 
     // Return PDF as downloadable file
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(pdfBytes as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${invoice.invoice_number}.pdf"`,

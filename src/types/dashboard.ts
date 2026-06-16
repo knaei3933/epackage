@@ -14,6 +14,7 @@ import type {
   OrderStatusLegacy,
   ProductionSubStatus,
 } from '@/types/order-status';
+import type { Quotation } from './entities/quotation';
 
 // Re-export for convenience
 export type { OrderStatus, OrderStatusLegacy, ProductionSubStatus };
@@ -248,7 +249,11 @@ export type InquiryType =
   | 'sample'      // サンプルに関するお問い合わせ
   | 'order'       // 注文に関するお問い合わせ
   | 'billing'     // 請求に関するお問い合わせ
-  | 'other';      // その他
+  | 'other'       // その他
+  | 'general'     // 一般
+  | 'technical'   // 技術
+  | 'sales'       // 営業
+  | 'support';    // サポート
 
 export type InquiryStatus =
   | 'open'        // 未対応

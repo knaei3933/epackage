@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
   console.log('[MCP] SQL execution audit:', {
     userId: authResult.userId,
     role: authResult.role,
-    isDevMode: authResult.isDevMode,
+    isDevMode: (authResult as any).isDevMode,
     queryLength: query.length,
     paramCount: params.length,
     executionTimeMs: executionTime,

@@ -9,7 +9,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export async function GET(request: NextRequest) {
   try {
@@ -87,10 +87,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Standard authentication flow
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
 
-    if (!authUser || !authUser.id) {
+    if (!authUser) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -98,8 +100,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Check admin role
+    // Task #27 (A): user_role 参照ミス修正。getAuthenticatedUserFromHeaders は role プロパティを返す。
+    // adminRoles 定義（orders route と同一）が意図: ADMIN/OPERATOR/SALES/ACCOUNTING を許可。
+    // 従来 (authUser as any).user_role は常に undefined → 常に Forbidden だったバグを修正。
     const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
-    if (!authUser.user_role || !adminRoles.includes(authUser.user_role)) {
+    if (!authUser.role || !adminRoles.includes(authUser.role)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }

@@ -235,10 +235,17 @@ function normalizeRecipients(
 }
 
 /**
+ * zod 推論型（要素 optional）を正規化関数の期待型（email 必須）にキャスト。
+ * zod バリデーション済みのため実行時は必須保証あり、動作不変。
+ */
+type RecipientInput = string | string[] | Array<{ email: string; name?: string }>;
+type AttachmentInput = Array<{ filename: string; content: string; type: string; disposition?: 'attachment' | 'inline' }>;
+
+/**
  * 添付ファイルを標準フォーマットに変換
  */
 function normalizeAttachments(
-  attachments?: Array<{ filename: string; content: string; type: string; disposition?: 'attachment' | 'inline' }>
+  attachments?: AttachmentInput
 ): EpackAttachment[] | undefined {
   if (!attachments || attachments.length === 0) {
     return undefined;
@@ -324,9 +331,9 @@ export const POST = withAdminAuth(async (
 async function handleCustomEmail(
   data: z.infer<typeof customEmailSchema>
 ): Promise<NextResponse<EmailSendResponse>> {
-  const recipients = normalizeRecipients(data.to);
-  const ccRecipients = data.cc ? normalizeRecipients(data.cc) : undefined;
-  const attachments = normalizeAttachments(data.attachments);
+  const recipients = normalizeRecipients(data.to as RecipientInput);
+  const ccRecipients = data.cc ? normalizeRecipients(data.cc as RecipientInput) : undefined;
+  const attachments = normalizeAttachments(data.attachments as AttachmentInput | undefined);
 
   // カスタムメール送信（複数宛先対応）
   const result = await epackMailer.sendCustom(
@@ -377,8 +384,8 @@ async function handleCustomEmail(
 async function handleTemplateEmail(
   data: z.infer<typeof templateEmailSchema>
 ): Promise<NextResponse<EmailSendResponse>> {
-  const recipients = normalizeRecipients(data.to);
-  const attachments = normalizeAttachments(data.attachments);
+  const recipients = normalizeRecipients(data.to as RecipientInput);
+  const attachments = normalizeAttachments(data.attachments as AttachmentInput | undefined);
 
   // 複数受信者の場合
   if (recipients.length > 1) {
@@ -388,7 +395,7 @@ async function handleTemplateEmail(
       recipients.map(r => ({
         email: r.email,
         name: r.name || data.data.customer_name,
-      })),
+      })) as Array<{ email: string; name?: string }>,
       { ...data.data, customer_email: '', customer_name: '' }, // バッチ用に空文字列を設定
       attachments
     );
@@ -416,7 +423,7 @@ async function handleTemplateEmail(
     ...data.data,
     customer_email: recipients[0].email,
     customer_name: recipients[0].name || data.data.customer_name,
-  };
+  } as EpackEmailData;
 
   const result = await epackMailer.send(data.template, emailData, attachments);
 
@@ -436,11 +443,11 @@ async function handleTemplateEmail(
 async function handleBatchEmail(
   data: z.infer<typeof batchEmailSchema>
 ): Promise<NextResponse<EmailSendResponse>> {
-  const attachments = normalizeAttachments(data.attachments);
+  const attachments = normalizeAttachments(data.attachments as AttachmentInput | undefined);
 
   const batchResults = await epackMailer.sendBatch(
     data.template,
-    data.recipients,
+    data.recipients as Array<{ email: string; name?: string }>,
     { ...data.baseData, customer_email: '', customer_name: '' },
     attachments
   );

@@ -16,7 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Bell, Trash2, Check, CheckCheck, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Notification } from '@/lib/api/member/notifications';
+import type { Notification as ApiNotification } from '@/lib/api/member/notifications';
 import {
   fetchNotifications,
   markNotificationAsRead,
@@ -341,7 +341,7 @@ export function NotificationsClient({ userId }: NotificationsClientProps) {
             {filteredNotifications.map((notification) => (
               <motion.div
                 key={notification.id}
-                variants={itemVariants}
+                variants={itemVariants as any}
                 layout
                 exit={itemVariants.exit}
                 whileHover={{ scale: 1.01, x: 4 }}

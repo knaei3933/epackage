@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
     const { client: supabase } = await createSupabaseSSRClient(request)
 
     // Build query for unified_notifications with recipient_type = 'admin'
-    let query = supabase
+    // unified_notifications の select 型推論が深すぎる(TS2589)ため any で中断。
+    const supabaseAny = supabase as any;
+    let query: any = supabaseAny
       .from('unified_notifications')
       .select('*', { count: 'exact' })
       .eq('recipient_type', 'admin')
@@ -68,7 +70,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get unread count
-    const { count: unreadCount } = await supabase
+    // 同様に any で型展開を中断。
+    const { count: unreadCount } = await (supabase as any)
       .from('unified_notifications')
       .select('*', { count: 'exact', head: true })
       .eq('recipient_type', 'admin')
@@ -113,7 +116,7 @@ export async function POST(request: NextRequest) {
       const { client: supabase } = await createSupabaseSSRClient(request)
 
       // Mark all admin notifications as read
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('unified_notifications')
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('recipient_type', 'admin')

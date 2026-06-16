@@ -176,7 +176,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Merge with defaults for missing values
-    const existingSettings = (profile?.settings as UserSettings) || {};
+    const existingSettings = ((profile?.settings as UserSettings) || {}) as UserSettings;
     const settings = mergeWithDefaults(existingSettings);
 
     return NextResponse.json({
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .eq('id', userId)
       .single();
 
-    const existingSettings = (profile?.settings as UserSettings) || {};
+    const existingSettings = ((profile?.settings as UserSettings) || {}) as UserSettings;
 
     // Merge updates with existing settings
     const mergedSettings: UserSettings = {

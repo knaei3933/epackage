@@ -8,7 +8,7 @@
 
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { BillingAddressesClient } from './BillingAddressesClient';
+import BillingAddressesClient from './BillingAddressesClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,5 +24,5 @@ export default async function BillingAddressesPage() {
     throw error;
   }
 
-  return <BillingAddressesClient userId={user.id} />;
+  return <BillingAddressesClient {...({ userId: user.id } as any)} />;
 }

@@ -5,6 +5,8 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
+type ShipmentRow = Database['public']['Tables']['shipments']['Row'];
+
 /**
  * GET /api/admin/shipping/shipments
  * 出荷一覧を取得
@@ -57,8 +59,8 @@ export async function GET(request: NextRequest) {
       id: s.id,
       shipmentNumber: s.shipment_number,
       trackingNumber: s.tracking_number,
-      orderNumber: s.orders?.order_number || '',
-      customerName: s.orders?.customer_name || '',
+      orderNumber: (s as any).orders?.order_number || '',
+      customerName: (s as any).orders?.customer_name || '',
       carrierName: s.carrier_name,
       carrierCode: s.carrier_code,
       status: s.status,

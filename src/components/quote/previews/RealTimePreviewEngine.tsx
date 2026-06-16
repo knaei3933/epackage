@@ -723,7 +723,7 @@ export function RealTimePreviewEngine({
                   x{processingImpact.multiplier.toFixed(2)}
                 </Badge>
                 <Badge variant="outline">
-                  {language === 'ja' ? processingImpact.processingTimeJa : processingImpact.processingTime}
+                  {language === 'ja' ? processingImpact.processingTimeJa : (processingImpact as any).processingTime}
                 </Badge>
                 <Badge variant="outline">
                   Min: {processingImpact.minimumQuantity.toLocaleString()}
@@ -732,7 +732,7 @@ export function RealTimePreviewEngine({
               <div className="flex items-center space-x-2">
                 <TrendingUp className="w-4 h-4 text-green-600" />
                 <span className="text-sm text-gray-600">
-                  {processingImpact.features.length} features
+                  {(processingImpact as any).features.length} features
                 </span>
               </div>
             </div>

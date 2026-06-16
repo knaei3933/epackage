@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     console.error('Failed to initiate Google OAuth:', error);
 
     // 인증되지 않은 경우에도 URL은 반환
-    const authUrl = getGoogleAuthUrl();
+    const authUrl = (getGoogleAuthUrl as any)();
 
     return NextResponse.json({
       success: true,

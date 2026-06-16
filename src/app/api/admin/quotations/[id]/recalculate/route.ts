@@ -57,7 +57,7 @@ export async function POST(
       markupRate: (specs.markupRate as number) || 0.5,
       lossRate: (specs.lossRate as number) || 0.4,
       // スパウトパウチ専用パラメータ（文字列から数値に変換）
-      spoutSize: specs.spoutSize ? parseInt(String(specs.spoutSize), 10) : undefined,
+      spoutSize: specs.spoutSize ? (parseInt(String(specs.spoutSize), 10) as 9 | 15 | 18 | 22 | 28) : undefined,
       spoutPosition: (specs.spoutPosition as 'top-left' | 'top-center' | 'top-right') || undefined,
     };
 
@@ -88,7 +88,7 @@ export async function POST(
       filmCostDetails: result.filmCostDetails,
       pouchProcessingCostFromBreakdown: result.breakdown?.pouchProcessingCost,
       processingFromBreakdown: result.breakdown?.processing,
-      pouchProcessingCostFromFilmCost: result.filmCostDetails?.pouchProcessingCost,
+      pouchProcessingCostFromFilmCost: (result.filmCostDetails as any)?.pouchProcessingCost,
       totalCost: result.breakdown?.total
     });
     const filmCostDetails = result.filmCostDetails || null;

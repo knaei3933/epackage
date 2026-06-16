@@ -5,6 +5,27 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
+type ContractRow = Database['public']['Tables']['contracts']['Row'];
+
+/**
+ * contracts テーブル行 + orders リレーション結合フィールド。
+ * supabase の select で `orders!inner(...)` を結合すると、実行時に `orders` プロパティが
+ * 動的に追加されるが、ContractRow 型には含まれないため結合結果型を明示する。
+ * また一部フィールド(sent_at/expires_at 等)は DB 実列と database.ts の差分を補う。
+ */
+type ContractWithRelations = ContractRow & {
+  orders?: {
+    id: string;
+    order_number?: string;
+    customer_name?: string;
+    customer_email?: string;
+  };
+  // DB 実列だが database.ts に未定義のフィールド（実行時存在）
+  sent_at?: string | null;
+  expires_at?: string | null;
+  customer_email?: string | null;
+};
+
 /**
  * GET /api/admin/contracts/workflow
  * 契約ワークフロー一覧を取得
@@ -56,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     // データ変換
-    const transformedContracts = contracts?.map((contract: ContractRow) => ({
+    const transformedContracts = (contracts as ContractWithRelations[] | null)?.map((contract) => ({
       id: contract.id,
       contractNumber: contract.contract_number,
       orderId: contract.orders?.order_number || contract.order_id,

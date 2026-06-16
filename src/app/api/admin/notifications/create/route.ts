@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Create notification using unified_notifications table
     const { data, error } = await supabase
-      .from('unified_notifications')
+      .from('unified_notifications' as any)
       .insert({
         recipient_id: auth.userId, // Send to the admin who created it
         recipient_type: 'admin',

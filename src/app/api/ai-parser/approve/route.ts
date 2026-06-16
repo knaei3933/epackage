@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
     // Update file record with approved data
     await supabase
       .from('files')
-      // @ts-expect-error - Supabase JSONB columns need explicit type handling
       .update({
         ai_extraction_data: approved_data,
         ai_extraction_status: 'completed',
@@ -96,7 +95,6 @@ export async function POST(request: NextRequest) {
     // Create or update production_data record
     const { data: productionDataRaw, error: productionError } = await supabase
       .from('production_data')
-      // @ts-expect-error - Supabase JSONB columns need explicit type handling
       .upsert({
         order_id: orderId,
         data_type: 'design_file',
@@ -138,7 +136,6 @@ export async function POST(request: NextRequest) {
 
       const { data: workOrderRaw, error: workOrderError } = await supabase
         .from('work_orders')
-        // @ts-expect-error - Supabase JSONB columns need explicit type handling
         .insert({
           order_id: orderId,
           work_order_number: workOrderNumber,
@@ -162,7 +159,6 @@ export async function POST(request: NextRequest) {
         // Update production_data to reference work_order
         await supabase
           .from('production_data')
-          // @ts-expect-error - Supabase update type inference issue
           .update({ work_order_id: workOrder.id })
           .eq('id', productionData.id);
       }

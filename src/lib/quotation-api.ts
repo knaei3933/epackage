@@ -26,6 +26,9 @@ export interface CreateQuotationInput {
   validUntil?: string;
   notes?: string | null;
   items?: QuotationItemInput[];
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string | null;
 }
 
 export interface SubmitQuotationInput {
@@ -449,14 +452,16 @@ export function getQuotationStatusLabel(status: Database['public']['Tables']['qu
  * Check if quotation can be submitted
  */
 export function canSubmitQuotation(quotation: Quotation): boolean {
-  return quotation.status === 'draft' || quotation.status === 'DRAFT';
+  const status = quotation.status as string;
+  return status === 'draft' || status === 'DRAFT';
 }
 
 /**
  * Check if quotation can be converted to order
  */
 export function canConvertToOrder(quotation: Quotation): boolean {
-  if (quotation.status !== 'approved' && quotation.status !== 'APPROVED') {
+  const status = quotation.status as string;
+  if (status !== 'approved' && status !== 'APPROVED') {
     return false;
   }
 

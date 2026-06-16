@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // Get unread count from unified_notifications
     const { count, error } = await supabase
-      .from('unified_notifications')
+      .from('unified_notifications' as any)
       .select('*', { count: 'exact', head: true })
       .eq('recipient_type', 'admin')
       .eq('is_read', false)

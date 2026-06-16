@@ -11,8 +11,11 @@ export interface ProcessingOptionConfig {
   id: string
   name: string
   nameJa: string
+  nameKo?: string
   description: string
   descriptionJa: string
+  descriptionKo?: string
+  icon?: string
   beforeImage?: string
   afterImage: string
   thumbnail?: string
@@ -669,6 +672,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     descriptionJa: '小型スパウト - 小容量液体用',
     descriptionKo: '소형 스파우트 - 소용량 액체용',
     icon: '🔹',
+    afterImage: '/images/post-processing/default.png',
     compatibleWith: ['spout_pouch'],
     priceMultiplier: 1.0,
     features: ['小型', 'コスト効率', '小容量対応'],
@@ -694,6 +698,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     descriptionJa: '標準小型スパウト',
     descriptionKo: '표준 소형 스파우트',
     icon: '🔸',
+    afterImage: '/images/post-processing/default.png',
     compatibleWith: ['spout_pouch'],
     priceMultiplier: 1.0,
     features: ['標準サイズ', '汎用性'],
@@ -719,6 +724,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     descriptionJa: '標準スパウト - 最も汎用的',
     descriptionKo: '표준 스파우트 - 가장 범용적',
     icon: '🔷',
+    afterImage: '/images/post-processing/default.png',
     compatibleWith: ['spout_pouch'],
     priceMultiplier: 1.0,
     features: ['標準', '最も汎用的', 'バランス'],
@@ -744,6 +750,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     descriptionJa: '大型スパウト - 高粘度液体用',
     descriptionKo: '대형 스파우트 - 고점도 액체용',
     icon: '🔶',
+    afterImage: '/images/post-processing/default.png',
     compatibleWith: ['spout_pouch'],
     priceMultiplier: 1.0,
     features: ['大型', '高粘度対応', '高速充填'],
@@ -769,6 +776,7 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     descriptionJa: '超大型スパウト - 特殊用途',
     descriptionKo: '초대형 스파우트 - 특수 용도',
     icon: '🔻',
+    afterImage: '/images/post-processing/default.png',
     compatibleWith: ['spout_pouch'],
     priceMultiplier: 1.0,
     features: ['超大型', '特殊用途', '最大流量'],

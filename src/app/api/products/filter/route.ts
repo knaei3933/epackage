@@ -327,7 +327,7 @@ function parseFiltersFromQuery(query: string, params: (string | number)[]) {
   if (query.includes('ILIKE')) {
     const searchParam = params.find((p) => typeof p === 'string' && p.startsWith('%'))
     if (searchParam) {
-      filters.searchQuery = searchParam.replace(/^%|%$/g, '')
+      filters.searchQuery = (searchParam as string).replace(/^%|%$/g, '')
     }
   }
 

@@ -168,8 +168,7 @@ function InquiriesPageContent() {
       try {
         // API returns empty array if not authenticated
         const data = await fetchInquiriesAPI(
-          filters.status === 'all' ? undefined : filters.status,
-          filters.type === 'all' ? undefined : filters.type
+          (filters.status === 'all' ? undefined : filters.status) as any
         );
         setInquiries(data);
       } catch (err) {

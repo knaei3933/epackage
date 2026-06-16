@@ -755,7 +755,9 @@ export class PouchCostCalculator {
     materialWidth: number,
     columnCount: number, // Added param
     filmLayers?: FilmStructureLayer[],
-    postProcessingOptions?: string[]
+    postProcessingOptions?: string[],
+    spoutSize?: 9 | 15 | 18 | 22 | 28,
+    markupRate: number = 0.0
   ): Promise<SKUCostResult['costPerSKU'][0]> {
     // 1. 理論メートル数計算
     const theoreticalMeters = this.calculateTheoreticalMeters(
@@ -827,7 +829,7 @@ export class PouchCostCalculator {
       dimensions.width,
       quantity,
       postProcessingOptions,
-      params.spoutSize  // スパウトサイズ（スパウトパウチ用）
+      spoutSize  // スパウトサイズ（スパウトパウチ用）
     );
 
     // 7. 原価内訳集計 (KRW 기준으로 엄격한 마진 및 관세 계산)
@@ -1260,7 +1262,7 @@ export class PouchCostCalculator {
     quantity: number,
     deliveryJPY: number = 15358,  // デフォルトは1箱分（後で上書き）
     markupRate: number = 0.0  // 顧客別マークアップ率（デフォルト0% = 割引なし）
-  ): SKUCostBreakdown {
+  ): Promise<SKUCostBreakdown> {
     const EXCHANGE_RATE = 0.12;
 
     // 1. 基礎原価 (KRW)
@@ -1956,7 +1958,7 @@ export class PouchCostCalculator {
     pouchType: string,
     dimensions: PouchDimensions,
     materialWidth: number = 590,
-    filmLayers?: FilmLayer[],
+    filmLayers?: FilmStructureLayer[],
     materialId?: string,
     thicknessSelection?: string,
     postProcessingOptions?: string[],

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 /**
  * Coupon Validation API
@@ -99,7 +99,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check if user has exceeded per-customer limit
-    const user = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (0 RTT for logged-in users; null for anonymous — public endpoint)。
+    const user = await getAuthenticatedUserFromHeaders(request);
     if (user && coupon.max_uses_per_customer > 0) {
       const { data: usage, error: usageError } = await supabase
         .from('coupon_usage')

@@ -165,7 +165,7 @@ export default function B2BRegistrationForm() {
     trigger,
     formState: { errors },
   } = useForm<B2BRegistrationFormData>({
-    resolver: zodResolver(b2bRegistrationSchema),
+    resolver: zodResolver(b2bRegistrationSchema) as any,
     defaultValues: {
       businessType: 'CORPORATION',
     },
@@ -250,7 +250,7 @@ export default function B2BRegistrationForm() {
 
   return (
     <Card className="p-8">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-6">
         {/* Error Message */}
         {serverError && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -360,7 +360,7 @@ export default function B2BRegistrationForm() {
           </h3>
 
           <JapaneseNameInputController
-            control={control}
+            control={control as any}
             setValue={setValue}
             trigger={trigger}
             kanjiLastNameName="kanjiLastName"

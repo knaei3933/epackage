@@ -16,6 +16,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noErrorTruncation": true,
     "jsx": "react-jsx",
     "skipDefaultLibCheck": true,
     "plugins": [
@@ -43,6 +44,14 @@
     "scripts",
     "tests",
     "archives",
-    "server"
+    "server",
+    "out",
+    "src/tests",
+    "src/**/__tests__",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/lib/test-pricing.ts"
   ]
 }

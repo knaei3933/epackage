@@ -23,7 +23,7 @@ async function NotificationsContent() {
     redirect('/auth/signin?redirect=/admin/notifications');
   }
 
-  return <AdminNotificationsClient authContext={authContext} />;
+  return <AdminNotificationsClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminNotificationsPage() {

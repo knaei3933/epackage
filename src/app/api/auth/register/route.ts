@@ -13,6 +13,11 @@ import { withRateLimit, createAuthRateLimiter } from '@/lib/rate-limiter'
 
 const registerRateLimiter = createAuthRateLimiter()
 
+// Task #27: PII（氏名/電話/法人番号/住所/メール等）を含むリクエスト詳細ログは
+// 開発環境のみ出力。本番での同期ログ I/O 削減 + 個人情報保護。
+// 実行時ロジックは不変（ログ出力のみ条件化）。
+const isDebugLog = process.env.NODE_ENV !== 'production'
+
 // =====================================================
 // Supabase Client Helper
 // =====================================================
@@ -67,23 +72,24 @@ async function createServiceRoleClient() {
 
 async function handleRegisterPost(request: NextRequest) {
   try {
-    console.log('[REGISTER API] Received request')
+    if (isDebugLog) console.log('[REGISTER API] Received request')
     const body = await request.json()
-    console.log('[REGISTER API] Request body:', JSON.stringify(body, null, 2))
+    // PII（氏名/電話/法人番号/住所等）を含むため本番では出力しない（Task #27）
+    if (isDebugLog) console.log('[REGISTER API] Request body:', JSON.stringify(body, null, 2))
 
     // Validate request body
     const validatedData = registrationSchema.parse(body)
-    console.log('[REGISTER API] Validation passed:', JSON.stringify(validatedData, null, 2))
+    if (isDebugLog) console.log('[REGISTER API] Validation passed:', JSON.stringify(validatedData, null, 2))
 
     // =====================================================
     // DEV MODE: Mock registration for testing (SECURE: server-side only)
     // =====================================================
     const isDevMode = process.env.NODE_ENV === 'development' &&
                       process.env.ENABLE_DEV_MOCK_AUTH === 'true'
-    console.log('[REGISTER API] DEV MODE:', isDevMode)
+    if (isDebugLog) console.log('[REGISTER API] DEV MODE:', isDevMode)
 
     if (isDevMode) {
-      console.log('[REGISTER API] Mock registration for:', validatedData.email)
+      if (isDebugLog) console.log('[REGISTER API] Mock registration for:', validatedData.email)
 
       // Simulate delay
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -99,7 +105,7 @@ async function handleRegisterPost(request: NextRequest) {
           status: 'PENDING',
         },
       }
-      console.log('[REGISTER API] Returning response:', JSON.stringify(responseData, null, 2))
+      if (isDebugLog) console.log('[REGISTER API] Returning response:', JSON.stringify(responseData, null, 2))
 
       // Return mock success response
       return NextResponse.json(responseData)
@@ -118,7 +124,7 @@ async function handleRegisterPost(request: NextRequest) {
       .single()
 
     if (existingProfile) {
-      console.log('[REGISTER API] Email already registered:', validatedData.email)
+      if (isDebugLog) console.log('[REGISTER API] Email already registered:', validatedData.email)
       return NextResponse.json(
         { error: 'このメールアドレスは既に登録されています。ログインするか、別のメールアドレスで登録してください。' },
         { status: 400 }
@@ -164,7 +170,7 @@ async function handleRegisterPost(request: NextRequest) {
         name: authError.name,
         message: authError.message,
         status: authError.status,
-        statusText: authError.statusText
+        statusText: (authError as any).statusText
       }))
 
       // 이미 존재하는 이메일인지 확인
@@ -198,7 +204,7 @@ async function handleRegisterPost(request: NextRequest) {
     // 이메일 인증 후 profiles 테이블에 레코드 생성됨
     // /api/auth/verify-email에서 처리
 
-    console.log('[REGISTER API] User created, email confirmation required')
+    if (isDebugLog) console.log('[REGISTER API] User created, email confirmation required')
 
     // 이메일 인증 필요 메시지 반환
     return NextResponse.json({

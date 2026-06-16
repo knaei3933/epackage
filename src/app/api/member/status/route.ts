@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     // メールアドレスが一致するユーザーを検索
-    const authUser = users.find(u => u.email === email)
+    const authUser = users.find((u: any) => u.email === email)
 
     if (!authUser) {
       console.log('[STATUS API] User not found in auth.users:', email)

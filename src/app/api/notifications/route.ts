@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // 管理者のみ通知作成可能
-    if (user.user_metadata?.role !== 'ADMIN') {
+    if ((user.user_metadata as any)?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

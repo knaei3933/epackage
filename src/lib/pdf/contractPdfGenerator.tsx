@@ -187,6 +187,12 @@ interface ContractPdfProps {
 }
 
 function ContractPdf({ data }: ContractPdfProps) {
+  // 実行時データは ContractData 型に含まれない追加フィールド（createdAt, payment, delivery 等）を保持する場合があるため、
+  // 型安全なアクセス用に緩い型へキャストする（実行時ロジック・ビジネスロジックは不変）
+  const d = data as ContractData & Record<string, any>;
+  const sellerSignatory = d.sellerSignatory as Record<string, any> | undefined;
+  const buyerSignatory = d.buyerSignatory as Record<string, any> | undefined;
+
   // Calculate totals
   const subtotal = data.items.reduce((sum, item) => sum + item.amount, 0);
   const taxRate = 0.1;
@@ -203,7 +209,7 @@ function ContractPdf({ data }: ContractPdfProps) {
             契約番号: {data.contractNumber || 'N/A'}
           </Text>
           <Text style={styles.subtitle}>
-            作成日: {formatJapaneseDate(data.createdAt || new Date())}
+            作成日: {formatJapaneseDate(d.createdAt || new Date())}
           </Text>
         </View>
 
@@ -248,15 +254,15 @@ function ContractPdf({ data }: ContractPdfProps) {
 
             {/* Totals */}
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.textRight]} colSpan={4}>小計</Text>
+              <Text style={[styles.tableCell, styles.textRight]} {...{ colSpan: 4 }}>小計</Text>
               <Text style={[styles.tableCell, styles.textRight]}>{formatYen(subtotal)}</Text>
             </View>
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.textRight]} colSpan={4}>消費税（10%）</Text>
+              <Text style={[styles.tableCell, styles.textRight]} {...{ colSpan: 4 }}>消費税（10%）</Text>
               <Text style={[styles.tableCell, styles.textRight]}>{formatYen(tax)}</Text>
             </View>
             <View style={[styles.tableRow, { backgroundColor: '#f0f0f0' }]}>
-              <Text style={[styles.tableCell, styles.bold, styles.textRight]} colSpan={4}>合計</Text>
+              <Text style={[styles.tableCell, styles.bold, styles.textRight]} {...{ colSpan: 4 }}>合計</Text>
               <Text style={[styles.tableCell, styles.bold, styles.textRight]}>{formatYen(total)}</Text>
             </View>
           </View>
@@ -267,35 +273,35 @@ function ContractPdf({ data }: ContractPdfProps) {
           <Text style={styles.sectionTitle}>契約条件</Text>
           <View style={styles.termBox}>
             <Text style={styles.bold}>支払条件</Text>
-            <Text><Text style={styles.termLabel}>支払方法:</Text> {data.payment?.method || ''}</Text>
-            <Text><Text style={styles.termLabel}>支払期限:</Text> {data.payment?.deadline || ''}</Text>
-            {data.payment?.depositPercentage && (
-              <Text><Text style={styles.termLabel}>前金率:</Text> {data.payment.depositPercentage}</Text>
+            <Text><Text style={styles.termLabel}>支払方法:</Text> {d.payment?.method || ''}</Text>
+            <Text><Text style={styles.termLabel}>支払期限:</Text> {d.payment?.deadline || ''}</Text>
+            {d.payment?.depositPercentage && (
+              <Text><Text style={styles.termLabel}>前金率:</Text> {d.payment.depositPercentage}</Text>
             )}
-            {data.payment?.depositAmount && (
-              <Text><Text style={styles.termLabel}>前金額:</Text> {formatYen(data.payment.depositAmount)}</Text>
+            {d.payment?.depositAmount && (
+              <Text><Text style={styles.termLabel}>前金額:</Text> {formatYen(d.payment.depositAmount)}</Text>
             )}
           </View>
           <View style={styles.termBox}>
             <Text style={styles.bold}>納品条件</Text>
-            <Text><Text style={styles.termLabel}>納期:</Text> {data.delivery?.period || ''}</Text>
-            <Text><Text style={styles.termLabel}>納品場所:</Text> {data.delivery?.location || ''}</Text>
-            <Text><Text style={styles.termLabel}>納品条件:</Text> {data.delivery?.conditions || ''}</Text>
-            <Text><Text style={styles.termLabel}>分割納品:</Text> {data.delivery?.partialDelivery || '不可'}</Text>
+            <Text><Text style={styles.termLabel}>納期:</Text> {d.delivery?.period || ''}</Text>
+            <Text><Text style={styles.termLabel}>納品場所:</Text> {d.delivery?.location || ''}</Text>
+            <Text><Text style={styles.termLabel}>納品条件:</Text> {d.delivery?.conditions || ''}</Text>
+            <Text><Text style={styles.termLabel}>分割納品:</Text> {d.delivery?.partialDelivery || '不可'}</Text>
           </View>
         </View>
 
         {/* Contract Period */}
-        {data.contractStartDate && (
+        {d.contractStartDate && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>契約期間</Text>
             <View style={styles.termBox}>
-              <Text><Text style={styles.termLabel}>開始日:</Text> {formatJapaneseDate(data.contractStartDate)}</Text>
-              {data.contractEndDate && (
-                <Text><Text style={styles.termLabel}>終了日:</Text> {formatJapaneseDate(data.contractEndDate)}</Text>
+              <Text><Text style={styles.termLabel}>開始日:</Text> {formatJapaneseDate(d.contractStartDate)}</Text>
+              {d.contractEndDate && (
+                <Text><Text style={styles.termLabel}>終了日:</Text> {formatJapaneseDate(d.contractEndDate)}</Text>
               )}
-              {data.contractValidity && (
-                <Text><Text style={styles.termLabel}>有効期間:</Text> {data.contractValidity}</Text>
+              {d.contractValidity && (
+                <Text><Text style={styles.termLabel}>有効期間:</Text> {d.contractValidity}</Text>
               )}
             </View>
           </View>
@@ -328,7 +334,7 @@ function ContractPdf({ data }: ContractPdfProps) {
                   {data.sellerSignatory.date && (
                     <Text style={styles.signatoryInfo}>署名日: {formatJapaneseDate(data.sellerSignatory.date)}</Text>
                   )}
-                  {data.sellerSignatory.hasStamp && (
+                  {sellerSignatory?.hasStamp && (
                     <View style={styles.stampPlaceholder}>
                       <Text>印鑑</Text>
                     </View>
@@ -352,7 +358,7 @@ function ContractPdf({ data }: ContractPdfProps) {
                   {data.buyerSignatory.date && (
                     <Text style={styles.signatoryInfo}>署名日: {formatJapaneseDate(data.buyerSignatory.date)}</Text>
                   )}
-                  {data.buyerSignatory.hasStamp && (
+                  {buyerSignatory?.hasStamp && (
                     <View style={styles.stampPlaceholder}>
                       <Text>印鑑</Text>
                     </View>

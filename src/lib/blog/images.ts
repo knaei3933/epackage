@@ -275,7 +275,7 @@ export async function uploadToSupabase(
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Ensure bucket exists
-  await ensureBucketExists(supabase);
+  await ensureBucketExists(supabase as any);
 
   // Read file
   const fileBuffer = fs.readFileSync(optimizedImage.optimizedPath);

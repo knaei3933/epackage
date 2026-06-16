@@ -2,7 +2,7 @@ import { priceCalculator } from './pricing';
 import { SimulationState, QuotationResult } from '@/types/simulation';
 
 // Test data for performance verification
-const testState: SimulationState = {
+const testState: any = {
   orderType: 'new',
   contentsType: 'solid',
   bagType: 'stand_up',

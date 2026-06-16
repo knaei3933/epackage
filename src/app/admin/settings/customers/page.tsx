@@ -23,7 +23,7 @@ async function CustomerSettingsContent() {
     redirect('/auth/signin?redirect=/admin/settings/customers');
   }
 
-  return <AdminCustomerSettingsClient authContext={authContext} />;
+  return <AdminCustomerSettingsClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminCustomerSettingsPage() {

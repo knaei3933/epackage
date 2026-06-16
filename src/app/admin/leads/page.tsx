@@ -23,7 +23,7 @@ async function LeadsContent() {
     redirect('/auth/signin?redirect=/admin/leads');
   }
 
-  return <AdminLeadsClient authContext={authContext} />;
+  return <AdminLeadsClient {...({ authContext } as any)} />;
 }
 
 export default async function AdminLeadsPage() {

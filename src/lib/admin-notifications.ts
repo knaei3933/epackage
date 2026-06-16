@@ -7,7 +7,8 @@
  * @module lib/admin-notifications
  */
 
-import { createServiceClient } from '@/lib/supabase'
+import { createServiceClient } from '@/lib/supabase';
+import { executeSql } from '@/lib/supabase-sql';
 
 // ============================================================
 // Type Definitions

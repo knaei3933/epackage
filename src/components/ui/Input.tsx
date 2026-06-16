@@ -44,7 +44,7 @@ export interface InputProps
     VariantProps<typeof inputVariants> {
   label?: string;
   error?: string;
-  helperText?: string;
+  helperText?: React.ReactNode;
   helperTextClassName?: string;
   required?: boolean;
   leftIcon?: React.ReactNode;

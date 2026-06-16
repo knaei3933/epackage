@@ -76,7 +76,7 @@ export function ContractSignatureRequestButton({
   if (!canRequestSignature) {
     return (
       <div className="flex items-center gap-2">
-        <SignatureStatusBadge status={contract.status} />
+        <SignatureStatusBadge status={contract.status as any} />
         <span className="text-xs text-gray-500">
           {contract.customerSignedAt && `署名: ${new Date(contract.customerSignedAt).toLocaleDateString('ja-JP')}`}
         </span>

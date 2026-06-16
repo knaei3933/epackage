@@ -62,6 +62,15 @@ interface ExportResponse {
  * Helper: Get authenticated user
  */
 async function getAuthenticatedUser(request: NextRequest) {
+  // Task #27: middleware 検証済み header があれば userId を 0 RTT で返却
+  // (getAuthenticatedUserFromHeaders と同一の header 条件: id+role+status)。
+  // fallback は従来通り getUser() を実行し、認証結果（誰が認証されるか）は不変。
+  const headerUserId = request.headers.get('x-user-id');
+  const headerRole = request.headers.get('x-user-role');
+  const headerStatus = request.headers.get('x-user-status');
+  if (headerUserId && headerRole && headerStatus) {
+    return { userId: headerUserId, user: { id: headerUserId } };
+  }
   // Normal auth: Use cookie-based auth with createSupabaseSSRClient
   const { client: supabase } = await createSupabaseSSRClient(request);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -327,7 +336,7 @@ export async function POST(
     // Transform database data to Excel format
     const excelData = await mapDatabaseQuotationToExcel(
       quotation,
-      quotation.quotation_items || [],
+      (quotation as any).quotation_items || [],
       userProfile || undefined
     );
 
@@ -429,7 +438,7 @@ export async function POST(
           .update({
             [format === 'pdf' ? 'pdf_url' : 'excel_url']: storagePath,
             updated_at: new Date().toISOString(),
-          })
+          } as any)
           .eq('id', quotationId);
       }
     }

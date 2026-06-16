@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getAuthenticatedUser } from '@/lib/supabase-ssr';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 import { sendTemplatedEmail } from '@/lib/email';
 import { subject, plainText, html } from '@/lib/email/templates/quote_created_admin';
@@ -98,8 +98,10 @@ interface QuotationResponse {
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   try {
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       console.error('[Quotation API] Authentication failed: No user found in request');
       return NextResponse.json(
@@ -335,7 +337,7 @@ export async function POST(request: NextRequest) {
       const companyName = profile?.company_name || 'EPackage Lab';
 
       // Send email to admin using the template
-      await sendTemplatedEmail(
+      await (sendTemplatedEmail as any)(
         'info@package-lab.com', // Admin email recipient
         'quote_created_admin',
         {
@@ -404,8 +406,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   try {
-    // Get authenticated user using unified authentication
-    const authUser = await getAuthenticatedUser(request);
+    // Task #27: getAuthenticatedUserFromHeaders trusts middleware-verified x-user-*
+    // headers (DB-verified upstream), skipping the redundant getUser() RTT.
+    // 認証結果（誰が認証されるか）は不変。検証経路の最適化のみ。
+    const authUser = await getAuthenticatedUserFromHeaders(request);
     if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },

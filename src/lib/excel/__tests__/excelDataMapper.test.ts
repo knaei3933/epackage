@@ -5,7 +5,7 @@
  * Unit tests for Excel data mapping functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import {
   formatJapaneseDateWithEra,
   formatJapaneseCurrency,
