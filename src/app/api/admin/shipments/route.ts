@@ -99,24 +99,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check admin role
-    // Task #27 (A): user_role 参照ミス修正。getAuthenticatedUserFromHeaders は role プロパティを返す。
-    // adminRoles 定義（orders route と同一）が意図: ADMIN/OPERATOR/SALES/ACCOUNTING を許可。
-    // 従来 (authUser as any).user_role は常に undefined → 常に Forbidden だったバグを修正。
-    const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
-    if (!authUser.role || !adminRoles.includes(authUser.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
     // Get service role client for RLS bypass
     const { createClient: createServiceClient } = await import('@supabase/supabase-js');
     const supabaseService = createServiceClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    // Task #28: 認可強度の均一化（orders route L101-123 と同一パターン）。
+    // getAuthenticatedUserFromHeaders は authUser.id を取得（header 経由で 0 RTT、
+    // fallback で getUser）。role 認可は service client で profiles を再SELECT して検証
+    // （service_role は RLS バイパスで確実な最新 role を取得）。
+    // 注: profiles RLS は自己行のみ許可（uid=id）のため Task #27 実装でも安全だったが、
+    // orders と認可ロジックを均一化し認証経路への依存を明示的に排除（security-reviewer HIGH #1）。
+    const { data: profile } = await supabaseService
+      .from('profiles')
+      .select('role')
+      .eq('id', authUser.id)
+      .maybeSingle();
+
+    const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+    if (!profile || !adminRoles.includes(profile.role)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -130,7 +138,7 @@ export async function GET(request: NextRequest) {
     // Build query for shipments
     let query = supabaseService
       .from('shipments')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (status && status !== 'all') {
