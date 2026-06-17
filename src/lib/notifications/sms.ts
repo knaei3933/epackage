@@ -131,14 +131,15 @@ export async function sendSMS(
       status,
       cost: 0, // Twilioのcost情報は別途取得が必要
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; code?: string };
     console.error('[SMSService] SMS send error:', error)
 
     return {
       success: false,
       status: 'failed',
-      errorCode: error.code || 'SEND_ERROR',
-      errorMessage: error.message || 'Unknown error',
+      errorCode: errObj.code || 'SEND_ERROR',
+      errorMessage: errObj.message || 'Unknown error',
     }
   }
 }

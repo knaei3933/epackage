@@ -172,12 +172,13 @@ export async function GET(
     const nextResponse = NextResponse.json(response, { status: 200 });
     return addRateLimitHeaders(nextResponse, rateLimitResult);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; code?: string; stack?: string };
     console.error('[Member Approvals GET] Unexpected error:', error);
-    console.error('[Member Approvals GET] Error stack:', error?.stack);
+    console.error('[Member Approvals GET] Error stack:', errObj.stack);
 
     // Check if it's a "table does not exist" error
-    if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
+    if (errObj.code === '42P01' || errObj.message?.includes('does not exist')) {
       console.log('[Member Approvals GET] Table does not exist (caught), returning empty array');
       return NextResponse.json({
         success: true,
@@ -190,7 +191,7 @@ export async function GET(
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error?.message
+        details: errObj.message
       },
       { status: 500 }
     );

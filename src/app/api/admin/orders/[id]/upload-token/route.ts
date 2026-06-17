@@ -217,8 +217,9 @@ export async function POST(
         } else {
           console.warn('[Admin Upload Token] Email send failed:', emailResult.error);
         }
-      } catch (emailError: any) {
-        console.error('[Admin Upload Token] Email error:', emailError.message);
+      } catch (emailError: unknown) {
+        const emailErrMsg = (emailError as { message?: string }).message;
+        console.error('[Admin Upload Token] Email error:', emailErrMsg);
         // Don't fail the request if email fails
       }
     }
@@ -241,7 +242,7 @@ export async function POST(
     });
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Admin Upload Token] POST error:', error);
 
     return NextResponse.json(

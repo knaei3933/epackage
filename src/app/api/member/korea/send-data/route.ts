@@ -105,10 +105,11 @@ export async function GET(request: NextRequest) {
       maxAttachments: MAX_ATTACHMENTS,
       maxTotalSize: MAX_TOTAL_SIZE,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Korea Send Data] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 500 }
     );
   }
@@ -304,10 +305,11 @@ export async function POST(request: NextRequest) {
         urgency,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Korea Send Data] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }

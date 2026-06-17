@@ -908,16 +908,17 @@ export async function sendEmail(
     });
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; code?: string };
     console.error('[Email] Send error:', {
       transportType,
-      message: error.message,
-      code: error.code
+      message: errObj.message,
+      code: errObj.code
     });
 
     return {
       success: false,
-      error: error.message
+      error: errObj.message
     };
   }
 }
@@ -1485,15 +1486,16 @@ export async function sendTemplatedEmail(
       template.text,
       template.html
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string };
     console.error('[Email] Template error:', {
       type,
-      message: error.message,
+      message: errObj.message,
     });
 
     return {
       success: false,
-      error: error.message,
+      error: errObj.message,
     };
   }
 }
@@ -1750,15 +1752,16 @@ export async function sendKoreaDataTransferEmail(
       template.text,
       template.html
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string };
     console.error('[Email] Korea data transfer error:', {
-      message: error.message,
+      message: errObj.message,
       orderId: data.orderId,
     });
 
     return {
       success: false,
-      error: error.message,
+      error: errObj.message,
     };
   }
 }
@@ -1881,17 +1884,18 @@ export async function sendKoreaDataTransferWithAttachments(
     });
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; code?: string };
     console.error('[Email] Korea data transfer error:', {
       transportType,
-      message: error.message,
-      code: error.code,
+      message: errObj.message,
+      code: errObj.code,
       orderId: data.orderId,
     });
 
     return {
       success: false,
-      error: error.message,
+      error: errObj.message,
     };
   }
 }

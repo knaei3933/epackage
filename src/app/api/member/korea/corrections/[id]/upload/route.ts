@@ -170,8 +170,9 @@ export async function POST(
         );
 
         uploadedFiles.push(uploadedFile.webViewLink);
-      } catch (err: any) {
-        errors.push(`${file.name}: ${err.message}`);
+      } catch (err: unknown) {
+        const errMsg = (err as { message?: string }).message;
+        errors.push(`${file.name}: ${errMsg}`);
       }
     }
 
@@ -200,10 +201,11 @@ export async function POST(
         totalFiles: (correction.corrected_files?.length || 0) + uploadedFiles.length,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Korea Corrections Upload] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }

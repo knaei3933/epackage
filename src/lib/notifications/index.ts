@@ -140,11 +140,12 @@ export async function sendNotification(request: {
       } else if (result.status === 'failed') {
         await recordFailure(historyId!, result.error_message || 'Send failed')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = (error as { message?: string }).message;
       results.push({
         channel,
         status: 'failed' as const,
-        error_message: error.message || 'Unknown error',
+        error_message: errMsg || 'Unknown error',
       })
     }
   }

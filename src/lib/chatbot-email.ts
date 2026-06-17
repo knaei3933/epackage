@@ -227,11 +227,12 @@ ${formatConversationForEmail(data.conversationHistory)}
       messageId: info.messageId,
       previewUrl: nodemailer.getTestMessageUrl(info) || undefined,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     logger.error('Send error', { error });
     return {
       success: false,
-      error: error.message || 'Unknown error',
+      error: errMsg || 'Unknown error',
     };
   }
 }

@@ -173,10 +173,11 @@ export async function POST(
       trackingEvent,
       message: '追跡情報を更新しました',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('Error updating tracking:', error);
     return NextResponse.json(
-      { error: error.message || '追跡情報の更新に失敗しました' },
+      { error: errMsg || '追跡情報の更新に失敗しました' },
       { status: 500 }
     );
   }

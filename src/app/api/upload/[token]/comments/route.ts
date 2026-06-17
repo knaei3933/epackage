@@ -99,10 +99,11 @@ export async function GET(
       success: true,
       comments: comments || [],
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Token Comments] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -256,10 +257,11 @@ export async function POST(
       success: true,
       comment,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Token Comments] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }

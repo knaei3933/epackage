@@ -166,7 +166,7 @@ export async function POST(
           },
           workOrder.customer_email
         );
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
         console.error('[Spec Sheet Approval] Email error:', emailError);
         // Don't fail the request if email fails
       }
@@ -182,10 +182,11 @@ export async function POST(
         message: '仕様書が承認されました。生産を進めます。',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Spec Sheet Approval] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }

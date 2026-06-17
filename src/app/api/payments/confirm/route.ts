@@ -389,7 +389,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Payment Confirmation] Error:', error);
 
     const paymentError = handlePaymentError(error);
@@ -531,13 +531,14 @@ export async function GET(request: NextRequest) {
       success: true,
       data: payment,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Payment Confirmation] GET error:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Internal server error',
+        error: errMsg || 'Internal server error',
       },
       { status: 500 }
     );

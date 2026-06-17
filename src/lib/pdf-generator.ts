@@ -2280,12 +2280,13 @@ export async function generateInvoicePDF(
       document.body.removeChild(element);
       throw canvasError;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Invoice PDF] Generation error:', error);
     return {
       success: false,
-      error: error.message || '請求書PDF生成中にエラーが発生しました',
-      errorEn: error.message || 'Error generating invoice PDF',
+      error: errMsg || '請求書PDF生成中にエラーが発生しました',
+      errorEn: errMsg || 'Error generating invoice PDF',
     };
   }
 }

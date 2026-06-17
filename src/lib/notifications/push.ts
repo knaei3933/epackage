@@ -126,10 +126,11 @@ async function sendViaFCMHTTPv1(messages: FCMMessage[]): Promise<FCMResponse[]> 
       // FCM Legacy APIを使用（簡易実装）
       const response = await sendViaFCMLegacy(message)
       responses.push(response)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = (error as { message?: string }).message;
       responses.push({
         success: false,
-        error: error.message || 'UNKNOWN_ERROR',
+        error: errMsg || 'UNKNOWN_ERROR',
       })
     }
   }
@@ -179,10 +180,11 @@ async function sendViaFCMLegacy(message: FCMMessage): Promise<FCMResponse> {
         error: result.results?.[0]?.error || 'SEND_FAILED',
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     return {
       success: false,
-      error: error.message || 'NETWORK_ERROR',
+      error: errMsg || 'NETWORK_ERROR',
     }
   }
 }

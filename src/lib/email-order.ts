@@ -554,11 +554,12 @@ export async function sendOrderConfirmationEmail(
     }
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Order Email] Error sending email:', error);
     return {
       success: false,
-      error: error.message || 'Unknown error',
+      error: errMsg || 'Unknown error',
     };
   }
 }

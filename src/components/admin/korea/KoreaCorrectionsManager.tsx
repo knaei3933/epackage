@@ -171,8 +171,9 @@ export function KoreaCorrectionsManager({
       } else {
         setError(data.error || 'Failed to fetch corrections');
       }
-    } catch (err: any) {
-      setError(err.message || 'Network error');
+    } catch (err: unknown) {
+      const errMsg = (err as { message?: string }).message;
+      setError(errMsg || 'Network error');
     } finally {
       setLoading(false);
     }
@@ -200,8 +201,9 @@ export function KoreaCorrectionsManager({
       } else {
         alert(data.error || 'Failed to update status');
       }
-    } catch (err: any) {
-      alert(err.message || 'Network error');
+    } catch (err: unknown) {
+      const errMsg = (err as { message?: string }).message;
+      alert(errMsg || 'Network error');
     }
   };
 
@@ -224,8 +226,9 @@ export function KoreaCorrectionsManager({
       } else {
         alert(data.error || 'Upload failed');
       }
-    } catch (err: any) {
-      alert(err.message || 'Network error');
+    } catch (err: unknown) {
+      const errMsg = (err as { message?: string }).message;
+      alert(errMsg || 'Network error');
     }
   };
 
@@ -251,8 +254,9 @@ export function KoreaCorrectionsManager({
       } else {
         alert(data.error || 'Failed to notify customer');
       }
-    } catch (err: any) {
-      alert(err.message || 'Network error');
+    } catch (err: unknown) {
+      const errMsg = (err as { message?: string }).message;
+      alert(errMsg || 'Network error');
     }
   };
 

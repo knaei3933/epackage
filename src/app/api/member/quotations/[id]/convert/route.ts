@@ -397,10 +397,11 @@ export async function POST(
       data: order,
       message: '注文が生成されました。',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Convert to Order] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'サーバーエラーが発生しました。' },
+      { success: false, error: errMsg || 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -504,10 +505,11 @@ export async function GET(
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Convert to Order] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'サーバーエラーが発生しました。' },
+      { success: false, error: errMsg || 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }

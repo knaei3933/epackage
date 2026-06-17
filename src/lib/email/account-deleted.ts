@@ -504,16 +504,17 @@ export async function sendAccountDeletionEmail(
       success: true,
       messageId: info.messageId
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; code?: string };
     console.error('[AccountDeletionEmail] Send error:', {
       transportType,
-      message: error.message,
-      code: error.code
+      message: errObj.message,
+      code: errObj.code
     })
 
     return {
       success: false,
-      error: error.message || 'Failed to send email'
+      error: errObj.message || 'Failed to send email'
     }
   }
 }

@@ -40,10 +40,11 @@ export async function GET() {
       success: true,
       data: tokenStatus,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Debug Token Status] Error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 500 }
     );
   }

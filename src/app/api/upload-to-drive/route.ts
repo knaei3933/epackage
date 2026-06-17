@@ -64,12 +64,13 @@ export async function POST(request: NextRequest) {
       fileId: uploadedFile.id,
       fileName: uploadedFile.name,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[UploadToDrive] Error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to upload file to Google Drive'
+        error: errMsg || 'Failed to upload file to Google Drive'
       },
       { status: 500 }
     );

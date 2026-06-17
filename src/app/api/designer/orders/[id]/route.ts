@@ -190,10 +190,11 @@ export async function GET(
 
     return NextResponse.json(response, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Designer Order Detail] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error', errorEn: 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error', errorEn: 'Internal server error' },
       { status: 500 }
     );
   }

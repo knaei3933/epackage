@@ -283,11 +283,12 @@ export async function POST(request: NextRequest) {
       quotationItems = itemsData || [];
       console.log('[API /quotations/save] Quotation items created:', quotationItems.length);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = (error as { message?: string }).message;
       console.error('[API /quotations/save] Transaction error:', error);
       return NextResponse.json(
         {
-          error: error.message || '見積作成中にエラーが発生しました。',
+          error: errMsg || '見積作成中にエラーが発生しました。',
           details: process.env.NODE_ENV === 'development' ? String(error) : undefined,
         },
         { status: 500 }

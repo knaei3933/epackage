@@ -201,12 +201,13 @@ export async function processBatchNotifications<T extends { user_id: string; [ke
           })
 
           return { recipient, result }
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errMsg = (error as { message?: string }).message;
           return {
             recipient,
             result: {
               success: false,
-              error: error.message || 'Unknown error',
+              error: errMsg || 'Unknown error',
             },
           }
         }
@@ -296,8 +297,9 @@ export async function sendBatchNotifications<T extends { user_id: string; email?
             results.push({ channel: 'push', success: true })
             break
         }
-      } catch (error: any) {
-        results.push({ channel, success: false, error: error.message })
+      } catch (error: unknown) {
+        const errMsg = (error as { message?: string }).message;
+        results.push({ channel, success: false, error: errMsg })
       }
     }
 

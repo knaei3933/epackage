@@ -198,16 +198,17 @@ export async function DELETE(
     const nextResponse = NextResponse.json(response, { status: 200 });
     return addRateLimitHeaders(nextResponse, rateLimitResult);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; stack?: string };
     console.error('[Delete Comment] Unexpected error:', error);
-    console.error('[Delete Comment] Error stack:', error?.stack);
+    console.error('[Delete Comment] Error stack:', errObj.stack);
 
     return NextResponse.json(
       {
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error?.message
+        details: errObj.message
       },
       { status: 500 }
     );

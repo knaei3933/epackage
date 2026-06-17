@@ -577,8 +577,9 @@ export class AuditLogger {
       }
 
       return { success: true, data: data as AuditLogEntry[] };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const errMsg = (error as { message?: string }).message;
+      return { success: false, error: errMsg };
     }
   }
 
@@ -615,8 +616,9 @@ export class AuditLogger {
       });
 
       return { success: true, summary };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const errMsg = (error as { message?: string }).message;
+      return { success: false, error: errMsg };
     }
   }
 
@@ -819,8 +821,9 @@ export async function generateComplianceReport(
         recommendations,
       },
     };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
+    return { success: false, error: errMsg };
   }
 }
 
@@ -847,8 +850,9 @@ export async function cleanupExpiredAuditLogs(): Promise<{ deleted: number; erro
     }
 
     return { deleted: count || 0 };
-  } catch (error: any) {
-    return { deleted: 0, error: error.message };
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
+    return { deleted: 0, error: errMsg };
   }
 }
 

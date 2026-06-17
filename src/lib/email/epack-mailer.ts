@@ -228,17 +228,18 @@ export async function sendEpackEmail(
       success: true,
       messageId: info.messageId,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as { message?: string; code?: string };
     console.error('[EpackMailer] Email send error:', {
       transportType,
-      message: error.message,
-      code: error.code,
+      message: errObj.message,
+      code: errObj.code,
     })
 
     return {
       success: false,
-      error: error.message,
-      errorCode: error.code || 'SEND_ERROR',
+      error: errObj.message,
+      errorCode: errObj.code || 'SEND_ERROR',
     }
   }
 }
@@ -328,12 +329,13 @@ export async function sendEpackEmailBatch(
         success: true,
         messageId: info.messageId,
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { message?: string; code?: string };
       console.error(`[EpackMailer] Email send error for ${recipient.email}:`, error)
       return {
         success: false,
-        error: error.message || 'Unknown error',
-        errorCode: error.code || 'SEND_ERROR',
+        error: errObj.message || 'Unknown error',
+        errorCode: errObj.code || 'SEND_ERROR',
       }
     }
   })
@@ -478,16 +480,17 @@ export async function sendCustomEmail(
           success: true,
           messageId: info.messageId,
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errObj = error as { message?: string; code?: string };
         console.error(`[EpackMailer] Custom email send error for ${recipient.email}:`, {
-          message: error.message,
-          code: error.code,
+          message: errObj.message,
+          code: errObj.code,
         })
 
         return {
           success: false,
-          error: error.message || 'Unknown error',
-          errorCode: error.code || 'SEND_ERROR',
+          error: errObj.message || 'Unknown error',
+          errorCode: errObj.code || 'SEND_ERROR',
         }
       }
     })
@@ -950,11 +953,12 @@ ${new Date().toLocaleString('ja-JP')}
       customerEmail: customerResult,
       adminEmail: adminResult
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Contact Email] Error:', error)
     return {
       success: false,
-      errors: [{ to: 'unknown', error: error.message || '不明なエラー' }]
+      errors: [{ to: 'unknown', error: errMsg || '不明なエラー' }]
     }
   }
 }

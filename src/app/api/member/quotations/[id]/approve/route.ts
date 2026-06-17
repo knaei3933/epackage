@@ -219,10 +219,11 @@ export async function POST(
       data: updatedQuotation,
       message: '見積が承認されました。',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Quotation Approval] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'サーバーエラーが発生しました。' },
+      { success: false, error: errMsg || 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -300,10 +301,11 @@ export async function GET(
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Quotation Approval] GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'サーバーエラーが発生しました。' },
+      { success: false, error: errMsg || 'サーバーエラーが発生しました。' },
       { status: 500 }
     );
   }

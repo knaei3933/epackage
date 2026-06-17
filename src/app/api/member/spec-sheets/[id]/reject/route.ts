@@ -185,7 +185,7 @@ export async function POST(
           },
           process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'
         );
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
         console.error('[Spec Sheet Rejection] Email error:', emailError);
         // Don't fail the request if email fails
       }
@@ -201,10 +201,11 @@ export async function POST(
         message: '修正要求を受け付けました。至急確認いたします。',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = (error as { message?: string }).message;
     console.error('[Spec Sheet Rejection] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }
