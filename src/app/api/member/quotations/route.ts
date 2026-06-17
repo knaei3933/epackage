@@ -19,7 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
-import { sendTemplatedEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
 import { subject, plainText, html } from '@/lib/email/templates/quote_created_admin';
 import type { Database } from '@/types/database';
 
@@ -343,28 +343,34 @@ export async function POST(request: NextRequest) {
 
       const companyName = profile?.company_name || 'EPackage Lab';
 
-      // Send email to admin using the template
-      await (sendTemplatedEmail as any)(
-        'info@package-lab.com', // Admin email recipient
-        'quote_created_admin',
-        {
-          quotation_id: quotation.id,
-          quotation_number: quotation.quotation_number,
-          customer_name: quotation.customer_name,
-          company_name: companyName,
-          total_amount: Number(quotation.total_amount),
-          valid_until: quotation.valid_until
-            ? new Date(quotation.valid_until).toLocaleDateString('ja-JP')
-            : '設定なし',
-          view_url: `${appUrl}/admin/quotations/${quotation.id}`,
-          submitted_at: new Date(quotation.created_at).toLocaleString('ja-JP'),
-        },
-        subject,
-        plainText,
-        html
+      // 管理者通知メール送信: quote_created_admin テンプレートは subject/plainText/html を
+      // 「データ受け取り関数」として公開しているため、データを適用して文字列を生成し sendEmail() で送信する。
+      // （修正前は sendTemplatedEmail を誤って 7 引数で呼び出しており、実質メール未送信だった）
+      const adminEmailData = {
+        quotation_id: quotation.id,
+        quotation_number: quotation.quotation_number,
+        customer_name: quotation.customer_name,
+        company_name: companyName,
+        total_amount: Number(quotation.total_amount),
+        valid_until: quotation.valid_until
+          ? new Date(quotation.valid_until).toLocaleDateString('ja-JP')
+          : '設定なし',
+        view_url: `${appUrl}/admin/quotations/${quotation.id}`,
+        submitted_at: new Date(quotation.created_at).toLocaleString('ja-JP'),
+      };
+
+      const emailResult = await sendEmail(
+        'info@package-lab.com',
+        subject(adminEmailData),
+        plainText(adminEmailData),
+        html(adminEmailData)
       );
 
-      console.log('[Quotation API] Admin notification email sent for quotation:', quotation.quotation_number);
+      if (emailResult.success) {
+        console.log('[Quotation API] Admin notification email sent for quotation:', quotation.quotation_number);
+      } else {
+        console.error('[Quotation API] Failed to send admin notification email:', emailResult.error);
+      }
     } catch (emailError) {
       // Don't fail the quotation creation if email fails
       console.error('[Quotation API] Failed to send admin notification email:', emailError);
