@@ -52,6 +52,13 @@ export const getBreakpoint = (width: number): string => {
   return '2xl'
 }
 
+/**
+ * @deprecated 非React的な実装（useEffect/useState 未使用）。コンポーネントの
+ * 再レンダリングに追従せず、メディアクエリ状態変化時の更新が行われないため、
+ * レスポンシブ判定に使用すると不正確な結果を生じる。
+ * 代わりに `@/hooks` の useBreakpoint / useResponsiveValue / useViewportSize を使用すること。
+ * 削除は既存参照がないことを確認の上、別タスクで実施予定。
+ */
 export const useMediaQuery = (query: string): boolean => {
   if (typeof window === 'undefined') return false
   return window.matchMedia(query).matches

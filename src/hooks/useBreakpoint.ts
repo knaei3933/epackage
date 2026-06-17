@@ -8,11 +8,14 @@ interface NavigatorWithMS extends Navigator {
   msMaxTouchPoints?: number;
 }
 
+// Breakpoint thresholds aligned with Tailwind CSS defaults:
+// mobile -> base (<640), tablet -> sm (640), desktop -> lg (1024), large -> xl (1280).
+// Tailwind default screens: sm:640 / md:768 / lg:1024 / xl:1280 / 2xl:1536.
 const breakpoints = {
   mobile: 0,
   tablet: 640,
   desktop: 1024,
-  large: 1440
+  large: 1280
 };
 
 export function useBreakpoint(): Breakpoint {
