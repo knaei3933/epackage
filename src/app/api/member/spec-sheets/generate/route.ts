@@ -140,19 +140,22 @@ export async function POST(request: NextRequest) {
       .eq('data_type', 'design');
 
     // Extract AI data from files
-    let aiExtractedData: any = {};
+    let aiExtractedData: Record<string, unknown> = {};
     if (files && files.length > 0) {
-      const designFile = files.find((f: any) => f.file_type === 'ai');
+      const designFile = files.find((f: { file_type?: string; ai_extracted_data?: unknown }) => f.file_type === 'ai');
       if (designFile?.ai_extracted_data) {
-        aiExtractedData = designFile.ai_extracted_data;
+        aiExtractedData = designFile.ai_extracted_data as Record<string, unknown>;
       }
     }
 
     // Get Korea corrections if any
-    const corrections = (order as any).korea_corrections || [];
+    // NOTE: korea_corrections は join 結果（Database 型にリレーション未定義）。
+    // types/database.ts は編集禁止のため、ローカル cast で安全にアクセス（実行時ロジック不変）。
+    type KoreaCorrection = { status?: string; completed_at?: string };
+    const corrections = (order as unknown as { korea_corrections?: KoreaCorrection[] }).korea_corrections || [];
     const latestCorrection = corrections
-      .filter((c: any) => c.status === 'completed')
-      .sort((a: any, b: any) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())[0];
+      .filter((c: KoreaCorrection) => c.status === 'completed')
+      .sort((a: KoreaCorrection, b: KoreaCorrection) => new Date(b.completed_at as string).getTime() - new Date(a.completed_at as string).getTime())[0];
 
     // Build spec sheet data
     const specSheetData: SpecSheetData = buildSpecSheetData(
@@ -213,7 +216,7 @@ export async function POST(request: NextRequest) {
       const { data: updatedSpec, error: updateError } = await supabaseAdmin
         .from('spec_sheets')
         .update({
-          specifications: specSheetData as any,
+          specifications: specSheetData as unknown as Database['public']['Tables']['spec_sheets']['Row']['specifications'],
           pdf_url: publicUrl,
           status: 'pending_review',
           updated_at: new Date().toISOString(),
@@ -238,7 +241,7 @@ export async function POST(request: NextRequest) {
           work_order_id: orderId,
           title: `仕様書 - ${order.order_number}`,
           description: `${order.product_name || 'Custom Product'} 仕様書`,
-          specifications: specSheetData as any,
+          specifications: specSheetData as unknown as Database['public']['Tables']['spec_sheets']['Row']['specifications'],
           pdf_url: publicUrl,
           status: 'pending_review',
           created_by: userId,
@@ -266,10 +269,10 @@ export async function POST(request: NextRequest) {
         message: '仕様書が生成されました。顧客の承認をお待ちしています。',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Spec Sheet Generation] POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

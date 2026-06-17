@@ -189,10 +189,11 @@ export async function GET(request: NextRequest) {
         total: count || 0,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Korea Corrections] GET error:', error);
+    const errMsg = error instanceof Error ? error.message : undefined;
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -292,10 +293,11 @@ export async function POST(request: NextRequest) {
       success: true,
       data: correction,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Korea Corrections] POST error:', error);
+    const errMsg = error instanceof Error ? error.message : undefined;
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -407,7 +409,7 @@ export async function PATCH(request: NextRequest) {
         } else {
           console.warn('[Korea Corrections] No customer email found for order:', order?.id);
         }
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
         console.error('[Korea Corrections] Email notification error:', emailError);
         // Don't fail the request if email fails, just log the error
       }
@@ -417,10 +419,11 @@ export async function PATCH(request: NextRequest) {
       success: true,
       data: correction,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Korea Corrections] PATCH error:', error);
+    const errMsg = error instanceof Error ? error.message : undefined;
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: errMsg || 'Internal server error' },
       { status: 500 }
     );
   }

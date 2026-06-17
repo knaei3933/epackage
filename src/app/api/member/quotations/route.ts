@@ -21,6 +21,7 @@ import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 import { sendTemplatedEmail } from '@/lib/email';
 import { subject, plainText, html } from '@/lib/email/templates/quote_created_admin';
+import type { Database } from '@/types/database';
 
 // Initialize performance monitor
 const perfMonitor = getPerformanceMonitor({
@@ -38,6 +39,7 @@ interface QuotationItem {
   category?: string | null;
   specifications?: Record<string, unknown> | null;
   notes?: string | null;
+  cost_breakdown?: Record<string, unknown>; // アイテム別原価内訳
 }
 
 interface CreateQuotationRequest {
@@ -49,6 +51,11 @@ interface CreateQuotationRequest {
   valid_until?: string | null;
   status?: string; // DRAFT, SENT, etc.
   items: QuotationItem[];
+  // フロントエンドの見積シミュレータから送信される追加フィールド（型契約の明確化）
+  discountAmount?: number;
+  appliedCoupon?: { type?: string; couponId?: string };
+  adjustedTotal?: number;
+  total_cost_breakdown?: Record<string, unknown>;
 }
 
 interface QuotationResponse {
@@ -162,8 +169,8 @@ export async function POST(request: NextRequest) {
     // Calculate from totalPrice for accurate pricing
     const totalFromItems = body.items.reduce((sum, item) => {
       // Use totalPrice if available (already calculated by quote simulator), otherwise calculate from unit_price * quantity
-      const itemTotal = (item as any).totalPrice !== undefined
-        ? (item as any).totalPrice
+      const itemTotal = item.totalPrice !== undefined
+        ? item.totalPrice
         : (item.quantity * item.unit_price);
       return sum + itemTotal;
     }, 0);
@@ -188,12 +195,12 @@ export async function POST(request: NextRequest) {
 
     // クーポン処理：クーポンコードからcoupon_idを取得
     let couponId = null;
-    const discountAmount = (body as any).discountAmount || 0;
-    const discountType = (body as any).appliedCoupon?.type || null;
+    const discountAmount = body.discountAmount || 0;
+    const discountType = body.appliedCoupon?.type || null;
     let finalTotalAmount = totalAmount;
 
-    if ((body as any).appliedCoupon?.couponId) {
-      const couponCode = (body as any).appliedCoupon.couponId;
+    if (body.appliedCoupon?.couponId) {
+      const couponCode = body.appliedCoupon.couponId;
       const { data: coupon } = await serviceClient
         .from('coupons')
         .select('id')
@@ -203,7 +210,7 @@ export async function POST(request: NextRequest) {
       if (coupon) {
         couponId = coupon.id;
         // adjustedTotalがあれば使用、なければ計算したtotalAmountを使用
-        finalTotalAmount = (body as any).adjustedTotal || totalAmount;
+        finalTotalAmount = body.adjustedTotal || totalAmount;
       }
     }
 
@@ -226,7 +233,7 @@ export async function POST(request: NextRequest) {
         valid_until: body.valid_until || null,
         status,
         // 【追加】見積全体の原価内訳
-        total_cost_breakdown: (body as any).total_cost_breakdown || {},
+        total_cost_breakdown: body.total_cost_breakdown || {},
       })
       .select()
       .single();
@@ -267,7 +274,7 @@ export async function POST(request: NextRequest) {
       unit_price: item.unit_price,
       specifications: item.specifications || null,
       // 【追加】アイテム別原価内訳
-      cost_breakdown: (item as any).cost_breakdown || {},
+      cost_breakdown: item.cost_breakdown || {},
     }));
 
     const { data: items, error: itemsError } = await serviceClient
@@ -471,7 +478,7 @@ export async function GET(request: NextRequest) {
 
     // 各見積のアイテムを取得
     const quotationsWithItems = await Promise.all(
-      (quotations || []).map(async (quotation: any) => {
+      (quotations || []).map(async (quotation: { id: string } & Record<string, unknown>) => {
         const { data: items } = await serviceClient
           .from('quotation_items')
           .select('*')

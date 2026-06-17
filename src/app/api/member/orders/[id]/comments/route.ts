@@ -47,7 +47,7 @@ interface OrderComment {
   parent_comment_id: string | null;
   created_at: string;
   updated_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   author?: {
     id: string;
     full_name: string;
@@ -55,6 +55,16 @@ interface OrderComment {
     avatar_url?: string;
   };
 }
+
+// profiles クエリ結果の author 情報抽出用ローカル型（実行時ロジック不変）
+type AuthorProfile = {
+  id: string;
+  kanji_last_name?: string | null;
+  kanji_first_name?: string | null;
+  company_name?: string | null;
+  email: string;
+  role: string;
+};
 
 interface CreateCommentRequest {
   content: string;
@@ -209,13 +219,13 @@ export async function GET(
 
     // If there are comments, fetch author information separately
     if (comments && comments.length > 0) {
-      const authorIds = [...new Set(comments.map((c: any) => c.author_id))];
+      const authorIds = [...new Set(comments.map((c: { author_id: string }) => c.author_id))];
       const { data: authors } = await dataClient
         .from('profiles')
         .select('id, kanji_last_name, kanji_first_name, kana_last_name, kana_first_name, email, company_name, role')
         .in('id', authorIds);
 
-      const authorMap = new Map((authors || []).map((a: any) => {
+      const authorMap = new Map((authors || []).map((a: AuthorProfile) => {
         // Construct display name from available fields
         const displayName = a.kanji_last_name && a.kanji_first_name
           ? `${a.kanji_last_name} ${a.kanji_first_name}`
@@ -225,13 +235,13 @@ export async function GET(
           id: a.id,
           full_name: displayName,
           email: a.email,
-          avatar_url: null,
+          avatar_url: null as string | null,
           role: a.role
         }];
       }));
 
       // Attach author info to each comment
-      (comments as any[]).forEach((comment) => {
+      (comments as Array<{ author_id: string; author?: unknown }>).forEach((comment) => {
         comment.author = authorMap.get(comment.author_id);
       });
     }
@@ -244,12 +254,14 @@ export async function GET(
     const nextResponse = NextResponse.json(response, { status: 200 });
     return addRateLimitHeaders(nextResponse, rateLimitResult);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Order Comments GET] Unexpected error:', error);
-    console.error('[Order Comments GET] Error stack:', error?.stack);
+    const errStack = error instanceof Error ? error.stack : undefined;
+    console.error('[Order Comments GET] Error stack:', errStack);
 
-    // Check if it's a "table does not exist" error
-    if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
+    // Check if it's a "table does not exist" error (Supabase PostgrestError は code/message を持つ)
+    const pgError = error as { code?: string; message?: string };
+    if (pgError?.code === '42P01' || pgError?.message?.includes('does not exist')) {
       console.log('[Order Comments GET] Table does not exist (caught), returning empty array');
       return NextResponse.json({
         success: true,
@@ -262,7 +274,7 @@ export async function GET(
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error?.message
+        details: pgError?.message
       },
       { status: 500 }
     );
@@ -494,7 +506,7 @@ export async function POST(
           ? `${authorData.kanji_last_name} ${authorData.kanji_first_name}`
           : authorData.company_name || authorData.email || '不明';
 
-        (newComment as any).author = {
+        (newComment as { author?: unknown }).author = {
           id: authorData.id,
           full_name: displayName,
           email: authorData.email,

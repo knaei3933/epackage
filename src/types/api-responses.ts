@@ -46,33 +46,11 @@ export interface ApiErrorResponse {
 // Pagination Types
 // =====================================================
 
-/**
- * ページネーションパラメータ
- */
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-  offset?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-/**
- * ページネーションされたレスポンス
- */
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    total: number;
-    count: number;
-    page: number;
-    limit: number;
-    offset: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrevious: boolean;
-  };
-}
+// ページネーション型は core/common に統合済み（重複定義の解消）
+// @deprecated 新規コードは '@/types' または '@/types/core/common' から import すること
+// ※ ファイル内参照（SearchParams.pagination 等）のため import type し、同時に再エクスポートする
+import type { PaginationParams, PaginatedResponse } from './core/common';
+export type { PaginationParams, PaginatedResponse };
 
 /**
  * 範囲ベースページネーションレスポンス（カーソルベース）
