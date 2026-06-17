@@ -26,15 +26,9 @@ interface NavigationItem {
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
-  const [isMounted, setIsMounted] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
-
-  // Prevent hydration issues by setting mounted state
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   // Navigation structure with children - consistent rendering (Japanese only)
   const navigationItems: NavigationItem[] = [
@@ -95,9 +89,8 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Handle dropdown interactions - only after component is mounted
+  // Handle dropdown interactions
   const handleDropdownToggle = (label: string) => {
-    if (!isMounted) return
     setDropdownOpen(dropdownOpen === label ? null : label)
   }
 
@@ -223,7 +216,7 @@ export function Header() {
               )}
 
               {/* Dropdown content - only render after mount to prevent hydration issues */}
-              {isMounted && item.children && dropdownOpen === item.label && (
+              {item.children && dropdownOpen === item.label && (
                 <div className="absolute top-full left-0 mt-1 w-64 bg-bg-primary border border-border-medium rounded-lg shadow-lg overflow-hidden z-50">
                   <div className="py-2">
                     {item.children.map((child, childIndex) => (
@@ -237,7 +230,7 @@ export function Header() {
                             <span>{child.label}</span>
                             <ChevronDown className="h-3 w-3" />
                           </button>
-                          {isMounted && dropdownOpen === `${item.label}-${child.label}` && (
+                          {dropdownOpen === `${item.label}-${child.label}` && (
                             <div className="absolute left-full top-0 ml-1 w-48 bg-bg-primary border border-border-medium rounded-lg shadow-lg overflow-hidden z-50">
                               <div className="py-2">
                                 {child.children.map((grandChild, grandChildIndex) => (
@@ -289,7 +282,7 @@ export function Header() {
           </a> */}
 
           {/* Auth UI - Desktop */}
-          {isMounted && !isLoading && (
+          {!isLoading && (
             <div className="hidden md:flex items-center space-x-2">
               {isAuthenticated ? (
                 <UserMenu />
@@ -377,7 +370,7 @@ export function Header() {
                         )}
                       />
                     </button>
-                    {isMounted && dropdownOpen === item.label && (
+                    {dropdownOpen === item.label && (
                       <div className="px-4 py-2 bg-bg-secondary/50">
                         {item.children.map((child, childIndex) => (
                           child.children ? (
@@ -401,7 +394,7 @@ export function Header() {
                                   )}
                                 />
                               </button>
-                              {isMounted && dropdownOpen === `${item.label}-${child.label}` && (
+                              {dropdownOpen === `${item.label}-${child.label}` && (
                                 <div className="px-3 py-1 ml-4">
                                   {child.children.map((grandChild, grandChildIndex) => (
                                     <Link
@@ -476,7 +469,7 @@ export function Header() {
 
             {/* Mobile Auth UI & CTA Button */}
             <div className="pt-4 border-t border-border-medium mt-4 space-y-3">
-              {isMounted && !isLoading && (
+              {!isLoading && (
                 <>
                   {isAuthenticated ? (
                     <>
