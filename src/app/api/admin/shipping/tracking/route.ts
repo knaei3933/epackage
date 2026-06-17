@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Shipping Tracking] POST error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -253,8 +253,9 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('[Shipping Tracking] PATCH DB error:', error);
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: 'Internal server error' },
         { status: 500 }
       );
     }
@@ -327,7 +328,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Shipping Tracking] PATCH error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -369,8 +370,9 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('[Shipping Tracking] GET DB error:', error);
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: 'Internal server error' },
         { status: 500 }
       );
     }
@@ -404,7 +406,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Shipping Tracking] GET error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

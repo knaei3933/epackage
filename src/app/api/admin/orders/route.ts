@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export const dynamic = 'force-dynamic';
@@ -33,11 +34,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Get service role client for RLS bypass
-      const { createClient: createServiceClient } = await import('@supabase/supabase-js');
-      const supabaseService = createServiceClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const supabaseService = createServiceClient();
 
       // Get query parameters
       const searchParams = request.nextUrl.searchParams;
@@ -99,11 +96,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get service role client for RLS bypass
-    const { createClient: createServiceClient } = await import('@supabase/supabase-js');
-    const supabaseService = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseService = createServiceClient();
 
     // Fetch user profile to check admin role
     const { data: profile } = await supabaseService

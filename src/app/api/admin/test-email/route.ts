@@ -11,8 +11,15 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { epackMailer } from '@/lib/email/epack-mailer';
 import { getEmailConfigStatus } from '@/lib/email';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
+  // SECURITY: ADMIN厳格認可（メール送信の濫用防止）
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   try {
     const body = await request.json();
     const { to, template = 'shipped' } = body;
@@ -79,7 +86,13 @@ export async function POST(request: NextRequest) {
 }
 
 // GET 요청으로 설정 확인
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // SECURITY: ADMIN厳格認可（メール設定情報の露出制限）
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   const config = getEmailConfigStatus();
 
   return NextResponse.json({

@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Delivery Tracking] POST error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -247,8 +247,9 @@ export async function GET(
       .single();
 
     if (error) {
+      console.error('[Delivery Tracking] GET DB error:', error);
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: 'Internal server error' },
         { status: 500 }
       );
     }
@@ -276,7 +277,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] GET error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -342,8 +343,9 @@ export async function PATCH(
       .single();
 
     if (error) {
+      console.error('[Delivery Tracking] PATCH DB error:', error);
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: 'Internal server error' },
         { status: 500 }
       );
     }
@@ -369,7 +371,7 @@ export async function PATCH(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] PATCH error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -406,8 +408,9 @@ export async function DELETE(
       .eq('order_id', orderId);
 
     if (error) {
+      console.error('[Delivery Tracking] DELETE DB error:', error);
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: 'Internal server error' },
         { status: 500 }
       );
     }
@@ -419,7 +422,7 @@ export async function DELETE(
   } catch (error: unknown) {
     console.error('[Delivery Tracking] DELETE error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

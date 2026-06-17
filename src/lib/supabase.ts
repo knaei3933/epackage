@@ -82,7 +82,15 @@ export const getServerClient = () => {
 }
 
 // Service client for admin operations (server-side only)
+// Module-level singleton cache: avoids re-instantiating the service_role client
+// on every call (e.g. orders/shipments routes). Only the real client is cached;
+// the build-time mock fallback path is left untouched (credentials missing).
+let _serviceClient: ReturnType<typeof createClient<Database>> | null = null;
+
 export const createServiceClient = () => {
+    // Return cached real client if already instantiated
+    if (_serviceClient) return _serviceClient;
+
     // Read env vars at function call time, not module load time
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
     const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').replace(/\s/g, '');
@@ -124,12 +132,14 @@ export const createServiceClient = () => {
         } as any;
     }
 
-    return createClient<Database>(url, key, {
+    _serviceClient = createClient<Database>(url, key, {
         auth: {
             autoRefreshToken: false,
             persistSession: false
         }
-    })
+    });
+
+    return _serviceClient;
 }
 
 // Alias for API routes that expect createSupabaseClient

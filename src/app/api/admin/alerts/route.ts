@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,12 @@ interface Alert {
  * 管理者用アラート情報を取得
  */
 export async function GET(request: NextRequest) {
+  // SECURITY: ADMIN厳格認可（verifyAdminAuth は ADMIN+ACTIVE のみ許可）
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   try {
     const supabase = createServiceClient();
     const alerts: Alert[] = [];

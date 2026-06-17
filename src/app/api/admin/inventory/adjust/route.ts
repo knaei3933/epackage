@@ -66,7 +66,7 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
       }
 
       return NextResponse.json(
-        { error: '在庫の調整に失敗しました', details: rpcError.message },
+        { error: '在庫の調整に失敗しました' },
         { status: 500 }
       );
     }

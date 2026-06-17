@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'サーバーエラーが発生しました' },
+      { error: 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -205,7 +205,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'サーバーエラーが発生しました' },
+      { error: 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }
