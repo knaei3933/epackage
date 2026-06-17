@@ -9,6 +9,8 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
     "noEmit": true,
     "incremental": true,
     "module": "esnext",
@@ -52,6 +54,7 @@
     "src/**/*.test.tsx",
     "src/**/*.spec.ts",
     "src/**/*.spec.tsx",
-    "src/lib/test-pricing.ts"
+    "src/lib/test-pricing.ts",
+    "lib/api-test.ts"
   ]
 }

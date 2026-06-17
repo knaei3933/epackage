@@ -76,7 +76,7 @@ export function AdminQuotationList({
     if (filmCostDetails?.materialLayerDetails && filmCostDetails.materialLayerDetails.length > 0) {
       const layers = filmCostDetails.materialLayerDetails;
       materialDisplay = layers
-        .map(layer => `${layer.nameJa} ${layer.thicknessMicron}μ`)
+        .map((layer: { nameJa: string; thicknessMicron: number }) => `${layer.nameJa} ${layer.thicknessMicron}μ`)
         .join(' + ');
     } else if (specifications.material_display || specifications.material || specifications.material_specification) {
       materialDisplay = specifications.material_display || specifications.material || specifications.material_specification;

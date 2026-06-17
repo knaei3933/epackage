@@ -158,7 +158,7 @@ export const getLatestAnnouncements = unstable_cache(
     // Filter out announcements without published_at or with future dates
     const now = new Date()
     const filteredData = (data || []).filter(
-      (announcement) =>
+      (announcement: { published_at: string }) =>
         announcement.published_at && new Date(announcement.published_at) <= now
     )
 
@@ -195,7 +195,7 @@ export async function getPriorityAnnouncements(): Promise<Announcement[]> {
 
     const now = new Date()
     const filteredData = (data || []).filter(
-      (announcement) =>
+      (announcement: { published_at: string }) =>
         announcement.published_at && new Date(announcement.published_at) <= now
     )
 
@@ -234,7 +234,7 @@ export async function getAnnouncementsByCategory(
 
     const now = new Date()
     const filteredData = (data || []).filter(
-      (announcement) =>
+      (announcement: { published_at: string }) =>
         announcement.published_at && new Date(announcement.published_at) <= now
     )
 

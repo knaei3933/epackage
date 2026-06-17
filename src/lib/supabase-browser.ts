@@ -52,8 +52,8 @@ export const getSupabaseBrowserClient = () => {
       order: (column: string, options?: { ascending: boolean }) => createQueryMock(),
       limit: (n: number) => createQueryMock(),
       range: (from: number, to: number) => createQueryMock(),
-      single: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      maybeSingle: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      single: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      maybeSingle: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
       then: (resolve: any) => resolve({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
     });
 
@@ -65,8 +65,8 @@ export const getSupabaseBrowserClient = () => {
       delete: () => createQueryMock(),
       rpc: (fn: string, params?: any) => createQueryMock(),
       auth: {
-        getUser: async () => ({ data: { user: null }, error: { message: 'Not configured' } }),
-        getSession: async () => ({ data: { session: null }, error: { message: 'Not configured' } }),
+        getUser: async (): Promise<{ data: { user: null }; error: { message: string } }> => ({ data: { user: null }, error: { message: 'Not configured' } }),
+        getSession: async (): Promise<{ data: { session: null }; error: { message: string } }> => ({ data: { session: null }, error: { message: 'Not configured' } }),
       },
       channel: () => ({
         on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),

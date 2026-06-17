@@ -882,12 +882,12 @@ export function UnifiedPostProcessingPreview({
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
           {filteredAndSortedOptions.map((option) => {
             const isSelected = selectedOptions.includes(option.id)
-            const categoryInfo = getProcessingCategories.find(cat => cat.id === option.category)
+            const categoryInfo = getProcessingCategories.find(cat => cat.id === (option as { category?: string }).category)
 
             return (
               <ProcessingPreviewTrigger
                 key={option.id}
-                option={option}
+                option={option as { id: string; name: string; nameJa: string; description: string; descriptionJa: string; afterImage: string; beforeImage?: string; priceMultiplier: number; features: string[]; featuresJa: string[]; compatibleWith: string[] }}
                 isSelected={isSelected}
                 onToggle={toggleOption}
                 onPreview={(optionId) => {

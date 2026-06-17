@@ -235,7 +235,7 @@ function calculateProductionTimeline(order: Database['public']['Tables']['orders
       name_ja: s.name_ja,
       name_en: s.name_en,
       duration_days: s.duration_days,
-      dependencies: [],
+      dependencies: [] as never[],
     })),
   };
 }

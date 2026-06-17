@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, type JSX } from 'react';
 
 /**
  * ScrollToAnchor Component
  * Handles URL hash scrolling on page load and hash changes
  */
-export function ScrollToAnchor() {
+export function ScrollToAnchor(): JSX.Element | null {
   useEffect(() => {
     // Function to scroll to element by id
     const scrollToHash = () => {

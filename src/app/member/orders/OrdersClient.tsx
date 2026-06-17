@@ -600,7 +600,8 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
                   <div className="space-y-3 mb-4">
                     {safeMap((order.items || []).slice(0, 2), (item: any, itemIndex: number) => {
                       // Find matching quotation item by index
-                      const quotationItem = order.quotations?.quotation_items?.[itemIndex];
+                      const quotationItems = order.quotations?.quotation_items;
+                      const quotationItem = (Array.isArray(quotationItems) ? quotationItems : quotationItems?.data)?.[itemIndex];
                       const specs = quotationItem?.specifications || item.specifications;
 
                       return (

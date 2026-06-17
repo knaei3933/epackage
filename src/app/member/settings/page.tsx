@@ -49,7 +49,7 @@ async function SettingsContent() {
   }
 
   // Extract user metadata with fallbacks (same pattern as dashboard)
-  const userMetadata = user.user_metadata || {};
+  const userMetadata = (user.user_metadata || {}) as Record<string, string | null | undefined>;
   const userEmail = user.email || '';
   const userId = user.id || '';
   const userLastName = userMetadata.kanji_last_name || '';
@@ -59,7 +59,7 @@ async function SettingsContent() {
   const fullName = `${userLastName} ${userFirstName}`.trim();
   const userName = fullName || userEmail || 'テスト';
 
-  const userCreatedAt = formatDateToISO(user.created_at);
+  const userCreatedAt = formatDateToISO((user as { created_at?: string }).created_at);
   const userStatus = userMetadata.status || 'ACTIVE';
 
   console.log('[SettingsContent] User data extracted:', {

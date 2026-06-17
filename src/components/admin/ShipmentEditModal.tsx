@@ -184,8 +184,9 @@ export function ShipmentEditModal({
       };
 
       // Remove undefined values
+      const updateRecord = updateData as Record<string, unknown>;
       Object.keys(updateData).forEach(key => {
-        if (updateData[key] === undefined) delete updateData[key];
+        if (updateRecord[key] === undefined) delete updateRecord[key];
       });
 
       // Update shipment

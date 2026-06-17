@@ -52,8 +52,8 @@ export const getServerClient = () => {
       order: (column: string, options?: { ascending: boolean }) => createQueryMock(),
       limit: (n: number) => createQueryMock(),
       range: (from: number, to: number) => createQueryMock(),
-      single: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-      maybeSingle: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      single: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+      maybeSingle: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
       then: (resolve: any) => resolve({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
     })
 
@@ -65,8 +65,8 @@ export const getServerClient = () => {
       delete: () => createQueryMock(),
       rpc: (fn: string, params?: any) => createQueryMock(),
       auth: {
-        getUser: async () => ({ data: { user: null }, error: { message: 'Not configured' } }),
-        getSession: async () => ({ data: { session: null }, error: { message: 'Not configured' } }),
+        getUser: async (): Promise<{ data: { user: null }; error: { message: string } }> => ({ data: { user: null }, error: { message: 'Not configured' } }),
+        getSession: async (): Promise<{ data: { session: null }; error: { message: string } }> => ({ data: { session: null }, error: { message: 'Not configured' } }),
       },
     } as any
   }
@@ -117,8 +117,8 @@ export const createServiceClient = () => {
             order: (column: string, options?: { ascending: boolean }) => createQueryMock(),
             limit: (n: number) => createQueryMock(),
             range: (from: number, to: number) => createQueryMock(),
-            single: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            maybeSingle: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            single: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            maybeSingle: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
             then: (resolve: any) => resolve({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
         });
 
@@ -404,14 +404,14 @@ export const createSupabaseWithCookies = async (cookieStore: {
     if (!url || !key) {
         console.warn('[createSupabaseWithCookies] Credentials not configured, using mock client');
         return {
-            from: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            select: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            insert: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            update: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            delete: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
-            rpc: () => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            from: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            select: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            insert: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            update: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            delete: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
+            rpc: (): { data: null; error: { message: string; code: string } } => ({ data: null, error: { message: 'Not configured', code: 'CONFIG_ERROR' } }),
             auth: {
-                getUser: async () => ({ data: { user: null }, error: { message: 'Not configured' } }),
+                getUser: async (): Promise<{ data: { user: null }; error: { message: string } }> => ({ data: { user: null }, error: { message: 'Not configured' } }),
             },
         } as any;
     }

@@ -367,7 +367,7 @@ async function createProfileFromAuthUser(
           phone: metadata.corporate_phone || metadata.personal_phone || '',
           is_default: true,
         })
-        .catch(err => {
+        .catch((err: unknown) => {
           logVerification(userId, 'error', 'Delivery address creation failed', err)
         })
 
@@ -385,7 +385,7 @@ async function createProfileFromAuthUser(
           email: authUser.email || '',
           is_default: true,
         })
-        .catch(err => {
+        .catch((err: unknown) => {
           logVerification(userId, 'error', 'Billing address creation failed', err)
         })
     }

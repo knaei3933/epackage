@@ -362,7 +362,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 // Generate Static Params (for static generation)
 // =====================================================
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<{ params: { slug: string } }[]> {
   // This would typically fetch all published post slugs
   // For now, return empty array to use SSR
   return [];

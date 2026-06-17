@@ -48,13 +48,13 @@ const fetcher = async (url: string) => {
 
 // デフォルト統計データ（フォールバック用）
 const defaultStats = {
-  ordersByStatus: [],
-  monthlyRevenue: [],
+  ordersByStatus: [] as never[],
+  monthlyRevenue: [] as never[],
   pendingQuotations: 0,
   todayShipments: 0,
   totalOrders: 0,
   totalRevenue: 0,
-  recentQuotations: [],
+  recentQuotations: [] as never[],
   samples: { total: 0, processing: 0, completed: 0 },
   production: { avgDays: 0, completed: 0, inProgress: 0 },
   shipments: { today: 0, inTransit: 0 },
@@ -66,7 +66,7 @@ const defaultStats = {
     pending: 0,
     approved: 0,
     conversionRate: 0,
-    recent: []
+    recent: [] as never[]
   },
 };
 

@@ -123,7 +123,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Transform to dashboard format
-    const sampleRequests = requests?.map(req => ({
+    const sampleRequests = requests?.map((req: { id: string; user_id: string; request_number: string | null; status: string | null; sample_items: unknown; delivery_address: unknown; tracking_number: string | null; created_at: string; shipped_at: string | null; delivered_at: string | null }) => ({
       id: req.id,
       userId: req.user_id,
       requestNumber: req.request_number || `SMP-${String(req.id).padStart(6, '0')}`,

@@ -73,7 +73,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Key-Value形式に変換（フラットなマップ）
     const settings: Record<string, any> = {};
-    data?.forEach(setting => {
+    data?.forEach((setting: { category: string; key: string; value: unknown }) => {
       const fullKey = `${setting.category}.${setting.key}`;
       settings[fullKey] = setting.value;
     });

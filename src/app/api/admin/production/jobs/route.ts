@@ -95,7 +95,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         scheduledEndAt: po.estimated_completion_date,
         actualStartAt: po.started_at,
         actualEndAt: po.actual_completion_date,
-        assignedTo: null, // 担当者情報がない場合はnull
+        assignedTo: null as string | null, // 担当者情報がない場合はnull
         outputQuantity: 0, // production_ordersにはoutput_quantityがない
         rejectedQuantity: 0, // production_ordersにはrejected_quantityがない
         description: po.current_stage,

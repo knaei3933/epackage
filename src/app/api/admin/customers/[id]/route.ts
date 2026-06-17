@@ -154,10 +154,10 @@ export async function GET(
 
     // Calculate statistics
     const totalOrders = orders?.length || 0;
-    const totalSpent = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+    const totalSpent = orders?.reduce((sum: number, order: { total_amount: number | null }) => sum + (order.total_amount || 0), 0) || 0;
     const lastOrderDate = orders?.[0]?.created_at || null;
     const totalQuotations = quotations?.length || 0;
-    const pendingQuotations = quotations?.filter(q => q.status === 'QUOTATION_PENDING' || q.status === 'draft' || q.status === 'sent').length || 0;
+    const pendingQuotations = quotations?.filter((q: { status: string }) => q.status === 'QUOTATION_PENDING' || q.status === 'draft' || q.status === 'sent').length || 0;
 
     // Fetch contact history (if table exists)
     const { data: contactHistory } = await supabase

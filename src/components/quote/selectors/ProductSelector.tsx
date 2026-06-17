@@ -78,14 +78,15 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
   const addProduct = useCallback(() => {
     if (!selectedCategory) return
 
+    const categoryConfig = PRODUCT_CATEGORIES[selectedCategory as keyof typeof PRODUCT_CATEGORIES];
     const newProduct: QuoteCalculationParams = {
       product: {
         id: `${selectedCategory}-${Date.now()}`,
         category: selectedCategory,
-        name_ja: PRODUCT_CATEGORIES[selectedCategory].name_ja,
-        name_en: PRODUCT_CATEGORIES[selectedCategory].name_en,
-        description_ja: PRODUCT_CATEGORIES[selectedCategory].description_ja,
-        description_en: PRODUCT_CATEGORIES[selectedCategory].description_en,
+        name_ja: categoryConfig.name_ja,
+        name_en: categoryConfig.name_en,
+        description_ja: categoryConfig.description_ja,
+        description_en: categoryConfig.description_en,
         specifications: {},
         materials: ['PE', 'PP', 'PET', 'ALUMINUM'],
         pricing_formula: {},

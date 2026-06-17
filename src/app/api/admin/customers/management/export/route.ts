@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
       headerRow.height = 25;
 
       // Add data rows
-      exportData.forEach((data) => {
+      exportData.forEach((data: Record<string, unknown>) => {
         worksheet.addRow(Object.values(data));
       });
 
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Generate CSV
       const headers = Object.keys(exportData[0]).join(',');
-      const rows = exportData.map((data) =>
+      const rows = exportData.map((data: Record<string, unknown>) =>
         Object.values(data)
           .map((value) => {
             const stringValue = String(value || '');

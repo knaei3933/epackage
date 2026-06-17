@@ -119,7 +119,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Transform to frontend format
-    const transformedInquiries = inquiries?.map(inquiry => ({
+    const transformedInquiries = inquiries?.map((inquiry: { id: string; user_id: string; inquiry_number: string | null; request_number: string | null; type: string | null; subject: string | null; message: string | null; status: string; response: string | null; created_at: string; responded_at: string | null }) => ({
       id: inquiry.id,
       userId: inquiry.user_id,
       inquiryNumber: inquiry.inquiry_number || inquiry.request_number || `INQ-${String(inquiry.id).padStart(6, '0')}`,

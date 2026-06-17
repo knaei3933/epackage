@@ -214,7 +214,7 @@ class ShipmentTrackingService {
       throw new Error('Failed to fetch active shipments');
     }
 
-    const shipmentIds = shipments.map((s) => s.id);
+    const shipmentIds = shipments.map((s: { id: string }) => s.id);
     const results = await this.updateMultipleShipments(shipmentIds);
 
     const updated = results.filter((r) => r.success).length;

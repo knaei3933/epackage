@@ -87,7 +87,7 @@ export default function B2BQuotationRequestForm({
       unit_price: null,
       specifications: {},
       notes: null,
-      selectedProduct: null,
+      selectedProduct: null as Product | null,
       inputMode: 'manual'
     };
   }
@@ -181,7 +181,7 @@ export default function B2BQuotationRequestForm({
     const newItems = importedItems.map(item => ({
       ...item,
       id: `item-${Date.now()}-${Math.random()}`,
-      selectedProduct: null,
+      selectedProduct: null as Product | null,
       inputMode: 'manual' as const
     }));
 

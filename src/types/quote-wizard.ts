@@ -227,7 +227,15 @@ export interface ValidationResult {
 }
 
 // 製品別サイズ制限定数
-export const PRODUCT_SIZE_LIMITS = {
+type ProductSizeLimit = {
+  maxHeight: number | null;
+  minHeight: number | null;
+  minWidth: number | null;
+  maxWidth: number | null;
+  maxWidthPlusSide?: number;
+};
+
+export const PRODUCT_SIZE_LIMITS: Record<string, ProductSizeLimit> = {
   // 平袋: 最大縦355mm、最小幅50mm × 縦120mm
   flat_3_side: {
     maxHeight: 355,
@@ -271,7 +279,7 @@ export const PRODUCT_SIZE_LIMITS = {
     minWidth: 80,
     maxWidth: 740
   }
-} as const;
+};
 
 // 幅のバリデーション
 export const validateWidth = (

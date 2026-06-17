@@ -106,8 +106,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (this.state.retryCount < this.maxRetries) {
       this.setState(prevState => ({
         hasError: false,
-        error: undefined,
-        errorInfo: undefined,
+        error: undefined as Error | undefined,
+        errorInfo: undefined as ErrorInfo | undefined,
         retryCount: prevState.retryCount + 1,
       }));
     }

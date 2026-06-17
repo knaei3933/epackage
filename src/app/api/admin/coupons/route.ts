@@ -53,7 +53,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: true,
-      data: data?.map(coupon => ({
+      data: data?.map((coupon: { id: string; code: string; name: string; name_ja: string; description: string | null; description_ja: string | null; type: string; value: number; minimum_order_amount: number | null; maximum_discount_amount: number | null; max_uses: number; current_uses: number; max_uses_per_customer: number; status: string; valid_from: string; valid_until: string; applicable_customers: string; applicable_customer_types: string; notes: string | null; created_at: string; updated_at: string }) => ({
         id: coupon.id,
         code: coupon.code,
         name: coupon.name,

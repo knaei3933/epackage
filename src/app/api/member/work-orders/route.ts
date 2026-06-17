@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
             { step: 'packaging', name_ja: '梱包', name_en: 'Packaging', duration_days: 2 },
           ],
         },
-        materialRequirements: [],
+        materialRequirements: [] as never[],
         items: orderItems?.map((item: any) => ({
           product_name: item.product_name,
           quantity: item.quantity,

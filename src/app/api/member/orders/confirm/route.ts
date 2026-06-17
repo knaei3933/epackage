@@ -61,7 +61,7 @@ const confirmOrderSchema = z.object({
  * Confirm order from an APPROVED quotation
  */
 export const POST = withApiHandler(
-  (withAuth as any)(async (request: NextRequest, auth) => {
+  (withAuth as any)(async (request: NextRequest, auth: { userId: string }) => {
     const userId = auth.userId;
 
     // Parse and validate request body
@@ -218,7 +218,7 @@ export const POST = withApiHandler(
  * Check if quotation can be confirmed (converted to order)
  */
 export const GET = withApiHandler(
-  (withAuth as any)(async (request: NextRequest, auth) => {
+  (withAuth as any)(async (request: NextRequest, auth: { userId: string }) => {
     const searchParams = request.nextUrl.searchParams;
     const quotationId = searchParams.get('quotationId');
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, type JSX } from 'react'
 
 interface PerformanceMetrics {
   lcp: number | null
@@ -19,7 +19,7 @@ interface LayoutShiftEntry extends PerformanceEntry {
   hadRecentInput: boolean
 }
 
-export function PerformanceMonitor() {
+export function PerformanceMonitor(): JSX.Element | null {
   useEffect(() => {
     // Core Web Vitals monitoring
     const observer = new PerformanceObserver((list) => {

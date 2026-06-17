@@ -79,7 +79,7 @@ export async function GET(
     console.log('[Quotation Detail API] quotation_items found:', items?.length || 0);
     console.log('[Quotation Detail API] items raw data:', items);
 
-    const itemsWithBreakdown = (items || []).map(item => ({
+    const itemsWithBreakdown = (items || []).map((item: QuotationItem) => ({
       ...item,
       breakdown: calculateBreakdown(item),
     }));

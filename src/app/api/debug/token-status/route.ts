@@ -18,7 +18,7 @@ export async function GET() {
     const tokenStatus = {
       adminUserId: adminUserId || null,
       hasTokenInDb: false,
-      refreshToken: null,
+      refreshToken: null as string | null,
     };
 
     if (adminUserId) {

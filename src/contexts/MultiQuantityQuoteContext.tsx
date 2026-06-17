@@ -739,7 +739,7 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
             expiresAt: result.data.expiresAt,
             isShared: false,
             viewCount: 0,
-            lastViewed: null,
+            lastViewed: null as string | null,
           },
         };
 

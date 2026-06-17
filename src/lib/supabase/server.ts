@@ -73,12 +73,12 @@ export async function createClient() {
 function createMockClient() {
   return {
     auth: {
-      getUser: async () => ({ data: { user: null }, error: null }),
+      getUser: async (): Promise<{ data: { user: null }; error: null }> => ({ data: { user: null }, error: null }),
     },
     from: () => ({
       select: () => ({
         order: () => ({
-        limit: () => ({
+        limit: (): { data: null; error: { message: string } } => ({
           data: null,
           error: { message: 'Supabase not configured' },
         }),

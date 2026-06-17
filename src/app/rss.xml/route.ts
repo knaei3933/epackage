@@ -20,7 +20,7 @@ export async function GET() {
 
     if (posts) {
       items = posts
-        .map((post) => {
+        .map((post: { published_at: string; slug: string; title: string; excerpt: string | null; tags?: string[] | null }) => {
           const pubDate = new Date(post.published_at).toUTCString()
           const link = `${SITE_URL}/blog/${post.slug}`
           const enclosure = post.tags?.length

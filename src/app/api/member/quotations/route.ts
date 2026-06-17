@@ -311,7 +311,7 @@ export async function POST(request: NextRequest) {
       tax_amount: Number(quotation.tax_amount),
       total_amount: Number(quotation.total_amount),
       valid_until: quotation.valid_until,
-      items: items.map(item => ({
+      items: items.map((item: { product_id: string; product_name: string; quantity: number; unit_price: number | string; specifications: unknown }) => ({
         product_id: item.product_id,
         product_name: item.product_name,
         quantity: item.quantity,

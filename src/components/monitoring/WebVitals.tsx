@@ -5,9 +5,9 @@
  * Core Web Vitals追跡及び報告
  */
 
-import { useEffect } from 'react';
+import { useEffect, type JSX } from 'react';
 
-export default function WebVitals() {
+export default function WebVitals(): JSX.Element | null {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 

@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
           orderId: orderTyped.id,
           orderDate: new Date().toISOString(),
           totalAmount: orderTyped.total_amount,
-          items: [], // Items can be fetched if needed
+          items: [] as never[], // Items can be fetched if needed
         };
 
         const shipmentInfo = {

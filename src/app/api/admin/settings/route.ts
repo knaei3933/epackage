@@ -51,7 +51,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Group by category for easier frontend consumption
     const grouped: Record<string, any[]> = {};
-    data?.forEach(setting => {
+    data?.forEach((setting: { category: string; id: string; key: string; value: unknown; value_type: string; description: string; unit?: string | null; is_active?: boolean; effective_date?: string | null }) => {
       if (!grouped[setting.category]) {
         grouped[setting.category] = [];
       }

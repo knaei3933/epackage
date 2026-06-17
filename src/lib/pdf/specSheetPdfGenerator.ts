@@ -872,7 +872,7 @@ export async function generateSpecSheetPdf(
       orientation: opts.orientation as 'portrait' | 'landscape',
       displayHeaderFooter: false,
       printBackground: true,
-    });
+    } as Parameters<typeof page.pdf>[0]);
 
     // Save to file if output path specified
     if (opts.outputPath) {

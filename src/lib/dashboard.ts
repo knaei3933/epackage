@@ -1717,7 +1717,7 @@ async function fetchAdminDashboardStats(
 
   // 売上計算
   const totalRevenue = (totalRevenueResult.data || [])
-    .reduce((sum, order: any) => sum + (order.total_amount || 0), 0);
+    .reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0);
 
   // ステータス別集計
   const statusCounts: Record<string, number> = {};

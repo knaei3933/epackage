@@ -85,20 +85,20 @@ async function DashboardContent() {
         totalRevenue: 0,
         activeUsers: 0,
         pendingQuotations: 0,
-        ordersByStatus: [],
+        ordersByStatus: [] as never[],
       };
     }),
     // 既存の統計情報も取得（詳細表示用）
     getDashboardStats().catch((error) => {
       console.error('[Dashboard] Failed to fetch stats:', error);
       return {
-        orders: { new: [], processing: [], total: 0 },
-        quotations: { pending: [], total: 0 },
-        samples: { pending: [], total: 0 },
-        inquiries: { unread: [], total: 0 },
-        announcements: [],
-        contracts: { pending: [], signed: 0, total: 0 },
-        notifications: [],
+        orders: { new: [] as never[], processing: [] as never[], total: 0 },
+        quotations: { pending: [] as never[], total: 0 },
+        samples: { pending: [] as never[], total: 0 },
+        inquiries: { unread: [] as never[], total: 0 },
+        announcements: [] as never[],
+        contracts: { pending: [] as never[], signed: 0, total: 0 },
+        notifications: [] as never[],
       };
     }),
   ]);

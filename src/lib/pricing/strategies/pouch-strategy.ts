@@ -93,7 +93,7 @@ export class PouchStrategy extends BasePricingStrategy {
 
     // ジッパー追加 surcharge
     if (hasZipper) {
-      const surcharge = ZIPPER_SURCHARGE_KRW[basePouchType] || 0
+      const surcharge = ZIPPER_SURCHARGE_KRW[basePouchType as keyof typeof ZIPPER_SURCHARGE_KRW] || 0
       baseCostKRW += surcharge
     }
 

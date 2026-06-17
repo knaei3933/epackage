@@ -1379,7 +1379,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         status: 'draft' as const,
         totalAmount: totalAmountFromItems,
         validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        notes: null,
+        notes: null as string | null,
         items: itemsToSave
       };
 
@@ -1490,7 +1490,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           <div>
             <h4 className="font-medium text-gray-700 mb-2">基本仕様</h4>
             <div className="text-sm space-y-1 text-gray-600">
-              {(() => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
+              {((): null => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
               {/* 内容物 - 一番上に表示 */}
               {(() => {
                 const PRODUCT_CATEGORY_LABELS: Record<string, string> = {

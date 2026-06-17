@@ -282,7 +282,7 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
           <div className="col-span-2 flex items-start gap-1">
             <span className="text-text-muted flex-shrink-0">後加工:</span>
             <div className="text-text-primary flex flex-wrap gap-x-2 gap-y-0.5">
-              {postProcessingList.map((pp, idx) => (
+              {postProcessingList.map((pp: string, idx: number) => (
                 <span key={idx} className="inline-block">{pp}</span>
               ))}
             </div>

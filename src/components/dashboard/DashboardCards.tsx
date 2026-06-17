@@ -305,8 +305,8 @@ export function RecentQuotationsCard({ quotations }: RecentQuotationsCardProps) 
                   <span className="text-sm font-medium text-text-primary">
                     {quotation.quotationNumber}
                   </span>
-                  <span className={`text-xs px-2 py-0.5 rounded ${quotationStatusColors[quotation.status]}`}>
-                    {quotationStatusLabels[quotation.status]}
+                  <span className={`text-xs px-2 py-0.5 rounded ${quotationStatusColors[quotation.status as keyof typeof quotationStatusColors]}`}>
+                    {quotationStatusLabels[quotation.status as keyof typeof quotationStatusLabels]}
                   </span>
                 </div>
                 <p className="text-sm text-text-muted">

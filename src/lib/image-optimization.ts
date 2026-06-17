@@ -21,7 +21,7 @@ export function getBlurDataURL(imagePath: string): string {
   const normalizedPath = imagePath.replace(/^\//, '/').replace(/^\/+/, '/')
 
   // blurDataURL 매핑에서 조회
-  return blurDataMap[normalizedPath] || ''
+  return (blurDataMap as Record<string, string>)[normalizedPath] || ''
 }
 
 /**

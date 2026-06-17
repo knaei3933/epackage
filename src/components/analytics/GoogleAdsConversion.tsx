@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, type JSX } from 'react';
 
 interface GoogleAdsConversionProps {
   sendTo?: string;
@@ -18,7 +18,7 @@ export function GoogleAdsConversion({
   sendTo = 'AW-17981675917/iBi-CJv-44EcEI2zqv5C',
   value = 1.0,
   currency = 'JPY',
-}: GoogleAdsConversionProps) {
+}: GoogleAdsConversionProps): JSX.Element | null {
   useEffect(() => {
     // Send conversion event to Google Ads
     if (typeof window !== 'undefined' && (window as any).gtag) {

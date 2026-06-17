@@ -29,7 +29,7 @@ async function ProfileContent() {
   }
 
   // Extract user metadata with fallbacks
-  const userMetadata = user.user_metadata || {};
+  const userMetadata = (user.user_metadata || {}) as Record<string, string | null | undefined>;
   const userEmail = user.email || '';
   const userId = user.id || '';
   const userLastName = userMetadata.kanji_last_name || '';

@@ -30,10 +30,10 @@ export async function fetchOrderStats(period: number = 30) {
 
   const stats = {
     total: data?.length || 0,
-    pending: data?.filter(o => o.status === 'PENDING').length || 0,
-    processing: data?.filter(o => o.status === 'PROCESSING').length || 0,
-    completed: data?.filter(o => o.status === 'COMPLETED').length || 0,
-    totalRevenue: data?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0,
+    pending: data?.filter((o: { status: string }) => o.status === 'PENDING').length || 0,
+    processing: data?.filter((o: { status: string }) => o.status === 'PROCESSING').length || 0,
+    completed: data?.filter((o: { status: string }) => o.status === 'COMPLETED').length || 0,
+    totalRevenue: data?.reduce((sum: number, o: { total_amount: number | null }) => sum + (o.total_amount || 0), 0) || 0,
     ordersByStatus: [] as any[],
     monthlyRevenue: [] as any[],
   };
@@ -59,10 +59,10 @@ export async function fetchQuotationStats() {
 
   return {
     total: data?.length || 0,
-    draft: data?.filter(q => q.status === 'draft').length || 0,
-    sent: data?.filter(q => q.status === 'sent').length || 0,
-    approved: data?.filter(q => q.status === 'approved').length || 0,
-    rejected: data?.filter(q => q.status === 'rejected').length || 0,
-    totalAmount: data?.reduce((sum, q) => sum + (q.total_amount || 0), 0) || 0,
+    draft: data?.filter((q: { status: string }) => q.status === 'draft').length || 0,
+    sent: data?.filter((q: { status: string }) => q.status === 'sent').length || 0,
+    approved: data?.filter((q: { status: string }) => q.status === 'approved').length || 0,
+    rejected: data?.filter((q: { status: string }) => q.status === 'rejected').length || 0,
+    totalAmount: data?.reduce((sum: number, q: { total_amount: number | null }) => sum + (q.total_amount || 0), 0) || 0,
   };
 }

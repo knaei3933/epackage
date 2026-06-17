@@ -110,14 +110,14 @@ export async function deleteAccount(
         .select('id')
         .eq('user_id', userId)
         .in('status', ['cancelled', 'delivered'])
-      ordersToDelete = ordersData?.map(o => o.id) || []
+      ordersToDelete = ordersData?.map((o: { id: string }) => o.id) || []
     } else {
       // Get all orders
       const { data: ordersData } = await supabase
         .from('orders')
         .select('id')
         .eq('user_id', userId)
-      ordersToDelete = ordersData?.map(o => o.id) || []
+      ordersToDelete = ordersData?.map((o: { id: string }) => o.id) || []
     }
 
     // Note: The following will cascade automatically when orders are deleted:

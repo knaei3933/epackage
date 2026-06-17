@@ -734,10 +734,10 @@ export async function POST(
         totalSkus = orderItems.length;
 
         // Calculate SKU submission status
-        const filesWithItems = files.filter(f => f.order_item_id);
-        const uniqueSubmittedSkus = new Set(filesWithItems.map(f => f.order_item_id));
+        const filesWithItems = files.filter((f: { order_item_id: string | null }) => f.order_item_id);
+        const uniqueSubmittedSkus = new Set(filesWithItems.map((f: { order_item_id: string | null }) => f.order_item_id));
         submittedSkus = uniqueSubmittedSkus.size;
-        const pendingSkus = orderItems.filter(item => !uniqueSubmittedSkus.has(item.id));
+        const pendingSkus = orderItems.filter((item: { id: string }) => !uniqueSubmittedSkus.has(item.id));
 
         // Check if all SKUs have been uploaded
         isAllSkuCompleted = orderItems.length > 0 && uniqueSubmittedSkus.size === orderItems.length;
@@ -766,7 +766,7 @@ export async function POST(
               {
                 totalSkus: orderItems.length,
                 submittedSkus: uniqueSubmittedSkus.size,
-                pendingSkus: pendingSkus.map(item => ({
+                pendingSkus: pendingSkus.map((item: { id: string; product_name: string; quantity: number }) => ({
                   id: item.id,
                   productName: item.product_name,
                   quantity: item.quantity,
@@ -822,7 +822,7 @@ export async function POST(
               reason: `全SKUデータ入稿完了（${totalSkus}個）による自動遷移`,
             })
             .then(() => console.log('[Data Receipt Upload] Status history logged'))
-            .catch((err) => console.error('[Data Receipt Upload] History logging error:', err));
+            .catch((err: unknown) => console.error('[Data Receipt Upload] History logging error:', err));
         }
       } else if (order.status === 'DATA_UPLOAD_PENDING' && !isAllSkuCompleted) {
         console.log('[Data Receipt Upload] Waiting for all SKUs to complete:', {
@@ -968,10 +968,10 @@ export async function GET(
     // 5. Transform to expected format
     type OrderItemType = { id: string; product_name: string; quantity: number; specifications?: any };
     const orderItemsMap = new Map<string, OrderItemType>(
-      (orderItemsResult.data || []).map(item => [item.id, item as OrderItemType])
+      (orderItemsResult.data || []).map((item: { id: string }) => [item.id, item as OrderItemType])
     );
 
-    const transformedFiles = (filesResult.data || []).map(file => {
+    const transformedFiles = ((filesResult.data || []) as Array<{ id: string; order_item_id: string | null; original_filename?: string | null; file_name?: string | null; file_type: string; file_url: string; uploaded_at?: string | null; created_at: string; validation_status: string }>).map((file) => {
       let skuName = null;
       if (file.order_item_id) {
         const item = orderItemsMap.get(file.order_item_id);

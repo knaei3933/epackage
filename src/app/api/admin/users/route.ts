@@ -181,7 +181,7 @@ const { client: supabase } = await createSupabaseSSRClient(request);
     const response: UserListResponse = {
       success: true,
       data: {
-        users: (users || []).map((u) => ({
+        users: (users || []).map((u: { id: string; email: string; kanji_last_name: string; kanji_first_name: string; kana_last_name: string; kana_first_name: string; company_name: string | null; role: string; status: string; created_at: string }) => ({
           id: u.id,
           email: u.email,
           nameKanji: `${u.kanji_last_name} ${u.kanji_first_name}`,
