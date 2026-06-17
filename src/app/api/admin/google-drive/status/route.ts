@@ -50,7 +50,7 @@ export async function GET() {
         envVars,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Google Drive Status] Error:', error);
 
     // Return partial data even on auth error (for testing)
@@ -71,7 +71,7 @@ export async function GET() {
           redirectUriSet: !!process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI,
         },
       },
-      error: error.message,
+      error: 'Google Drive status check failed',
     });
   }
 }

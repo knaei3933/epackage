@@ -112,7 +112,7 @@ export async function POST(
   } catch (error: unknown) {
     console.error('Error updating production status:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'Failed to update production status' },
+      { error: 'Failed to update production status' },
       { status: 500 }
     );
   }
@@ -175,7 +175,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error fetching production order:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'Failed to fetch production order' },
+      { error: 'Failed to fetch production order' },
       { status: 500 }
     );
   }

@@ -86,7 +86,6 @@ export async function PUT(request: NextRequest) {
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An unexpected error occurred',
-        details: error instanceof Error ? error.message : String(error),
       },
     }, { status: 500 });
   }

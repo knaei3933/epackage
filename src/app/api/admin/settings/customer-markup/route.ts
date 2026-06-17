@@ -90,7 +90,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('Customer markup fetch error:', error);
       return NextResponse.json(
-        { error: '고객 할인율 조회 실패', details: error.message },
+        { error: '고객 할인율 조회 실패' },
         { status: 500 }
       );
     }
@@ -131,8 +131,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('Customer markup API error:', error);
     return NextResponse.json(
       {
-        error: '고객 할인율 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '고객 할인율 조회 실패'
       },
       { status: 500 }
     );
@@ -197,8 +196,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error || !data) {
+      console.error('Customer markup update DB error:', error);
       return NextResponse.json(
-        { error: '할인율 업데이트 실패', details: error?.message },
+        { error: '할인율 업데이트 실패' },
         { status: 500 }
       );
     }
@@ -232,8 +232,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     console.error('Customer markup update error:', error);
     return NextResponse.json(
       {
-        error: '할인율 업데이트 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '할인율 업데이트 실패'
       },
       { status: 500 }
     );

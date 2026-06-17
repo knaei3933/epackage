@@ -308,8 +308,7 @@ export async function PUT(
     console.error('[Admin Order Items API] PUT error:', error);
     return NextResponse.json(
       {
-        error: '商品明細の更新中にエラーが発生しました',
-        details: error instanceof Error ? error.message : String(error)
+        error: '商品明細の更新中にエラーが発生しました'
       },
       { status: 500 }
     );

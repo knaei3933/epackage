@@ -50,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('生産ジョブ取得エラー:', error);
       return NextResponse.json(
-        { error: '生産ジョブの取得に失敗しました', details: error.message },
+        { error: '生産ジョブの取得に失敗しました' },
         { status: 500 }
       );
     }
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('API エラー:', error);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -190,7 +190,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('ジョブ更新エラー:', error);
       return NextResponse.json(
-        { error: 'ジョブの更新に失敗しました', details: error.message },
+        { error: 'ジョブの更新に失敗しました' },
         { status: 500 }
       );
     }
@@ -203,7 +203,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('API エラー:', error);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'サーバーエラーが発生しました' },
       { status: 500 }
     );
   }

@@ -305,7 +305,6 @@ const { client: supabase } = await createSupabaseSSRClient(request);
       {
         error: 'Internal server error',
         code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

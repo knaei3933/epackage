@@ -247,7 +247,6 @@ export async function POST(
     return NextResponse.json(
       {
         error: 'トークンの生成に失敗しました。',
-        details: error.message,
       },
       { status: 500 }
     );

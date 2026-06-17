@@ -307,8 +307,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('統計APIエラー:', error);
     return NextResponse.json(
       {
-        error: '統計データの取得に失敗しました',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '統計データの取得に失敗しました'
       },
       { status: 500 }
     );

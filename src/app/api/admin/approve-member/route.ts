@@ -26,8 +26,6 @@ import { headers } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-// @ts-nocheck - Supabase type inference issues with complex update payloads
-
 // ============================================================
 // Types
 // ============================================================

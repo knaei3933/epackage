@@ -79,8 +79,7 @@ export async function GET(
     console.error('Coupon API error:', error);
     return NextResponse.json(
       {
-        error: '쿠폰 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '쿠폰 조회 실패'
       },
       { status: 500 }
     );
@@ -152,8 +151,9 @@ export async function PUT(
       .single();
 
     if (error || !data) {
+      console.error('Coupon update DB error:', error);
       return NextResponse.json(
-        { error: '쿠폰 업데이트 실패', details: error?.message },
+        { error: '쿠폰 업데이트 실패' },
         { status: 500 }
       );
     }
@@ -173,8 +173,7 @@ export async function PUT(
     console.error('Coupon update error:', error);
     return NextResponse.json(
       {
-        error: '쿠폰 업데이트 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '쿠폰 업데이트 실패'
       },
       { status: 500 }
     );
@@ -205,8 +204,9 @@ export async function DELETE(
       .eq('id', couponId);
 
     if (error) {
+      console.error('Coupon delete DB error:', error);
       return NextResponse.json(
-        { error: '쿠폰 삭제 실패', details: error.message },
+        { error: '쿠폰 삭제 실패' },
         { status: 500 }
       );
     }
@@ -219,8 +219,7 @@ export async function DELETE(
     console.error('Coupon delete error:', error);
     return NextResponse.json(
       {
-        error: '쿠폰 삭제 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '쿠폰 삭제 실패'
       },
       { status: 500 }
     );

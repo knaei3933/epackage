@@ -268,7 +268,6 @@ export async function POST(
       {
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

@@ -53,7 +53,7 @@ export async function GET(
     if (error) {
       console.error('[Admin Blog API] Get post error:', error);
       return NextResponse.json(
-        { error: 'ブログ記事の取得に失敗しました。', details: error.message },
+        { error: 'ブログ記事の取得に失敗しました。' },
         { status: error.code === 'PGRST116' ? 404 : 500 }
       );
     }
@@ -65,7 +65,7 @@ export async function GET(
   } catch (error) {
     console.error('[Admin Blog API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -201,7 +201,7 @@ export async function PUT(
     if (error) {
       console.error('[Admin Blog API] Update post error:', error);
       return NextResponse.json(
-        { error: 'ブログ記事の更新に失敗しました。', details: error.message },
+        { error: 'ブログ記事の更新に失敗しました。' },
         { status: 500 }
       );
     }
@@ -214,7 +214,7 @@ export async function PUT(
   } catch (error) {
     console.error('[Admin Blog API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -271,7 +271,7 @@ export async function DELETE(
     if (error) {
       console.error('[Admin Blog API] Delete post error:', error);
       return NextResponse.json(
-        { error: 'ブログ記事の削除に失敗しました。', details: error.message },
+        { error: 'ブログ記事の削除に失敗しました。' },
         { status: 500 }
       );
     }
@@ -283,7 +283,7 @@ export async function DELETE(
   } catch (error) {
     console.error('[Admin Blog API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }

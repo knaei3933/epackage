@@ -132,7 +132,6 @@ export const GET = withAdminAuth<any>(async (
         success: false,
         error: 'コメントの取得に失敗しました。',
         errorEn: 'Failed to fetch comments',
-        details: commentsError.message,
       },
       { status: 500 }
     );

@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     if (uploadError) {
       console.error('[Image Upload API] Storage upload error:', uploadError);
       return NextResponse.json(
-        { error: '画像のアップロードに失敗しました。', details: uploadError.message },
+        { error: '画像のアップロードに失敗しました。' },
         { status: 500 }
       );
     }
@@ -160,8 +160,7 @@ export async function POST(request: NextRequest) {
     console.error('[Image Upload API] Unexpected error:', error);
     return NextResponse.json(
       {
-        error: '予期しないエラーが発生しました。',
-        details: error instanceof Error ? error.message : String(error)
+        error: '予期しないエラーが発生しました。'
       },
       { status: 500 }
     );

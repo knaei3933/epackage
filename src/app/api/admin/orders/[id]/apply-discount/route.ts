@@ -198,8 +198,7 @@ export async function POST(
     console.error('[Admin Manual Discount API] POST error:', error);
     return NextResponse.json(
       {
-        error: '手動割引の適用中にエラーが発生しました',
-        details: error instanceof Error ? error.message : String(error)
+        error: '手動割引の適用中にエラーが発生しました'
       },
       { status: 500 }
     );

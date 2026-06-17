@@ -91,7 +91,6 @@ export async function GET(
       {
         error: 'Internal server error',
         code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -202,7 +201,6 @@ export async function POST(
         {
           error: 'PDF generation failed',
           code: 'PDF_ERROR',
-          message: pdfError instanceof Error ? pdfError.message : 'Unknown error',
         },
         { status: 500 }
       );
@@ -215,7 +213,6 @@ export async function POST(
       {
         error: 'Internal server error',
         code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

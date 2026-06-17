@@ -368,7 +368,7 @@ Epackage Lab - Package Lab
     } catch (emailError) {
       console.error('[Notes PUT] Email send error:', emailError);
       return NextResponse.json(
-        { success: false, error: 'メール送信に失敗しました: ' + (emailError instanceof Error ? emailError.message : 'Unknown error') },
+        { success: false, error: 'メール送信に失敗しました' },
         { status: 500 }
       );
     }

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('Coupons fetch error:', error);
       return NextResponse.json(
-        { error: '쿠폰 조회 실패', details: error.message },
+        { error: '쿠폰 조회 실패' },
         { status: 500 }
       );
     }
@@ -82,8 +82,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('Coupons API error:', error);
     return NextResponse.json(
       {
-        error: '쿠폰 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '쿠폰 조회 실패'
       },
       { status: 500 }
     );
@@ -180,7 +179,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('Coupon creation error:', error);
       return NextResponse.json(
-        { error: '쿠폰 생성 실패', details: error.message },
+        { error: '쿠폰 생성 실패' },
         { status: 500 }
       );
     }
@@ -200,8 +199,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.error('Coupons API error:', error);
     return NextResponse.json(
       {
-        error: '쿠폰 생성 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '쿠폰 생성 실패'
       },
       { status: 500 }
     );

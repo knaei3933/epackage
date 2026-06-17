@@ -1,7 +1,3 @@
-// @ts-nocheck - TypeScript inference issues with updated database schema
-// The database types are correctly defined in src/types/database.ts but
-// TypeScript has issues inferring the new columns. This file is safe to use.
-
 /**
  * Designer Task Access Tokens
  *

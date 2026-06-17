@@ -62,8 +62,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('[production/update-status] Update failed:', error);
       return NextResponse.json(
-        { error: { code: 'UPDATE_FAILED', message: error.message } },
+        { error: { code: 'UPDATE_FAILED', message: 'Failed to update production status' } },
         { status: 500 }
       );
     }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       {
         error: {
           code: 'UPDATE_FAILED',
-          message: error instanceof Error ? error.message : 'ステータス更新に失敗しました',
+          message: 'ステータス更新に失敗しました',
         },
       },
       { status: 500 }

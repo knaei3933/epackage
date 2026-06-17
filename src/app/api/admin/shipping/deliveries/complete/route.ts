@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('[Delivery Completion] Update error:', updateError);
       return NextResponse.json(
-        { success: false, error: updateError.message },
+        { success: false, error: 'Failed to mark delivery as complete' },
         { status: 500 }
       );
     }
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[Delivery Completion] POST error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error)?.message || 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

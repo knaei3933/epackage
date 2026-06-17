@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('[Admin Blog API] Get posts error:', error);
       return NextResponse.json(
-        { error: 'ブログ記事の取得に失敗しました。', details: error.message },
+        { error: 'ブログ記事の取得に失敗しました。' },
         { status: 500 }
       );
     }
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[Admin Blog API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('[Admin Blog API] Create post error:', error);
       return NextResponse.json(
-        { error: 'ブログ記事の作成に失敗しました。', details: error.message },
+        { error: 'ブログ記事の作成に失敗しました。' },
         { status: 500 }
       );
     }
@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Admin Blog API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }

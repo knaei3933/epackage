@@ -63,7 +63,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error fetching production order:', error);
     return NextResponse.json(
-      { error: (error instanceof Error ? error.message : String(error)) || 'Failed to fetch production order' },
+      { error: 'Failed to fetch production order' },
       { status: 500 }
     );
   }
@@ -150,7 +150,7 @@ export async function PATCH(
   } catch (error: unknown) {
     console.error('Error updating production stage:', error);
     return NextResponse.json(
-      { error: (error instanceof Error ? error.message : String(error)) || 'Failed to update production stage' },
+      { error: 'Failed to update production stage' },
       { status: 500 }
     );
   }
@@ -244,7 +244,7 @@ export async function POST(
   } catch (error: unknown) {
     console.error('Error processing POST request:', error);
     return NextResponse.json(
-      { error: (error instanceof Error ? error.message : String(error)) || 'Failed to process request' },
+      { error: 'Failed to process request' },
       { status: 500 }
     );
   }

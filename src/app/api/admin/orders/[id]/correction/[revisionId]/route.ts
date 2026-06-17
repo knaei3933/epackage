@@ -74,7 +74,7 @@ export async function DELETE(
     if (deleteError) {
       console.error('[Correction DELETE] DB error:', deleteError);
       return NextResponse.json(
-        { success: false, error: '削除に失敗しました: ' + deleteError.message },
+        { success: false, error: '削除に失敗しました' },
         { status: 500 }
       );
     }

@@ -23,9 +23,8 @@ export async function GET(request: NextRequest) {
 
       console.log('[API] Admin shipments: DEV_MODE active, role from header:', userRole);
 
-      // Check admin role from header
-      const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
-      if (!userRole || !adminRoles.includes(userRole)) {
+      // Check admin role from header (ADMIN厳格 — 全 admin ルートと統一)
+      if (userRole !== 'ADMIN') {
         console.error('[API] Admin shipments: Forbidden in DEV_MODE. Role:', userRole);
         return NextResponse.json(
           { error: 'Forbidden' },
@@ -111,8 +110,8 @@ export async function GET(request: NextRequest) {
       .eq('id', authUser.id)
       .maybeSingle();
 
-    const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
-    if (!profile || !adminRoles.includes(profile.role)) {
+    // ADMIN厳格 — 全 admin ルートと統一
+    if (!profile || profile.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }

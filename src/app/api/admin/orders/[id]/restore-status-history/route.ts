@@ -63,7 +63,7 @@ export async function POST(
     if (historyError) {
       console.error('[Restore Status History] Error:', historyError);
       return NextResponse.json(
-        { success: false, error: 'Failed to create status history', details: historyError.message },
+        { success: false, error: 'Failed to create status history' },
         { status: 500 }
       );
     }

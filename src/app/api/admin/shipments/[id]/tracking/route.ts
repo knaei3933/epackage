@@ -126,7 +126,7 @@ export async function POST(
   } catch (error) {
     console.error('Error updating tracking:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update tracking' },
+      { error: 'Failed to update tracking' },
       { status: 500 }
     );
   }
@@ -282,7 +282,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating tracking manually:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update tracking' },
+      { error: 'Failed to update tracking' },
       { status: 500 }
     );
   }

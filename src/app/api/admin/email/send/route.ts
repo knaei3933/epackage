@@ -320,7 +320,6 @@ export const POST = withAdminAuth(async (
     return NextResponse.json({
       success: false,
       message: 'メール送信中にエラーが発生しました。',
-      error: error instanceof Error ? error.message : 'Unknown error',
     }, { status: 500 });
   }
 });

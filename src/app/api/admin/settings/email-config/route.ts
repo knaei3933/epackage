@@ -263,7 +263,6 @@ export async function GET(request: NextRequest) {
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );
@@ -411,7 +410,7 @@ export async function PUT(request: NextRequest) {
     if (errors.length > 0) {
       console.error('[Email Config PUT] Database errors:', errors);
       return NextResponse.json(
-        { success: false, error: '設定の更新に失敗しました。', errorEn: 'Failed to update settings', details: errors.join(', ') },
+        { success: false, error: '設定の更新に失敗しました。', errorEn: 'Failed to update settings' },
         { status: 500 }
       );
     }
@@ -445,7 +444,6 @@ export async function PUT(request: NextRequest) {
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

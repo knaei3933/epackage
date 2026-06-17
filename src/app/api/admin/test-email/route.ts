@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Email Test] Error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: 'Failed to send test email',
     }, { status: 500 });
   }
 }

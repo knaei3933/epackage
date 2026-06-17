@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { OrderStatus } from '@/types/order-status';
 
 // ============================================================
@@ -36,6 +37,12 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // ✅ 認可追加（認証バイパス修正 — 全 admin ルートと統一）
+    const auth = await verifyAdminAuth(request);
+    if (!auth) {
+      return unauthorizedResponse();
+    }
+
     const params = await context.params;
     const { id: orderId } = params;
 
@@ -149,6 +156,12 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    // ✅ 認可追加（認証バイパス修正 — 全 admin ルートと統一）
+    const auth = await verifyAdminAuth(request);
+    if (!auth) {
+      return unauthorizedResponse();
+    }
+
     const params = await context.params;
     const { id: orderId } = params;
 

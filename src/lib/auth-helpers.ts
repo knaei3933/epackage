@@ -48,9 +48,8 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
     if (userRole && userId) {
       console.log('[verifyAdminAuth] DEV_MODE: Using header-based auth:', { userId, userRole });
 
-      // Check if user has admin role
-      const adminRoles = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
-      if (adminRoles.includes(userRole)) {
+      // Check if user has admin role (ADMIN厳格 — orders/shipments/status と統一・security-reviewer MEDIUM-1)
+      if (userRole === 'ADMIN') {
         return {
           userId,
           role: userRole as AdminAuthResult['role'],

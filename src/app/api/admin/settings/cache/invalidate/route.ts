@@ -43,8 +43,7 @@ export async function POST(
     console.error('Cache invalidation error:', error);
     return NextResponse.json(
       {
-        error: 'Failed to clear settings cache',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: 'Failed to clear settings cache'
       },
       { status: 500 }
     );

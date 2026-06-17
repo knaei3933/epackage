@@ -349,7 +349,7 @@ export async function POST(
     if (dbError) {
       console.error('[Correction Upload] DB error:', dbError);
       return NextResponse.json(
-        { success: false, error: 'データベース保存に失敗しました: ' + dbError.message },
+        { success: false, error: 'データベース保存に失敗しました' },
         { status: 500 }
       );
     }
@@ -499,7 +499,6 @@ export async function POST(
       {
         success: false,
         error: '予期しないエラーが発生しました。',
-        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

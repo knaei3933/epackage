@@ -144,7 +144,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error downloading contract:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'Failed to generate contract PDF' },
+      { error: 'Failed to generate contract PDF' },
       { status: 500 }
     );
   }

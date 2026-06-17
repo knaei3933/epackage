@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('[Admin Quotations API] Get quotations error:', error);
       return NextResponse.json(
-        { error: '見積リストの取得に失敗しました。', details: error.message },
+        { error: '見積リストの取得に失敗しました。' },
         { status: 500 }
       );
     }
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[Admin Quotations API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -259,7 +259,7 @@ export async function PATCH(request: NextRequest) {
     if (fetchError || !currentQuotation) {
       console.error('[Admin Quotations API] Fetch quotation error:', fetchError);
       return NextResponse.json(
-        { error: '見積の取得に失敗しました。', details: fetchError?.message },
+        { error: '見積の取得に失敗しました。' },
         { status: 404 }
       );
     }
@@ -288,7 +288,7 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       console.error('[Admin Quotations API] Update quotation error:', error);
       return NextResponse.json(
-        { error: '見積の更新に失敗しました。', details: error.message },
+        { error: '見積の更新に失敗しました。' },
         { status: 500 }
       );
     }
@@ -328,7 +328,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error('[Admin Quotations API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }
@@ -379,7 +379,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('[Admin Quotations API] Delete quotation error:', error);
       return NextResponse.json(
-        { error: '見積の削除に失敗しました。', details: error.message },
+        { error: '見積の削除に失敗しました。' },
         { status: 500 }
       );
     }
@@ -391,7 +391,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('[Admin Quotations API] Unexpected error:', error);
     return NextResponse.json(
-      { error: '予期しないエラーが発生しました。', details: error instanceof Error ? error.message : String(error) },
+      { error: '予期しないエラーが発生しました。' },
       { status: 500 }
     );
   }

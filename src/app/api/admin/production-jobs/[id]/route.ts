@@ -95,7 +95,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error('Error fetching production job:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch production job' },
+      { error: 'Failed to fetch production job' },
       { status: 500 }
     );
   }
@@ -281,7 +281,7 @@ export async function PATCH(
   } catch (error: unknown) {
     console.error('Error updating production job:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update production job' },
+      { error: 'Failed to update production job' },
       { status: 500 }
     );
   }

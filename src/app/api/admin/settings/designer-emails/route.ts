@@ -74,7 +74,6 @@ export async function GET(request: NextRequest) {
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );
@@ -175,7 +174,6 @@ export async function PUT(request: NextRequest) {
         success: false,
         error: '予期しないエラーが発生しました。',
         errorEn: 'An unexpected error occurred',
-        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

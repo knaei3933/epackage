@@ -44,7 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('Settings fetch error:', error);
       return NextResponse.json(
-        { error: '설정 조회 실패', details: error.message },
+        { error: '설정 조회 실패' },
         { status: 500 }
       );
     }
@@ -76,8 +76,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     console.error('Settings API error:', error);
     return NextResponse.json(
       {
-        error: '설정 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 조회 실패'
       },
       { status: 500 }
     );
@@ -140,7 +139,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (error) {
       console.error('Settings creation error:', error);
       return NextResponse.json(
-        { error: '설정 생성 실패', details: error.message },
+        { error: '설정 생성 실패' },
         { status: 500 }
       );
     }
@@ -161,8 +160,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.error('Settings API error:', error);
     return NextResponse.json(
       {
-        error: '설정 생성 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 생성 실패'
       },
       { status: 500 }
     );

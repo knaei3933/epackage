@@ -88,7 +88,7 @@ export async function PATCH(
     if (error) {
       console.error('Setting update error:', error);
       return NextResponse.json(
-        { error: '설정 수정 실패', details: error.message },
+        { error: '설정 수정 실패' },
         { status: 500 }
       );
     }
@@ -121,8 +121,7 @@ export async function PATCH(
     console.error('Settings API error:', error);
     return NextResponse.json(
       {
-        error: '설정 수정 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 수정 실패'
       },
       { status: 500 }
     );
@@ -161,7 +160,7 @@ export async function DELETE(
     if (error) {
       console.error('Setting delete error:', error);
       return NextResponse.json(
-        { error: '설정 삭제 실패', details: error.message },
+        { error: '설정 삭제 실패' },
         { status: 500 }
       );
     }
@@ -175,8 +174,7 @@ export async function DELETE(
     console.error('Settings API error:', error);
     return NextResponse.json(
       {
-        error: '설정 삭제 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 삭제 실패'
       },
       { status: 500 }
     );

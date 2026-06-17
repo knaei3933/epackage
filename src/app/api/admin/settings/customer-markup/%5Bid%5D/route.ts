@@ -65,8 +65,9 @@ export async function PUT(
       .single();
 
     if (error || !data) {
+      console.error('Customer markup update DB error:', error);
       return NextResponse.json(
-        { error: '마크업율 업데이트 실패', details: error?.message },
+        { error: '마크업율 업데이트 실패' },
         { status: 500 }
       );
     }
@@ -85,8 +86,7 @@ export async function PUT(
     console.error('Customer markup update error:', error);
     return NextResponse.json(
       {
-        error: '마크업율 업데이트 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '마크업율 업데이트 실패'
       },
       { status: 500 }
     );

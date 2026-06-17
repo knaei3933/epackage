@@ -72,8 +72,7 @@ export async function GET(
     console.error('Setting API error:', error);
     return NextResponse.json(
       {
-        error: '설정 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 조회 실패'
       },
       { status: 500 }
     );
@@ -133,8 +132,9 @@ export async function PUT(
       .single();
 
     if (error || !data) {
+      console.error('Setting update DB error:', error);
       return NextResponse.json(
-        { error: '설정 업데이트 실패', details: error?.message },
+        { error: '설정 업데이트 실패' },
         { status: 500 }
       );
     }
@@ -156,8 +156,7 @@ export async function PUT(
     console.error('Setting update error:', error);
     return NextResponse.json(
       {
-        error: '설정 업데이트 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 업데이트 실패'
       },
       { status: 500 }
     );
@@ -196,8 +195,9 @@ export async function DELETE(
       .eq('key', key);
 
     if (error) {
+      console.error('Setting delete DB error:', error);
       return NextResponse.json(
-        { error: '설정 삭제 실패', details: error.message },
+        { error: '설정 삭제 실패' },
         { status: 500 }
       );
     }
@@ -210,8 +210,7 @@ export async function DELETE(
     console.error('Setting delete error:', error);
     return NextResponse.json(
       {
-        error: '설정 삭제 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 삭제 실패'
       },
       { status: 500 }
     );

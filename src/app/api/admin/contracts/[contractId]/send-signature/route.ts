@@ -101,7 +101,7 @@ export async function POST(
   } catch (error: unknown) {
     console.error('Error sending contract:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'Failed to send contract' },
+      { error: 'Failed to send contract' },
       { status: 500 }
     );
   }
