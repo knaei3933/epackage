@@ -2095,7 +2095,7 @@ export function ImprovedQuotingWizard() {
   const [isCalculating, setIsCalculating] = useState(false);
   const state = useQuoteState();
   const { dispatch, resetQuote } = useQuote();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const isStepComplete = (step: string) => checkStepComplete(state, step);
   const { calculateMultiQuantity, canCalculateMultiQuantity } = useMultiQuantityQuote();
@@ -2128,6 +2128,11 @@ export function ImprovedQuotingWizard() {
     if (currentStep < STEPS.length - 1) {
       // Calculate quote when moving from sku-quantity or quantity step to result step
       if (currentStepId === 'sku-quantity' || currentStepId === 'quantity') {
+        // 見積もり実行（結果表示）にはログインが必要。未ログインなら会員誘導モーダルを表示して中断。
+        if (!isAuthLoading && !isAuthenticated) {
+          setShowAuthPrompt(true);
+          return;
+        }
         setIsCalculating(true);
         try {
           // Debug logging
