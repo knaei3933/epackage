@@ -23,7 +23,14 @@ export const metadata: Metadata = {
 // Page Component
 // =====================================================
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
+  // ?redirect=/path があればログイン後にそこへ戻す（既定は /member/dashboard）
+  const { redirect } = await searchParams;
+  const redirectUrl = redirect || '/member/dashboard';
   return (
     <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="w-full max-w-md">
@@ -43,7 +50,7 @@ export default function SignInPage() {
         </div>
 
         {/* ログインフォーム - Client Component */}
-        <LoginForm {...({ redirectUrl: "/member/dashboard" } as any)} />
+        <LoginForm {...({ redirectUrl } as any)} />
       </div>
     </main>
   );
