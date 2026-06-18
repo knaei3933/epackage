@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Noto_Sans_JP } from "next/font/google";
@@ -108,6 +108,17 @@ export const metadata: Metadata = {
   verification: {
     google: 'F0MGJt4bRFH71oNsaalw0yVyTZn5FTLScKHxI1bihHw',
   },
+};
+
+// Viewport configuration: device-width + initialScale:1 preserves desktop rendering,
+// maximumScale:5 permits pinch-zoom for accessibility (WCAG 1.4.4) without forcing
+// mobile scaling. viewportFit:'cover' enables safe-area insets (iOS notch/Dynamic Island).
+// Fix for Safari/mobile layout collapse (bare HTML) caused by missing viewport export.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

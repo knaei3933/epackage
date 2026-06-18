@@ -7,6 +7,15 @@
 export { useFocusTrap, useFocusTrapStrict } from './useFocusTrap';
 export { useDraftSave, useFormDraftSave } from './useDraftSave';
 
+// Responsive/viewport hooks (client-side). Consumers must be client components.
+export {
+  useBreakpoint,
+  useResponsiveValue,
+  useIsTouchDevice,
+  useOrientation,
+  useViewportSize,
+} from './useBreakpoint';
+
 // Optimized data fetching hooks
 export {
   useOptimizedFetch as default,
