@@ -2109,6 +2109,8 @@ export function ImprovedQuotingWizard() {
 
   // 会員登録誘導モーダル
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  // ログイン成功後に見積もり計算を再開するためのフラグ
+  const [pendingCalculation, setPendingCalculation] = useState(false);
 
   const handleNext = async () => {
     // 認証なしで全ステップを閲覧可能に変更
@@ -2131,6 +2133,7 @@ export function ImprovedQuotingWizard() {
         // 見積もり実行（結果表示）にはログインが必要。未ログインなら会員誘導モーダルを表示して中断。
         if (!isAuthLoading && !isAuthenticated) {
           setShowAuthPrompt(true);
+          setPendingCalculation(true);
           return;
         }
         setIsCalculating(true);
@@ -2310,6 +2313,15 @@ export function ImprovedQuotingWizard() {
       }
     }
   };
+
+  // ログイン成功後（isAuthenticated が true に反映された後）に見積もり計算を再開
+  useEffect(() => {
+    if (isAuthenticated && pendingCalculation) {
+      setPendingCalculation(false);
+      handleNext();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, pendingCalculation]);
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -2781,11 +2793,14 @@ export function ImprovedQuotingWizard() {
 
       </div>
 
-      {/* 会員登録誘導モーダル */}
+      {/* 会員登録誘導モーダル（ログインはモーダル内で完結し入力状態を維持、登録は別ページ） */}
       {showAuthPrompt && (
         <AuthPromptModal
           onClose={() => setShowAuthPrompt(false)}
-          onSignIn={() => router.push('/auth/signin?redirect=/quote-simulator')}
+          onSuccess={() => {
+            setShowAuthPrompt(false);
+            // isAuthenticated 反映後に useEffect[pendingCalculation] が handleNext で計算を再開
+          }}
           onRegister={() => router.push('/auth/register?redirect=/quote-simulator')}
         />
       )}
