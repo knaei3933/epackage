@@ -2223,6 +2223,7 @@ function getPostProcessingLabel(optionId: string): string {
 export function ImprovedQuotingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<UnifiedQuoteResult | null>(null);
+  const [multiQuantityResult, setMultiQuantityResult] = useState<any>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const state = useQuoteState();
   const { dispatch, resetQuote } = useQuote();
@@ -2419,6 +2420,16 @@ export function ImprovedQuotingWizard() {
           console.log('[handleNext] Setting result with hasValidSKUData:', enhancedResult.hasValidSKUData);
           console.log('[handleNext] Setting result with skuQuantities:', enhancedResult.skuQuantities);
           setResult(enhancedResult);
+
+          // Phase 1.2: calculateMultiQuantity() で5パターン比較データを生成
+          try {
+            const multiResult = await calculateMultiQuantity();
+            setMultiQuantityResult(multiResult);
+            console.log('[handleNext] Multi-quantity result set:', multiResult?.calculations?.size || 0, 'patterns');
+          } catch (e) {
+            console.warn('[handleNext] calculateMultiQuantity failed, comparison table will be empty:', e);
+            setMultiQuantityResult(null);
+          }
 
           // Force state update before changing step
           await new Promise(resolve => setTimeout(resolve, 0));
@@ -2676,7 +2687,7 @@ export function ImprovedQuotingWizard() {
               {currentStepId === 'specs' && <SpecsStep />}
               {currentStepId === 'post-processing' && <PostProcessingStep />}
               {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep />}
-              {currentStepId === 'result' && result && <ResultStep result={result} multiQuantityResult={null} onReset={handleReset} />}
+              {currentStepId === 'result' && result && <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} />}
 
               {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
               {/* Specs step validation errors */}
