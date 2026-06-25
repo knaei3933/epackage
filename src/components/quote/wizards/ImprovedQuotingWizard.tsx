@@ -2421,13 +2421,62 @@ export function ImprovedQuotingWizard() {
           console.log('[handleNext] Setting result with skuQuantities:', enhancedResult.skuQuantities);
           setResult(enhancedResult);
 
-          // Phase 1.2: calculateMultiQuantity() で5パターン比較データを生成
+          // Phase 1.2: 5パターン比較データを直接計算（MultiQuantityQuoteContextに依存しない）
           try {
-            const multiResult = await calculateMultiQuantity();
-            setMultiQuantityResult(multiResult);
-            console.log('[handleNext] Multi-quantity result set:', multiResult?.calculations?.size || 0, 'patterns');
+            const patternQuantities = [5000, 10000, 30000, 50000, 100000];
+            const calculations = new Map();
+            const baseQuoteParams = {
+              bagTypeId: state.bagTypeId,
+              materialId: state.materialId,
+              width: state.width,
+              height: state.height,
+              depth: state.depth,
+              thicknessSelection: state.thicknessSelection,
+              isUVPrinting: state.isUVPrinting,
+              postProcessingOptions: state.postProcessingOptions,
+              printingColors: state.printingColors,
+              doubleSided: state.doubleSided,
+              deliveryLocation: state.deliveryLocation,
+              urgency: state.urgency,
+              markupRate: 0,
+              rollCount: state.rollCount,
+              materialWidth: state.materialWidth,
+              filmLayers: state.filmLayers,
+              useFilmCostCalculation: true,
+              useSKUCalculation: true,
+            };
+            for (const qty of patternQuantities) {
+              // デジタル計算
+              const digitalResult = await unifiedPricingEngine.calculateQuote({
+                ...baseQuoteParams, quantity: qty, skuQuantities: [qty], printingType: 'digital',
+              });
+              // グラビア計算
+              let gravureResult = null;
+              try {
+                gravureResult = await unifiedPricingEngine.calculateQuote({
+                  ...baseQuoteParams, quantity: qty, skuQuantities: [qty], printingType: 'gravure',
+                  gravureMaterialWidth: 740, laminationType: 'solvent_semi' as any, copperPlateType: 'new' as any,
+                });
+              } catch { gravureResult = null; }
+              // 推奨判定
+              const dTotal = digitalResult.totalPrice;
+              const gTotal = gravureResult?.totalPrice ?? Infinity;
+              const recommended = gTotal < dTotal ? 'gravure' : 'digital';
+              const recommendedResult = recommended === 'gravure' ? gravureResult : digitalResult;
+              calculations.set(qty, {
+                ...recommendedResult,
+                recommendation: {
+                  method: recommended,
+                  digitalTotalPrice: dTotal,
+                  gravureTotalPrice: gTotal === Infinity ? null : gTotal,
+                  reason: recommended === 'gravure' ? `グラビア推奨（デジタル比 ${Math.round((1 - gTotal / dTotal) * 100)}% 安）` : 'デジタル推奨（分岐点未満）',
+                },
+              });
+            }
+            setMultiQuantityResult({ calculations });
+            console.log('[handleNext] Multi-quantity result set:', calculations.size, 'patterns');
           } catch (e) {
-            console.warn('[handleNext] calculateMultiQuantity failed, comparison table will be empty:', e);
+            console.warn('[handleNext] Multi-quantity calculation failed:', e);
             setMultiQuantityResult(null);
           }
 
