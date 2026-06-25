@@ -1364,6 +1364,48 @@ function SpecsStep() {
             </div>
           );
         })()}
+
+        {/* Phase 2: 印刷方式選択（自動選択/デジタル/グラビア・AC-9 顧客上書き） */}
+        <div className="mb-6 p-4 rounded-lg border-2 border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-medium text-gray-700">印刷方式</label>
+            <span className="text-xs text-gray-500">分岐点数量で自動判定可能</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {([
+              { id: 'auto', label: '自動選択', desc: '数量に応じて有利な方を推奨', recommended: true },
+              { id: 'digital', label: 'デジタル印刷', desc: '小ロット・短納期', recommended: false },
+              { id: 'gravure', label: 'グラビア印刷', desc: '大ロット・高品質', recommended: false },
+            ] as const).map((opt) => {
+              const isSelected = (state.printingType || 'digital') === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => updateField('printingType', opt.id)}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    isSelected
+                      ? 'border-brixa-primary-600 bg-brixa-primary-50 ring-2 ring-brixa-primary-600'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-900 text-sm">{opt.label}</span>
+                    {opt.recommended && (
+                      <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded-full font-medium">推奨</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600">{opt.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+          {(state.printingType || 'digital') === 'auto' && (
+            <p className="mt-2 text-xs text-blue-600">
+              ※ 自動選択時は見積結果に両方式の価格比較・分岐点・推奨理由が表示されます。
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

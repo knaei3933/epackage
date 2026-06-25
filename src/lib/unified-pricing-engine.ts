@@ -2127,7 +2127,7 @@ export class UnifiedPricingEngine {
    */
   private async findBreakevenQuantity(params: UnifiedQuoteParams): Promise<number> {
     const LOW = 500
-    const HIGH = 500000 // 十分に広い上限（大パウチの逆転点もカバー）
+    const HIGH = 100000 // validateParams の最大注文数量（10万個）に準拠
     const MAX_ITER = 24
 
     // 探索用に単一数量（非SKU）に正規化
@@ -2140,8 +2140,13 @@ export class UnifiedPricingEngine {
 
     const priceAt = async (quantity: number): Promise<{ d: number; g: number }> => {
       const p = buildParams(quantity)
-      const d = (await this.calculateMethodPrice({ ...p, printingType: 'digital' })).totalPrice
+      let d = Number.POSITIVE_INFINITY
       let g = Number.POSITIVE_INFINITY
+      try {
+        d = (await this.calculateMethodPrice({ ...p, printingType: 'digital' })).totalPrice
+      } catch {
+        d = Number.POSITIVE_INFINITY
+      }
       try {
         g = (await this.calculateMethodPrice({ ...p, printingType: 'gravure' })).totalPrice
       } catch {
