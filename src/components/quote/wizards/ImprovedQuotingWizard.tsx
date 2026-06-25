@@ -1775,6 +1775,13 @@ function RealTimePriceDisplay() {
     };
     priceBreak: string;
     minimumPriceApplied: boolean;
+    // Phase 3.2: 両方式比較（推奨表示用）
+    // 仕様: .omc/plans/gravure-integration-consensus.md Step 3.2 / AC-9
+    // printingType='auto' の場合、各数量でデジタル/グラビア両方を計算し安い方を推奨
+    digital?: { unitPrice: number; totalPrice: number };
+    gravure?: { unitPrice: number; totalPrice: number };
+    recommendedMethod?: 'digital' | 'gravure';
+    recommendedReason?: string;
   }>>([]);
 
   const previousPriceRef = useRef<number | null>(null);
@@ -1879,43 +1886,93 @@ function RealTimePriceDisplay() {
           discountRate: number;
           priceBreak: string;
           minimumPriceApplied: boolean;
+          digital?: { unitPrice: number; totalPrice: number };
+          gravure?: { unitPrice: number; totalPrice: number };
+          recommendedMethod?: 'digital' | 'gravure';
+          recommendedReason?: string;
         }> = [];
 
+        // Phase 3.2: 両方式ループ判定
+        // printingType='auto' の場合のみデジタル/グラビア両方を計算（推奨表示用）
+        // 明示指定（'digital'/'gravure'）時は後方互換でその方式のみ計算（計算コスト抑制）
+        const isAutoMode = (state.printingType || 'digital') === 'auto';
+        const methodsToCalculate: Array<'digital' | 'gravure'> = isAutoMode
+          ? ['digital', 'gravure']
+          : [((state.printingType || 'digital') === 'gravure' ? 'gravure' : 'digital')];
+
         for (const quantity of quantities) {
-          console.log('[RealTimePriceDisplay] 計算開始 - 数量:', quantity, 'markupRate:', customerMarkupRate, 'ユーザーID:', currentUser?.id);
-          const quoteResult = await unifiedPricingEngine.calculateQuote({
-            bagTypeId: state.bagTypeId,
-            materialId: state.materialId,
-            width: state.width,
-            height: state.height,
-            depth: state.depth,
-            quantity: quantity,
-            thicknessSelection: state.thicknessSelection,
-            isUVPrinting: state.isUVPrinting,
-            postProcessingOptions: state.postProcessingOptions,
-            printingType: state.printingType,
-            printingColors: state.printingColors,
-            doubleSided: state.doubleSided,
-            deliveryLocation: state.deliveryLocation,
-            urgency: state.urgency,
-            // 顧客別マークアップ率
-            markupRate: customerMarkupRate,
-            rollCount: state.rollCount, // 롤 필름 시 롤 개수
-            // SKU計算を使用（handleNextと同じ計算方法）
-            useSKUCalculation: true,
-            skuQuantities: state.skuCount > 1 ? state.skuQuantities : [quantity],
-            // Roll film specific parameters
-            materialWidth: state.materialWidth,
-            filmLayers: state.filmLayers,
-            // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
-            useFilmCostCalculation: true,
-            // 2列生産オプション関連パラメータ
-            twoColumnOptionApplied: state.twoColumnOptionApplied,
-            discountedUnitPrice: state.discountedUnitPrice,
-            discountedTotalPrice: state.discountedTotalPrice,
-            originalUnitPrice: state.originalUnitPrice
-          });
-          console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '価格:', quoteResult.totalPrice, '円');
+          console.log('[RealTimePriceDisplay] 計算開始 - 数量:', quantity, 'markupRate:', customerMarkupRate, 'ユーザーID:', currentUser?.id, '方式:', methodsToCalculate.join('/'));
+
+          // 各方式の計算結果を保持
+          const methodResults: Partial<Record<'digital' | 'gravure', { unitPrice: number; totalPrice: number; minimumPriceApplied: boolean }>> = {};
+
+          for (const method of methodsToCalculate) {
+            const quoteResult = await unifiedPricingEngine.calculateQuote({
+              bagTypeId: state.bagTypeId,
+              materialId: state.materialId,
+              width: state.width,
+              height: state.height,
+              depth: state.depth,
+              quantity: quantity,
+              thicknessSelection: state.thicknessSelection,
+              isUVPrinting: state.isUVPrinting,
+              postProcessingOptions: state.postProcessingOptions,
+              // Phase 3.2: 方式別に計算（auto時は両方式、明示時は指定方式）
+              printingType: method,
+              printingColors: state.printingColors,
+              doubleSided: state.doubleSided,
+              deliveryLocation: state.deliveryLocation,
+              urgency: state.urgency,
+              // 顧客別マークアップ率
+              markupRate: customerMarkupRate,
+              rollCount: state.rollCount, // 롤 필름 시 롤 개수
+              // SKU計算を使用（handleNextと同じ計算方法）
+              useSKUCalculation: true,
+              skuQuantities: state.skuCount > 1 ? state.skuQuantities : [quantity],
+              // Roll film specific parameters
+              materialWidth: state.materialWidth,
+              filmLayers: state.filmLayers,
+              // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
+              useFilmCostCalculation: true,
+              // 2列生産オプション関連パラメータ
+              twoColumnOptionApplied: state.twoColumnOptionApplied,
+              discountedUnitPrice: state.discountedUnitPrice,
+              discountedTotalPrice: state.discountedTotalPrice,
+              originalUnitPrice: state.originalUnitPrice
+            });
+            console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '方式:', method, '価格:', quoteResult.totalPrice, '円');
+            methodResults[method] = {
+              unitPrice: quoteResult.unitPrice,
+              totalPrice: quoteResult.totalPrice,
+              minimumPriceApplied: quoteResult.minimumPriceApplied || false
+            };
+          }
+
+          // 推奨方式判定（auto時のみ）：安い方を推奨
+          let recommendedMethod: 'digital' | 'gravure' | undefined;
+          let recommendedReason: string | undefined;
+          let primaryResult: { unitPrice: number; totalPrice: number; minimumPriceApplied: boolean };
+
+          if (isAutoMode && methodResults.digital && methodResults.gravure) {
+            const dTotal = methodResults.digital.totalPrice;
+            const gTotal = methodResults.gravure.totalPrice;
+            if (gTotal < dTotal) {
+              recommendedMethod = 'gravure';
+              // グラビア推奨理由：分岐点以上でグラビアが安い
+              const savings = dTotal - gTotal;
+              const savingsPct = dTotal > 0 ? Math.round((savings / dTotal) * 100) : 0;
+              recommendedReason = `グラビア推奨（デジタル比 ${savingsPct}% 安）`;
+            } else {
+              recommendedMethod = 'digital';
+              // デジタル推奨理由：分岐点未満でグラビア高単価
+              recommendedReason = 'デジタル推奨（グラビア分岐点未満）';
+            }
+            primaryResult = recommendedMethod === 'gravure' ? methodResults.gravure : methodResults.digital;
+          } else {
+            // 明示指定時：その方式の結果を主結果に
+            const soleMethod = methodsToCalculate[0];
+            primaryResult = methodResults[soleMethod]!;
+          }
 
           // Determine price break and discount rate
           let discountRate = 0;
@@ -1937,11 +1994,16 @@ function RealTimePriceDisplay() {
 
           quotes.push({
             quantity: quantity,
-            unitPrice: quoteResult.unitPrice,
-            totalPrice: quoteResult.totalPrice,
+            unitPrice: primaryResult.unitPrice,
+            totalPrice: primaryResult.totalPrice,
             discountRate: Math.round(discountRate * 100),
             priceBreak: priceBreak,
-            minimumPriceApplied: quoteResult.minimumPriceApplied || false
+            minimumPriceApplied: primaryResult.minimumPriceApplied,
+            // Phase 3.2: 両方式結果と推奨（auto時のみ設定）
+            ...(methodResults.digital ? { digital: { unitPrice: methodResults.digital.unitPrice, totalPrice: methodResults.digital.totalPrice } } : {}),
+            ...(methodResults.gravure ? { gravure: { unitPrice: methodResults.gravure.unitPrice, totalPrice: methodResults.gravure.totalPrice } } : {}),
+            ...(recommendedMethod ? { recommendedMethod } : {}),
+            ...(recommendedReason ? { recommendedReason } : {}),
           });
         }
 
@@ -2059,11 +2121,38 @@ function RealTimePriceDisplay() {
                       最低価格適用
                     </span>
                   )}
+                  {/* Phase 3.2: 推奨印刷方式バッジ（auto時のみ表示） */}
+                  {quote.recommendedMethod && (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      quote.recommendedMethod === 'gravure'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      推奨: {quote.recommendedMethod === 'gravure' ? 'グラビア' : 'デジタル'}
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-1 text-sm text-gray-600">
                   <div>単価: ¥{quote.unitPrice.toLocaleString()}（税別）</div>
                   <div>{quote.priceBreak} ({quote.discountRate}%引)</div>
+                  {/* Phase 3.2: 両方式価格比較表示（auto時のみ） */}
+                  {quote.digital && quote.gravure && (
+                    <div className="mt-1 flex items-center space-x-3 text-xs">
+                      <span className={quote.recommendedMethod === 'digital' ? 'font-semibold text-blue-700' : 'text-gray-500'}>
+                        デジタル: ¥{quote.digital.totalPrice.toLocaleString()}
+                      </span>
+                      <span className={quote.recommendedMethod === 'gravure' ? 'font-semibold text-purple-700' : 'text-gray-500'}>
+                        グラビア: ¥{quote.gravure.totalPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {/* Phase 3.2: 推奨理由 */}
+                  {quote.recommendedReason && (
+                    <div className="mt-1 text-xs text-gray-500 italic">
+                      {quote.recommendedReason}
+                    </div>
+                  )}
                 </div>
 
                 {quote.minimumPriceApplied && (

@@ -1502,6 +1502,84 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         </div>
       )}
 
+      {/* Phase 3.3: 数量×方式比較表（最安ハイライト・AC-12） */}
+      {/* 仕様: .omc/plans/gravure-integration-consensus.md Step 3.3
+          multiQuantityResult.calculations (Map<number, UnifiedQuoteResult>) から
+          各数量の価格を表形式で表示。最安数量をハイライト。 */}
+      {multiQuantityResult?.calculations && multiQuantityResult.calculations.size > 1 && (() => {
+        const rows = Array.from(multiQuantityResult.calculations.entries())
+          .map(([quantity, calc]) => ({
+            quantity,
+            totalPrice: calc.totalPrice,
+            unitPrice: calc.unitPrice,
+            method: calc.recommendation?.method,
+          }))
+          .sort((a, b) => a.quantity - b.quantity);
+
+        // 最安の単価を特定（ハイライト用）
+        const minUnitPrice = Math.min(...rows.map(r => r.unitPrice));
+
+        return (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">数量×方式比較表</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-300 text-gray-600">
+                    <th className="text-left py-2 px-3">数量</th>
+                    <th className="text-right py-2 px-3">単価</th>
+                    <th className="text-right py-2 px-3">総額（税別）</th>
+                    <th className="text-center py-2 px-3">推奨方式</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => {
+                    const isCheapest = row.unitPrice === minUnitPrice;
+                    return (
+                      <tr
+                        key={row.quantity}
+                        className={`border-b border-gray-100 ${isCheapest ? 'bg-green-50' : ''}`}
+                      >
+                        <td className="py-2 px-3 font-medium text-gray-900">
+                          {row.quantity.toLocaleString()}枚
+                          {isCheapest && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              最安
+                            </span>
+                          )}
+                        </td>
+                        <td className={`text-right py-2 px-3 ${isCheapest ? 'font-bold text-green-700' : 'text-gray-700'}`}>
+                          ¥{Math.round(row.unitPrice).toLocaleString()}
+                        </td>
+                        <td className="text-right py-2 px-3 text-gray-700">
+                          ¥{Math.round(row.totalPrice).toLocaleString()}
+                        </td>
+                        <td className="text-center py-2 px-3">
+                          {row.method ? (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              row.method === 'gravure'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {row.method === 'gravure' ? 'グラビア' : 'デジタル'}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              ※ 単価最安の数量をハイライト。グラビアは分岐点以上の数量で単価が下がります。
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Price Display */}
       <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
         <div className="text-sm font-medium mb-2">合計金額（税別）</div>

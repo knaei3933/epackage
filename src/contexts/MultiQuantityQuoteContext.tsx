@@ -8,6 +8,10 @@ import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage } from
 import { calculateRollWeight } from '@/lib/roll-film-utils';
 import { getDefaultFilmLayers } from '@/lib/film-structure';
 
+// Phase 3.1: 数量パターンの最大数（5数量パターン仕様）
+// 仕様: .omc/plans/gravure-integration-consensus.md Step 3.1 / AC-11
+export const MAX_QUANTITY_PATTERNS = 5;
+
 // Enhanced action types for multi-quantity functionality
 type MultiQuoteAction =
   | { type: 'SET_BASIC_SPECS'; payload: { bagTypeId: string; materialId: string; width: number; height: number; depth: number; thicknessSelection?: string } }
@@ -47,9 +51,12 @@ const initialState: MultiQuantityQuoteState = {
   thicknessSelection: 'medium',
 
   // Enhanced quantity fields
-  quantities: [1000, 2000, 5000, 10000], // Default selected quantities - 수정사항.md の例と一致
-  comparisonQuantities: [1000, 2000, 5000, 10000], // All quantities to compare - 수정사항.md の例と一致
-  selectedQuantity: 1000, // Currently selected for detailed view
+  // Phase 3.1: デフォルト5数量パターン（グラビア分岐点を考慮した代表パターン）
+  // 仕様: .omc/plans/gravure-integration-consensus.md Step 3.1
+  // グラビア分岐点以上の数量を含め、デジタル〜グラビア推奨の切り替わりを可視化
+  quantities: [5000, 10000, 30000, 50000, 100000],
+  comparisonQuantities: [5000, 10000, 30000, 50000, 100000],
+  selectedQuantity: 5000, // Currently selected for detailed view (Phase 3.1: デフォルト最小数量に同期)
   multiQuantityResults: new Map(),
   comparison: null,
   isLoading: false,
@@ -384,10 +391,11 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
 
   const addQuantity = useCallback((quantity: number) => {
     // Roll film and regular pouches both have 500 minimum
-    if (quantity >= 500 && quantity <= 1000000) {
+    // Phase 3.1: 最大5数量パターンまで（上限到達時は追加しない）
+    if (quantity >= 500 && quantity <= 1000000 && state.quantities.length < MAX_QUANTITY_PATTERNS) {
       dispatch({ type: 'ADD_QUANTITY', payload: quantity });
     }
-  }, []);
+  }, [state.quantities.length]);
 
   const removeQuantity = useCallback((quantity: number) => {
     dispatch({ type: 'REMOVE_QUANTITY', payload: quantity });
