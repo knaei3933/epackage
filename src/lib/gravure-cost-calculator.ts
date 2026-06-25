@@ -15,6 +15,7 @@
 
 import { GRAVURE_CONSTANTS, GravureLaminationType, MATERIAL_PRICES_KRW } from './pricing/core/constants'
 import type { FilmStructureLayer } from './pricing/core/types'
+import { calculateSingleColumnFilmWidth as calculateSingleColumnFilmWidthImported } from './gravure-material-width'
 
 // ========================================
 // 材料費（§5）
@@ -238,4 +239,98 @@ export function calculateGravureFilmValue(
     laminationCost,
     total: materialCost + printingCost + laminationCost,
   }
+}
+
+// ========================================
+// 加工個数（§6.4 / Critic Critical#2）
+// ========================================
+
+/**
+ * グラビア袋加工の列数を計算（仕様§3）
+ *
+ * 列数 = floor(最大原反幅1,100mm ÷ 1列フィルム幅)。最低1列。
+ * ※ gravure-material-width.ts の determineGravureMaterialWidth と同一ロジック。
+ *
+ * @param pouchType パウチタイプ
+ * @param height パウチ長さ H (mm)
+ * @param width パウチ幅 W (mm)
+ * @param gusset マチ G (mm)
+ */
+export function calculateGravureColumnCount(
+  pouchType: import('./gravure-material-width').GravurePouchType,
+  height: number,
+  width: number,
+  gusset = 0,
+): number {
+  const singleColumnWidth = calculateSingleColumnFilmWidthImported(pouchType, height, width, gusset)
+  const { MATERIAL_WIDTH_MAX_MM } = GRAVURE_CONSTANTS
+  return Math.max(1, Math.floor(MATERIAL_WIDTH_MAX_MM / singleColumnWidth))
+}
+
+/**
+ * パウチタイプ別のピッチ（mm）を取得（仕様§3）
+ *
+ * | タイプ | ピッチ |
+ * |--------|--------|
+ * | 三方・スタンド | パウチ幅 (W) |
+ * | 合掌・ガゼット | パウチ長さ (H) |
+ *
+ * @param pouchType パウチタイプ
+ * @param height パウチ長さ H (mm)
+ * @param width パウチ幅 W (mm)
+ */
+export function getGravurePitchMm(
+  pouchType: import('./gravure-material-width').GravurePouchType,
+  height: number,
+  width: number,
+): number {
+  switch (pouchType) {
+    case 'flat_3_side':
+    case 'stand_up':
+      return width // パウチ幅
+    case 't_shape':
+    case 'm_shape':
+      return height // パウチ長さ
+    default: {
+      const _exhaustive: never = pouchType
+      return _exhaustive
+    }
+  }
+}
+
+/**
+ * グラビア袋加工の加工個数を計算（仕様§6.4 / Critic Critical#2）
+ *
+ *   加工個数 = (顧客提供長5,500m ÷ ピッチ(m)) × 列数 × 0.93
+ *
+ * 【重要】Crittic Critical#2:
+ * - 「6000m ÷ 数量」ではない。
+ * - 製作6,000m（標準ロット）のうち、顧客提供5,500m（=6,000−ロス500m）分の
+ *   フィルム長から、ピッチと列数で並べられる個数を計算。
+ * - 0.93 = 袋成形歩留まり（ロス7%。ロス500mとは別適用）。
+ * - ※ ロールフィルム（袋加工なし）の場合は本関数を使用しない。
+ *
+ * @param pouchType パウチタイプ
+ * @param height パウチ長さ H (mm)
+ * @param width パウチ幅 W (mm)
+ * @param gusset マチ G (mm)
+ * @returns 加工個数（1ロット6,000m製作あたりの袋数）
+ */
+export function calculateGravureProcessingCount(
+  pouchType: import('./gravure-material-width').GravurePouchType,
+  height: number,
+  width: number,
+  gusset = 0,
+): number {
+  const { CUSTOMER_PROVIDED_METERS } = GRAVURE_CONSTANTS // 5,500m
+  const PROCESSING_YIELD = 0.93 // 袋成形歩留まり（§6.4）
+
+  const pitchMm = getGravurePitchMm(pouchType, height, width)
+  if (pitchMm <= 0) return 0
+
+  const pitchM = pitchMm / 1000
+  const columnCount = calculateGravureColumnCount(pouchType, height, width, gusset)
+
+  const count = (CUSTOMER_PROVIDED_METERS / pitchM) * columnCount * PROCESSING_YIELD
+  return Math.floor(count)
 }

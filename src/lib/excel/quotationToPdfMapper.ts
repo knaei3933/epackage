@@ -64,6 +64,34 @@ export function mapQuotationDataToQuoteData(quotationData: QuotationData): Quote
   // Map customer info
   const customerName = quotationData.customer.companyName || quotationData.customer.contactPerson || 'お客様';
 
+  // Phase 5: 印刷方式マッピング（ドロップ修正）
+  // 仕様の printingType / printing_type を QuoteData に伝播（未設定時は undefined = デジタル扱い）
+  const printingType: 'digital' | 'gravure' | undefined =
+    specs.printingType === 'gravure' || (specs as any).printing_type === 'gravure'
+      ? 'gravure'
+      : specs.printingType === 'digital' || (specs as any).printing_type === 'digital'
+        ? 'digital'
+        : undefined;
+
+  // Phase 5: グラビア原価明細の抽出（cost_breakdown 相当のフィールドが specs に存在する場合）
+  // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
+  const costBreakdown = (quotationData as any).costBreakdown || (specs as any).costBreakdown;
+  const gravureDetails = printingType === 'gravure' && costBreakdown
+    ? {
+        copperPlateCost: costBreakdown.setup,
+        filmValue: costBreakdown.gravureFilmValueKRW !== undefined
+          ? costBreakdown.filmCost // 円表示（convertKRWtoJPY 済み）
+          : undefined,
+        laminationCost: costBreakdown.laminationCost,
+        printingCost: costBreakdown.printing,
+        materialCost: costBreakdown.material,
+        productionMeters: costBreakdown.gravureProductionMeters,
+        materialWidthMM: costBreakdown.gravureMaterialWidthMM,
+        filmValueKRW: costBreakdown.gravureFilmValueKRW,
+        copperPlateCostKRW: costBreakdown.gravureCopperPlateCostKRW,
+      }
+    : undefined;
+
   return {
     quoteNumber: quotationData.metadata.quotationNumber,
     issueDate: formatDate(quotationData.metadata.issueDate),
@@ -82,6 +110,9 @@ export function mapQuotationDataToQuoteData(quotationData: QuotationData): Quote
     deliveryLocation: (quotationData.paymentTerms as any).deliveryLocation,
     validityPeriod: (quotationData.paymentTerms as any).quotationExpiry || '見積日から30日間',
     remarks: quotationData.notes,
+    // Phase 5: 印刷方式 + グラビア原価明細（未設定時は省略されデジタル扱い・後方互換）
+    ...(printingType ? { printingType } : {}),
+    ...(gravureDetails ? { gravureDetails } : {}),
     skuData: {
       count: quotationData.orderSummary.totalSkuCount,
       items: quotationData.orders.map((order) => ({

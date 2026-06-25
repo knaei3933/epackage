@@ -80,6 +80,11 @@ export interface ProductSpecifications {
     materialId: string
     thickness: number
   }>
+
+  // Phase 5: 印刷方式（グラビア見積もり識別用・オプショナル）
+  // 契約: src/lib/types/gravure-cost-breakdown.ts
+  // 'digital'（既定）または 'gravure'。未設定時はデジタル扱い（後方互換）
+  printingType?: 'digital' | 'gravure'
 }
 
 /**
@@ -182,6 +187,11 @@ export interface QuotationData {
   // Additional notes
   notes?: string
   adminNotes?: string
+
+  // Phase 5: グラビア原価明細（グラビア見積もりのみ設定・オプショナル）
+  // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
+  // quotationToPdfMapper で QuoteData.gravureDetails に変換される
+  costBreakdown?: Record<string, unknown>
 }
 
 // ============================================================

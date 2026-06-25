@@ -65,6 +65,35 @@ export interface QuoteData {
   /** 明細アイテム / Line items */
   items: QuoteItem[];
 
+  // ========================================
+  // Phase 5: グラビア印刷オプション（オプショナル・後方互換）
+  // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
+  // 未設定時はデジタル扱い（既存PDF無影響）
+  // ========================================
+  /** 印刷方式 / Printing method ('digital' 既定 / 'gravure') */
+  printingType?: 'digital' | 'gravure';
+  /** グラビア原価明細（円表示用） / Gravure cost breakdown (JPY for display) */
+  gravureDetails?: {
+    /** 銅版費（円）/ Copper plate cost (JPY) = convertKRWtoJPY(gravureCopperPlateCostKRW) */
+    copperPlateCost?: number;
+    /** 原反値（円）/ Gravure film value (JPY) */
+    filmValue?: number;
+    /** ラミネート費（円）/ Lamination cost (JPY) */
+    laminationCost?: number;
+    /** 印刷費（円）/ Printing cost (JPY) */
+    printingCost?: number;
+    /** 原材料費（円）/ Raw material cost (JPY) */
+    materialCost?: number;
+    /** 製作長 (m) / Production meters (loss 500m included) */
+    productionMeters?: number;
+    /** 原反幅 (mm) / Material width */
+    materialWidthMM?: number;
+    /** 原反値（ウォン・参考）/ Gravure film value (KRW, for reference) */
+    filmValueKRW?: number;
+    /** 銅版費（ウォン・参考）/ Copper plate cost (KRW, for reference) */
+    copperPlateCostKRW?: number;
+  };
+
   // Product specifications (for Excel template format)
   /** 製品仕様 / Product specifications */
   specifications?: {
@@ -1212,6 +1241,53 @@ function generateQuoteHTML(
   // Format currency
   const formatYen = (amount: number) => `¥${amount.toLocaleString('ja-JP')}`;
 
+  // Phase 5: グラビア原価明細セクション（printingType='gravure' のみ表示）
+  // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
+  // デジタル見積もり（printingType 未設定 or 'digital'）では空文字列で無影響
+  const gravureDetailsHTML = (() => {
+    if (data.printingType !== 'gravure' || !data.gravureDetails) {
+      return '';
+    }
+    const g = data.gravureDetails;
+    const rows: string[] = [];
+    if (g.materialCost !== undefined) {
+      rows.push(`<tr><td class="spec-label">原材料費</td><td>${formatYen(g.materialCost)}</td></tr>`);
+    }
+    if (g.printingCost !== undefined) {
+      rows.push(`<tr><td class="spec-label">印刷費</td><td>${formatYen(g.printingCost)}</td></tr>`);
+    }
+    if (g.laminationCost !== undefined) {
+      rows.push(`<tr><td class="spec-label">ラミネート費</td><td>${formatYen(g.laminationCost)}</td></tr>`);
+    }
+    if (g.filmValue !== undefined) {
+      rows.push(`<tr><td class="spec-label">原反値合計</td><td>${formatYen(g.filmValue)}</td></tr>`);
+    }
+    // 銅版費（グラビア専用・常に新規製作費）
+    if (g.copperPlateCost !== undefined) {
+      rows.push(`<tr><td class="spec-label">銅版費（新規製作）</td><td>${formatYen(g.copperPlateCost)}</td></tr>`);
+    }
+    // 原反値・銅版費のウォン参考値（Excel式照合用）
+    if (g.filmValueKRW !== undefined) {
+      rows.push(`<tr><td class="spec-label">原反値（ウォン参考）</td><td>₩${g.filmValueKRW.toLocaleString('ko-KR')}</td></tr>`);
+    }
+    if (g.copperPlateCostKRW !== undefined) {
+      rows.push(`<tr><td class="spec-label">銅版費（ウォン参考）</td><td>₩${g.copperPlateCostKRW.toLocaleString('ko-KR')}</td></tr>`);
+    }
+    // メタ情報（製作長・原反幅）
+    if (g.productionMeters !== undefined) {
+      rows.push(`<tr><td class="spec-label">製作長（ロス500m込）</td><td>${g.productionMeters.toLocaleString('ja-JP')} m</td></tr>`);
+    }
+    if (g.materialWidthMM !== undefined) {
+      rows.push(`<tr><td class="spec-label">原反幅</td><td>${g.materialWidthMM} mm</td></tr>`);
+    }
+    if (rows.length === 0) return '';
+    return `
+      <div class="section-title" style="margin-top: 2mm; color: #b71c1c;">グラビア原価明細</div>
+      <table class="spec-table">
+        ${rows.join('\n        ')}
+      </table>`;
+  })();
+
   // Format date (Western calendar for display)
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -2023,6 +2099,7 @@ function generateQuoteHTML(
         })()}
       </table>
       ${!specs.bagType?.includes('スパウト') && !specs.bagType?.includes('spout') ? generateProductTypeSection(specs) : ''}
+      ${gravureDetailsHTML}
     </div>
 
     <!-- Note: For spout_pouch, we skip the product-type-specific section since

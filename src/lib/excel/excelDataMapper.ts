@@ -191,6 +191,16 @@ export async function mapDatabaseQuotationToExcel(
     : firstItem?.specifications || {}
   const rawPostProcessingOptions = specs.postProcessingOptions || specs.postProcessing || []
 
+  // Phase 5: グラビア原価明細（cost_breakdown）の読出
+  // 優先順位: (1) item.specifications.costBreakdown > (2) quotations ヘッダ cost_breakdown
+  // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
+  // quotationToPdfMapper で QuoteData.gravureDetails に変換される
+  const costBreakdown =
+    specs.costBreakdown ||
+    specs.cost_breakdown ||
+    (dbQuotation as any).cost_breakdown ||
+    undefined
+
   return {
     metadata: {
       quotationNumber: dbQuotation.quotation_number,
@@ -220,7 +230,9 @@ export async function mapDatabaseQuotationToExcel(
       }
     },
     notes: dbQuotation.notes || undefined,
-    adminNotes: dbQuotation.admin_notes || undefined
+    adminNotes: dbQuotation.admin_notes || undefined,
+    // Phase 5: グラビア原価明細（グラビア見積もりのみ設定・後方互換）
+    ...(costBreakdown ? { costBreakdown } : {})
   }
 }
 
@@ -331,7 +343,13 @@ function extractProductSpecifications(
     contents,
     size: specs.size || specs.dimensions || '',
     material: specs.material || '',
-    surfaceFinish: surfaceFinish
+    surfaceFinish: surfaceFinish,
+    // Phase 5: 印刷方式読出（printingType / printing_type / cost_breakdown.gravureFilmValueKRW から判定）
+    // 契約: src/lib/types/gravure-cost-breakdown.ts
+    // 'gravure' のみ明示設定。未設定時は undefined（デジタル扱い・後方互換）
+    printingType: (specs.printingType === 'gravure' || specs.printing_type === 'gravure')
+      ? 'gravure' as const
+      : undefined
   } as ProductSpecifications
 
   // For roll_film: pouch-only fields should be null/empty
