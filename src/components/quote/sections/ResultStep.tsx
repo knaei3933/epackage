@@ -1044,7 +1044,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // 印刷表示用
-                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'uv' ? 'UV印刷' : undefined,
+                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'auto' ? '自動選択' : undefined,
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;
@@ -1131,7 +1131,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // 印刷表示用
-                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'uv' ? 'UV印刷' : undefined,
+                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'auto' ? '自動選択' : undefined,
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;
@@ -1455,6 +1455,52 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           以下の内容でお見積もりいたしました
         </p>
       </div>
+
+      {/* Phase 2: 印刷方式レコメンド表示（printingType='auto' 解決時のみ・AC-9） */}
+      {result.recommendation && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+              推
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-blue-900 mb-1">
+                印刷方式レコメンド: {result.recommendation.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}
+              </h3>
+              <p className="text-sm text-blue-800 mb-3">{result.recommendation.reason}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-gray-500 text-xs mb-1">デジタル総額</div>
+                  <div className={`font-semibold ${result.recommendation.method === 'digital' ? 'text-blue-700' : 'text-gray-700'}`}>
+                    {result.recommendation.digitalTotalPrice >= 0
+                      ? `¥${result.recommendation.digitalTotalPrice.toLocaleString()}`
+                      : '計算不可'}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-gray-500 text-xs mb-1">グラビア総額</div>
+                  <div className={`font-semibold ${result.recommendation.method === 'gravure' ? 'text-blue-700' : 'text-gray-700'}`}>
+                    {result.recommendation.gravureTotalPrice >= 0
+                      ? `¥${result.recommendation.gravureTotalPrice.toLocaleString()}`
+                      : '計算不可'}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-gray-500 text-xs mb-1">分岐点数量</div>
+                  <div className="font-semibold text-gray-700">
+                    {result.recommendation.breakevenQuantity >= 0
+                      ? `約${result.recommendation.breakevenQuantity.toLocaleString()}個`
+                      : '－'}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-blue-600 mt-3">
+                ※ 推奨は目安です。数量・仕様変更で分岐点は前後します。印刷方式は設定で「デジタル/グラビア/自動選択」から上書き選択できます。
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Price Display */}
       <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">

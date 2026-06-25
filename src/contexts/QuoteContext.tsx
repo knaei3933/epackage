@@ -55,7 +55,7 @@ export interface QuoteState {
   thicknessSelection?: string;
   // Internal flag to force recalculation when post-processing options change
   _forceRecalculate?: boolean;
-  printingType?: 'digital' | 'gravure';
+  printingType?: 'digital' | 'gravure' | 'auto';
   printingColors?: number;
   doubleSided?: boolean;
   deliveryLocation?: 'domestic' | 'international';

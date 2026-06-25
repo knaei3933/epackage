@@ -26,7 +26,8 @@ function convertToNewParams(oldParams: UnifiedQuoteParams): CalculationParams {
     isUVPrinting: oldParams.isUVPrinting,
     postProcessingOptions: oldParams.postProcessingOptions,
     postProcessingMultiplier: oldParams.postProcessingMultiplier,
-    printingType: oldParams.printingType,
+    // Phase 2: 'auto' は新エンジン未対応のため digital に正規化（engine側で解決済みの前提）
+    printingType: oldParams.printingType === 'gravure' ? 'gravure' : 'digital',
     printingColors: oldParams.printingColors,
     doubleSided: oldParams.doubleSided,
     deliveryLocation: oldParams.deliveryLocation,

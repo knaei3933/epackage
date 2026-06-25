@@ -16,7 +16,7 @@ type MultiQuoteAction =
   | { type: 'REMOVE_QUANTITY'; payload: number }
   | { type: 'SET_SELECTED_QUANTITY'; payload: number | null }
   | { type: 'SET_COMPARISON_QUANTITIES'; payload: number[] }
-  | { type: 'SET_PRINTING_OPTIONS'; payload: { isUVPrinting: boolean; printingType?: 'digital' | 'gravure'; printingColors?: number; doubleSided?: boolean } }
+  | { type: 'SET_PRINTING_OPTIONS'; payload: { isUVPrinting: boolean; printingType?: 'digital' | 'gravure' | 'auto'; printingColors?: number; doubleSided?: boolean } }
   | { type: 'SET_POST_PROCESSING'; payload: { options: string[]; multiplier: number } }
   | { type: 'SET_DELIVERY'; payload: { location: 'domestic' | 'international'; urgency: 'standard' | 'express' } }
   | { type: 'SET_LOADING'; payload: boolean }

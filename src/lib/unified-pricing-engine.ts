@@ -105,7 +105,7 @@ export interface UnifiedQuoteParams {
   isUVPrinting?: boolean
   postProcessingOptions?: string[]
   postProcessingMultiplier?: number
-  printingType?: 'digital' | 'gravure'
+  printingType?: 'digital' | 'gravure' | 'auto' // Phase 2: 'auto' = 分岐点レコメンドで自動解決
   printingColors?: number
   doubleSided?: boolean
   deliveryLocation?: 'domestic' | 'international'
@@ -238,6 +238,17 @@ export interface UnifiedQuoteResult {
   theoreticalMeters?: number // 이론 미터 수
   securedMeters?: number // 확보량
   totalMeters?: number // 총량 (로스 포함)
+
+  // Phase 2: 印刷方式自動選択（分岐点レコメンド・AC-8/9/10）
+  // printingType='auto' 解決時に推奨結果を格納。明示指定時は undefined。
+  recommendation?: {
+    method: 'digital' | 'gravure' // 推奨方式
+    resolvedMethod: 'digital' | 'gravure' // 実際に計算に使用した方式
+    breakevenQuantity: number // 分岐点数量（個・-1=計算不可）
+    digitalTotalPrice: number // デジタル総額（円・-1=計算不可）
+    gravureTotalPrice: number // グラビア総額（円・-1=計算不可）
+    reason: string // 推奨理由
+  }
 }
 
 // 厚さ設定
@@ -846,6 +857,27 @@ export class UnifiedPricingEngine {
       };
     }
 
+    // ========================================
+    // Phase 2: printingType='auto' 解決（AC-9）
+    // 推奨方式を決定し、実計算に流す。推奨結果は result.recommendation に格納。
+    // ※ キャッシュは解決後の method ベースで行う（auto 自体はキャッシュキーに含めない）。
+    // ========================================
+    let recommendation: UnifiedQuoteResult['recommendation'] | undefined
+    if (params.printingType === 'auto') {
+      const rec = await this.recommendPrintingMethod(params)
+      // 推奨方式で実計算を実行
+      params = { ...params, printingType: rec.method }
+      recommendation = {
+        method: rec.method,
+        resolvedMethod: rec.method,
+        breakevenQuantity: rec.breakevenQuantity,
+        digitalTotalPrice: rec.digitalTotalPrice,
+        gravureTotalPrice: rec.gravureTotalPrice,
+        reason: rec.reason,
+      }
+      console.log('[calculateQuote] AUTO resolved →', rec.method, '(breakeven:', rec.breakevenQuantity, ')')
+    }
+
     // キャッシュキー生成
     const cacheKey = this.generateCacheKey(params)
 
@@ -857,13 +889,19 @@ export class UnifiedPricingEngine {
     // キャッシュ確認
     if (this.cache.has(cacheKey)) {
       console.log('[calculateQuote] CACHE HIT - returning cached result');
-      return { ...this.cache.get(cacheKey)! }
+      const cached = { ...this.cache.get(cacheKey)! }
+      // auto 解決情報はキャッシュに含まれない場合があるため再付与
+      if (recommendation) cached.recommendation = recommendation
+      return cached
     }
 
     console.log('[calculateQuote] CACHE MISS - performing calculation');
 
     // 무조건 SKU 모드로 계산（일반 모드는 삭제됨）
     const skuResult = await this.performSKUCalculation(params)
+
+    // auto 解決情報を付与
+    if (recommendation) skuResult.recommendation = recommendation
 
     // キャッシュ保存（コピー保存）
     this.cache.set(cacheKey, { ...skuResult })
@@ -899,6 +937,10 @@ export class UnifiedPricingEngine {
       spoutSize,
       spoutPosition
     } = params
+
+    // Phase 2: 'auto' は calculateQuote で解決済みだが、本関数へ直接流入した場合の安全弁。
+    // フィルム原価計算経路ではデジタル計算を適用。
+    const resolvedPrintingType: 'digital' | 'gravure' = printingType === 'gravure' ? 'gravure' : 'digital'
 
     // postProcessingMultiplierの決定: 渡された値を優先、なければオプションから計算
     const postProcessingMultiplier = paramsPostProcessingMultiplier ?? (
@@ -1077,7 +1119,7 @@ export class UnifiedPricingEngine {
     // ロールフィルムの場合は、メートル数とフィルム幅を使用
     // パウチの場合は、使用メートル数を使用（ドキュメント仕様準拠）
     const printingCost = await this.calculatePrintingCost(
-      printingType,
+      resolvedPrintingType,
       printingColors,
       quantity,
       doubleSided,
@@ -1996,6 +2038,180 @@ export class UnifiedPricingEngine {
     }
 
     return result
+  }
+
+  // ========================================
+  // Phase 2: 印刷方式自動選択（分岐点レコメンド・AC-8/9/10）
+  // SSoT: docs/gravure-pricing-calculation-formula.md §14
+  // ========================================
+
+  /**
+   * 印刷方式レコメンド結果（AC-8）
+   */
+  async recommendPrintingMethod(
+    params: UnifiedQuoteParams
+  ): Promise<{
+    method: 'digital' | 'gravure'
+    breakevenQuantity: number
+    digitalTotalPrice: number
+    gravureTotalPrice: number
+    reason: string
+  }> {
+    // グラビア計算の必須パラメータが揃っているか確認（揃わない場合はデジタル推奨）
+    const gravureReady = !!(
+      params.filmLayers &&
+      params.filmLayers.length > 0 &&
+      params.gravureMaterialWidth &&
+      params.gravureMaterialWidth > 0 &&
+      params.laminationType
+    )
+
+    // デジタル価格を取得（performSKUCalculation の digital 経路）
+    const digitalResult = await this.calculateMethodPrice({ ...params, printingType: 'digital' })
+    const digitalTotalPrice = digitalResult.totalPrice
+
+    // グラビア価格（必須パラメータ不足時は計算不可 → デジタル推奨）
+    let gravureTotalPrice = Number.POSITIVE_INFINITY
+    if (gravureReady) {
+      try {
+        const gravureResult = await this.calculateMethodPrice({ ...params, printingType: 'gravure' })
+        gravureTotalPrice = gravureResult.totalPrice
+      } catch {
+        gravureTotalPrice = Number.POSITIVE_INFINITY
+      }
+    }
+
+    // 分岐点探索（§14: digital総価 = gravure総価 となる数量 Q）
+    const breakevenQuantity = gravureReady
+      ? await this.findBreakevenQuantity(params)
+      : Number.POSITIVE_INFINITY
+
+    // 推奨決定（安い方）
+    const method: 'digital' | 'gravure' = digitalTotalPrice <= gravureTotalPrice ? 'digital' : 'gravure'
+
+    const reason = this.buildRecommendationReason({
+      method,
+      digitalTotalPrice,
+      gravureTotalPrice,
+      breakevenQuantity,
+      requestQuantity: params.skuQuantities?.reduce((a, b) => a + b, 0) ?? params.quantity ?? 0,
+      gravureReady,
+    })
+
+    return {
+      method,
+      breakevenQuantity: Number.isFinite(breakevenQuantity) ? Math.round(breakevenQuantity) : -1,
+      digitalTotalPrice: Math.round(digitalTotalPrice),
+      gravureTotalPrice: Number.isFinite(gravureTotalPrice) ? Math.round(gravureTotalPrice) : -1,
+      reason,
+    }
+  }
+
+  /**
+   * 指定印刷方式で実際に価格計算を実行し totalPrice を返す。
+   * printingType='digital' → performSKUCalculation の digital 経路
+   * printingType='gravure' → performGravureSKUCalculation
+   *
+   * ※ キャッシュを経由しない（推奨計算用・一時計算）。
+   */
+  private async calculateMethodPrice(params: UnifiedQuoteParams): Promise<UnifiedQuoteResult> {
+    // printingType に応じて performSKUCalculation 内で分岐（gravure → performGravureSKUCalculation）
+    return await this.performSKUCalculation(params)
+  }
+
+  /**
+   * 分岐点数量を二分探索で求める（§14）。
+   * 仕様を固定し、数量のみを変動させて digital vs gravure の totalPrice が逆転する点を探索。
+   *
+   * @returns 分岐点数量（個）。グラビアが常に高ければ Infinity。
+   */
+  private async findBreakevenQuantity(params: UnifiedQuoteParams): Promise<number> {
+    const LOW = 500
+    const HIGH = 500000 // 十分に広い上限（大パウチの逆転点もカバー）
+    const MAX_ITER = 24
+
+    // 探索用に単一数量（非SKU）に正規化
+    const buildParams = (quantity: number): UnifiedQuoteParams => ({
+      ...params,
+      quantity,
+      skuQuantities: [quantity],
+      useSKUCalculation: true,
+    })
+
+    const priceAt = async (quantity: number): Promise<{ d: number; g: number }> => {
+      const p = buildParams(quantity)
+      const d = (await this.calculateMethodPrice({ ...p, printingType: 'digital' })).totalPrice
+      let g = Number.POSITIVE_INFINITY
+      try {
+        g = (await this.calculateMethodPrice({ ...p, printingType: 'gravure' })).totalPrice
+      } catch {
+        g = Number.POSITIVE_INFINITY
+      }
+      return { d, g }
+    }
+
+    // LOW で既にグラビア有利なら分岐点は LOW 未満（最小ロット未満）
+    const lowDiff = await priceAt(LOW)
+    if (lowDiff.g <= lowDiff.d) {
+      return LOW
+    }
+    // HIGH でもデジタル有利なら（実務的には稀）分岐点は HIGH 超過
+    const highDiff = await priceAt(HIGH)
+    if (highDiff.g >= highDiff.d) {
+      return Number.POSITIVE_INFINITY
+    }
+
+    // 単調減少（数量↑でグラビア相対有利）を仮定した二分探索
+    let lo = LOW
+    let hi = HIGH
+    for (let i = 0; i < MAX_ITER && hi - lo > 1; i++) {
+      const mid = Math.floor((lo + hi) / 2)
+      const midDiff = await priceAt(mid)
+      // digital <= gravure → まだデジタル有利 → 分岐点はより大
+      if (midDiff.d <= midDiff.g) {
+        lo = mid
+      } else {
+        hi = mid
+      }
+    }
+    return hi
+  }
+
+  /**
+   * レコメンド理由文を構築（AC-9: 推奨表示＋理由/分岐点）。
+   */
+  private buildRecommendationReason(args: {
+    method: 'digital' | 'gravure'
+    digitalTotalPrice: number
+    gravureTotalPrice: number
+    breakevenQuantity: number
+    requestQuantity: number
+    gravureReady: boolean
+  }): string {
+    const {
+      method,
+      digitalTotalPrice,
+      gravureTotalPrice,
+      breakevenQuantity,
+      requestQuantity,
+      gravureReady,
+    } = args
+
+    if (!gravureReady) {
+      return 'グラビア計算に必要な原反幅・ラミ種別・フィルム構造が未指定のため、デジタル印刷を推奨します。'
+    }
+
+    const fmt = (n: number) => (Number.isFinite(n) ? `¥${Math.round(n).toLocaleString()}` : '計算不可')
+    const bqText = Number.isFinite(breakevenQuantity)
+      ? `約${Math.round(breakevenQuantity).toLocaleString()}個`
+      : '（現在の仕様では逆転なし）'
+
+    if (method === 'digital') {
+      const savings = gravureTotalPrice - digitalTotalPrice
+      return `デジタル印刷が${fmt(savings)}安価です（デジタル${fmt(digitalTotalPrice)} / グラビア${fmt(gravureTotalPrice)}）。グラビアが有利になる分岐点は${bqText}です。現在の数量（${requestQuantity.toLocaleString()}個）は分岐点未満のためデジタル推奨。`
+    }
+    const savings = digitalTotalPrice - gravureTotalPrice
+    return `グラビア印刷が${fmt(savings)}安価です（グラビア${fmt(gravureTotalPrice)} / デジタル${fmt(digitalTotalPrice)}）。分岐点${bqText}を超過する大ロットのためグラビア推奨。`
   }
 
   /**

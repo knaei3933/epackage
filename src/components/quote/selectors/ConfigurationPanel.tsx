@@ -81,6 +81,15 @@ const MATERIAL_OPTIONS = [
 
 const PRINTING_TYPES = [
   {
+    value: 'auto',
+    label: '自動選択（推奨）',
+    labelJa: '自動選択（推奨）',
+    description: '数量に応じてデジタル/グラビアの有利な方を自動判定',
+    setupFee: 0,
+    perColorCost: 0,
+    minQuantity: 100
+  },
+  {
     value: 'digital',
     label: 'デジタル印刷',
     labelJa: 'デジタル印刷',
