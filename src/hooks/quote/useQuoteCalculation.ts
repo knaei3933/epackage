@@ -37,7 +37,11 @@ export interface QuoteCalculationOptions {
  * Hook for calculating quote prices with debouncing and multi-quantity support
  */
 export function useQuoteCalculation(options: QuoteCalculationOptions = {}) {
-  const { quantities: defaultQuantities = [1000, 3000, 5000, 10000], debounceMs = 300 } = options;
+  // Phase 6 無害化: フォールバック固定値を空配列化（ユーザー入力駆動の唯一ソース化）。
+  // 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 6.1 / handoff C5
+  // L134 で state.quantities.length > 0 チェック後にフォールバック使用。空配列でも安全。
+  // 完全削除不可（L134-136 が活参照）。二重系統化しない。
+  const { quantities: defaultQuantities = [], debounceMs = 300 } = options;
   const state = useQuoteState();
   const { calculateMultiQuantity, canCalculateMultiQuantity, state: multiQuantityState } = useMultiQuantityQuote();
 

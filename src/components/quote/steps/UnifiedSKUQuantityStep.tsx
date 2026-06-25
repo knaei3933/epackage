@@ -29,6 +29,25 @@ export interface UnifiedSKUQuantityStepRef {
 }
 
 /**
+ * UnifiedSKUQuantityStep の Props
+ *
+ * C1契約（callback prop 方式）:
+ * - patternQuantities: 複数パターン数量 [skuIndex][patternIndex]。
+ *   SKU数 <=5 時のみ親（ImprovedQuotingWizard）から渡される。
+ *   未渡し（undefined）時は複数パターンUIを表示しない（後方互換）。
+ * - onPatternQuantitiesChange: パターン数量変更のコールバック。
+ */
+export interface UnifiedSKUQuantityStepProps {
+  patternQuantities?: number[][];
+  onPatternQuantitiesChange?: (qties: number[][]) => void;
+}
+
+/**
+ * 複数パターン数量の最大パターン数（spec: 最小1・最大5）
+ */
+const MAX_PATTERN_COLUMNS = 5;
+
+/**
  * Unified SKU & Quantity Step Component
  *
  * Features:
@@ -44,7 +63,8 @@ export interface UnifiedSKUQuantityStepRef {
  * - 1 SKU: 500m minimum + 400m loss = 900m total
  * - 2+ SKUs: 300m each + 400m loss shared
  */
-const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref) => {
+const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQuantityStepProps>((props, ref) => {
+  const { patternQuantities, onPatternQuantitiesChange } = props;
   const quoteState = useQuoteState();
   const {
     setSKUCount,
@@ -557,8 +577,80 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   // Determine which view to show
   const useCompactView = quoteState.skuCount > 10;
 
+  // 複数パターン入力ビュー判定（spec AC-1 / C1契約）
+  // SKU数 <=5 かつ親から patternQuantities が渡された場合のみ有効。
+  // それ以外（>5、またはprops未渡し）は従来単一UIを維持（後方互換）。
+  const useMultiPatternView =
+    quoteState.skuCount >= 1 &&
+    quoteState.skuCount <= 5 &&
+    patternQuantities !== undefined &&
+    onPatternQuantitiesChange !== undefined;
+
   // Check if roll film (uses meter-based calculation)
   const isRollFilm = quoteState.bagTypeId === 'roll_film';
+
+  // 複数パターンUI用の正規化された数量（[skuIndex][patternIndex]）
+  // - SKU数と一致する行数を保証
+  // - 全行同じ列数を保証（jagged array 防止）
+  // - 親state（patternQuantities）が空/不正時は1パターン×0で初期化
+  const normalizedPatternQuantities = useMemo<number[][]>(() => {
+    if (!useMultiPatternView) return [];
+    const skuCount = quoteState.skuCount;
+    const source = patternQuantities ?? [];
+    // 全行の列数の最大値を求め、それに合わせる（jagged array 補正）
+    const colCount = source.length > 0
+      ? Math.min(MAX_PATTERN_COLUMNS, Math.max(1, ...source.map(row => Array.isArray(row) ? row.length : 0)))
+      : 1;
+    const result: number[][] = [];
+    for (let s = 0; s < skuCount; s++) {
+      const row = Array.isArray(source[s]) ? source[s] : [];
+      const padded: number[] = [];
+      for (let p = 0; p < colCount; p++) {
+        const v = row[p];
+        padded.push(typeof v === 'number' && !isNaN(v) ? v : 0);
+      }
+      result.push(padded);
+    }
+    return result;
+  }, [useMultiPatternView, quoteState.skuCount, patternQuantities]);
+
+  // 複数パターンUIのパターン列数（全SKU共通）
+  const patternColumnCount = normalizedPatternQuantities[0]?.length ?? 0;
+
+  // 各セルに適用する最小数量（spec AC-4 / R2判定: L385側を採用）
+  // roll_film=500m / pouch系=100個。L630側（pouch=500）は2列生産コンテキストのため不採用。
+  const minQtyPerCell = isRollFilm ? 500 : 100;
+
+  // 複数パターンのセル値変更ハンドラー（[skuIndex][patternIndex]）
+  const handlePatternCellChange = (skuIndex: number, patternIndex: number, value: string) => {
+    if (!onPatternQuantitiesChange) return;
+    const parsed = value === '' ? 0 : parseInt(value, 10);
+    const safe = isNaN(parsed) ? 0 : parsed;
+    const next = normalizedPatternQuantities.map((row, s) => {
+      if (s !== skuIndex) return row.slice();
+      const newRow = row.slice();
+      newRow[patternIndex] = safe;
+      return newRow;
+    });
+    onPatternQuantitiesChange(next);
+  };
+
+  // パターン列追加（全SKU一斉・min1 max5・jagged array防止）
+  const handleAddPatternColumn = () => {
+    if (!onPatternQuantitiesChange) return;
+    if (patternColumnCount >= MAX_PATTERN_COLUMNS) return;
+    const next = normalizedPatternQuantities.map(row => [...row, 0]);
+    onPatternQuantitiesChange(next);
+  };
+
+  // パターン列削除（全SKU一斉・min1・最後尾列を削除）
+  const handleRemovePatternColumn = () => {
+    if (!onPatternQuantitiesChange) return;
+    if (patternColumnCount <= 1) return;
+    const next = normalizedPatternQuantities.map(row => row.slice(0, -1));
+    onPatternQuantitiesChange(next);
+  };
+
 
   // Quantity patterns for quick selection
   const quantityPatterns: number[] = isRollFilm
@@ -1325,7 +1417,114 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
             </div>
           )}
 
-          {!useCompactView ? (
+          {/* 複数パターン入力UI（spec AC-1〜AC-4 / C1契約）
+              SKU数 <=5 かつ親から patternQuantities が渡された場合のみ表示。
+              それ以外は従来単一UI（!useCompactView / useCompactView 分岐）へフォールバック。 */}
+          {useMultiPatternView ? (
+            <div className="space-y-4">
+              {/* パターン列 操作パネル（AC-3: +/- ボタン・min1 max5） */}
+              <div className="flex items-center justify-between bg-info-50 p-4 rounded-lg border border-info-200">
+                <div>
+                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                    <Layers className="w-4 h-4" />
+                    数量パターン比較入力
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-1">
+                    各パターン（列）の数量をSKUごとに入力。各パターンで見積もりを比較します（最小1・最大{MAX_PATTERN_COLUMNS}パターン）。
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRemovePatternColumn}
+                    disabled={patternColumnCount <= 1}
+                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                    title="パターン列を削除"
+                  >
+                    <Minus className="w-4 h-4" />
+                    パターン削除
+                  </button>
+                  <span className="text-sm font-medium text-gray-700 px-2">
+                    {patternColumnCount} / {MAX_PATTERN_COLUMNS} パターン
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddPatternColumn}
+                    disabled={patternColumnCount >= MAX_PATTERN_COLUMNS}
+                    className="px-3 py-1.5 text-sm rounded-lg bg-info-600 text-white hover:bg-info-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                    title="パターン列を追加"
+                  >
+                    <Plus className="w-4 h-4" />
+                    パターン追加
+                  </button>
+                </div>
+              </div>
+
+              {/* SKU行 × パターン列 の表形式（AC-2） */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 border border-gray-200 sticky left-0 bg-gray-50">
+                        SKU
+                      </th>
+                      {Array.from({ length: patternColumnCount }).map((_, p) => (
+                        <th key={p} className="px-3 py-2 text-center text-xs font-semibold text-gray-700 border border-gray-200 min-w-[120px]">
+                          パターン {p + 1}
+                          <div className="text-[10px] font-normal text-gray-500 mt-0.5">
+                            合計: {normalizedPatternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0).toLocaleString()}{isRollFilm ? 'm' : '個'}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {normalizedPatternQuantities.map((row, skuIndex) => (
+                      <tr key={skuIndex} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 text-sm font-medium text-gray-900 border border-gray-200 bg-white sticky left-0">
+                          SKU {skuIndex + 1}
+                        </td>
+                        {row.map((cellValue, patternIndex) => {
+                          // AC-4: 最小数量ルール（L385側: roll_film=500m / pouch=100個）
+                          const belowMin = cellValue !== 0 && cellValue < minQtyPerCell;
+                          return (
+                            <td key={patternIndex} className="px-2 py-2 border border-gray-200">
+                              <input
+                                type="number"
+                                min={minQtyPerCell}
+                                max={1000000}
+                                step={isRollFilm ? '0.1' : '1'}
+                                value={cellValue === 0 ? '' : cellValue}
+                                onChange={(e) => handlePatternCellChange(skuIndex, patternIndex, e.target.value)}
+                                className={`w-full px-2 py-1.5 text-sm border rounded text-center focus:ring-2 focus:ring-info-500 ${
+                                  belowMin
+                                    ? 'border-red-400 bg-red-50 text-red-700'
+                                    : 'border-gray-300 bg-white'
+                                }`}
+                                placeholder={`最小${minQtyPerCell}${isRollFilm ? 'm' : '個'}`}
+                              />
+                              {belowMin && (
+                                <p className="text-[10px] text-red-600 mt-1 text-center">
+                                  最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}未満
+                                </p>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 最小数量ルールの説明（AC-4） */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs text-amber-800">
+                  ※ 各セルの最小数量: {isRollFilm ? 'ロールフィルム 500m / SKU' : ' pouch系 100個 / SKU'}。未満の入力はバリデーションエラーになります。
+                </p>
+              </div>
+            </div>
+          ) : !useCompactView ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array.from({ length: quoteState.skuCount }).map((_, index) => (
                 <motion.div

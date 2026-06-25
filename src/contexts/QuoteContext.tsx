@@ -180,7 +180,10 @@ const initialState: QuoteState = {
   height: 300,
   depth: 0,
   sideWidth: undefined, // Side width (よこめん) - for box_pouch (ガゼットパウチ)
-  quantities: [500, 1000, 2000, 5000, 10000], // Default quantity patterns
+  // Phase 6 無害化: 固定値配列を廃止し空配列化（ユーザー入力駆動の唯一ソース化）。
+  // 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 6.1 / handoff C5
+  // 既存 reducer action（SET_QUANTITIES / SET_QUANTITY_OPTIONS）でユーザー入力を上書き使用可能。
+  quantities: [],
   quantity: 500,
   isUVPrinting: false,
   // デフォルトの後加工オプション（平袋用）を自動適用
@@ -220,7 +223,8 @@ const initialState: QuoteState = {
   mainIngredient: '', // 선택 필수
   distributionEnvironment: '', // 선택 필수
   // MultiQuantity fields (統合: Phase 2-5)
-  comparisonQuantities: [1000, 2000, 5000, 10000],
+  // Phase 6 無害化: 固定値を空配列化（ユーザー入力駆動）。SET_COMPARISON_QUANTITIES で上書き可能。
+  comparisonQuantities: [],
   selectedQuantity: null,
   multiQuantityResults: new Map(),
   comparison: undefined,

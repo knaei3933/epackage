@@ -2223,7 +2223,16 @@ function getPostProcessingLabel(optionId: string): string {
 export function ImprovedQuotingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<UnifiedQuoteResult | null>(null);
-  const [multiQuantityResult, setMultiQuantityResult] = useState<any>(null);
+  // C2: multiQuantityResult の型を明示化（any → 具体型）
+  // Map キー = パターン index (0-4)、値 = そのパターンの計算結果 + 推奨方式 + 合計数量
+  // ※UnifiedQuoteResult は quantity フィールドを持たないため、patternTotalQuantity を
+  //   calculations 値の追加フィールドとして保持（逆算による数量表示の正確性担保）
+  const [multiQuantityResult, setMultiQuantityResult] = useState<{
+    calculations: Map<number, UnifiedQuoteResult & { recommendation: { method: 'digital' | 'gravure' } } & { patternTotalQuantity: number }>;
+  } | null>(null);
+  // C1: 複数数量パターンの局所 state（[skuIndex][patternIndex]）
+  // SKU数 <=5 時のみ使用。>5 時は空配列。QuoteContext は拡張しない（既存 skuQuantities pipeline は完全非接触）
+  const [patternQuantities, setPatternQuantities] = useState<number[][]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const state = useQuoteState();
   const { dispatch, resetQuote } = useQuote();
@@ -2421,60 +2430,96 @@ export function ImprovedQuotingWizard() {
           console.log('[handleNext] Setting result with skuQuantities:', enhancedResult.skuQuantities);
           setResult(enhancedResult);
 
-          // Phase 1.2: 5パターン比較データを直接計算（MultiQuantityQuoteContextに依存しない）
+          // Phase 1.2: 複数パターン比較データを直接計算（MultiQuantityQuoteContextに依存しない）
+          // C3: SKU数 <=5 時は state の patternQuantities([skuIndex][patternIndex]) を転置して
+          //     各パターン（列）の全SKU数量配列を取得し、各パターン合計数量で digital/gravure 両計算。
+          //     SKU数 >5 時は従来単一計算を維持、setMultiQuantityResult(null)。
           try {
-            const patternQuantities = [5000, 10000, 30000, 50000, 100000];
-            const calculations = new Map();
-            const baseQuoteParams = {
-              bagTypeId: state.bagTypeId,
-              materialId: state.materialId,
-              width: state.width,
-              height: state.height,
-              depth: state.depth,
-              thicknessSelection: state.thicknessSelection,
-              isUVPrinting: state.isUVPrinting,
-              postProcessingOptions: state.postProcessingOptions,
-              printingColors: state.printingColors,
-              doubleSided: state.doubleSided,
-              deliveryLocation: state.deliveryLocation,
-              urgency: state.urgency,
-              markupRate: 0,
-              rollCount: state.rollCount,
-              materialWidth: state.materialWidth,
-              filmLayers: state.filmLayers,
-              useFilmCostCalculation: true,
-              useSKUCalculation: true,
-            };
-            for (const qty of patternQuantities) {
-              // デジタル計算
-              const digitalResult = await unifiedPricingEngine.calculateQuote({
-                ...baseQuoteParams, quantity: qty, skuQuantities: [qty], printingType: 'digital',
-              });
-              // グラビア計算
-              let gravureResult = null;
-              try {
-                gravureResult = await unifiedPricingEngine.calculateQuote({
-                  ...baseQuoteParams, quantity: qty, skuQuantities: [qty], printingType: 'gravure',
-                  gravureMaterialWidth: 740, laminationType: 'solvent_semi' as any, copperPlateType: 'new' as any,
+            const skuCountForPattern = state.skuCount ?? 0;
+            const usePatternMode = skuCountForPattern > 0 && skuCountForPattern <= 5
+              && Array.isArray(patternQuantities)
+              && patternQuantities.length === skuCountForPattern
+              && patternQuantities.some(row => Array.isArray(row) && row.length > 0);
+
+            if (usePatternMode) {
+              // patternQuantities([skuIndex][patternIndex]) を転置 → patternQtyByPattern[patternIndex][skuIndex]
+              const maxPatternCount = patternQuantities.reduce((max, row) => Math.max(max, Array.isArray(row) ? row.length : 0), 0);
+              const transposed: number[][] = [];
+              for (let p = 0; p < maxPatternCount; p++) {
+                const patternQtyForAllSkus: number[] = [];
+                for (let s = 0; s < skuCountForPattern; s++) {
+                  const row = patternQuantities[s];
+                  patternQtyForAllSkus.push(Array.isArray(row) && p < row.length ? (row[p] || 0) : 0);
+                }
+                transposed.push(patternQtyForAllSkus);
+              }
+
+              const calculations = new Map<number, UnifiedQuoteResult & { recommendation: { method: 'digital' | 'gravure' } } & { patternTotalQuantity: number }>();
+              const baseQuoteParams = {
+                bagTypeId: state.bagTypeId,
+                materialId: state.materialId,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                thicknessSelection: state.thicknessSelection,
+                isUVPrinting: state.isUVPrinting,
+                postProcessingOptions: state.postProcessingOptions,
+                printingColors: state.printingColors,
+                doubleSided: state.doubleSided,
+                deliveryLocation: state.deliveryLocation,
+                urgency: state.urgency,
+                markupRate: 0,
+                rollCount: state.rollCount,
+                materialWidth: state.materialWidth,
+                filmLayers: state.filmLayers,
+                useFilmCostCalculation: true,
+                useSKUCalculation: true,
+              };
+
+              // 各パターン（列）ごとに digital/gravure 両方式を計算し推奨（安い方）を格納
+              for (let patternIdx = 0; patternIdx < transposed.length; patternIdx++) {
+                const skuQtyArray = transposed[patternIdx];
+                const patternTotal = skuQtyArray.reduce((sum, qty) => sum + (qty || 0), 0);
+                // パターン合計0（未入力等）はスキップ
+                if (!patternTotal || patternTotal <= 0) continue;
+
+                // デジタル計算
+                const digitalResult = await unifiedPricingEngine.calculateQuote({
+                  ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'digital',
                 });
-              } catch { gravureResult = null; }
-              // 推奨判定
-              const dTotal = digitalResult.totalPrice;
-              const gTotal = gravureResult?.totalPrice ?? Infinity;
-              const recommended = gTotal < dTotal ? 'gravure' : 'digital';
-              const recommendedResult = recommended === 'gravure' ? gravureResult : digitalResult;
-              calculations.set(qty, {
-                ...recommendedResult,
-                recommendation: {
-                  method: recommended,
-                  digitalTotalPrice: dTotal,
-                  gravureTotalPrice: gTotal === Infinity ? null : gTotal,
-                  reason: recommended === 'gravure' ? `グラビア推奨（デジタル比 ${Math.round((1 - gTotal / dTotal) * 100)}% 安）` : 'デジタル推奨（分岐点未満）',
-                },
-              });
+                // グラビア計算
+                let gravureResult: UnifiedQuoteResult | null = null;
+                try {
+                  gravureResult = await unifiedPricingEngine.calculateQuote({
+                    ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'gravure',
+                    gravureMaterialWidth: 740, laminationType: 'solvent_semi' as any, copperPlateType: 'new' as any,
+                  });
+                } catch { gravureResult = null; }
+                // 推奨判定
+                const dTotal = digitalResult.totalPrice;
+                const gTotal = gravureResult?.totalPrice ?? Infinity;
+                const recommended: 'digital' | 'gravure' = gTotal < dTotal ? 'gravure' : 'digital';
+                const recommendedResult = recommended === 'gravure' ? gravureResult! : digitalResult;
+                calculations.set(patternIdx, {
+                  ...recommendedResult,
+                  recommendation: {
+                    method: recommended,
+                    resolvedMethod: recommended,
+                    breakevenQuantity: -1,
+                    digitalTotalPrice: dTotal,
+                    gravureTotalPrice: gTotal === Infinity ? -1 : gTotal,
+                    reason: recommended === 'gravure' ? `グラビア推奨（デジタル比 ${Math.round((1 - gTotal / dTotal) * 100)}% 安）` : 'デジタル推奨（分岐点未満）',
+                  },
+                  // そのパターンの全SKU数量合計（UnifiedQuoteResult は quantity を持たないため保持）
+                  patternTotalQuantity: patternTotal,
+                });
+              }
+              setMultiQuantityResult({ calculations });
+              console.log('[handleNext] Multi-quantity result set (pattern mode):', calculations.size, 'patterns');
+            } else {
+              // SKU数 >5 / patternQuantities 未入力: 従来単一計算を維持、比較表非表示
+              setMultiQuantityResult(null);
             }
-            setMultiQuantityResult({ calculations });
-            console.log('[handleNext] Multi-quantity result set:', calculations.size, 'patterns');
           } catch (e) {
             console.warn('[handleNext] Multi-quantity calculation failed:', e);
             setMultiQuantityResult(null);
@@ -2735,7 +2780,7 @@ export function ImprovedQuotingWizard() {
               {/* Step Content */}
               {currentStepId === 'specs' && <SpecsStep />}
               {currentStepId === 'post-processing' && <PostProcessingStep />}
-              {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep />}
+              {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep patternQuantities={patternQuantities} onPatternQuantitiesChange={setPatternQuantities} />}
               {currentStepId === 'result' && result && <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} />}
 
               {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}

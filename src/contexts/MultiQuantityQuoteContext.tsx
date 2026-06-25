@@ -51,12 +51,13 @@ const initialState: MultiQuantityQuoteState = {
   thicknessSelection: 'medium',
 
   // Enhanced quantity fields
-  // Phase 3.1: デフォルト5数量パターン（グラビア分岐点を考慮した代表パターン）
-  // 仕様: .omc/plans/gravure-integration-consensus.md Step 3.1
-  // グラビア分岐点以上の数量を含め、デジタル〜グラビア推奨の切り替わりを可視化
-  quantities: [5000, 10000, 30000, 50000, 100000],
-  comparisonQuantities: [5000, 10000, 30000, 50000, 100000],
-  selectedQuantity: 5000, // Currently selected for detailed view (Phase 3.1: デフォルト最小数量に同期)
+  // Phase 6 無害化: 固定値配列を廃止し空配列化（ユーザー入力駆動の唯一ソース化）。
+  // 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 6.1 / handoff C5
+  // 既存 reducer action（SET_QUANTITIES / SET_COMPARISON_QUANTITIES）でユーザー入力を上書き使用可能。
+  // 完全削除不可（calculateMultiQuantity が comparisonQuantities を活参照）。二重系統化しない。
+  quantities: [],
+  comparisonQuantities: [],
+  selectedQuantity: null, // Currently selected for detailed view（ユーザー入力後に設定）
   multiQuantityResults: new Map(),
   comparison: null,
   isLoading: false,

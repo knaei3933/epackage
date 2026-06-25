@@ -12,7 +12,7 @@ import { useQuote, useQuoteState, validateProductTypeSpecificFields } from '@/co
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
-import { generateQuotePDF, QuoteData } from '@/lib/pdf-generator';
+import { generateQuotePDF, generateMultiQuantityPDF, QuoteData, MultiQuantityQuoteInput } from '@/lib/pdf-generator';
 import { safeMap } from '@/lib/array-helpers';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
 import { ParallelProductionOptions } from '../shared';
@@ -27,9 +27,29 @@ import CostBreakdownPanel from '../shared/CostBreakdownPanel';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
 import type { ParallelProductionOption } from '../shared';
 
+// C2: 複数パターン比較結果の新型（C2契約最終型・T1実装済み）
+// Mapキー = パターン index (0-4)、値 = そのパターンの計算結果 + 推奨方式 + 合計数量
+// ※patternTotalQuantity は fix #16 で追加（UnifiedQuoteResult が quantity を持たないため保持）
+// ImprovedQuotingWizard の state 型と同一（L2230-2232）
+type PatternMultiQuantityResult = {
+  calculations: Map<number, UnifiedQuoteResult & {
+    recommendation: {
+      method: 'digital' | 'gravure';
+      resolvedMethod: string;
+      breakevenQuantity: number;
+      digitalTotalPrice: number;
+      gravureTotalPrice: number;
+      reason: string;
+    };
+  } & {
+    patternTotalQuantity: number;
+  }>;
+} | null;
+
 interface ResultStepProps {
   result: UnifiedQuoteResult;
-  multiQuantityResult: MultiQuantityResult | null;
+  // C2: MultiQuantityResult（旧型）→ PatternMultiQuantityResult（C2新型）に変更
+  multiQuantityResult: PatternMultiQuantityResult;
   onReset: () => void;
 }
 
@@ -155,9 +175,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // Get multi-quantity state at component level (before any handlers)
   const { state: multiQuantityState } = useMultiQuantityQuote();
 
+  // C4/AC-8: SKU数バンド判定。<=5 のみ複数パターン比較表・全パターンPDFを有効化。
+  // >5（6-100）は従来単一UI（multiQuantityResult は null で渡される）。
+  const skuCountForBand = state.skuCount ?? 0;
+  const isPatternMode = skuCountForBand > 0 && skuCountForBand <= 5;
+
   // Get multi-quantity calculations from prop first, then fallback to context
+  // C2新型（Map<number, UnifiedQuoteResult & {recommendation}>）と旧Context（Map<number, UnifiedQuoteResult>）の和型
   const multiQuantityCalculations = multiQuantityResult?.calculations || multiQuantityState.multiQuantityResults;
   const hasMultiQuantityResults = multiQuantityCalculations && multiQuantityCalculations.size > 0;
+  // C4: 比較表表示条件 = パターンモード（SKU<=5）かつ calculations 存在
+  const showPatternComparison = isPatternMode && hasMultiQuantityResults;
 
   // Robust SKU mode detection - prioritize result data, fallback to state calculation
   const hasValidSKUData = result?.hasValidSKUData ?? (
@@ -188,16 +216,28 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   console.log('[ResultStep] ===== END STATE DEBUG =====');
 
   // Build quotes array from multi-quantity results
+  // C4: ユーザー入力パターン駆動。Mapキー=パターンindex(0-4)。
+  // recommendation（推奨方式・両方式価格）・patternTotalQuantity（正確な合計数量）を付加。
   const multiQuantityQuotes = hasMultiQuantityResults
-    ? Array.from(multiQuantityCalculations.entries()).map(([quantity, quote]) => ({
-        quantity: quantity,
-        unitPrice: quote.unitPrice,
-        totalPrice: quote.totalPrice,
-        discountRate: 0,
-        priceBreak: '通常',
-        leadTimeDays: quote.leadTimeDays || result.leadTimeDays,
-        isValid: true
-      })).sort((a, b) => a.quantity - b.quantity)
+    ? Array.from(multiQuantityCalculations.entries()).map(([quantity, quote]) => {
+        const quoteWithExtra = quote as UnifiedQuoteResult & {
+          recommendation?: { method?: 'digital' | 'gravure' };
+          patternTotalQuantity?: number;
+        };
+        return {
+          quantity: quantity,
+          unitPrice: quote.unitPrice,
+          totalPrice: quote.totalPrice,
+          discountRate: 0,
+          priceBreak: '通常',
+          leadTimeDays: quote.leadTimeDays || result.leadTimeDays,
+          isValid: true,
+          // C2新型の推奨方式（旧Contextフォールバック時は undefined）
+          recommendedMethod: quoteWithExtra.recommendation?.method,
+          // fix #16: 正確なパターン合計数量（逆算不要）。旧Contextフォールバック時は undefined
+          patternTotalQuantity: quoteWithExtra.patternTotalQuantity,
+        };
+      }).sort((a, b) => a.quantity - b.quantity)
     : [];
 
   // 経済的数量提案・並列生産オプションを計算
@@ -722,10 +762,66 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     };
   };
 
+  // C5/AC-9: 全パターンPDF用の MultiQuantityQuoteInput 配列を生成
+  // multiQuantityQuotes は Mapキー（パターンindex）を quantity に持つ。
+  // fix #16: 実数量は quote.patternTotalQuantity（handleNext で保持）を使用。逆算廃止。
+  const buildMultiPatternPdfInputs = (): MultiQuantityQuoteInput[] => {
+    return multiQuantityQuotes.map((quote) => ({
+      quantity: quote.patternTotalQuantity ?? 0,
+      unitPrice: quote.unitPrice,
+      totalPrice: quote.totalPrice,
+      recommendation: {
+        method: quote.recommendedMethod === 'gravure' ? 'gravure' : 'digital',
+      },
+    }));
+  };
+
+  // C5/AC-9: 全パターンPDF生成＆ダウンロード（generateMultiQuantityPDF 呼出）
+  const generateAndDownloadMultiPatternPdf = async (): Promise<void> => {
+    console.log('[MultiPatternPDF] 全パターンPDF生成開始');
+    const inputs = buildMultiPatternPdfInputs();
+    const today = new Date();
+    const issueDate = today.toISOString().split('T')[0].replace(/-/g, '/');
+    const customerName = user?.kanjiLastName && user?.kanjiFirstName
+      ? `${user.kanjiLastName} ${user.kanjiFirstName}`
+      : user?.companyName || '';
+    const blob = await generateMultiQuantityPDF(inputs, {
+      filename: `見積書_数量パターン比較_${Date.now()}.pdf`,
+      header: {
+        quoteNumber: `QT-${Date.now()}`,
+        issueDate,
+        customerName,
+      },
+    });
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = objectUrl;
+      a.download = `見積書_数量パターン比較_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      if (a.parentNode) document.body.removeChild(a);
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+    }
+    console.log('[MultiPatternPDF] 全パターンPDF生成完了:', inputs.length, 'パターン');
+  };
+
   const autoGenerateAndSave = async () => {
     console.log('[autoGenerateAndSave] 自動PDF生成・DB保存開始');
 
     try {
+      // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
+      if (showPatternComparison && multiQuantityQuotes.length > 0) {
+        await generateAndDownloadMultiPatternPdf();
+        // DB保存（単一 quotation entity に代表データを保存・R3 follow-up）
+        const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
+        setPdfStatus('success');
+        return;
+      }
+
       // 1. PDF生成
       const quoteData = generateQuoteData();
       const pdfResult = await generateQuotePDF(quoteData, {
@@ -795,6 +891,25 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
     setIsGeneratingPdf(true);
     setPdfStatus('idle');
+
+    // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
+    if (showPatternComparison && multiQuantityQuotes.length > 0) {
+      try {
+        await generateAndDownloadMultiPatternPdf();
+        const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
+        setPdfStatus('success');
+        setTimeout(() => setPdfStatus('idle'), 3000);
+      } catch (error) {
+        console.error('[handleDownloadPdf] MultiPatternPDF ERROR:', error);
+        setPdfStatus('error');
+        setTimeout(() => setPdfStatus('idle'), 3000);
+        alert(`全パターンPDF生成中にエラーが発生しました。\n${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        setIsGeneratingPdf(false);
+      }
+      return;
+    }
 
     try {
       console.log('[handleDownloadPdf] Calling generateQuoteData...');
@@ -1505,31 +1620,38 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         </div>
       )}
 
-      {/* Phase 3.3: 数量×方式比較表（最安ハイライト・AC-12） */}
-      {/* 仕様: .omc/plans/gravure-integration-consensus.md Step 3.3
-          multiQuantityResult.calculations (Map<number, UnifiedQuoteResult>) から
-          各数量の価格を表形式で表示。最安数量をハイライト。 */}
-      {multiQuantityResult?.calculations && multiQuantityResult.calculations.size > 1 && (() => {
+      {/* C4: 数量パターン比較表（最安ハイライト・AC-7/AC-8） */}
+      {/* 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 4
+          multiQuantityResult.calculations (Map<number, UnifiedQuoteResult & {recommendation}>) から
+          ユーザー入力パターンごとの価格を表形式で表示。最安パターンをハイライト。
+          AC-8: SKU数 <=5 のみ表示（showPatternMode ガード）。>5 は非表示。 */}
+      {showPatternComparison && multiQuantityResult?.calculations && (() => {
+        // C4: Mapキー=パターンindex(0-4)。
+        // fix #16: 実数量は calc.patternTotalQuantity（handleNext で保持）を使用。逆算廃止。
         const rows = Array.from(multiQuantityResult.calculations.entries())
-          .map(([quantity, calc]) => ({
-            quantity,
-            totalPrice: calc.totalPrice,
-            unitPrice: calc.unitPrice,
-            method: calc.recommendation?.method,
-          }))
-          .sort((a, b) => a.quantity - b.quantity);
+          .map(([patternIdx, calc]) => {
+            const actualQuantity = calc.patternTotalQuantity ?? 0;
+            return {
+              patternIdx,
+              actualQuantity,
+              totalPrice: calc.totalPrice,
+              unitPrice: calc.unitPrice,
+              method: calc.recommendation?.method,
+            };
+          })
+          .sort((a, b) => a.actualQuantity - b.actualQuantity);
 
         // 最安の単価を特定（ハイライト用）
         const minUnitPrice = Math.min(...rows.map(r => r.unitPrice));
 
         return (
           <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">数量×方式比較表</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">数量パターン比較表</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-300 text-gray-600">
-                    <th className="text-left py-2 px-3">数量</th>
+                    <th className="text-left py-2 px-3">数量合計</th>
                     <th className="text-right py-2 px-3">単価</th>
                     <th className="text-right py-2 px-3">総額（税別）</th>
                     <th className="text-center py-2 px-3">推奨方式</th>
@@ -1540,11 +1662,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                     const isCheapest = row.unitPrice === minUnitPrice;
                     return (
                       <tr
-                        key={row.quantity}
+                        key={row.patternIdx}
                         className={`border-b border-gray-100 ${isCheapest ? 'bg-green-50' : ''}`}
                       >
                         <td className="py-2 px-3 font-medium text-gray-900">
-                          {row.quantity.toLocaleString()}枚
+                          {row.actualQuantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '枚'}
                           {isCheapest && (
                             <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               最安
@@ -1577,7 +1699,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               </table>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              ※ 単価最安の数量をハイライト。グラビアは分岐点以上の数量で単価が下がります。
+              ※ 単価最安のパターンをハイライト。グラビアは分岐点以上の数量で単価が下がります。
             </p>
           </div>
         );
@@ -1945,7 +2067,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           ) : (
             <>
               <Download className="w-4 h-4 mr-2" />
-              PDFダウンロード (自動保存)
+              {showPatternComparison && multiQuantityQuotes.length > 0
+                ? `全パターンPDFダウンロード (${multiQuantityQuotes.length}パターン・自動保存)`
+                : 'PDFダウンロード (自動保存)'}
             </>
           )}
         </button>

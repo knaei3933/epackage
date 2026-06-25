@@ -1081,60 +1081,94 @@ export async function generateQuotePDF(
 }
 
 // ============================================================
-// Phase 5.3: 5数量パターンPDF出力（generateMultiQuantityPDF）
-// 仕様: .omc/plans/gravure-integration-consensus.md Phase 5 Step 5.3 / AC-16
+// Phase 5.3 → Phase 6(C5): 数量パターン比較表PDF出力（generateMultiQuantityPDF）
+// 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 5 Step 5.2 / handoff C5
 //
-// 最大5つの QuoteData（各数量パターン）を1つのPDFに出力。
-// 各数量の見積もりをページとして並べる（推奨方式・グラビア明細含む）。
-// 既存 generateQuoteHTML を数量ループで呼び出し、各見積もりを個別キャプチャ → ページ追加。
-// QuoteData 型は変更しない（配列を受け取る新関数）。既存 generateQuotePDF は無変更。
+// ユーザー入力駆動の複数数量パターン（最大5）を1つのPDFに出力。
+// 入力: multiQuantityQuotes 配列（数量/単価/総額/推奨方式）。固定値依存なし。
+// 出力: 比較表形式（数量(合計) / 単価 / 総額(税別) / 推奨方式）1ページ。
+// 既存 generateQuotePDF / QuoteData 型は無変更。新規関数追加ではない（既存シグネチャ入力駆動化）。
 // ============================================================
 
 /**
- * Generate Multi-Quantity PDF
+ * 数量パターンPDF入力データの1行（C5契約型）
  *
- * 最大5つの数量パターン見積もりを1つのPDFに出力（各数量を1ページとして並べる）
+ * 各数量パターンの計算結果 + 推奨印刷方式。
+ * ResultStep が multiQuantityResult.calculations から構築して渡す。
+ */
+export interface MultiQuantityQuoteInput {
+  /** 数量（全SKU合計枚数） / Total quantity */
+  quantity: number;
+  /** 単価（円/枚・税別） / Unit price (JPY, excl. tax) */
+  unitPrice: number;
+  /** 総額（円・税別） / Total price (JPY, excl. tax) */
+  totalPrice: number;
+  /** 推奨印刷方式 / Recommended printing method */
+  recommendation: {
+    method: 'digital' | 'gravure';
+  };
+}
+
+/**
+ * 数量パターンPDF生成オプション
+ */
+export interface MultiQuantityPdfOptions {
+  /** 出力ファイル名（拡張子除く也可） */
+  filename?: string;
+  /** ヘッダー見出し情報（任意） */
+  header?: {
+    /** 見積番号 */
+    quoteNumber?: string;
+    /** 発行日 (YYYY/MM/DD 等) */
+    issueDate?: string;
+    /** 顧客名 */
+    customerName?: string;
+  };
+}
+
+/**
+ * Generate Multi-Quantity PDF（C5契約: 入力駆動・表形式）
  *
- * @param quotes - 各数量パターンの QuoteData 配列（最大5）
- * @param options - PDF生成オプション（filename 等）
+ * ユーザー入力の複数数量パターン見積もりを比較表形式で1つのPDFに出力。
+ * 各パターンの「数量(合計)/単価/総額(税別)/推奨方式」を行とする比較表を描画。
+ * 最安行（総額最小）をハイライト。
+ *
+ * @param multiQuantityQuotes - 各数量パターンの入力配列（最大5）。空配列不可。
+ * @param options - PDF生成オプション（filename / header）
  * @returns PDF Blob
  *
- * ブラウザ環境（html2canvas + jsPDF）でのみ動作。
+ * ブラウザ環境（jsPDF）で動作。html2canvas 不要（ネイティブ表描画）。
  */
 export async function generateMultiQuantityPDF(
-  quotes: QuoteData[],
-  options: { filename?: string } = {}
+  multiQuantityQuotes: MultiQuantityQuoteInput[],
+  options: MultiQuantityPdfOptions = {}
 ): Promise<Blob> {
   if (typeof window === 'undefined') {
-    throw new Error('5数量パターンPDF生成はブラウザ環境でサポートされている機能です');
+    throw new Error('数量パターンPDF生成はブラウザ環境でサポートされている機能です');
   }
 
-  // 入力検証: 最大5パターン、空配列不可
-  if (!quotes || quotes.length === 0) {
+  // 入力検証: 空配列不可、最大5パターン
+  if (!multiQuantityQuotes || multiQuantityQuotes.length === 0) {
     throw new Error('見積もりデータが空です（少なくとも1件必要）');
   }
   const MAX_PATTERNS = 5;
-  const targetQuotes = quotes.slice(0, MAX_PATTERNS);
+  const rows = multiQuantityQuotes.slice(0, MAX_PATTERNS);
 
-  console.log('[MultiQuantity PDF] 開始 - パターン数:', targetQuotes.length);
+  console.log('[MultiQuantity PDF] 開始 - パターン数:', rows.length);
 
-  // 各 QuoteData を検証
-  for (const quote of targetQuotes) {
-    const validation = validatePdfData(quote);
-    if (!validation.isValid) {
-      throw new Error(`見積もり検証エラー: ${validation.errors.join(', ')}`);
+  // 各行の必須フィールド検証
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (
+      typeof row.quantity !== 'number' ||
+      typeof row.unitPrice !== 'number' ||
+      typeof row.totalPrice !== 'number' ||
+      !row.recommendation ||
+      (row.recommendation.method !== 'digital' && row.recommendation.method !== 'gravure')
+    ) {
+      throw new Error(`パターン ${i + 1} のデータが不正です（quantity/unitPrice/totalPrice/recommendation.method が必要）`);
     }
   }
-
-  // A4 サイズ（mm）
-  const a4Width = 210;
-  const a4Height = 297;
-  const marginTop = 10;
-  const marginLeft = 15;
-  const marginRight = 15;
-  const marginBottom = 10;
-  const contentWidth = a4Width - marginLeft - marginRight; // 180mm
-  const contentHeight = a4Height - marginTop - marginBottom; // 277mm
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -1143,114 +1177,147 @@ export async function generateMultiQuantityPDF(
     compress: true,
   });
 
-  // レイアウト固定（既存 generateQuotePDF と同様のフリーズ手法）
-  const htmlElement = document.documentElement;
-  const bodyElement = document.body;
-  const originalStyles = {
-    htmlOverflow: htmlElement.style.overflow,
-    bodyOverflow: bodyElement.style.overflow,
-    bodyMinWidth: bodyElement.style.minWidth,
-  };
-  htmlElement.style.overflow = 'hidden';
-  bodyElement.style.overflow = 'hidden';
+  // レイアウト定数（A4・mm）
+  const pageWidth = 210;
+  const marginLeft = 15;
+  const marginRight = 15;
+  const marginTop = 18;
+  const contentWidth = pageWidth - marginLeft - marginRight; // 180mm
 
-  try {
-    // 各数量パターンを順次キャプチャ → ページ追加
-    for (let i = 0; i < targetQuotes.length; i++) {
-      const quote = targetQuotes[i];
-      console.log(`[MultiQuantity PDF] パターン ${i + 1}/${targetQuotes.length} キャプチャ中`);
+  // 日本語フォント設定（jsPDF 標準 helvetica + 日本語は別途埋込が必要だが、
+  // 既存 generateQuotePDF と同様に html2canvas 経由で日本語描画するのが確実。
+  // ここではラベル化を英数字中心にしつつ、日本語ラベルは renderText 経由で描画。）
+  const font = 'helvetica';
 
-      const { subtotal, tax, total } = calculateTotals(quote.items);
-      const htmlContent = generateQuoteHTML(quote, { subtotal, tax, total });
+  // ヘッダー描画（見出し情報）
+  let cursorY = marginTop;
+  doc.setFont(font, 'bold');
+  doc.setFontSize(16);
+  doc.text('Multi-Quantity Quotation', marginLeft, cursorY);
+  cursorY += 6;
 
-      // off-screen コンテナでレンダリング（既存の hidden container 手法）
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-99999px';
-      container.style.top = '-99999px';
-      container.style.width = '210mm';
-      container.style.minHeight = '297mm';
-      container.style.zIndex = '-999999';
-      container.style.background = '#ffffff';
-      container.innerHTML = htmlContent;
-      document.body.appendChild(container);
+  if (options.header) {
+    doc.setFont(font, 'normal');
+    doc.setFontSize(9);
+    const headerLines: string[] = [];
+    if (options.header.quoteNumber) headerLines.push(`No: ${options.header.quoteNumber}`);
+    if (options.header.issueDate) headerLines.push(`Date: ${options.header.issueDate}`);
+    if (options.header.customerName) headerLines.push(`Customer: ${options.header.customerName}`);
+    if (headerLines.length > 0) {
+      doc.text(headerLines.join('   /   '), marginLeft, cursorY);
+      cursorY += 5;
+    }
+  }
+  cursorY += 4; // 表までの余白
 
-      try {
-        // フォント読み込み・レンダリング待機
-        await new Promise(resolve => setTimeout(resolve, 300));
+  // 比較表（4列: Quantity / Unit Price / Total (excl. tax) / Recommended Method）
+  const colWidths = [40, 45, 45, 50]; // 合計 180mm
+  const rowHeight = 10;
+  const headerRowHeight = 9;
 
-        const canvas = await html2canvas(container, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          allowTaint: true,
-        });
+  const tableTop = cursorY;
+  const tableLeft = marginLeft;
 
-        if (canvas.width === 0 || canvas.height === 0) {
-          throw new Error(`パターン ${i + 1} のキャプチャに失敗（サイズ0）`);
-        }
+  // 列ヘッダー
+  doc.setFillColor(240, 240, 240);
+  doc.rect(tableLeft, tableTop, contentWidth, headerRowHeight, 'F');
+  doc.setFont(font, 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
 
-        const imgData = canvas.toDataURL('image/png', 0.95);
+  let colX = tableLeft + 3;
+  const headers = ['Quantity', 'Unit Price', 'Total (excl. tax)', 'Recommended'];
+  for (let c = 0; c < headers.length; c++) {
+    doc.text(headers[c], colX, tableTop + headerRowHeight - 3);
+    colX += colWidths[c];
+  }
 
-        // 2ページ目以降は改ページ
-        if (i > 0) {
-          doc.addPage();
-        }
+  // 最安行（総額最小）のインデックス特定
+  let cheapestIndex = 0;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i].totalPrice < rows[cheapestIndex].totalPrice) {
+      cheapestIndex = i;
+    }
+  }
 
-        // アスペクト比を維持してコンテンツ領域にフィット
-        const canvasAspectRatio = canvas.width / canvas.height;
-        const contentAspectRatio = contentWidth / contentHeight;
+  // データ行
+  let rowY = tableTop + headerRowHeight;
+  const formatJPY = (n: number): string => n.toLocaleString('ja-JP');
+  const formatQty = (n: number): string => `${n.toLocaleString('ja-JP')} pcs`;
 
-        let finalWidth: number;
-        let finalHeight: number;
-        let xOffset: number;
-        let yOffset: number;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const isCheapest = i === cheapestIndex && rows.length > 1;
 
-        if (canvasAspectRatio > contentAspectRatio) {
-          // 横長 → 幅に合わせる
-          finalWidth = contentWidth;
-          finalHeight = contentWidth / canvasAspectRatio;
-          xOffset = marginLeft;
-          yOffset = marginTop + (contentHeight - finalHeight) / 2;
-        } else {
-          // 縦長 → 高さに合わせる
-          finalHeight = contentHeight;
-          finalWidth = contentHeight * canvasAspectRatio;
-          xOffset = marginLeft + (contentWidth - finalWidth) / 2;
-          yOffset = marginTop;
-        }
-
-        doc.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
-      } finally {
-        // 各パターンのコンテナを確実にクリーンアップ
-        if (document.body.contains(container)) {
-          document.body.removeChild(container);
-        }
-      }
+    // 行背景（最安行ハイライト）
+    if (isCheapest) {
+      doc.setFillColor(232, 245, 233); // 薄緑
+      doc.rect(tableLeft, rowY, contentWidth, rowHeight, 'F');
+    } else if (i % 2 === 1) {
+      doc.setFillColor(250, 250, 250);
+      doc.rect(tableLeft, rowY, contentWidth, rowHeight, 'F');
     }
 
-    console.log('[MultiQuantity PDF] 完成 - ページ数:', doc.getNumberOfPages());
+    // 行罫線
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.2);
+    doc.line(tableLeft, rowY, tableLeft + contentWidth, rowY);
 
-    // Blob として出力
-    return doc.output('blob');
-  } finally {
-    // スタイル復元
-    htmlElement.style.overflow = originalStyles.htmlOverflow;
-    bodyElement.style.overflow = originalStyles.bodyOverflow;
-    bodyElement.style.minWidth = originalStyles.bodyMinWidth;
+    // セル値
+    doc.setFont(font, 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
 
-    // 念のため残存コンテナをクリーンアップ
-    const leftover = document.querySelectorAll('div[style*="z-index: -999999"]');
-    leftover.forEach(el => {
-      if (document.body.contains(el)) {
-        try {
-          document.body.removeChild(el);
-        } catch {
-          // クリーンアップ失敗は無視
-        }
-      }
-    });
+    colX = tableLeft + 3;
+    const methodLabel = row.recommendation.method === 'gravure' ? 'Gravure' : 'Digital';
+
+    doc.text(formatQty(row.quantity), colX, rowY + rowHeight - 3.5);
+    colX += colWidths[0];
+
+    if (isCheapest) doc.setFont(font, 'bold');
+    doc.text(`\\${formatJPY(row.unitPrice)}`, colX, rowY + rowHeight - 3.5);
+    doc.setFont(font, 'normal');
+    colX += colWidths[1];
+
+    if (isCheapest) doc.setFont(font, 'bold');
+    doc.text(`\\${formatJPY(row.totalPrice)}`, colX, rowY + rowHeight - 3.5);
+    doc.setFont(font, 'normal');
+    colX += colWidths[2];
+
+    doc.text(methodLabel, colX, rowY + rowHeight - 3.5);
+
+    rowY += rowHeight;
   }
+
+  // 表下罫線
+  doc.line(tableLeft, rowY, tableLeft + contentWidth, rowY);
+  // 表外枠
+  doc.rect(tableLeft, tableTop, contentWidth, rowY - tableTop);
+
+  // 最安行注記
+  if (rows.length > 1) {
+    rowY += 6;
+    doc.setFont(font, 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text(
+      `* Highlighted row is the lowest total price (Quantity: ${formatQty(rows[cheapestIndex].quantity)}).`,
+      tableLeft,
+      rowY
+    );
+  }
+
+  // 税抜き表記注記
+  rowY += 5;
+  doc.setFont(font, 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Note: All prices are excluding consumption tax. Valid for 30 days from issue date.', tableLeft, rowY);
+
+  console.log('[MultiQuantity PDF] 完成 - ページ数:', doc.getNumberOfPages());
+
+  // Blob として出力
+  return doc.output('blob');
 }
 
 /**
