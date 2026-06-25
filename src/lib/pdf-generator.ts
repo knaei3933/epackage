@@ -1080,6 +1080,179 @@ export async function generateQuotePDF(
   }
 }
 
+// ============================================================
+// Phase 5.3: 5数量パターンPDF出力（generateMultiQuantityPDF）
+// 仕様: .omc/plans/gravure-integration-consensus.md Phase 5 Step 5.3 / AC-16
+//
+// 最大5つの QuoteData（各数量パターン）を1つのPDFに出力。
+// 各数量の見積もりをページとして並べる（推奨方式・グラビア明細含む）。
+// 既存 generateQuoteHTML を数量ループで呼び出し、各見積もりを個別キャプチャ → ページ追加。
+// QuoteData 型は変更しない（配列を受け取る新関数）。既存 generateQuotePDF は無変更。
+// ============================================================
+
+/**
+ * Generate Multi-Quantity PDF
+ *
+ * 最大5つの数量パターン見積もりを1つのPDFに出力（各数量を1ページとして並べる）
+ *
+ * @param quotes - 各数量パターンの QuoteData 配列（最大5）
+ * @param options - PDF生成オプション（filename 等）
+ * @returns PDF Blob
+ *
+ * ブラウザ環境（html2canvas + jsPDF）でのみ動作。
+ */
+export async function generateMultiQuantityPDF(
+  quotes: QuoteData[],
+  options: { filename?: string } = {}
+): Promise<Blob> {
+  if (typeof window === 'undefined') {
+    throw new Error('5数量パターンPDF生成はブラウザ環境でサポートされている機能です');
+  }
+
+  // 入力検証: 最大5パターン、空配列不可
+  if (!quotes || quotes.length === 0) {
+    throw new Error('見積もりデータが空です（少なくとも1件必要）');
+  }
+  const MAX_PATTERNS = 5;
+  const targetQuotes = quotes.slice(0, MAX_PATTERNS);
+
+  console.log('[MultiQuantity PDF] 開始 - パターン数:', targetQuotes.length);
+
+  // 各 QuoteData を検証
+  for (const quote of targetQuotes) {
+    const validation = validatePdfData(quote);
+    if (!validation.isValid) {
+      throw new Error(`見積もり検証エラー: ${validation.errors.join(', ')}`);
+    }
+  }
+
+  // A4 サイズ（mm）
+  const a4Width = 210;
+  const a4Height = 297;
+  const marginTop = 10;
+  const marginLeft = 15;
+  const marginRight = 15;
+  const marginBottom = 10;
+  const contentWidth = a4Width - marginLeft - marginRight; // 180mm
+  const contentHeight = a4Height - marginTop - marginBottom; // 277mm
+
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: true,
+  });
+
+  // レイアウト固定（既存 generateQuotePDF と同様のフリーズ手法）
+  const htmlElement = document.documentElement;
+  const bodyElement = document.body;
+  const originalStyles = {
+    htmlOverflow: htmlElement.style.overflow,
+    bodyOverflow: bodyElement.style.overflow,
+    bodyMinWidth: bodyElement.style.minWidth,
+  };
+  htmlElement.style.overflow = 'hidden';
+  bodyElement.style.overflow = 'hidden';
+
+  try {
+    // 各数量パターンを順次キャプチャ → ページ追加
+    for (let i = 0; i < targetQuotes.length; i++) {
+      const quote = targetQuotes[i];
+      console.log(`[MultiQuantity PDF] パターン ${i + 1}/${targetQuotes.length} キャプチャ中`);
+
+      const { subtotal, tax, total } = calculateTotals(quote.items);
+      const htmlContent = generateQuoteHTML(quote, { subtotal, tax, total });
+
+      // off-screen コンテナでレンダリング（既存の hidden container 手法）
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-99999px';
+      container.style.top = '-99999px';
+      container.style.width = '210mm';
+      container.style.minHeight = '297mm';
+      container.style.zIndex = '-999999';
+      container.style.background = '#ffffff';
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
+
+      try {
+        // フォント読み込み・レンダリング待機
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          allowTaint: true,
+        });
+
+        if (canvas.width === 0 || canvas.height === 0) {
+          throw new Error(`パターン ${i + 1} のキャプチャに失敗（サイズ0）`);
+        }
+
+        const imgData = canvas.toDataURL('image/png', 0.95);
+
+        // 2ページ目以降は改ページ
+        if (i > 0) {
+          doc.addPage();
+        }
+
+        // アスペクト比を維持してコンテンツ領域にフィット
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const contentAspectRatio = contentWidth / contentHeight;
+
+        let finalWidth: number;
+        let finalHeight: number;
+        let xOffset: number;
+        let yOffset: number;
+
+        if (canvasAspectRatio > contentAspectRatio) {
+          // 横長 → 幅に合わせる
+          finalWidth = contentWidth;
+          finalHeight = contentWidth / canvasAspectRatio;
+          xOffset = marginLeft;
+          yOffset = marginTop + (contentHeight - finalHeight) / 2;
+        } else {
+          // 縦長 → 高さに合わせる
+          finalHeight = contentHeight;
+          finalWidth = contentHeight * canvasAspectRatio;
+          xOffset = marginLeft + (contentWidth - finalWidth) / 2;
+          yOffset = marginTop;
+        }
+
+        doc.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
+      } finally {
+        // 各パターンのコンテナを確実にクリーンアップ
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
+        }
+      }
+    }
+
+    console.log('[MultiQuantity PDF] 完成 - ページ数:', doc.getNumberOfPages());
+
+    // Blob として出力
+    return doc.output('blob');
+  } finally {
+    // スタイル復元
+    htmlElement.style.overflow = originalStyles.htmlOverflow;
+    bodyElement.style.overflow = originalStyles.bodyOverflow;
+    bodyElement.style.minWidth = originalStyles.bodyMinWidth;
+
+    // 念のため残存コンテナをクリーンアップ
+    const leftover = document.querySelectorAll('div[style*="z-index: -999999"]');
+    leftover.forEach(el => {
+      if (document.body.contains(el)) {
+        try {
+          document.body.removeChild(el);
+        } catch {
+          // クリーンアップ失敗は無視
+        }
+      }
+    });
+  }
+}
+
 /**
  * Generate HTML for quote (Excel template format)
  *
