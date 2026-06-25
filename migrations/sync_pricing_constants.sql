@@ -101,7 +101,7 @@ ON CONFLICT (key) DO UPDATE
 INSERT INTO system_settings (key, value, category, description, updated_at)
 VALUES
   ('printing_gravure_setup_fee', '50000', 'printing', 'グラビア印刷セットアップ費 (ウォン)', NOW()),
-  ('printing_gravure_per_color_per_meter', '200', 'printing', 'グラビア印刷費 (ウォン/m²)', NOW()),
+  ('printing_gravure_per_color_per_meter', '19', 'printing', 'グラビア印刷費 (ウォン/m)', NOW()),
   ('printing_gravure_min_charge', '20000', 'printing', 'グラビア印刷最小料金 (ウォン)', NOW())
 ON CONFLICT (key) DO UPDATE
   SET value = EXCLUDED.value,

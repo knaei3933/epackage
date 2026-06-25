@@ -118,7 +118,7 @@ export const PRINTING_COSTS: Record<string, PrintingCostConfig> = {
   },
   'gravure': {
     setupFee: 50000,
-    perColorPerMeter: 200,
+    perColorPerMeter: 19, // ウォン/m（仕様§6.1: 무광/유광 19₫/m）
     minCharge: 20000,
   },
 } as const
@@ -158,6 +158,58 @@ export const ROLL_FILM_CONSTANTS = {
   /** マット印刷追加費（ウォン/m） */
   MATTE_COST_PER_M: 40,
 } as const
+
+// ========================================
+// グラビア印刷計算設定（仕様 gravure-pricing-calculation-formula.md §1-14 準拠）
+// グラビア純粋計算モジュール（gravure-cost-calculator.ts）専用。ウォンを返す。
+// 既存デジタル計算（unified-pricing-engine.ts）には無侵入。
+// ========================================
+
+export const GRAVURE_CONSTANTS = {
+  /** 印刷単価（ウォン/m） - 仕様§6.1: 무광/유광 19₫/m */
+  PRINTING_COST_PER_M: 19,
+  /** 印刷単価は色数・原反幅に依存しない（幅×長さ×色数×19） */
+
+  /** ロス量（m固定） - 仕様§4: 製作6,000m中にロス500m込み（顧客提供5,500m） */
+  LOSS_METERS: 500,
+  /** 標準製作ロット（m） - 仕様§4/§10.4: 6000m単位 */
+  STANDARD_LOT_METERS: 6000,
+  /** 顧客提供長（m） = 標準ロット - ロス = 5,500m */
+  CUSTOMER_PROVIDED_METERS: 5500,
+
+  /** 原反幅 範囲・刻み（仕様§3） */
+  MATERIAL_WIDTH_MIN_MM: 500,   // 最小500mm
+  MATERIAL_WIDTH_MAX_MM: 1100,  // 最大1,100mm
+  MATERIAL_WIDTH_STEP_MM: 10,   // 10mm単位で丸め
+
+  /** 最終熱シール層（LLDPE等）の幅加算 - 仕様§5: 原反幅 + 10mm */
+  FINAL_LAYER_WIDTH_EXTRA_MM: 10,
+
+  /** 銅版（동판）設定 - 仕様§9 */
+  COPPER_PLATE: {
+    /** 最小外径（mm） - 仕様§9.1: 機械最小外径 420mm */
+    MIN_DIAMETER_MM: 420,
+    /** 銅版幅の加算（mm） - 仕様§9.2: 銅版幅 = 原反幅 + 100mm */
+    WIDTH_EXTRA_MM: 100,
+    /** 新規製作 単価 - 仕様§9.2/§10: 신규 50 */
+    PRICE_NEW: 50,
+    /** 修正 単価 - 仕様§9.2/§10: 수정 30 */
+    PRICE_MODIFY: 30,
+  },
+
+  /** ラミネート単価（ウォン/m） - 仕様§6.2/§10.3。ラミ回数 = 層数 - 1 */
+  LAMINATION_COST_PER_M: {
+    /** 2液型ハイ（용제 D/L 2액형 하이） */
+    '2liquid_high': 75,
+    /** 2液型セミ（용제 D/L 2액형 세미） */
+    '2liquid_semi': 65,
+    /** 無溶剤（라말 / 무용제） */
+    'solventless': 55,
+  } as const,
+} as const
+
+/** グラビア ラミネート種別（仕様§6.2） */
+export type GravureLaminationType = keyof typeof GRAVURE_CONSTANTS.LAMINATION_COST_PER_M
 
 // ========================================
 // 配送重量別料金（韓国）
