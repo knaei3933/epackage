@@ -19,7 +19,7 @@ import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
-import { RefreshCw, Download, List, BarChart3 } from 'lucide-react';
+import { RefreshCw, Download, List, BarChart3, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -42,6 +42,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const { setSelectedQuantity } = useQuote();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [quotationId, setQuotationId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfStatus, setPdfStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -745,6 +746,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
         // 3. DB保存
         const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
 
         // 4. Storage保存（認証済みのみ）- エラーハンドリング追加
         if (savedQuotationId && pdfResult.pdfBuffer) {
@@ -840,6 +842,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         // 2. 自動的にデータベースに保存（ゲストユーザーも対応）
         console.log('[handleDownloadPdf] 自動保存開始...');
         const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
 
         // 3. PDFをStorageに保存（ユーザー認証済みの場合）
         if (savedQuotationId && user?.id && pdfResult.pdfBuffer) {
@@ -1854,6 +1857,33 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-3">
+        {/* 注文ボタン（会員限定） */}
+        {user?.id && quotationId && (
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch(`/api/member/quotations/${quotationId}/convert`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  alert('注文を確定しました。注文履歴からご確認ください。');
+                  window.location.href = '/member/orders';
+                } else {
+                  alert('注文の確定に失敗しました。もう一度お試しください。');
+                }
+              } catch (e) {
+                alert('通信エラーが発生しました。');
+              }
+            }}
+            className="px-6 py-3 bg-brixa-600 text-white rounded-lg font-medium hover:bg-brixa-700 transition-colors flex items-center"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            この内容で注文
+          </button>
+        )}
+
         <motion.button
           onClick={() => {
             if (window.confirm('新しい見積もりを作成します。現在の入力内容はリセットされます。よろしいですか？')) {
