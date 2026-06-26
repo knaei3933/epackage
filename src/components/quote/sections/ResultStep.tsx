@@ -19,7 +19,7 @@ import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
-import { RefreshCw, Download, List, BarChart3, ShoppingCart } from 'lucide-react';
+import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -175,10 +175,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // Get multi-quantity state at component level (before any handlers)
   const { state: multiQuantityState } = useMultiQuantityQuote();
 
-  // C4/AC-8: SKU数バンド判定。<=5 のみ複数パターン比較表・全パターンPDFを有効化。
-  // >5（6-100）は従来単一UI（multiQuantityResult は null で渡される）。
+  // C4/AC-8: SKU数バンド判定。1-10 のみ複数パターン比較表・全パターンPDFを有効化。
+  // 11以上は別途見積もり依頼（multiQuantityResult は null で渡される）。
   const skuCountForBand = state.skuCount ?? 0;
-  const isPatternMode = skuCountForBand > 0 && skuCountForBand <= 5;
+  const isPatternMode = skuCountForBand > 0 && skuCountForBand <= 10;
 
   // Get multi-quantity calculations from prop first, then fallback to context
   // C2新型（Map<number, UnifiedQuoteResult & {recommendation}>）と旧Context（Map<number, UnifiedQuoteResult>）の和型
@@ -1620,6 +1620,231 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         </div>
       )}
 
+      {/* ==============================================
+          注文内容の確認（プロフェッショナル・カードUI）
+          - showPatternComparison / 従来ビュー両対応
+          - ロジック・データは既存のまま（state / result / multiQuantityQuotes）
+          ============================================== */}
+      <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* セクションヘッダー */}
+        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-navy-600 text-white">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 leading-tight">注文内容の確認</h3>
+              <p className="text-xs text-gray-500 mt-0.5">ご指定いただいた仕様・条件のまとめ</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ボディ：2カラム（モバイル1列） */}
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ── 基本仕様 ── */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Package className="w-4 h-4 text-navy-600 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-gray-900">基本仕様</h4>
+              </div>
+              <dl className="space-y-2.5 text-sm">
+                {((): null => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
+                {/* 内容物 */}
+                {(() => {
+                  const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+                    'food': '食品',
+                    'health_supplement': '健康食品',
+                    'cosmetic': '化粧品',
+                    'quasi_drug': '医薬部外品',
+                    'drug': '医薬品',
+                    'other': 'その他'
+                  };
+                  const CONTENTS_TYPE_LABELS: Record<string, string> = {
+                    'solid': '固体',
+                    'powder': '粉体',
+                    'liquid': '液体'
+                  };
+                  const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+                    'general_neutral': '一般/中性',
+                    'oil_surfactant': 'オイル/界面活性剤',
+                    'acidic_salty': '酸性/塩分',
+                    'volatile_fragrance': '揮発性/香料',
+                    'other': 'その他'
+                  };
+                  const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+                    'general_roomTemp': '一般/常温',
+                    'light_oxygen_sensitive': '光/酸素敏感',
+                    'refrigerated': '冷凍保管',
+                    'high_temp_sterilized': '高温殺菌',
+                    'other': 'その他'
+                  };
+                  const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''];
+                  const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''];
+                  const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''];
+                  const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''];
+                  const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
+                    ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
+                    : '';
+                  return contentsDisplay ? (
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">内容物</dt>
+                      <dd className="text-gray-900 font-medium">{contentsDisplay}</dd>
+                    </div>
+                  ) : null;
+                })()}
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">袋タイプ</dt>
+                  <dd className="text-gray-900 font-medium">{getBagTypeLabel(state.bagTypeId)}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">サイズ</dt>
+                  <dd className="text-gray-900 font-medium">
+                    {state.bagTypeId === 'roll_film'
+                      ? `幅: ${state.width} mm`
+                      : `${state.width} × ${state.height} ${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `× ${state.depth}` : ''} mm`}
+                  </dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">素材</dt>
+                  <dd className="text-gray-900 font-medium">{getMaterialDescription(state.materialId, 'ja')}</dd>
+                </div>
+                {state.thicknessSelection && (
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                    <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">厚さ</dt>
+                    <dd className="text-gray-900 font-medium">{THICKNESS_TYPE_JA[state.thicknessSelection as keyof typeof THICKNESS_TYPE_JA] || state.thicknessSelection}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            {/* ── 数量・印刷 ── */}
+            <div className="space-y-3 md:border-l md:border-gray-100 md:pl-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Layers className="w-4 h-4 text-navy-600 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-gray-900">数量・印刷</h4>
+              </div>
+              <dl className="space-y-2.5 text-sm">
+                {showPatternComparison ? (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">数量</dt>
+                      <dd className="text-gray-900 font-medium">
+                        下記「数量パターン比較表」をご参照ください（{multiQuantityQuotes.length}パターン）
+                      </dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷方式</dt>
+                      <dd className="text-gray-900 font-medium">各パターンの推奨（デジタル/グラビア）は比較表に記載</dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
+                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
+                    </div>
+                  </>
+                ) : hasValidSKUData ? (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">SKU別数量</dt>
+                      <dd className="text-gray-900 font-medium">
+                        {result?.skuCount || state.skuCount}種類
+                      </dd>
+                    </div>
+                    <div className="ml-0 sm:ml-[108px] space-y-1 text-gray-700">
+                      {(result?.skuQuantities || state.skuQuantities || []).map((qty, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="text-gray-400">•</span>
+                          <span>SKU {index + 1}: <span className="font-medium text-gray-900">{qty.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</span></span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3 pt-1 border-t border-gray-100">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">総数量</dt>
+                      <dd className="text-navy-700 font-bold">
+                        {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
+                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
+                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">数量</dt>
+                      <dd className="text-gray-900 font-medium">
+                        {
+                          // ロールフィルムの場合はSKU数量を優先、それ以外はstate.quantityを使用
+                          state.bagTypeId === 'roll_film' && state.skuQuantities && state.skuQuantities.length > 0
+                            ? state.skuQuantities[0].toLocaleString()
+                            : state.quantity.toLocaleString()
+                        }{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
+                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
+                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
+                    </div>
+                  </>
+                )}
+              </dl>
+            </div>
+          </div>
+
+          {/* ── 後加工（全幅・条件付き） ── */}
+          {state.postProcessingOptions && state.postProcessingOptions.length > 0 && (
+            <div className="space-y-3 pt-6 border-t border-gray-100">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Settings className="w-4 h-4 text-navy-600 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-gray-900">後加工</h4>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {safeMap(getFilteredPostProcessingOptions(), option => (
+                  <span
+                    key={option}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-sm text-gray-700"
+                  >
+                    {getPostProcessingLabel(option)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── 配送・納期（全幅） ── */}
+          <div className="space-y-3 pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <Truck className="w-4 h-4 text-navy-600 flex-shrink-0" />
+              <h4 className="text-sm font-semibold text-gray-900">配送・納期</h4>
+            </div>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">配送先</dt>
+                <dd className="text-gray-900 font-medium">{state.deliveryLocation === 'domestic' ? '国内' : '海外'}</dd>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">納期</dt>
+                <dd className="text-gray-900 font-medium">
+                  {state.urgency === 'standard' ? '標準' : '迅速'}
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">
+                    {result.leadTimeDays}日
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
       {/* C4: 数量パターン比較表（最安ハイライト・AC-7/AC-8） */}
       {/* 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 4
           multiQuantityResult.calculations (Map<number, UnifiedQuoteResult & {recommendation}>) から
@@ -1705,23 +1930,25 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         );
       })()}
 
-      {/* Price Display */}
-      <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
-        <div className="text-sm font-medium mb-2">合計金額（税別）</div>
-        {(() => {
-          const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
-          return (
-            <>
-              <div className="text-4xl font-bold mb-4">
-                ¥{roundedTotal.toLocaleString()}
-              </div>
-              <div className="text-sm opacity-90">
-                単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-              </div>
-            </>
-          );
-        })()}
-      </div>
+      {/* Price Display（複数パターンビューでは非表示・比較表で代替） */}
+      {!showPatternComparison && (
+        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
+          <div className="text-sm font-medium mb-2">合計金額（税別）</div>
+          {(() => {
+            const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
+            return (
+              <>
+                <div className="text-4xl font-bold mb-4">
+                  ¥{roundedTotal.toLocaleString()}
+                </div>
+                <div className="text-sm opacity-90">
+                  単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Admin-only cost breakdown */}
       {isAdmin && result.skuCostDetails && (
@@ -1731,115 +1958,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           marginRate={0.5}
         />
       )}
-
-      {/* Order Summary */}
-      <div className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">注文内容の確認</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">基本仕様</h4>
-            <div className="text-sm space-y-1 text-gray-600">
-              {((): null => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
-              {/* 内容物 - 一番上に表示 */}
-              {(() => {
-                const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-                  'food': '食品',
-                  'health_supplement': '健康食品',
-                  'cosmetic': '化粧品',
-                  'quasi_drug': '医薬部外品',
-                  'drug': '医薬品',
-                  'other': 'その他'
-                };
-                const CONTENTS_TYPE_LABELS: Record<string, string> = {
-                  'solid': '固体',
-                  'powder': '粉体',
-                  'liquid': '液体'
-                };
-                const MAIN_INGREDIENT_LABELS: Record<string, string> = {
-                  'general_neutral': '一般/中性',
-                  'oil_surfactant': 'オイル/界面活性剤',
-                  'acidic_salty': '酸性/塩分',
-                  'volatile_fragrance': '揮発性/香料',
-                  'other': 'その他'
-                };
-                const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
-                  'general_roomTemp': '一般/常温',
-                  'light_oxygen_sensitive': '光/酸素敏感',
-                  'refrigerated': '冷凍保管',
-                  'high_temp_sterilized': '高温殺菌',
-                  'other': 'その他'
-                };
-                const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''];
-                const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''];
-                const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''];
-                const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''];
-                const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
-                  ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
-                  : '';
-                return contentsDisplay ? <div>内容物: {contentsDisplay}</div> : null;
-              })()}
-              <div>袋のタイプ: {getBagTypeLabel(state.bagTypeId)}</div>
-              <div>サイズ: {state.bagTypeId === 'roll_film'
-                ? `幅: ${state.width} mm`
-                : `${state.width} × ${state.height} ${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `× ${state.depth}` : ''} mm`}</div>
-              <div>素材: {getMaterialDescription(state.materialId, 'ja')}</div>
-              {state.thicknessSelection && <div>厚さ: {THICKNESS_TYPE_JA[state.thicknessSelection as keyof typeof THICKNESS_TYPE_JA] || state.thicknessSelection}</div>}
-            </div>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">数量・印刷</h4>
-            <div className="text-sm space-y-1 text-gray-600">
-              {hasValidSKUData ? (
-                <div>
-                  <div className="font-medium">SKU別数量 ({result?.skuCount || state.skuCount}種類):</div>
-                  {(result?.skuQuantities || state.skuQuantities || []).map((qty, index) => (
-                    <div key={index} className="ml-2">
-                      • SKU {index + 1}: {qty.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                    </div>
-                  ))}
-                  <div className="mt-2 font-medium">
-                    総数量: {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                  </div>
-                  <div className="mt-1">印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
-                  <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
-                </div>
-              ) : (
-                <>
-                  <div>数量: {
-                    // ロールフィルムの場合はSKU数量を優先、それ以外はstate.quantityを使用
-                    state.bagTypeId === 'roll_film' && state.skuQuantities && state.skuQuantities.length > 0
-                      ? state.skuQuantities[0].toLocaleString()
-                      : state.quantity.toLocaleString()
-                  }{state.bagTypeId === 'roll_film' ? 'm' : '個'}</div>
-                  <div>印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
-                  <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {state.postProcessingOptions && state.postProcessingOptions.length > 0 && (
-          <div className="mt-4">
-            <h4 className="font-medium text-gray-700 mb-2">後加工</h4>
-            <div className="text-sm text-gray-600">
-              {safeMap(getFilteredPostProcessingOptions(), option => (
-                <span key={option} className="mr-2">
-                  {getPostProcessingLabel(option)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4">
-          <h4 className="font-medium text-gray-700 mb-2">配送・納期</h4>
-          <div className="text-sm space-y-1 text-gray-600">
-            <div>配送先: {state.deliveryLocation === 'domestic' ? '国内' : '海外'}</div>
-            <div>納期: {state.urgency === 'standard' ? '標準' : '迅速'}（{result.leadTimeDays}日）</div>
-          </div>
-        </div>
-      </div>
 
       {/* Multi-Quantity Comparison Results */}
       {multiQuantityState.comparison && (

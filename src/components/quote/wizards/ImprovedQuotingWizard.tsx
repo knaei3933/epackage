@@ -2592,7 +2592,25 @@ export function ImprovedQuotingWizard() {
     }
   };
 
-  const canProceed = currentStepId ? isStepComplete(currentStepId) : false;
+  // 複数パターンビュー（SKU 1-10）の判定
+  const isMultiPatternMode =
+    state.skuCount >= 1 && state.skuCount <= 10 && patternQuantities.length > 0;
+
+  // canProceed: 複数パターンビューの場合は patternQuantities で判定
+  // （少なくとも1パターンの合計が最小数量500以上なら進行可能）
+  const canProceed = (() => {
+    if (!currentStepId) return false;
+    if (currentStepId === 'sku-quantity' && isMultiPatternMode) {
+      const colCount = patternQuantities[0]?.length ?? 0;
+      const minQty = 500; // 最低1パターン500個/m
+      for (let p = 0; p < colCount; p++) {
+        const patternTotal = patternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0);
+        if (patternTotal >= minQty) return true;
+      }
+      return false;
+    }
+    return isStepComplete(currentStepId);
+  })();
   const isLastStep = currentStep === STEPS.length - 1;
 
   // SKU数量MOQエラーがある場合は進行不可
