@@ -7,7 +7,6 @@ import { motion } from 'framer-motion';
 import { Package, Layers, Calendar, Settings } from 'lucide-react';
 import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState, getSpecsValidationMessages } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import { safeMap } from '@/lib/array-helpers';
 import EnvelopePreview from '../previews/EnvelopePreview';
@@ -2239,7 +2238,6 @@ export function ImprovedQuotingWizard() {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const isStepComplete = (step: string) => checkStepComplete(state, step);
-  const { calculateMultiQuantity, canCalculateMultiQuantity } = useMultiQuantityQuote();
 
   // Toast notification system
   const { toasts, dismissToast, showError, showSuccess } = useToast();

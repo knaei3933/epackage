@@ -33,7 +33,6 @@ import {
   SavedQuantityPattern,
   QuantityComparison
 } from '@/types/multi-quantity';
-import { multiQuantityCalculator } from '@/lib/multi-quantity-calculator';
 import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage, type StoredComparison } from '@/lib/storage';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -1175,7 +1174,6 @@ interface QuoteContextType {
   // MultiQuantity helpers (統合: Phase 2-5)
   setComparisonQuantities: (quantities: number[]) => void;
   setSelectedQuantity: (quantity: number | null) => void;
-  calculateMultiQuantity: () => Promise<MultiQuantityResult | null>;
   saveQuantityPattern: (name: string, description: string) => void;
   loadQuantityPattern: (pattern: SavedQuantityPattern) => void;
   saveComparison: (metadata?: { title?: string; description?: string; customerName?: string; projectName?: string }) => Promise<{ success: boolean; shareId?: string; shareUrl?: string; error?: string }>;
@@ -1876,48 +1874,6 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     dispatch({ type: 'SET_SELECTED_QUANTITY', payload: quantity });
   }, []);
 
-  const calculateMultiQuantity = useCallback(async (): Promise<MultiQuantityResult | null> => {
-    if (!state.bagTypeId || !state.materialId || !state.width) {
-      console.error('[calculateMultiQuantity] Missing required specs');
-      return null;
-    }
-
-    const quantities = state.comparisonQuantities || state.quantities;
-    if (quantities.length === 0) {
-      console.error('[calculateMultiQuantity] No quantities to compare');
-      return null;
-    }
-
-    try {
-      const result = await multiQuantityCalculator.calculateMultiQuantity({
-        baseParams: {
-          bagTypeId: state.bagTypeId,
-          materialId: state.materialId,
-          width: state.width,
-          height: state.height,
-          depth: state.depth,
-          thicknessSelection: state.thicknessSelection,
-          isUVPrinting: state.isUVPrinting,
-          printingType: state.printingType,
-          printingColors: state.printingColors,
-          doubleSided: state.doubleSided,
-          postProcessingOptions: state.postProcessingOptions,
-          deliveryLocation: state.deliveryLocation,
-          urgency: state.urgency
-        },
-        quantities,
-        comparisonMode: 'price',
-        includeRecommendations: true
-      });
-
-      dispatch({ type: 'SET_MULTI_QUANTITY_RESULTS', payload: result });
-      return result;
-    } catch (error) {
-      console.error('[calculateMultiQuantity] Error:', error);
-      return null;
-    }
-  }, [state]);
-
   const saveQuantityPattern = useCallback((name: string, description: string) => {
     const pattern: SavedQuantityPattern = {
       id: Date.now().toString(),
@@ -2306,7 +2262,6 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     // MultiQuantity helpers
     setComparisonQuantities,
     setSelectedQuantity,
-    calculateMultiQuantity,
     saveQuantityPattern,
     loadQuantityPattern,
     saveComparison,
