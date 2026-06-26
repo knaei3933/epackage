@@ -550,7 +550,9 @@ export class PouchCostCalculator {
     // 全体フィルム使用量（ロス込み）
     // Kraft材料: 最低1000mで価格計算（ユーザーが少量注文しても1000m分の価格）
     const isKraftMaterial = materialId?.includes('kraft');
-    const lossMeters = getLossMeters(filmLayers);
+    // filmLayers未指定時は materialId/thicknessSelection からデフォルト構造を補充
+    // （L1022 calculateFilmCost と同一パターン・L776 は空配列 fallback より正確）
+    const lossMeters = getLossMeters(filmLayers || getDefaultFilmLayers(materialId, thicknessSelection || 'medium'));
     const totalWithLossMeters = isKraftMaterial
       ? Math.max(totalSecuredMeters + lossMeters, 1000)
       : totalSecuredMeters + lossMeters;
