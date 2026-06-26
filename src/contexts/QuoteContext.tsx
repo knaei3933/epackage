@@ -194,7 +194,7 @@ const initialState: QuoteState = {
     remainingSlots: MAX_POST_PROCESSING_ITEMS
   },
   thicknessSelection: 'medium',
-  printingType: 'digital',
+  printingType: 'auto',
   printingColors: 1,
   doubleSided: false,
   deliveryLocation: 'domestic',
