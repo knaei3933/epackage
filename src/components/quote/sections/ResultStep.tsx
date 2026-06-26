@@ -1574,8 +1574,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         </p>
       </div>
 
-      {/* Phase 2: 印刷方式レコメンド表示（printingType='auto' 解決時のみ・AC-9） */}
-      {result.recommendation && (
+      {/* Phase 2: 印刷方式レコメンド表示（printingType='auto' 解決時のみ・AC-9）
+          複数パターンビューでは比較表で各パターンの推奨方式を表示するため非表示 */}
+      {result.recommendation && !showPatternComparison && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
