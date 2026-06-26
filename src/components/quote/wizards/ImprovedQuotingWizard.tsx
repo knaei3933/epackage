@@ -31,6 +31,14 @@ import { ResultStep } from '../sections/ResultStep';
 import { OrderSummarySection } from '../shared/OrderSummarySection';
 import { QuantityOptionsGrid } from '../selectors';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
+// グラビア原反幅・製作長計算（数量パターン比較表 C3 で使用）
+import {
+  determineGravureMaterialWidth,
+  determineGravureRollMaterialWidth,
+  type GravurePouchType,
+} from '@/lib/gravure-material-width';
+import { calculateGravureProcessingCount } from '@/lib/gravure-cost-calculator';
+import { GRAVURE_CONSTANTS } from '@/lib/pricing/core/constants';
 import type { ParallelProductionOption } from '../shared/ParallelProductionOptions';
 import type { EconomicQuantitySuggestionData } from '../shared/EconomicQuantityProposal';
 import type { QuantityOption } from '../selectors';
@@ -2445,13 +2453,60 @@ export function ImprovedQuotingWizard() {
                   ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'digital',
                 });
                 // グラビア計算
+                // 仕様 docs/gravure-pricing-calculation-formula.md §3/§4/§14 準拠:
+                //   - 原反幅: bagTypeId/寸法から動的算出（740mm固定は誤り）
+                //   - 製作長: 1ロット(6000m)あたりの加工個数から必要ロット数を算出し、
+                //             総製作長 = ロット数 × 6000m で数量スケール（未指定だと常に1ロット固定になるバグを修正）
+                //   - laminationType: 正しい値は 2liquid_high/2liquid_semi/solventless（'solvent_semi' は存在しない値）
                 let gravureResult: UnifiedQuoteResult | null = null;
                 try {
+                  const bagTypeId = state.bagTypeId;
+                  const gWidth = state.width;
+                  const gHeight = state.height;
+                  const gDepth = state.depth ?? 0;
+
+                  // bagTypeId → GravurePouchType マッピング（unified-pricing-engine.ts L2244-2257 と同一ロジック）
+                  let pouchType: GravurePouchType | null = null;
+                  if (bagTypeId === 'roll_film') {
+                    pouchType = null; // ロールフィルムは袋加工なし
+                  } else if (bagTypeId.includes('lap_seal') || bagTypeId.includes('t_shape')) {
+                    pouchType = 't_shape';
+                  } else if (bagTypeId.includes('3_side') || bagTypeId.includes('flat')) {
+                    pouchType = 'flat_3_side';
+                  } else if (bagTypeId.includes('stand')) {
+                    pouchType = 'stand_up';
+                  } else if (bagTypeId.includes('m_shape')) {
+                    pouchType = 'm_shape';
+                  }
+
+                  // 原反幅の動的算出
+                  let gravureMaterialWidth: number;
+                  let gravureProductionMeters: number;
+                  if (bagTypeId === 'roll_film' || !pouchType) {
+                    // ロールフィルム: 仕様幅ベース（state.materialWidth があればそれ、なければ最小500mm）
+                    gravureMaterialWidth = determineGravureRollMaterialWidth(state.materialWidth && state.materialWidth > 0 ? state.materialWidth : 500);
+                    // ロールは長さで注文されるため、製作長 = 要求数量(m) をそのまま使用（1ロット6000m未満なら6000m）
+                    gravureProductionMeters = Math.max(GRAVURE_CONSTANTS.STANDARD_LOT_METERS, patternTotal);
+                  } else {
+                    // パウチ: 公式による原反幅算出
+                    gravureMaterialWidth = determineGravureMaterialWidth(pouchType, gHeight, gWidth, gDepth);
+                    // 1ロットあたり加工個数 → 必要ロット数 → 総製作長（仕様§4/§14）
+                    const perLotCount = calculateGravureProcessingCount(pouchType, gHeight, gWidth, gDepth);
+                    const requiredLots = perLotCount > 0 ? Math.max(1, Math.ceil(patternTotal / perLotCount)) : 1;
+                    gravureProductionMeters = requiredLots * GRAVURE_CONSTANTS.STANDARD_LOT_METERS;
+                  }
+
                   gravureResult = await unifiedPricingEngine.calculateQuote({
                     ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'gravure',
-                    gravureMaterialWidth: 740, laminationType: 'solvent_semi' as any, copperPlateType: 'new' as any,
+                    gravureMaterialWidth,
+                    gravureProductionMeters,
+                    laminationType: '2liquid_semi', // 正しい値（'solvent_semi' は typo・存在しない値）
+                    copperPlateType: 'new',         // 初回見積もり想定
                   });
-                } catch { gravureResult = null; }
+                } catch (e) {
+                  console.warn('[handleNext] Gravure calc failed for pattern', patternIdx, e);
+                  gravureResult = null;
+                }
                 // 推奨判定
                 const dTotal = digitalResult.totalPrice;
                 const gTotal = gravureResult?.totalPrice ?? Infinity;
