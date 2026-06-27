@@ -14,6 +14,7 @@ import MultiQuantityStep from '../steps/MultiQuantityStep';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
 import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getThicknessLabel, getWeightRange } from '@/constants/materialTypes';
 import { getAvailableGussetSizes, ALL_GUSSET_SIZE_OPTIONS } from '@/lib/gusset-data';
+import { getAvailableSealWidths, isGussetedBag } from '@/lib/sealing-data';
 import {
   ChevronRight, ChevronLeft, Check, CheckCircle2, AlertCircle, Ticket, Printer,
   Info, Edit2, X, Phone, Mail, Clock, Calculator, RefreshCw, BarChart3, Download,
@@ -35,6 +36,8 @@ import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import {
   determineGravureMaterialWidth,
   determineGravureRollMaterialWidth,
+  calculateSingleColumnFilmWidth,
+  getAvailableColumnCounts,
   type GravurePouchType,
 } from '@/lib/gravure-material-width';
 import { calculateGravureProcessingCount } from '@/lib/gravure-cost-calculator';
@@ -1393,6 +1396,46 @@ function PostProcessingStep() {
   const { updatePostProcessing, setSealWidth } = useQuote();
   const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
 
+  // 底マチあり判定（3軸: bagTypeId + hasGusset + depth）※ sealing-data.ts の isGussetedBag で共通化
+  const isGusseted = isGussetedBag(state.bagTypeId, state.hasGusset, state.depth);
+
+  // 動的シール幅選択肢（Excel D24:J101 厳密一致・Rev.5 必須選択/自動決定/昇順）
+  // 依存はプリミティブのみ（effectiveOptions 配列を依存にしない＝無限ループ回避）
+  const FALLBACK_SEALING_OPTIONS = SEALING_WIDTH_OPTIONS;
+  const effectiveSealingOptions = useMemo(
+    () => {
+      // depth undefined / 0 ガード（底マチなし）= 従来3択フォールバック
+      if (state.depth === undefined || state.depth === 0) return FALLBACK_SEALING_OPTIONS;
+      if (!state.width) return FALLBACK_SEALING_OPTIONS;
+      const widths = isGusseted
+        ? getAvailableSealWidths(state.width, state.depth)
+        : [];
+      // 底マチあり・Excel該当なし（空配列）= 従来3択フォールバック（必須選択）
+      return widths.length > 0
+        ? widths.map(n => ({
+            id: `${n}mm`.replace('.', '-'),
+            name: `シール幅 ${n}mm`,
+            value: `${n}mm`,
+            priceMultiplier: 1.0,
+            previewImage: `/images/post-processing/seal_${n}.jpg`,
+          }))
+        : FALLBACK_SEALING_OPTIONS;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.width, state.depth, state.bagTypeId, state.hasGusset]
+  );
+
+  // 1候補時: 自動決定（useEffect）。複数候補/0候補時: 未選択を許容（必須選択は checkStepComplete で担保）
+  useEffect(() => {
+    if (!state.width || state.depth === undefined || state.depth === 0) return;
+    const widths = isGusseted
+      ? getAvailableSealWidths(state.width, state.depth)
+      : [];
+    if (widths.length === 1) {
+      setSealWidth(`${widths[0]}mm`);
+    }
+  }, [state.width, state.depth, state.bagTypeId, state.hasGusset]);
+
   // ホバー状態管理（パターンA用）
   const [hoveredOption, setHoveredOption] = useState<{option: any; element: HTMLElement} | null>(null);
 
@@ -1587,6 +1630,9 @@ function PostProcessingStep() {
             {/* Category Header */}
             <div className="flex items-center gap-3 mb-3">
               <h3 className="text-base font-bold text-gray-900">シール幅</h3>
+              {isGusseted && !state.sealWidth && (
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">必須</span>
+              )}
               {state.sealWidth && (
                 <Check className="w-5 h-5 text-green-500" />
               )}
@@ -1594,7 +1640,7 @@ function PostProcessingStep() {
 
             {/* Horizontal Scroll Options */}
             <div className="flex gap-2 pb-2 scrollbar-hide flex-wrap">
-              {SEALING_WIDTH_OPTIONS.map((option) => {
+              {effectiveSealingOptions.map((option) => {
                 const isSelected = state.sealWidth === option.value;
                 return (
                   <div key={option.id} className="relative flex-shrink-0">
@@ -1723,6 +1769,7 @@ function PostProcessingStep() {
 function RealTimePriceDisplay() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const state = useQuoteState();
+  const { applyMultiColumnOption, clearAppliedOption } = useQuote();
   const [isCalculating, setIsCalculating] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [priceChange, setPriceChange] = useState<'increase' | 'decrease' | 'stable'>('stable');
@@ -2151,6 +2198,65 @@ function RealTimePriceDisplay() {
             {state.thicknessSelection && ` | 厚さ: ${getThicknessLabel(state.thicknessSelection)}`}
           </div>
         </div>
+
+        {/* グラビア多列生産 列数選択UI（計画 multi-column-gravure-unification.md AC5）
+            グラビア印刷 + パウチ形状の時のみ表示。1100mm上限で物理不可の列数は選択不可。 */}
+        {state.printingType === 'gravure' && state.bagTypeId !== 'roll_film' && (() => {
+          // bagTypeId → GravurePouchType マッピング（グラビア計算と同一ロジック）
+          const bt = state.bagTypeId || '';
+          let pouchType: GravurePouchType | null = null;
+          if (bt.includes('lap_seal') || bt.includes('t_shape')) pouchType = 't_shape';
+          else if (bt.includes('3_side') || bt.includes('flat')) pouchType = 'flat_3_side';
+          else if (bt.includes('stand')) pouchType = 'stand_up';
+          else if (bt.includes('m_shape')) pouchType = 'm_shape';
+          if (!pouchType) return null;
+
+          const oneColumnWidthMm = calculateSingleColumnFilmWidth(
+            pouchType, state.height || 0, state.width || 0, state.depth ?? 0,
+          );
+          const availableCounts = getAvailableColumnCounts(oneColumnWidthMm);
+          if (availableCounts.length === 0) return null; // 2列以上不可なら非表示
+
+          const currentColumn = state.multiColumnOptionApplied?.columnCount ?? 1;
+          const options = [1, ...availableCounts]; // 1列(デフォルト) + 物理可能列数
+          const discountLabels: Record<number, string> = { 1: '標準', 2: '15%引', 3: '30%引', 4: '40%引' };
+
+          const handleSelect = (col: number) => {
+            if (col === 1) {
+              clearAppliedOption(); // 1列=標準はオプション解除
+            } else {
+              // 価格は再計算で反映されるため、ここでは列数状態のみ更新（プレースホルダ価格）
+              applyMultiColumnOption(col, `multi-${col}`, 0, 0, 0, state.quantity || 0);
+            }
+          };
+
+          return (
+            <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="text-sm font-medium text-purple-900 mb-2">
+                グラビア多列生産（原反幅 {oneColumnWidthMm}mm / 最大 {Math.floor(1100 / oneColumnWidthMm)}列まで）
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {options.map((col) => (
+                  <button
+                    key={col}
+                    type="button"
+                    onClick={() => handleSelect(col)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      currentColumn === col
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-purple-700 border border-purple-300 hover:bg-purple-100'
+                    }`}
+                  >
+                    {col}列 ({discountLabels[col]})
+                  </button>
+                ))}
+              </div>
+              <div className="mt-1 text-xs text-purple-600">
+                列数を増やすと銅版費・セットアップ費を按分し単価が下がります（1100mm上限内）
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -2457,7 +2563,7 @@ export function ImprovedQuotingWizard() {
                 //   - 原反幅: bagTypeId/寸法から動的算出（740mm固定は誤り）
                 //   - 製作長: 1ロット(6000m)あたりの加工個数から必要ロット数を算出し、
                 //             総製作長 = ロット数 × 6000m で数量スケール（未指定だと常に1ロット固定になるバグを修正）
-                //   - laminationType: 正しい値は 2liquid_high/2liquid_semi/solventless（'solvent_semi' は存在しない値）
+                //   - laminationType: 2026-06-27 廃止（ラミ種別→AL有無。filmLayers から自動判定）
                 let gravureResult: UnifiedQuoteResult | null = null;
                 try {
                   const bagTypeId = state.bagTypeId;
@@ -2496,12 +2602,25 @@ export function ImprovedQuotingWizard() {
                     gravureProductionMeters = requiredLots * GRAVURE_CONSTANTS.STANDARD_LOT_METERS;
                   }
 
+                  // 多列生産列数の決定（計画 multi-column-gravure-unification.md AC5/AC7）
+                  // QuoteContext の multiColumnOptionApplied を明示読込 → columnCount を取得。
+                  // パウチの場合は1列幅から物理可能列数を算出し、1100mm上限を超える選択は無効化（1列にフォールバック）。
+                  let gravureColumnCount = 1;
+                  if (pouchType) {
+                    const requestedColumn = state.multiColumnOptionApplied?.columnCount ?? 1;
+                    const oneColumnWidthMm = calculateSingleColumnFilmWidth(pouchType, gHeight, gWidth, gDepth);
+                    const availableCounts = getAvailableColumnCounts(oneColumnWidthMm);
+                    // 要求列数が物理可能範囲内なら採用、超過時は1列へフォールバック
+                    gravureColumnCount = requestedColumn > 1 && availableCounts.includes(requestedColumn)
+                      ? requestedColumn : 1;
+                  }
+
                   gravureResult = await unifiedPricingEngine.calculateQuote({
                     ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'gravure',
                     gravureMaterialWidth,
                     gravureProductionMeters,
-                    laminationType: '2liquid_semi', // 正しい値（'solvent_semi' は typo・存在しない値）
                     copperPlateType: 'new',         // 初回見積もり想定
+                    columnCount: gravureColumnCount, // 多列生産列数（グラビア 2/3/4列・AC6）
                   });
                 } catch (e) {
                   console.warn('[handleNext] Gravure calc failed for pattern', patternIdx, e);

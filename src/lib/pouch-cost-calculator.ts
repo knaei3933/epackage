@@ -8,6 +8,8 @@
 import { FilmCostCalculator, FilmCostResult, FilmStructureLayer } from './film-cost-calculator';
 import { determineMaterialWidth, MaterialWidthType } from './material-width-selector';
 import { PRICING_CONSTANTS } from './pricing/core/constants';
+// 多列生産割引 統一エントリポイント（計画 multi-column-gravure-unification.md・AC2 後方互換）
+import { applyMultiColumnDiscount } from './multi-column-discount';
 
 // ========================================
 // タイプ定義
@@ -2017,8 +2019,10 @@ export class PouchCostCalculator {
     // 顧客提示単価はガイドの数値例（41→35→24）と一致する。
     //
     // したがって実装は割引率を維持し、savingsRate をガイド値（15/30）に固定する。
-    const sameQuantityPrice = currentUnitPrice * 0.85; // ガイド: 2列同数 15% OFF
-    const doubleQuantityPrice = currentUnitPrice * 0.70; // ガイド: 2列倍量 30% OFF
+    // 多列割引: applyMultiColumnDiscount 統一エントリポイント経由（計画 AC2 後方互換）
+    // same=2列(15% OFF)→×0.85 / double=3列(30% OFF)→×0.70。現行ロジックと完全一致
+    const sameQuantityPrice = applyMultiColumnDiscount('pouch', 2, currentUnitPrice).finalCost; // ガイド: 2列同数 15% OFF
+    const doubleQuantityPrice = applyMultiColumnDiscount('pouch', 3, currentUnitPrice).finalCost; // ガイド: 2列倍量 30% OFF
 
     console.log('[calculateTwoColumnProductionOptions] 2列生産オプション価格計算（ガイド準拠）:', {
       currentUnitPrice,

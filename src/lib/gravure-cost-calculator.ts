@@ -13,7 +13,7 @@
  *   ※ MATERIAL_PRICES_KRW.density（例: PET=1.40）をそのまま比重として使用
  */
 
-import { GRAVURE_CONSTANTS, GravureLaminationType, MATERIAL_PRICES_KRW } from './pricing/core/constants'
+import { GRAVURE_CONSTANTS, MATERIAL_PRICES_KRW } from './pricing/core/constants'
 import type { FilmStructureLayer } from './pricing/core/types'
 import { calculateSingleColumnFilmWidth as calculateSingleColumnFilmWidthImported } from './gravure-material-width'
 
@@ -117,33 +117,36 @@ export function calculateGravurePrintingCost(
 }
 
 // ========================================
-// ラミネート費（§6.2）
+// ラミネート費（AL有無 2段階・2026-06-27 改定）
 // ========================================
 
 /**
- * グラビア ラミネート費計算（仕様§6.2）
+ * グラビア ラミネート費計算
  *
  *   ラミ費(₫) = 原反幅(m) × 製作長(m) × ラミ回数 × ラミ単価(₫/m)
  *   ラミ回数 = 層数 - 1
  *
- * ラミ単価（仕様§6.2/§10.3）:
- *   - 2液型ハイ (2liquid_high): 75₫/m
- *   - 2液型セミ (2liquid_semi): 65₫/m
- *   - 無溶剤 (solventless): 55₫/m
+ * ラミ単価（2026-06-27 改定: ラミ方法の種別を廃止し AL有無で統一）:
+ *   - AL素材あり (WITH_AL): 80₫/m
+ *   - AL素材なし (NO_AL): 65₫/m
  *
+ * @param layers フィルム構造レイヤー（AL有無判定用）
  * @param materialWidthMm 原反幅 (mm)。最終熱シール層の幅(+10mm)を想定
  * @param productionMeters 製作長 (m)。ロス500m込み
- * @param laminationType ラミネート種別
  * @param layerCount フィルム層数。省略時は2層(ラミ1回)扱い
  * @returns ラミネート費 (ウォン)
  */
 export function calculateGravureLaminationCost(
+  layers: FilmStructureLayer[],
   materialWidthMm: number,
   productionMeters: number,
-  laminationType: GravureLaminationType,
   layerCount = 2,
 ): number {
-  const unitCost = GRAVURE_CONSTANTS.LAMINATION_COST_PER_M[laminationType]
+  // AL素材の有無でラミ単価を切替（2026-06-27 改定: 種別→AL有無）
+  const hasAL = layers.some((l) => l.materialId === 'AL')
+  const unitCost = hasAL
+    ? GRAVURE_CONSTANTS.LAMINATION_COST_PER_M.WITH_AL
+    : GRAVURE_CONSTANTS.LAMINATION_COST_PER_M.NO_AL
   // ラミ回数 = 層数 - 1（最低1回）
   const laminationPasses = Math.max(1, layerCount - 1)
   const widthM = materialWidthMm / 1000
@@ -200,11 +203,11 @@ export function calculateCopperPlateCost(
  *
  * ※ 加工費（袋成形）・銅版費は別途。ロールフィルムは加工費不要。
  *
- * 検証（仕様§11）: PET12/AL7/PET12/LLDPE50、3色、6000m、原反幅740mm、2液セミ
- *   原材料費 = 1,654,284₫
+ * 検証（2026-06-27 改定後）: PET12/AL7/PET12/LLDPE50、3色、6000m、原反幅740mm、AL有
+ *   原材料費 = 2,457,373₫（新単価: PET4300/AL10500/LLDPE4500）
  *   印刷費   = 0.74 × 6000 × 3 × 19 = 253,080₫
- *   ラミ費   = 0.75 × 6000 × 3 × 65 = 877,500₫ （最終層幅740+10=750mm、層数4→ラミ3回）
- *   原反値   = 2,784,864₫ ✓
+ *   ラミ費   = 0.75 × 6000 × 3 × 80 = 1,080,000₫ （AL有80・最終層幅750mm・ラミ3回）
+ *   原反値   = 3,790,453₫ ✓
  *
  * @returns 原反値 (ウォン)
  */
@@ -213,7 +216,6 @@ export function calculateGravureFilmValue(
   materialWidthMm: number,
   productionMeters: number,
   colors: number,
-  laminationType: GravureLaminationType,
 ): {
   materialCost: number
   printingCost: number
@@ -227,9 +229,9 @@ export function calculateGravureFilmValue(
   const { FINAL_LAYER_WIDTH_EXTRA_MM } = GRAVURE_CONSTANTS
   const finalLayerWidthMm = materialWidthMm + FINAL_LAYER_WIDTH_EXTRA_MM
   const laminationCost = calculateGravureLaminationCost(
+    layers,
     finalLayerWidthMm,
     productionMeters,
-    laminationType,
     layers.length,
   )
 

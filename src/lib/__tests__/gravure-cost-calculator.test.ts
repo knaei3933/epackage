@@ -2,8 +2,8 @@
  * Phase 1a 単体テスト: グラビア純粋計算モジュール
  * 仕様: docs/gravure-pricing-calculation-formula.md §11 / §11B 計算例
  *
- * 条件（§11）: PET12/AL7/PET12/LLDPE50、3色、製作6,000m、原反幅740mm、2液セミ
- * 期待値: 原材1,654,284 / 印刷253,080 / ラミ877,500 / 原反値2,784,864 / 銅版529,200
+ * 条件（§11・2026-06-27改定後）: PET12/AL7/PET12/LLDPE50、3色、製作6,000m、原反幅740mm、AL有
+ * 期待値: 原材2,457,373 / 印刷253,080 / ラミ1,080,000 / 原反値3,790,453 / 銅版529,200
  */
 
 import {
@@ -29,9 +29,9 @@ const PRODUCTION_METERS = 6000
 const COLORS = 3
 
 describe('グラビア純粋計算 §11 計算例 (PET12/AL7/PET12/LLDPE50, 3色, 6000m, 740mm)', () => {
-  test('原材料費 = 1,654,284₫', () => {
+  test('原材料費 = 2,457,373₫（新単価: PET4300/AL10500/LLDPE4500）', () => {
     const cost = calculateGravureMaterialCost(layers, MATERIAL_WIDTH_MM, PRODUCTION_METERS)
-    expect(cost).toBeCloseTo(1654284, -1)
+    expect(cost).toBeCloseTo(2457373, -1)
   })
 
   test('印刷費 = 253,080₫ (0.74 × 6000 × 3 × 19)', () => {
@@ -39,18 +39,18 @@ describe('グラビア純粋計算 §11 計算例 (PET12/AL7/PET12/LLDPE50, 3色
     expect(cost).toBeCloseTo(253080, -1)
   })
 
-  test('ラミネート費 = 877,500₫ (最終層幅750mm × 6000 × 3回 × 65)', () => {
-    // 最終熱シール層幅 = 740 + 10 = 750mm、層数4 → ラミ3回
-    const cost = calculateGravureLaminationCost(750, PRODUCTION_METERS, '2liquid_semi', 4)
-    expect(cost).toBeCloseTo(877500, -1)
+  test('ラミネート費 = 1,080,000₫ (最終層幅750mm × 6000 × 3回 × 80・AL有)', () => {
+    // 最終熱シール層幅 = 740 + 10 = 750mm、層数4 → ラミ3回。AL有なので80₫/m（2026-06-27改定）
+    const cost = calculateGravureLaminationCost(layers, 750, PRODUCTION_METERS, 4)
+    expect(cost).toBeCloseTo(1080000, -1)
   })
 
-  test('原反値合計 = 2,784,864₫', () => {
-    const filmValue = calculateGravureFilmValue(layers, MATERIAL_WIDTH_MM, PRODUCTION_METERS, COLORS, '2liquid_semi')
-    expect(filmValue.total).toBeCloseTo(2784864, -1)
-    expect(filmValue.materialCost).toBeCloseTo(1654284, -1)
+  test('原反値合計 = 3,790,453₫（新単価・AL有80）', () => {
+    const filmValue = calculateGravureFilmValue(layers, MATERIAL_WIDTH_MM, PRODUCTION_METERS, COLORS)
+    expect(filmValue.total).toBeCloseTo(3790453, -1)
+    expect(filmValue.materialCost).toBeCloseTo(2457373, -1)
     expect(filmValue.printingCost).toBeCloseTo(253080, -1)
-    expect(filmValue.laminationCost).toBeCloseTo(877500, -1)
+    expect(filmValue.laminationCost).toBeCloseTo(1080000, -1)
   })
 
   test('銅版費 = 529,200₫ (3色 × 84cm × 50 × 42cm)', () => {

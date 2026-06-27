@@ -26,27 +26,9 @@ describe('Phase 1c: グラビアアダプタブランチ到達', () => {
           { materialId: 'AL', thickness: 7 },
           { materialId: 'LLDPE', thickness: 50 },
         ],
-        laminationType: '2liquid_semi',
         // gravureMaterialWidth 意図的省略
       } as any)
     ).rejects.toThrow(/gravureMaterialWidth/)
-  })
-
-  test('printingType=gravure で laminationType 未指定時にエラー（ブランチ到達証明）', async () => {
-    await expect(
-      unifiedPricingEngine.calculateQuote({
-        bagTypeId: 'flat_3_side',
-        materialId: 'pet_al',
-        width: 100,
-        height: 160,
-        quantity: 10000,
-        printingType: 'gravure',
-        printingColors: 3,
-        gravureMaterialWidth: 740,
-        filmLayers: [{ materialId: 'PET', thickness: 12 }],
-        // laminationType 意図的省略
-      } as any)
-    ).rejects.toThrow(/laminationType/)
   })
 
   test('printingType=gravure で filmLayers 未指定時にエラー（ブランチ到達証明）', async () => {
@@ -60,7 +42,6 @@ describe('Phase 1c: グラビアアダプタブランチ到達', () => {
         printingType: 'gravure',
         printingColors: 3,
         gravureMaterialWidth: 740,
-        laminationType: '2liquid_semi',
         // filmLayers 意図的省略
       } as any)
     ).rejects.toThrow(/filmLayers/)
@@ -87,7 +68,7 @@ describe('Phase 1c: デジタル後方互換性（ガード確認）', () => {
       } as any)
       // 計算成功でもエラーでも、グラビアエラーでなければOK
     } catch (e: any) {
-      expect(e.message).not.toMatch(/gravureMaterialWidth|laminationType|グラビア計算には/)
+      expect(e.message).not.toMatch(/gravureMaterialWidth|グラビア計算には/)
     }
   })
 
@@ -105,7 +86,7 @@ describe('Phase 1c: デジタル後方互換性（ガード確認）', () => {
         deliveryLocation: 'international',
       } as any)
     } catch (e: any) {
-      expect(e.message).not.toMatch(/gravureMaterialWidth|laminationType|グラビア計算には/)
+      expect(e.message).not.toMatch(/gravureMaterialWidth|グラビア計算には/)
     }
   })
 })

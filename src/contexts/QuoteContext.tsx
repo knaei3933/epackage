@@ -22,6 +22,7 @@ import {
   validateCategorySelection
 } from '@/components/quote/shared/processingConfig';
 import { getAvailableGussetSizes, getDefaultGussetSize, validateWidthStep } from '@/lib/gusset-data';
+import { isGussetedBag } from '@/lib/sealing-data';
 import { validateMOQ } from '@/lib/pricing/validators/moq-validator';
 import {
   getDefaultFilmLayers,
@@ -75,7 +76,16 @@ export interface QuoteState {
   skuQuantities: number[];        // Quantity for each SKU [500, 500] for 2 SKUs
   quantityMode: 'single' | 'sku'; // Single quantity vs SKU-specific mode
   useSKUCalculation: boolean;     // Enable SKU-based cost calculation
-  // 2列生産オプション適用情報 (オプション適用後の価格を保持)
+  // 多列生産オプション適用情報 (パウチ 2/3列 + グラビア 2/3/4列 統一)
+  // 計画 multi-column-gravure-unification.md: twoColumnOptionApplied を汎化
+  multiColumnOptionApplied?: {
+    columnCount: number;  // 適用された列数（1=単列・2/3/4=多列）
+    option: string;       // オプション名（'same'/'double'/グラビアは 'multi-N' 等）
+  } | null;
+  // [deprecated・レガシーフィールド] 後方互換用。以下の実装事実に注意:
+  // - パウチ same/double（APPLY_TWO_COLUMN_OPTION）の場合のみ multiColumnOptionApplied と同期して設定される
+  // - グラビア経路（APPLY_MULTI_COLUMN_OPTION）では常に null（グラビアは same/double の概念を持たないため）
+  // - getter/accessor は未実装。フィールドとして直代入のまま。既存呼び出し元はそのまま参照可能（後方互換）
   twoColumnOptionApplied?: 'same' | 'double' | null;
   discountedUnitPrice?: number;   // オプション適用後の単価
   discountedTotalPrice?: number;  // オプション適用後の合計価格
@@ -133,6 +143,8 @@ type QuoteAction =
   // 新規: 推奨機能関連
   | { type: 'CLEAR_RECOMMENDATION_CACHE' }
   | { type: 'APPLY_TWO_COLUMN_OPTION'; payload: { optionType: 'same' | 'double'; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number; preserveSKUCount?: boolean } }
+  // 多列生産オプション適用（グラビア 2/3/4列・パウチ多列 汎用）。計画 multi-column-gravure-unification.md AC7
+  | { type: 'APPLY_MULTI_COLUMN_OPTION'; payload: { columnCount: number; option: string; unitPrice: number; totalPrice: number; originalUnitPrice: number; quantity: number; preserveSKUCount?: boolean } }
   | { type: 'APPLY_SKU_SPLIT'; payload: { skuCount: number; quantities: number[] } }
   | { type: 'CLEAR_APPLIED_OPTION' } // 옵션 적용 상태를 클리어
   | { type: 'RESET_SKU_QUANTITIES_ON_PRODUCT_CHANGE'; payload: { defaultQuantity: number } }
@@ -445,6 +457,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
           useSKUCalculation: kraftUseSKUCalculation ?? false,
           // 割引関連状態も初期化
           twoColumnOptionApplied: kraftTwoColumnOptionApplied ?? null,
+          multiColumnOptionApplied: kraftTwoColumnOptionApplied ? { columnCount: kraftTwoColumnOptionApplied === 'double' ? 3 : 2, option: kraftTwoColumnOptionApplied } : null,
           fixedTotalQuantity: kraftFixedTotalQuantity,
           // 投稿加工オプションを更新
           postProcessingOptions: newPostProcessingOptions,
@@ -477,7 +490,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         ...(kraftSkuQuantities !== undefined ? { skuQuantities: kraftSkuQuantities } : {}),
         ...(kraftQuantityMode !== undefined ? { quantityMode: kraftQuantityMode } : {}),
         ...(kraftUseSKUCalculation !== undefined ? { useSKUCalculation: kraftUseSKUCalculation } : {}),
-        ...(kraftTwoColumnOptionApplied !== undefined ? { twoColumnOptionApplied: kraftTwoColumnOptionApplied } : {}),
+        ...(kraftTwoColumnOptionApplied !== undefined ? { twoColumnOptionApplied: kraftTwoColumnOptionApplied, multiColumnOptionApplied: kraftTwoColumnOptionApplied ? { columnCount: kraftTwoColumnOptionApplied === 'double' ? 3 : 2, option: kraftTwoColumnOptionApplied } : null } : {}),
         ...(kraftFixedTotalQuantity !== undefined ? { fixedTotalQuantity: kraftFixedTotalQuantity } : {}),
         // Update filmLayers when materialId or thicknessSelection changes
         ...(materialIdChanged || thicknessSelectionChanged ? {
@@ -932,6 +945,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         useSKUCalculation: false,
         // 할인 관련 상태도 초기화
         twoColumnOptionApplied: null,
+        multiColumnOptionApplied: null,
         fixedTotalQuantity: undefined
       };
     }
@@ -993,6 +1007,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         return {
           ...state,
           twoColumnOptionApplied: optionType,
+          multiColumnOptionApplied: { columnCount: optionType === 'double' ? 3 : 2, option: optionType },
           discountedUnitPrice: unitPrice,
           discountedTotalPrice: adjustedTotalPrice,
           originalUnitPrice: effectiveOriginalUnitPrice, // 既存の値を保持
@@ -1016,6 +1031,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       return {
         ...state,
         twoColumnOptionApplied: optionType,
+        multiColumnOptionApplied: { columnCount: optionType === 'double' ? 3 : 2, option: optionType },
         discountedUnitPrice: unitPrice,
         discountedTotalPrice: totalPrice,
         originalUnitPrice: effectiveOriginalUnitPrice, // 既存の値を保持
@@ -1028,6 +1044,58 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       };
     }
 
+    case 'APPLY_MULTI_COLUMN_OPTION': {
+      // 多列生産オプション適用（グラビア 2/3/4列・パウチ多列 汎用）
+      // 計画 multi-column-gravure-unification.md AC7: multiColumnOptionApplied を明示設定
+      const { columnCount, option, unitPrice, totalPrice, originalUnitPrice, quantity, preserveSKUCount = true } = action.payload;
+      console.log('[APPLY_MULTI_COLUMN_OPTION] Applied:', action.payload);
+
+      const effectiveOriginalUnitPrice = state.originalUnitPrice || originalUnitPrice;
+
+      // 後方互換: same/double の場合は twoColumnOptionApplied も同期
+      const compatTwoColumn: 'same' | 'double' | null =
+        option === 'same' ? 'same' : option === 'double' ? 'double' : null;
+
+      if (preserveSKUCount && state.skuCount > 1) {
+        const quantityPerSKU = Math.floor(quantity / state.skuCount / 100) * 100;
+        const minQuantityPerSku = state.bagTypeId === 'roll_film' ? 300 : 500;
+        const adjustedQuantityPerSKU = Math.max(quantityPerSKU, minQuantityPerSku);
+        const adjustedTotalQuantity = adjustedQuantityPerSKU * state.skuCount;
+        const adjustedQuantities = Array(state.skuCount).fill(adjustedQuantityPerSKU);
+        const adjustedTotalPrice = Math.round(unitPrice * adjustedTotalQuantity);
+
+        return {
+          ...state,
+          twoColumnOptionApplied: compatTwoColumn,
+          multiColumnOptionApplied: { columnCount, option },
+          discountedUnitPrice: unitPrice,
+          discountedTotalPrice: adjustedTotalPrice,
+          originalUnitPrice: effectiveOriginalUnitPrice,
+          quantity: adjustedTotalQuantity,
+          skuCount: state.skuCount,
+          skuQuantities: adjustedQuantities,
+          quantityMode: 'sku',
+          fixedTotalQuantity: adjustedTotalQuantity,
+          _forceRecalculate: false
+        };
+      }
+
+      return {
+        ...state,
+        twoColumnOptionApplied: compatTwoColumn,
+        multiColumnOptionApplied: { columnCount, option },
+        discountedUnitPrice: unitPrice,
+        discountedTotalPrice: totalPrice,
+        originalUnitPrice: effectiveOriginalUnitPrice,
+        quantity: quantity,
+        skuCount: 1,
+        skuQuantities: [quantity],
+        quantityMode: 'sku',
+        fixedTotalQuantity: quantity,
+        _forceRecalculate: false
+      };
+    }
+
     case 'CLEAR_APPLIED_OPTION': {
       // オプション適用状態をクリア（元の単価に戻す）
       console.log('[CLEAR_APPLIED_OPTION] Clearing applied option');
@@ -1035,6 +1103,7 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
       return {
         ...state,
         twoColumnOptionApplied: null,
+        multiColumnOptionApplied: null,
         discountedUnitPrice: undefined,
         discountedTotalPrice: undefined,
         originalUnitPrice: undefined,
@@ -1167,6 +1236,8 @@ interface QuoteContextType {
   // 新規: 推奨機能関連
   clearRecommendationCache: () => void;
   applyTwoColumnOption: (optionType: 'same' | 'double', unitPrice: number, totalPrice: number, originalUnitPrice: number, quantity: number) => void;
+  // 多列生産オプション適用（グラビア 2/3/4列・パウチ多列 汎用）。計画 multi-column-gravure-unification.md AC7
+  applyMultiColumnOption: (columnCount: number, option: string, unitPrice: number, totalPrice: number, originalUnitPrice: number, quantity: number) => void;
   applySKUSplit: (skuCount: number, quantities: number[]) => void;
   clearAppliedOption: () => void; // オプション適用をクリア
   setSealWidth: (width: string) => void; // シーラー幅設定
@@ -1303,6 +1374,7 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
         skuQuantities: state.skuQuantities,
         quantity: state.quantity,
         twoColumnOptionApplied: state.twoColumnOptionApplied,
+        multiColumnOptionApplied: state.multiColumnOptionApplied,
         fixedTotalQuantity: state.fixedTotalQuantity
       });
       if (state.quantityMode === 'sku') {
@@ -1311,8 +1383,9 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
                state.skuQuantities.length === state.skuCount &&
                state.skuQuantities.every(qty => qty >= 100);
 
-        // 2列生産オプション適用時の総数量チェック
-        if (state.twoColumnOptionApplied && state.fixedTotalQuantity !== undefined) {
+        // 多列生産オプション適用時の総数量チェック（パウチ twoColumn + グラビア multiColumn 統合）
+        const anyColumnOptionApplied = state.twoColumnOptionApplied || state.multiColumnOptionApplied;
+        if (anyColumnOptionApplied && state.fixedTotalQuantity !== undefined) {
           const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
           const totalQuantityValid = currentTotalQuantity === state.fixedTotalQuantity;
           console.log('[checkStepComplete] 2列生産総数量チェック:', {
@@ -1393,6 +1466,18 @@ export function checkStepComplete(state: QuoteState, step: string): boolean {
         }
         // 単一数量モードの場合
         return state.quantity >= 40000;
+      }
+
+      // 【Rev.5 Step 4.5】底マチあり（isGusseted）時にシール幅が未選択なら次ステップへ進めない
+      // AC-A9 バリデーション: 複数候補・フォールバック時の「必須選択」を担保（post-processing ケース内に厳密限定・R14）
+      // ※ isGussetedBag は sealing-data.ts の共通純粋関数（worker-2 / ImprovedQuotingWizard と共有・3軸判定）
+      if (isGussetedBag(state.bagTypeId, state.hasGusset, state.depth) && !state.sealWidth) {
+        console.log('[checkStepComplete] post-processing incomplete: sealWidth required for gusseted bag', {
+          bagTypeId: state.bagTypeId,
+          isGusseted: true,
+          sealWidth: state.sealWidth
+        });
+        return false;
       }
 
       return true;
@@ -1833,6 +1918,14 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     });
   }, []);
 
+  // 多列生産オプション適用（グラビア 2/3/4列・パウチ多列 汎用）。計画 multi-column-gravure-unification.md AC7
+  const applyMultiColumnOption = useCallback((columnCount: number, option: string, unitPrice: number, totalPrice: number, originalUnitPrice: number, quantity: number) => {
+    dispatch({
+      type: 'APPLY_MULTI_COLUMN_OPTION',
+      payload: { columnCount, option, unitPrice, totalPrice, originalUnitPrice, quantity }
+    });
+  }, []);
+
   const applySKUSplit = useCallback((skuCount: number, quantities: number[]) => {
     dispatch({
       type: 'APPLY_SKU_SPLIT',
@@ -2255,6 +2348,7 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     toggleSKUCalculation,
     clearRecommendationCache,
     applyTwoColumnOption,
+    applyMultiColumnOption,
     applySKUSplit,
     clearAppliedOption,
     setSealWidth,

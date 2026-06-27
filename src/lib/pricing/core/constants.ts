@@ -24,21 +24,19 @@ export const PRICING_CONSTANTS = {
   /** ロールフィルム固定ロス（m） */
   ROLL_FILM_LOSS_METERS: 400,
 
-  /** 製造者マージン率（ガイド 06-마진:115 準拠。DB system_settings.manufacturer_margin=0.4 と一致） */
+  /** 製造者マージン率 40%（製造社原価に40%適用。DB system_settings.manufacturer_margin=0.4 と一致） */
   MANUFACTURER_MARGIN: 0.4,
-  /** 販売マージン率（ガイド 06-마진:117 準拠値=0.2。フォールバック専用。
-   *  注意: 実運用の販売マージンは DB system_settings.default_markup_rate=0.3（ユーザー承認の現状維持）。
-   *  ガイド文書の20%表記とDB30%の不一致は「ユーザー承認の既知事項」（team-lead 確定 2026-06-15）。
-   *  このフォールバック値は DB 設定不在時の最終手段であり、ガイド SSoT 値を保持する。 */
-  SALES_MARGIN: 0.2,
+  /** 販売マージン率 25%（小計に25%適用。DB system_settings.default_markup_rate=0.25 と一致）。
+   *  2026-06-27 改定: 0.2→0.25（原価上昇に伴う販売マージン変更・ユーザー指示）。 */
+  SALES_MARGIN: 0.25,
   /** 関税率 */
   DUTY_RATE: 0.05,
   /** 為替レート（KRW→JPY） */
   EXCHANGE_RATE_KRW_TO_JPY: 0.12,
 
-  /** デフォルトマークアップ率（フォールバック専用、SALES_MARGIN に等しい=ガイド準拠0.2。
-   *  実運用値は DB system_settings.default_markup_rate=0.3） */
-  DEFAULT_MARKUP_RATE: 0.2,
+  /** デフォルトマークアップ率（フォールバック専用、SALES_MARGIN に等しい=0.25。
+   *  実運用値は DB system_settings.default_markup_rate=0.25） */
+  DEFAULT_MARKUP_RATE: 0.25,
   /** デフォルトロス率 */
   DEFAULT_LOSS_RATE: 0.4,
   /** デフォルト原反幅（mm） */
@@ -75,11 +73,12 @@ export const PRICING_CONSTANTS = {
 // ========================================
 
 export const MATERIAL_PRICES_KRW: Record<string, MaterialCostConfig> = {
-  'PET': { unitPrice: 2800, density: 1.40 },
-  'AL': { unitPrice: 7800, density: 2.71 },
-  'LLDPE': { unitPrice: 2800, density: 0.92 },
-  'NY': { unitPrice: 5400, density: 1.16 },
-  'VMPET': { unitPrice: 3600, density: 1.40 },
+  // 2026-06-27 改定: 原価上昇に伴う材料 kg 単価更新（ユーザー指示）
+  'PET': { unitPrice: 4300, density: 1.40 },
+  'AL': { unitPrice: 10500, density: 2.71 },
+  'LLDPE': { unitPrice: 4500, density: 0.92 },
+  'NY': { unitPrice: 7600, density: 1.16 },
+  'VMPET': { unitPrice: 4000, density: 1.40 },
   'CPP': { unitPrice: 2700, density: 0.91 },
   'KRAFT': { unitPrice: 3000, density: 1.0 },
 } as const
@@ -113,7 +112,7 @@ export const ZIPPER_SURCHARGE_KRW = {
 export const PRINTING_COSTS: Record<string, PrintingCostConfig> = {
   'digital': {
     setupFee: 10000,
-    perColorPerMeter: 475, // ウォン/m
+    perColorPerMeter: 520, // ウォン/m（2026-06-27 改定: 475→520 原価上昇）
     minCharge: 5000,
   },
   'gravure': {
@@ -145,14 +144,16 @@ export const DELIVERY_COSTS: Record<string, DeliveryCostConfig> = {
 // ========================================
 
 export const ROLL_FILM_CONSTANTS = {
-  /** ラミネート費（ウォン/m） */
-  LAMINATION_COST_PER_M: 75,
+  /** ラミネート費 AL素材なし（ウォン/m） - 2026-06-27 改定: AL有無2段階化 */
+  LAMINATION_COST_PER_M_NO_AL: 65,
+  /** ラミネート費 AL素材あり（ウォン/m） */
+  LAMINATION_COST_PER_M_WITH_AL: 80,
   /** スリッター最小費用（ウォン） */
   SLITTER_MIN_COST: 30000,
   /** スリッター費（ウォン/m） */
   SLITTER_COST_PER_M: 10,
-  /** 印刷費（ウォン/m） - 通常材料 */
-  PRINTING_COST_PER_M: 475,
+  /** 印刷費（ウォン/m） - 通常材料（2026-06-27 改定: 475→520） */
+  PRINTING_COST_PER_M: 520,
   /** クラフト紙印刷費（ウォン/m） - クラフト材料専用 */
   KRAFT_PRINTING_COST_PER_M: 400,
   /** マット印刷追加費（ウォン/m） */
@@ -197,19 +198,18 @@ export const GRAVURE_CONSTANTS = {
     PRICE_MODIFY: 30,
   },
 
-  /** ラミネート単価（ウォン/m） - 仕様§6.2/§10.3。ラミ回数 = 層数 - 1 */
+  /** ラミネート単価（ウォン/m） - 2026-06-27 改定: ラミ方法の種別（2液ハイ/セミ/無溶剤）を廃止し AL有無で統一。
+   *  ラミ回数 = 層数 - 1 */
   LAMINATION_COST_PER_M: {
-    /** 2液型ハイ（용제 D/L 2액형 하이） */
-    '2liquid_high': 75,
-    /** 2液型セミ（용제 D/L 2액형 세미） */
-    '2liquid_semi': 65,
-    /** 無溶剤（라말 / 무용제） */
-    'solventless': 55,
+    /** AL素材なし */
+    NO_AL: 65,
+    /** AL素材あり */
+    WITH_AL: 80,
   } as const,
 } as const
 
-/** グラビア ラミネート種別（仕様§6.2） */
-export type GravureLaminationType = keyof typeof GRAVURE_CONSTANTS.LAMINATION_COST_PER_M
+// ※ GravureLaminationType 型は 2026-06-27 改定で廃止（ラミ種別→AL有無統一）。
+//    AL有無は layers から判定するため、本型は不要。
 
 // ========================================
 // 配送重量別料金（韓国）

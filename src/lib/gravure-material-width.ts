@@ -112,6 +112,39 @@ export function determineGravureMaterialWidth(
 }
 
 /**
+ * 物理的に印刷可能な列数候補を算出（仕様§3: 最大1,100mm 上限）
+ *
+ * 1列フィルム幅から `floor(1100 / oneColumnWidth)` で最大列数を求め、
+ * 2列以上が物理可能な場合のみ [2..max] を返却。
+ * 1列しか入らない場合は空配列を返す（= 多列選択UIを表示しない）。
+ *
+ * グラビア多列選択UI（ImprovedQuotingWizard）の候補生成に使用。
+ * 計画 `multi-column-gravure-unification.md` 実装ステップ1・AC5 準拠。
+ *
+ * @param oneColumnWidthMm 1列フィルム幅 (mm)。calculateSingleColumnFilmWidth の結果
+ * @returns 選択可能な列数の配列。1列のみ可能なら []
+ */
+export function getAvailableColumnCounts(oneColumnWidthMm: number): number[] {
+  const { MATERIAL_WIDTH_MAX_MM } = GRAVURE_CONSTANTS
+
+  if (!oneColumnWidthMm || oneColumnWidthMm <= 0) return []
+
+  const maxColumns = Math.floor(MATERIAL_WIDTH_MAX_MM / oneColumnWidthMm)
+
+  // 2列未満は多列非対応（1列専用）
+  if (maxColumns < 2) return []
+
+  // 4列まで（本計画の対象）。maxColumns が 4 を超える場合は 4 で打ち切る
+  const upperBound = Math.min(maxColumns, 4)
+
+  const counts: number[] = []
+  for (let n = 2; n <= upperBound; n++) {
+    counts.push(n)
+  }
+  return counts
+}
+
+/**
  * ロールフィルム（袋加工なし）の原反幅決定（仕様§3 ロール）
  *
  * ロールは顧客指定の仕様幅 + 端代を基準とする。
