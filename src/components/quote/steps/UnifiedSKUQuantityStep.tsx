@@ -1356,7 +1356,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
           <div className="space-y-4">
             <div>
               <div className="text-sm text-gray-700 mb-2">
-                {isRollFilm ? '長さパターンを全SKUに適用（メートル）' : '数量パターンを全SKUに適用'}
+                {isRollFilm ? '長さパターンをすべてのデザインに適用（メートル）' : '数量パターンをすべてのデザインに適用'}
               </div>
               <div className="flex flex-wrap gap-2">
                 {quantityPatterns.map((pattern) => (
@@ -1365,7 +1365,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                     onClick={() => applyQuantityPattern(pattern)}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                   >
-                    全SKU: {pattern.toLocaleString()}{isRollFilm ? 'm' : ''}
+                    全デザイン: {pattern.toLocaleString()}{isRollFilm ? 'm' : ''}
                   </button>
                 ))}
               </div>

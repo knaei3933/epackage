@@ -112,30 +112,40 @@ export function determineGravureMaterialWidth(
 }
 
 /**
- * 物理的に印刷可能な列数候補を算出（仕様§3: 最大1,100mm 上限）
+ * 物理的に印刷可能な列数候補を算出（仕様§3: 最大幅 上限）
  *
- * 1列フィルム幅から `floor(1100 / oneColumnWidth)` で最大列数を求め、
- * 2列以上が物理可能な場合のみ [2..max] を返却。
+ * 1列フィルム幅から `floor(maxWidthMm / oneColumnWidth)` で最大列数を求め、
+ * 2列以上が物理可能な場合のみ [2..upperBound] を返却。
  * 1列しか入らない場合は空配列を返す（= 多列選択UIを表示しない）。
  *
  * グラビア多列選択UI（ImprovedQuotingWizard）の候補生成に使用。
  * 計画 `multi-column-gravure-unification.md` 実装ステップ1・AC5 準拠。
  *
+ * 2026-06-28 改定（C2）: 4列打ち切りを廃止し、引数 maxWidthMm で動的化。
+ *   印刷方式最大幅 = デジタル740mm / グラビア1100mm。
+ *   納品形態別の最大列数制約は maxColumnsCap で指定可能
+ *   （パウチ袋=2 / ロール=7。既定は GRAVURE_CONSTANTS.MAX_COLUMN_COUNT=7）。
+ *
  * @param oneColumnWidthMm 1列フィルム幅 (mm)。calculateSingleColumnFilmWidth の結果
+ * @param maxWidthMm 印刷方式の最大印刷幅 (mm)。既定 GRAVURE_CONSTANTS.MATERIAL_WIDTH_MAX_MM(=1100)
+ * @param maxColumnsCap 納品形態別などで課す列数上限。既定 GRAVURE_CONSTANTS.MAX_COLUMN_COUNT(=7)
  * @returns 選択可能な列数の配列。1列のみ可能なら []
  */
-export function getAvailableColumnCounts(oneColumnWidthMm: number): number[] {
-  const { MATERIAL_WIDTH_MAX_MM } = GRAVURE_CONSTANTS
-
+export function getAvailableColumnCounts(
+  oneColumnWidthMm: number,
+  maxWidthMm: number = GRAVURE_CONSTANTS.MATERIAL_WIDTH_MAX_MM,
+  maxColumnsCap: number = GRAVURE_CONSTANTS.MAX_COLUMN_COUNT,
+): number[] {
   if (!oneColumnWidthMm || oneColumnWidthMm <= 0) return []
 
-  const maxColumns = Math.floor(MATERIAL_WIDTH_MAX_MM / oneColumnWidthMm)
+  // 列数 = floor(最大幅 ÷ 1列幅)
+  const maxColumns = Math.floor(maxWidthMm / oneColumnWidthMm)
 
   // 2列未満は多列非対応（1列専用）
   if (maxColumns < 2) return []
 
-  // 4列まで（本計画の対象）。maxColumns が 4 を超える場合は 4 で打ち切る
-  const upperBound = Math.min(maxColumns, 4)
+  // 納品形態別上限（maxColumnsCap）で絞る。物理 maxColumns と cap の小さい方が上限
+  const upperBound = Math.min(maxColumns, maxColumnsCap)
 
   const counts: number[] = []
   for (let n = 2; n <= upperBound; n++) {

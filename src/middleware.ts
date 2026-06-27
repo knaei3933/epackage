@@ -690,7 +690,9 @@ export async function middleware(request: NextRequest) {
       }
       // DEV_MODE but no mock cookie - DO NOT allow access without authentication
       // SECURITY FIX: Remove lenient dev mode access - proceed to normal auth check
-      console.log('[Middleware] DEV_MODE: No mock cookie for /admin, proceeding to normal auth check');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] DEV_MODE: No mock cookie for /admin, proceeding to normal auth check');
+      }
       // Fall through to main authentication check
     }
   }
@@ -789,7 +791,9 @@ export async function middleware(request: NextRequest) {
 
     // DEV_MODE but no mock cookie - DO NOT allow access without authentication
     // SECURITY FIX: Remove lenient dev mode access - always require proper auth
-    console.log('[DEV_MODE] No mock cookie found, proceeding to normal auth check');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[DEV_MODE] No mock cookie found, proceeding to normal auth check');
+    }
   }
 
   // =====================================================
@@ -890,7 +894,10 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.redirect(url));
   }
 
-  console.log('[Middleware] User authenticated:', user.id);
+  // PERFORMANCE: 認証成功ログは development 限定（本番で全認証リクエスト実行を回避）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Middleware] User authenticated:', user.id);
+  }
 
   // Get user profile for role and status check
   const profile = await getUserProfile(supabase, user.id);

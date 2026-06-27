@@ -1271,7 +1271,7 @@ export class UnifiedPricingEngine {
     // ガイド準拠（AC-Q1）: 配送料も販売マージン計算対象
     //   docs/reports/calcultae/06-마진_및_최종가격.md:139
     //   最終価格 = (円貨製造者価格 + 関税 + 配送料) × 1.2
-    // DB設定から販売マージン率を取得（フォールバック=CONSTANTS.SALES_MARGIN=0.2 ガイド準拠）
+    // DB設定から販売マージン率を取得（フォールバック=CONSTANTS.SALES_MARGIN=0.25 ガイド準拠）
     const salesMargin = await this.getSetting('pricing', 'default_markup_rate', CONSTANTS.SALES_MARGIN);
 
     // AC-Q6/S1.1: :1115 の既存 subtotal（中間計算）と同名衝突を避けるため別名。
@@ -1841,11 +1841,14 @@ export class UnifiedPricingEngine {
         printing: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.printingCost, 0)),
         setup: 0,
         discount: 0,
-        // マージン・関税・配送料（基本原価から計算）
-        manufacturingMargin: Math.round(baseCost * 0.3), // 製造者マージン30%
-        duty: Math.round(baseCost * 0.05), // 関税5%
-        delivery: Math.round(baseCost * 0.08), // 配送料8%
-        salesMargin: Math.round(baseCost * 0.3), // 販売マージン30%
+        // マージン・関税・配送料: pouch-cost-calculator が各SKU単位で正確計算した値を集計。
+        // （旧実装は baseCost * 固定係数 の概算だったが、baseCost は既に最終販売価格ベースのため不正確。
+        //  costPerSKU[].costBreakdown の正確値〔manufacturingMargin=製造者価格-baseCost, duty=製造者価格*0.05,
+        //  delivery=重量ベース実配送費, salesMargin=小計*0.25〕を reduce で集計する）
+        manufacturingMargin: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + (sku.costBreakdown.manufacturingMargin || 0), 0)),
+        duty: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.duty, 0)),
+        delivery: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.delivery, 0)),
+        salesMargin: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + (sku.costBreakdown.salesMargin || 0), 0)),
         subtotal: Math.round(baseCost),
         total: Math.round(totalPrice),
         pouchProcessingCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.pouchProcessingCost, 0)),

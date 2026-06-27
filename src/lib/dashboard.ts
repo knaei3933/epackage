@@ -1293,30 +1293,82 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     const serviceClient = createServiceClient();
 
-    // Get new orders
-    const { data: newOrders } = await serviceClient
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .in('status', ['PENDING', 'QUOTATION'])
-      .order('created_at', { ascending: false })
-      .limit(5);
+    // PERFORMANCE: 並列化 — 従来13クエリを直列実行していたため、独立クエリを
+    // Promise.all で並列取得。依存関係（transformations/announcements）は並列結果を
+    // 待ってから処理。エラー耐性は個別 try-catch で維持（1クエリ失敗が全体を落とさない）。
 
-    // Get processing orders
-    const { data: processingOrders } = await serviceClient
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'PRODUCTION');
+    // グループ1: 一覧データ（orders / quotations / samples / inquiries）
+    const [
+      newOrdersRes,
+      processingOrdersRes,
+      pendingQuotationsRes,
+      pendingSamplesRes,
+      unreadInquiriesRes,
+      totalOrdersRes,
+      totalQuotationsRes,
+      totalSamplesRes,
+      totalInquiriesRes,
+    ] = await Promise.all([
+      serviceClient
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .in('status', ['PENDING', 'QUOTATION'])
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'PRODUCTION'),
+      serviceClient
+        .from('quotations')
+        .select('*, quotation_items (*)')
+        .eq('user_id', userId)
+        .in('status', ['draft', 'sent'])
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('sample_requests')
+        .select('*, sample_items (*)')
+        .eq('user_id', userId)
+        .in('status', ['received', 'processing'])
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('inquiries')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'responded')
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+      serviceClient
+        .from('quotations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+      serviceClient
+        .from('sample_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+      serviceClient
+        .from('inquiries')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+    ]);
 
-    // Get pending quotations
-    const { data: pendingQuotations } = await serviceClient
-      .from('quotations')
-      .select('*, quotation_items (*)')
-      .eq('user_id', userId)
-      .in('status', ['draft', 'sent'])
-      .order('created_at', { ascending: false })
-      .limit(5);
+    const newOrders = newOrdersRes.data;
+    const processingOrders = processingOrdersRes.data;
+    const pendingQuotations = pendingQuotationsRes.data;
+    const pendingSamples = pendingSamplesRes.data;
+    const unreadInquiries = unreadInquiriesRes.data;
+    const totalOrders = totalOrdersRes.count;
+    const totalQuotations = totalQuotationsRes.count;
+    const totalSamples = totalSamplesRes.count;
+    const totalInquiries = totalInquiriesRes.count;
 
     // Transform quotation_items to items for type compatibility
     // Defensive: Ensure items is always an array, even if nested query fails
@@ -1326,15 +1378,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
     })) || [];
 
-    // Get pending sample requests
-    const { data: pendingSamples } = await serviceClient
-      .from('sample_requests')
-      .select('*, sample_items (*)')
-      .eq('user_id', userId)
-      .in('status', ['received', 'processing'])
-      .order('created_at', { ascending: false })
-      .limit(5);
-
     // Transform sample_items to samples for type compatibility
     // Defensive: Ensure samples is always an array, even if nested query fails
     const transformedSamples = (pendingSamples as any[])?.map(request => ({
@@ -1343,93 +1386,75 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       samples: Array.isArray(request.sample_items) ? request.sample_items : [],
     })) || [];
 
-    // Get unread inquiries
-    const { data: unreadInquiries } = await serviceClient
-      .from('inquiries')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'responded')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    // Get announcements - wrapped in try-catch for safety
+    // グループ2: announcements（独立・既存の try-catch で安全対策維持）+
+    // contracts（内部で Promise.all 済み・外部 try-catch 維持）+ notifications を並列実行
     let announcements: Announcement[] = [];
-    try {
-      announcements = await getAnnouncements(3);
-    } catch (annError) {
-      console.warn('[getDashboardStats] Failed to fetch announcements:', annError);
-      announcements = [];
-    }
-
-    // Get counts
-    const { count: totalOrders } = await serviceClient
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    const { count: totalQuotations } = await serviceClient
-      .from('quotations')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    const { count: totalSamples } = await serviceClient
-      .from('sample_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    const { count: totalInquiries } = await serviceClient
-      .from('inquiries')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    // B2B integration: Get contracts and notifications
     let pendingContracts: any[] | null = null;
     let totalContracts = 0;
     let signedContracts = 0;
     let notifications: any[] | null = null;
 
-    // Query contracts using the new user_id column
-    try {
-      const [pendingResult, totalCountResult, signedCountResult] = await Promise.all([
-        serviceClient
-          .from('contracts')
-          .select('*')
-          .eq('user_id', userId)
-          .in('status', ['DRAFT', 'SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'])
-          .order('created_at', { ascending: false }),
-        serviceClient
-          .from('contracts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId),
-        serviceClient
-          .from('contracts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .in('status', ['SIGNED', 'ADMIN_SIGNED', 'ACTIVE'])
-      ]);
+    const [announcementsResult, contractsResult, notifResult] = await Promise.all([
+      // Get announcements - wrapped to preserve safety
+      getAnnouncements(3)
+        .then((data): Announcement[] => data)
+        .catch((annError: unknown): Announcement[] => {
+          console.warn('[getDashboardStats] Failed to fetch announcements:', annError);
+          return [];
+        }),
+      // B2B integration: contracts (3 sub-queries internally parallelized)
+      (async () => {
+        try {
+          const [pendingResult, totalCountResult, signedCountResult] = await Promise.all([
+            serviceClient
+              .from('contracts')
+              .select('*')
+              .eq('user_id', userId)
+              .in('status', ['DRAFT', 'SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'])
+              .order('created_at', { ascending: false }),
+            serviceClient
+              .from('contracts')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', userId),
+            serviceClient
+              .from('contracts')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', userId)
+              .in('status', ['SIGNED', 'ADMIN_SIGNED', 'ACTIVE'])
+          ]);
+          return {
+            pending: pendingResult.data,
+            total: totalCountResult.count || 0,
+            signed: signedCountResult.count || 0,
+          };
+        } catch (contractError) {
+          console.warn('[getDashboardStats] Error fetching contracts:', contractError);
+          return { pending: [] as any[] | null, total: 0, signed: 0 };
+        }
+      })(),
+      // notifications (table may not exist → tolerate)
+      (async () => {
+        try {
+          const res = await serviceClient
+            .from('admin_notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          return res.data;
+        } catch (notifError) {
+          console.warn('[getDashboardStats] admin_notifications table not available or error:', notifError);
+          // notificationsテーブルがない場合はデフォルト値を使用
+          return null;
+        }
+      })(),
+    ]);
 
-      pendingContracts = pendingResult.data;
-      totalContracts = totalCountResult.count || 0;
-      signedContracts = signedCountResult.count || 0;
-    } catch (contractError) {
-      console.warn('[getDashboardStats] Error fetching contracts:', contractError);
-      pendingContracts = [];
-      totalContracts = 0;
-      signedContracts = 0;
-    }
-
-    try {
-      const notifResult = await serviceClient
-        .from('admin_notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      notifications = notifResult.data;
-    } catch (notifError) {
-      console.warn('[getDashboardStats] admin_notifications table not available or error:', notifError);
-      // notificationsテーブルがない場合はデフォルト値を使用
-    }
+    announcements = announcementsResult;
+    pendingContracts = contractsResult.pending;
+    totalContracts = contractsResult.total;
+    signedContracts = contractsResult.signed;
+    notifications = notifResult;
 
     return {
       orders: {

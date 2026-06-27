@@ -158,3 +158,66 @@ export const getFilmStructureLabel = (materialId: string, thicknessId: string): 
   const structures = FILM_STRUCTURE_LABELS[materialId];
   return structures ? structures[thicknessId] || `${getMaterialLabel(materialId)} (${getThicknessLabel(thicknessId)})` : materialId;
 };
+
+/**
+ * 素材略号の凡例（顧客向け平易化・C3）
+ *
+ * 規格表示（例 "PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ"）に現れる略号を、
+ * 専門知識のない顧客にも分かるよう説明する。コンポーネント3（見積UI改善）で
+ * 厚さ選択UI・結果画面等の凡例として参照する。
+ *
+ * - `label`: 表示用略号（規格文字列内のトークンと一致）
+ * - `name`: 一般名称
+ * - `description`: 役割の平易な説明（顧客向け）
+ */
+export interface MaterialAbbreviationLegend {
+  label: string;
+  name: string;
+  description: string;
+}
+
+export const MATERIAL_ABBREVIATION_LEGEND: MaterialAbbreviationLegend[] = [
+  { label: 'μ', name: 'マイクロメートル', description: 'フィルム1層の厚さの単位。1μ＝1000分の1mm。数字が大きいほど分厚く・頑丈になります。' },
+  { label: 'PET', name: 'ポリエステル', description: '外側の印刷面によく使う、丈夫で透明なフィルム。印刷が綺麗に乗ります。' },
+  { label: 'AL', name: 'アルミ箔', description: '本物のアルミ箔の層。光・空気・湿気を完全に遮断し、長期保存に適します。' },
+  { label: 'VMPET', name: 'アルミ蒸着PET', description: 'PETにアルミを薄く蒸着した層。ALより軽量・低コストで、ほどよい遮断性を持ちます。' },
+  { label: 'NY', name: 'ナイロン', description: '引っ張り強度と耐衝撃性に優れた層。穴あき防止や電子レンジ解凍対応に有効です。' },
+  { label: 'LLDPE', name: '直鎖状低密度ポリエチレン', description: '内側の熱シール（ヒートシール）層。袋の底や側面を熱で溶着して密封します。' },
+  { label: 'Kraft', name: 'クラフト紙', description: '自然な紙の風合いの外装層。g/m²は紙1m²あたりの重さ（厚みの目安）。' },
+];
+
+/**
+ * 規格文字列（例 "PET 12μ + AL 7μ"）から、含まれる略号の凡例を抽出する。
+ * 表示用の凡例リストを動的に絞り込むのに使用する。
+ */
+export const getLegendForSpecification = (specification: string): MaterialAbbreviationLegend[] => {
+  if (!specification) return [];
+  return MATERIAL_ABBREVIATION_LEGEND.filter((item) => specification.includes(item.label));
+};
+
+/**
+ * 素材IDから規格の分かりやすい一言説明を返す（顧客向け平易化・C3）
+ *
+ * 規格の専門文字列（"PET 12μ + AL 7μ ..."）の横に添える、用途・特徴の平易な補足。
+ * 専門用語を使わず「何に向いているか」を一言で伝える。
+ */
+export const getPlainSpecSummary = (materialId: string): string => {
+  switch (materialId) {
+    case MaterialType.PET_AL:
+      return 'アルミ箔入り4層構造。光・空気・湿気を完全に遮断し、長期保存に最適です。';
+    case MaterialType.PET_VMPET:
+      return 'アルミ蒸着4層構造。軽量で高バリア、本物のアルミ箔よりお求めやすい高級仕様です。';
+    case MaterialType.PET_LLDPE:
+      return '透明2層構造。中身が見え、軽量でコストパフォーマンスに優れた基本仕様です。';
+    case MaterialType.PET_NY_AL:
+      return 'ナイロン+アルミ箔4層構造。強度と保存性を両立し、重い内容物や長期保存向けです。';
+    case MaterialType.NY_LLDPE:
+      return 'ナイロン2層構造。電子レンジ解凍対応・透明窓が作れ、冷凍食品等に適します。';
+    case MaterialType.KRAFT_VMPET_LLDPE:
+      return 'クラフト紙+アルミ蒸着3層。紙の風合いと高い保存性を両立したエコな高級仕様です。';
+    case MaterialType.KRAFT_PET_LLDPE:
+      return 'クラフト紙+PET3層。紙の自然な風合いで、短期保存向けのコスト仕様です。';
+    default:
+      return '';
+  }
+};

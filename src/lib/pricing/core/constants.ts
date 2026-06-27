@@ -183,6 +183,19 @@ export const GRAVURE_CONSTANTS = {
   MATERIAL_WIDTH_MAX_MM: 1100,  // 最大1,100mm
   MATERIAL_WIDTH_STEP_MM: 10,   // 10mm単位で丸め
 
+  /** 多列生産 最大列数上限（仕様改定: 4列→7列へ拡張）
+   *  列数 = floor(印刷方式最大幅 ÷ 1列フィルム幅) で算出し、この値が物理的上限。
+   *  ※ 納品形態別の更なる制約は DELIVERY_MAX_COLUMN_COUNT で個別に絞る */
+  MAX_COLUMN_COUNT: 7,
+
+  /** 納品形態別の最大列数制約（物理 MAX_COLUMN_COUNT に加えて適用）
+   *  - pouch(パウチ袋): 加工ライン制約で2列まで
+   *  - roll(ロールフィルム): 袋加工なしなので物理上限いっぱい（7列）まで対応 */
+  DELIVERY_MAX_COLUMN_COUNT: {
+    pouch: 2,
+    roll: 7,
+  } as const,
+
   /** 最終熱シール層（LLDPE等）の幅加算 - 仕様§5: 原反幅 + 10mm */
   FINAL_LAYER_WIDTH_EXTRA_MM: 10,
 

@@ -12,7 +12,7 @@ import { safeMap } from '@/lib/array-helpers';
 import EnvelopePreview from '../previews/EnvelopePreview';
 import MultiQuantityStep from '../steps/MultiQuantityStep';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
-import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getThicknessLabel, getWeightRange } from '@/constants/materialTypes';
+import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getThicknessLabel, getWeightRange, getLegendForSpecification, getPlainSpecSummary } from '@/constants/materialTypes';
 import { getAvailableGussetSizes, ALL_GUSSET_SIZE_OPTIONS } from '@/lib/gusset-data';
 import { getAvailableSealWidths, isGussetedBag } from '@/lib/sealing-data';
 import {
@@ -1184,8 +1184,8 @@ function SpecsStep() {
                     </select>
                     <p className="mt-1 text-xs text-gray-400">
                       {state.hasGusset
-                        ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
-                        : 'マチなし: 平袋計算式を適用 (H×2+41)'}
+                        ? 'マチあり: 自立するスタンドパウチ向けの計算を適用します'
+                        : 'マチなし: 平らな袋向けの計算を適用します'}
                     </p>
                   </div>
                 </div>
@@ -1193,7 +1193,10 @@ function SpecsStep() {
 
               {shouldShowGusset(state.bagTypeId) && state.bagTypeId !== 'roll_film' && (
                 <div>
-                  <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
+                  <label className="block text-base text-gray-700 mb-1">
+                    マチ（底の広がり）
+                    <span className="ml-1 text-xs text-gray-400 font-normal">袋の底を広げて自立させる部分</span>
+                  </label>
                   <select
                     value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                     onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
@@ -1215,6 +1218,30 @@ function SpecsStep() {
                       まず幅を入力してください
                     </p>
                   )}
+                  {/* マチ概念の図解（C3: 専門用語の平易化） */}
+                  <details className="mt-1.5 text-xs text-gray-500">
+                    <summary className="cursor-pointer hover:text-gray-700 inline-flex items-center">
+                      <Info className="w-3 h-3 mr-1" />
+                      マチとは？（図で確認）
+                    </summary>
+                    <div className="mt-2 flex items-start gap-3 p-2 bg-gray-50 rounded">
+                      {/* マチ付き袋の簡易図解: 底が広がっている様子 */}
+                      <svg width="70" height="64" viewBox="0 0 70 64" className="flex-shrink-0" aria-hidden="true">
+                        {/* 袋の胴体（上窄まり） */}
+                        <path d="M 20 8 L 50 8 L 56 40 L 14 40 Z" fill="#e0e7ff" stroke="#4f46e5" strokeWidth="1.5" />
+                        {/* マチ（底の広がり）: 三角形で底の張りを表現 */}
+                        <path d="M 14 40 L 56 40 L 50 56 L 20 56 Z" fill="#fde68a" stroke="#d97706" strokeWidth="1.5" />
+                        {/* マチ部の指示線 */}
+                        <line x1="56" y1="48" x2="64" y2="48" stroke="#d97706" strokeWidth="1" />
+                        <text x="65" y="46" fontSize="7" fill="#d97706">マチ</text>
+                      </svg>
+                      <p className="leading-relaxed">
+                        <span className="font-semibold text-gray-700">マチ</span>とは、袋の底を内側に折り込んで広げた部分です。
+                        これがあると袋が<span className="font-semibold">自立</span>し、底面積が広がって<span className="font-semibold">多く入る</span>ようになります（スタンドパウチ等）。
+                        数値が大きいほど底が広く・しっかり立ちます。
+                      </p>
+                    </div>
+                  </details>
                 </div>
               )}
               {/* 側面 (よこめん) - ガゼットパウチのみ */}
@@ -1363,9 +1390,42 @@ function SpecsStep() {
                   ))}
                 </select>
                 {state.thicknessSelection && selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection) && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    規格: {selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection)?.specificationEn || ''}
-                  </p>
+                  (() => {
+                    const selectedThickness = selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection);
+                    const specText = selectedThickness?.specificationEn || selectedThickness?.specification || '';
+                    const plainSummary = getPlainSpecSummary(state.materialId);
+                    const legend = getLegendForSpecification(specText);
+                    return (
+                      <div className="mt-2 space-y-1.5">
+                        <p className="text-sm text-gray-600">
+                          <span className="text-gray-500">規格:</span>{' '}
+                          <span className="font-medium text-gray-800">{specText}</span>
+                        </p>
+                        {plainSummary && (
+                          <p className="text-xs text-indigo-700 flex items-start">
+                            <Lightbulb className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                            <span>{plainSummary}</span>
+                          </p>
+                        )}
+                        {legend.length > 0 && (
+                          <details className="text-xs text-gray-500">
+                            <summary className="cursor-pointer hover:text-gray-700 inline-flex items-center">
+                              <Info className="w-3 h-3 mr-1" />
+                              略号の意味を見る
+                            </summary>
+                            <dl className="mt-1.5 ml-4 space-y-0.5">
+                              {legend.map((item) => (
+                                <div key={item.label} className="flex">
+                                  <dt className="font-semibold text-gray-700 w-16 flex-shrink-0">{item.label}</dt>
+                                  <dd><span className="text-gray-700">{item.name}</span> — {item.description}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })()
                 )}
               </div>
               <p className="mt-2 text-xs text-gray-500">
@@ -2214,12 +2274,20 @@ function RealTimePriceDisplay() {
           const oneColumnWidthMm = calculateSingleColumnFilmWidth(
             pouchType, state.height || 0, state.width || 0, state.depth ?? 0,
           );
-          const availableCounts = getAvailableColumnCounts(oneColumnWidthMm);
+          // パウチ袋は加工ライン制約で2列まで（DELIVERY_MAX_COLUMN_COUNT.pouch）
+          const availableCounts = getAvailableColumnCounts(
+            oneColumnWidthMm,
+            GRAVURE_CONSTANTS.MATERIAL_WIDTH_MAX_MM,
+            GRAVURE_CONSTANTS.DELIVERY_MAX_COLUMN_COUNT.pouch,
+          );
           if (availableCounts.length === 0) return null; // 2列以上不可なら非表示
 
           const currentColumn = state.multiColumnOptionApplied?.columnCount ?? 1;
           const options = [1, ...availableCounts]; // 1列(デフォルト) + 物理可能列数
-          const discountLabels: Record<number, string> = { 1: '標準', 2: '15%引', 3: '30%引', 4: '40%引' };
+          const discountLabels: Record<number, string> = {
+            1: '標準', 2: '15%引', 3: '30%引', 4: '40%引',
+            5: '45%引', 6: '50%引', 7: '55%引',
+          };
 
           const handleSelect = (col: number) => {
             if (col === 1) {
@@ -2233,7 +2301,7 @@ function RealTimePriceDisplay() {
           return (
             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
               <div className="text-sm font-medium text-purple-900 mb-2">
-                グラビア多列生産（原反幅 {oneColumnWidthMm}mm / 最大 {Math.floor(1100 / oneColumnWidthMm)}列まで）
+                グラビア多列生産（原反幅 {oneColumnWidthMm}mm / 最大 {availableCounts[availableCounts.length - 1]}列まで）
               </div>
               <div className="flex flex-wrap gap-2">
                 {options.map((col) => (
@@ -2604,12 +2672,18 @@ export function ImprovedQuotingWizard() {
 
                   // 多列生産列数の決定（計画 multi-column-gravure-unification.md AC5/AC7）
                   // QuoteContext の multiColumnOptionApplied を明示読込 → columnCount を取得。
-                  // パウチの場合は1列幅から物理可能列数を算出し、1100mm上限を超える選択は無効化（1列にフォールバック）。
+                  // パウチの場合は1列幅から物理可能列数を算出し、パウチ袋=2列上限で絞り込み。
+                  // 上限を超える選択は無効化（1列にフォールバック）。
                   let gravureColumnCount = 1;
                   if (pouchType) {
                     const requestedColumn = state.multiColumnOptionApplied?.columnCount ?? 1;
                     const oneColumnWidthMm = calculateSingleColumnFilmWidth(pouchType, gHeight, gWidth, gDepth);
-                    const availableCounts = getAvailableColumnCounts(oneColumnWidthMm);
+                    // パウチ袋は2列まで（DELIVERY_MAX_COLUMN_COUNT.pouch）
+                    const availableCounts = getAvailableColumnCounts(
+                      oneColumnWidthMm,
+                      GRAVURE_CONSTANTS.MATERIAL_WIDTH_MAX_MM,
+                      GRAVURE_CONSTANTS.DELIVERY_MAX_COLUMN_COUNT.pouch,
+                    );
                     // 要求列数が物理可能範囲内なら採用、超過時は1列へフォールバック
                     gravureColumnCount = requestedColumn > 1 && availableCounts.includes(requestedColumn)
                       ? requestedColumn : 1;

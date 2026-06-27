@@ -19,7 +19,7 @@ import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
-import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck } from 'lucide-react';
+import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -1087,11 +1087,13 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
           printingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
-          // 修正: マージン・関税・配送料を適切に計算
-          manufacturingMargin: Math.round(totalBaseCost * 0.4), // 製造者マージン40%
-          duty: Math.round(totalBaseCost * 0.05), // 関税5%
-          delivery: Math.round(totalBaseCost * 0.08), // 配送料8%
-          salesMargin: Math.round(totalBaseCost * 0.2), // 販売マージン20%
+          // マージン・関税・配送料: pouch-cost-calculator が各SKU単位で正確計算した値を集計。
+          // （旧実装は totalBaseCost * 固定係数 の概算だったが、totalBaseCost は原価ベースのため
+          //  duty（製造者価格×0.05）・salesMargin（小計×0.25）等の正確値と乖離していた）
+          manufacturingMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
+          duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
+          delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+          salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
           totalCost: Math.round(totalBaseCost)
         };
       } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
@@ -1109,7 +1111,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           manufacturingMargin: Math.round(breakdown.manufacturingMargin || baseCost * 0.4),
           duty: Math.round(breakdown.duty || baseCost * 0.05),
           delivery: Math.round(breakdown.delivery || baseCost * 0.08),
-          salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.2),
+          salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.25),
           totalCost: Math.round(baseCost)
         };
       } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.breakdown?.baseCost && result.breakdown.baseCost > 0)) {
@@ -1123,10 +1125,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(baseCost * 0.15), // 約15%
           printingCost: Math.round(baseCost * 0.1), // 約10%
-          manufacturingMargin: 0,
-          duty: 0,
-          delivery: Math.round(baseCost * 0.08), // 約8%
-          salesMargin: Math.round(baseCost * 0.2), // 約20%
+          manufacturingMargin: Math.round(result.breakdown?.manufacturingMargin || baseCost * 0.4),
+          duty: Math.round(result.breakdown?.duty || baseCost * 0.05),
+          delivery: Math.round(result.breakdown?.delivery || baseCost * 0.08), // 約8%
+          salesMargin: Math.round(result.breakdown?.salesMargin || baseCost * 0.25), // 約25%
           totalCost: Math.round(baseCost)
         };
       }
@@ -1542,7 +1544,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             manufacturingMargin: Math.round(result.breakdown?.manufacturingMargin || (result.breakdown?.baseCost || 0) * 0.4),
             duty: Math.round(result.breakdown?.duty || (result.breakdown?.baseCost || 0) * 0.05),
             delivery: Math.round(result.breakdown?.delivery || (result.breakdown?.baseCost || 0) * 0.08),
-            salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.2),
+            salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.25),
             totalCost: Math.round(result.breakdown?.baseCost || (result.breakdown as Record<string, any>)?.totalCost || 0)
           } : {},
           items: itemsToSave.map(item => ({
@@ -1599,9 +1601,30 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-blue-900 mb-1">
-                印刷方式レコメンド: {result.recommendation.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}
+                おすすめの印刷方法: {result.recommendation.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}
               </h3>
               <p className="text-sm text-blue-800 mb-3">{result.recommendation.reason}</p>
+              {/* 2方式の違いと分岐点の平易な説明（C3: 専門用語の平易化） */}
+              <details className="text-xs text-blue-700 mb-3">
+                <summary className="cursor-pointer hover:text-blue-900 inline-flex items-center font-medium">
+                  <Info className="w-3.5 h-3.5 mr-1" />
+                  グラビアとデジタルの違いについて
+                </summary>
+                <div className="mt-2 space-y-1.5 text-blue-800 leading-relaxed">
+                  <p>
+                    <span className="font-semibold">デジタル印刷</span>：版（かなばん）を作らず、プリンターのように直接印刷。
+                    <span className="font-semibold">少量向け</span>。初期費用がかからず、少量なら安く早く仕上がります。
+                  </p>
+                  <p>
+                    <span className="font-semibold">グラビア印刷</span>：専用の銅版（どうばん＝印刷の型）を作って印刷。
+                    <span className="font-semibold">多量向け</span>。版づくりの初期費用がかかりますが、多く刷るほど1個あたりの単価が下がり、品質も安定します。
+                  </p>
+                  <p className="text-blue-600 pt-1 border-t border-blue-200">
+                    つまり「<span className="font-semibold">分岐点数量</span>」は、グラビアがデジタルより安くなる<span className="font-semibold">境界の個数</span>です。
+                    これより多く発注するならグラビア、少ないならデジタルがお得、という目安です。
+                  </p>
+                </div>
+              </details>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                 <div className="bg-white rounded-lg p-3">
                   <div className="text-gray-500 text-xs mb-1">デジタル総額</div>

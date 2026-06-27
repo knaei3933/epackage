@@ -79,8 +79,37 @@ export function CatalogDownloadAdmin({
     fetchRecords();
 
     if (refreshInterval > 0) {
-      const interval = setInterval(fetchRecords, refreshInterval);
-      return () => clearInterval(interval);
+      // PERFORMANCE: タブが非アクティブ（バックグラウンド）の時はポーリングを停止し、
+      // フォーカス復帰時に即時リフレッシュ。無駄な API 呼び出しを削減（低リスク）。
+      let interval: ReturnType<typeof setInterval> | null = null;
+
+      const startPolling = () => {
+        if (interval) return;
+        interval = setInterval(fetchRecords, refreshInterval);
+      };
+      const stopPolling = () => {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      };
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          // タブ復帰時は即時リフレッシュしてからポーリング再開
+          fetchRecords();
+          startPolling();
+        } else {
+          stopPolling();
+        }
+      };
+
+      startPolling();
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        stopPolling();
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
   }, [refreshInterval]);
 
