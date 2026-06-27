@@ -588,7 +588,7 @@ function getDefaultTemplate(): HandlebarsTemplateDelegate {
     <!-- Footer -->
     <div class="footer">
       <p>この仕様書はEPACKAGE Lab株式会社の機密情報です。無断転載を禁じます。</p>
-      <p>EPACKAGE Lab株式会社 | 兵庫県明石市上ノ丸2-11-21 | TEL: 050-1793-6500</p>
+      <p>EPACKAGE Lab株式会社 | 兵庫県加古郡稲美町六分一486 | TEL: 050-1793-6500</p>
     </div>
   </div>
 </body>
@@ -783,7 +783,7 @@ function prepareTemplateData(data: SpecSheetData): SpecSheetTemplateData {
     header: {
       companyName: 'EPACKAGE Lab株式会社',
       companyNameKana: 'イーパックケージラボカブシキガイシャ',
-      address: '兵庫県明石市上ノ丸2-11-21',
+      address: '兵庫県加古郡稲美町六分一486',
       phone: '050-1793-6500',
       email: 'info@package-lab.com',
       website: 'https://epackage-lab.com',

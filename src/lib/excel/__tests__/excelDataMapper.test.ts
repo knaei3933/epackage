@@ -296,8 +296,8 @@ describe('DEFAULT_SUPPLIER constant', () => {
     expect(DEFAULT_SUPPLIER.brandName).toBe('EPACKAGE Lab');
     expect(DEFAULT_SUPPLIER.subBrand).toBe('by kanei-trade');
     expect(DEFAULT_SUPPLIER.companyName).toBe('金井貿易株式会社');
-    expect(DEFAULT_SUPPLIER.postalCode).toBe('〒673-0846');
-    expect(DEFAULT_SUPPLIER.address).toBe('兵庫県明石市上ノ丸2-11-21');
+    expect(DEFAULT_SUPPLIER.postalCode).toBe('〒675-1112');
+    expect(DEFAULT_SUPPLIER.address).toBe('兵庫県加古郡稲美町六分一486');
     expect(DEFAULT_SUPPLIER.phone).toBe('TEL: 050-1793-6500');
     expect(DEFAULT_SUPPLIER.email).toBe('info@package-lab.com');
   });

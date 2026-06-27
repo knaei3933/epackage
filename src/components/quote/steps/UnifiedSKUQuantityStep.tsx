@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react';
 import { useQuoteState, useQuote } from '@/contexts/QuoteContext';
 import { pouchCostCalculator, type TwoColumnProductionOptions } from '@/lib/pouch-cost-calculator';
@@ -609,8 +610,9 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
     if (!useMultiPatternView) return [];
     const skuCount = quoteState.skuCount;
     const source = patternQuantities ?? [];
-    // 常に5パターン列を固定表示（spec: パターン追加ボタン廃止・5列固定・最低1パターン入力）
-    const colCount = MAX_PATTERN_COLUMNS;
+    // パターン列数: 実データの最大列数（最低2・最大5）。デフォルト2パターン誘導・追加ボタンで拡張。
+    const sourceCols = source.reduce((max, row) => Math.max(max, Array.isArray(row) ? row.length : 0), 0);
+    const colCount = Math.min(MAX_PATTERN_COLUMNS, Math.max(2, sourceCols));
     const result: number[][] = [];
     for (let s = 0; s < skuCount; s++) {
       const row = Array.isArray(source[s]) ? source[s] : [];
@@ -626,6 +628,9 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
 
   // 複数パターンUIのパターン列数（全SKU共通）
   const patternColumnCount = normalizedPatternQuantities[0]?.length ?? 0;
+
+  // 追加ボタン列が表示されているか（最大未満で表示）
+  const hasAddPatternColumn = patternColumnCount < MAX_PATTERN_COLUMNS && patternColumnCount > 0;
 
   // 各セルに適用する最小数量（ユーザー要望: 最低1パターン500個/m）
   // roll_film=500m / pouch系=500個 に統一
@@ -645,6 +650,20 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
     onPatternQuantitiesChange(next);
   };
 
+  // 指定SKU行の5パターン数量を他の全SKU行へ一括コピー（行コピー機能）
+  // ユーザー要望: SKU 1行目に入力した数量を1クリックで他行に反映。
+  // コピー元行自身は保持、他行は sourceRow の数量で上書き。
+  const handleCopyPatternRow = (sourceSkuIndex: number) => {
+    if (!onPatternQuantitiesChange) return;
+    const sourceRow = normalizedPatternQuantities[sourceSkuIndex];
+    if (!sourceRow) return;
+    const next = normalizedPatternQuantities.map((row, s) =>
+      s === sourceSkuIndex ? row.slice() : sourceRow.slice()
+    );
+    onPatternQuantitiesChange(next);
+    showSuccess(`SKU ${sourceSkuIndex + 1} の数量を他の全SKUにコピーしました`, 0);
+  };
+
   // パターン列追加（全SKU一斉・min1 max5・jagged array防止）
   const handleAddPatternColumn = () => {
     if (!onPatternQuantitiesChange) return;
@@ -653,10 +672,10 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
     onPatternQuantitiesChange(next);
   };
 
-  // パターン列削除（全SKU一斉・min1・最後尾列を削除）
+  // パターン列削除（全SKU一斉・min2・最後尾列を削除）
   const handleRemovePatternColumn = () => {
     if (!onPatternQuantitiesChange) return;
-    if (patternColumnCount <= 1) return;
+    if (patternColumnCount <= 2) return;
     const next = normalizedPatternQuantities.map(row => row.slice(0, -1));
     onPatternQuantitiesChange(next);
   };
@@ -1481,18 +1500,18 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
             </div>
           ) : useMultiPatternView ? (
             <div className="space-y-3">
-              {/* 複数パターン入力の説明（パターン追加ボタン廃止・5列固定） */}
+              {/* 複数パターン入力の説明（デフォルト2パターン・追加ボタンで3〜5パターンに拡張） */}
               <div className="bg-info-50 p-3 rounded-lg border border-info-200">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2 text-sm">
                   <Layers className="w-4 h-4" />
                   数量パターン比較入力
                 </h4>
                 <p className="text-xs text-gray-600 mt-1">
-                  5パターンの数量をSKUごとに入力（最低1パターン必須・各セル最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}）。未入力のパターンは計算時にスキップされます。
+                  デフォルト2パターン。表の「+ 追加」ボタンで最大5パターンまで拡張できます（最低1パターン必須・各セル最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}）。未入力のパターンは計算時にスキップされます。
                 </p>
               </div>
 
-              {/* SKU行 × パターン列 の表形式（AC-2・5列固定） */}
+              {/* SKU行 × パターン列 の表形式（AC-2・デフォルト2列・追加ボタンで拡張） */}
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -1501,13 +1520,35 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                         SKU
                       </th>
                       {Array.from({ length: patternColumnCount }).map((_, p) => (
-                        <th key={p} className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 border border-gray-200 min-w-[80px] max-w-[110px]">
+                        <th key={p} className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 border border-gray-200 min-w-[80px] max-w-[110px] relative">
                           パターン {p + 1}
                           <div className="text-[10px] font-normal text-gray-500 mt-0.5">
                             合計: {normalizedPatternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0).toLocaleString()}{isRollFilm ? 'm' : '個'}
                           </div>
+                          {p === patternColumnCount - 1 && patternColumnCount > 2 && (
+                            <button
+                              type="button"
+                              onClick={handleRemovePatternColumn}
+                              className="absolute top-1 right-1 text-gray-300 hover:text-red-500 transition-colors"
+                              title="最後のパターン列を削除"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
                         </th>
                       ))}
+                      {patternColumnCount < MAX_PATTERN_COLUMNS && (
+                        <th className="px-2 py-1.5 text-center border border-gray-200 bg-gray-50 min-w-[60px]">
+                          <button
+                            type="button"
+                            onClick={handleAddPatternColumn}
+                            className="text-info-600 hover:text-info-700 text-xs flex items-center gap-1 font-medium justify-center"
+                            title="パターン列を追加（最大5）"
+                          >
+                            <Plus className="w-3.5 h-3.5" />追加
+                          </button>
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1516,6 +1557,16 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                         <td className="px-3 py-2 text-sm font-medium text-gray-900 border border-gray-200 bg-white sticky left-0">
                           <div className="flex items-center gap-1">
                             <span>SKU {skuIndex + 1}</span>
+                            {normalizedPatternQuantities.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopyPatternRow(skuIndex)}
+                                className="text-info-500 hover:text-info-700 transition-colors"
+                                title="この行の数量を他の全SKUにコピー"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             {normalizedPatternQuantities.length > 1 && (
                               <button
                                 type="button"
@@ -1555,11 +1606,12 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                             </td>
                           );
                         })}
+                        {hasAddPatternColumn && <td className="border border-gray-200" />}
                       </tr>
                     ))}
                     {quoteState.skuCount < 10 ? (
                       <tr>
-                        <td colSpan={patternColumnCount + 1} className="border border-gray-200 bg-gray-50">
+                        <td colSpan={patternColumnCount + 1 + (hasAddPatternColumn ? 1 : 0)} className="border border-gray-200 bg-gray-50">
                           <button
                             type="button"
                             onClick={() => handlePatternSKUCountChange(quoteState.skuCount + 1)}
@@ -1573,7 +1625,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                       </tr>
                     ) : (
                       <tr>
-                        <td colSpan={patternColumnCount + 1} className="border border-gray-200 bg-amber-50">
+                        <td colSpan={patternColumnCount + 1 + (hasAddPatternColumn ? 1 : 0)} className="border border-gray-200 bg-amber-50">
                           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 py-2 m-1 text-sm">
                             <span className="text-amber-800 font-medium">SKU数が上限（10）に達しました。11個以上は別途見積もり依頼となります。</span>
                             <a

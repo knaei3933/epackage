@@ -45,8 +45,8 @@ const DEFAULT_COMPANY_INFO: CompanyInfo = {
   company_name_en: 'EPackage Lab',
   support_email: 'design@package-lab.com',
   support_phone: '050-1793-8500',
-  postal_code: '673-0846',
-  address: '兵庫県明石市上ノ丸2-11-21',
+  postal_code: '675-1112',
+  address: '兵庫県加古郡稲美町六分一486',
 };
 
 // Generate bank info text synchronously (with optional bankInfo parameter)

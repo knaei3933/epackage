@@ -56,7 +56,7 @@ export default function CorporateSocialResponsibility() {
               </div>
               <div>
                 <span className="font-medium">所在地：</span>
-                <span className="ml-2">兵庫県明石市上ノ丸2-11-21</span>
+                <span className="ml-2">兵庫県加古郡稲美町六分一486</span>
               </div>
               <div>
                 <span className="font-medium">代表者：</span>

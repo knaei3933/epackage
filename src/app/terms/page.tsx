@@ -420,7 +420,7 @@ export default function TermsOfService() {
                     </p>
                     <div className="bg-surface-secondary rounded-lg p-4 mt-4">
                       <p className="font-medium text-text-primary">金井貿易株式会社</p>
-                      <p>兵庫県明石市上ノ丸2-11-21</p>
+                      <p>兵庫県加古郡稲美町六分一486</p>
                       <p>電話：050-1793-6500</p>
                       <p>メール：info@package-lab.com</p>
                     </div>

@@ -46,11 +46,6 @@ export function StatusIndicator({
             <div className="text-2xl font-bold text-gray-900">
               {skuCount}種類
             </div>
-            {totalQuantity > 0 && (
-              <div className="text-sm text-gray-700 mt-1">
-                総数量: {totalQuantity.toLocaleString()}{unit}
-              </div>
-            )}
           </div>
         </div>
 

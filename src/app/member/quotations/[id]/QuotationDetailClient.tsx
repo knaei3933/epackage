@@ -1064,21 +1064,45 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 <p className="text-sm text-text-muted mt-1">
                   数量: {item.quantity.toLocaleString()}個 × {formatPrice(item.unitPrice || 0)}円
                 </p>
-                {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (
-                  <div className="bg-purple-50 p-3 rounded-lg mt-4">
-                    <p className="font-medium text-purple-700">SKU分割: {item.specifications.sku_quantities.length}種類</p>
-                    <div className="text-sm text-purple-600 mt-2">
-                      {item.specifications.sku_quantities.map((qty: number, idx: number) => (
-                        <span key={idx} className="inline-block mr-3">
-                          SKU {idx + 1}: {qty}個
+                {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (() => {
+                  // SKU別明細の計算（枚数 × 単価 = 金額）
+                  const skuQuantities = item.specifications.sku_quantities;
+                  const unitPrice = item.unitPrice || 0;
+                  const totalQty = skuQuantities.reduce((sum: number, q: number) => sum + q, 0);
+                  const totalPrice = skuQuantities.reduce(
+                    (sum: number, q: number) => sum + q * unitPrice,
+                    0
+                  );
+
+                  return (
+                    <div className="bg-purple-50 p-3 rounded-lg mt-4">
+                      <p className="font-medium text-purple-700">SKU分割: {skuQuantities.length}種類</p>
+                      <div className="mt-2 space-y-1">
+                        {skuQuantities.map((qty: number, idx: number) => {
+                          // 各SKUの金額 = 数量 × 単価
+                          const skuAmount = qty * unitPrice;
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between text-sm text-purple-600"
+                            >
+                              <span>SKU {idx + 1}</span>
+                              <span>
+                                {qty.toLocaleString()}個 × ¥{formatPrice(unitPrice)} = ¥{formatPrice(skuAmount)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-medium text-purple-700 mt-2 pt-2 border-t border-purple-200">
+                        <span>合計</span>
+                        <span>
+                          {totalQty.toLocaleString()}個 / ¥{formatPrice(totalPrice)}
                         </span>
-                      ))}
+                      </div>
                     </div>
-                    <p className="text-xs text-purple-500 mt-1">
-                      合計: {item.specifications.sku_quantities.reduce((sum: number, q: number) => sum + q, 0)}個
-                    </p>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
 
               {/* Item Total */}

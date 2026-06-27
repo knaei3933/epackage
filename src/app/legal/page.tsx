@@ -42,10 +42,6 @@ export default function LegalPage() {
               </div>
               <div>
                 <span className="font-medium">本社住所：</span>
-                <span className="ml-2">兵庫県明石市上ノ丸2-11-21</span>
-              </div>
-              <div>
-                <span className="font-medium">ロジスティクス：</span>
                 <span className="ml-2">兵庫県加古郡稲美町六分一486</span>
               </div>
               <div>
@@ -386,7 +382,7 @@ export default function LegalPage() {
                           <MapPin className="h-4 w-4 inline mr-2" />
                           所在地
                         </h3>
-                        <p className="text-sm">兵庫県明石市上ノ丸2-11-21</p>
+                        <p className="text-sm">兵庫県加古郡稲美町六分一486</p>
                         <p className="text-sm text-gray-500">面談予約要</p>
                       </div>
                     </div>

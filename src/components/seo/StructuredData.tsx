@@ -30,9 +30,9 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             '@type': 'PostalAddress',
             addressCountry: 'JP',
             addressRegion: '兵庫県',
-            addressLocality: '明石市',
-            postalCode: '673-0846',
-            streetAddress: '上ノ丸2-11-21'
+            addressLocality: '稲美町',
+            postalCode: '675-1112',
+            streetAddress: '六分一486'
           },
           contactPoint: {
             '@type': 'ContactPoint',
@@ -152,14 +152,14 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             '@type': 'PostalAddress',
             addressCountry: 'JP',
             addressRegion: '兵庫県',
-            addressLocality: '明石市',
-            postalCode: '673-0846',
-            streetAddress: '上ノ丸2-11-21'
+            addressLocality: '稲美町',
+            postalCode: '675-1112',
+            streetAddress: '六分一486'
           },
           geo: {
             '@type': 'GeoCoordinates',
-            latitude: 34.99,
-            longitude: 134.99
+            latitude: 34.7367,
+            longitude: 134.898475
           },
           openingHours: [
             'Mo-Fr 09:00-18:00'

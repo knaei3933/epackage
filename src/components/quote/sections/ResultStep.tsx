@@ -184,7 +184,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // C2新型（Map<number, UnifiedQuoteResult & {recommendation}>）と旧Context（Map<number, UnifiedQuoteResult>）の和型
   const multiQuantityCalculations = multiQuantityResult?.calculations || multiQuantityState.multiQuantityResults;
   const hasMultiQuantityResults = multiQuantityCalculations && multiQuantityCalculations.size > 0;
-  // C4: 比較表表示条件 = パターンモード（SKU<=5）かつ calculations 存在
+  // C4: 比較表表示条件 = パターンモード（SKU<=10）かつ calculations 存在
   const showPatternComparison = isPatternMode && hasMultiQuantityResults;
 
   // Robust SKU mode detection - prioritize result data, fallback to state calculation
@@ -236,6 +236,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           recommendedMethod: quoteWithExtra.recommendation?.method,
           // fix #16: 正確なパターン合計数量（逆算不要）。旧Contextフォールバック時は undefined
           patternTotalQuantity: quoteWithExtra.patternTotalQuantity,
+          // SKU別明細（複数SKU見積もり時・比較表PDFのSKU別サブ行展開用）
+          skuCostDetails: quoteWithExtra.skuCostDetails,
         };
       }).sort((a, b) => a.quantity - b.quantity)
     : [];
@@ -721,15 +723,15 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       expiryDate,
       customerName: user?.kanjiLastName && user?.kanjiFirstName
         ? `${user.kanjiLastName} ${user.kanjiFirstName}`
-        : user?.companyName || '有限会社加豆フーズ',
-      companyName: user?.companyName || '有限会社加豆フーズ',
-      postalCode: user?.postalCode || '〒379-2311',
+        : user?.companyName || '',
+      companyName: user?.companyName || '',
+      postalCode: user?.postalCode || '',
       address: user?.prefecture && user?.city && user?.street
         ? `${user.prefecture}${user.city}${user.street}`
-        : '群馬県みどり市懸町阿佐美1940',
+        : '',
       contactPerson: user?.kanjiLastName && user?.kanjiFirstName
         ? `${user.kanjiLastName} ${user.kanjiFirstName}`
-        : '田中 太郎',
+        : '',
       items,
       // Add SKU data if in SKU mode
       skuData: hasValidSKUData ? {
@@ -766,32 +768,45 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // multiQuantityQuotes は Mapキー（パターンindex）を quantity に持つ。
   // fix #16: 実数量は quote.patternTotalQuantity（handleNext で保持）を使用。逆算廃止。
   const buildMultiPatternPdfInputs = (): MultiQuantityQuoteInput[] => {
-    return multiQuantityQuotes.map((quote) => ({
-      quantity: quote.patternTotalQuantity ?? 0,
-      unitPrice: quote.unitPrice,
-      totalPrice: quote.totalPrice,
-      recommendation: {
-        method: quote.recommendedMethod === 'gravure' ? 'gravure' : 'digital',
-      },
-    }));
+    return multiQuantityQuotes.map((quote) => {
+      const costPerSKU = quote.skuCostDetails?.costPerSKU;
+      return {
+        quantity: quote.patternTotalQuantity ?? 0,
+        unitPrice: quote.unitPrice,
+        totalPrice: quote.totalPrice,
+        recommendation: {
+          method: quote.recommendedMethod === 'gravure' ? 'gravure' : 'digital',
+        },
+        // SKU数≥2の時のみSKU別明細を付加（金額は按分で generateMultiQuantityHTML 側が算出）
+        skuDetails: costPerSKU && costPerSKU.length >= 2
+          ? costPerSKU.map((s, i) => ({ label: `SKU ${i + 1}`, quantity: s.quantity }))
+          : undefined,
+      };
+    });
   };
 
   // C5/AC-9: 全パターンPDF生成＆ダウンロード（generateMultiQuantityPDF 呼出）
   const generateAndDownloadMultiPatternPdf = async (): Promise<void> => {
     console.log('[MultiPatternPDF] 全パターンPDF生成開始');
     const inputs = buildMultiPatternPdfInputs();
-    const today = new Date();
-    const issueDate = today.toISOString().split('T')[0].replace(/-/g, '/');
-    const customerName = user?.kanjiLastName && user?.kanjiFirstName
-      ? `${user.kanjiLastName} ${user.kanjiFirstName}`
-      : user?.companyName || '';
+    // 従来見積書と同一メタデータを使用（generateQuoteData を流用）
+    const quoteData = generateQuoteData();
     const blob = await generateMultiQuantityPDF(inputs, {
       filename: `見積書_数量パターン比較_${Date.now()}.pdf`,
       header: {
-        quoteNumber: `QT-${Date.now()}`,
-        issueDate,
-        customerName,
+        quoteNumber: quoteData.quoteNumber,
+        issueDate: quoteData.issueDate,
+        customerName: quoteData.customerName,
+        companyName: quoteData.companyName,
+        postalCode: quoteData.postalCode,
+        address: quoteData.address,
+        contactPerson: quoteData.contactPerson,
+        validityPeriod: quoteData.validityPeriod,
+        paymentTerms: quoteData.paymentTerms,
+        deliveryDate: quoteData.deliveryDate,
       },
+      specifications: quoteData.specifications,
+      optionalProcessing: quoteData.optionalProcessing,
     });
     const objectUrl = URL.createObjectURL(blob);
     try {

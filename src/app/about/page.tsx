@@ -83,8 +83,7 @@ export default function AboutPage() {
                   <div>
                     <dt className="text-sm font-medium text-text-muted">所在地</dt>
                     <dd className="text-lg text-text-primary">
-                      兵庫県明石市上ノ丸2-11-21<br />
-                      <span className="text-sm text-text-muted">ロジスティクス：兵庫県加古郡稲美町六分一486</span>
+                      兵庫県加古郡稲美町六分一486
                     </dd>
                   </div>
                 </dl>

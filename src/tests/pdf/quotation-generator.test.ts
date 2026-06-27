@@ -49,8 +49,8 @@ function createMockQuotationData(): QuotationData {
     issuer: {
       name: 'EPACKAGE Lab株式会社',
       nameKana: 'イーパックケージラボカブシキガイシャ',
-      address: '兵庫県明石市上ノ丸2-11-21',
-      postalCode: '673-0846',
+      address: '兵庫県加古郡稲美町六分一486',
+      postalCode: '675-1112',
       representative: '金井 一郎',
       representativeTitle: '代表取締役',
       contact: {
