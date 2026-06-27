@@ -196,6 +196,13 @@ export const GRAVURE_CONSTANTS = {
     roll: 7,
   } as const,
 
+  /** 多列生産を開始する1列基準の製作長閾値（m） - 2026-06-28 改定（C2 Followup #1）
+   *  1列で製作した場合の必要フィルム長（= パウチピッチ × 数量）がこの値を超えると、
+   *  物理可能な最大列数を自動適用し銅版費を按分して単価を下げる。
+   *  例: ピッチ130mm×1万個=1300m > 1000m → 多列化（パウチ袋なら2列で650m相当）。
+   *  1000m以下は多列化のメリットが小さいため1列を維持。 */
+  MULTI_COLUMN_PRODUCTION_THRESHOLD_METERS: 1000,
+
   /** 最終熱シール層（LLDPE等）の幅加算 - 仕様§5: 原反幅 + 10mm */
   FINAL_LAYER_WIDTH_EXTRA_MM: 10,
 

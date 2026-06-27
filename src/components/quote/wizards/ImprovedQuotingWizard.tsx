@@ -36,11 +36,10 @@ import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import {
   determineGravureMaterialWidth,
   determineGravureRollMaterialWidth,
-  calculateSingleColumnFilmWidth,
-  getAvailableColumnCounts,
   type GravurePouchType,
 } from '@/lib/gravure-material-width';
 import { calculateGravureProcessingCount } from '@/lib/gravure-cost-calculator';
+import { determineAutoMultiColumnCount } from '@/lib/multi-column-auto';
 import { GRAVURE_CONSTANTS } from '@/lib/pricing/core/constants';
 import type { ParallelProductionOption } from '../shared/ParallelProductionOptions';
 import type { EconomicQuantitySuggestionData } from '../shared/EconomicQuantityProposal';
@@ -1829,7 +1828,6 @@ function PostProcessingStep() {
 function RealTimePriceDisplay() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const state = useQuoteState();
-  const { applyMultiColumnOption, clearAppliedOption } = useQuote();
   const [isCalculating, setIsCalculating] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [priceChange, setPriceChange] = useState<'increase' | 'decrease' | 'stable'>('stable');
@@ -2259,68 +2257,21 @@ function RealTimePriceDisplay() {
           </div>
         </div>
 
-        {/* グラビア多列生産 列数選択UI（計画 multi-column-gravure-unification.md AC5）
-            グラビア印刷 + パウチ形状の時のみ表示。1100mm上限で物理不可の列数は選択不可。 */}
-        {state.printingType === 'gravure' && state.bagTypeId !== 'roll_film' && (() => {
-          // bagTypeId → GravurePouchType マッピング（グラビア計算と同一ロジック）
+        {/* グラビア多列生産: 自動適用（C2 Followup #1・ユーザー指示 2026-06-28）
+            顧客選択UIは廃止。製作数量に応じて自動判定（1列基準の製作長が1,000m超で最大列数）。 */}
+        {state.printingType !== 'digital' && state.bagTypeId !== 'roll_film' && (() => {
+          // bagTypeId → パウチ形状の判定（グラビア計算と同一ロジック）
           const bt = state.bagTypeId || '';
-          let pouchType: GravurePouchType | null = null;
-          if (bt.includes('lap_seal') || bt.includes('t_shape')) pouchType = 't_shape';
-          else if (bt.includes('3_side') || bt.includes('flat')) pouchType = 'flat_3_side';
-          else if (bt.includes('stand')) pouchType = 'stand_up';
-          else if (bt.includes('m_shape')) pouchType = 'm_shape';
-          if (!pouchType) return null;
-
-          const oneColumnWidthMm = calculateSingleColumnFilmWidth(
-            pouchType, state.height || 0, state.width || 0, state.depth ?? 0,
-          );
-          // パウチ袋は加工ライン制約で2列まで（DELIVERY_MAX_COLUMN_COUNT.pouch）
-          const availableCounts = getAvailableColumnCounts(
-            oneColumnWidthMm,
-            GRAVURE_CONSTANTS.MATERIAL_WIDTH_MAX_MM,
-            GRAVURE_CONSTANTS.DELIVERY_MAX_COLUMN_COUNT.pouch,
-          );
-          if (availableCounts.length === 0) return null; // 2列以上不可なら非表示
-
-          const currentColumn = state.multiColumnOptionApplied?.columnCount ?? 1;
-          const options = [1, ...availableCounts]; // 1列(デフォルト) + 物理可能列数
-          const discountLabels: Record<number, string> = {
-            1: '標準', 2: '15%引', 3: '30%引', 4: '40%引',
-            5: '45%引', 6: '50%引', 7: '55%引',
-          };
-
-          const handleSelect = (col: number) => {
-            if (col === 1) {
-              clearAppliedOption(); // 1列=標準はオプション解除
-            } else {
-              // 価格は再計算で反映されるため、ここでは列数状態のみ更新（プレースホルダ価格）
-              applyMultiColumnOption(col, `multi-${col}`, 0, 0, 0, state.quantity || 0);
-            }
-          };
-
+          const isPouch =
+            bt.includes('lap_seal') || bt.includes('t_shape') ||
+            bt.includes('3_side') || bt.includes('flat') ||
+            bt.includes('stand') || bt.includes('m_shape');
+          if (!isPouch) return null;
           return (
             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-              <div className="text-sm font-medium text-purple-900 mb-2">
-                グラビア多列生産（原反幅 {oneColumnWidthMm}mm / 最大 {availableCounts[availableCounts.length - 1]}列まで）
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {options.map((col) => (
-                  <button
-                    key={col}
-                    type="button"
-                    onClick={() => handleSelect(col)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      currentColumn === col
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-white text-purple-700 border border-purple-300 hover:bg-purple-100'
-                    }`}
-                  >
-                    {col}列 ({discountLabels[col]})
-                  </button>
-                ))}
-              </div>
-              <div className="mt-1 text-xs text-purple-600">
-                列数を増やすと銅版費・セットアップ費を按分し単価が下がります（1100mm上限内）
+              <div className="text-xs text-purple-700">
+                💰 多列生産で自動割引: 製作数量が多い場合（1列基準の製作長が1,000m超）は、
+                物理可能な最大列数で自動計算し銅版費を按分して単価を下げます。
               </div>
             </div>
           );
@@ -2670,23 +2621,13 @@ export function ImprovedQuotingWizard() {
                     gravureProductionMeters = requiredLots * GRAVURE_CONSTANTS.STANDARD_LOT_METERS;
                   }
 
-                  // 多列生産列数の決定（計画 multi-column-gravure-unification.md AC5/AC7）
-                  // QuoteContext の multiColumnOptionApplied を明示読込 → columnCount を取得。
-                  // パウチの場合は1列幅から物理可能列数を算出し、パウチ袋=2列上限で絞り込み。
-                  // 上限を超える選択は無効化（1列にフォールバック）。
+                  // 多列生産列数の自動決定（C2 Followup #1・ユーザー指示 2026-06-28）
+                  // 顧客選択UIではなく、1列基準の製作長（パウチピッチ×数量）が1000m超で
+                  // 物理可能な最大列数を自動適用（パウチ袋=2列上限）。1000m以下は1列。
+                  // 例: ピッチ130mm×1万個=1300m > 1000m → 2列（650m相当）。
                   let gravureColumnCount = 1;
                   if (pouchType) {
-                    const requestedColumn = state.multiColumnOptionApplied?.columnCount ?? 1;
-                    const oneColumnWidthMm = calculateSingleColumnFilmWidth(pouchType, gHeight, gWidth, gDepth);
-                    // パウチ袋は2列まで（DELIVERY_MAX_COLUMN_COUNT.pouch）
-                    const availableCounts = getAvailableColumnCounts(
-                      oneColumnWidthMm,
-                      GRAVURE_CONSTANTS.MATERIAL_WIDTH_MAX_MM,
-                      GRAVURE_CONSTANTS.DELIVERY_MAX_COLUMN_COUNT.pouch,
-                    );
-                    // 要求列数が物理可能範囲内なら採用、超過時は1列へフォールバック
-                    gravureColumnCount = requestedColumn > 1 && availableCounts.includes(requestedColumn)
-                      ? requestedColumn : 1;
+                    gravureColumnCount = determineAutoMultiColumnCount(pouchType, gHeight, gWidth, patternTotal);
                   }
 
                   gravureResult = await unifiedPricingEngine.calculateQuote({
