@@ -17,6 +17,7 @@ import { safeMap } from '@/lib/array-helpers';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
 import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
+import { calcDuty, calcManufacturingMargin } from '@/lib/duty-calculator';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
 import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
 import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck, Info } from 'lucide-react';
@@ -1098,8 +1099,15 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         };
       } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
         // 【追加】result.breakdownから直接計算（SKUモード対応）
+        // baseCost は原価ベース（breakdown.baseCost / filmCost）。売価(totalPrice)は含まない。
         const breakdown = result.breakdown;
         const baseCost = breakdown.baseCost || breakdown.filmCost || 0;
+        // duty はSKUモード（ベースライン）と同じ計算式に統一:
+        //   duty = 製造者価格(原価 + manufacturingMargin) × 0.05
+        //   manufacturingMargin = 原価 × 0.4
+        // （旧実装の duty = 原価 × 0.05 は製造者価格ではなく原価に5%を適用しており、
+        //   base-strategy.ts:227 / pouch-cost-calculator.ts:1287 の正確仕様と約40%乖離していた）
+        const manufacturingMargin = breakdown.manufacturingMargin ?? calcManufacturingMargin(baseCost);
         costBreakdown = {
           materialCost: Math.round(breakdown.filmCost || baseCost * 0.4),
           laminationCost: Math.round(breakdown.laminationCost || baseCost * 0.06),
@@ -1107,17 +1115,19 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(breakdown.pouchProcessingCost || baseCost * 0.15),
           printingCost: Math.round(breakdown.printing || baseCost * 0.1),
-          // unified-pricing-engine.tsで計算された値を使用
-          manufacturingMargin: Math.round(breakdown.manufacturingMargin || baseCost * 0.4),
-          duty: Math.round(breakdown.duty || baseCost * 0.05),
+          manufacturingMargin: Math.round(manufacturingMargin),
+          duty: Math.round(breakdown.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
           delivery: Math.round(breakdown.delivery || baseCost * 0.08),
           salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.25),
           totalCost: Math.round(baseCost)
         };
       } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.breakdown?.baseCost && result.breakdown.baseCost > 0)) {
         // 通常モード・単一SKUモード: resultから計算
-        // 簡易的な原価計算（正確な値ではないが、表示用としては十分）
-        const baseCost = result.breakdown?.baseCost || result.totalPrice || (result.unitPrice * (result.quantity || state.quantity || 1)) || 0;
+        // 【重要】baseCost は原価ベースに統一。売価(totalPrice / unitPrice*qty)を含むと
+        //   duty が売価×5%に跳ね上がり約40%乖離するため、result.breakdown.baseCost のみを使用。
+        //   breakdown.baseCost が無い場合は計算不能としてスキップ（duty=0）。
+        const baseCost = result.breakdown?.baseCost || 0;
+        const manufacturingMargin = result.breakdown?.manufacturingMargin ?? calcManufacturingMargin(baseCost);
         costBreakdown = {
           materialCost: Math.round(baseCost * 0.4), // 約40%
           laminationCost: Math.round(baseCost * 0.06), // 約6%
@@ -1125,8 +1135,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(baseCost * 0.15), // 約15%
           printingCost: Math.round(baseCost * 0.1), // 約10%
-          manufacturingMargin: Math.round(result.breakdown?.manufacturingMargin || baseCost * 0.4),
-          duty: Math.round(result.breakdown?.duty || baseCost * 0.05),
+          manufacturingMargin: Math.round(manufacturingMargin),
+          duty: Math.round(result.breakdown?.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
           delivery: Math.round(result.breakdown?.delivery || baseCost * 0.08), // 約8%
           salesMargin: Math.round(result.breakdown?.salesMargin || baseCost * 0.25), // 約25%
           totalCost: Math.round(baseCost)

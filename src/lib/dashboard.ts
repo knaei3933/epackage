@@ -1298,17 +1298,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     // 待ってから処理。エラー耐性は個別 try-catch で維持（1クエリ失敗が全体を落とさない）。
 
     // グループ1: 一覧データ（orders / quotations / samples / inquiries）
-    const [
-      newOrdersRes,
-      processingOrdersRes,
-      pendingQuotationsRes,
-      pendingSamplesRes,
-      unreadInquiriesRes,
-      totalOrdersRes,
-      totalQuotationsRes,
-      totalSamplesRes,
-      totalInquiriesRes,
-    ] = await Promise.all([
+    // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、
+    // 個別に fulfilled 判定し rejected は空 result でフォールバック（グループ2の
+    // .catch() パターンと同等のエラー耐性）。
+    const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
+    const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+    const g1Results = await Promise.allSettled([
       serviceClient
         .from('orders')
         .select('*')
@@ -1359,6 +1354,29 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId),
     ]);
+
+    // rejected クエリは空 result でフォールバック（一覧=空配列、カウント=0）
+    const [
+      newOrdersRes,
+      processingOrdersRes,
+      pendingQuotationsRes,
+      pendingSamplesRes,
+      unreadInquiriesRes,
+      totalOrdersRes,
+      totalQuotationsRes,
+      totalSamplesRes,
+      totalInquiriesRes,
+    ] = [
+      g1Results[0].status === 'fulfilled' ? g1Results[0].value : EMPTY_LIST_RESULT,
+      g1Results[1].status === 'fulfilled' ? g1Results[1].value : EMPTY_LIST_RESULT,
+      g1Results[2].status === 'fulfilled' ? g1Results[2].value : EMPTY_LIST_RESULT,
+      g1Results[3].status === 'fulfilled' ? g1Results[3].value : EMPTY_LIST_RESULT,
+      g1Results[4].status === 'fulfilled' ? g1Results[4].value : EMPTY_LIST_RESULT,
+      g1Results[5].status === 'fulfilled' ? g1Results[5].value : EMPTY_COUNT_RESULT,
+      g1Results[6].status === 'fulfilled' ? g1Results[6].value : EMPTY_COUNT_RESULT,
+      g1Results[7].status === 'fulfilled' ? g1Results[7].value : EMPTY_COUNT_RESULT,
+      g1Results[8].status === 'fulfilled' ? g1Results[8].value : EMPTY_COUNT_RESULT,
+    ];
 
     const newOrders = newOrdersRes.data;
     const processingOrders = processingOrdersRes.data;
@@ -1672,28 +1690,11 @@ async function fetchAdminDashboardStats(
   todayStart.setHours(0, 0, 0, 0);
 
   // 並列クエリ - すべての統計データを取得
-  const [
-    totalOrdersResult,
-    pendingOrdersResult,
-    totalRevenueResult,
-    activeUsersResult,
-    ordersByStatusResult,
-    totalQuotationsResult,
-    approvedQuotationsResult,
-    pendingQuotationsResult,
-    recentQuotationsResult,
-    // 月別売上
-    monthlyRevenueResult,
-    // 本日出荷
-    todayShipmentsResult,
-    // 輸送中注文
-    inTransitShipmentsResult,
-    // サンプル統計
-    totalSamplesResult,
-    processingSamplesResult,
-    // 生産完了注文（製造期間計算用）
-    completedProductionOrdersResult,
-  ] = await Promise.all([
+  // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、rejected は
+  // 空 result（カウント系=0、一覧系=空配列）でフォールバック。
+  const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
+  const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+  const adminResults = await Promise.allSettled([
     serviceClient.from('orders').select('*', { count: 'exact', head: true }),
     serviceClient.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
     serviceClient.from('orders').select('total_amount').gte('created_at', startDate.toISOString()),
@@ -1739,6 +1740,50 @@ async function fetchAdminDashboardStats(
       .eq('status', 'SHIPPED')
       .gte('created_at', startDate.toISOString()),
   ]);
+
+  // rejected クエリは空 result でフォールバック
+  // インデックス順: 0-3,6-8,11-14 = カウント系(EMPTY_COUNT_RESULT)、4-5,9-10,13-14の一部 = 一覧系(EMPTY_LIST_RESULT)
+  // 判定は個別 status チェックで安全に取り出す
+  const settled = <T>(r: PromiseSettledResult<T>, fallback: T) =>
+    r.status === 'fulfilled' ? r.value : fallback;
+  const [
+    totalOrdersResult,
+    pendingOrdersResult,
+    totalRevenueResult,
+    activeUsersResult,
+    ordersByStatusResult,
+    totalQuotationsResult,
+    approvedQuotationsResult,
+    pendingQuotationsResult,
+    recentQuotationsResult,
+    // 月別売上
+    monthlyRevenueResult,
+    // 本日出荷
+    todayShipmentsResult,
+    // 輸送中注文
+    inTransitShipmentsResult,
+    // サンプル統計
+    totalSamplesResult,
+    processingSamplesResult,
+    // 生産完了注文（製造期間計算用）
+    completedProductionOrdersResult,
+  ] = [
+    settled(adminResults[0], EMPTY_COUNT_RESULT), // totalOrders (count)
+    settled(adminResults[1], EMPTY_COUNT_RESULT), // pendingOrders (count)
+    settled(adminResults[2], EMPTY_LIST_RESULT), // totalRevenue (data)
+    settled(adminResults[3], EMPTY_COUNT_RESULT), // activeUsers (count)
+    settled(adminResults[4], EMPTY_LIST_RESULT), // ordersByStatus (data)
+    settled(adminResults[5], EMPTY_COUNT_RESULT), // totalQuotations (count)
+    settled(adminResults[6], EMPTY_COUNT_RESULT), // approvedQuotations (count)
+    settled(adminResults[7], EMPTY_COUNT_RESULT), // pendingQuotations (count)
+    settled(adminResults[8], EMPTY_LIST_RESULT), // recentQuotations (data)
+    settled(adminResults[9], EMPTY_LIST_RESULT), // monthlyRevenue (data)
+    settled(adminResults[10], EMPTY_COUNT_RESULT), // todayShipments (count)
+    settled(adminResults[11], EMPTY_COUNT_RESULT), // inTransitShipments (count)
+    settled(adminResults[12], EMPTY_COUNT_RESULT), // totalSamples (count)
+    settled(adminResults[13], EMPTY_COUNT_RESULT), // processingSamples (count)
+    settled(adminResults[14], EMPTY_LIST_RESULT), // completedProductionOrders (data)
+  ];
 
   // 売上計算
   const totalRevenue = (totalRevenueResult.data || [])
@@ -1847,15 +1892,10 @@ async function fetchMemberDashboardStats(
   startDate.setDate(startDate.getDate() - period);
 
   // 並列クエリ
-  const [
-    totalOrdersResult,
-    pendingOrdersResult,
-    totalQuotationsResult,
-    totalSamplesResult,
-    pendingSamplesResult,
-    totalInquiriesResult,
-    respondedInquiriesResult,
-  ] = await Promise.all([
+  // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、rejected は
+  // count:0 の空 result でフォールバック（すべてカウント取得クエリのため）。
+  const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+  const unifiedResults = await Promise.allSettled([
     serviceClient
       .from('orders')
       .select('*', { count: 'exact', head: true })
@@ -1897,6 +1937,18 @@ async function fetchMemberDashboardStats(
       // 回答済みの問い合わせをカウント
       .in('status', ['responded', 'resolved', 'closed']),
   ]);
+
+  const settled = <T>(r: PromiseSettledResult<T>, fallback: T) =>
+    r.status === 'fulfilled' ? r.value : fallback;
+  const [
+    totalOrdersResult,
+    pendingOrdersResult,
+    totalQuotationsResult,
+    totalSamplesResult,
+    pendingSamplesResult,
+    totalInquiriesResult,
+    respondedInquiriesResult,
+  ] = unifiedResults.map((r) => settled(r, EMPTY_COUNT_RESULT));
 
   return {
     totalOrders: totalOrdersResult.count || 0,

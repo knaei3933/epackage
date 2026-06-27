@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion'
 ;
@@ -55,7 +55,7 @@ export function CatalogDownloadAdmin({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/catalog-download');
@@ -73,7 +73,7 @@ export function CatalogDownloadAdmin({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRecords();
@@ -111,7 +111,7 @@ export function CatalogDownloadAdmin({
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       };
     }
-  }, [refreshInterval]);
+  }, [refreshInterval, fetchRecords]);
 
   // Filter records based on search and period
   useEffect(() => {

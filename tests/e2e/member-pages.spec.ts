@@ -23,7 +23,7 @@ import { test, expect } from '@playwright/test';
 // 定数
 // =====================================================
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3002';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL || 'admin@epackage-lab.com';
 const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD || 'Admin123!';
 

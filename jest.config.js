@@ -1,6 +1,10 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
+  setupFiles: ['<rootDir>/jest.setup.js'],
+  // @testing-library/jest-dom は expect 等 Jest globals を拡張するため、
+  // setupFiles（globals 注入前）ではなく setupFilesAfterEnv（注入後）で読み込む
+  setupFilesAfterEnv: ['<rootDir>/jest.setupAfterEnv.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },

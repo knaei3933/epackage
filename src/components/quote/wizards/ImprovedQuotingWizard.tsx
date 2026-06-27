@@ -824,6 +824,7 @@ function SpecsStep() {
             <div>
               <label className="block text-base text-gray-700 mb-1">製品タイプ</label>
               <select
+                data-testid="product-category-select"
                 value={selectedCategory}
                 onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1021,6 +1022,7 @@ function SpecsStep() {
                 <input
                   type="number"
                   min="50"
+                  data-testid="width-input"
                   value={state.width ?? ''}
                   onChange={(e) => updateBasicSpecs({ width: e.target.value === '' ? undefined : parseInt(e.target.value) })}
                   className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
@@ -1048,6 +1050,7 @@ function SpecsStep() {
                     type="number"
                     min="50"
                     max="1000"
+                    data-testid="pitch-input"
                     value={state.pitch || ''}
                     onChange={(e) => updateBasicSpecs({ pitch: parseInt(e.target.value) || undefined })}
                     className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
@@ -1070,6 +1073,7 @@ function SpecsStep() {
                     <input
                       type="number"
                       min="50"
+                      data-testid="height-input"
                       value={state.height ?? ''}
                       onChange={(e) => {
                         const newHeight = e.target.value === '' ? undefined : parseInt(e.target.value);
@@ -1113,6 +1117,7 @@ function SpecsStep() {
                   <div>
                     <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                     <select
+                      data-testid="gusset-depth-input"
                       value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                       onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
                       className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1197,6 +1202,7 @@ function SpecsStep() {
                     <span className="ml-1 text-xs text-gray-400 font-normal">袋の底を広げて自立させる部分</span>
                   </label>
                   <select
+                    data-testid="depth-input"
                     value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                     onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
                     className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1296,6 +1302,7 @@ function SpecsStep() {
                       {categoryMaterials.map(material => (
                         <button
                           key={material.id}
+                          data-testid="material-card"
                           onClick={() => updateBasicSpecs({ materialId: material.id })}
                           className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${
                             state.materialId === material.id
@@ -2900,6 +2907,7 @@ export function ImprovedQuotingWizard() {
                     return (
                       <button
                         key={step.id}
+                        data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
                         onClick={() => index < currentStep && setCurrentStep(index)}
                         disabled={index > currentStep}
                         className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-all ${isActive

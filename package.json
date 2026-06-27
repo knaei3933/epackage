@@ -25,6 +25,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
+    "test:e2e:logged": "playwright test && node scripts/copy-e2e-logs.js",
     "test:multi-quantity": "jest --testPathPattern='multi-quantity'",
     "test:accessibility": "jest --testPathPattern='accessibility'",
     "test:api": "jest --testPathPattern='api'",

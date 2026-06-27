@@ -1300,7 +1300,7 @@ export class PouchCostCalculator {
     const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
 
     // 7. 販売マージン適用 - DB設定から販売マージン率を取得
-    // AC-Q6/S1.2: フォールバックは PRICING_CONSTANTS.SALES_MARGIN(0.2 ガイド準拠)
+    // AC-Q6/S1.2: フォールバックは PRICING_CONSTANTS.SALES_MARGIN(0.25 ガイド準拠)
     const SALES_MARGIN = await this.getSetting('pricing', 'default_markup_rate', PRICING_CONSTANTS.SALES_MARGIN);
     console.log('[PouchCostCalculator] salesMargin:', SALES_MARGIN);
 
