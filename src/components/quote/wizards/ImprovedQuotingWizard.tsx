@@ -12,7 +12,7 @@ import { safeMap } from '@/lib/array-helpers';
 import EnvelopePreview from '../previews/EnvelopePreview';
 import MultiQuantityStep from '../steps/MultiQuantityStep';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
-import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getThicknessLabel, getWeightRange, getLegendForSpecification, getPlainSpecSummary } from '@/constants/materialTypes';
+import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getFilmStructureLabel, getWeightRange, getLegendForSpecification, getPlainSpecSummary } from '@/constants/materialTypes';
 import { getAvailableGussetSizes, ALL_GUSSET_SIZE_OPTIONS } from '@/lib/gusset-data';
 import { getAvailableSealWidths, isGussetedBag } from '@/lib/sealing-data';
 import {
@@ -263,7 +263,7 @@ function SpecsStep() {
           name: '軽量タイプ (~100g)',
           nameJa: '軽量タイプ (~100g)',
           specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 50μ',
+          specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ',
           weightRange: '~100g',
           multiplier: 0.85,
           filmLayers: [
@@ -278,7 +278,7 @@ function SpecsStep() {
           name: '標準タイプ (~300g)',
           nameJa: '標準タイプ (~300g)',
           specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 70μ',
+          specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ',
           weightRange: '~300g',
           multiplier: 0.95,
           filmLayers: [
@@ -293,7 +293,7 @@ function SpecsStep() {
           name: 'レギュラータイプ (~500g)',
           nameJa: 'レギュラータイプ (~500g)',
           specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 90μ',
+          specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
           weightRange: '~500g',
           multiplier: 1.0,
           filmLayers: [
@@ -308,7 +308,7 @@ function SpecsStep() {
           name: '高耐久タイプ (~800g)',
           nameJa: '高耐久タイプ (~800g)',
           specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 100μ',
+          specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ',
           weightRange: '~800g',
           multiplier: 1.1,
           filmLayers: [
@@ -323,7 +323,7 @@ function SpecsStep() {
           name: '超耐久タイプ (800g~)',
           nameJa: '超耐久タイプ (800g~)',
           specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 110μ',
+          specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ',
           weightRange: '800g~',
           multiplier: 1.2,
           filmLayers: [
@@ -2253,7 +2253,7 @@ function RealTimePriceDisplay() {
           </div>
           <div className="mt-1 text-xs text-gray-500">
             サイズ: {state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`}mm
-            {state.thicknessSelection && ` | 厚さ: ${getThicknessLabel(state.thicknessSelection)}`}
+            {state.thicknessSelection && state.materialId && ` | フィルム構成: ${getFilmStructureLabel(state.materialId, state.thicknessSelection)}`}
           </div>
         </div>
 

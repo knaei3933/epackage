@@ -1,6 +1,9 @@
 // Material Types Standardization
 // English notation for all material types
 
+import { getMaterialById } from './materialData';
+import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
+
 export enum MaterialType {
   PET_AL = 'pet_al',
   PET_VMPET = 'pet_vmpet',
@@ -66,6 +69,7 @@ export const MATERIAL_DESCRIPTIONS = {
 export enum ThicknessType {
   LIGHT = 'light',
   MEDIUM = 'medium',
+  STANDARD = 'standard',
   HEAVY = 'heavy',
   ULTRA = 'ultra'
 }
@@ -73,6 +77,7 @@ export enum ThicknessType {
 export const THICKNESS_TYPE_LABELS = {
   [ThicknessType.LIGHT]: '軽量タイプ',
   [ThicknessType.MEDIUM]: '標準タイプ',
+  [ThicknessType.STANDARD]: 'レギュラータイプ',
   [ThicknessType.HEAVY]: '高耐久タイプ',
   [ThicknessType.ULTRA]: '超耐久タイプ'
 } as const;
@@ -80,6 +85,7 @@ export const THICKNESS_TYPE_LABELS = {
 export const THICKNESS_WEIGHT_RANGES = {
   [ThicknessType.LIGHT]: '~100g',
   [ThicknessType.MEDIUM]: '~500g',
+  [ThicknessType.STANDARD]: '~500g',
   [ThicknessType.HEAVY]: '~800g',
   [ThicknessType.ULTRA]: '800g~'
 } as const;
@@ -102,61 +108,64 @@ export const getWeightRange = (thicknessId: string): string => {
   return THICKNESS_WEIGHT_RANGES[thicknessId as ThicknessType] || '';
 };
 
-// Film structure labels (in micrometers) for PDF display
-export const FILM_STRUCTURE_LABELS: Record<string, Record<string, string>> = {
-  pet_al: {
-    light: 'PET 12 / AL 7',
-    medium: 'PET 12 / AL 9',
-    heavy: 'PET 12 / AL 12',
-    ultra: 'PET 12 / AL 15'
-  },
-  pet_vmpet: {
-    light: 'PET 12 / VMPET',
-    medium: 'PET 12 / VMPET',
-    heavy: 'PET 12 / VMPET',
-    ultra: 'PET 12 / VMPET'
-  },
-  pet_ldpe: {
-    light: 'PET 12 / LLDPE 50',
-    medium: 'PET 12 / LLDPE 70',
-    heavy: 'PET 12 / LLDPE 90',
-    ultra: 'PET 12 / LLDPE 100'
-  },
-  pet_ny_al: {
-    light: 'PET 12 / NY 15 / AL 7',
-    medium: 'PET 12 / NY 15 / AL 9',
-    heavy: 'PET 12 / NY 15 / AL 12',
-    ultra: 'PET 12 / NY 15 / AL 15'
-  },
-  // NY+LLDPE: 2-layer structure
-  ny_lldpe: {
-    light_50: 'NY 15 / LLDPE 50',
-    standard_70: 'NY 15 / LLDPE 70',
-    heavy_90: 'NY 15 / LLDPE 90',
-    ultra_100: 'NY 15 / LLDPE 100',
-    maximum_110: 'NY 15 / LLDPE 110'
-  },
-  // Kraft+VMPET+LLDPE: 3-layer structure
-  kraft_vmpet_lldpe: {
-    light_50: 'Kraft 50g/m² / VMPET 12 / LLDPE 50',
-    standard_70: 'Kraft 50g/m² / VMPET 12 / LLDPE 70',
-    heavy_90: 'Kraft 50g/m² / VMPET 12 / LLDPE 90',
-    ultra_100: 'Kraft 50g/m² / VMPET 12 / LLDPE 100',
-    maximum_110: 'Kraft 50g/m² / VMPET 12 / LLDPE 110'
-  },
-  // Kraft+PET+LLDPE: 3-layer structure
-  kraft_pet_lldpe: {
-    light_50: 'Kraft 50g/m² / PET 12 / LLDPE 50',
-    standard_70: 'Kraft 50g/m² / PET 12 / LLDPE 70',
-    heavy_90: 'Kraft 50g/m² / PET 12 / LLDPE 90',
-    ultra_100: 'Kraft 50g/m² / PET 12 / LLDPE 100',
-    maximum_110: 'Kraft 50g/m² / PET 12 / LLDPE 110'
+/**
+ * フィルム実構成ラベルを返す（単一データソース: materialData.ts の specificationEn）。
+ *
+ * フォールバック順:
+ *  1. MATERIALS_DATA[materialId].thicknessOptions から thicknessSelection で該当キーを引き specificationEn を返す
+ *  2. thicknessOptions が存在するが thicknessSelection 非該当 → 最初の thicknessOptions[0].specificationEn
+ *  3. thicknessOptions 未定義 → filmLayers[] から "素材 μ"（grammage は "素材 g/m²"）形式で組み立て
+ *  4. materialId 自体が MATERIALS_DATA に存在しない → getMaterialLabel(materialId)
+ *
+ * 計画: .omc/plans/film-structure-display-unification.md Step1
+ *
+ * @param materialId - 素材ID（例: 'pet_al', 'pet_vmpet'）
+ * @param thicknessSelection - 厚さ選択キー（例: 'light', 'standard', 'standard_70'）。省略時は thicknessOptions[0]
+ */
+export const getFilmStructureLabel = (materialId: string, thicknessSelection?: string): string => {
+  const material = getMaterialById(materialId);
+  if (!material) {
+    return getMaterialLabel(materialId);
   }
+
+  // 1. thicknessOptions から該当キーで specificationEn を引く
+  if (material.thicknessOptions && material.thicknessOptions.length > 0) {
+    let option = thicknessSelection
+      ? material.thicknessOptions.find((o) => o.id === thicknessSelection)
+      : undefined;
+    // 系統B接尾辞（standard_70 等）のフォールバック: 前前方一致でなく完全一致優先・非該当時は先頭
+    if (!option) {
+      option = material.thicknessOptions[0];
+    }
+    if (option?.specificationEn) {
+      return option.specificationEn;
+    }
+  }
+
+  // 2. filmLayers から "素材 μ" 形式で組み立て
+  if (material.thicknessOptions && material.thicknessOptions.length > 0) {
+    const layers = material.thicknessOptions[0].filmLayers;
+    if (layers && layers.length > 0) {
+      return layers
+        .map((layer: FilmStructureLayer) => formatFilmLayer(layer))
+        .join(' + ');
+    }
+  }
+
+  // 3. 最終フォールバック
+  return getMaterialLabel(materialId);
 };
 
-export const getFilmStructureLabel = (materialId: string, thicknessId: string): string => {
-  const structures = FILM_STRUCTURE_LABELS[materialId];
-  return structures ? structures[thicknessId] || `${getMaterialLabel(materialId)} (${getThicknessLabel(thicknessId)})` : materialId;
+/**
+ * FilmStructureLayer を表示文字列に整形する。
+ * - thickness を持つ層: "PET 12μ"
+ * - grammage を持つ層（Kraft 等）: "Kraft 80g/m²"
+ */
+const formatFilmLayer = (layer: FilmStructureLayer): string => {
+  if (typeof layer.grammage === 'number') {
+    return `${layer.materialId} ${layer.grammage}g/m²`;
+  }
+  return `${layer.materialId} ${layer.thickness}μ`;
 };
 
 /**

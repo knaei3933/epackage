@@ -1561,6 +1561,7 @@ function normalizeMaterialSpec(text: string | undefined | null): string {
   return text
     .replace(/\s*μ\s*/g, ' ')
     .replace(/\s+\/\s+/g, ' ')
+    .replace(/\s*\+\s*/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }

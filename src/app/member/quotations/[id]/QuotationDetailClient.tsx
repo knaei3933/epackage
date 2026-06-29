@@ -33,6 +33,7 @@ import { translateBagType, translateMaterialType, translatePostProcessing, BAG_T
 import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
 import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
@@ -142,18 +143,21 @@ function getThicknessName(materialId: string, thicknessSelection: string, fallba
   }
 
   // 素材別のデフォルト仕様
+  // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+  // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
   if (materialId) {
-    const defaultThicknessSpec: Record<string, string> = {
-      'ny_lldpe': 'NY 15μ + LLDPE 70μ',
-      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
-      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
-      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-    };
-    const defaultSpec = defaultThicknessSpec[materialId];
-    if (defaultSpec) return defaultSpec;
+    const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+    if (isKraft) {
+      const defaultThicknessSpec: Record<string, string> = {
+        'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+      };
+      const defaultSpec = defaultThicknessSpec[materialId];
+      if (defaultSpec) return defaultSpec;
+    } else {
+      const label = getFilmStructureLabel(materialId, thicknessSelection);
+      if (label && label !== materialId) return label;
+    }
   }
 
   // フォールバック: 日本語変換
@@ -298,16 +302,19 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
   }
   if (thicknessType === '-' && materialId) {
     // 素材別のデフォルト仕様
-    const defaultThicknessSpec: Record<string, string> = {
-      'ny_lldpe': 'NY 15μ + LLDPE 70μ',
-      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
-      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
-      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-    };
-    thicknessType = defaultThicknessSpec[materialId] || '-';
+    // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+    // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
+    const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+    if (isKraft) {
+      const defaultThicknessSpec: Record<string, string> = {
+        'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+      };
+      thicknessType = defaultThicknessSpec[materialId] || '-';
+    } else {
+      const label = getFilmStructureLabel(materialId, thicknessSelection);
+      thicknessType = (label && label !== materialId) ? label : '-';
+    }
   }
 
   const result = {

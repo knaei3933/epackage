@@ -18,8 +18,7 @@ import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable
 import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { calcDuty, calcManufacturingMargin } from '@/lib/duty-calculator';
-import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
-import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
+import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription, getFilmStructureLabel } from '@/constants/materialTypes';
 import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
@@ -291,63 +290,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     return MATERIAL_TYPE_LABELS_JA[materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || materialId;
   };
 
-  // Get film structure specification from materials data (Japanese)
-  // MaterialSelection.tsxの値と統一
-  const getFilmStructureSpecJa = (materialId: string, thicknessId: string): string => {
-    const materialSpecs: Record<string, Record<string, string>> = {
-      'pet_al': {
-        'light': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 50μ',
-        'medium': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 110μ'
-      },
-      'pet_vmpet': {
-        'light': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 50μ',
-        'medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 110μ'
-      },
-      'pet_ldpe': {
-        'light': 'PET 12μ / LLDPE 50μ',
-        'medium': 'PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / LLDPE 110μ'
-      },
-      'pet_ny_al': {
-        'light': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 50μ',
-        'medium': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 70μ',
-        'standard': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 110μ'
-      },
-      'ny_lldpe': {
-        'light': 'NY 15μ / LLDPE 50μ',
-        'medium': 'NY 15μ / LLDPE 70μ',
-        'standard': 'NY 15μ / LLDPE 90μ',
-        'heavy': 'NY 15μ / LLDPE 100μ',
-        'ultra': 'NY 15μ / LLDPE 110μ'
-      },
-      'kraft_vmpet_lldpe': {
-        'light_50': 'Kraft 80g/m² / VMPET 12μ / LLDPE 50μ',
-        'standard_70': 'Kraft 80g/m² / VMPET 12μ / LLDPE 70μ',
-        'heavy_90': 'Kraft 80g/m² / VMPET 12μ / LLDPE 90μ',
-        'ultra_100': 'Kraft 80g/m² / VMPET 12μ / LLDPE 100μ',
-        'maximum_110': 'Kraft 80g/m² / VMPET 12μ / LLDPE 110μ'
-      },
-      'kraft_pet_lldpe': {
-        'light_50': 'Kraft 80g/m² / PET 12μ / LLDPE 50μ',
-        'standard_70': 'Kraft 80g/m² / PET 12μ / LLDPE 70μ',
-        'heavy_90': 'Kraft 80g/m² / PET 12μ / LLDPE 90μ',
-        'ultra_100': 'Kraft 80g/m² / PET 12μ / LLDPE 100μ',
-        'maximum_110': 'Kraft 80g/m² / PET 12μ / LLDPE 110μ'
-      }
-    };
-
-    return materialSpecs[materialId]?.[thicknessId] || '指定なし';
-  };
+  // フィルム実構成ラベルは materialTypes.ts の getFilmStructureLabel（単一データソース: materialData.ts）
+  // に集約。本ファイルでのローカル再定義（`/` 区切り）は廃止済み。
+  // ※保存値の区切り文字が `/` → `+` に変化（新規見積のみ・既存DBは遡及禁止）。
 
   // Helper function to get bag type description in Japanese
   const getBagTypeDescriptionJa = (bagTypeId: string): string => {
@@ -669,7 +614,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       material: getMaterialLabelJa(state.materialId) || '指定なし',
       size: `${state.width || 0}×${state.height || 0}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
       thicknessType: state.thicknessSelection && state.materialId
-        ? getFilmStructureSpecJa(state.materialId, state.thicknessSelection)
+        ? getFilmStructureLabel(state.materialId, state.thicknessSelection)
         : '指定なし',
       sealWidth: state.sealWidth || '5mm',
       sealDirection: '上',
@@ -1761,7 +1706,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 {state.thicknessSelection && (
                   <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
                     <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">厚さ</dt>
-                    <dd className="text-gray-900 font-medium">{THICKNESS_TYPE_JA[state.thicknessSelection as keyof typeof THICKNESS_TYPE_JA] || state.thicknessSelection}</dd>
+                    <dd className="text-gray-900 font-medium">{getFilmStructureLabel(state.materialId, state.thicknessSelection)}</dd>
                   </div>
                 )}
               </dl>

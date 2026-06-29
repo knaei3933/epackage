@@ -21,7 +21,6 @@ import { AdminOrderItemsEditor } from '@/components/admin/AdminOrderItemsEditor'
 import { EmailComposer, type Recipient } from '@/components/admin/EmailComposer';
 import { adminFetch } from '@/lib/auth-client';
 import type { Order as DashboardOrder } from '@/types/dashboard';
-import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import { Package, User, Calendar, MapPin, CreditCard, FileText, AlertCircle, CheckCircle, XCircle, Mail } from 'lucide-react';
 
 interface OrderItem {
@@ -182,13 +181,6 @@ const BAG_TYPE_LABELS: Record<string, string> = {
   'roll_film': 'ロールフィルム',
   'spout_pouch': 'スパウトパウチ',
   'zipper_pouch': 'チャック付袋',
-};
-
-// 厚さの日本語マッピング
-const THICKNESS_LABELS: Record<string, string> = {
-  'thin': '薄い',
-  'medium': '標準',
-  'thick': '厚い',
 };
 
 // 納期の日本語マッピング

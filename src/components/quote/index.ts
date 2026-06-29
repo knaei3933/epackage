@@ -11,7 +11,7 @@
  */
 
 // Wizards
-export { QuoteWizard, ImprovedQuotingWizard, UnifiedQuoteSystem, InteractiveQuoteSystem } from './wizards'
+export { QuoteWizard, ImprovedQuotingWizard } from './wizards'
 
 // Steps
 export { SKUSelectionStep, MultiQuantityStep, UnifiedSKUQuantityStep } from './steps'

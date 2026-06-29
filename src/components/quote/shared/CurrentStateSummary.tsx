@@ -4,6 +4,7 @@ import React from 'react';
 import { Package, FileText, Calculator, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { translateBagType, translateMaterialType } from '@/constants/enToJa';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 
 /**
  * 仕様情報
@@ -112,11 +113,7 @@ export function CurrentStateSummary({
             <div className="flex">
               <span className="text-xs text-gray-600 w-24 flex-shrink-0">厚さ:</span>
               <span className="text-sm font-medium text-gray-900">
-                {specs.thicknessSelection === 'light' && 'PET 12μ / AL 7μ / PET 12μ / LLDPE 50μ'}
-                {specs.thicknessSelection === 'medium' && 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ'}
-                {specs.thicknessSelection === 'standard' && 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ'}
-                {specs.thicknessSelection === 'heavy' && 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ'}
-                {specs.thicknessSelection === 'ultra' && 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ'}
+                {getFilmStructureLabel(specs.materialId, specs.thicknessSelection)}
               </span>
             </div>
           )}

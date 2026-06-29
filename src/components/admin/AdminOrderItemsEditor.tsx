@@ -17,6 +17,7 @@ import { ChevronDown, ChevronUp, Package, Edit2, Save, X, Check, Percent } from 
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 import { processingOptionsConfig, PROCESSING_CATEGORIES } from '@/components/quote/shared/processingConfig';
 import { adminFetch } from '@/lib/auth-client';
 
@@ -102,8 +103,14 @@ function getMaterialLabel(value: string): string {
 }
 
 function getThicknessLabel(value: string, materialId?: string): string {
-  // materialIdに応じた厚さオプションからラベルを取得
+  // materialId + thicknessSelection から実フィルム構成を取得（kraft 系は仕様値未確定のため Phase 2 後退・抽象フォールバック維持）
   if (materialId) {
+    const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+    if (!isKraft) {
+      const structureLabel = getFilmStructureLabel(materialId, value);
+      if (structureLabel && structureLabel !== materialId) return structureLabel;
+    }
+    // kraft 系は従来の nameJa フォールバック
     const options = MATERIAL_THICKNESS_OPTIONS[materialId];
     if (options) {
       const opt = options.find(o => o.id === value);

@@ -36,6 +36,7 @@ export const MATERIAL_TYPE_JA = {
 export const THICKNESS_TYPE_JA = {
   'light': '軽量タイプ',
   'medium': '標準タイプ',
+  'standard': 'レギュラータイプ',
   'heavy': '高耐久タイプ',
   'ultra': '超耐久タイプ'
 } as const;

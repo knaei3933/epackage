@@ -19,6 +19,7 @@ import type { Quotation, QuotationStatus } from '@/types/entities';
 import { MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS, convertToPreviewOptions } from '@/constants/product-type-config';
 import { translateMaterialType, translateBagType } from '@/constants/enToJa';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
 import { generateQuotePDF } from '@/lib/pdf-generator';
 import { mapDatabaseQuotationToExcel } from '@/lib/excel/excelDataMapper';
@@ -305,16 +306,19 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
           thicknessType = getMaterialSpecification(materialId, thicknessSelection);
         }
         if (thicknessType === '-' && materialId) {
-          const defaultThicknessSpec: Record<string, string> = {
-            'ny_lldpe': 'NY 15μ + LLDPE 70μ',
-            'pet_ldpe': 'PET 12μ + LLDPE 70μ',
-            'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-            'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
-            'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-            'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-            'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-          };
-          thicknessType = defaultThicknessSpec[materialId] || '-';
+          // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+          // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
+          const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+          if (isKraft) {
+            const defaultThicknessSpec: Record<string, string> = {
+              'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+              'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+            };
+            thicknessType = defaultThicknessSpec[materialId] || '-';
+          } else {
+            const label = getFilmStructureLabel(materialId, thicknessSelection);
+            thicknessType = (label && label !== materialId) ? label : '-';
+          }
         }
 
         return {

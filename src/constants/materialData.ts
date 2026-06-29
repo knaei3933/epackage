@@ -226,7 +226,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '軽量タイプ (~100g)',
         nameJa: '軽量タイプ (~100g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 50μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ',
         weightRange: '~100g',
         multiplier: 0.85,
         filmLayers: [
@@ -241,7 +241,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '標準タイプ (~300g)',
         nameJa: '標準タイプ (~300g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 70μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ',
         weightRange: '~300g',
         multiplier: 0.95,
         filmLayers: [
@@ -256,7 +256,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: 'レギュラータイプ (~500g)',
         nameJa: 'レギュラータイプ (~500g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 90μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
         weightRange: '~500g',
         multiplier: 1.0,
         filmLayers: [
@@ -271,7 +271,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '高耐久タイプ (~800g)',
         nameJa: '高耐久タイプ (~800g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 100μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ',
         weightRange: '~800g',
         multiplier: 1.1,
         filmLayers: [
@@ -286,7 +286,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '超耐久タイプ (800g~)',
         nameJa: '超耐久タイプ (800g~)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 110μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ',
         weightRange: '800g~',
         multiplier: 1.2,
         filmLayers: [

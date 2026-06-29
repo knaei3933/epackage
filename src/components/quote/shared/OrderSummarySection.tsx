@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { QuoteState } from '@/contexts/QuoteContext'
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine'
 import { safeMap } from '@/lib/array-helpers'
-import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes'
+import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription, getFilmStructureLabel } from '@/constants/materialTypes'
 
 interface OrderSummarySectionProps {
   state: QuoteState
@@ -137,42 +137,8 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
     return 'フルカラー'
   }
 
-  // フィルム構造仕様を取得（materialIdとthicknessSelectionから）- 日本語
-  const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
-    const materialSpecs: Record<string, Record<string, string>> = {
-      'pet_al': {
-        'light': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 60μ',
-        'medium': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 110μ'
-      },
-      'pet_vmpet': {
-        'light': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 50μ',
-        'light_medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 70μ',
-        'medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 110μ'
-      },
-      'pet_ldpe': {
-        'medium': 'PET 12μ / LLDPE 110μ',
-        'heavy': 'PET 12μ / LLDPE 120μ',
-        'ultra': 'PET 12μ / LLDPE 130μ'
-      },
-      'pet_ny_al': {
-        'light': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 60μ',
-        'medium': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 70μ',
-        'heavy': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 100μ'
-      }
-    };
-
-    // マテリアルに対応する仕様を検索（部分一致も許容）
-    const materialKey = Object.keys(materialSpecs).find(key => materialId.includes(key));
-    if (materialKey) {
-      return materialSpecs[materialKey][thicknessId] || '指定なし';
-    }
-    return '指定なし';
-  };
+  // フィルム実構成ラベルは materialTypes.ts の getFilmStructureLabel（単一データソース: materialData.ts）を使用。
+  // 旧ローカル定義（`/` 区切り・light=60μ 旧基準バグ）は廃止済み・バグ修正含む。
 
   // 内容物ラベルマッピング
   const getContentsLabel = (): string => {
@@ -299,7 +265,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
                         }
                         return `${materialLabels[layer.materialId] || layer.materialId} ${layer.thickness}μ`
                       }).join(' / ')
-                    : getFilmStructureSpec(state.materialId, state.thicknessSelection)
+                    : getFilmStructureLabel(state.materialId, state.thicknessSelection)
                   }
                 </span>
               </div>

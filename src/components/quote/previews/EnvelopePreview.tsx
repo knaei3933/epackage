@@ -4,6 +4,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Maximize2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 
 // 素材ID → 見た目色味マッピング（半透明オーバーレイ用）
 // 「色」の定義: 素材の見た目色（印刷色数は対象外＝デザイン依存で図反映不可）
@@ -51,112 +52,8 @@ const MATERIAL_TYPE_LABELS_JA: Record<string, string> = {
   'kraft_pet_lldpe': 'クラフト PET LLDPE'
 };
 
-// 厚さラベルマッピング
-const THICKNESS_LABELS: Record<string, string> = {
-  'light': '軽量タイプ',
-  'light_50': '軽量タイプ (~50g)',
-  'medium': '標準タイプ',
-  'standard_70': '標準タイプ (~200g)',
-  'standard': 'レギュラータイプ',
-  'heavy_90': '高耐久タイプ (~500g)',
-  'heavy': '高耐久タイプ',
-  'ultra_100': '超耐久タイプ (~800g)',
-  'ultra': '超耐久タイプ',
-  'maximum_110': 'マキシマムタイプ (800g~)'
-};
-
-// フィルム構成を取得する関数
-// pouch-cost-calculator.tsのgetDefaultFilmLayersと厚さ設定を統一
-const getFilmStructureSpec = (materialId: string, thicknessId: string): string => {
-  // pouch-cost-calculator.tsのthicknessMapとMaterialSelection.tsxのドロップダウン表示値に統一
-  const lldpeThicknessMap: Record<string, number> = {
-    'light': 50,    // 軽量タイプ (~100g)
-    'medium': 70,   // 標準タイプ (~300g)
-    'standard': 90, // レギュラータイプ (~500g)
-    'heavy': 100,   // 高耐久タイプ (~800g)
-    'ultra': 110    // 超耐久タイプ (800g~)
-  };
-
-  const materials = [
-    {
-      id: 'pet_al',
-      thicknessOptions: [
-        { id: 'light', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'medium', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'standard', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.standard}μ` },
-        { id: 'heavy', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra', specificationEn: `PET 12μ + AL 7μ + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
-      ]
-    },
-    {
-      id: 'pet_vmpet',
-      thicknessOptions: [
-        { id: 'light', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'medium', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'heavy', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
-        { id: 'maximum', specificationEn: `PET 12μ + VMPET 12μ + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
-      ]
-    },
-    {
-      id: 'pet_ldpe',
-      thicknessOptions: [
-        { id: 'light', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'medium', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'standard', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.standard}μ` },
-        { id: 'heavy', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra', specificationEn: `PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
-      ]
-    },
-    {
-      id: 'pet_ny_al',
-      thicknessOptions: [
-        { id: 'light', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'light_medium', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'medium', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.standard}μ` },
-        { id: 'heavy', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra', specificationEn: `PET 12μ + NY 16μ + AL 7μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
-      ]
-    },
-    {
-      id: 'ny_lldpe',
-      thicknessOptions: [
-        { id: 'light', specificationEn: `NY 15μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'medium', specificationEn: `NY 15μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'heavy', specificationEn: `NY 15μ + LLDPE ${lldpeThicknessMap.heavy}μ` }
-      ]
-    },
-    {
-      id: 'kraft_vmpet_lldpe',
-      thicknessOptions: [
-        { id: 'light_50', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'standard_70', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'heavy_90', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra_100', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
-        { id: 'maximum_110', specificationEn: `Kraft 80g/m² + VMPET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
-      ]
-    },
-    {
-      id: 'kraft_pet_lldpe',
-      thicknessOptions: [
-        { id: 'light_50', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.light}μ` },
-        { id: 'standard_70', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.medium}μ` },
-        { id: 'heavy_90', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.heavy}μ` },
-        { id: 'ultra_100', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` },
-        { id: 'maximum_110', specificationEn: `Kraft 80g/m² + PET 12μ + LLDPE ${lldpeThicknessMap.ultra}μ` }
-      ]
-    }
-  ];
-
-  const material = materials.find(m => m.id === materialId);
-  if (material) {
-    const thickness = material.thicknessOptions.find(t => t.id === thicknessId);
-    if (thickness) {
-      return thickness.specificationEn;
-    }
-  }
-  return '指定なし';
-};
+// フィルム実構成ラベルは materialTypes.ts の getFilmStructureLabel（単一データソース: materialData.ts）を使用。
+// 本ファイルでのローカル再定義・THICKNESS_LABELS（旧厚さラベル）は廃止済み。
 
 // スパウト位置ラベル
 const SPOUT_POSITION_LABELS: Record<string, string> = {
@@ -507,7 +404,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 <div className="flex flex-col gap-1">
                   <span className="text-gray-600 text-xs">フィルム構成</span>
                   <span className="font-medium text-gray-900 text-xs leading-relaxed">
-                    {getFilmStructureSpec(materialId, thicknessSelection)}
+                    {getFilmStructureLabel(materialId, thicknessSelection)}
                   </span>
                 </div>
               )}
