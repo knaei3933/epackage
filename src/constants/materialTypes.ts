@@ -11,7 +11,9 @@ export enum MaterialType {
   PET_NY_AL = 'pet_ny_al',
   NY_LLDPE = 'ny_lldpe',
   KRAFT_VMPET_LLDPE = 'kraft_vmpet_lldpe',
-  KRAFT_PET_LLDPE = 'kraft_pet_lldpe'
+  KRAFT_PET_LLDPE = 'kraft_pet_lldpe',
+  PET_NY = 'pet_ny',
+  KP_PE = 'kp_pe'
 }
 
 export const MATERIAL_TYPE_LABELS = {
@@ -21,7 +23,9 @@ export const MATERIAL_TYPE_LABELS = {
   [MaterialType.PET_NY_AL]: 'PET NY AL',
   [MaterialType.NY_LLDPE]: 'NY LLDPE',
   [MaterialType.KRAFT_VMPET_LLDPE]: 'Kraft VMPET LLDPE',
-  [MaterialType.KRAFT_PET_LLDPE]: 'Kraft PET LLDPE'
+  [MaterialType.KRAFT_PET_LLDPE]: 'Kraft PET LLDPE',
+  [MaterialType.PET_NY]: 'PET NY PET LLDPE',
+  [MaterialType.KP_PE]: 'KP PE'
 } as const;
 
 export const MATERIAL_TYPE_LABELS_JA = {
@@ -31,7 +35,9 @@ export const MATERIAL_TYPE_LABELS_JA = {
   [MaterialType.PET_NY_AL]: 'PET NY AL',
   [MaterialType.NY_LLDPE]: 'NY LLDPE',
   [MaterialType.KRAFT_VMPET_LLDPE]: 'クラフト VMPET LLDPE',
-  [MaterialType.KRAFT_PET_LLDPE]: 'クラフト PET LLDPE'
+  [MaterialType.KRAFT_PET_LLDPE]: 'クラフト PET LLDPE',
+  [MaterialType.PET_NY]: 'PET NY PET LLDPE',
+  [MaterialType.KP_PE]: 'KP/PE'
 } as const;
 
 export const MATERIAL_DESCRIPTIONS = {
@@ -62,6 +68,14 @@ export const MATERIAL_DESCRIPTIONS = {
   [MaterialType.KRAFT_PET_LLDPE]: {
     en: 'Natural kraft paper appearance with short-term barrier',
     ja: '自然素材風の外観、短期バリア性能'
+  },
+  [MaterialType.PET_NY]: {
+    en: 'High strength transparent film with nylon reinforcement',
+    ja: 'ナイロン補強による高強度透明フィルム'
+  },
+  [MaterialType.KP_PE]: {
+    en: 'PVDC coated high barrier with PE seal layer',
+    ja: 'PVDCコートによる高バリア性とポリエチレンシール層'
   }
 } as const;
 

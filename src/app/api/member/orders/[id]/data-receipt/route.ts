@@ -596,8 +596,8 @@ export async function POST(
                 const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
                 if (isKraft) {
                   return materialId === 'kraft_vmpet_lldpe'
-                    ? 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ'
-                    : 'Kraft 50g/m² + PET 12μ + LLDPE 70μ';
+                    ? 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ'
+                    : 'Kraft 80g/m² + PET 12μ + LLDPE 70μ';
                 }
                 const label = getFilmStructureLabel(materialId, specs.thicknessSelection);
                 return (label && label !== materialId) ? label : undefined;

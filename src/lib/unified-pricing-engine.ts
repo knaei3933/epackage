@@ -11,6 +11,7 @@ import type {
   SKUCostBreakdown
 } from './pouch-cost-calculator'
 import { determineMaterialWidth } from './material-width-selector'
+import { getFilmStructureLabel } from '../constants/materialTypes'
 import { processingOptionsConfig, type ProcessingOptionConfig } from '../components/quote/shared/processingConfig'
 import { PRICING_CONSTANTS, PRINTING_COSTS, GRAVURE_CONSTANTS } from './pricing/core/constants'
 import { calculateGravureFilmValue, calculateCopperPlateCost } from './gravure-cost-calculator'
@@ -48,10 +49,14 @@ export function getMaterialSpecification(
   thicknessSelection: string
 ): string {
   const options = MATERIAL_THICKNESS_OPTIONS[materialId]
-  if (!options) return '-'
-
-  const thickness = options.find(opt => opt.id === thicknessSelection)
-  return thickness?.specification || '-'
+  if (options) {
+    const thickness = options.find(opt => opt.id === thicknessSelection)
+    if (thickness?.specification) return thickness.specification
+  }
+  // フォールバック: pet_ny/kp_pe 等の旧系 MATERIAL_THICKNESS_OPTIONS 未登録素材、
+  // または thicknessSelection 非該当時は materialData.ts の specificationEn
+  // （getFilmStructureLabel）を参照して '-' 表示を回避する。
+  return getFilmStructureLabel(materialId, thicknessSelection)
 }
 
 // ========================================
@@ -472,7 +477,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'light_50',
       name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ',
       weightRange: '~100g',
       multiplier: 0.9
     },
@@ -480,7 +485,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'standard_70',
       name: '標準タイプ (~300g)',
       nameJa: '標準タイプ (~300g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ',
       weightRange: '~300g',
       multiplier: 1.0
     },
@@ -488,7 +493,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'heavy_90',
       name: 'レギュラータイプ (~500g)',
       nameJa: 'レギュラータイプ (~500g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
@@ -496,7 +501,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'ultra_100',
       name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
     },
@@ -504,7 +509,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'maximum_110',
       name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }
@@ -514,7 +519,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'light_50',
       name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ',
       weightRange: '~100g',
       multiplier: 0.9
     },
@@ -522,7 +527,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'standard_70',
       name: '標準タイプ (~300g)',
       nameJa: '標準タイプ (~300g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
       weightRange: '~300g',
       multiplier: 1.0
     },
@@ -530,7 +535,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'heavy_90',
       name: 'レギュラータイプ (~500g)',
       nameJa: 'レギュラータイプ (~500g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
@@ -538,7 +543,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'ultra_100',
       name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
     },
@@ -546,7 +551,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'maximum_110',
       name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }

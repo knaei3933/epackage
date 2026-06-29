@@ -149,8 +149,8 @@ function getThicknessName(materialId: string, thicknessSelection: string, fallba
     const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
     if (isKraft) {
       const defaultThicknessSpec: Record<string, string> = {
-        'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-        'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+        'kraft_vmpet_lldpe': 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
       };
       const defaultSpec = defaultThicknessSpec[materialId];
       if (defaultSpec) return defaultSpec;
@@ -307,8 +307,8 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
     const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
     if (isKraft) {
       const defaultThicknessSpec: Record<string, string> = {
-        'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-        'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+        'kraft_vmpet_lldpe': 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
       };
       thicknessType = defaultThicknessSpec[materialId] || '-';
     } else {

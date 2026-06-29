@@ -471,6 +471,66 @@ export const MATERIALS_DATA: MaterialData[] = [
     ]
   },
   {
+    id: 'pet_ny',
+    name: 'PET/NY/PET/LLDPE',
+    nameJa: 'PET/NY/PET/LLDPE',
+    description: 'High strength transparent film with nylon',
+    descriptionJa: 'ナイロン補強による高強度透明フィルム',
+    multiplier: 1.0,
+    features: ['高強度・耐衝撃性', '透明性維持', 'ガスバリア性', '汎用性が高い'],
+    featuresJa: ['高強度・耐衝撃性', '透明性維持', 'ガスバリア性', '汎用性が高い'],
+    recommendedFor: '冷凍食品、レトルト食品、一般食品包装',
+    category: 'transparent',
+    popular: false,
+    ecoFriendly: false,
+    thicknessOptions: [
+      {
+        id: 'standard_70',
+        name: '標準タイプ (~300g)',
+        nameJa: '標準タイプ (~300g)',
+        specification: 'ポリエステル12μ+ナイロン15μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+        specificationEn: 'PET 12μ + NY 15μ + PET 12μ + LLDPE 70μ',
+        weightRange: '~300g',
+        multiplier: 1.0,
+        filmLayers: [
+          { materialId: 'PET', thickness: 12 },
+          { materialId: 'NY', thickness: 15 },
+          { materialId: 'PET', thickness: 12 },
+          { materialId: 'LLDPE', thickness: 70 }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'kp_pe',
+    name: 'KP/PE',
+    nameJa: 'KP/PE',
+    description: 'PVDC coated high barrier film',
+    descriptionJa: 'PVDCコートによる高バリア性フィルム',
+    multiplier: 1.0,
+    features: ['高ガスバリア性', '優れた防湿性', '透明性', '食品の鮮度保持'],
+    featuresJa: ['高ガスバリア性', '優れた防湿性', '透明性', '食品の鮮度保持'],
+    recommendedFor: '乾物、スナック、ドライフルーツ、乾燥食品',
+    category: 'high_barrier',
+    popular: false,
+    ecoFriendly: false,
+    thicknessOptions: [
+      {
+        id: 'standard',
+        name: '標準タイプ (~200g)',
+        nameJa: '標準タイプ (~200g)',
+        specification: 'PVDCコートポリエステル12μ+ポリエチレン60μ',
+        specificationEn: 'KP 12μ + PE 60μ',
+        weightRange: '~200g',
+        multiplier: 1.0,
+        filmLayers: [
+          { materialId: 'KP', thickness: 12 },
+          { materialId: 'PE', thickness: 60 }
+        ]
+      }
+    ]
+  },
+  {
     id: 'kraft_vmpet_lldpe',
     name: 'Kraft/VMPET/LLDPE',
     nameJa: 'クラフト/VMPET/LLDPE',

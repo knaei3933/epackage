@@ -82,8 +82,8 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
     const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
     if (isKraft) {
       const defaultThicknessSpec: Record<string, string> = {
-        'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-        'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+        'kraft_vmpet_lldpe': 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
       };
       thicknessJa = defaultThicknessSpec[materialId] || '-';
     } else if (materialId) {
