@@ -123,28 +123,36 @@ export function processReviewDecision(
   }
 
   // Update task based on decision
+  // 既存コメント（addReviewComment で追加されたユーザーコメント等）を保持し、
+  // 決定コメントを追記する（従来は上書きでユーザーコメントを消去していた）。
   switch (decision) {
     case 'approve':
       task.status = 'approved';
       task.reviewer = reviewer;
-      task.comments = comments;
+      if (comments) {
+        task.comments = task.comments ? `${task.comments}\n${comments}` : comments;
+      }
       break;
 
-    case 'reject':
+    case 'reject': {
       task.status = 'rejected';
       task.reviewer = reviewer;
-      task.comments = comments || '仕様書を却下しました';
+      const rejectComment = comments || '仕様書を却下しました';
+      task.comments = task.comments ? `${task.comments}\n${rejectComment}` : rejectComment;
       break;
+    }
 
-    case 'modify':
+    case 'modify': {
       if (!modifiedSpecs) {
         throw new Error('修正された仕様書が必要です');
       }
       task.status = 'modified';
       task.reviewer = reviewer;
       task.modifiedSpecs = modifiedSpecs;
-      task.comments = comments || '仕様書を修正しました';
+      const modifyComment = comments || '仕様書を修正しました';
+      task.comments = task.comments ? `${task.comments}\n${modifyComment}` : modifyComment;
       break;
+    }
   }
 
   task.updatedAt = new Date();

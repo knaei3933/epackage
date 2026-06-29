@@ -98,8 +98,10 @@ describe('BankInfoCard', () => {
     render(<BankInfoCard quotationId={mockQuotationId} />);
 
     await waitFor(() => {
+      // 実装は認証付きメンバールート（/api/member/...）を POST + credentials で呼ぶ
       expect(global.fetch).toHaveBeenCalledWith(
-        `/api/quotations/${mockQuotationId}/invoice`
+        `/api/member/quotations/${mockQuotationId}/invoice`,
+        { method: 'POST', credentials: 'include' }
       );
     });
   });

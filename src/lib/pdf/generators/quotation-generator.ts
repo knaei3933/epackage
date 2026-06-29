@@ -195,7 +195,9 @@ export class QuotationPdfGenerator extends BasePdfGenerator<
   protected prepareTemplateData(data: QuotationData): Record<string, unknown> {
     // 小計、税、合計を計算
     const subtotal = data.items.reduce((sum, item) => sum + item.amount, 0);
-    const taxRate = data.taxRate || 0.1;
+    // taxRate === 0（免税）を正しく扱うため nullish coalescing を使用する。
+    // ※ || だと 0 が falsy と見なされデフォルト 0.1 に置き換わってしまう（免税時の税額計算バグ）。
+    const taxRate = data.taxRate ?? 0.1;
     const taxAmount = Math.round(subtotal * taxRate);
     const totalAmount = subtotal + taxAmount;
 

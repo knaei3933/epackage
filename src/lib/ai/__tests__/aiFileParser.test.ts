@@ -24,13 +24,18 @@ import {
 } from '../aiFileParser';
 import type { AiFileData, Color, CmykColor } from '@/types/aiFile';
 import { isAiFileData, isColor, isLayer } from '@/types/aiFile';
+// 実装（aiFileParser.ts）は 'pdf-parse/lib/pdf-parse.js' サブパスを import するため、
+// テストでも同じパスを mock しないと実装に影響しない（ルート 'pdf-parse' の mock は無効）。
+// @ts-ignore: pdf-parse@1.1.1 has no type declarations; import lib path to match implementation
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 // ============================================================
 // Test Utilities
 // ============================================================
 
-// Mock pdf-parse
-jest.mock('pdf-parse', () => ({
+// Mock pdf-parse（実装が import するサブパスを指定）
+jest.mock('pdf-parse/lib/pdf-parse.js', () => ({
+  __esModule: true,
   default: jest.fn(),
 }));
 
@@ -93,13 +98,14 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
       expect(result).toBeDefined();
-      expect(result.version).toBe('CS6+');
+      // extractAiVersion は Creator 'Adobe Illustrator CS6' から 'CS6' を抽出する。
+      // 'CS6+' は Creator/Producer が取得できない場合のフォールバック値のみ。
+      expect(result.version).toBe('CS6');
       expect(result.dimensions).toBeDefined();
       expect(result.dimensions.width).toBeCloseTo(210, 0); // A4 width in mm
       expect(result.dimensions.height).toBeCloseTo(297, 0); // A4 height in mm
@@ -110,8 +116,7 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -130,8 +135,7 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -151,8 +155,7 @@ describe('AI File Parser', () => {
         text: '日本語テキスト\nテスト',
       });
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -165,8 +168,7 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -187,8 +189,7 @@ describe('AI File Parser', () => {
         text: 'Sample Text\nSecond Line',
       });
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -211,8 +212,7 @@ describe('AI File Parser', () => {
         ],
       });
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -226,8 +226,7 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -242,22 +241,21 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer, { textOnly: true });
 
       expect(result.colors).toHaveLength(0);
       expect(result.paths).toBeUndefined();
-      expect(result.shapes).toBeDefined();
+      // textOnly=true の場合、shapes も paths と同様に抽出をスキップして undefined になる（parseAiFile L93）。
+      expect(result.shapes).toBeUndefined();
     });
 
     it('should include processing time', async () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFile(mockBuffer);
 
@@ -269,8 +267,7 @@ describe('AI File Parser', () => {
     it('should throw error for invalid buffer', async () => {
       const mockBuffer = Buffer.from('invalid-data');
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockRejectedValue(new Error('Invalid PDF'));
+      jest.mocked(pdfParse).mockRejectedValue(new Error('Invalid PDF'));
 
       await expect(parseAiFile(mockBuffer)).rejects.toThrow('AIファイル解析エラー');
     });
@@ -285,8 +282,7 @@ describe('AI File Parser', () => {
       const mockBuffer = createMockAiBuffer();
       const mockPdfData = createMockPdfData();
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await extractAiDataFromBuffer(mockBuffer);
 
@@ -309,8 +305,7 @@ describe('AI File Parser', () => {
       const fs = await import('fs/promises');
       jest.mocked(fs.readFile).mockResolvedValue(mockBuffer);
 
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const result = await parseAiFileFromPath(filePath);
 
@@ -653,7 +648,9 @@ describe('AI File Parser', () => {
 
     it('should warn about missing version', () => {
       const dataWithoutVersion = createMockAiData();
-      delete (dataWithoutVersion as any).version;
+      // version を「削除」すると isAiFileData（version 必須）で型エラーになり警告ロジックに到達しない。
+      // 「version 不明」は空文字列で表現する（typeof '' === 'string' で型ガード通過 → L784 !data.version で true → 警告）。
+      (dataWithoutVersion as any).version = '';
 
       const result = validateAiFileData(dataWithoutVersion);
 
@@ -780,8 +777,7 @@ describe('AI File Parser', () => {
       expect(fileValidation.isValid).toBe(true);
 
       // Step 2: Parse file
-      const pdf = await import('pdf-parse');
-      jest.mocked(pdf.default).mockResolvedValue(mockPdfData);
+      jest.mocked(pdfParse).mockResolvedValue(mockPdfData);
 
       const aiData = await parseAiFile(mockBuffer);
       expect(aiData).toBeDefined();

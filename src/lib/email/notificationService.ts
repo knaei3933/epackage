@@ -320,3 +320,23 @@ export async function testXServerConnection(): Promise<{ success: boolean; error
     return { success: false, error: err.message }
   }
 }
+
+// ============================================================
+// Test Utilities (本番コードからは使用しない)
+// ============================================================
+
+/**
+ * テスト用: transporter と transportType を強制的に設定する
+ *
+ * モジュールロード時に initializeTransporter() で transporter が
+ * 固定されるため、ユニットテストから各状態（xserver 設定済み /
+ * console フォールバック）を再現するために使用する。
+ * 本番の実行パスには影響しない。
+ */
+export function __setTransporterForTesting(
+  t: nodemailer.Transporter | null,
+  type: 'xserver' | 'console' = t ? 'xserver' : 'console'
+): void {
+  transporter = t
+  transportType = type
+}

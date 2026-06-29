@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { EnhancedPostProcessingPreview } from '../previews/EnhancedPostProcessingPreview'
 import { BeforeAfterPreview } from '../previews/BeforeAfterPreview'
-import { ProcessingPreviewTrigger } from '../previews/ProcessingPreviewTrigger'
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
@@ -15,7 +14,7 @@ jest.mock('framer-motion', () => ({
 }))
 
 // Mock the components to isolate testing
-jest.mock('../BeforeAfterPreview', () => ({
+jest.mock('../previews/BeforeAfterPreview', () => ({
   BeforeAfterPreview: ({ onClose }: any) => (
     <div data-testid="before-after-preview">
       <button onClick={onClose}>Close Preview</button>
@@ -23,12 +22,12 @@ jest.mock('../BeforeAfterPreview', () => ({
   )
 }))
 
-jest.mock('../ProcessingPreviewTrigger', () => ({
+jest.mock('../previews/ProcessingPreviewTrigger', () => ({
   ProcessingPreviewTrigger: ({ option, isSelected, onToggle, onPreview }: any) => (
     <div data-testid="processing-trigger" data-option-id={option.id} data-selected={isSelected}>
       <span>{option.nameJa || option.name}</span>
       <button onClick={() => onToggle?.(option.id)}>Toggle</button>
-      <button onClick={() => onPreview?.(option)}>Preview</button>
+      <button onClick={() => onPreview?.(option.id)}>Preview</button>
     </div>
   )
 }))
@@ -108,9 +107,10 @@ describe('EnhancedPostProcessingPreview', () => {
     )
 
     // Should call onPriceUpdate with the calculated multiplier
-    // Note: Price update is called twice - first with 1 (initial), then with actual multiplier
+    // zipper-yes の priceMultiplier は 1.0（ジッパー追加料金は pouch-cost-calculator 側で処理）
+    // 参考: src/components/quote/shared/processingConfig.ts L90
     await waitFor(() => {
-      expect(defaultProps.onPriceUpdate).toHaveBeenLastCalledWith(1.12)
+      expect(defaultProps.onPriceUpdate).toHaveBeenLastCalledWith(1.0)
     })
   })
 
@@ -190,11 +190,11 @@ describe('EnhancedPostProcessingPreview', () => {
     render(<EnhancedPostProcessingPreview {...defaultProps} />)
 
     // Should default to grid view
-    const gridButton = screen.getByRole('button', { name: /grid/i })
+    const gridButton = screen.getByRole('button', { name: /グリッド/ })
     expect(gridButton).toBeInTheDocument()
 
     // Switch to list view
-    const listButton = screen.getByRole('button', { name: /list/i })
+    const listButton = screen.getByRole('button', { name: /リスト/ })
     fireEvent.click(listButton)
 
     // Grid button should still exist
@@ -250,89 +250,5 @@ describe('EnhancedPostProcessingPreview', () => {
     fireEvent.change(searchInput, { target: { value: 'test search' } })
 
     expect(searchInput).toHaveValue('test search')
-  })
-})
-
-describe('ProcessingPreviewTrigger', () => {
-  const mockOption = {
-    id: 'zipper-yes',
-    name: 'Resealable Zipper',
-    nameJa: '再利用可能なジッパー',
-    description: 'High-quality zipper closure',
-    descriptionJa: '高品質ジッパー閉鎖',
-    image: '/test-image.png',
-    beforeImage: '/test-before.png',
-    afterImage: '/test-after.png',
-    priceMultiplier: 1.15,
-    features: ['Resealable', 'Freshness preservation'],
-    featuresJa: ['再封可能', '鮮度保持'],
-    compatibleWith: ['stand_up', 'flat_3_side'],
-    category: 'opening-sealing' as const,
-    processingTime: '+2-3 business days',
-    processingTimeJa: '+2-3営業日',
-    minimumQuantity: 1000,
-    technicalNotes: 'Test technical notes',
-    technicalNotesJa: 'テスト技術メモ',
-    benefits: ['Extended shelf life'],
-    benefitsJa: ['賞味期限延長'],
-    applications: ['Coffee beans'],
-    applicationsJa: ['コーヒー豆']
-  }
-
-  test('renders option details correctly', () => {
-    render(
-      <ProcessingPreviewTrigger
-        option={mockOption}
-        language="ja"
-      />
-    )
-
-    expect(screen.getByText('再利用可能なジッパー')).toBeInTheDocument()
-    expect(screen.getByText('高品質ジッパー閉鎖')).toBeInTheDocument()
-  })
-
-  test('shows selected state when isSelected is true', () => {
-    render(
-      <ProcessingPreviewTrigger
-        option={mockOption}
-        isSelected={true}
-        language="ja"
-      />
-    )
-
-    const trigger = screen.getByTestId('processing-trigger')
-    expect(trigger).toHaveAttribute('data-selected', 'true')
-  })
-
-  test('calls onToggle when toggle button is clicked', () => {
-    const mockOnToggle = jest.fn()
-    render(
-      <ProcessingPreviewTrigger
-        option={mockOption}
-        onToggle={mockOnToggle}
-        language="ja"
-      />
-    )
-
-    const toggleButton = screen.getByRole('button', { name: /Toggle/i })
-    fireEvent.click(toggleButton)
-
-    expect(mockOnToggle).toHaveBeenCalledWith('zipper-yes')
-  })
-
-  test('calls onPreview when preview is triggered', () => {
-    const mockOnPreview = jest.fn()
-    render(
-      <ProcessingPreviewTrigger
-        option={mockOption}
-        onPreview={mockOnPreview}
-        language="ja"
-      />
-    )
-
-    const previewButton = screen.getByRole('button', { name: /Preview/i })
-    fireEvent.click(previewButton)
-
-    expect(mockOnPreview).toHaveBeenCalledWith(mockOption)
   })
 })

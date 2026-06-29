@@ -211,6 +211,9 @@ describe('SpecSheetPdfGenerator', () => {
     it('should estimate size for simple spec sheet', () => {
       const data = createMockSpecSheetData();
       data.product.materials = [];
+      // specifications も最小化（10項目 × 500 = 5000 の加算をなくし、
+      // 「シンプルな仕様書は小さい」ことを検証する）。実装の estimateSize は妥当。
+      data.product.specifications = {};
       data.product.performance = undefined;
       data.product.compliance = undefined;
       data.design = undefined;

@@ -20,7 +20,7 @@ export const plainText = (data: ContractSignedAdminData): string => {
   return `
 ${data.company_name} 様
 
-契約書が署名されました。
+契約書が署名されました。生産開始の準備ができています。
 
 ====================
 契約署名情報

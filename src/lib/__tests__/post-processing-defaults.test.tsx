@@ -1,61 +1,79 @@
 /**
  * 後加工オプションデフォルト値のテスト
  *
- * 問題: ユーザーが選択していない後加工オプションがPDFに表示される
- * 原因: getDefaultPostProcessingOptions()がisDefault: trueのオプションを自動適用
+ * 現行仕様: getDefaultPostProcessingOptions() は袋タイプに応じた推奨デフォルトを返す。
+ * QuoteContext（初期 state）と PostProcessingStep（袋タイプ変更時の事前選択）が
+ * このデフォルトに依存し、UI で全カテゴリに初期選択を提供する。
  *
- * 修正: デフォルトオプションを自動適用しないように変更
- * ユーザーが明示的に選択したオプションのみがPDFに表示される
- *
- * 検証項目:
- * 1. 初期状態では後加工オプションは空であるべき
- * 2. ユーザーが選択したオプションのみがstateに保存される
- * 3. PDF生成時には選択したオプションのみが表示される
+ * 袋タイプ別の戻り値:
+ * - flat_3_side / stand_up / gusset: 8カテゴリのデフォルト
+ * - spout_pouch / roll_film: 表面処理のみ（['glossy']）
+ * - box / lap_seal: ジッパー・角加工を除外（6項目）
  */
 
 import { getDefaultPostProcessingOptions } from '../../components/quote/shared/processingConfig';
 
+const FULL_DEFAULTS = [
+  'zipper-yes',
+  'glossy',
+  'notch-yes',
+  'hang-hole-6mm',
+  'corner-round',
+  'valve-no',
+  'top-open',
+  'machi-printing-no',
+];
+
+// 合掌袋・ボックス型はジッパー・角加工非対応 → これらを除外した6項目
+const EXCLUDED_DEFAULTS = [
+  'glossy',
+  'notch-yes',
+  'hang-hole-6mm',
+  'valve-no',
+  'top-open',
+  'machi-printing-no',
+];
+
 describe('後加工オプションデフォルト値', () => {
-  describe('修正後の挙動 - デフォルトは空配列', () => {
-    test('平袋のデフォルトは空配列', () => {
+  describe('現行の挙動 - 袋タイプ別の推奨デフォルト', () => {
+    test('平袋は8カテゴリのデフォルト', () => {
       const defaults = getDefaultPostProcessingOptions('flat_3_side');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(FULL_DEFAULTS);
     });
 
-    test('スタンドアップパウチのデフォルトは空配列', () => {
+    test('スタンドアップパウチは8カテゴリのデフォルト', () => {
       const defaults = getDefaultPostProcessingOptions('stand_up');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(FULL_DEFAULTS);
     });
 
-    test('スパウトパウチのデフォルトは空配列', () => {
+    test('スパウトパウチは表面処理のみ', () => {
       const defaults = getDefaultPostProcessingOptions('spout_pouch');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(['glossy']);
     });
 
-    test('ロールフィルムのデフォルトは空配列', () => {
+    test('ロールフィルムは表面処理のみ', () => {
       const defaults = getDefaultPostProcessingOptions('roll_film');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(['glossy']);
     });
 
-    test('ボックス型パウチのデフォルトは空配列', () => {
+    test('ボックス型パウチはジッパー・角加工を除外', () => {
       const defaults = getDefaultPostProcessingOptions('box');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(EXCLUDED_DEFAULTS);
     });
 
-    test('合掌袋のデフォルトは空配列', () => {
+    test('合掌袋はジッパー・角加工を除外', () => {
       const defaults = getDefaultPostProcessingOptions('lap_seal');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(EXCLUDED_DEFAULTS);
     });
 
-    test('ガゼットパウチのデフォルトは空配列', () => {
+    test('ガゼットパウチは8カテゴリのデフォルト', () => {
       const defaults = getDefaultPostProcessingOptions('gusset');
-      expect(defaults).toEqual([]);
+      expect(defaults).toEqual(FULL_DEFAULTS);
     });
   });
 
   describe('ユーザーが選択したオプションのみが適用される', () => {
     test('ユーザーがジッパーを選択した場合のみジッパーが含まれる', () => {
-      // このテストは、ユーザーがオプションを選択した場合の挙動を確認
       // 実際の選択ロジックはPostProcessingStep.tsxで実装されている
       const zipperOption = 'zipper-yes';
       expect(zipperOption).toBe('zipper-yes');

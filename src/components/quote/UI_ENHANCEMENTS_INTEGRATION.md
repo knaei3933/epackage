@@ -1,5 +1,12 @@
 # UI/UX改善コンポーネント統合ガイド
 
+> **⚠️ 一部機能廃止のお知らせ（2026-06）**
+> 列数に対する固定割引（2列生産オプション ×0.85/×0.70、ロールフィルム多列割引）と
+> そのUI（`RecommendationPanel`, `EconomicQuantityProposal`）は廃止されました。
+> 列数の効果は原価計算（`calculateTheoreticalMeters` の columnCount 反映）で自然表現されます。
+> 以下の記述は歴史参照として残していますが、`RecommendationPanel` / `twoColumnOptions` /
+> `handleApplyTwoColumnOption` を含むセクションは**現在非推奨**です。
+
 ## 概要
 
 このドキュメントでは、新しく作成したUI/UX改善コンポーネントの統合方法と使用例を説明します。

@@ -10,7 +10,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
+import { MultiQuantityQuoteProvider, useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 
 // Mock DOMPurify
 jest.mock('dompurify', () => ({
@@ -19,6 +19,7 @@ jest.mock('dompurify', () => ({
       // Simulate DOMPurify sanitization
       const sanitized = html
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<script\b[^>]*>/gi, '') // 閉じタグなし <script> も除去
         .replace(/on\w+="[^"]*"/gi, '')
         .replace(/javascript:/gi, '');
       return sanitized;
@@ -58,7 +59,11 @@ describe('XSS Security - ImprovedQuotingWizard', () => {
         );
       };
 
-      render(<TestComponent />);
+      render(
+        <MultiQuantityQuoteProvider>
+          <TestComponent />
+        </MultiQuantityQuoteProvider>
+      );
 
       const img = screen.getByAltText('flat_3_side');
       expect(img).toBeInTheDocument();
@@ -77,7 +82,11 @@ describe('XSS Security - ImprovedQuotingWizard', () => {
         );
       };
 
-      render(<TestComponent />);
+      render(
+        <MultiQuantityQuoteProvider>
+          <TestComponent />
+        </MultiQuantityQuoteProvider>
+      );
 
       const materialType = screen.getByTestId('material-type');
       expect(materialType).toHaveTextContent('pet_al');
@@ -98,7 +107,11 @@ describe('XSS Security - ImprovedQuotingWizard', () => {
         );
       };
 
-      render(<TestComponent />);
+      render(
+        <MultiQuantityQuoteProvider>
+          <TestComponent />
+        </MultiQuantityQuoteProvider>
+      );
 
       const spec = screen.getByTestId('spec');
       expect(spec).toBeInTheDocument();
@@ -119,7 +132,11 @@ describe('XSS Security - ImprovedQuotingWizard', () => {
         );
       };
 
-      render(<TestComponent />);
+      render(
+        <MultiQuantityQuoteProvider>
+          <TestComponent />
+        </MultiQuantityQuoteProvider>
+      );
 
       const bagType = screen.getByTestId('bag-type');
       expect(bagType).toHaveTextContent('flat_3_side');

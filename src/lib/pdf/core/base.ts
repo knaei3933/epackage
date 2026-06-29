@@ -415,7 +415,12 @@ export abstract class BasePdfGenerator<TInput = unknown, TOutput = PdfGeneration
    * Format Japanese date with era
    */
   protected formatJapaneseDate(date: Date | string): string {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    // 文字列の日付のみ（YYYY-MM-DD）は UTC として解析されてしまう。一方 era 定義は
+    // ローカル時刻基準のため、UTC 解析だと境界日（平成末日 2019-04-30 等）でタイムゾーン
+    // ズレが生じ、era に含まれず西暦フォールバックしてしまう。日付のみの場合はローカル時刻で解析する。
+    const dateObj = typeof date === 'string'
+      ? new Date(date.includes('T') ? date : `${date}T00:00:00`)
+      : date;
 
     const eras = [
       { name: '明治', start: new Date(1868, 8, 8), end: new Date(1912, 6, 29) },

@@ -4,7 +4,7 @@
  * Excelテンプレートローダーの単体テスト
  */
 
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 import {
   loadTemplate,
   validateTemplate,
@@ -16,7 +16,14 @@ import {
 } from '../excelTemplateLoader';
 
 // Mock the ExcelJS module
-jest.mock('exceljs');
+// 実装は `import * as ExcelJS from 'exceljs'` で `new ExcelJS.Workbook()` を呼ぶため、
+// 名前空間の Workbook プロパティをモックコンストラクタにする。
+jest.mock('exceljs', () => {
+  return {
+    Workbook: jest.fn(),
+    default: jest.fn(),
+  };
+});
 
 describe('excelTemplateLoader', () => {
   let mockWorkbook: ExcelJS.Workbook;
@@ -31,7 +38,8 @@ describe('excelTemplateLoader', () => {
       columnCount: 10,
       cellCount: 400,
       getCell: jest.fn(),
-      getRow: jest.fn(),
+      // 実装の `worksheet.getRow(14).cellCount` が参照できるように値を返す
+      getRow: jest.fn().mockReturnValue({ cellCount: 10 }),
     } as unknown as ExcelJS.Worksheet;
 
     mockWorkbook = {
@@ -41,7 +49,8 @@ describe('excelTemplateLoader', () => {
       },
     } as unknown as ExcelJS.Workbook;
 
-    (ExcelJS as unknown as jest.Mock).mockImplementation(() => mockWorkbook);
+    // 実装の `new ExcelJS.Workbook()` が mockWorkbook を返すように設定
+    (ExcelJS.Workbook as unknown as jest.Mock).mockImplementation(() => mockWorkbook);
 
     (mockWorksheet.getCell as jest.Mock).mockReturnValue({
       value: '顧客情報',

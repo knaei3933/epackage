@@ -8,8 +8,6 @@
 import { FilmCostCalculator, FilmCostResult, FilmStructureLayer } from './film-cost-calculator';
 import { determineMaterialWidth, MaterialWidthType } from './material-width-selector';
 import { PRICING_CONSTANTS } from './pricing/core/constants';
-// 多列生産割引 統一エントリポイント（計画 multi-column-gravure-unification.md・AC2 後方互換）
-import { applyMultiColumnDiscount } from './multi-column-discount';
 
 // ========================================
 // タイプ定義
@@ -215,24 +213,6 @@ export interface SKUCostResult {
 }
 
 /**
- * 2列生産オプション（新しい推奨システム用）
- */
-export interface TwoColumnProductionOptions {
-  sameQuantity: ProductionOptionDetail;
-  doubleQuantity: ProductionOptionDetail;
-}
-
-/**
- * 生産オプション詳細
- */
-export interface ProductionOptionDetail {
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  savingsRate: number;
-}
-
-/**
  * SKU分割オプション
  */
 export interface SKUSplitOption {
@@ -401,9 +381,10 @@ export class PouchCostCalculator {
       // 最大列数計算
       const maxColumns = Math.floor(MAX_PRINTABLE_WIDTH / rollFilmWidth);
 
-      // 数量による条件
-      if (totalQuantity < 1000) {
-        return 1; // 1000m未満は1列
+      // 数量による条件（ユーザー指示 2026-06-29: 500mから製品幅に合わせて最大分割）
+      // ロールフィルムの totalQuantity はメートル数そのもの
+      if (totalQuantity < 500) {
+        return 1; // 500m未満は1列
       }
 
       // 可能な最大列数を使用（効率極大化）
@@ -418,22 +399,16 @@ export class PouchCostCalculator {
     const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
     const canUse2Columns = filmWidth2Columns <= printableWidth;
 
-    // 【修正】スパウトパウチは常に1列生産を使用（ユーザードキュメント基準）
-    // 2列生産は複雑で効率が悪いため、1列生産+固定ロス400m方式を採用
-    if (pouchType.includes('spout')) {
-      return 1; // スパウトパウチ: 常に1列
+    // 製作長（1列基準の印刷M数）による判定（ユーザー指示 2026-06-29）
+    // 印刷M数 ≥ 1000m のときから列数を自動適用。
+    // スパウトパウチを含むすべてのパウチに共通適用（印刷条件は同一・2列フィルム幅は
+    // calculateFilmWidth で計算済み。canUse2Columns で物理可否を判定）。
+    // グラビアの determineAutoMultiColumnCount と同じ「製作長≥1000m」基準に統一。
+    const theoreticalMeters1Col = this.calculateTheoreticalMeters(totalQuantity, dimensions, pouchType, 1);
+    if (theoreticalMeters1Col >= 1000) {
+      return canUse2Columns ? 2 : 1; // 製作長≥1000m: 2列可能であれば2列使用
     }
-    // 【修正】スタンドパウチは2列生産を許可（計算ドキュメント05-스탠드파우치_시나리오.md基準）
-    // フィルム幅700mm ≤ 740mm（760mm原反の印刷可能幅）で2列生産可能
-
-    // 小量生産の場合は1列のみ使用（2列は大量生産時のみ効率的）
-    if (totalQuantity < 500) {
-      return 1; // 500個未満: 無条件1列（小量生産）
-    } else if (totalQuantity < 1000) {
-      return 1; // 500~1000個: 1列優先（2列効率が大きくない）
-    } else {
-      return canUse2Columns ? 2 : 1; // 1000個以上: 2列可能であれば2列使用
-    }
+    return 1; // 製作長<1000m: 1列（小量生産）
   }
 
   /**
@@ -1933,211 +1908,6 @@ export class PouchCostCalculator {
    */
   private roundDownToHundreds(quantity: number): number {
     return Math.floor(quantity / 100) * 100;
-  }
-
-  /**
-   * 2列生産推奨オプション計算（15% OFF、30% OFF）
-   *
-   * docs/reports/calcultae/07-SKU_및_병렬생산.md 参照
-   *
-   * 2列生産が可能な場合のみオプションを返す
-   * - 原反幅（590mm or 760mm）に2列分のフィルム幅が収まる必要がある
-   * - 平袋/三方シール、スタンドパウチ等の主要パウチタイプのみ対応
-   *
-   * @param currentQuantity 現在の注文数量
-   * @param currentUnitPrice 現在の単価
-   * @param pouchType パウチタイプ
-   * @param dimensions パウチ寸法
-   * @param materialWidth 原反幅（590 or 760、デフォルト: 590）
-   * @param filmLayers フィルム構造レイヤー（正確な原価計算用）
-   * @param materialId 素材ID（正確な原価計算用）
-   * @param thicknessSelection 厚み選択
-   * @param postProcessingOptions 後加工オプション
-   * @param dbSettings フィルム原価設定（正確な原価計算用）
-   * @returns 2列生産オプション（2列生産不可能な場合はnull）
-   */
-  calculateTwoColumnProductionOptions(
-    currentQuantity: number,
-    currentUnitPrice: number,
-    pouchType: string,
-    dimensions: PouchDimensions,
-    materialWidth: number = 590,
-    filmLayers?: FilmStructureLayer[],
-    materialId?: string,
-    thicknessSelection?: string,
-    postProcessingOptions?: string[],
-    dbSettings?: import('./film-cost-calculator').FilmCostSettings
-  ): TwoColumnProductionOptions | null {
-    // 2列生産が可能かチェック（実際の原反幅を渡す）
-    if (!this.canUseTwoColumnProduction(pouchType, dimensions, currentQuantity, materialWidth)) {
-      return null; // 2列生産不可能
-    }
-
-    // ========================================
-    // 2列生産の正確な原価計算
-    // ========================================
-
-    const pitchMM = dimensions.width;
-    const pouchesPerMeter1Col = 1000 / pitchMM; // 1列生産の個数/m
-
-    // 1列生産の理論メートル（参考）
-    const theoreticalMeters1Col = currentQuantity / pouchesPerMeter1Col;
-
-    // 2列生産の理論メートル（半減）
-    const theoreticalMeters2Col = theoreticalMeters1Col / 2;
-
-    // 2列生産の総フィルム量（理論メートル + 400mロス）
-    const LOSS_METERS = 400;
-    const totalFilmUsage2Col = theoreticalMeters2Col + LOSS_METERS;
-
-    // 経済的数量（2列生産の総フィルム量で生産可能な数量）
-    const economicQuantity = Math.floor(totalFilmUsage2Col * (pouchesPerMeter1Col * 2)); // 2列なので個数/mを2倍
-
-    console.log('[calculateTwoColumnProductionOptions] 2列生産メートル計算:', {
-      currentQuantity,
-      pitchMM,
-      pouchesPerMeter1Col: pouchesPerMeter1Col.toFixed(2),
-      theoreticalMeters1Col: theoreticalMeters1Col.toFixed(1),
-      theoreticalMeters2Col: theoreticalMeters2Col.toFixed(1),
-      totalFilmUsage2Col: totalFilmUsage2Col.toFixed(1),
-      economicQuantity,
-      materialWidth,
-      note: '2列生産: 理論メートルは1列生産の半分'
-    });
-
-    // ========================================
-    // 2列生産オプション価格計算（S0.5 ガイド導出準拠）
-    // ========================================
-    // ガイド docs/reports/calcultae/06-마진_및_최종가격.md:120-181「Win-Win価格構造」
-    //
-    // S0.5 検証結果: ガイド :124-171 を精読すると、ガイド自体が
-    //   「2列同数 = 1列単価に対して15% OFF（=×0.85）、結果35円」
-    //   「2列倍量 = 1列単価に対して30% OFF（=×0.70）、結果24円」
-    // と明示的に定義している。よって従来の割引率（×0.85 / ×0.70）は
-    // ガイド導出と**完全に等価**（非等価仮説は誤り）。
-    // 内部的な原価削減(×0.7)→マージンアップ(×1.35/1.4)→結果の変換経路は異なるが、
-    // 顧客提示単価はガイドの数値例（41→35→24）と一致する。
-    //
-    // したがって実装は割引率を維持し、savingsRate をガイド値（15/30）に固定する。
-    // 多列割引: applyMultiColumnDiscount 統一エントリポイント経由（計画 AC2 後方互換）
-    // same=2列(15% OFF)→×0.85 / double=3列(30% OFF)→×0.70。現行ロジックと完全一致
-    const sameQuantityPrice = applyMultiColumnDiscount('pouch', 2, currentUnitPrice).finalCost; // ガイド: 2列同数 15% OFF
-    const doubleQuantityPrice = applyMultiColumnDiscount('pouch', 3, currentUnitPrice).finalCost; // ガイド: 2列倍量 30% OFF
-
-    console.log('[calculateTwoColumnProductionOptions] 2列生産オプション価格計算（ガイド準拠）:', {
-      currentUnitPrice,
-      sameQuantityPrice: Math.round(sameQuantityPrice),
-      doubleQuantityPrice: Math.round(doubleQuantityPrice),
-      note: 'ガイド 06:148,170: 同数15% OFF(×0.85) / 倍量30% OFF(×0.70)'
-    });
-
-    // 同数量（現在の数量）
-    const sameQuantity = currentQuantity;
-
-    // 倍の数量（現在の数量×2を100単位で切り捨て）
-    const doubleQuantity = this.roundDownToHundreds(currentQuantity * 2);
-
-    console.log('[calculateTwoColumnProductionOptions] 計算結果:', {
-      currentQuantity,
-      pitchMM,
-      pouchesPerMeter: pouchesPerMeter1Col.toFixed(2),
-      theoreticalMeters1Col: theoreticalMeters1Col.toFixed(0),
-      theoreticalMeters2Col: theoreticalMeters2Col.toFixed(0),
-      totalFilmUsage2Col: totalFilmUsage2Col.toFixed(0),
-      economicQuantity,
-      doubleQuantity,
-      sameQuantityPrice: Math.round(sameQuantityPrice),
-      doubleQuantityPrice: Math.round(doubleQuantityPrice)
-    });
-
-    // 丸め済みの単価を使用して総額を計算（表示価格との整合性を確保）
-    const roundedSameQuantityUnitPrice = Math.round(sameQuantityPrice);
-    const roundedDoubleQuantityUnitPrice = Math.round(doubleQuantityPrice);
-
-    return {
-      sameQuantity: {
-        quantity: currentQuantity, // ユーザー入力の数量を保持
-        unitPrice: roundedSameQuantityUnitPrice,
-        totalPrice: roundedSameQuantityUnitPrice * currentQuantity,
-        savingsRate: 15 // ガイド 06:148 顧客割引 15% OFF
-      },
-      doubleQuantity: {
-        quantity: doubleQuantity,
-        unitPrice: roundedDoubleQuantityUnitPrice,
-        totalPrice: roundedDoubleQuantityUnitPrice * doubleQuantity,
-        savingsRate: 30 // ガイド 06:170 顧客割引 30% OFF
-      }
-    };
-  }
-
-  /**
-   * 2列生産が可能かどうかを判定
-   *
-   * @param pouchType パウチタイプ
-   * @param dimensions パウチ寸法
-   * @returns 2列生産可能な場合はtrue
-   */
-  private canUseTwoColumnProduction(
-    pouchType: string,
-    dimensions: PouchDimensions,
-    currentQuantity: number,
-    materialWidth: number = 590 // 実際の原反幅（デフォルト: 590mm）
-  ): boolean {
-    // ロールフィルム、合掌袋、ボックス型パウチ、スパウトパウチには2列生産を適用しない
-    // （これらは既存の並列生産オプションで対応、または構造的に2列生産が不可能）
-    // 【修正】スタンドパウチは2列生産を許可（計算ドキュメント05-스탠드파우치_시나리오.md基準）
-    if (pouchType === 'roll_film' ||
-        pouchType === 'spout_pouch' ||
-        pouchType.includes('t_shape') ||
-        pouchType.includes('m_shape') ||
-        pouchType.includes('box')) {
-      return false;
-    }
-
-    // 2列分のフィルム幅を計算
-    const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
-
-    // 実際の原反幅に基づいて印刷可能幅を計算
-    const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
-
-    // 2列分のフィルム幅が実際の原反幅の印刷可能幅に収まるかチェック
-    if (filmWidth2Columns > printableWidth) {
-      console.log('[canUseTwoColumnProduction] 2列生産不可能:', {
-        pouchType,
-        dimensions,
-        materialWidth,
-        printableWidth,
-        filmWidth2Columns,
-        reason: `2列分幅${filmWidth2Columns}mm > 印刷可能幅${printableWidth}mm（原反幅${materialWidth}mm）`
-      });
-      return false;
-    }
-
-    // 1列生産での実際の印刷メートル数を計算
-    const pitch = dimensions.width; // ピッチ = パウチ横幅 (mm)
-    const pouchesPerMeter = 1000 / pitch; // 1列生産の場合の個数/m
-    const actualPrintMeters = currentQuantity / pouchesPerMeter; // 実際の印刷メートル数
-
-    // 2列生産推奨オプションは印刷メートル数が1000m以上の場合のみ表示
-    // docs/reports/calcultae/07-SKU_및_병렬생산.md 基準
-    const MIN_PRINT_METERS_FOR_2COLUMN = 1000;
-    const canUse2Column = actualPrintMeters >= MIN_PRINT_METERS_FOR_2COLUMN;
-
-    console.log('[canUseTwoColumnProduction] 検証:', {
-      pouchType,
-      dimensions,
-      currentQuantity,
-      pitch,
-      pouchesPerMeter: pouchesPerMeter.toFixed(2),
-      actualPrintMeters: actualPrintMeters.toFixed(2),
-      MIN_PRINT_METERS_FOR_2COLUMN,
-      canUse2Column,
-      reason: canUse2Column
-        ? `印刷メートル数${actualPrintMeters.toFixed(0)}m >= ${MIN_PRINT_METERS_FOR_2COLUMN}m`
-        : `印刷メートル数${actualPrintMeters.toFixed(0)}m < ${MIN_PRINT_METERS_FOR_2COLUMN}m`
-    });
-
-    return canUse2Column;
   }
 
   /**

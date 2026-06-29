@@ -157,6 +157,24 @@ function validateTemplateStructure(workbook: ExcelJS.Workbook): ValidationResult
  * Extract template structure metadata
  */
 function extractTemplateStructure(workbook: ExcelJS.Workbook): TemplateStructure {
+  // ワークシートが存在しない場合は空構造を返す（検証側でエラーとして扱う）
+  if (workbook.worksheets.length === 0) {
+    return {
+      fileName: TEMPLATE_FILE_NAME,
+      filePath: TEMPLATE_FILE_PATH,
+      sheetCount: 0,
+      sheetNames: [],
+      columns: {
+        count: 0,
+        letters: [],
+      },
+      rows: {
+        count: 0,
+        dataRange: '',
+      },
+    };
+  }
+
   const worksheet = workbook.worksheets[0];
   const columnCount = worksheet.columnCount;
 

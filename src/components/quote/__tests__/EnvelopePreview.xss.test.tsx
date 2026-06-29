@@ -77,7 +77,9 @@ describe('XSS Security - EnvelopePreview', () => {
       const sanitized = DOMPurify.sanitize(maliciousSVG);
 
       expect(sanitized).not.toContain('onload');
-      expect(DOMPurify.sanitize).toHaveBeenCalledWith(maliciousSVG, expect.any(Object));
+      // 実装（EnvelopePreview L339）は DOMPurify.sanitize(html) の1引数呼び出し。
+      // テスト内でも1引数で呼んでいるため、呼び出し検証も1引数で一致させる。
+      expect(DOMPurify.sanitize).toHaveBeenCalledWith(maliciousSVG);
     });
   });
 
@@ -112,7 +114,8 @@ describe('XSS Security - EnvelopePreview', () => {
       const { container } = render(<EnvelopePreview {...defaultProps} />);
 
       // Bag type name should be displayed safely
-      expect(container.textContent).toContain('三方シール平袋');
+      // flat_3_side の表示名は bagTypeConfigs で '平袋'（EnvelopePreview L192）
+      expect(container.textContent).toContain('平袋');
     });
   });
 

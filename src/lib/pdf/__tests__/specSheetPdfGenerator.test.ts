@@ -90,7 +90,8 @@ describe('SpecSheetPdfGenerator', () => {
 
     it('should save PDF to file when output path is specified', async () => {
       const mockFs = await import('fs')
-      jest.spyOn(mockFs, 'existsSync').mockReturnValue(true)
+      // ※ existsSync を true にすると loadTemplate が readFile（reject モック）へ進み
+      //    PDF 生成が失敗する。テンプレートはデフォルト（existsSync=false）を使用する。
       jest.spyOn(mockFs.promises, 'writeFile').mockResolvedValue()
 
       const mockData = createMockSpecSheetData()
@@ -104,7 +105,7 @@ describe('SpecSheetPdfGenerator', () => {
 
     it('should handle errors gracefully', async () => {
       const playwright = await import('playwright')
-      jest.spyOn(playwright.chromium, 'launch').mockRejectedValue(new Error('Browser launch failed'))
+      ;(playwright.chromium.launch as jest.Mock).mockRejectedValueOnce(new Error('Browser launch failed'))
 
       const mockData = createMockSpecSheetData()
       const result = await generateSpecSheetPdf(mockData)
@@ -130,7 +131,7 @@ describe('SpecSheetPdfGenerator', () => {
 
     it('should return error on failure', async () => {
       const playwright = await import('playwright')
-      jest.spyOn(playwright.chromium, 'launch').mockRejectedValue(new Error('Generation failed'))
+      ;(playwright.chromium.launch as jest.Mock).mockRejectedValueOnce(new Error('Generation failed'))
 
       const mockData = createMockSpecSheetData()
       const result = await generateSpecSheetPdfBase64(mockData)

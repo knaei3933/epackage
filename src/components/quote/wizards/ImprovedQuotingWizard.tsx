@@ -27,7 +27,6 @@ import { AuthPromptModal } from '../shared/AuthPromptModal';
 import { ResponsiveStepIndicators } from '../shared/ResponsiveStepIndicators';
 import { UnifiedSKUQuantityStep } from '../steps/UnifiedSKUQuantityStep';
 import { ParallelProductionOptions } from '../shared/ParallelProductionOptions';
-import { EconomicQuantityProposal } from '../shared/EconomicQuantityProposal';
 import { ResultStep } from '../sections/ResultStep';
 import { OrderSummarySection } from '../shared/OrderSummarySection';
 import { QuantityOptionsGrid } from '../selectors';
@@ -42,7 +41,6 @@ import { calculateGravureProcessingCount } from '@/lib/gravure-cost-calculator';
 import { determineAutoMultiColumnCount } from '@/lib/multi-column-auto';
 import { GRAVURE_CONSTANTS } from '@/lib/pricing/core/constants';
 import type { ParallelProductionOption } from '../shared/ParallelProductionOptions';
-import type { EconomicQuantitySuggestionData } from '../shared/EconomicQuantityProposal';
 import type { QuantityOption } from '../selectors';
 import { generateQuotePDF } from '@/lib/pdf-generator';
 import {
@@ -2012,11 +2010,6 @@ function RealTimePriceDisplay() {
               filmLayers: state.filmLayers,
               // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
               useFilmCostCalculation: true,
-              // 2列生産オプション関連パラメータ
-              twoColumnOptionApplied: state.twoColumnOptionApplied,
-              discountedUnitPrice: state.discountedUnitPrice,
-              discountedTotalPrice: state.discountedTotalPrice,
-              originalUnitPrice: state.originalUnitPrice
             });
             console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '方式:', method, '価格:', quoteResult.totalPrice, '円');
             methodResults[method] = {
@@ -2493,11 +2486,6 @@ export function ImprovedQuotingWizard() {
             filmLayers: state.filmLayers,
             // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
             useFilmCostCalculation: true,
-            // 2列生産オプションパラメータ
-            twoColumnOptionApplied: state.twoColumnOptionApplied,
-            discountedUnitPrice: state.discountedUnitPrice,
-            discountedTotalPrice: state.discountedTotalPrice,
-            originalUnitPrice: state.originalUnitPrice
           });
 
           console.log('[handleNext] 価格計算完了 - 総額:', quoteResult.totalPrice, '円, markupRate:', markupRate, 'ユーザーID:', user?.id);
@@ -2775,21 +2763,6 @@ export function ImprovedQuotingWizard() {
     return true;
   }, [canProceed, currentStepId, state.skuQuantityValidationError]);
 
-  // Compute validation error message for 2-column production total quantity mismatch
-  // This is displayed when canProceed is false due to total quantity validation failure
-  const getNavigationBlockReason = (): string | null => {
-    if (currentStepId !== 'sku-quantity') return null;
-    if (state.quantityMode !== 'sku') return null;
-    if (!state.twoColumnOptionApplied || state.fixedTotalQuantity === undefined) return null;
-
-    const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
-    if (currentTotalQuantity !== state.fixedTotalQuantity) {
-      const diff = currentTotalQuantity - state.fixedTotalQuantity;
-      return `総数量が${diff > 0 ? '+' : ''}${diff.toLocaleString()}個です。総数量${state.fixedTotalQuantity.toLocaleString()}個を維持してください`;
-    }
-    return null;
-  };
-
   // Get validation messages for specs step
   const specsValidationErrors = useMemo(() => {
     if (currentStepId === 'specs' && !canProceed) {
@@ -2797,8 +2770,6 @@ export function ImprovedQuotingWizard() {
     }
     return [];
   }, [currentStepId, canProceed, state]);
-
-  const navigationBlockReason = getNavigationBlockReason();
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -2974,26 +2945,6 @@ export function ImprovedQuotingWizard() {
                           <li key={index}>{error}</li>
                         ))}
                       </ul>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {!canProceed && navigationBlockReason && currentStepId === 'sku-quantity' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
-                >
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-800">
-                        {navigationBlockReason}
-                      </p>
-                      <p className="text-xs text-red-600 mt-1">
-                        総数量を調整してから次へ進んでください
-                      </p>
                     </div>
                   </div>
                 </motion.div>

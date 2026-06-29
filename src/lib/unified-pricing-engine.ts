@@ -122,12 +122,6 @@ export interface UnifiedQuoteParams {
   skuQuantities?: number[] // SKU별 수량 [500, 500]
   useSKUCalculation?: boolean // SKU 계산 사용 여부
 
-  // 2열생산 옵션 관련 파라미터
-  twoColumnOptionApplied?: 'same' | 'double' | null
-  discountedUnitPrice?: number // 옵션 적용 후 단가
-  discountedTotalPrice?: number // 옵션 적용 후 총가
-  originalUnitPrice?: number // 옵션 적용 전 원래 단가
-
   // Roll film specific parameters
   rollCount?: number // 롤 필름 시 롤 개수 (롤당 배송비 계산용)
 
@@ -827,36 +821,7 @@ export class UnifiedPricingEngine {
       quantity: params.quantity,
       markupRate: params.markupRate,
       bagTypeId: params.bagTypeId,
-      twoColumnOptionApplied: params.twoColumnOptionApplied,
     });
-
-    // 2列生産オプションが適用されている場合は、割引価格を直接返す
-    if (params.twoColumnOptionApplied && params.discountedUnitPrice && params.discountedTotalPrice) {
-      logPriceCalculationDetail('2列生産割引適用', {
-        適用オプション: params.twoColumnOptionApplied === 'same' ? '同数量（15% OFF）' : '倍数量（31% OFF）',
-        割引単価: `¥${params.discountedUnitPrice.toLocaleString()}/個`,
-        割引総額: `¥${params.discountedTotalPrice.toLocaleString()}`
-      });
-
-      // 基本計算を実行してbreakdownを取得
-      const baseResult = await this.performSKUCalculation(params);
-
-      // 割引率を計算
-      const discountRate = params.originalUnitPrice
-        ? params.discountedUnitPrice / params.originalUnitPrice
-        : (params.twoColumnOptionApplied === 'same' ? 0.85 : 0.70);
-
-      // breakdownも割引率に合わせて調整
-      const discountedBreakdown = baseResult.breakdown ? this.adjustBreakdownForDiscount(baseResult.breakdown, discountRate) : undefined;
-
-      // 割引価格で上書き（breakdownも含める）
-      return {
-        ...baseResult,
-        unitPrice: params.discountedUnitPrice,
-        totalPrice: params.discountedTotalPrice,
-        breakdown: discountedBreakdown || baseResult.breakdown
-      };
-    }
 
     // ========================================
     // Phase 2: printingType='auto' 解決（AC-9）
@@ -3175,10 +3140,6 @@ export class UnifiedPricingEngine {
       params.lossRate?.toString() || CONSTANTS.DEFAULT_LOSS_RATE.toString(),
       // 필름 레이어 정보를 문자열로 변환
       params.filmLayers ? JSON.stringify(params.filmLayers) : 'default',
-      // 2열생산 옵션 관련 파라미터
-      params.twoColumnOptionApplied || 'none',
-      params.discountedUnitPrice?.toString() || 'none',
-      params.discountedTotalPrice?.toString() || 'none',
       // CRITICAL: 스파우트 파우치 관련 파라미터 - spoutSize가 다르면 가격이 다름
       params.spoutSize?.toString() || 'none',
       params.spoutPosition || 'none',
@@ -3193,33 +3154,6 @@ export class UnifiedPricingEngine {
     ]
 
     return keyParts.join('|')
-  }
-
-  /**
-   * 割引率に合わせてbreakdownを調整
-   * @param breakdown 元のbreakdown
-   * @param discountRate 割引率（0.85 = 15% OFF, 0.70 = 30% OFF）
-   * @returns 調整後のbreakdown
-   */
-  private adjustBreakdownForDiscount(breakdown: any, discountRate: number): any {
-    if (!breakdown) return breakdown;
-
-    const adjustedBreakdown: any = {};
-    const discountFields = [
-      'materialCost', 'laminationCost', 'slitterCost', 'surfaceTreatmentCost',
-      'pouchProcessingCost', 'printingCost', 'manufacturingMargin', 'duty',
-      'delivery', 'salesMargin', 'baseCost'
-    ];
-
-    for (const field of discountFields) {
-      if (typeof breakdown[field] === 'number') {
-        adjustedBreakdown[field] = Math.round(breakdown[field] * discountRate);
-      } else {
-        adjustedBreakdown[field] = breakdown[field];
-      }
-    }
-
-    return adjustedBreakdown;
   }
 
   /**

@@ -350,6 +350,7 @@ export function EnhancedPostProcessingPreview({
                     variant={viewMode === 'grid' ? 'primary' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
+                    aria-label={language === 'ja' ? 'グリッド' : 'Grid'}
                   >
                     <Grid className="w-4 h-4" />
                   </Button>
@@ -357,6 +358,7 @@ export function EnhancedPostProcessingPreview({
                     variant={viewMode === 'list' ? 'primary' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('list')}
+                    aria-label={language === 'ja' ? 'リスト' : 'List'}
                   >
                     <List className="w-4 h-4" />
                   </Button>

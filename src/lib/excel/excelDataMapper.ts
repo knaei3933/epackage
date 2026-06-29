@@ -900,7 +900,9 @@ function formatJapaneseDate(dateString: string): string {
  * Format currency to Japanese yen
  */
 export function formatJapaneseYen(amount: number): string {
-  return `¥${amount.toLocaleString('ja-JP')}`
+  // 日本の通貨は整数円が基本。端数（小数）は四捨五入で丸める。
+  // （toLocaleString のみでは 1234.56 → "1,234.56" と小数が維持されてしまうため）
+  return `¥${Math.round(amount).toLocaleString('ja-JP')}`
 }
 
 // ============================================================
@@ -965,9 +967,14 @@ export function booleanToSymbol(value: boolean | null | undefined): '○' | '-' 
  */
 export function formatPostalCode(postalCode: string): string {
   if (!postalCode) return ''
-  const cleaned = postalCode.replace(/[-]/g, '')
-  if (cleaned.length === 7) {
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`
+  // 全角数字を半角に正規化（ユーザー入力で全角が混入する実務ケースに対応）
+  const halfWidth = postalCode.replace(/[０-９]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+  )
+  // 数字以外（ハイフン・記号等）を除去して7桁判定
+  const digits = halfWidth.replace(/\D/g, '')
+  if (digits.length === 7) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`
   }
   return postalCode
 }

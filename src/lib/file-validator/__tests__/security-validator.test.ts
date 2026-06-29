@@ -47,7 +47,11 @@ function createMockFile(
 function createBufferWithMagicNumber(signature: number[], additionalSize: number = 100): Buffer {
   const buffer = Buffer.alloc(signature.length + additionalSize);
   for (let i = 0; i < signature.length; i++) {
-    buffer.writeUInt8(i, signature[i]);
+    // writeUInt8(value, offset): 第1引数が書き込む値、第2引数がオフセット。
+    // 以前は引数を逆渡ししていた（writeUInt8(i, signature[i])）。signature の値
+    // （0xFF=255 等）がオフセットとして解釈され、バッファ長を超えて RangeError を起こすほか、
+    // 先頭にマジックナンバーが書き込まれず検証が失敗していた。
+    buffer.writeUInt8(signature[i], i);
   }
   return buffer;
 }
@@ -133,8 +137,9 @@ describe('File Upload Security Validator', () => {
 
   describe('Task #72.2: File Size Limits (10MB)', () => {
     it('should accept files under 10MB', async () => {
-      // 5MB file
-      const smallFile = Buffer.alloc(5 * 1024 * 1024);
+      // 5MB file（PDF マジックナンバーを持つ実データ。Buffer.alloc だとゼロ埋めで
+      // INVALID_MAGIC_NUMBER になってしまうため、シグネチャ付きで生成する）
+      const smallFile = createBufferWithMagicNumber([0x25, 0x50, 0x44, 0x46], 5 * 1024 * 1024);
       const file = createMockFile(smallFile, 'test.pdf', 'application/pdf');
 
       const result = await validateFileSecurity(file, { maxSize: 10 * 1024 * 1024 });

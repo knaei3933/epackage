@@ -182,7 +182,7 @@ describe('Email Templates', () => {
   describe('contract_sent', () => {
     it('should generate subject', () => {
       const subject = contractSentSubject(contractSentData)
-      expect(subject).toContain('契�約書をご確認ください')
+      expect(subject).toContain('契約書をご確認ください')
       expect(subject).toContain('ORD-2024-001')
     })
 

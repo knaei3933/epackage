@@ -38,8 +38,6 @@ export { default as QuantityEfficiencyChart } from './QuantityEfficiencyChart'
 export { default as MultiQuantityComparisonTable } from './MultiQuantityComparisonTable'
 export { ParallelProductionOptions } from './ParallelProductionOptions'
 export type { ParallelProductionOption } from './ParallelProductionOptions'
-export { EconomicQuantityProposal } from './EconomicQuantityProposal'
-export type { EconomicQuantitySuggestionData } from './EconomicQuantityProposal'
 export { OptimalQuantityRecommender } from './OptimalQuantityRecommender'
 
 // Post-Processing Systems
