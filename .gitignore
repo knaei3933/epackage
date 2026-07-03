@@ -121,3 +121,19 @@ design/
 public/images/archives/
 public/images/inbound-data/
 docs/test-scenarios/runner/results/
+
+# === Security: Supabase auth tokens (NEVER commit) ===
+# cookies.txt contains access/refresh tokens. Already leaked in commit a813faa4
+# (origin/main) — track-removal here stops future tracking; full history purge
+# and token rotation are tracked separately.
+cookies.txt
+
+# === Legacy omx tooling artifacts (superseded by .omc/) ===
+.omx/
+
+# === Scratch verification scripts (repo root, not part of app) ===
+tmp/
+_e2e_*.js
+e2e_s8.js
+e2e-screenshot.js
+add-test-file*.js

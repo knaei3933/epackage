@@ -1,8 +1,10 @@
 import { test, expect, Page, BrowserContext } from '@playwright/test';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
-const SCREENSHOT_DIR = '/tmp/e2e-screenshots';
+// Use the OS temp dir so this works on win32 (not just WSL/Linux /tmp).
+const SCREENSHOT_DIR = path.join(os.tmpdir(), 'e2e-screenshots');
 const ADMIN_EMAIL = 'admin@epackage-lab.com';
 const ADMIN_PASS = 'Admin123!';
 
@@ -10,7 +12,11 @@ function shot(page: Page, name: string) {
   const dir = path.join(SCREENSHOT_DIR);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${name}.png`);
-  return page.screenshot({ path: file, fullPage: true });
+  // fullPage screenshot がブラウザの canvas 上限（Mobile Safari は 32767px）を超える場合は
+  // viewport-only screenshot にフォールバックしてテストを継続する（視覚検証が主目的のため）。
+  return page.screenshot({ path: file, fullPage: true }).catch(() =>
+    page.screenshot({ path: file, fullPage: false })
+  );
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -43,8 +49,15 @@ test.describe('Full Lifecycle E2E - Visual Verification', () => {
     await shot(page, '03a-login-filled');
     await passInput.press('Enter');
     await page.waitForTimeout(3000);
-    await page.goto('http://localhost:3000/admin/dashboard');
-    await page.waitForLoadState('domcontentloaded');
+    // firefox で認証直後のリダイレクト競合により page.goto が NS_BINDING_ABORTED で
+    // 中断することがあるため、domcontentloaded 待ち + 1 回リトライで吸収する。
+    const gotoDashboard = () =>
+      page.goto('http://localhost:3000/admin/dashboard', { waitUntil: 'domcontentloaded' });
+    try {
+      await gotoDashboard();
+    } catch {
+      await gotoDashboard();
+    }
     await page.waitForTimeout(2000);
     await shot(page, '03b-admin-dashboard');
   });
@@ -237,8 +250,8 @@ test.describe('Full Lifecycle E2E - Visual Verification', () => {
 async function loginViaApi(context: BrowserContext) {
   const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const sbAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-  // Read from env file
-  const envFile = fs.readFileSync('/mnt/c/users/kanei/claudecode/02.homepage_dev/02.epac_homepagever1.1/.env.local', 'utf-8');
+  // Read from env file (resolve relative to CWD so it works on win32, not just WSL)
+  const envFile = fs.readFileSync(path.join(process.cwd(), '.env.local'), 'utf-8');
   const getUrl = (envFile.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/)?.[1] || '').replace(/["']/g, '').trim();
   const getAnon = (envFile.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY=(.*)/)?.[1] || '').replace(/["']/g, '').trim();
 
