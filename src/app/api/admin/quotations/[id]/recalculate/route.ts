@@ -30,7 +30,8 @@ export async function POST(
   for (const item of items) {
     const specs = item.specifications as Record<string, unknown> || {};
 
-    const materialId = (specs.materialId as string) || 'pet_pe';
+    // M-8: デフォルト素材を正系の 'kp_pe' に修正（旧 'pet_pe' は表示マップ専用の非正系・getDefaultFilmLayers/materialData 未対応）。
+    const materialId = (specs.materialId as string) || 'kp_pe';
     const thicknessSelection = (specs.thicknessSelection as string) || 'medium';
 
     // getDefaultFilmLayers（正系: src/lib/film-structure）で kraft 系 + pet_vmpet を含む全系統のデフォルトレイヤーを取得
@@ -38,7 +39,8 @@ export async function POST(
 
     // Build UnifiedQuoteParams from specifications
     const params: UnifiedQuoteParams = {
-      bagTypeId: (specs.bagTypeId as string) || 'standup_pouch',
+      // M-7: デフォルト bagTypeId を正系の 'stand_up' に修正（旧 'standup_pouch' は非存在・pricing-engine/product-data の正系 enum 外で計算ルーティングが不正）。
+      bagTypeId: (specs.bagTypeId as string) || 'stand_up',
       materialId,
       quantity: item.quantity,
       skuQuantities: [item.quantity],  // SKUモード用: 単一SKUとして数量を配列で渡す
@@ -110,12 +112,12 @@ export async function POST(
       baseCost: result.breakdown.baseCost || 0,
     } : null;
 
-    // Update both specifications.film_cost_details and specifications.cost_breakdown
-    // film_cost_detailsカラムとcost_breakdownカラムは存在しないため、specifications内に保存
+    // C-9: cost_breakdown は専用カラム（quotation_items.cost_breakdown・jsonb実在）へ保存。
+    // film_cost_details カラムは非存在のため specifications 内に保存（現状維持）。
+    // 旧コメント「film_cost_detailsカラムとcost_breakdownカラムは存在しないため」は誤り（cost_breakdown カラム実在）。
     const updatedSpecs = {
       ...specs,
-      film_cost_details: filmCostDetails,
-      cost_breakdown: costBreakdown  // specifications内に保存
+      film_cost_details: filmCostDetails,  // カラム非存在 → specifications 内
     };
 
     // デバッグ：保存する値を確認
@@ -127,10 +129,15 @@ export async function POST(
       filmCostDetailsKeys: filmCostDetails ? Object.keys(filmCostDetails) : []
     });
 
+    // C-9 + H-16: cost_breakdown を専用カラムへ、unit_price/total_price も更新（再計算結果を反映）。
+    // 旧: specifications のみ更新で cost_breakdown カラム・unit_price・total_price が未反映（[id]/route.ts の item.cost_breakdown/unit_price 読込と非対称）。
     const { error: updateError } = await serviceClient
       .from('quotation_items')
       .update({
-        specifications: updatedSpecs
+        specifications: updatedSpecs,
+        cost_breakdown: costBreakdown,  // C-9: 専用カラム（[id]/route.ts 読込先と対称）
+        unit_price: result.unitPrice,   // H-16: 再計算の単価（小数含む・100円丸め前）
+        total_price: result.totalPrice, // H-16: 再計算の行小計（100円丸め済）
       })
       .eq('id', item.id);
 
@@ -140,6 +147,35 @@ export async function POST(
     } else {
       console.error('[Recalculate API] Database update error:', updateError);
     }
+  }
+
+  // H-16: quotations ヘッダ金額（subtotal_amount/tax_amount/total_amount）を再計算して反映。
+  // [id]/route.ts recalculateTotals と同一ロジック（Σ quantity*unit_price → 100円丸め → 税10%）。
+  // 旧: item の unit_price/total_price 更新なしで quotations.total_amount も未更新 → 再計算結果が一覧・明細に反映されない。
+  const { data: refreshedItems } = await serviceClient
+    .from('quotation_items')
+    .select('quantity, unit_price')
+    .eq('quotation_id', quotationId);
+
+  if (refreshedItems && refreshedItems.length > 0) {
+    const subtotal = refreshedItems.reduce(
+      (sum: number, it: { quantity: number; unit_price: number | string }) =>
+        sum + (it.quantity * Number(it.unit_price)),
+      0
+    );
+    const roundedSubtotal = Math.round(subtotal / 100) * 100;
+    const roundedTax = Math.round(roundedSubtotal * 0.1);
+    const total = roundedSubtotal + roundedTax;
+
+    await serviceClient
+      .from('quotations')
+      .update({
+        subtotal_amount: roundedSubtotal,
+        tax_amount: roundedTax,
+        total_amount: total,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', quotationId);
   }
 
   return NextResponse.json({

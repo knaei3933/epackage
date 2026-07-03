@@ -6,35 +6,23 @@
  * - 原本デザインファイルを添付
  * - design@epackage-lab.com → info@package-lab.com
  *
+ * 修正履歴:
+ * - H-11: インライン認証 → verifyAdminAuth に統一（status === 'ACTIVE' 厳格チェック）
+ * - C-6: order_history（本番未存在・メール後に500でデッドルート）→ order_status_history に統一
+ * - H-8: current_stage のみ更新 → status + current_stage を同時更新（二重状態矛盾解消）
+ * - データアクセスを createServiceClient に統一（RLS バイパス・管理者機能）
+ *
  * @route /api/admin/orders/[id]/send-to-korea
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { sendKoreaDataTransferWithAttachments } from '@/lib/email';
+import type { OrderStatus } from '@/types/order-status';
+import { mapStatusToCurrentStage } from '@/types/order-status';
 
 export const dynamic = 'force-dynamic';
-
-// =====================================================
-// Helper: Get Supabase client
-// =====================================================
-
-const getSupabaseClient = (request: NextRequest) => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-    },
-  });
-};
 
 // =====================================================
 // Types
@@ -72,35 +60,20 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Authenticate user
-    const supabase = getSupabaseClient(request);
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user?.id) {
-      return NextResponse.json(
-        { error: '認証されていません。', errorEn: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || profile.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: '管理者権限が必要です。', errorEn: 'Admin access required' },
-        { status: 403 }
-      );
+    // H-11: 認証を verifyAdminAuth に統一（status === 'ACTIVE' 厳格チェック）
+    // 旧インライン認証は profile.role !== 'ADMIN' のみで status を見ないため、
+    // SUSPENDED/PENDING のアカウントでも通過していた。
+    const auth = await verifyAdminAuth(request);
+    if (!auth) {
+      return unauthorizedResponse();
     }
 
     const { id: orderId } = await params;
 
-    // 2. Get order details with files
+    // Service client（RLS回避・管理者機能）
+    const supabase = createServiceClient();
+
+    // 注文詳細 + ファイルを取得（status を含め、監査ログ from_status 用に使用）
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
@@ -112,6 +85,7 @@ export async function POST(
         created_at,
         items,
         quotation_id,
+        status,
         files (
           id,
           file_type,
@@ -131,7 +105,7 @@ export async function POST(
       );
     }
 
-    // 3. Get AI extraction data from files
+    // AI抽出データをファイルから集約
     const files = order.files || [];
     const designFiles = files.filter((f: any) =>
       ['AI', 'PDF', 'PSD'].includes(f.file_type)
@@ -148,7 +122,6 @@ export async function POST(
       );
     }
 
-    // 4. Aggregate AI extraction data
     const aiExtractedData = {
       specifications: {} as Record<string, any>,
       printing: {} as Record<string, any>,
@@ -163,12 +136,12 @@ export async function POST(
       }
     });
 
-    // 5. Parse order items for product details
+    // 注文アイテムから製品詳細を解析
     const items = order.items || [];
     const firstItem = items[0] || {};
     const specs = firstItem.specifications || {};
 
-    // 6. Prepare email data
+    // メールデータを構築
     const emailData = {
       orderId: order.id,
       quotationNumber: order.order_number,
@@ -194,21 +167,20 @@ export async function POST(
         hasLogo: specs.hasLogo || false,
         hasBarcode: specs.hasBarcode || false,
       },
-      notes: '', // Will be filled from request body
+      notes: '', // リクエストボディから後で設定
     };
 
-    // 7. Get notes from request body
+    // リクエストボディから notes を取得
     const body = await request.json().catch(() => ({}));
     emailData.notes = body.notes || '';
 
-    // 8. Prepare file attachments
-    // For now, we'll use public URLs. In production, you might want to download files
+    // ファイル添付データを準備
     const attachmentData = designFiles.map((file: any) => ({
       filename: file.original_filename,
       href: file.file_url,
     }));
 
-    // 9. Send email to Korea partner
+    // 韓国パートナーへメール送信
     const result = await sendKoreaDataTransferWithAttachments(
       emailData as any,
       attachmentData,
@@ -226,25 +198,32 @@ export async function POST(
       );
     }
 
-    // 10. Log the action to order history
-    await supabase
-      .from('order_history')
-      .insert({
-        order_id: orderId,
-        action: 'sent_to_korea',
-        description: 'デザインデータを韓国パートナーに送信',
-        performed_by: user.id,
-        metadata: {
-          messageId: result.messageId,
-          filesSent: designFiles.length,
-        }
-      });
+    // C-6 + H-8: 監査ログを order_status_history に記録し、status + current_stage を同時更新
+    // 旧 order_history は本番未存在で、メール送信成功後に insert 例外 → 500 のデッドルートだった。
+    // mapStatusToCurrentStage('CORRECTION_IN_PROGRESS') === 'DATA_TO_KR' なので
+    // current_stage 値は従来互換。status を更新しない二重状態矛盾（H-8）を解消。
+    const previousStatus = order.status;
+    const nextStatus: OrderStatus = 'CORRECTION_IN_PROGRESS';
 
-    // 11. Update order stage
+    try {
+      await supabase.from('order_status_history').insert({
+        order_id: orderId,
+        from_status: previousStatus,
+        to_status: nextStatus,
+        changed_by: auth.userId,
+        reason: 'デザインデータを韓国パートナーに送信',
+      });
+    } catch (historyError) {
+      // 監査ログ失敗はメール送信成功を崩さない（旧実装はここで500になっていた）
+      console.warn('[Send to Korea] Failed to record status history:', historyError);
+    }
+
+    // 注文ステータス + current_stage を同時更新（H-8）
     await supabase
       .from('orders')
       .update({
-        current_stage: 'DATA_TO_KR',
+        status: nextStatus,
+        current_stage: mapStatusToCurrentStage(nextStatus),
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId);

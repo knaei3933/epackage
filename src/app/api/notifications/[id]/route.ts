@@ -24,7 +24,8 @@ export async function DELETE(
     const { id: notificationId } = await params;
 
     const service = await createNotificationService();
-    await service.deleteNotification(notificationId);
+    // C-14: userId を渡して自分の通知のみ削除（IDOR 対策）。devMode(userId null)は従来動作。
+    await service.deleteNotification(notificationId, userId || undefined);
 
     return NextResponse.json({ success: true });
   } catch (error) {

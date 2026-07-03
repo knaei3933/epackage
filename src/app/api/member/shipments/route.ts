@@ -126,19 +126,23 @@ export async function POST(request: NextRequest) {
       route: '/api/member/shipments',
     });
 
-    // Update order with shipment info
+    // C-19: 出荷前の status を取得（監査正確性・Phase 1 start-production と同じパターン）
+    const { data: orderBefore } = await supabaseAdmin
+      .from('orders')
+      .select('status')
+      .eq('id', order_id)
+      .single();
+    const previousStatus = (orderBefore?.status as string) || 'STOCK_IN';
+
+    // C-19: 存在しない current_state/state_metadata カラム参照を削除。
+    // current_stage を status と同期（Phase 1 原則: status + current_stage 同時更新）。
     const { error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         status: 'SHIPPED',
-        current_state: 'shipped',
+        current_stage: 'SHIPPED',
         shipped_at: new Date(shipping_date).toISOString(),
-        state_metadata: {
-          invoice_number,
-          carrier,
-          tracking_number,
-          tracking_url
-        }
+        updated_at: new Date().toISOString(),
       })
       .eq('id', order_id);
 
@@ -146,30 +150,15 @@ export async function POST(request: NextRequest) {
       throw updateError;
     }
 
-    // Log shipment
-    await supabaseAdmin
-      .from('order_audit_log')
-      .insert({
-        table_name: 'shipments',
-        record_id: order_id,
-        action: 'INSERT',
-        new_data: {
-          invoice_number,
-          carrier,
-          tracking_number,
-          tracking_url,
-          shipping_date,
-          shipped_by: userId
-        },
-        changed_by: userId
-      });
+    // C-19: order_audit_log（本番未存在テーブル）参照を削除。監査証跡は order_status_history に統一。
+    // invoice/carrier/tracking 情報は reason 文字列として間接的に記録される。
 
     // Log status change
     await supabaseAdmin
       .from('order_status_history')
       .insert({
         order_id: order_id,
-        from_status: 'STOCK_IN',
+        from_status: previousStatus,
         to_status: 'SHIPPED',
         changed_by: userId,
         reason: `出荷完了: ${carrier} (${invoice_number})`

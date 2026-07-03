@@ -3,12 +3,14 @@
  *
  * 管理者用注文ステータス更新 API
  * - PUT: ステータス変更 (管理者専用)
+ * - GET: ステータス取得
  * - Service Role Keyを使用してRLSを回避
  *
- * Features:
- * - Direct database update with service role
- * - Type-safe status transitions
- * - Audit logging
+ * 修正履歴:
+ * - H-9: isValidStatusTransition で状態遷移検証（不正遷移は 400）
+ * - C-5: audit_logs（本番未存在・サイレント失敗）→ order_status_history に統一
+ * - H-13: changed_by 'ADMIN' ハードコード → 実行者 auth.userId
+ * - M-9: 本番ログ肥大化する console.log を削減
  */
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { OrderStatus } from '@/types/order-status';
-import { mapStatusToCurrentStage } from '@/types/order-status';
+import { mapStatusToCurrentStage, isValidStatusTransition } from '@/types/order-status';
 
 // ============================================================
 // Types
@@ -38,7 +40,7 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // ✅ 認可追加（認証バイパス修正 — 全 admin ルートと統一）
+    // 認証（認証バイパス修正 — 全 admin ルートと統一・ACTIVE のみ許可）
     const auth = await verifyAdminAuth(request);
     if (!auth) {
       return unauthorizedResponse();
@@ -47,14 +49,10 @@ export async function PUT(
     const params = await context.params;
     const { id: orderId } = params;
 
-    console.log('[Admin Order Status] ========================================');
-    console.log('[Admin Order Status] PUT request received');
-    console.log('[Admin Order Status] Order ID:', orderId);
-
     const body = await request.json() as UpdateStatusRequest;
-    const { status, reason, notifyCustomer = true } = body;
+    const { status, reason } = body;
 
-    // Validate new status
+    // 新ステータスの必須チェック
     if (!status) {
       return NextResponse.json(
         { error: 'ステータスは必須です。' },
@@ -64,31 +62,33 @@ export async function PUT(
 
     // Service clientを使用（RLS回避）
     const supabase = createServiceClient();
-    console.log('[Admin Order Status] Service client created');
 
-    // Fetch order
+    // 注文取得
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('id, user_id, status, order_number')
       .eq('id', orderId)
       .single();
 
-    console.log('[Admin Order Status] Order query result:', {
-      found: !!order,
-      orderNumber: order?.order_number,
-      currentStatus: order?.status,
-      error: orderError?.message
-    });
-
     if (orderError || !order) {
-      console.error('[Admin Order Status] Order not found:', orderError);
       return NextResponse.json(
         { error: '注文が見つかりませんでした。' },
         { status: 404 }
       );
     }
 
-    // Update order status
+    // H-9: 状態遷移検証（API はクライアントから直接叩けるため必須）
+    // 不正遷移（例: SHIPPED → QUOTATION_PENDING の逆行）は 400 で拒否。
+    if (!isValidStatusTransition(order.status as OrderStatus, status)) {
+      return NextResponse.json(
+        {
+          error: `ステータスを「${order.status}」から「${status}」に変更できません。無効なステータス遷移です。`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // ステータス更新
     const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
       .update({
@@ -108,30 +108,19 @@ export async function PUT(
       );
     }
 
-    // Create audit log entry
+    // C-5 + H-13: 監査ログを order_status_history（本番存在テーブル）に記録
+    // 旧 audit_logs は本番未存在・changed_by 'ADMIN' ハードコードで追跡不能だった。
     try {
-      await supabase
-        .from('audit_logs')
-        .insert({
-          table_name: 'orders',
-          record_id: orderId,
-          action: 'UPDATE',
-          old_value: { status: order.status },
-          new_value: { status: status },
-          changed_by: 'ADMIN',
-          reason: reason || 'Admin status update',
-        });
+      await supabase.from('order_status_history').insert({
+        order_id: orderId,
+        from_status: order.status,
+        to_status: status,
+        changed_by: auth.userId,
+        reason: reason || 'Admin status update',
+      });
     } catch (auditError) {
-      console.warn('[Admin Order Status] Failed to create audit log:', auditError);
+      console.warn('[Admin Order Status] Failed to record status history:', auditError);
     }
-
-    console.log('[Admin Order Status] Order status updated:', {
-      orderId,
-      orderNumber: order.order_number,
-      oldStatus: order.status,
-      newStatus: status,
-      reason,
-    });
 
     return NextResponse.json({
       order: updatedOrder,
@@ -158,7 +147,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // ✅ 認可追加（認証バイパス修正 — 全 admin ルートと統一）
+    // 認証（認証バイパス修正 — 全 admin ルートと統一・ACTIVE のみ許可）
     const auth = await verifyAdminAuth(request);
     if (!auth) {
       return unauthorizedResponse();
@@ -167,11 +156,9 @@ export async function GET(
     const params = await context.params;
     const { id: orderId } = params;
 
-    console.log('[Admin Order Status] GET request for order:', orderId);
-
     const supabase = createServiceClient();
 
-    // Fetch order status
+    // 注文ステータス取得
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('id, status, order_number, updated_at')
@@ -179,7 +166,6 @@ export async function GET(
       .single();
 
     if (orderError || !order) {
-      console.error('[Admin Order Status] Order not found:', orderError);
       return NextResponse.json(
         { error: '注文が見つかりませんでした。' },
         { status: 404 }

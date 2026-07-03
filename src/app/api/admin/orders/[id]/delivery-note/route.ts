@@ -8,21 +8,22 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { sendTemplatedEmail } from '@/lib/email';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
 
-const getSupabaseConfig = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return { supabaseUrl, supabaseAnonKey };
-};
+// サービスクライアント (RLSバイパス用)
+const getServiceClient = () => createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 interface DeliveryNoteResponse {
   success: boolean;
@@ -35,40 +36,16 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Authenticate
-    const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user?.id) {
-      return NextResponse.json(
-        { error: '認証されていません。', errorEn: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Check admin role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || profile.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: '管理者権限が必要です。', errorEn: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    // H-11/C-21: 認証を verifyAdminAuth に統一（status==='ACTIVE' チェック含む・Phase 1 C-15 と同じパターン）。
+    // 旧: インライン認証（supabase.auth.getUser → profiles.role==='ADMIN'）・ACTIVE チェック漏れ。
+    const auth = await verifyAdminAuth(request);
+    if (!auth) return unauthorizedResponse();
 
     const { id: orderId } = await params;
+
+    // C-21: service client（RLSバイパス）で他人の注文も参照可能。
+    // 旧: createServerClient(anon + cookie・RLS有効) で管理者が他人の注文を参照できず常に404。
+    const supabase = getServiceClient();
 
     // Get order details
     const { data: order, error: orderError } = await supabase
@@ -84,6 +61,18 @@ export async function POST(
       );
     }
 
+    // C-22: 存在しない tracking_number_domestic カラム参照（常に空文字）を削除。
+    // 代わりに shipments テーブルから最新出荷の tracking_number を取得（顧客が荷物を追跡可能に）。
+    const { data: shipment } = await supabase
+      .from('shipments')
+      .select('tracking_number, carrier_name')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const trackingNumber = shipment?.tracking_number || '';
+
     // Send delivery notification email
     if (order.customer_email) {
       await sendTemplatedEmail(
@@ -91,7 +80,7 @@ export async function POST(
         {
           orderNumber: order.order_number,
           shipmentNumber: order.order_number,
-          trackingNumber: (order as any).tracking_number_domestic || '',
+          trackingNumber,
           carrierName: 'EPACKAGE Lab',
           carrier: 'yamato',
           deliveredAt: order.delivered_at || new Date().toISOString(),

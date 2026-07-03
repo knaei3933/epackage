@@ -27,7 +27,8 @@ export async function POST(
     // 管理者は全ての通知を既読化可能
 
     const service = await createNotificationService();
-    await service.markAsRead(notificationId);
+    // C-14: userId を渡して自分の通知のみ既読化（IDOR 対策）。devMode(userId null)は従来動作。
+    await service.markAsRead(notificationId, userId || undefined);
 
     return NextResponse.json({ success: true });
   } catch (error) {

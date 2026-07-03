@@ -372,11 +372,32 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // C-12: mass assignment 防止 — 認証・権限系フィールドを除外
+    // リクエストボディ偽装による role 一括昇格・status 一括変更・email 乗っ取りを防ぐ。
+    const FORBIDDEN_UPDATE_FIELDS = new Set([
+      'id', 'role', 'status', 'email', 'password', 'hashed_password',
+      'created_at', 'updated_at', 'auth_id', 'user_id',
+    ]);
+
+    const sanitizedUpdates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(updates as Record<string, unknown>)) {
+      if (!FORBIDDEN_UPDATE_FIELDS.has(key)) {
+        sanitizedUpdates[key] = value;
+      }
+    }
+
+    if (Object.keys(sanitizedUpdates).length === 0) {
+      return NextResponse.json(
+        { success: false, error: '更新可能なフィールドがありません。' },
+        { status: 400 }
+      );
+    }
+
     // Perform bulk update
     const { data: updatedCustomers, error } = await supabase
       .from('profiles')
       .update({
-        ...updates,
+        ...sanitizedUpdates,
         updated_at: new Date().toISOString(),
       })
       .in('id', customerIds)
