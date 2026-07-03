@@ -202,14 +202,16 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
             }
           }
 
-          // それでも見つからない場合、デフォルト画像（三方シール）を使用
+          // 見つからない場合（bagTypeId未設定の旧データ含む）はシンプル表示
           if (!bagTypeInfo) {
-            console.log('[MemberSpecificationDisplay] Bag type not found:', bagTypeId, 'bagTypeJa:', bagTypeJa);
-            return (
+            if (process.env.NODE_ENV === 'development' && bagTypeId) {
+              console.warn('[MemberSpecificationDisplay] Unknown bagTypeId:', bagTypeId);
+            }
+            return bagTypeId ? (
               <div className="col-span-2 mb-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <div className="text-sm text-gray-500">製品タイプ: {bagTypeJa}</div>
               </div>
-            );
+            ) : null;
           }
 
           return (

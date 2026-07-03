@@ -94,10 +94,10 @@ export default function AdminDashboardClient({
   const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR(
     `/api/admin/dashboard/unified-stats?period=${period}`,
     fetcher,
-    {
-      refreshInterval: 30000, // 30秒ごとに更新
-      revalidateOnFocus: true,
-      shouldRetryOnError: false, // 自動再試行無効化 (手動再試行ボタン提供)
+   {
+     refreshInterval: 60000, // 60秒ごとに更新（リアルタイム性よりメインスレッド負荷低減）
+     revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止
+     shouldRetryOnError: false, // 自動再試行無効化 (手動再試行ボタン提供)
       errorRetryCount: 3,
       onError: (err) => {
         // エラーはUIで表示するため、コンソールには出力しない

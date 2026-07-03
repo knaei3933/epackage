@@ -9,7 +9,9 @@
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { auth } from '@/lib/supabase';
-import { QuotationDetailClient } from './QuotationDetailClient';
+// Client wrapper so that next/dynamic { ssr: false } is allowed in a Server
+// Component (Next.js 16 forbids ssr: false directly in Server Components).
+import QuotationDetailClient from './QuotationDetailClientLazy';
 
 // Disable static generation for this page due to client-side interactivity
 export const dynamic = 'force-dynamic';

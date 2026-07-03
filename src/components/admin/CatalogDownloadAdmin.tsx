@@ -45,7 +45,7 @@ interface AdminDashboardProps {
 
 export function CatalogDownloadAdmin({
   enableExport = true,
-  refreshInterval = 30000
+  refreshInterval = 60000
 }: AdminDashboardProps) {
   const [records, setRecords] = useState<DownloadRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DownloadRecord[]>([]);
@@ -455,4 +455,3 @@ export function CatalogDownloadAdmin({
     </motion.div>
   );
 }
-

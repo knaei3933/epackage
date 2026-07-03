@@ -11,33 +11,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { sendTemplatedEmail } from '@/lib/email';
 import { orderStatusEmails } from '@/lib/email/order-status-emails';
-import type { OrderStatus } from '@/types/order-status';
+import { mapStatusToCurrentStage, type OrderStatus } from '@/types/order-status';
 
 export const dynamic = 'force-dynamic';
-
-// =====================================================
-// Helper: Get Supabase client
-// =====================================================
-
-function getSupabaseClient(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-    },
-  });
-}
 
 // =====================================================
 // Types
@@ -51,35 +31,27 @@ interface SpecApprovalResponse {
 }
 
 // =====================================================
+// Helper: Authenticate user (cookie-based via SSR client)
+// =====================================================
+
+async function authenticateUser(request: NextRequest) {
+  const { client: supabase } = await createSupabaseSSRClient(request);
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user?.id) return null;
+  return user;
+}
+
+// =====================================================
 // POST Handler - Process Approval Action
 // =====================================================
 
-/**
- * POST /api/member/orders/[id]/spec-approval
- * Process customer approval action
- *
- * Request Body:
- * - action: 'approve' | 'reject' | 'cancel'
- * - revisionId: ID of the design revision
- * - comment: Customer comment (required for reject)
- *
- * Success Response (200):
- * {
- *   "success": true,
- *   "message": "Action completed successfully"
- * }
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Authenticate user
-    const supabase = getSupabaseClient(request);
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user?.id) {
+    const user = await authenticateUser(request);
+    if (!user) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
@@ -87,11 +59,12 @@ export async function POST(
     }
 
     const { id: orderId } = await params;
+    const serviceClient = createServiceClient();
 
     // 2. Verify order exists and belongs to user
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await serviceClient
       .from('orders')
-      .select('id, user_id, order_number, customer_name, customer_email, product_name, status, estimated_completion_date')
+      .select('id, user_id, order_number, customer_name, customer_email, status')
       .eq('id', orderId)
       .single();
 
@@ -134,7 +107,7 @@ export async function POST(
     }
 
     // 4. Verify revision exists and belongs to this order
-    const { data: revision, error: revisionError } = await supabase
+    const { data: revision, error: revisionError } = await serviceClient
       .from('design_revisions')
       .select('*')
       .eq('id', revisionId)
@@ -149,21 +122,18 @@ export async function POST(
     }
 
     // 5. Process action
-    // 新しいワークフローに基づくステータス遷移
     let newStatus: OrderStatus;
     let revisionStatus: string;
     let message: string;
 
     switch (action) {
       case 'approve':
-        // 新しいワークフロー: CUSTOMER_APPROVAL_PENDING → PRODUCTION
         newStatus = 'PRODUCTION';
         revisionStatus = 'approved';
         message = '教正データを承認しました。製造を開始します。';
         break;
 
       case 'reject':
-        // 新しいワークフロー: CUSTOMER_APPROVAL_PENDING → CORRECTION_IN_PROGRESS (教正ループ)
         newStatus = 'CORRECTION_IN_PROGRESS';
         revisionStatus = 'rejected';
         message = '修正要求を送信しました。';
@@ -186,7 +156,7 @@ export async function POST(
     }
 
     // 6. Update revision status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await serviceClient
       .from('design_revisions')
       .update({
         approval_status: revisionStatus,
@@ -204,11 +174,12 @@ export async function POST(
       );
     }
 
-    // 7. Update order status (新しいワークフロー: status のみを更新)
-    const { error: statusUpdateError } = await supabase
+    // 7. Update order status + current_stage
+    const { error: statusUpdateError } = await serviceClient
       .from('orders')
       .update({
         status: newStatus,
+        current_stage: mapStatusToCurrentStage(newStatus),
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId);
@@ -221,12 +192,12 @@ export async function POST(
       );
     }
 
-    // 8. Log to order history (order_status_historyテーブルを使用)
-    const { error: historyError } = await supabase
+    // 8. Log to order history
+    const { error: historyError } = await serviceClient
       .from('order_status_history')
       .insert({
         order_id: orderId,
-        from_status: order.status, // 現在のステータス（更新前）
+        from_status: order.status,
         to_status: newStatus,
         changed_by: user.id,
         changed_at: new Date().toISOString(),
@@ -235,7 +206,6 @@ export async function POST(
 
     if (historyError) {
       console.error('[Spec Approval] History logging error:', historyError);
-      // 履歴記録の失敗は処理を続行
     }
 
     // 9. Send production start notification for approval
@@ -243,11 +213,10 @@ export async function POST(
       try {
         const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
-        // 顧客メールアドレスを取得（fallback で user.email も試行）
         let customerEmail = order.customer_email;
         if (!customerEmail) {
-          const { data: userData } = await supabase
-            .from('users')
+          const { data: userData } = await serviceClient
+            .from('profiles')
             .select('email')
             .eq('id', user.id)
             .single();
@@ -255,8 +224,7 @@ export async function POST(
         }
 
         if (customerEmail) {
-          // 納期の計算（デフォルトは製造開始から2〜3週間後）
-          const estimatedCompletion = order.estimated_completion_date ||
+          const estimatedCompletion =
             new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
           await orderStatusEmails.notifyProductionStarted({
@@ -264,7 +232,7 @@ export async function POST(
             orderNumber: order.order_number,
             customerEmail,
             customerName: order.customer_name || 'お客様',
-            productName: order.product_name,
+            productName: undefined,
             viewUrl: `${appUrl}/member/orders/${orderId}`,
           }, estimatedCompletion);
 
@@ -272,7 +240,6 @@ export async function POST(
         }
       } catch (emailError) {
         console.error('[Spec Approval] Production start notification error:', emailError);
-        // メール送信失敗時も処理は完了させる
       }
     }
 
@@ -281,8 +248,7 @@ export async function POST(
       try {
         const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
-        // データベースからデザイナーメール取得
-        const { data: setting } = await supabase
+        const { data: setting } = await serviceClient
           .from('notification_settings')
           .select('value')
           .eq('key', 'korea_designer_emails')
@@ -291,7 +257,6 @@ export async function POST(
         const designerEmails: string[] = setting?.value || [];
 
         if (designerEmails.length > 0) {
-          // 各デザイナーにメール送信
           for (const email of designerEmails) {
             await (sendTemplatedEmail as any)(
               'correction_rejected',
@@ -311,7 +276,6 @@ export async function POST(
         }
       } catch (emailError) {
         console.error('[Spec Approval] Korea designer notification error:', emailError);
-        // Don't fail the approval if email fails
       }
     }
 
@@ -345,12 +309,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Authenticate
-    const supabase = getSupabaseClient(request);
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user?.id) {
+    const user = await authenticateUser(request);
+    if (!user) {
       return NextResponse.json(
         { error: '認証されていません。', errorEn: 'Authentication required' },
         { status: 401 }
@@ -358,9 +318,10 @@ export async function GET(
     }
 
     const { id: orderId } = await params;
+    const serviceClient = createServiceClient();
 
     // Verify order belongs to user
-    const { data: order } = await supabase
+    const { data: order } = await serviceClient
       .from('orders')
       .select('user_id')
       .eq('id', orderId)
@@ -374,7 +335,7 @@ export async function GET(
     }
 
     // Get revisions
-    const { data: revisions, error } = await supabase
+    const { data: revisions, error } = await serviceClient
       .from('design_revisions')
       .select('*')
       .eq('order_id', orderId)

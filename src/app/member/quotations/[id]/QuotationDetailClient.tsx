@@ -55,6 +55,8 @@ interface QuotationDetailPageProps {
 
 const quotationStatusLabels: Record<string, string> = {
   DRAFT: 'ドラフト',
+  QUOTATION_PENDING: '見積承認待ち',
+  QUOTATION_APPROVED: '見積承認済み',
   SENT: '送信済み',
   APPROVED: '承認済み',
   REJECTED: '却下',
@@ -64,6 +66,8 @@ const quotationStatusLabels: Record<string, string> = {
 
 const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' | 'warning' | 'info' | 'default'> = {
   DRAFT: 'secondary',
+  QUOTATION_PENDING: 'warning',
+  QUOTATION_APPROVED: 'success',
   SENT: 'info',
   APPROVED: 'success',
   REJECTED: 'error',
@@ -710,10 +714,13 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   const subtotal = quotation?.subtotal || quotation?.subtotalAmount || quotation?.subtotal_amount || 0;
   // 消費税: DB保存値を優先、なければ小計の10%を四捨五入
   const taxAmount = quotation?.taxAmount || quotation?.tax_amount || Math.round(subtotal * 0.1);
-  // 合計: 小計 + 消費税を計算（常に正しい計算)
-  const displayTotalAmount = subtotal + taxAmount;
+  // 合計: DB保存値の total_amount を優先（100円切り上げ済みの正確な合計）
+  // フォールバック: 小計 + 消費税（レガシーデータ対応）
+  const displayTotalAmount = quotation?.totalAmount || quotation?.total_amount || (subtotal + taxAmount);
   // 注文変換可能か: APPROVED状態で注文未作成の場合のみ（大文字小文字を区別せずチェック）
-  const canConvert = quotation?.status?.toLowerCase() === 'approved';
+  const approvedStatuses = ['approved', 'QUOTATION_APPROVED'];
+  const statusLower = quotation?.status?.toLowerCase() || '';
+  const canConvert = statusLower === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED';
 
   return (
     <div className="space-y-6">
@@ -1190,8 +1197,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       )}
 
       {/* Status Message - Separate Card based on quotation status */}
-      {quotation?.status?.toLowerCase() === 'draft' ? (
-        // ⏳ ドラフト: 承認待ちメッセージ
+      {(quotation?.status?.toLowerCase() === 'draft' || (quotation?.status as string) === 'QUOTATION_PENDING') ? (
+        // ⏳ ドラフト/見積承認待ち: 承認待ちメッセージ
         <Card className="bg-yellow-50 border-yellow-200 p-4">
           <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0" />
@@ -1264,7 +1271,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             </Button>
 
             {/* 注文変換 - 状態に応じて表示を変える */}
-            {quotation?.status?.toLowerCase() === 'approved' && (
+            {(quotation?.status?.toLowerCase() === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED') && (
               <>
                 <Button
                   variant="primary"

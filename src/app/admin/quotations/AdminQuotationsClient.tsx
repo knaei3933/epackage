@@ -11,8 +11,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui';
-import { EmailComposer } from '@/components/admin/EmailComposer';
+import nextDynamic from 'next/dynamic';
 import type { Recipient } from '@/components/admin/EmailComposer';
+// Defer the EmailComposer bundle (1203 lines) until it is actually opened.
+// It is conditionally rendered only when emailComposerOpen is true.
+const EmailComposer = nextDynamic(() =>
+  import('@/components/admin/EmailComposer').then((m) => m.EmailComposer)
+);
 import {
   AdminQuotationFilters,
   AdminQuotationList,

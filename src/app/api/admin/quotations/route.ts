@@ -266,7 +266,10 @@ export async function PATCH(request: NextRequest) {
 
     const previousStatus = currentQuotation.status;
     const newStatus = body.status ? normalizeStatus(body.status) : previousStatus;
-    const isApprovedTransition = previousStatus !== 'QUOTATION_APPROVED' && newStatus === 'QUOTATION_APPROVED';
+    const isApprovedTransition = previousStatus !== 'QUOTATION_APPROVED' &&
+      previousStatus !== 'APPROVED' &&
+      previousStatus !== 'approved' &&
+      (newStatus === 'QUOTATION_APPROVED' || newStatus === 'APPROVED' || newStatus === 'approved');
 
     // Update quotation - use normalized status for 10-step workflow
     const { data: quotation, error } = await supabase

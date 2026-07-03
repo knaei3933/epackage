@@ -1139,6 +1139,8 @@ export const matcher = [
    * - _next/image (image optimization files)
    * - favicon.ico (favicon file)
    * - public folder files (images, etc.)
-   */
-  '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)',
+   * - static asset extensions (.js, .mjs, .css, .woff, .woff2, etc.)
+   *   so auth middleware does not run on static asset requests.
+  */
+  '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|js|mjs|css|woff|woff2|ttf|eot|map)$).*)',
 ];

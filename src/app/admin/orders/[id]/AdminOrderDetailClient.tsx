@@ -18,7 +18,12 @@ import { AdminOrderWorkflowTabs } from '@/components/admin/AdminOrderWorkflowTab
 import { OrderStatusBadge, OrderStatusTimeline } from '@/components/orders';
 import { OrderInfoAccordion, OrderItemsSummary, OrderAddressInfo } from '@/components/member';
 import { AdminOrderItemsEditor } from '@/components/admin/AdminOrderItemsEditor';
-import { EmailComposer, type Recipient } from '@/components/admin/EmailComposer';
+import nextDynamic from 'next/dynamic';
+import type { Recipient } from '@/components/admin/EmailComposer';
+// Defer the EmailComposer bundle until it is actually opened.
+const EmailComposer = nextDynamic(() =>
+  import('@/components/admin/EmailComposer').then((m) => m.EmailComposer)
+);
 import { adminFetch } from '@/lib/auth-client';
 import type { Order as DashboardOrder } from '@/types/dashboard';
 import { Package, User, Calendar, MapPin, CreditCard, FileText, AlertCircle, CheckCircle, XCircle, Mail } from 'lucide-react';

@@ -723,6 +723,37 @@ function isSpoutPouchIncompatible(bagType: string): boolean {
 }
 
 /**
+ * Sanitize HTML before assigning to innerHTML for PDF rendering.
+ *
+ * 全PDF生成（見積書・複数数量見積書・請求書）で DOM へ注入する直前に
+ * ユーザー入力由来の値（顧客名・担当者・会社名・備考 等）を無害化する。
+ * DOMPurify で許可タグ・属性を制限し、<script> / イベントハンドラ /
+ * javascript: 等を除去する（ADV-E2E-006 stored XSS 対策）。
+ */
+const PDF_SANITIZE_OPTIONS = {
+  ALLOWED_TAGS: [
+    'div', 'span', 'p', 'br', 'strong', 'em', 'b', 'i', 'u',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
+    'ul', 'ol', 'li',
+    'a', 'img',
+    'hr', 'blockquote', 'pre', 'code',
+    'svg', 'path', 'rect', 'circle', 'line', 'text', 'g',
+  ],
+  ALLOWED_ATTR: [
+    'class', 'style', 'id', 'href', 'src', 'alt', 'title', 'target',
+    'colspan', 'rowspan', 'width', 'height', 'viewBox', 'd', 'fill',
+    'stroke', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r',
+  ],
+  ALLOW_DATA_ATTR: false,
+  ALLOW_UNKNOWN_PROTOCOLS: false,
+};
+
+function sanitizePdfHtml(html: string): string {
+  return DOMPurify.sanitize(html, PDF_SANITIZE_OPTIONS);
+}
+
+/**
  * Validate PDF generation data
  *
  * PDF生成データの検証
@@ -889,8 +920,8 @@ export async function generateQuotePDF(
       container.style.padding = '0';
       container.style.margin = '0';
 
-      // Set HTML content directly (no encoding issues)
-      container.innerHTML = html;
+      // Sanitize HTML before innerHTML to prevent stored XSS (ADV-E2E-006)
+      container.innerHTML = sanitizePdfHtml(html);
 
       // Append to DOM for rendering
       document.body.appendChild(container);
@@ -1711,8 +1742,8 @@ export async function generateMultiQuantityPDF(
     container.style.padding = '0';
     container.style.margin = '0';
 
-    // Set HTML content directly
-    container.innerHTML = html;
+    // Sanitize HTML before innerHTML to prevent stored XSS (ADV-E2E-006)
+    container.innerHTML = sanitizePdfHtml(html);
     document.body.appendChild(container);
 
     // Wait for rendering and font loading
@@ -3047,25 +3078,8 @@ export async function generateInvoicePDF(
 
     // Use existing PDF generation infrastructure
     const element = document.createElement('div');
-    // ✅ Sanitize HTML to prevent XSS attacks
-    element.innerHTML = DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: [
-        'div', 'span', 'p', 'br', 'strong', 'em', 'b', 'i', 'u',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
-        'ul', 'ol', 'li',
-        'a', 'img',
-        'hr', 'blockquote', 'pre', 'code',
-        'svg', 'path', 'rect', 'circle', 'line', 'text', 'g'
-      ],
-      ALLOWED_ATTR: [
-        'class', 'style', 'id', 'href', 'src', 'alt', 'title', 'target',
-        'colspan', 'rowspan', 'width', 'height', 'viewBox', 'd', 'fill',
-        'stroke', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r'
-      ],
-      ALLOW_DATA_ATTR: false,
-      ALLOW_UNKNOWN_PROTOCOLS: false,
-    });
+    // Sanitize HTML before innerHTML to prevent XSS attacks
+    element.innerHTML = sanitizePdfHtml(html);
     element.style.position = 'absolute';
     element.style.left = '-9999px';
     element.style.width = '210mm'; // A4 width

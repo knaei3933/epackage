@@ -574,6 +574,48 @@ export function getAllStatuses(): OrderStatus[] {
 }
 
 /**
+ * Map an OrderStatus to the coarse `current_stage` value persisted on the orders table.
+ * Mirrors the lifecycle stages used by convert / start-production / send-to-korea /
+ * shipping-info routes so every status mutation keeps the stage in sync.
+ * @param status Current order status
+ * @returns current_stage string suitable for the orders table
+ */
+export function mapStatusToCurrentStage(status: OrderStatus): string {
+  switch (status) {
+    case 'QUOTATION_PENDING':
+      return 'QUOTATION_PENDING';
+    case 'QUOTATION_APPROVED':
+      return 'QUOTATION_APPROVED';
+    case 'DATA_UPLOAD_PENDING':
+      return 'AWAITING_DATA';
+    case 'DATA_UPLOADED':
+      return 'DATA_RECEIVED';
+    case 'MODIFICATION_REQUESTED':
+      return 'MODIFICATION_REQUESTED';
+    case 'MODIFICATION_APPROVED':
+      return 'MODIFICATION_APPROVED';
+    case 'MODIFICATION_REJECTED':
+      return 'MODIFICATION_REJECTED';
+    case 'CORRECTION_IN_PROGRESS':
+      return 'DATA_TO_KR';
+    case 'CORRECTION_COMPLETED':
+      return 'CORRECTION_COMPLETED';
+    case 'CUSTOMER_APPROVAL_PENDING':
+      return 'AWAITING_CUSTOMER_APPROVAL';
+    case 'PRODUCTION':
+      return 'PRODUCTION';
+    case 'READY_TO_SHIP':
+      return 'READY_TO_SHIP';
+    case 'SHIPPED':
+      return 'SHIPPED';
+    case 'CANCELLED':
+      return 'CANCELLED';
+    default:
+      return status;
+  }
+}
+
+/**
  * Get all production sub-statuses
  * @returns Array of all ProductionSubStatus values
  */
@@ -596,6 +638,7 @@ const OrderStatusSystem = {
 
   // Mapping
   OrderStatusMapping,
+  mapStatusToCurrentStage,
 
   // Validation
   VALID_STATUS_TRANSITIONS,

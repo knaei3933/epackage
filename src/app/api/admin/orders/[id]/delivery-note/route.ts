@@ -61,7 +61,7 @@ export async function POST(
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.role !== 'admin') {
+    if (!profile || profile.role !== 'ADMIN') {
       return NextResponse.json(
         { error: '管理者権限が必要です。', errorEn: 'Admin access required' },
         { status: 403 }

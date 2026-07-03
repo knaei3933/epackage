@@ -21,6 +21,7 @@ import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 interface ConvertToOrderRequest {
   quotationId: string;
   notes?: string;
+  selectedItemIds?: string[];
   deliveryAddress?: {
     postalCode: string;
     prefecture: string;
@@ -76,7 +77,7 @@ export async function POST(
 
     // Parse request body
     const body: ConvertToOrderRequest = await request.json();
-    const { notes, deliveryAddress } = body;
+    const { notes, deliveryAddress, selectedItemIds } = body;
 
     // Use normal SSR client with cookie auth
     const { client: supabase } = await createSupabaseSSRClient(request);
@@ -263,10 +264,17 @@ export async function POST(
     }
 
     // Get quotation items to copy to order
-    const { data: quotationItems, error: itemsError } = await supabaseAdmin
+    let quotationItemsQuery = supabaseAdmin
       .from('quotation_items')
       .select('*')
       .eq('quotation_id', quotationId);
+
+    // Filter by selected item IDs if provided (partial pattern order)
+    if (selectedItemIds && Array.isArray(selectedItemIds) && selectedItemIds.length > 0) {
+      quotationItemsQuery = quotationItemsQuery.in('id', selectedItemIds);
+    }
+
+    const { data: quotationItems, error: itemsError } = await quotationItemsQuery;
 
     if (itemsError) {
       console.error('[Convert to Order] Failed to fetch quotation items:', itemsError);
@@ -286,7 +294,32 @@ export async function POST(
         order_number: orderNumber,
         status: 'DATA_UPLOAD_PENDING',  // 새 워크플로우: 데이터 입고 대기
         current_stage: 'AWAITING_DATA',  // 데이터 입고 대기
-        total_amount: quotation.total_amount,
+        // 財務スナップショット: 선택된 패턴만 주문하는 경우 항목에서 재계산,
+        // 전체 주문인 경우 견적 헤더 값을 그대로 사용.
+        ...(selectedItemIds && selectedItemIds.length > 0
+          ? (() => {
+              const itemSubtotal = Math.ceil(
+                (quotationItems || []).reduce((sum: number, item: any) => sum + (item.total_price || item.quantity * item.unit_price || 0), 0) / 100
+              ) * 100;
+              const itemTax = Math.ceil(itemSubtotal * 0.1);
+              const itemTotal = Math.ceil((itemSubtotal + itemTax) / 100) * 100;
+              return {
+                total_amount: itemTotal as number,
+                subtotal: itemSubtotal as number,
+                tax_amount: itemTax as number,
+                coupon_id: null as string | null,
+                discount_amount: 0 as number,
+                discount_type: null as string | null,
+              };
+            })()
+          : {
+              total_amount: quotation.total_amount as number,
+              subtotal: quotation.subtotal_amount as number,
+              tax_amount: quotation.tax_amount as number,
+              coupon_id: (quotation.coupon_id ?? null) as string | null,
+              discount_amount: (quotation.discount_amount ?? 0) as number,
+              discount_type: (quotation.discount_type ?? null) as string | null,
+            }),
         customer_name: quotation.customer_name,
         customer_email: quotation.customer_email,
         customer_phone: quotation.customer_phone,
@@ -312,9 +345,9 @@ export async function POST(
       .from('order_status_history')
       .insert({
         order_id: order.id,
-        from_status: null,
+        from_status: '',
         to_status: 'DATA_UPLOAD_PENDING',
-        changed_by: user.email || 'SYSTEM',
+        changed_by: userId,
         changed_at: new Date().toISOString(),
         reason: '見積もりから注文作成（初期ステータス）',
       }))

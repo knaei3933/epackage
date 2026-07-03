@@ -169,7 +169,7 @@ async function getAuthenticatedAdmin(request: NextRequest) {
     .single();
 
   interface ProfileWithRole { role: string }
-  if (!profile || (profile as ProfileWithRole).role !== 'admin') {
+  if (!profile || (profile as ProfileWithRole).role !== 'ADMIN') {
     return null;
   }
 

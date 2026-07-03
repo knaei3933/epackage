@@ -27,7 +27,9 @@ export type QuotationStatus =
   | 'APPROVED'
   | 'REJECTED'
   | 'EXPIRED'
-  | 'CONVERTED';
+  | 'CONVERTED'
+  | 'QUOTATION_PENDING'
+  | 'QUOTATION_APPROVED';
 
 /**
  * 見積ステータスラベル
@@ -39,6 +41,8 @@ export const QUOTATION_STATUS_LABELS: Record<QuotationStatus, string> = {
   REJECTED: '却下',
   EXPIRED: '期限切れ',
   CONVERTED: '注文変換済み',
+  QUOTATION_PENDING: '見積承認待ち',
+  QUOTATION_APPROVED: '見積承認済み',
 };
 
 /**
@@ -51,6 +55,8 @@ export const QUOTATION_STATUS_VARIANTS: Record<QuotationStatus, 'secondary' | 'i
   REJECTED: 'error',
   EXPIRED: 'warning',
   CONVERTED: 'default',
+  QUOTATION_PENDING: 'warning',
+  QUOTATION_APPROVED: 'success',
 };
 
 // =====================================================

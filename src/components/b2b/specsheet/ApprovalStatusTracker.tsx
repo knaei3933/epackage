@@ -134,9 +134,9 @@ function formatDate(dateString?: string): string {
 export default function ApprovalStatusTracker({
   specNumber,
   revision,
-  autoRefresh = false,
-  refreshInterval = 10000,
-  onApprove,
+ autoRefresh = false,
+  refreshInterval = 30000,
+ onApprove,
   onReject,
   onCancel,
   className = '',

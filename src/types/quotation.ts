@@ -104,7 +104,7 @@ export interface QuotationItem {
   };
 }
 
-export type QuotationStatus = 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED';
+export type QuotationStatus = 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED' | 'QUOTATION_PENDING' | 'QUOTATION_APPROVED';
 
 export interface Quotation {
   id: string;

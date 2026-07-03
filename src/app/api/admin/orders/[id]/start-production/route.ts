@@ -3,8 +3,8 @@
  *
  * 管理者製造開始API
  * - 製造開始条件をチェック
- * - payment_confirmed_at, spec_approved_at, contract_signed_at
- * - 条件不満足時はエラーを返す
+ * - payment_confirmations テーブルで入金確認を判定
+ * - design_revisions (approved) で仕様承認を判定
  *
  * @route /api/admin/orders/[id]/start-production
  */
@@ -12,8 +12,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { canStartProduction, getProductionStartErrorMessage } from '@/lib/production-actions';
+import { createServiceClient } from '@/lib/supabase';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 // =====================================================
 // Types
@@ -27,93 +27,90 @@ interface StartProductionResponse {
   missingRequirements?: string[];
 }
 
+interface OrderForProductionCheck {
+  id: string;
+  order_number?: string;
+  hasPaymentConfirmation?: boolean;
+  hasSpecApproval?: boolean;
+  skip_contract?: boolean;
+  current_stage?: string | null;
+}
+
+// =====================================================
+// Helpers
+// =====================================================
+
+async function checkProductionReadiness(
+  serviceClient: ReturnType<typeof createServiceClient>,
+  orderId: string
+): Promise<{ canStart: boolean; missingRequirements: string[] }> {
+  const missingRequirements: string[] = [];
+
+  // Check payment confirmation
+  const { data: payment } = await serviceClient
+    .from('payment_confirmations')
+    .select('id')
+    .eq('quotation_id', (
+      await serviceClient
+        .from('orders')
+        .select('quotation_id')
+        .eq('id', orderId)
+        .single()
+    ).data?.quotation_id)
+    .maybeSingle();
+
+  if (!payment) {
+    missingRequirements.push('payment_confirmation');
+  }
+
+  // Check spec approval (design_revisions with approval_status = 'approved')
+  const { data: revision } = await serviceClient
+    .from('design_revisions')
+    .select('id')
+    .eq('order_id', orderId)
+    .eq('approval_status', 'approved')
+    .maybeSingle();
+
+  if (!revision) {
+    missingRequirements.push('spec_approval');
+  }
+
+  return {
+    canStart: missingRequirements.length === 0,
+    missingRequirements,
+  };
+}
+
+function getProductionStartErrorMessage(missingRequirements: string[]): string {
+  if (missingRequirements.length === 0) return '';
+  const labels: Record<string, string> = {
+    payment_confirmation: '入金確認',
+    spec_approval: '仕様承認',
+  };
+  return `以下の条件を満たす必要があります: ${missingRequirements.map(r => labels[r] || r).join('、')}`;
+}
+
 // =====================================================
 // POST Handler - Start Production
 // =====================================================
 
-/**
- * POST /api/admin/orders/[id]/start-production
- * Start production for an order
- *
- * Success Response (200):
- * {
- *   "success": true,
- *   "message": "Production started successfully"
- * }
- */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json(
-        { error: 'Supabase environment variables not configured' },
-        { status: 500 }
-      );
+    const auth = await verifyAdminAuth(request);
+    if (!auth) {
+      return unauthorizedResponse();
     }
 
-    // 1. Authenticate and verify admin role
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-      },
-    });
+    const params = await context.params;
+    const { id: orderId } = params;
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const serviceClient = createServiceClient();
 
-    if (userError || !user?.id) {
-      return NextResponse.json(
-        { error: '認証されていません。', errorEn: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Check admin role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || profile.role !== 'admin') {
-      return NextResponse.json(
-        { error: '管理者権限が必要です。', errorEn: 'Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    const { id: orderId } = await params;
-
-    // 2. Get order with payment and approval status
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select(`
-        id,
-        order_number,
-        payment_confirmed_at,
-        spec_approved_at,
-        contract_signed_at,
-        current_stage
-      `)
-      .eq('id', orderId)
-      .single();
-
-    if (orderError || !order) {
-      return NextResponse.json(
-        { error: '注文が見つかりません。', errorEn: 'Order not found' },
-        { status: 404 }
-      );
-    }
-
-    // 3. Check if production can be started
-    const validation = canStartProduction(order);
+    // Check production readiness
+    const validation = await checkProductionReadiness(serviceClient, orderId);
 
     if (!validation.canStart) {
       return NextResponse.json(
@@ -126,14 +123,13 @@ export async function POST(
       );
     }
 
-    // 4. Create production order
-    const { data: productionOrder, error: prodError } = await supabase
+    // Create production order
+    const { data: productionOrder, error: prodError } = await serviceClient
       .from('production_orders')
       .insert({
         order_id: orderId,
         current_stage: 'data_received',
         priority: 'normal',
-        estimated_completion_date: null,
       })
       .select()
       .single();
@@ -146,26 +142,26 @@ export async function POST(
       );
     }
 
-    // 5. Update order stage
-    await supabase
+    // Update order: status PRODUCTION + current_stage
+    await serviceClient
       .from('orders')
       .update({
+        status: 'PRODUCTION',
         current_stage: 'PRODUCTION',
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId);
 
-    // 6. Log to order history
-    await supabase
-      .from('order_history')
+    // Log to status history
+    await serviceClient
+      .from('order_status_history')
       .insert({
         order_id: orderId,
-        action: 'production_started',
-        description: '製造を開始しました',
-        performed_by: user.id,
-        metadata: {
-          productionOrderId: productionOrder.id,
-        }
+        from_status: 'CUSTOMER_APPROVAL_PENDING',
+        to_status: 'PRODUCTION',
+        changed_by: auth.userId,
+        changed_at: new Date().toISOString(),
+        reason: '製造開始（管理者操作）',
       });
 
     const response: StartProductionResponse = {
@@ -177,7 +173,6 @@ export async function POST(
 
   } catch (error) {
     console.error('[Start Production] Error:', error);
-
     return NextResponse.json(
       {
         error: '予期しないエラーが発生しました。',
@@ -188,17 +183,12 @@ export async function POST(
   }
 }
 
-// =====================================================
-// OPTIONS Handler for CORS
-// =====================================================
-
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
     },
   });
 }

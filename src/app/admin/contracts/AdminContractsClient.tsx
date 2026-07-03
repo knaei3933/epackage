@@ -37,7 +37,7 @@ export default function AdminContractsClient() {
   const { data: contracts, mutate } = useSWR(
     `/api/admin/contracts/workflow?page=${page}&page_size=${pageSize}`,
     fetcher,
-    { refreshInterval: 10000 } // 10秒ごとに更新
+    { refreshInterval: 60000 } // 60秒ごとに更新（リアルタイム性よりも負荷低減を優先）
   );
 
   // リアルタイム更新の購読

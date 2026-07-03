@@ -38,7 +38,12 @@ import {
 } from '@/components/ui/dialog';
 import { formatDate } from '@/types/portal';
 import type { UserStatus, UserRole } from '@/types/auth';
-import { EmailComposer, type Recipient } from '@/components/admin/EmailComposer';
+import nextDynamic from 'next/dynamic';
+import type { Recipient } from '@/components/admin/EmailComposer';
+// Defer the EmailComposer bundle until it is actually opened.
+const EmailComposer = nextDynamic(() =>
+  import('@/components/admin/EmailComposer').then((m) => m.EmailComposer)
+);
 
 // =====================================================
 // Types

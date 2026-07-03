@@ -32,8 +32,21 @@ export function canTransition(
   from: OrderState,
   to: OrderState
 ): boolean {
-  // Check if transition is explicitly allowed
+  // Guard: undefined source state (unmapped OrderStatus)
   const allowedStates = STATE_TRANSITIONS[from];
+  if (!allowedStates) {
+    return false;
+  }
+
+  // Same-state transitions are always valid for non-terminal states.
+  // Multiple OrderStatus values may share one coarse OrderState
+  // (e.g., QUOTATION_PENDING and QUOTATION_APPROVED both map to 'quotation').
+  // A status change within the same coarse state is a legitimate fine-grained transition.
+  if (from === to) {
+    return !TERMINAL_STATES.includes(from);
+  }
+
+  // Check if transition is explicitly allowed
   if (!allowedStates.includes(to)) {
     return false;
   }
@@ -416,40 +429,48 @@ export class DefaultStateMachineExecutor implements StateMachineExecutor {
  * Map OrderStatus to OrderState
  */
 export function mapOrderStatusToState(status: OrderStatus): OrderState {
-  const mapping: Record<string, OrderState> = {
-    PENDING: 'pending',
-    QUOTATION: 'quotation',
-    DATA_RECEIVED: 'data_received',
-    WORK_ORDER: 'work_order',
-    CONTRACT_SENT: 'contract_sent',
-    CONTRACT_SIGNED: 'contract_signed',
+  const mapping: Record<OrderStatus, OrderState> = {
+    QUOTATION_PENDING: 'quotation',
+    QUOTATION_APPROVED: 'quotation',
+    DATA_UPLOAD_PENDING: 'data_received',
+    DATA_UPLOADED: 'data_received',
+    MODIFICATION_REQUESTED: 'data_received',
+    MODIFICATION_APPROVED: 'data_received',
+    MODIFICATION_REJECTED: 'data_received',
+    CORRECTION_IN_PROGRESS: 'work_order',
+    CORRECTION_COMPLETED: 'work_order',
+    CUSTOMER_APPROVAL_PENDING: 'work_order',
     PRODUCTION: 'production',
-    STOCK_IN: 'stock_in',
+    READY_TO_SHIP: 'stock_in',
     SHIPPED: 'shipped',
-    DELIVERED: 'delivered',
     CANCELLED: 'cancelled',
   };
-  return mapping[status];
+  const result = mapping[status];
+  if (!result) {
+    console.warn(`[mapOrderStatusToState] Unmapped OrderStatus: ${status}. Defaulting to 'quotation'.`);
+    return 'quotation';
+  }
+  return result;
 }
 
 /**
  * Map OrderState to OrderStatus
  */
 export function mapStateToOrderStatus(state: OrderState): OrderStatus {
-  const mapping: Record<OrderState, string> = {
-    pending: 'PENDING',
-    quotation: 'QUOTATION',
-    data_received: 'DATA_RECEIVED',
-    work_order: 'WORK_ORDER',
-    contract_sent: 'CONTRACT_SENT',
-    contract_signed: 'CONTRACT_SIGNED',
+  const mapping: Record<OrderState, OrderStatus> = {
+    pending: 'QUOTATION_PENDING',
+    quotation: 'QUOTATION_PENDING',
+    data_received: 'DATA_UPLOAD_PENDING',
+    work_order: 'CORRECTION_IN_PROGRESS',
+    contract_sent: 'CORRECTION_IN_PROGRESS',
+    contract_signed: 'CUSTOMER_APPROVAL_PENDING',
     production: 'PRODUCTION',
-    stock_in: 'STOCK_IN',
+    stock_in: 'READY_TO_SHIP',
     shipped: 'SHIPPED',
-    delivered: 'DELIVERED',
+    delivered: 'SHIPPED',
     cancelled: 'CANCELLED',
   };
-  return mapping[state] as OrderStatus;
+  return mapping[state];
 }
 
 /**

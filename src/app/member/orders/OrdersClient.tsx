@@ -137,8 +137,13 @@ interface OrdersClientProps {
 
 // 10단계 워크플로우 기반 상태 분류
 const ACTIVE_STATUSES: (OrderStatus | string)[] = [
+  'QUOTATION_PENDING',        // 견적 승인 대기
+  'QUOTATION_APPROVED',       // 견적 승인
   'DATA_UPLOAD_PENDING',      // 데이터 입고 대기
   'DATA_UPLOADED',            // 데이터 입고 완료
+  'MODIFICATION_REQUESTED',   // 관리자 수정 요청 (고객 승인 대기)
+  'MODIFICATION_APPROVED',    // 수정 승인
+  'MODIFICATION_REJECTED',    // 수정 거부
   'CORRECTION_IN_PROGRESS',   // 교정 작업중
   'CORRECTION_COMPLETED',     // 교정 완료
   'CUSTOMER_APPROVAL_PENDING', // 고객 승인 대기
@@ -148,13 +153,11 @@ const ACTIVE_STATUSES: (OrderStatus | string)[] = [
 
 const HISTORY_STATUSES: (OrderStatus | string)[] = [
   'SHIPPED',                   // 출하 완료
-  'DELIVERED',                 // 배송 완료
   'CANCELLED',                 // 취소됨
 ];
 
 const REORDER_STATUSES: (OrderStatus | string)[] = [
-  'DELIVERED',                 // 배송 완료만 재주문 가능
-  'SHIPPED',                   // 출하 완료도 재주문 가능
+  'SHIPPED',                   // 출하 완료 재주문 가능
 ];
 
 const DATE_RANGE_FILTERS = [
@@ -406,9 +409,24 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
     setFilteredOrders(filtered);
   }, [orders, filters, activeTab]);
 
-  // Show loading state
+  // Show loading state (skeleton + spinner for better perceived performance)
   if (isLoading) {
-    return <PageLoadingState isLoading={true} message="注文一覧を読み込み中..." />;
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="p-6 animate-pulse">
+            <div className="h-5 w-1/3 bg-gray-200 rounded mb-4" />
+            <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
+            <div className="h-4 w-2/3 bg-gray-200 rounded mb-4" />
+            <div className="h-10 w-full bg-gray-100 rounded" />
+          </Card>
+        ))}
+        <div className="flex items-center justify-center gap-2 text-sm text-text-muted py-2">
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span>注文一覧を読み込み中...</span>
+        </div>
+      </div>
+    );
   }
 
   const pageTitle = activeTab === 'active' ? '処理中の注文' : activeTab === 'history' ? '注文履歴' : '再注文';

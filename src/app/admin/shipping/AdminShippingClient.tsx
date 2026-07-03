@@ -62,7 +62,7 @@ export default function AdminShippingClient() {
   const { data: shipments, error, mutate } = useSWR(
     '/api/admin/shipping/shipments',
     fetcher,
-    { refreshInterval: 30000 } // 30秒ごとに更新
+    { refreshInterval: 60000 } // 60秒ごとに更新（負荷低減）
   );
 
   // リアルタイム更新の購読

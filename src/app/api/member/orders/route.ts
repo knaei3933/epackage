@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import type { Database } from '@/types/database';
+import { getStatusProgress, isOrderStatus } from '@/types/order-status';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 
 // Initialize performance monitor
@@ -133,35 +134,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform and calculate progress percentage for each order
-    const statusOrder = [
-      'PENDING',
-      'QUOTATION_PENDING',
-      'QUOTATION',
-      'QUOTATION_APPROVED',
-      'DATA_UPLOAD_PENDING',
-      'DATA_RECEIVED',
-      'CORRECTION_IN_PROGRESS',
-      'CUSTOMER_APPROVAL_PENDING',
-      'SPEC_APPROVED',
-      'WORK_ORDER',
-      'CONTRACT_SENT',
-      'CONTRACT_SIGNED',
-      'PRODUCTION',
-      'STOCK_IN',
-      'SHIPPED',
-      'DELIVERED'
-    ];
+    // 旧レガシーステータス（DB 残存可能性）のための推定進捗フォールバック
+    const legacyProgressMap: Record<string, number> = {
+      PENDING: 0,
+      QUOTATION: 10,
+      DATA_RECEIVED: 30,
+      WORK_ORDER: 50,
+      CONTRACT_SENT: 55,
+      CONTRACT_SIGNED: 60,
+      STOCK_IN: 90,
+      DELIVERED: 100,
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ordersWithProgress = (ordersWithRelations || []).map((order: any) => {
-      // Calculate progress percentage - statusを優先、current_stateがなければstatusを使用
-      // 注: orders テーブル実列は current_stage（current_state は非存在）。実行時ロジック維持のため
-      // プロパティ名は不変。any キャストで型チェックを回避（フォールバック優先順位不変）。
-      const statusForProgress = order.current_state || order.status || 'PENDING';
-      const currentIndex = statusOrder.indexOf(statusForProgress);
-      const progressPercentage = currentIndex >= 0
-        ? Math.round(((currentIndex + 1) / statusOrder.length) * 100)
-        : 0;
+      // 進捗率は正規14ステータス体系（getStatusProgress）で算出。
+      // current_stage（旧フロント用 current_state エイリアス）はステージ表示用であり進捗計算には使わない。
+      // status が正規14ステータスでない旧値の場合のみ legacyProgressMap でフォールバック。
+      const status = order.status;
+      const progressPercentage = isOrderStatus(status)
+        ? getStatusProgress(status)
+        : (legacyProgressMap[status] ?? (status === 'SHIPPED' ? 100 : 0));
 
       // Extract order_items array from Supabase relation format
       // Supabase returns relations as { data: [...], ... } or directly as array

@@ -26,9 +26,13 @@ import {
   PercentIcon,
   Plus,
   Mail,
-  Trash2
+  Trash2,
+  Cloud,
+  Users,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +60,7 @@ interface CustomerMarkupData {
   createdAt: string;
 }
 
-type TabKey = 'film_material' | 'pouch_processing' | 'printing' | 'lamination' | 'slitter' | 'exchange_rate' | 'delivery' | 'production' | 'pricing' | 'designer' | 'email';
+type TabKey = 'film_material' | 'pouch_processing' | 'printing' | 'lamination' | 'slitter' | 'exchange_rate' | 'delivery' | 'production' | 'pricing' | 'designer' | 'email' | 'integrations';
 
 interface SettingGroup {
   title: string;
@@ -164,6 +168,15 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
       { title: '회사 정보', description: '이메일 서명용 회사 정보', icon: Package, keywords: ['회사', 'COMPANY', '주소'] },
       { title: '은행 계좌', description: '청구서용 은행 계좌 정보', icon: Coins, keywords: ['은행', 'BANK', '계좌'] },
       { title: '알림 수신자', description: '관리자/영업/생산팀 알림 이메일', icon: Mail, keywords: ['RECIPIENT', '수신자', '팀'] },
+    ]
+  },
+  integrations: {
+    name: '외부 연동',
+    nameJa: '外部連携',
+    icon: Cloud,
+    groups: [
+      { title: 'Google Drive', description: '파일 업로드 연동 설정', icon: Cloud, keywords: ['GOOGLE', 'DRIVE', '연동', '토큰'] },
+      { title: '고객 단가율', description: '고객별 마크업 설정', icon: Users, keywords: ['고객', '단가', '마크업'] },
     ]
   },
 };
@@ -305,7 +318,8 @@ export default function AdminSettingsClient() {
           production: {},
           pricing: {},
           designer: {},
-          email: {}
+          email: {},
+          integrations: {}
         };
         Object.entries(result.data).forEach(([category, data]: [string, any]) => {
           settingsWithOriginals[category as TabKey] = {};
@@ -792,6 +806,20 @@ export default function AdminSettingsClient() {
   const currentTabConfig = tabConfig[activeTab];
   const settingCount = Object.keys(filteredSettings).length;
   const modifiedCount = Array.from(modifiedSettings).filter(key => key.startsWith(`${activeTab}.`)).length;
+
+  // Google Drive connection status
+  const [googleDriveStatus, setGoogleDriveStatus] = useState<{ connected: boolean; loading: boolean }>({ connected: false, loading: false });
+
+  useEffect(() => {
+    if (activeTab !== 'integrations') return;
+    setGoogleDriveStatus(prev => ({ ...prev, loading: true }));
+    fetch('/api/admin/google-drive/status')
+      .then(res => res.json())
+      .then(data => {
+        setGoogleDriveStatus({ connected: data?.data?.tokenStatus?.hasTokenInDb ?? false, loading: false });
+      })
+      .catch(() => setGoogleDriveStatus({ connected: false, loading: false }));
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -1968,6 +1996,94 @@ export default function AdminSettingsClient() {
                         </button>
                       </div>
                     )}
+                  </motion.div>
+                )}
+
+                {/* Integrations / External Services */}
+                {activeTab === 'integrations' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-6"
+                  >
+                    {/* Google Drive */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Cloud className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Google Drive 연동</h3>
+                            <p className="text-sm text-gray-500">고객 입고 데이터 및 교정 파일 업로드 연동</p>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          'px-3 py-1 rounded-full text-xs font-medium border',
+                          googleDriveStatus.loading
+                            ? 'bg-gray-100 text-gray-600 border-gray-200'
+                            : googleDriveStatus.connected
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : 'bg-red-50 text-red-700 border-red-200'
+                        )}>
+                          {googleDriveStatus.loading
+                            ? '확인 중...'
+                            : googleDriveStatus.connected
+                              ? '연결됨'
+                              : '미연결'}
+                        </span>
+                      </div>
+                      <div className="p-6 space-y-4">
+                        <div className="flex items-start gap-3 text-sm text-gray-600">
+                          <AlertCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <p>
+                            파일 업로드 시 관리자 Google Drive 계정에 저장됩니다.
+                            연결이 끊어진 경우 재인증이 필요합니다.
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Link
+                            href="/admin/settings/google-drive"
+                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <Cloud className="w-4 h-4" />
+                            Google Drive 설정 열기
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Customer Markup Rate */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <Users className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">고객 단가율 설정</h3>
+                            <p className="text-sm text-gray-500">고객별 마크업 단가율 관리</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-6 space-y-4">
+                        <div className="flex items-start gap-3 text-sm text-gray-600">
+                          <AlertCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <p>고객별 단가율(마크업) 설정은 전용 페이지에서 관리합니다.</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Link
+                            href="/admin/settings/customers"
+                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            <Users className="w-4 h-4" />
+                            고객 단가율 설정 열기
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 

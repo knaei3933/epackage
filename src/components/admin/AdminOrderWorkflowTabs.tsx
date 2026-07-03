@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { OrderCommentsSectionWrapper } from '@/components/orders';
 import { DataAndCorrectionManagementTab } from './DataAndCorrectionManagementTab';
+import { AdminCustomerApprovalTab } from './AdminCustomerApprovalTab';
 import { adminFetch } from '@/lib/auth-client';
 import type { Order as DashboardOrder } from '@/types/dashboard';
 
@@ -98,55 +99,7 @@ export function AdminOrderWorkflowTabs({
 
         {/* タブコンテンツ: 顧客承認 */}
         <TabsContent value="approval" className="space-y-4 mt-4">
-          <Card className="p-6">
-            <div className="space-y-6">
-              {/* 説明セクション */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  顧客承認状況
-                </h3>
-                <p className="text-sm text-gray-600">
-                  校正データの承認状況を確認し、顧客に承認リクエストを送信できます。
-                </p>
-              </div>
-
-              {/* 承認状況表示 - TODO: design_revisionsテーブルから取得 */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-sm text-gray-600">
-                  校正データの承認状況を表示します。
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  ※ 機能は実装中です。design_revisionsテーブルと連携して表示する予定です。
-                </p>
-              </div>
-
-              {/* 顧客ページへのリンク */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  顧客が承認を行うページ:
-                  <a
-                    href={`/member/orders/${orderId}/spec-approval`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 underline font-medium"
-                  >
-                    /member/orders/{orderId}/spec-approval
-                  </a>
-                </p>
-              </div>
-
-              {/* 顧客に通知を送信するボタン - TODO: API実装 */}
-              <div className="flex gap-3">
-                <button
-                  onClick={() => alert('通知送信機能は実装中です')}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
-                >
-                  顧客に承認依頼メールを送信
-                </button>
-              </div>
-            </div>
-          </Card>
-
+          <AdminCustomerApprovalTab orderId={orderId} order={order} />
           {/* コメントセクションも表示 */}
           <Card className="p-6">
             <OrderCommentsSectionWrapper orderId={orderId} fetchFn={adminFetch} isAdmin={true} />

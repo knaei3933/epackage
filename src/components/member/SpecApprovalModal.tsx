@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui';
 import { CheckCircle, X } from 'lucide-react';
 import type { Quotation, QuotationItem } from '@/types/dashboard';
@@ -21,7 +21,7 @@ interface SpecApprovalModalProps {
   onClose: () => void;
   quotationId: string;
   quotation: Quotation;
-  onApprove: () => Promise<void>;
+  onApprove: (selectedItemIds?: string[]) => Promise<void>;
 }
 
 // =====================================================
@@ -318,29 +318,63 @@ export default function SpecApprovalModal({
   onApprove,
 }: SpecApprovalModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const hasMultipleItems = (quotation.items?.length || 0) > 1;
+
+  // 全選択（デフォルト）からスタート
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    new Set(quotation.items?.map((i: any) => i.id) || [])
+  );
+
+  // 選択されたアイテムから金額を再計算（フックは早期リターン前に配置）
+  const selectedItems = useMemo(
+    () => (quotation.items || []).filter((i: any) => selectedIds.has(i.id)),
+    [quotation.items, selectedIds]
+  );
 
   if (!isOpen) return null;
 
-  // 最初のアイテムの仕様を取得
+  const toggleItem = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelectedIds(new Set(quotation.items?.map((i: any) => i.id) || []));
+  const selectNone = () => setSelectedIds(new Set());
+
+  const calcItemTotal = (item: any) =>
+    item.totalPrice || item.total_price || (item.unitPrice || item.unit_price || 0) * (item.quantity || 0);
+
+  // 100円切り上げで再計算（quotation API と同じロジック）
+  const rawSubtotal = selectedItems.reduce((sum: number, item: any) => sum + calcItemTotal(item), 0);
+  const subtotal = Math.ceil(rawSubtotal / 100) * 100;
+  const tax = Math.ceil(subtotal * 0.1);
+  const total = Math.ceil((subtotal + tax) / 100) * 100;
+
+  // 最初のアイテムの仕様を取得（表示用）
   const firstItem = quotation.items?.[0];
   const specs = firstItem?.specifications ? parseSpecifications(firstItem.specifications) : null;
 
-  // 商品名と単価の取得（スネークケース・キャメルケース両対応）
+  // 商品名の取得
   const productName = firstItem?.productName || (firstItem as any)?.product_name ||
                       (firstItem as any)?.name || '商品名なし';
   const quantity = firstItem?.quantity || 0;
   const unitPrice = firstItem?.unitPrice || (firstItem as any)?.unit_price || 0;
 
-  // 金額計算
-  const subtotal = unitPrice * quantity;
-  const taxRate = 0.10; // 10%
-  const tax = Math.round(subtotal * taxRate);
-  const total = subtotal + tax;
-
   const handleApprove = async () => {
+    if (selectedIds.size === 0) {
+      alert('少なくとも1つのパターンを選択してください。');
+      return;
+    }
     setIsProcessing(true);
     try {
-      await onApprove();
+      const itemIds = hasMultipleItems && selectedIds.size < (quotation.items?.length || 0)
+        ? Array.from(selectedIds)
+        : undefined;
+      await onApprove(itemIds);
       onClose();
     } catch (error) {
       console.error('Spec approval error:', error);
@@ -379,44 +413,90 @@ export default function SpecApprovalModal({
             </p>
           </div>
 
-          {/* 商品明細 */}
+          {/* パターン選択 */}
           <section>
-            <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
-              商品明細
-            </h3>
-            <div className="bg-bg-secondary p-4 rounded-lg space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-text-muted">{productName}</span>
-                <span className="text-text-muted">{quotation.items?.length || 1}点</span>
-              </div>
-              {specs?.material && (
-                <div className="text-sm text-text-muted">
-                  {specs.material}
-                  {specs.bagType && specs.bagType !== '-' && ` - ${specs.bagType}`}
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-text-primary">
+                注文するパターンを選択
+              </h3>
+              {hasMultipleItems && (
+                <div className="flex items-center gap-3 text-sm">
+                  <button onClick={selectAll} className="text-primary hover:underline">全選択</button>
+                  <span className="text-text-muted">|</span>
+                  <button onClick={selectNone} className="text-text-muted hover:underline">全解除</button>
                 </div>
               )}
             </div>
-          </section>
+            {hasMultipleItems && (
+              <p className="text-sm text-text-muted mb-3">
+                見積には {quotation.items?.length} つの数量パターンがあります。注文するパターンを選択してください。
+              </p>
+            )}
 
-          {/* 数量・金額 */}
-          <section>
-            <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
-              数量・金額
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-bg-secondary p-3 rounded-lg">
-                <p className="text-xs text-text-muted mb-1">数量</p>
-                <p className="font-medium text-text-primary text-lg">{quantity.toLocaleString()}枚</p>
-              </div>
-              <div className="bg-bg-secondary p-3 rounded-lg">
-                <p className="text-xs text-text-muted mb-1">単価</p>
-                <p className="font-medium text-text-primary text-lg">{unitPrice.toLocaleString()}円</p>
-              </div>
-              <div className="bg-bg-secondary p-3 rounded-lg">
-                <p className="text-xs text-text-muted mb-1">小計</p>
-                <p className="font-medium text-text-primary text-lg">{subtotal.toLocaleString()}円</p>
-              </div>
+            {/* パターン一覧テーブル */}
+            <div className="border border-border-secondary rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-bg-secondary/50">
+                  <tr className="text-text-muted">
+                    {hasMultipleItems && <th className="text-center font-medium py-2 px-3 w-10">選択</th>}
+                    <th className="text-left font-medium py-2 px-3">品目</th>
+                    <th className="text-right font-medium py-2 px-3 w-24">数量</th>
+                    <th className="text-right font-medium py-2 px-3 w-28">単価</th>
+                    <th className="text-right font-medium py-2 px-3 w-32">金額</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(quotation.items || []).map((item: any, idx: number) => {
+                    const isSelected = selectedIds.has(item.id);
+                    const itemQty = item.quantity || 0;
+                    const itemUnit = item.unitPrice || item.unit_price || 0;
+                    const itemTotal = calcItemTotal(item);
+                    return (
+                      <tr
+                        key={item.id}
+                        className={`border-t border-border-secondary/50 transition-colors ${isSelected ? 'bg-primary/5' : 'opacity-50'}`}
+                      >
+                        {hasMultipleItems && (
+                          <td className="text-center py-2.5 px-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleItem(item.id)}
+                              className="w-4 h-4 rounded border-border-secondary text-primary focus:ring-primary cursor-pointer"
+                            />
+                          </td>
+                        )}
+                        <td className="py-2.5 px-3 text-text-primary">
+                          {productName}{hasMultipleItems && ` (パターン${idx + 1})`}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-text-muted tabular-nums">{itemQty.toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-right text-text-muted tabular-nums">¥{itemUnit.toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-right text-text-primary font-semibold tabular-nums">¥{itemTotal.toLocaleString()}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
+
+            {/* 選択サマリー */}
+            {hasMultipleItems && (
+              <div className="mt-3 flex items-center justify-between text-sm">
+                <span className="text-text-muted">
+                  選択中: <span className="text-text-primary font-medium">{selectedIds.size}</span> / {quotation.items?.length} パターン
+                </span>
+                <span className="text-text-muted">
+                  選択金額合計: <span className="text-text-primary font-semibold">¥{subtotal.toLocaleString()}</span>
+                </span>
+              </div>
+            )}
+
+            {specs?.material && (
+              <div className="mt-3 text-sm text-text-muted bg-bg-secondary/30 p-3 rounded-lg">
+                共通仕様: {specs.material}
+                {specs.bagType && specs.bagType !== '-' && ` - ${specs.bagType}`}
+              </div>
+            )}
           </section>
 
           {/* サイズ・袋タイプ */}
@@ -538,12 +618,11 @@ export default function SpecApprovalModal({
             </div>
           </section>
 
-          {/* 複数アイテムの場合の注意 */}
-          {(quotation.items?.length || 0) > 1 && (
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
-              <p className="text-sm text-amber-800">
-                ※ この見積には {quotation.items?.length} 点のアイテムが含まれています。
-                上記は最初のアイテムの仕様です。すべてのアイテムが同じ注文に含まれます。
+          {/* 決済金額サマリー */}
+          {hasMultipleItems && (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <p className="text-sm text-blue-800">
+                選択した {selectedIds.size} パターンの合計金額で注文を作成します。
               </p>
             </div>
           )}
