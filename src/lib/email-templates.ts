@@ -309,7 +309,7 @@ export function getJapaneseEmailFooter(companyName = 'Epackage Lab'): string {
   return `
 ================================
 ${companyName}
-兵庫県明石市上ノ丸2-11-21
+兵庫県加古郡稲美町六分一486
 電話: 050-1793-6500
 Email: info@package-lab.com
 https://epackage-lab.com
@@ -658,7 +658,7 @@ ${footer}
     <div class="footer">
       <div class="footer-info">
         <strong>Epackage Lab</strong><br>
-        兵庫県明石市上ノ丸2-11-21<br>
+        兵庫県加古郡稲美町六分一486<br>
         電話: 050-1793-6500 | Email: info@package-lab.com<br>
         <a href="https://epackage-lab.com" style="color: #667eea; text-decoration: none;">https://epackage-lab.com</a>
       </div>
@@ -917,7 +917,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -1170,7 +1170,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -1470,7 +1470,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -1763,7 +1763,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -2058,7 +2058,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -3348,7 +3348,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -3557,7 +3557,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -3905,7 +3905,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4164,7 +4164,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4431,7 +4431,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -4615,7 +4615,7 @@ ${data.remarks ? `■ 備考\n${data.remarks}\n` : ''}────────�
 
 ────────────────────────────────
 Epackage Lab
-兵庫県明石市上ノ丸2-11-21
+兵庫県加古郡稲美町六分一486
 Email: info@package-lab.com
 ${formatDateJP(new Date().toISOString())}
 ────────────────────────────────
@@ -4802,7 +4802,7 @@ ${formatDateJP(new Date().toISOString())}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>Email: info@package-lab.com</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
@@ -4863,7 +4863,7 @@ ${isOverdue ? `■ 遅延日数：${data.daysOverdue}日\n` : ''}─────
 
 ────────────────────────────────
 Epackage Lab
-兵庫県明石市上ノ丸2-11-21
+兵庫県加古郡稲美町六分一486
 Email: info@package-lab.com
 ${formatDateJP(new Date().toISOString())}
 ────────────────────────────────
@@ -5016,7 +5016,7 @@ ${formatDateJP(new Date().toISOString())}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県明石市上ノ丸2-11-21</div>
+      <div>兵庫県加古郡稲美町六分一486</div>
       <div>Email: info@package-lab.com</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
@@ -6267,7 +6267,7 @@ ${footer}
     </div>
     <div class="footer" style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px;">
       <p style="margin: 5px 0;">Epackage Lab</p>
-      <p style="margin: 5px 0;">兵庫県明石市上ノ丸2-11-21</p>
+      <p style="margin: 5px 0;">兵庫県加古郡稲美町六分一486</p>
       <p style="margin: 5px 0;">電話: 050-1793-6500</p>
       <p style="margin: 5px 0;">Email: info@package-lab.com</p>
       <p style="margin: 5px 0;">https://epackage-lab.com</p>

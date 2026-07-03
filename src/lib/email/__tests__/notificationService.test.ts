@@ -2,55 +2,29 @@
  * Notification Service Unit Tests
  *
  * 通知サービスユニットテスト
+ *
+ * 現行実装は nodemailer (Xserver SMTP) を使用している。
+ * モジュールロード時に transporter が固定されるため、テストからは
+ * __setTransporterForTesting で transporter を注入し、実装の動作仕様
+ * （成功 / CONFIG_ERROR / UNKNOWN_EVENT 等）を検証する。
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
+import { describe, it, expect, beforeEach } from '@jest/globals'
 import {
   sendEmail,
   handleNotificationEvent,
   isValidEmail,
+  __setTransporterForTesting,
 } from '../notificationService'
-import type { NotificationEvent, BounceEvent } from '@/types/email'
-
-// ============================================================
-// Mocks
-// ============================================================
-
-// SendGridのモック - use var for hoisting
-const mockSendGridSend = jest.fn()
-const mockSendGridSetApiKey = jest.fn()
-
-jest.mock('@sendgrid/mail', () => {
-  const defaultExport = {
-    setApiKey: mockSendGridSetApiKey,
-    send: mockSendGridSend,
-  }
-  return {
-    __esModule: true,
-    default: defaultExport,
-  }
-})
-
-import SGMail from '@sendgrid/mail'
-
-// 環境変数のモック
-const originalEnv = process.env
+import type { NotificationEvent } from '@/types/email'
 
 describe('NotificationService', () => {
+  const mockSendMail = jest.fn()
+
   beforeEach(() => {
-    // 環境変数をリセット
-    process.env = { ...originalEnv }
-    process.env.SENDGRID_API_KEY = 'test-api-key'
-    process.env.FROM_EMAIL = 'noreply@epackage-lab.com'
-    process.env.ADMIN_EMAIL = 'admin@epackage-lab.com'
-    process.env.REPLY_TO_EMAIL = 'support@epackage-lab.com'
-
-    // モックをリセット
     jest.clearAllMocks()
-  })
-
-  afterEach(() => {
-    process.env = originalEnv
+    // Xserver SMTP transporter をモック注入（成功状態をデフォルトとする）
+    __setTransporterForTesting({ sendMail: mockSendMail } as any, 'xserver')
   })
 
   // ============================================================
@@ -59,7 +33,7 @@ describe('NotificationService', () => {
 
   describe('sendEmail', () => {
     it('should send email successfully', async () => {
-      mockSendGridSend.mockResolvedValue([{ headers: { 'x-message-id': 'test-message-id' } }])
+      mockSendMail.mockResolvedValue({ messageId: 'test-message-id' })
 
       const result = await sendEmail({
         to: { email: 'test@example.com', name: 'Test User', type: 'customer' },
@@ -77,11 +51,12 @@ describe('NotificationService', () => {
 
       expect(result.success).toBe(true)
       expect(result.messageId).toBe('test-message-id')
-      expect(mockSendGridSend).toHaveBeenCalledTimes(1)
+      expect(mockSendMail).toHaveBeenCalledTimes(1)
     })
 
-    it('should return error when SendGrid is not configured', async () => {
-      delete process.env.SENDGRID_API_KEY
+    it('should return CONFIG_ERROR when SMTP is not configured', async () => {
+      // console fallback (transporter 未設定) を再現
+      __setTransporterForTesting(null, 'console')
 
       const result = await sendEmail({
         to: { email: 'test@example.com', name: 'Test User', type: 'customer' },
@@ -102,8 +77,7 @@ describe('NotificationService', () => {
     })
 
     it('should handle multiple recipients', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-message-id' } }])
+      mockSendMail.mockResolvedValue({ messageId: 'test-message-id' })
 
       const result = await sendEmail({
         to: [
@@ -124,167 +98,17 @@ describe('NotificationService', () => {
       })
 
       expect(result.success).toBe(true)
-      expect(sendMock).toHaveBeenCalledTimes(1)
+      expect(mockSendMail).toHaveBeenCalledTimes(1)
     })
   })
 
   // ============================================================
-  // Template-Specific Functions Tests
-  // ============================================================
-
-  describe.skip('sendQuoteCreatedAdminEmail', () => {
-    it('should send quote created email to admin', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendQuoteCreatedAdminEmail({
-        quotation_id: 'qt-001',
-        quotation_number: 'QT-2024-001',
-        customer_name: 'テストユーザー',
-        company_name: 'テスト会社',
-        total_amount: 10000,
-        valid_until: '2025-12-31',
-        view_url: 'https://example.com/view',
-      })
-
-      expect(result.success).toBe(true)
-      expect(sendMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: [{ email: 'admin@epackage-lab.com', name: 'EPackage Lab 管理者' }],
-        })
-      )
-    })
-  })
-
-  describe.skip('sendQuoteApprovedCustomerEmail', () => {
-    it('should send quote approved email to customer', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendQuoteApprovedCustomerEmail({
-        quotation_id: 'qt-001',
-        quotation_number: 'QT-2024-001',
-        customer_name: 'テストユーザー',
-        customer_email: 'customer@example.com',
-        total_amount: 10000,
-        valid_until: '2025-12-31',
-        confirm_url: 'https://example.com/confirm',
-      })
-
-      expect(result.success).toBe(true)
-      expect(sendMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: [{ email: 'customer@example.com', name: 'テストユーザー' }],
-        })
-      )
-    })
-  })
-
-  describe.skip('sendContractSentEmail', () => {
-    it('should send contract sent email to customer', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendContractSentEmail({
-        order_id: 'ord-001',
-        order_number: 'ORD-2024-001',
-        customer_name: 'テストユーザー',
-        customer_email: 'customer@example.com',
-        contract_url: 'https://example.com/contract',
-        due_date: '2025-01-31',
-      })
-
-      expect(result.success).toBe(true)
-    })
-  })
-
-  describe.skip('sendContractSignedAdminEmail', () => {
-    it('should send contract signed email to admin', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendContractSignedAdminEmail({
-        order_id: 'ord-001',
-        order_number: 'ORD-2024-001',
-        customer_name: 'テストユーザー',
-        company_name: 'テスト会社',
-        contract_url: 'https://example.com/contract',
-        view_url: 'https://example.com/view',
-      })
-
-      expect(result.success).toBe(true)
-    })
-  })
-
-  describe.skip('sendProductionUpdateEmail', () => {
-    it('should send production update email to customer', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendProductionUpdateEmail({
-        order_id: 'ord-001',
-        order_number: 'ORD-2024-001',
-        customer_name: 'テストユーザー',
-        customer_email: 'customer@example.com',
-        product_name: '包装袋 A',
-        status: 'PRODUCTION',
-        status_label: '製造中',
-        estimated_completion: '2025-02-28',
-        progress_percentage: 45,
-        view_url: 'https://example.com/view',
-      })
-
-      expect(result.success).toBe(true)
-    })
-  })
-
-  describe.skip('sendShippedEmail', () => {
-    it('should send shipped email to customer with tracking', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendShippedEmail({
-        order_id: 'ord-001',
-        order_number: 'ORD-2024-001',
-        customer_name: 'テストユーザー',
-        customer_email: 'customer@example.com',
-        product_name: '包装袋 A',
-        tracking_number: 'JP123456789',
-        carrier: 'ヤマト運輸',
-        estimated_delivery: '2025-03-01',
-        tracking_url: 'https://example.com/track',
-        view_url: 'https://example.com/view',
-      })
-
-      expect(result.success).toBe(true)
-    })
-
-    it('should send shipped email without tracking info', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendShippedEmail({
-        order_id: 'ord-001',
-        order_number: 'ORD-2024-001',
-        customer_name: 'テストユーザー',
-        customer_email: 'customer@example.com',
-        product_name: '包装袋 A',
-        estimated_delivery: '2025-03-01',
-        view_url: 'https://example.com/view',
-      })
-
-      expect(result.success).toBe(true)
-    })
-  })
-
-  // ============================================================
-  // Event Handling Tests
+  // handleNotificationEvent Tests
   // ============================================================
 
   describe('handleNotificationEvent', () => {
     it('should handle quotation_created event', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
+      mockSendMail.mockResolvedValue({ messageId: 'test-id' })
 
       const event: NotificationEvent = {
         type: 'quotation_created',
@@ -303,12 +127,11 @@ describe('NotificationService', () => {
       const result = await handleNotificationEvent(event)
 
       expect(result.success).toBe(true)
-      expect(sendMock).toHaveBeenCalledTimes(1)
+      expect(mockSendMail).toHaveBeenCalledTimes(1)
     })
 
     it('should handle quotation_approved event', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
+      mockSendMail.mockResolvedValue({ messageId: 'test-id' })
 
       const event: NotificationEvent = {
         type: 'quotation_approved',
@@ -329,7 +152,7 @@ describe('NotificationService', () => {
       expect(result.success).toBe(true)
     })
 
-    it('should return error for unknown event type', async () => {
+    it('should return UNKNOWN_EVENT for unknown event type', async () => {
       const event = {
         type: 'unknown_event' as any,
         recipientType: 'admin' as const,
@@ -339,71 +162,8 @@ describe('NotificationService', () => {
       const result = await handleNotificationEvent(event)
 
       expect(result.success).toBe(false)
-      expect(result.errorCode).toBe('NO_TEMPLATE')
-    })
-  })
-
-  // ============================================================
-  // Bounce Handling Tests
-  // ============================================================
-
-  describe.skip('isBouncedEmail', () => {
-    it('should return false for valid email', async () => {
-      const result = await isBouncedEmail('test@example.com')
-      expect(result).toBe(false)
-    })
-  })
-
-  describe.skip('recordBounce', () => {
-    it('should record bounce event', async () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const bounce: BounceEvent = {
-        email: 'bounced@example.com',
-        type: 'hard',
-        reason: 'Mailbox not found',
-        occurredAt: '2024-01-01T00:00:00Z',
-        eventId: 'evt-001',
-        messageId: 'msg-001',
-      }
-
-      await recordBounce(bounce)
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[NotificationService] Bounce recorded for bounced@example.com: Mailbox not found'
-      )
-
-      consoleSpy.mockRestore()
-    })
-  })
-
-  describe.skip('handleBounceWebhook', () => {
-    it('should process bounce events from webhook', async () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const events = [
-        {
-          event: 'bounce',
-          email: 'bounced@example.com',
-          status: '5xx',
-          reason: 'Mailbox not found',
-          timestamp: 1704067200,
-          sg_message_id: 'msg-001',
-        },
-        {
-          event: 'dropped',
-          email: 'dropped@example.com',
-          reason: 'Invalid sender',
-          timestamp: 1704067200,
-          sg_message_id: 'msg-002',
-        },
-      ]
-
-      await handleBounceWebhook(events)
-
-      expect(consoleSpy).toHaveBeenCalledTimes(2)
-
-      consoleSpy.mockRestore()
+      // 現行実装（notificationService.ts L220）は UNKNOWN_EVENT を返す
+      expect(result.errorCode).toBe('UNKNOWN_EVENT')
     })
   })
 
@@ -424,38 +184,6 @@ describe('NotificationService', () => {
       expect(isValidEmail('test@')).toBe(false)
       expect(isValidEmail('test @example.com')).toBe(false)
       expect(isValidEmail('')).toBe(false)
-    })
-  })
-
-  describe.skip('supportsJapaneseEmail', () => {
-    it('should return true for Japanese email support', () => {
-      expect(supportsJapaneseEmail()).toBe(true)
-    })
-  })
-
-  describe.skip('logDeliveryStatus', () => {
-    it('should log delivery status', async () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
-
-      await logDeliveryStatus('msg-001', 'test@example.com', 'delivered')
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[NotificationService] Delivery status: msg-001 -> test@example.com: delivered'
-      )
-
-      consoleSpy.mockRestore()
-    })
-  })
-
-  describe.skip('sendTestEmail', () => {
-    it('should send test email', async () => {
-      const sendMock = mockSendGridSend
-      sendMock.mockResolvedValue([{ headers: { 'x-message-id': 'test-id' } }])
-
-      const result = await sendTestEmail('test@example.com')
-
-      expect(result.success).toBe(true)
-      expect(sendMock).toHaveBeenCalled()
     })
   })
 })

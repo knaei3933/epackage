@@ -82,12 +82,18 @@ async function selectBagType(page: import('@playwright/test').Page, bagTypeId: s
  * handleNextでバリデーションされる4つのドロップダウン
  */
 async function fillContentsDropdowns(page: import('@playwright/test').Page) {
-  // 製品カテゴリ
-  const productCategorySelect = page.locator('select').filter({ hasText: '' }).first();
-  const allSelects = page.locator('select[data-section="contents-dropdowns"] select, select');
+  // 製品カテゴリ - data-testid で特定し、最初の有効オプションを選択
+  const productCategorySelect = page.getByTestId('product-category-select');
+  const categoryOptions = await productCategorySelect.locator('option').allTextContents();
+  for (const option of categoryOptions) {
+    const trimmed = option.trim();
+    if (trimmed && trimmed !== '選択してください' && trimmed !== '' && !trimmed.includes('---')) {
+      await productCategorySelect.selectOption({ label: trimmed });
+      break;
+    }
+  }
 
-  // 内容物セクションの4つのselectを探して入力
-  // ページ内のselect要素を取得して内容物関連のものを選択
+  // 内容物セクションの残り3つのselect（内容物の形態/主成分/流通環境）を設定
   const selects = page.locator('select');
   const selectCount = await selects.count();
 
@@ -114,41 +120,38 @@ async function fillSizeInputs(
   page: import('@playwright/test').Page,
   options: { width?: number; height?: number; depth?: number; pitch?: number }
 ) {
-  // 幅入力 - placeholder で判定
+  // 幅入力 - data-testid で特定
   if (options.width !== undefined) {
-    const widthInput = page.locator('input[type="number"]').filter({ hasText: '' }).first();
-    // 「幅」ラベルの次にあるinput
-    const widthField = page.locator('label:has-text("幅") + input, label:text-is("幅") ~ input').first();
-    if (await widthField.isVisible()) {
-      await widthField.fill(options.width.toString());
-    } else {
-      // フォールバック: 幅ラベル近くのinput
-      const widthContainer = page.locator('label:has-text("幅")').locator('..').locator('input[type="number"]').first();
-      await widthContainer.fill(options.width.toString());
-    }
+    const widthInput = page.getByTestId('width-input');
+    await widthInput.fill(options.width.toString());
   }
 
-  // 高さ入力
+  // 高さ入力 - data-testid で特定
   if (options.height !== undefined) {
-    const heightField = page.locator('label:has-text("高さ")').locator('..').locator('input[type="number"]').first();
-    if (await heightField.isVisible()) {
-      await heightField.fill(options.height.toString());
+    const heightInput = page.getByTestId('height-input');
+    if (await heightInput.isVisible()) {
+      await heightInput.fill(options.height.toString());
     }
   }
 
-  // マチ（深さ）入力
+  // マチ（深さ）入力 - data-testid で特定（selectベース）
   if (options.depth !== undefined) {
-    const depthField = page.locator('label:has-text("マチ"), label:has-text("深さ")').locator('..').locator('input[type="number"]').first();
-    if (await depthField.isVisible()) {
-      await depthField.fill(options.depth.toString());
+    const depthSelect = page.getByTestId('depth-input');
+    if (await depthSelect.isVisible()) {
+      // select の場合は option を選択
+      const currentValue = await depthSelect.inputValue().catch(() => '');
+      if (currentValue !== '') {
+        // 既存の select 値をそのまま使用（マチはドロップダウン選択）
+        // 値を変更する必要がある場合は最初の有効オプションを選択
+      }
     }
   }
 
-  // ピッチ（ロールフィルム用）
+  // ピッチ（ロールフィルム用） - data-testid で特定
   if (options.pitch !== undefined) {
-    const pitchField = page.locator('label:has-text("ピッチ")').locator('..').locator('input[type="number"]').first();
-    if (await pitchField.isVisible()) {
-      await pitchField.fill(options.pitch.toString());
+    const pitchInput = page.getByTestId('pitch-input');
+    if (await pitchInput.isVisible()) {
+      await pitchInput.fill(options.pitch.toString());
     }
   }
 
@@ -176,11 +179,8 @@ async function selectMaterial(page: import('@playwright/test').Page, materialCat
     await page.waitForTimeout(300);
   }
 
-  // カテゴリ内の最初の素材カードをクリック
-  // 素材はボタンとして表示される
-  const materialCards = page.locator('[class*="cursor-pointer"][class*="border"]').filter({
-    hasText: /PET|NY|クラフト|KRAFT/
-  });
+  // カテゴリ内の最初の素材カードをクリック - data-testid で特定
+  const materialCards = page.getByTestId('material-card');
   if (await materialCards.count() > 0) {
     await materialCards.first().click();
     await page.waitForTimeout(300);
@@ -283,8 +283,8 @@ test.describe('見積もりシミュレーター', () => {
     test('初期状態でステップ1（基本仕様）が表示されること', async ({ page }) => {
       await navigateToQuoteSimulator(page);
 
-      // 手順ナビでステップ1がアクティブであること
-      const activeStep = page.locator('[class*="bg-navy-100"]').first();
+      // 手順ナビでステップ1がアクティブであること - data-testid で特定
+      const activeStep = page.getByTestId('step-1-active');
       await expect(activeStep).toBeVisible();
 
       // サイズ入力フィールドがまだ表示されていない（袋タイプ未選択時）

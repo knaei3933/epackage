@@ -113,7 +113,9 @@ describe('LayoutHelper', () => {
         bottom: '15mm',
       });
 
-      expect(css).toContain('margin-top: 20mm'); // Default left
+      // 入力で top: '10mm' を渡しているので、margin-top は入力値の '10mm' になる。
+      // （元の期待値 20mm は DEFAULT.top だが、top を渡した場合は入力が優先される）
+      expect(css).toContain('margin-top: 10mm');
       expect(css).toContain('margin-bottom: 15mm');
       expect(css).toContain('margin-left: 15mm'); // Default
       expect(css).toContain('margin-right: 15mm'); // Default
@@ -140,7 +142,8 @@ describe('LayoutHelper', () => {
 
     it('should calculate table column widths for 3 columns', () => {
       const widths = LayoutHelper.calculateTableColumnWidths(3);
-      expect(widths).toEqual(['33.33333333333333%', '33.33333333333333%', '33.33333333333333%']);
+      // 100 / 3 は IEEE754 倍精度で 33.333333333333336 になる（末尾 6 を含む）。
+      expect(widths).toEqual(['33.333333333333336%', '33.333333333333336%', '33.333333333333336%']);
     });
 
     it('should generate standard table style', () => {

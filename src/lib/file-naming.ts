@@ -78,8 +78,8 @@ export function parseCustomerFilename(filename: string): ParsedFilename | null {
     return null;
   }
 
-  // Remove file extension if present
-  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+  // Remove file extension(s) if present (.pdf.zip 等の複合拡張子もすべて削除)
+  const nameWithoutExt = filename.replace(/(\.[^/.]+)+$/, '');
 
   // Try standard pattern first
   const match = nameWithoutExt.match(FILENAME_PATTERN);
@@ -99,9 +99,12 @@ export function parseCustomerFilename(filename: string): ParsedFilename | null {
   // Fallback: Try to extract order number from non-standard format
   const fallbackMatch = nameWithoutExt.match(/([A-Z0-9\-]{10,})/);
   if (fallbackMatch) {
+    // orderNumber（ORD-YYYY-XXXXXXXX）の前後に余分なハイフンが付かないよう、
+    // マッチ結果の前後のハイフンを除去する（例: "...ORD-...-something" → "ORD-..."）。
+    const orderNumber = fallbackMatch[1].replace(/^-+|-+$/g, '');
     return {
       language: '',
-      orderNumber: fallbackMatch[1],
+      orderNumber,
       date: extractDateFromFilename(nameWithoutExt),
       type: 'submission',
       originalFilename: filename,

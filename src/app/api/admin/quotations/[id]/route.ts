@@ -81,7 +81,7 @@ export async function GET(
 
     const itemsWithBreakdown = (items || []).map((item: QuotationItem) => ({
       ...item,
-      breakdown: calculateBreakdown(item),
+      breakdown: calculateBreakdown(item, quotation.printing_type),
     }));
 
     // Merge quotation with profile data
@@ -278,7 +278,7 @@ function getPrintingTypeName(printingType: string): string {
 // calculateBreakdown関数
 // =====================================================
 
-function calculateBreakdown(item: QuotationItem) {
+function calculateBreakdown(item: QuotationItem, headerPrintingType?: string) {
   console.log('[calculateBreakdown] item.id:', item.id);
   console.log('[calculateBreakdown] item.specifications type:', typeof item.specifications);
   console.log('[calculateBreakdown] item.specifications keys:', item.specifications ? Object.keys(item.specifications) : 'undefined');
@@ -348,10 +348,11 @@ function calculateBreakdown(item: QuotationItem) {
         depth,
         dimensions: specs.dimensions || `${width}×${height}${depth ? `×${depth}` : ''}mm`,
         size: `${width}×${height}${depth ? `×${depth}` : ''}mm`,
-        // 印刷
-        printing: specs.printingType || specs.printing_type,
-        printing_display: getPrintingTypeName(specs.printingType || specs.printing_type),
-        printing_type: specs.printingType || specs.printing_type,
+        // 印刷（Phase 4b: quotations ヘッダの printing_type カラムを優先、
+        // フォールバックとして quotation_items.specifications JSONB を使用）
+        printing: headerPrintingType || specs.printingType || specs.printing_type,
+        printing_display: getPrintingTypeName(headerPrintingType || specs.printingType || specs.printing_type),
+        printing_type: headerPrintingType || specs.printingType || specs.printing_type,
         colors: 'フルカラー',  // 色数は常にフルカラー表示
         isUVPrinting: specs.isUVPrinting,
         // 後加工
@@ -427,10 +428,10 @@ function calculateBreakdown(item: QuotationItem) {
       depth,
       dimensions: specs.dimensions || `${width}×${height}${depth ? `×${depth}` : ''}mm`,
       size: `${width}×${height}${depth ? `×${depth}` : ''}mm`,
-      // 印刷
-      printing: specs.printingType || specs.printing_type,
-      printing_display: getPrintingTypeName(specs.printingType || specs.printing_type),
-      printing_type: specs.printingType || specs.printing_type,
+      // 印刷（Phase 4b: quotations ヘッダの printing_type カラムを優先、フォールバック JSONB）
+      printing: headerPrintingType || specs.printingType || specs.printing_type,
+      printing_display: getPrintingTypeName(headerPrintingType || specs.printingType || specs.printing_type),
+      printing_type: headerPrintingType || specs.printingType || specs.printing_type,
       colors: 'フルカラー',  // 色数は常にフルカラー表示
       isUVPrinting: specs.isUVPrinting,
       // 後加工

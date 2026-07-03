@@ -36,7 +36,9 @@ import {
  */
 const POUCH_TYPE_PATTERNS = {
   STAND_POUCH: [
-    'stand', 'スタンド', '立ち', '底マチ', 'bottom_gusset', 'gusset',
+    // 'gusset' は除外: 単独 'gusset' は GUSSET_POUCH（横マチ袋）を指す。
+    // スタンドパウチは底マチ（gusset）構造だが 'stand'/'スタンド'/'底マチ'/'bottom_gusset' で判定する。
+    'stand', 'スタンド', '立ち', '底マチ', 'bottom_gusset',
   ],
   FLAT_POUCH: [
     'flat', 'フラット', 'ピロー', 'pillow',
@@ -115,7 +117,10 @@ export function detectPouchType(aiData: AiFileData): PouchType {
   for (const [type, patterns] of Object.entries(POUCH_TYPE_PATTERNS)) {
     for (const pattern of patterns) {
       if (combinedText.includes(pattern.toLowerCase())) {
-        return type as PouchType;
+        // type は POUCH_TYPE_PATTERNS のキー（'STAND_POUCH' 等）。PouchType enum のキーと同名のため、
+        // 対応する enum 値（'stand_pouch' 等）を返す。以前は `type as PouchType` でキー名（'STAND_POUCH'）
+        // をそのまま返しており、enum の値（'stand_pouch'）と不一致だった。
+        return PouchTypeEnum[type as keyof typeof PouchTypeEnum];
       }
     }
   }
@@ -155,10 +160,10 @@ export function extractDimensions(aiData: AiFileData): Dimensions {
     .map(t => t.content)
     .join(' ');
 
-  // Look for gusset patterns in text (e.g., "マチ50" or "Gusset: 50mm")
-  const gussetMatch = textContent.match(/マチ\s*[:：]?\s*(\d+)|gusset\s*[:：]?\s*(\d+)/i);
+  // Look for gusset patterns in text (e.g., "マチ50", "Gusset: 50mm", "G50" (W/H/G 表記))
+  const gussetMatch = textContent.match(/マチ\s*[:：]?\s*(\d+)|gusset\s*[:：]?\s*(\d+)|\bG\s*[:：]?\s*(\d+)/i);
   if (gussetMatch) {
-    gusset = parseInt(gussetMatch[1] || gussetMatch[2] || '0', 10);
+    gusset = parseInt(gussetMatch[1] || gussetMatch[2] || gussetMatch[3] || '0', 10);
   }
 
   // Default tolerance based on dimensions
@@ -364,15 +369,16 @@ export function extractProcessingFeatures(aiData: AiFileData): ProcessingFeature
  * Detect notch information
  */
 function detectNotchInfo(text: string): NotchInfo {
-  // Detect notch type
-  let type: NotchInfo['type'] = 'none';
-  if (text.includes('丸') || text.includes('丸ノッチ') || text.includes('round')) {
-    type = 'round';
-  } else if (text.includes('三角') || text.includes('triangle')) {
+  // 本関数は NOTCH パターン（'ノッチ'/'notch'/'切り欠き'）にマッチした場合のみ呼ばれる。
+  // したがって形状が未指定でも type='none'（ノッチなし）とするのは矛盾する。
+  // 最も一般的な 'round' を既定値とし、明示的な形状指定で上書きする。
+  let type: NotchInfo['type'] = 'round';
+  if (text.includes('三角') || text.includes('triangle')) {
     type = 'triangle';
-  } else if (text.includes('角') || text.includes('square')) {
+  } else if (text.includes('square') || (text.includes('角') && !text.includes('丸'))) {
     type = 'square';
   }
+  // '丸'/'round' は既定値と同一のため明示チェックは省略
 
   // Detect notch position
   let position: NotchInfo['position'] = 'top_center';
@@ -450,6 +456,8 @@ export function calculateConfidence(
   if (specs.dimensions.width > 0 && specs.dimensions.height > 0) {
     dimensionsScore = 0.9;
   } else {
+    // 寸法が検出できなければ信頼度を大幅に下げる（以前は初期値 0.7 のままで過大評価していた）
+    dimensionsScore = 0.3;
     flags.push('寸法を正確に検出できませんでした');
   }
 
@@ -464,9 +472,16 @@ export function calculateConfidence(
     flags.push('材質情報を検出できませんでした。既定値を使用します');
   }
 
+  // 寸法が無効な場合は材質も既定構成（fallback）の可能性が高く、実抽出でないため過大評価を抑制する
+  if (specs.dimensions.width <= 0 || specs.dimensions.height <= 0) {
+    materialsScore = Math.min(materialsScore, 0.5);
+  }
+
   // Processing features confidence
   let processingScore = 0.5;
-  const processingCount = Object.keys(specs.processing).length;
+  // extractProcessingFeatures は boolean プロパティを常に設定する（未検出でも false）。
+  // false は未検出と同義のため除外し、実際に検出された（truthy）加工要素のみカウントする。
+  const processingCount = Object.values(specs.processing).filter(v => Boolean(v)).length;
   if (processingCount >= 3) {
     processingScore = 0.8;
   } else if (processingCount > 0) {

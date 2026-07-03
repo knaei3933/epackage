@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion'
 ;
@@ -45,7 +45,7 @@ interface AdminDashboardProps {
 
 export function CatalogDownloadAdmin({
   enableExport = true,
-  refreshInterval = 30000
+  refreshInterval = 60000
 }: AdminDashboardProps) {
   const [records, setRecords] = useState<DownloadRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<DownloadRecord[]>([]);
@@ -55,7 +55,7 @@ export function CatalogDownloadAdmin({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/catalog-download');
@@ -73,16 +73,45 @@ export function CatalogDownloadAdmin({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRecords();
 
     if (refreshInterval > 0) {
-      const interval = setInterval(fetchRecords, refreshInterval);
-      return () => clearInterval(interval);
+      // PERFORMANCE: タブが非アクティブ（バックグラウンド）の時はポーリングを停止し、
+      // フォーカス復帰時に即時リフレッシュ。無駄な API 呼び出しを削減（低リスク）。
+      let interval: ReturnType<typeof setInterval> | null = null;
+
+      const startPolling = () => {
+        if (interval) return;
+        interval = setInterval(fetchRecords, refreshInterval);
+      };
+      const stopPolling = () => {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      };
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          // タブ復帰時は即時リフレッシュしてからポーリング再開
+          fetchRecords();
+          startPolling();
+        } else {
+          stopPolling();
+        }
+      };
+
+      startPolling();
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        stopPolling();
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
-  }, [refreshInterval]);
+  }, [refreshInterval, fetchRecords]);
 
   // Filter records based on search and period
   useEffect(() => {
@@ -426,4 +455,3 @@ export function CatalogDownloadAdmin({
     </motion.div>
   );
 }
-

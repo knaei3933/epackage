@@ -196,6 +196,10 @@ export async function generateQuotationNumber(): Promise<SqlResult<{ quotation_n
 
 /**
  * Insert quotation with returning ID
+ *
+ * Phase 4b: `printing_type`（'digital' | 'gravure'）を追加。
+ * 任意項目。未指定の場合は DB DEFAULT 'digital' が適用され後方互換性を維持する。
+ * CHECK 制約により 'digital'/'gravure' 以外は拒否される。
  */
 export async function insertQuotation(data: {
   user_id: string;
@@ -211,7 +215,56 @@ export async function insertQuotation(data: {
   notes: string | null;
   valid_until: string;
   sent_at: string;
+  printing_type?: 'digital' | 'gravure';
 }): Promise<SqlResult<{ id: string }>> {
+  // printing_type が指定された場合のみ INSERT 列に含める（未指定なら DB DEFAULT 'digital'）
+  const hasPrintingType = data.printing_type !== undefined && data.printing_type !== null;
+
+  if (hasPrintingType) {
+    return executeSql(
+      `
+      INSERT INTO quotations (
+        user_id,
+        quotation_number,
+        status,
+        customer_name,
+        customer_email,
+        customer_phone,
+        subtotal_amount,
+        tax_amount,
+        total_amount,
+        subtotal,
+        notes,
+        valid_until,
+        sent_at,
+        printing_type,
+        created_at,
+        updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
+      )
+      RETURNING id
+      `,
+      [
+        data.user_id,
+        data.quotation_number,
+        data.status,
+        data.customer_name,
+        data.customer_email,
+        data.customer_phone,
+        data.subtotal_amount,
+        data.tax_amount,
+        data.total_amount,
+        data.subtotal,
+        data.notes,
+        data.valid_until,
+        data.sent_at,
+        data.printing_type as string,
+      ]
+    );
+  }
+
+  // 後方互換パス: printing_type 未指定 → DB DEFAULT 'digital' が適用される
   return executeSql(
     `
     INSERT INTO quotations (

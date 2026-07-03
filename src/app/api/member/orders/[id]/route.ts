@@ -19,8 +19,9 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
+import { createServiceClient } from '@/lib/supabase';
+import { getStatusProgress, isOrderStatus } from '@/types/order-status';
 import type { PortalOrder } from '@/types/portal';
 
 // GET /api/member/orders/[id] - Get order details
@@ -29,44 +30,25 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-
-    // Get authenticated user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const authUser = await getAuthenticatedUserFromHeaders(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
         { status: 401 }
       );
     }
 
-    const userId = user.id;
-
+    const userId = authUser.id;
     const { id: orderId } = await context.params;
 
-    // Fetch order with related data - RLS ensures customer can only see their own orders
+    // Use service client (bypasses RLS) with explicit user_id filter for security
+    const supabase = createServiceClient();
+
+    // Fetch order with related data - explicit user_id check ensures customer can only see their own orders
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
         *,
-        companies (
-          id,
-          name,
-          name_kana,
-          corporate_number
-        ),
         quotations (
           id,
           quotation_number,
@@ -210,21 +192,36 @@ export async function GET(
       .select('*')
       .eq('order_id', orderId)
       .eq('is_visible_to_customer', true)
-      .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
     // Determine if changes can be requested
-    const canRequestChanges = ['PENDING', 'QUOTATION', 'DATA_RECEIVED'].includes(order.status);
+    // 変更要求は入稿・校正段階のみ許可（正規14ステータス体系に準拠）
+    const canRequestChanges = [
+      'QUOTATION_PENDING',
+      'QUOTATION_APPROVED',
+      'DATA_UPLOAD_PENDING',
+      'DATA_UPLOADED',
+      'CORRECTION_IN_PROGRESS',
+      'CORRECTION_COMPLETED',
+      'CUSTOMER_APPROVAL_PENDING',
+    ].includes(order.status);
 
     // Calculate progress
-    const STATUS_ORDER = [
-      'PENDING', 'QUOTATION', 'DATA_RECEIVED', 'WORK_ORDER',
-      'CONTRACT_SENT', 'CONTRACT_SIGNED', 'PRODUCTION', 'STOCK_IN',
-      'SHIPPED', 'DELIVERED',
-    ];
-    const currentIndex = STATUS_ORDER.indexOf(order.status);
-    const progressPercentage = currentIndex >= 0
-      ? Math.round(((currentIndex + 1) / STATUS_ORDER.length) * 100)
-      : 0;
+    // 進捗率は正規14ステータス体系（getStatusProgress）で算出。
+    // DB に旧レガシーステータスが残存する場合のみ推定マッピングでフォールバック。
+    const legacyProgressMap: Record<string, number> = {
+      PENDING: 0,
+      QUOTATION: 10,
+      DATA_RECEIVED: 30,
+      WORK_ORDER: 50,
+      CONTRACT_SENT: 55,
+      CONTRACT_SIGNED: 60,
+      STOCK_IN: 90,
+      DELIVERED: 100,
+    };
+    const progressPercentage = isOrderStatus(order.status)
+      ? getStatusProgress(order.status)
+      : (legacyProgressMap[order.status] ?? (order.status === 'SHIPPED' ? 100 : 0));
 
     const portalOrder: PortalOrder = {
       ...order,
@@ -257,32 +254,18 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-
-    // Get authenticated user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const authUser = await getAuthenticatedUserFromHeaders(request);
+    if (!authUser) {
       return NextResponse.json(
         { error: '認証されていません。', error_code: 'UNAUTHORIZED' },
         { status: 401 }
       );
     }
 
-    const userId = user.id;
-
+    const userId = authUser.id;
     const { id: orderId } = await context.params;
+
+    const supabase = createServiceClient();
 
     // Verify user owns this order
     const { data: order } = await supabase

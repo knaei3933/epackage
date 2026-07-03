@@ -509,10 +509,11 @@ export async function validateFileSecurity(
   const detectedType = magicNumberResult.detectedType;
 
   // Block executables
-  if (detectedType.includes('executable') ||
-      detectedType.includes('ELF') ||
-      detectedType.includes('Mach-O') ||
-      detectedType.includes('Windows EXE')) {
+  // detectedType は小文字の MIME type（application/x-elf 等）のため、大文字部分文字列
+  // （'ELF'/'Mach-O'/'Windows EXE'）での includes 判定は絶対にマッチしなかった（ブロック未働動）。
+  // MIME type の完全一致で判定する。
+  const EXECUTABLE_TYPES = ['application/x-executable', 'application/x-elf', 'application/x-mach-binary'];
+  if (EXECUTABLE_TYPES.includes(detectedType)) {
     errors.push({
       code: 'EXECUTABLE_FILE_DETECTED',
       message_ja: ERROR_MESSAGES.EXECUTABLE_FILE_DETECTED.ja,
@@ -523,9 +524,11 @@ export async function validateFileSecurity(
   }
 
   // Block archives (can contain malware)
-  if (detectedType.includes('ZIP') ||
-      detectedType.includes('RAR') ||
-      detectedType.includes('7Z')) {
+  // detectedType は小文字の MIME type（application/zip 等）のため、大文字部分文字列
+  // （'ZIP'/'RAR'/'7Z'）での includes 判定は絶対にマッチしなかった（ブロック未働動）。
+  // MIME type の完全一致で判定する。
+  const ARCHIVE_TYPES = ['application/zip', 'application/x-rar', 'application/x-7z'];
+  if (ARCHIVE_TYPES.includes(detectedType)) {
     if (opts.strictMode) {
       errors.push({
         code: 'ARCHIVE_FILE_DETECTED',
@@ -550,8 +553,15 @@ export async function validateFileSecurity(
 
   // Only apply content pattern checks to text-based files
   // Binary files are secured by magic number validation and executable blocking
+  // テキストファイル（text/html 等）はマジックナンバーを持たず detectedType が 'unknown' に
+  // なるため、detectedType のみで判定すると悪意あるパターン検出がスキップされてしまう
+  // （セキュリティ検出漏れ）。declaredType（宣言された MIME タイプ）が text-based の場合も検出する。
   const isTextBased = TEXT_BASED_TYPES.includes(detectedType) ||
-                      TEXT_BASED_TYPES.some(t => detectedType.includes(t));
+                      TEXT_BASED_TYPES.some(t => detectedType.includes(t)) ||
+                      (!!declaredType && (
+                        TEXT_BASED_TYPES.includes(declaredType) ||
+                        TEXT_BASED_TYPES.some(t => declaredType.includes(t))
+                      ));
 
   if (isTextBased) {
     const maliciousPatterns = checkMaliciousPatterns(buffer);

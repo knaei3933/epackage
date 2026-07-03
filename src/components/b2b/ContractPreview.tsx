@@ -432,9 +432,9 @@ export default function ContractPreview({
   data,
   onClose,
   onDownload,
-  autoRefresh = false,
-  refreshInterval = 5000,
-  className = '',
+ autoRefresh = false,
+  refreshInterval = 30000,
+ className = '',
   viewMode = 'html',
 }: ContractPreviewProps) {
   const [state, setState] = useState<PreviewState>({

@@ -127,7 +127,9 @@ describe('BasePdfGenerator', () => {
       expect(templateData.name).toBe('Test Product');
       expect(templateData.value).toBe(1500);
       expect(templateData.formattedValue).toBe('¥1,500');
-      expect(templateData.formattedDate).toMatch(/¥d{4}年\d{1,2}月\d{1,2}日/);
+      // formatJapaneseDate は和暦（令和/平成等）を返すため、和暦パターンで検証する。
+      // ※ 元の \d{4}（西暦）パターンは実装が和暦を返す仕様と不一致だった。
+      expect(templateData.formattedDate).toMatch(/^(明治|大正|昭和|平成|令和)\d+年\d{1,2}月\d{1,2}日/);
     });
   });
 

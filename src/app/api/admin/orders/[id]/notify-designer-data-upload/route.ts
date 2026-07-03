@@ -10,6 +10,7 @@ import { sendDesignerDataUploadNotification, sendDesignerDataUploadNotificationB
 import { generateUploadToken } from '@/lib/designer-tokens';
 import { getAppUrl } from '@/lib/app-url';
 import { randomUUID } from 'crypto';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 
 export const dynamic = 'force-dynamic';
 
@@ -193,20 +194,32 @@ export async function POST(
     // Translate specifications to Korean
     const translateSpecs = (specs: any) => {
       if (!specs) return undefined;
+      // 実フィルム構成ラベルを取得（kraft 系は仕様値未確定のため除外・フォールバックなし）。
+      // thicknessSelection があれば該当厚さを引き、なければ thicknessOptions[0]（standard 相当）。
+      // pet_al の LLDPE 80μ 異常値（materialData.ts に存在しない）を解消。
+      const computeFilmStructure = (): string | undefined => {
+        const materialId = specs.materialId as string;
+        if (!materialId) return undefined;
+        const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+        if (isKraft) return undefined; // Phase 2 後退
+        const label = getFilmStructureLabel(materialId, specs.thicknessSelection);
+        return (label && label !== materialId) ? label : undefined;
+      };
+      const filmStructure = computeFilmStructure();
       return {
         dimensions: specs.dimensions,
         bagType: specs.bagTypeId === 'stand_up' ? '스탠드 파우치' :
                  specs.bagTypeId === 'flat_3_side' ? '플랫 파우치' : specs.bagTypeId,
         material: specs.materialId === 'pet_al' ? 'PET/AL (알루미늄 박 라미네이트)' :
                   specs.materialId === 'pet' ? 'PET' : specs.materialId,
-        materialDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
+        materialDetail: filmStructure,
         weight: specs.thicknessSelection === 'medium' ? '~500g' :
                  specs.thicknessSelection === 'light' ? '~300g' :
                  specs.thicknessSelection === 'heavy' ? '~1kg' : undefined,
         thickness: specs.thicknessSelection === 'medium' ? '표준 타입 (~500g)' :
                     specs.thicknessSelection === 'light' ? '경량 (~300g)' :
                     specs.thicknessSelection === 'heavy' ? '중량 (~1kg)' : undefined,
-        thicknessDetail: specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ' : undefined,
+        thicknessDetail: filmStructure,
         printingType: specs.printingType === 'digital' ? '디지털 인쇄' :
                       specs.printingType === 'gravure' ? '그라비아 인쇄' : specs.printingType,
         colors: specs.printingColors === 1 ? '1색' :

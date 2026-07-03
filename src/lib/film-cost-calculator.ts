@@ -39,6 +39,7 @@ export interface FilmCostSettings {
 
   // 라미네이트 단가
   lamination_cost_per_m2?: number
+  lamination_cost_per_m2_with_al?: number
 
   // 슬리터 단가
   slitter_cost_per_m?: number
@@ -183,7 +184,7 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     nameJa: 'PET',
     thickness: 12,
     density: 1.40,
-    unitPrice: 2800
+    unitPrice: 4300
   },
   'AL': {
     id: 'AL',
@@ -191,7 +192,7 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     nameJa: 'アルミ',
     thickness: 7,
     density: 2.71,
-    unitPrice: 7800
+    unitPrice: 10500
   },
   'LLDPE': {
     id: 'LLDPE',
@@ -199,7 +200,7 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     nameJa: 'LLDPE',
     thickness: 80,
     density: 0.92,
-    unitPrice: 2800
+    unitPrice: 4500
   },
   'NY': {
     id: 'NY',
@@ -207,7 +208,7 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     nameJa: 'ナイロン',
     thickness: 15,
     density: 1.16,
-    unitPrice: 5400
+    unitPrice: 7600
   },
   'VMPET': {
     id: 'VMPET',
@@ -215,7 +216,7 @@ const FILM_MATERIALS: Record<string, FilmMaterial> = {
     nameJa: 'VM PET',
     thickness: 7,
     density: 1.40,
-    unitPrice: 3600
+    unitPrice: 4000
   },
   // KRAFT 재질 추가
   'KRAFT': {
@@ -250,16 +251,17 @@ const DUTY_RATE = 0.05; // 관세율 5%
 const DELIVERY_COST_PER_ROLL = 16800; // 엔/롤
 const KG_PER_ROLL = 30; // 1롤 = 30kg
 
-// 인쇄 단가 (원/m²)
-const PRINTING_COST_PER_M2 = 475;
+// 인쇄 단가 (원/m²) - 2026-06-27 改定: 475→520（原価上昇）
+const PRINTING_COST_PER_M2 = 520;
 const MATTE_PRINTING_COST_PER_M = 40; // 원/m (マット印刷追加費)
 
 // 표면처리 추가비 (원/m)
 const MATTE_SURFACE_COST_PER_M = 40; // 매트 코팅 추가비 (원/m) - 실제 사용 값
 // 주의: 광택(glossy)은 추가 비용 없음
 
-// 라미네이트 단가 (원/m²)
-const LAMINATION_COST_PER_M2 = 75;
+// 라미네이트 단가 (원/m²) - 2026-06-27 改定: AL有無2段階化（ALあり=80, ALなし=65）
+const LAMINATION_COST_PER_M2_NO_AL = 65;   // AL素材なし
+const LAMINATION_COST_PER_M2_WITH_AL = 80; // AL素材あり
 
 // 슬리터 단가 (원/m)
 const SLITTER_COST_PER_M = 10;
@@ -405,6 +407,7 @@ export class FilmCostCalculator {
       widthM,
       lengthWithLoss,
       layers.length,
+      layers,
       dbSettings
     );
 
@@ -728,13 +731,18 @@ export class FilmCostCalculator {
     widthM: number,
     lengthWithLoss: number,
     layerCount: number,
+    layers: FilmStructureLayer[],
     dbSettings: FilmCostSettings | null
   ) {
     // 라미 횟수 = 중지 - 1
     const laminationCount = Math.max(0, layerCount - 1);
 
-    // DB 설정값 또는 기본값
-    const laminationCostPerM2 = dbSettings?.lamination_cost_per_m2 ?? LAMINATION_COST_PER_M2;
+    // AL 素材の有無でラミ単価を切替（2026-06-27 改定: AL有無2段階化）
+    // ALあり=80ウォン/m, ALなし=65ウォン/m
+    const hasAL = layers.some(layer => layer.materialId === 'AL');
+    const laminationCostPerM2 = hasAL
+      ? (dbSettings?.lamination_cost_per_m2_with_al ?? LAMINATION_COST_PER_M2_WITH_AL)
+      : (dbSettings?.lamination_cost_per_m2 ?? LAMINATION_COST_PER_M2_NO_AL);
 
     // 라미 공정비 = 폭 × 미터수 × 라미네이트 단가 × 라미횟수
     const cost = widthM * lengthWithLoss * laminationCostPerM2 * laminationCount;

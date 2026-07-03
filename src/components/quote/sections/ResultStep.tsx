@@ -12,14 +12,14 @@ import { useQuote, useQuoteState, validateProductTypeSpecificFields } from '@/co
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
-import { generateQuotePDF, QuoteData } from '@/lib/pdf-generator';
+import { generateQuotePDF, generateMultiQuantityPDF, QuoteData, MultiQuantityQuoteInput } from '@/lib/pdf-generator';
 import { safeMap } from '@/lib/array-helpers';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
 import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
-import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription } from '@/constants/materialTypes';
-import { THICKNESS_TYPE_JA } from '@/constants/enToJa';
-import { RefreshCw, Download, List, BarChart3 } from 'lucide-react';
+import { calcDuty, calcManufacturingMargin } from '@/lib/duty-calculator';
+import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription, getFilmStructureLabel } from '@/constants/materialTypes';
+import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -27,9 +27,29 @@ import CostBreakdownPanel from '../shared/CostBreakdownPanel';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
 import type { ParallelProductionOption } from '../shared';
 
+// C2: 複数パターン比較結果の新型（C2契約最終型・T1実装済み）
+// Mapキー = パターン index (0-4)、値 = そのパターンの計算結果 + 推奨方式 + 合計数量
+// ※patternTotalQuantity は fix #16 で追加（UnifiedQuoteResult が quantity を持たないため保持）
+// ImprovedQuotingWizard の state 型と同一（L2230-2232）
+type PatternMultiQuantityResult = {
+  calculations: Map<number, UnifiedQuoteResult & {
+    recommendation: {
+      method: 'digital' | 'gravure';
+      resolvedMethod: string;
+      breakevenQuantity: number;
+      digitalTotalPrice: number;
+      gravureTotalPrice: number;
+      reason: string;
+    };
+  } & {
+    patternTotalQuantity: number;
+  }>;
+} | null;
+
 interface ResultStepProps {
   result: UnifiedQuoteResult;
-  multiQuantityResult: MultiQuantityResult | null;
+  // C2: MultiQuantityResult（旧型）→ PatternMultiQuantityResult（C2新型）に変更
+  multiQuantityResult: PatternMultiQuantityResult;
   onReset: () => void;
 }
 
@@ -42,6 +62,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const { setSelectedQuantity } = useQuote();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [quotationId, setQuotationId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfStatus, setPdfStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -154,9 +175,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // Get multi-quantity state at component level (before any handlers)
   const { state: multiQuantityState } = useMultiQuantityQuote();
 
+  // C4/AC-8: SKU数バンド判定。1-10 のみ複数パターン比較表・全パターンPDFを有効化。
+  // 11以上は別途見積もり依頼（multiQuantityResult は null で渡される）。
+  const skuCountForBand = state.skuCount ?? 0;
+  const isPatternMode = skuCountForBand > 0 && skuCountForBand <= 10;
+
   // Get multi-quantity calculations from prop first, then fallback to context
+  // C2新型（Map<number, UnifiedQuoteResult & {recommendation}>）と旧Context（Map<number, UnifiedQuoteResult>）の和型
   const multiQuantityCalculations = multiQuantityResult?.calculations || multiQuantityState.multiQuantityResults;
   const hasMultiQuantityResults = multiQuantityCalculations && multiQuantityCalculations.size > 0;
+  // C4: 比較表表示条件 = パターンモード（SKU<=10）かつ calculations 存在
+  const showPatternComparison = isPatternMode && hasMultiQuantityResults;
 
   // Robust SKU mode detection - prioritize result data, fallback to state calculation
   const hasValidSKUData = result?.hasValidSKUData ?? (
@@ -187,16 +216,30 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   console.log('[ResultStep] ===== END STATE DEBUG =====');
 
   // Build quotes array from multi-quantity results
+  // C4: ユーザー入力パターン駆動。Mapキー=パターンindex(0-4)。
+  // recommendation（推奨方式・両方式価格）・patternTotalQuantity（正確な合計数量）を付加。
   const multiQuantityQuotes = hasMultiQuantityResults
-    ? Array.from(multiQuantityCalculations.entries()).map(([quantity, quote]) => ({
-        quantity: quantity,
-        unitPrice: quote.unitPrice,
-        totalPrice: quote.totalPrice,
-        discountRate: 0,
-        priceBreak: '通常',
-        leadTimeDays: quote.leadTimeDays || result.leadTimeDays,
-        isValid: true
-      })).sort((a, b) => a.quantity - b.quantity)
+    ? Array.from(multiQuantityCalculations.entries()).map(([quantity, quote]) => {
+        const quoteWithExtra = quote as UnifiedQuoteResult & {
+          recommendation?: { method?: 'digital' | 'gravure' };
+          patternTotalQuantity?: number;
+        };
+        return {
+          quantity: quantity,
+          unitPrice: quote.unitPrice,
+          totalPrice: quote.totalPrice,
+          discountRate: 0,
+          priceBreak: '通常',
+          leadTimeDays: quote.leadTimeDays || result.leadTimeDays,
+          isValid: true,
+          // C2新型の推奨方式（旧Contextフォールバック時は undefined）
+          recommendedMethod: quoteWithExtra.recommendation?.method,
+          // fix #16: 正確なパターン合計数量（逆算不要）。旧Contextフォールバック時は undefined
+          patternTotalQuantity: quoteWithExtra.patternTotalQuantity,
+          // SKU別明細（複数SKU見積もり時・比較表PDFのSKU別サブ行展開用）
+          skuCostDetails: quoteWithExtra.skuCostDetails,
+        };
+      }).sort((a, b) => a.quantity - b.quantity)
     : [];
 
   // 経済的数量提案・並列生産オプションを計算
@@ -247,63 +290,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     return MATERIAL_TYPE_LABELS_JA[materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || materialId;
   };
 
-  // Get film structure specification from materials data (Japanese)
-  // MaterialSelection.tsxの値と統一
-  const getFilmStructureSpecJa = (materialId: string, thicknessId: string): string => {
-    const materialSpecs: Record<string, Record<string, string>> = {
-      'pet_al': {
-        'light': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 50μ',
-        'medium': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / AL 7μ / PET 12μ / LLDPE 110μ'
-      },
-      'pet_vmpet': {
-        'light': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 50μ',
-        'medium': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / VMPET 12μ / PET 12μ / LLDPE 110μ'
-      },
-      'pet_ldpe': {
-        'light': 'PET 12μ / LLDPE 50μ',
-        'medium': 'PET 12μ / LLDPE 70μ',
-        'standard': 'PET 12μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / LLDPE 110μ'
-      },
-      'pet_ny_al': {
-        'light': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 50μ',
-        'medium': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 70μ',
-        'standard': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 90μ',
-        'heavy': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 100μ',
-        'ultra': 'PET 12μ / NY 16μ / AL 7μ / LLDPE 110μ'
-      },
-      'ny_lldpe': {
-        'light': 'NY 15μ / LLDPE 50μ',
-        'medium': 'NY 15μ / LLDPE 70μ',
-        'standard': 'NY 15μ / LLDPE 90μ',
-        'heavy': 'NY 15μ / LLDPE 100μ',
-        'ultra': 'NY 15μ / LLDPE 110μ'
-      },
-      'kraft_vmpet_lldpe': {
-        'light_50': 'Kraft 80g/m² / VMPET 12μ / LLDPE 50μ',
-        'standard_70': 'Kraft 80g/m² / VMPET 12μ / LLDPE 70μ',
-        'heavy_90': 'Kraft 80g/m² / VMPET 12μ / LLDPE 90μ',
-        'ultra_100': 'Kraft 80g/m² / VMPET 12μ / LLDPE 100μ',
-        'maximum_110': 'Kraft 80g/m² / VMPET 12μ / LLDPE 110μ'
-      },
-      'kraft_pet_lldpe': {
-        'light_50': 'Kraft 80g/m² / PET 12μ / LLDPE 50μ',
-        'standard_70': 'Kraft 80g/m² / PET 12μ / LLDPE 70μ',
-        'heavy_90': 'Kraft 80g/m² / PET 12μ / LLDPE 90μ',
-        'ultra_100': 'Kraft 80g/m² / PET 12μ / LLDPE 100μ',
-        'maximum_110': 'Kraft 80g/m² / PET 12μ / LLDPE 110μ'
-      }
-    };
-
-    return materialSpecs[materialId]?.[thicknessId] || '指定なし';
-  };
+  // フィルム実構成ラベルは materialTypes.ts の getFilmStructureLabel（単一データソース: materialData.ts）
+  // に集約。本ファイルでのローカル再定義（`/` 区切り）は廃止済み。
+  // ※保存値の区切り文字が `/` → `+` に変化（新規見積のみ・既存DBは遡及禁止）。
 
   // Helper function to get bag type description in Japanese
   const getBagTypeDescriptionJa = (bagTypeId: string): string => {
@@ -625,7 +614,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       material: getMaterialLabelJa(state.materialId) || '指定なし',
       size: `${state.width || 0}×${state.height || 0}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
       thicknessType: state.thicknessSelection && state.materialId
-        ? getFilmStructureSpecJa(state.materialId, state.thicknessSelection)
+        ? getFilmStructureLabel(state.materialId, state.thicknessSelection)
         : '指定なし',
       sealWidth: state.sealWidth || '5mm',
       sealDirection: '上',
@@ -680,15 +669,15 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       expiryDate,
       customerName: user?.kanjiLastName && user?.kanjiFirstName
         ? `${user.kanjiLastName} ${user.kanjiFirstName}`
-        : user?.companyName || '有限会社加豆フーズ',
-      companyName: user?.companyName || '有限会社加豆フーズ',
-      postalCode: user?.postalCode || '〒379-2311',
+        : user?.companyName || '',
+      companyName: user?.companyName || '',
+      postalCode: user?.postalCode || '',
       address: user?.prefecture && user?.city && user?.street
         ? `${user.prefecture}${user.city}${user.street}`
-        : '群馬県みどり市懸町阿佐美1940',
+        : '',
       contactPerson: user?.kanjiLastName && user?.kanjiFirstName
         ? `${user.kanjiLastName} ${user.kanjiFirstName}`
-        : '田中 太郎',
+        : '',
       items,
       // Add SKU data if in SKU mode
       skuData: hasValidSKUData ? {
@@ -721,10 +710,79 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     };
   };
 
+  // C5/AC-9: 全パターンPDF用の MultiQuantityQuoteInput 配列を生成
+  // multiQuantityQuotes は Mapキー（パターンindex）を quantity に持つ。
+  // fix #16: 実数量は quote.patternTotalQuantity（handleNext で保持）を使用。逆算廃止。
+  const buildMultiPatternPdfInputs = (): MultiQuantityQuoteInput[] => {
+    return multiQuantityQuotes.map((quote) => {
+      const costPerSKU = quote.skuCostDetails?.costPerSKU;
+      return {
+        quantity: quote.patternTotalQuantity ?? 0,
+        unitPrice: quote.unitPrice,
+        totalPrice: quote.totalPrice,
+        recommendation: {
+          method: quote.recommendedMethod === 'gravure' ? 'gravure' : 'digital',
+        },
+        // SKU数≥2の時のみSKU別明細を付加（金額は按分で generateMultiQuantityHTML 側が算出）
+        skuDetails: costPerSKU && costPerSKU.length >= 2
+          ? costPerSKU.map((s, i) => ({ label: `SKU ${i + 1}`, quantity: s.quantity }))
+          : undefined,
+      };
+    });
+  };
+
+  // C5/AC-9: 全パターンPDF生成＆ダウンロード（generateMultiQuantityPDF 呼出）
+  const generateAndDownloadMultiPatternPdf = async (): Promise<void> => {
+    console.log('[MultiPatternPDF] 全パターンPDF生成開始');
+    const inputs = buildMultiPatternPdfInputs();
+    // 従来見積書と同一メタデータを使用（generateQuoteData を流用）
+    const quoteData = generateQuoteData();
+    const blob = await generateMultiQuantityPDF(inputs, {
+      filename: `見積書_数量パターン比較_${Date.now()}.pdf`,
+      header: {
+        quoteNumber: quoteData.quoteNumber,
+        issueDate: quoteData.issueDate,
+        customerName: quoteData.customerName,
+        companyName: quoteData.companyName,
+        postalCode: quoteData.postalCode,
+        address: quoteData.address,
+        contactPerson: quoteData.contactPerson,
+        validityPeriod: quoteData.validityPeriod,
+        paymentTerms: quoteData.paymentTerms,
+        deliveryDate: quoteData.deliveryDate,
+      },
+      specifications: quoteData.specifications,
+      optionalProcessing: quoteData.optionalProcessing,
+    });
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = objectUrl;
+      a.download = `見積書_数量パターン比較_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      if (a.parentNode) document.body.removeChild(a);
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+    }
+    console.log('[MultiPatternPDF] 全パターンPDF生成完了:', inputs.length, 'パターン');
+  };
+
   const autoGenerateAndSave = async () => {
     console.log('[autoGenerateAndSave] 自動PDF生成・DB保存開始');
 
     try {
+      // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
+      if (showPatternComparison && multiQuantityQuotes.length > 0) {
+        await generateAndDownloadMultiPatternPdf();
+        // DB保存（単一 quotation entity に代表データを保存・R3 follow-up）
+        const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
+        setPdfStatus('success');
+        return;
+      }
+
       // 1. PDF生成
       const quoteData = generateQuoteData();
       const pdfResult = await generateQuotePDF(quoteData, {
@@ -745,6 +803,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
         // 3. DB保存
         const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
 
         // 4. Storage保存（認証済みのみ）- エラーハンドリング追加
         if (savedQuotationId && pdfResult.pdfBuffer) {
@@ -794,6 +853,25 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     setIsGeneratingPdf(true);
     setPdfStatus('idle');
 
+    // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
+    if (showPatternComparison && multiQuantityQuotes.length > 0) {
+      try {
+        await generateAndDownloadMultiPatternPdf();
+        const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
+        setPdfStatus('success');
+        setTimeout(() => setPdfStatus('idle'), 3000);
+      } catch (error) {
+        console.error('[handleDownloadPdf] MultiPatternPDF ERROR:', error);
+        setPdfStatus('error');
+        setTimeout(() => setPdfStatus('idle'), 3000);
+        alert(`全パターンPDF生成中にエラーが発生しました。\n${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        setIsGeneratingPdf(false);
+      }
+      return;
+    }
+
     try {
       console.log('[handleDownloadPdf] Calling generateQuoteData...');
       const quoteData = generateQuoteData();
@@ -840,6 +918,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         // 2. 自動的にデータベースに保存（ゲストユーザーも対応）
         console.log('[handleDownloadPdf] 自動保存開始...');
         const savedQuotationId = await saveQuotationToDatabase();
+        if (savedQuotationId) setQuotationId(savedQuotationId);
 
         // 3. PDFをStorageに保存（ユーザー認証済みの場合）
         if (savedQuotationId && user?.id && pdfResult.pdfBuffer) {
@@ -954,17 +1033,26 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
           printingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
-          // 修正: マージン・関税・配送料を適切に計算
-          manufacturingMargin: Math.round(totalBaseCost * 0.4), // 製造者マージン40%
-          duty: Math.round(totalBaseCost * 0.05), // 関税5%
-          delivery: Math.round(totalBaseCost * 0.08), // 配送料8%
-          salesMargin: Math.round(totalBaseCost * 0.2), // 販売マージン20%
+          // マージン・関税・配送料: pouch-cost-calculator が各SKU単位で正確計算した値を集計。
+          // （旧実装は totalBaseCost * 固定係数 の概算だったが、totalBaseCost は原価ベースのため
+          //  duty（製造者価格×0.05）・salesMargin（小計×0.25）等の正確値と乖離していた）
+          manufacturingMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
+          duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
+          delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+          salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
           totalCost: Math.round(totalBaseCost)
         };
       } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
         // 【追加】result.breakdownから直接計算（SKUモード対応）
+        // baseCost は原価ベース（breakdown.baseCost / filmCost）。売価(totalPrice)は含まない。
         const breakdown = result.breakdown;
         const baseCost = breakdown.baseCost || breakdown.filmCost || 0;
+        // duty はSKUモード（ベースライン）と同じ計算式に統一:
+        //   duty = 製造者価格(原価 + manufacturingMargin) × 0.05
+        //   manufacturingMargin = 原価 × 0.4
+        // （旧実装の duty = 原価 × 0.05 は製造者価格ではなく原価に5%を適用しており、
+        //   base-strategy.ts:227 / pouch-cost-calculator.ts:1287 の正確仕様と約40%乖離していた）
+        const manufacturingMargin = breakdown.manufacturingMargin ?? calcManufacturingMargin(baseCost);
         costBreakdown = {
           materialCost: Math.round(breakdown.filmCost || baseCost * 0.4),
           laminationCost: Math.round(breakdown.laminationCost || baseCost * 0.06),
@@ -972,17 +1060,19 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(breakdown.pouchProcessingCost || baseCost * 0.15),
           printingCost: Math.round(breakdown.printing || baseCost * 0.1),
-          // unified-pricing-engine.tsで計算された値を使用
-          manufacturingMargin: Math.round(breakdown.manufacturingMargin || baseCost * 0.4),
-          duty: Math.round(breakdown.duty || baseCost * 0.05),
+          manufacturingMargin: Math.round(manufacturingMargin),
+          duty: Math.round(breakdown.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
           delivery: Math.round(breakdown.delivery || baseCost * 0.08),
-          salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.2),
+          salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.25),
           totalCost: Math.round(baseCost)
         };
       } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.breakdown?.baseCost && result.breakdown.baseCost > 0)) {
         // 通常モード・単一SKUモード: resultから計算
-        // 簡易的な原価計算（正確な値ではないが、表示用としては十分）
-        const baseCost = result.breakdown?.baseCost || result.totalPrice || (result.unitPrice * (result.quantity || state.quantity || 1)) || 0;
+        // 【重要】baseCost は原価ベースに統一。売価(totalPrice / unitPrice*qty)を含むと
+        //   duty が売価×5%に跳ね上がり約40%乖離するため、result.breakdown.baseCost のみを使用。
+        //   breakdown.baseCost が無い場合は計算不能としてスキップ（duty=0）。
+        const baseCost = result.breakdown?.baseCost || 0;
+        const manufacturingMargin = result.breakdown?.manufacturingMargin ?? calcManufacturingMargin(baseCost);
         costBreakdown = {
           materialCost: Math.round(baseCost * 0.4), // 約40%
           laminationCost: Math.round(baseCost * 0.06), // 約6%
@@ -990,10 +1080,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           surfaceTreatmentCost: 0,
           pouchProcessingCost: Math.round(baseCost * 0.15), // 約15%
           printingCost: Math.round(baseCost * 0.1), // 約10%
-          manufacturingMargin: 0,
-          duty: 0,
-          delivery: Math.round(baseCost * 0.08), // 約8%
-          salesMargin: Math.round(baseCost * 0.2), // 約20%
+          manufacturingMargin: Math.round(manufacturingMargin),
+          duty: Math.round(result.breakdown?.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
+          delivery: Math.round(result.breakdown?.delivery || baseCost * 0.08), // 約8%
+          salesMargin: Math.round(result.breakdown?.salesMargin || baseCost * 0.25), // 約25%
           totalCost: Math.round(baseCost)
         };
       }
@@ -1044,7 +1134,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // 印刷表示用
-                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'uv' ? 'UV印刷' : undefined,
+                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'auto' ? '自動選択' : undefined,
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;
@@ -1131,7 +1221,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // 印刷表示用
-                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'uv' ? 'UV印刷' : undefined,
+                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'auto' ? '自動選択' : undefined,
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;
@@ -1409,7 +1499,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             manufacturingMargin: Math.round(result.breakdown?.manufacturingMargin || (result.breakdown?.baseCost || 0) * 0.4),
             duty: Math.round(result.breakdown?.duty || (result.breakdown?.baseCost || 0) * 0.05),
             delivery: Math.round(result.breakdown?.delivery || (result.breakdown?.baseCost || 0) * 0.08),
-            salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.2),
+            salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.25),
             totalCost: Math.round(result.breakdown?.baseCost || (result.breakdown as Record<string, any>)?.totalCost || 0)
           } : {},
           items: itemsToSave.map(item => ({
@@ -1456,23 +1546,403 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         </p>
       </div>
 
-      {/* Price Display */}
-      <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
-        <div className="text-sm font-medium mb-2">合計金額（税別）</div>
-        {(() => {
-          const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
-          return (
-            <>
-              <div className="text-4xl font-bold mb-4">
-                ¥{roundedTotal.toLocaleString()}
+      {/* Phase 2: 印刷方式レコメンド表示（printingType='auto' 解決時のみ・AC-9）
+          複数パターンビューでは比較表で各パターンの推奨方式を表示するため非表示 */}
+      {result.recommendation && !showPatternComparison && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+              推
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-blue-900 mb-1">
+                おすすめの印刷方法: {result.recommendation.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}
+              </h3>
+              <p className="text-sm text-blue-800 mb-3">{result.recommendation.reason}</p>
+              {/* 2方式の違いと分岐点の平易な説明（C3: 専門用語の平易化） */}
+              <details className="text-xs text-blue-700 mb-3">
+                <summary className="cursor-pointer hover:text-blue-900 inline-flex items-center font-medium">
+                  <Info className="w-3.5 h-3.5 mr-1" />
+                  グラビアとデジタルの違いについて
+                </summary>
+                <div className="mt-2 space-y-1.5 text-blue-800 leading-relaxed">
+                  <p>
+                    <span className="font-semibold">デジタル印刷</span>：版（かなばん）を作らず、プリンターのように直接印刷。
+                    <span className="font-semibold">少量向け</span>。初期費用がかからず、少量なら安く早く仕上がります。
+                  </p>
+                  <p>
+                    <span className="font-semibold">グラビア印刷</span>：専用の銅版（どうばん＝印刷の型）を作って印刷。
+                    <span className="font-semibold">多量向け</span>。版づくりの初期費用がかかりますが、多く刷るほど1個あたりの単価が下がり、品質も安定します。
+                  </p>
+                  <p className="text-blue-600 pt-1 border-t border-blue-200">
+                    つまり「<span className="font-semibold">分岐点数量</span>」は、グラビアがデジタルより安くなる<span className="font-semibold">境界の個数</span>です。
+                    これより多く発注するならグラビア、少ないならデジタルがお得、という目安です。
+                  </p>
+                </div>
+              </details>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-gray-500 text-xs mb-1">デジタル総額</div>
+                  <div className={`font-semibold ${result.recommendation.method === 'digital' ? 'text-blue-700' : 'text-gray-700'}`}>
+                    {result.recommendation.digitalTotalPrice >= 0
+                      ? `¥${result.recommendation.digitalTotalPrice.toLocaleString()}`
+                      : '計算不可'}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-gray-500 text-xs mb-1">グラビア総額</div>
+                  <div className={`font-semibold ${result.recommendation.method === 'gravure' ? 'text-blue-700' : 'text-gray-700'}`}>
+                    {result.recommendation.gravureTotalPrice >= 0
+                      ? `¥${result.recommendation.gravureTotalPrice.toLocaleString()}`
+                      : '計算不可'}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-gray-500 text-xs mb-1">分岐点数量</div>
+                  <div className="font-semibold text-gray-700">
+                    {result.recommendation.breakevenQuantity >= 0
+                      ? `約${result.recommendation.breakevenQuantity.toLocaleString()}個`
+                      : '－'}
+                  </div>
+                </div>
               </div>
-              <div className="text-sm opacity-90">
-                単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+              <p className="text-xs text-blue-600 mt-3">
+                ※ 推奨は目安です。数量・仕様変更で分岐点は前後します。印刷方式は設定で「デジタル/グラビア/自動選択」から上書き選択できます。
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================
+          注文内容の確認（プロフェッショナル・カードUI）
+          - showPatternComparison / 従来ビュー両対応
+          - ロジック・データは既存のまま（state / result / multiQuantityQuotes）
+          ============================================== */}
+      <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* セクションヘッダー */}
+        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-navy-600 text-white">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 leading-tight">注文内容の確認</h3>
+              <p className="text-xs text-gray-500 mt-0.5">ご指定いただいた仕様・条件のまとめ</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ボディ：2カラム（モバイル1列） */}
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ── 基本仕様 ── */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Package className="w-4 h-4 text-navy-600 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-gray-900">基本仕様</h4>
               </div>
-            </>
-          );
-        })()}
-      </div>
+              <dl className="space-y-2.5 text-sm">
+                {((): null => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
+                {/* 内容物 */}
+                {(() => {
+                  const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
+                    'food': '食品',
+                    'health_supplement': '健康食品',
+                    'cosmetic': '化粧品',
+                    'quasi_drug': '医薬部外品',
+                    'drug': '医薬品',
+                    'other': 'その他'
+                  };
+                  const CONTENTS_TYPE_LABELS: Record<string, string> = {
+                    'solid': '固体',
+                    'powder': '粉体',
+                    'liquid': '液体'
+                  };
+                  const MAIN_INGREDIENT_LABELS: Record<string, string> = {
+                    'general_neutral': '一般/中性',
+                    'oil_surfactant': 'オイル/界面活性剤',
+                    'acidic_salty': '酸性/塩分',
+                    'volatile_fragrance': '揮発性/香料',
+                    'other': 'その他'
+                  };
+                  const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
+                    'general_roomTemp': '一般/常温',
+                    'light_oxygen_sensitive': '光/酸素敏感',
+                    'refrigerated': '冷凍保管',
+                    'high_temp_sterilized': '高温殺菌',
+                    'other': 'その他'
+                  };
+                  const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''];
+                  const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''];
+                  const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''];
+                  const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''];
+                  const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
+                    ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
+                    : '';
+                  return contentsDisplay ? (
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">内容物</dt>
+                      <dd className="text-gray-900 font-medium">{contentsDisplay}</dd>
+                    </div>
+                  ) : null;
+                })()}
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">袋タイプ</dt>
+                  <dd className="text-gray-900 font-medium">{getBagTypeLabel(state.bagTypeId)}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">サイズ</dt>
+                  <dd className="text-gray-900 font-medium">
+                    {state.bagTypeId === 'roll_film'
+                      ? `幅: ${state.width} mm`
+                      : `${state.width} × ${state.height} ${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `× ${state.depth}` : ''} mm`}
+                  </dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">素材</dt>
+                  <dd className="text-gray-900 font-medium">{getMaterialDescription(state.materialId, 'ja')}</dd>
+                </div>
+                {state.thicknessSelection && (
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                    <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">厚さ</dt>
+                    <dd className="text-gray-900 font-medium">{getFilmStructureLabel(state.materialId, state.thicknessSelection)}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            {/* ── 数量・印刷 ── */}
+            <div className="space-y-3 md:border-l md:border-gray-100 md:pl-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Layers className="w-4 h-4 text-navy-600 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-gray-900">数量・印刷</h4>
+              </div>
+              <dl className="space-y-2.5 text-sm">
+                {showPatternComparison ? (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">数量</dt>
+                      <dd className="text-gray-900 font-medium">
+                        下記「数量パターン比較表」をご参照ください（{multiQuantityQuotes.length}パターン）
+                      </dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷方式</dt>
+                      <dd className="text-gray-900 font-medium">各パターンの推奨（デジタル/グラビア）は比較表に記載</dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
+                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
+                    </div>
+                  </>
+                ) : hasValidSKUData ? (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">SKU別数量</dt>
+                      <dd className="text-gray-900 font-medium">
+                        {result?.skuCount || state.skuCount}種類
+                      </dd>
+                    </div>
+                    <div className="ml-0 sm:ml-[108px] space-y-1 text-gray-700">
+                      {(result?.skuQuantities || state.skuQuantities || []).map((qty, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="text-gray-400">•</span>
+                          <span>SKU {index + 1}: <span className="font-medium text-gray-900">{qty.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</span></span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3 pt-1 border-t border-gray-100">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">総数量</dt>
+                      <dd className="text-navy-700 font-bold">
+                        {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
+                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
+                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">数量</dt>
+                      <dd className="text-gray-900 font-medium">
+                        {
+                          // ロールフィルムの場合はSKU数量を優先、それ以外はstate.quantityを使用
+                          state.bagTypeId === 'roll_film' && state.skuQuantities && state.skuQuantities.length > 0
+                            ? state.skuQuantities[0].toLocaleString()
+                            : state.quantity.toLocaleString()
+                        }{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                      </dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
+                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
+                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
+                    </div>
+                  </>
+                )}
+              </dl>
+            </div>
+          </div>
+
+          {/* ── 後加工（全幅・条件付き） ── */}
+          {state.postProcessingOptions && state.postProcessingOptions.length > 0 && (
+            <div className="space-y-3 pt-6 border-t border-gray-100">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Settings className="w-4 h-4 text-navy-600 flex-shrink-0" />
+                <h4 className="text-sm font-semibold text-gray-900">後加工</h4>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {safeMap(getFilteredPostProcessingOptions(), option => (
+                  <span
+                    key={option}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-sm text-gray-700"
+                  >
+                    {getPostProcessingLabel(option)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── 配送・納期（全幅） ── */}
+          <div className="space-y-3 pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <Truck className="w-4 h-4 text-navy-600 flex-shrink-0" />
+              <h4 className="text-sm font-semibold text-gray-900">配送・納期</h4>
+            </div>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">配送先</dt>
+                <dd className="text-gray-900 font-medium">{state.deliveryLocation === 'domestic' ? '国内' : '海外'}</dd>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">納期</dt>
+                <dd className="text-gray-900 font-medium">
+                  {state.urgency === 'standard' ? '標準' : '迅速'}
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">
+                    {result.leadTimeDays}日
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      {/* C4: 数量パターン比較表（最安ハイライト・AC-7/AC-8） */}
+      {/* 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 4
+          multiQuantityResult.calculations (Map<number, UnifiedQuoteResult & {recommendation}>) から
+          ユーザー入力パターンごとの価格を表形式で表示。最安パターンをハイライト。
+          AC-8: SKU数 <=5 のみ表示（showPatternMode ガード）。>5 は非表示。 */}
+      {showPatternComparison && multiQuantityResult?.calculations && (() => {
+        // C4: Mapキー=パターンindex(0-4)。
+        // fix #16: 実数量は calc.patternTotalQuantity（handleNext で保持）を使用。逆算廃止。
+        const rows = Array.from(multiQuantityResult.calculations.entries())
+          .map(([patternIdx, calc]) => {
+            const actualQuantity = calc.patternTotalQuantity ?? 0;
+            return {
+              patternIdx,
+              actualQuantity,
+              totalPrice: calc.totalPrice,
+              unitPrice: calc.unitPrice,
+              method: calc.recommendation?.method,
+            };
+          })
+          .sort((a, b) => a.actualQuantity - b.actualQuantity);
+
+        // 最安の単価を特定（ハイライト用）
+        const minUnitPrice = Math.min(...rows.map(r => r.unitPrice));
+
+        return (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">数量パターン比較表</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-300 text-gray-600">
+                    <th className="text-left py-2 px-3">数量合計</th>
+                    <th className="text-right py-2 px-3">単価</th>
+                    <th className="text-right py-2 px-3">総額（税別）</th>
+                    <th className="text-center py-2 px-3">推奨方式</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => {
+                    const isCheapest = row.unitPrice === minUnitPrice;
+                    return (
+                      <tr
+                        key={row.patternIdx}
+                        className={`border-b border-gray-100 ${isCheapest ? 'bg-green-50' : ''}`}
+                      >
+                        <td className="py-2 px-3 font-medium text-gray-900">
+                          {row.actualQuantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '枚'}
+                          {isCheapest && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              最安
+                            </span>
+                          )}
+                        </td>
+                        <td className={`text-right py-2 px-3 ${isCheapest ? 'font-bold text-green-700' : 'text-gray-700'}`}>
+                          ¥{Math.round(row.unitPrice).toLocaleString()}
+                        </td>
+                        <td className="text-right py-2 px-3 text-gray-700">
+                          ¥{Math.round(row.totalPrice).toLocaleString()}
+                        </td>
+                        <td className="text-center py-2 px-3">
+                          {row.method ? (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              row.method === 'gravure'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {row.method === 'gravure' ? 'グラビア' : 'デジタル'}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              ※ 単価最安のパターンをハイライト。グラビアは分岐点以上の数量で単価が下がります。
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* Price Display（複数パターンビューでは非表示・比較表で代替） */}
+      {!showPatternComparison && (
+        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
+          <div className="text-sm font-medium mb-2">合計金額（税別）</div>
+          {(() => {
+            const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
+            return (
+              <>
+                <div className="text-4xl font-bold mb-4">
+                  ¥{roundedTotal.toLocaleString()}
+                </div>
+                <div className="text-sm opacity-90">
+                  単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Admin-only cost breakdown */}
       {isAdmin && result.skuCostDetails && (
@@ -1482,115 +1952,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           marginRate={0.5}
         />
       )}
-
-      {/* Order Summary */}
-      <div className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">注文内容の確認</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">基本仕様</h4>
-            <div className="text-sm space-y-1 text-gray-600">
-              {((): null => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
-              {/* 内容物 - 一番上に表示 */}
-              {(() => {
-                const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-                  'food': '食品',
-                  'health_supplement': '健康食品',
-                  'cosmetic': '化粧品',
-                  'quasi_drug': '医薬部外品',
-                  'drug': '医薬品',
-                  'other': 'その他'
-                };
-                const CONTENTS_TYPE_LABELS: Record<string, string> = {
-                  'solid': '固体',
-                  'powder': '粉体',
-                  'liquid': '液体'
-                };
-                const MAIN_INGREDIENT_LABELS: Record<string, string> = {
-                  'general_neutral': '一般/中性',
-                  'oil_surfactant': 'オイル/界面活性剤',
-                  'acidic_salty': '酸性/塩分',
-                  'volatile_fragrance': '揮発性/香料',
-                  'other': 'その他'
-                };
-                const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
-                  'general_roomTemp': '一般/常温',
-                  'light_oxygen_sensitive': '光/酸素敏感',
-                  'refrigerated': '冷凍保管',
-                  'high_temp_sterilized': '高温殺菌',
-                  'other': 'その他'
-                };
-                const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''];
-                const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''];
-                const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''];
-                const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''];
-                const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
-                  ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
-                  : '';
-                return contentsDisplay ? <div>内容物: {contentsDisplay}</div> : null;
-              })()}
-              <div>袋のタイプ: {getBagTypeLabel(state.bagTypeId)}</div>
-              <div>サイズ: {state.bagTypeId === 'roll_film'
-                ? `幅: ${state.width} mm`
-                : `${state.width} × ${state.height} ${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `× ${state.depth}` : ''} mm`}</div>
-              <div>素材: {getMaterialDescription(state.materialId, 'ja')}</div>
-              {state.thicknessSelection && <div>厚さ: {THICKNESS_TYPE_JA[state.thicknessSelection as keyof typeof THICKNESS_TYPE_JA] || state.thicknessSelection}</div>}
-            </div>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">数量・印刷</h4>
-            <div className="text-sm space-y-1 text-gray-600">
-              {hasValidSKUData ? (
-                <div>
-                  <div className="font-medium">SKU別数量 ({result?.skuCount || state.skuCount}種類):</div>
-                  {(result?.skuQuantities || state.skuQuantities || []).map((qty, index) => (
-                    <div key={index} className="ml-2">
-                      • SKU {index + 1}: {qty.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                    </div>
-                  ))}
-                  <div className="mt-2 font-medium">
-                    総数量: {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                  </div>
-                  <div className="mt-1">印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
-                  <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
-                </div>
-              ) : (
-                <>
-                  <div>数量: {
-                    // ロールフィルムの場合はSKU数量を優先、それ以外はstate.quantityを使用
-                    state.bagTypeId === 'roll_film' && state.skuQuantities && state.skuQuantities.length > 0
-                      ? state.skuQuantities[0].toLocaleString()
-                      : state.quantity.toLocaleString()
-                  }{state.bagTypeId === 'roll_film' ? 'm' : '個'}</div>
-                  <div>印刷: {state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</div>
-                  <div>色数: {state.printingColors} {state.doubleSided && '(両面)'}</div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {state.postProcessingOptions && state.postProcessingOptions.length > 0 && (
-          <div className="mt-4">
-            <h4 className="font-medium text-gray-700 mb-2">後加工</h4>
-            <div className="text-sm text-gray-600">
-              {safeMap(getFilteredPostProcessingOptions(), option => (
-                <span key={option} className="mr-2">
-                  {getPostProcessingLabel(option)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4">
-          <h4 className="font-medium text-gray-700 mb-2">配送・納期</h4>
-          <div className="text-sm space-y-1 text-gray-600">
-            <div>配送先: {state.deliveryLocation === 'domestic' ? '国内' : '海外'}</div>
-            <div>納期: {state.urgency === 'standard' ? '標準' : '迅速'}（{result.leadTimeDays}日）</div>
-          </div>
-        </div>
-      </div>
 
       {/* Multi-Quantity Comparison Results */}
       {multiQuantityState.comparison && (
@@ -1730,6 +2091,33 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-3">
+        {/* 注文ボタン（会員限定） */}
+        {user?.id && quotationId && (
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch(`/api/member/quotations/${quotationId}/convert`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  alert('注文を確定しました。注文履歴からご確認ください。');
+                  window.location.href = '/member/orders';
+                } else {
+                  alert('注文の確定に失敗しました。もう一度お試しください。');
+                }
+              } catch (e) {
+                alert('通信エラーが発生しました。');
+              }
+            }}
+            className="px-6 py-3 bg-brixa-600 text-white rounded-lg font-medium hover:bg-brixa-700 transition-colors flex items-center"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            この内容で注文
+          </button>
+        )}
+
         <motion.button
           onClick={() => {
             if (window.confirm('新しい見積もりを作成します。現在の入力内容はリセットされます。よろしいですか？')) {
@@ -1791,7 +2179,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           ) : (
             <>
               <Download className="w-4 h-4 mr-2" />
-              PDFダウンロード (自動保存)
+              {showPatternComparison && multiQuantityQuotes.length > 0
+                ? `全パターンPDFダウンロード (${multiQuantityQuotes.length}パターン・自動保存)`
+                : 'PDFダウンロード (自動保存)'}
             </>
           )}
         </button>

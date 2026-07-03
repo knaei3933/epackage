@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { OrderStatus } from '@/types/order-status';
+import { mapStatusToCurrentStage } from '@/types/order-status';
 
 // ============================================================
 // Types
@@ -92,6 +93,7 @@ export async function PUT(
       .from('orders')
       .update({
         status: status,
+        current_stage: mapStatusToCurrentStage(status),
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)

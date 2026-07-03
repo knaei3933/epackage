@@ -19,6 +19,7 @@ import type { Quotation, QuotationStatus } from '@/types/entities';
 import { MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS, convertToPreviewOptions } from '@/constants/product-type-config';
 import { translateMaterialType, translateBagType } from '@/constants/enToJa';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
 import { generateQuotePDF } from '@/lib/pdf-generator';
 import { mapDatabaseQuotationToExcel } from '@/lib/excel/excelDataMapper';
@@ -305,16 +306,19 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
           thicknessType = getMaterialSpecification(materialId, thicknessSelection);
         }
         if (thicknessType === '-' && materialId) {
-          const defaultThicknessSpec: Record<string, string> = {
-            'ny_lldpe': 'NY 15μ + LLDPE 70μ',
-            'pet_ldpe': 'PET 12μ + LLDPE 70μ',
-            'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-            'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
-            'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-            'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-            'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-          };
-          thicknessType = defaultThicknessSpec[materialId] || '-';
+          // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+          // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
+          const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+          if (isKraft) {
+            const defaultThicknessSpec: Record<string, string> = {
+              'kraft_vmpet_lldpe': 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+              'kraft_pet_lldpe': 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
+            };
+            thicknessType = defaultThicknessSpec[materialId] || '-';
+          } else {
+            const label = getFilmStructureLabel(materialId, thicknessSelection);
+            thicknessType = (label && label !== materialId) ? label : '-';
+          }
         }
 
         return {
@@ -525,209 +529,200 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
             ) : (
               <div className="space-y-4">
                 {quotations.map((quotation) => (
-                  <Card key={quotation.id} className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-text-primary">
-                            {quotation.quotationNumber}
-                          </h3>
-                          <Badge variant={MEMBER_STATUS_VARIANTS[quotation.status] || 'default'}>
-                            {MEMBER_STATUS_LABELS[quotation.status] || quotation.status}
-                          </Badge>
-                        </div>
-
-                        <div className="space-y-1 text-sm text-text-muted">
-                          <p>
-                            作成日: {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('ja-JP') : '-'}
-                          </p>
-                          <p>
-                            有効期限: {quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('ja-JP') : '-'}
-                            {quotation.validUntil && (
-                              <span className="ml-2 text-xs">
-                                ({formatDistanceToNow(new Date(quotation.validUntil), { locale: ja, addSuffix: true })})
-                              </span>
-                            )}
-                          </p>
-                          <p>金額: {formatPrice((quotation.subtotal_amount || 0) + (quotation.tax_amount || 0))}</p>
-                          {downloadStats[quotation.id] && (
-                            <p className="text-xs">
-                              ダウンロード回数: {downloadStats[quotation.id].count}回
-                              {downloadStats[quotation.id].lastDownloadedAt && (
-                                <span className="ml-2">
-                                  (最終: {new Date(downloadStats[quotation.id].lastDownloadedAt).toLocaleDateString('ja-JP')})
-                                </span>
-                              )}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Specification Display */}
-                        {quotation.items && quotation.items.length > 0 && (() => {
-                          const item = quotation.items[0];
-                          const specs = item.breakdown?.specifications || item.specifications;
-                          return specs && <MemberSpecificationDisplay item={{ specifications: specs }} />;
-                        })()}
-
-                        {/* Post Processing Preview */}
-                        {quotation.items && quotation.items.length > 0 && (() => {
-                          const item = quotation.items[0];
-                          const specs = item.breakdown?.specifications || item.specifications;
-                          return specs && specs.postProcessingOptions && specs.postProcessingOptions.length > 0 && (
-                            <PostProcessingPreview
-                              selectedOptions={convertToPreviewOptions(specs.postProcessingOptions)}
-                              className="mb-3"
-                            />
-                          );
-                        })()}
-
-                        {/* SKU Items */}
-                        <div className="text-sm text-text-muted space-y-1 mb-3">
-                          {safeMap((quotation.items || []).slice(0, 3), (item) => {
-                            const specs = item.breakdown?.specifications || item.specifications || {};
-                            const skuQuantities = specs.sku_quantities;
-                            const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
-
-                            return (
-                              <div key={item.id} className="flex items-center justify-between p-2 rounded bg-bg-secondary/30">
-                                <div className="flex items-center gap-2">
-                                  {hasMultipleSKUs ? (
-                                    <>
-                                      <span className="text-text-primary font-medium">SKU分割: {skuQuantities.length}種類</span>
-                                      <span className="text-border-secondary">
-                                        合計: {skuQuantities.reduce((sum: number, q: number) => sum + q, 0)}個
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <span className="text-text-primary font-medium">
-                                      {item.productName || `SKU ${item.id}`}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-text-primary font-semibold">
-                                    {formatPrice(item.unitPrice * item.quantity)}円
-                                  </span>
-                                  {quotation.status.toLowerCase() === 'converted' ? (
-                                    item.orderId ? (
-                                      <a
-                                        href={`/member/orders/${item.orderId}`}
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          window.location.href = `/member/orders/${item.orderId}`;
-                                        }}
-                                        className="text-xs text-primary hover:underline cursor-pointer"
-                                      >
-                                        注文を確認
-                                      </a>
-                                    ) : (
-                                      <span className="text-xs text-text-muted">注文詳細で確認</span>
-                                    )
-                                  ) : (
-                                    <Badge variant="secondary" size="sm">未注文</Badge>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {quotation.items && quotation.items.length > 3 && (
-                            <p className="text-text-muted text-center">他 {quotation.items.length - 3} 点</p>
-                          )}
-                        </div>
-
-                        <div className="text-lg font-semibold text-text-primary">
-                          合計: {formatPrice((quotation.subtotal_amount || 0) + (quotation.tax_amount || 0))}円
-                        </div>
-
-                        {/* Download History Indicator */}
-                        {downloadStats[quotation.id]?.count > 0 && (
-                          <div className="flex items-center gap-2 text-xs text-text-muted mt-2">
-                            <Download className="w-3 h-3" />
-                            <span>
-                              PDFダウンロード {downloadStats[quotation.id].count}回
-                              {downloadStats[quotation.id].lastDownloadedAt && (
-                                <>
-                                  {' '}(最後: {new Date(downloadStats[quotation.id].lastDownloadedAt!).toLocaleDateString('ja-JP')})
-                                </>
-                              )}
+                  <Card key={quotation.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    {/* ── ヘッダー行: 見積番号・ステータス・日付・合計 ── */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border-secondary bg-bg-secondary/30">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-semibold text-text-primary">
+                          {quotation.quotationNumber}
+                        </h3>
+                        <Badge variant={MEMBER_STATUS_VARIANTS[quotation.status] || 'default'}>
+                          {MEMBER_STATUS_LABELS[quotation.status] || quotation.status}
+                        </Badge>
+                        <span className="text-xs text-text-muted">
+                          {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('ja-JP') : '-'}
+                        </span>
+                        {quotation.validUntil && (
+                          <span className="text-xs text-text-muted">
+                            期限: {new Date(quotation.validUntil).toLocaleDateString('ja-JP')}
+                            <span className="ml-1">
+                              ({formatDistanceToNow(new Date(quotation.validUntil), { locale: ja, addSuffix: true })})
                             </span>
-                          </div>
+                          </span>
                         )}
                       </div>
+                      <div className="text-lg font-bold text-text-primary">
+                        ¥{formatPrice(quotation.total_amount || ((quotation.subtotal_amount || 0) + (quotation.tax_amount || 0)))}
+                        <span className="text-xs font-normal text-text-muted ml-1">(税込)</span>
+                      </div>
+                    </div>
 
-                      <div className="text-right shrink-0">
-                        <div className="text-xs text-text-muted mb-3">
-                          {quotation.createdAt ? (
-                            formatDistanceToNow(new Date(quotation.createdAt), {
-                              addSuffix: true,
-                              locale: ja,
-                            })
-                          ) : (
-                            '作成日不明'
-                          )}
+                    {/* ── アイテム一覧（全件表示・コンパクト表形式） ── */}
+                    {(quotation.items?.length ?? 0) > 0 && (
+                      <div className="px-4 py-2">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-xs text-text-muted border-b border-border-secondary">
+                              <th className="text-left font-medium py-1.5 pr-2">品目</th>
+                              <th className="text-right font-medium py-1.5 px-2 w-20">数量</th>
+                              <th className="text-right font-medium py-1.5 px-2 w-24">単価</th>
+                              <th className="text-right font-medium py-1.5 pl-2 w-28">金額</th>
+                              <th className="text-center font-medium py-1.5 pl-2 w-20">状態</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {safeMap(quotation.items, (item) => {
+                              const specs = item.breakdown?.specifications || item.specifications || {};
+                              const skuQuantities = specs.sku_quantities;
+                              const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
+                              const isConverted = quotation.status.toLowerCase() === 'converted';
+
+                              return (
+                                <tr key={item.id} className="border-b border-border-secondary/50 last:border-0">
+                                  <td className="py-1.5 pr-2 text-text-primary">
+                                    {hasMultipleSKUs ? (
+                                      <span>
+                                        <span className="font-medium">SKU分割: {skuQuantities.length}種</span>
+                                        <span className="text-text-muted ml-1">
+                                          ({skuQuantities.reduce((sum: number, q: number) => sum + q, 0)}個)
+                                        </span>
+                                      </span>
+                                    ) : (
+                                      <span className="font-medium">{item.productName || `SKU ${item.id}`}</span>
+                                    )}
+                                  </td>
+                                  <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">
+                                    {hasMultipleSKUs ? '—' : `${item.quantity.toLocaleString()}`}
+                                  </td>
+                                  <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">
+                                    {hasMultipleSKUs ? '—' : `¥${formatPrice(item.unitPrice || 0)}`}
+                                  </td>
+                                  <td className="py-1.5 pl-2 text-right text-text-primary font-medium tabular-nums">
+                                    ¥{formatPrice(item.unitPrice * item.quantity)}
+                                  </td>
+                                  <td className="py-1.5 pl-2 text-center">
+                                    {isConverted ? (
+                                      item.orderId ? (
+                                        <a
+                                          href={`/member/orders/${item.orderId}`}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            window.location.href = `/member/orders/${item.orderId}`;
+                                          }}
+                                          className="text-xs text-primary hover:underline cursor-pointer"
+                                        >
+                                          注文確認
+                                        </a>
+                                      ) : (
+                                        <span className="text-xs text-text-muted">注文済</span>
+                                      )
+                                    ) : (
+                                      <Badge variant="secondary" size="sm">未注文</Badge>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* ── 製品仕様サマリー ── */}
+                    {quotation.items && quotation.items.length > 0 && (() => {
+                      const item = quotation.items[0];
+                      const specs = item.breakdown?.specifications || item.specifications;
+                      return specs && (
+                        <div className="px-4 pb-2">
+                          <MemberSpecificationDisplay item={{ specifications: specs }} />
                         </div>
-                        <div className="flex flex-col gap-2.5">
-                          {/* View Detail Button */}
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleViewDetails(quotation)}
-                            className="group/btn"
-                          >
-                            <Eye className="w-4 h-4 mr-1.5 transition-transform group-hover/btn:scale-110" />
-                            詳細を見る
-                          </Button>
+                      );
+                    })()}
 
-                          {/* PDF Download Button */}
+                    {/* ── 後加工プレビュー（標準表示） ── */}
+                    {quotation.items && quotation.items.length > 0 && (() => {
+                      const item = quotation.items[0];
+                      const specs = item.breakdown?.specifications || item.specifications;
+                      return specs && specs.postProcessingOptions && specs.postProcessingOptions.length > 0 && (
+                        <div className="px-4 pb-2">
+                          <PostProcessingPreview
+                            selectedOptions={convertToPreviewOptions(specs.postProcessingOptions)}
+                            defaultExpanded={true}
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    {/* ── フッターアクションバー ── */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-border-secondary bg-bg-secondary/20">
+                      <div className="flex items-center gap-3 text-xs text-text-muted">
+                        {downloadStats[quotation.id]?.count > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Download className="w-3 h-3" />
+                            PDF {downloadStats[quotation.id].count}回
+                          </span>
+                        )}
+                        <span>
+                          {(quotation.items?.length ?? 0)}点
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleViewDetails(quotation)}
+                          className="group/btn"
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1 transition-transform group-hover/btn:scale-110" />
+                          詳細
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadPDF(quotation)}
+                          disabled={downloadingQuoteId === quotation.id}
+                          className="group/btn"
+                        >
+                          <Download
+                            className={`w-3.5 h-3.5 mr-1 transition-transform ${
+                              downloadingQuoteId === quotation.id ? 'animate-spin' : 'group-hover/btn:scale-110'
+                            }`}
+                          />
+                          {downloadingQuoteId === quotation.id ? '作成中...' : 'PDF'}
+                        </Button>
+
+                        {['approved', 'quotation_approved'].includes(quotation.status.toLowerCase()) && (
                           <Button
-                            variant="outline"
+                            variant="primary"
                             size="sm"
-                            onClick={() => handleDownloadPDF(quotation)}
-                            disabled={downloadingQuoteId === quotation.id}
+                            onClick={() => {
+                              setQuotationForSpec(quotation);
+                              setShowSpecModal(true);
+                            }}
+                            className="group/btn shadow-sm hover:shadow"
+                          >
+                            <FileText className="w-3.5 h-3.5 mr-1 transition-transform group-hover/btn:scale-110" />
+                            注文する
+                          </Button>
+                        )}
+
+                        {['draft', 'quotation_pending'].includes(quotation.status.toLowerCase()) && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteQuotation(quotation.id)}
+                            disabled={deletingQuoteId === quotation.id}
                             className="group/btn"
                           >
-                            <Download
-                              className={`w-4 h-4 mr-1.5 transition-transform ${
-                                downloadingQuoteId === quotation.id ? 'animate-spin' : 'group-hover/btn:scale-110'
+                            <Trash2
+                              className={`w-3.5 h-3.5 mr-1 transition-transform ${
+                                deletingQuoteId === quotation.id ? 'animate-pulse' : 'group-hover/btn:scale-110'
                               }`}
                             />
-                            {downloadingQuoteId === quotation.id ? 'PDF作成中...' : 'PDFダウンロード'}
+                            {deletingQuoteId === quotation.id ? '...' : '削除'}
                           </Button>
-
-                          {/* Delete Button - DRAFT status only */}
-                          {['draft', 'quotation_pending'].includes(quotation.status.toLowerCase()) && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteQuotation(quotation.id)}
-                              disabled={deletingQuoteId === quotation.id}
-                              className="group/btn"
-                            >
-                              <Trash2
-                                className={`w-4 h-4 mr-1.5 transition-transform ${
-                                  deletingQuoteId === quotation.id ? 'animate-pulse' : 'group-hover/btn:scale-110'
-                                }`}
-                              />
-                              {deletingQuoteId === quotation.id ? '削除中...' : '削除'}
-                            </Button>
-                          )}
-
-                          {/* Convert to Order - APPROVED status only */}
-                          {['approved', 'quotation_approved'].includes(quotation.status.toLowerCase()) && (
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => {
-                                setQuotationForSpec(quotation);
-                                setShowSpecModal(true);
-                              }}
-                              className="group/btn shadow-md hover:shadow-lg"
-                            >
-                              <FileText className="w-4 h-4 mr-1.5 transition-transform group-hover/btn:scale-110" />
-                              注文する
-                            </Button>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -753,14 +748,18 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                 }}
                 quotationId={quotationForSpec.id}
                 quotation={quotationForSpec}
-                onApprove={async () => {
+                onApprove={async (selectedItemIds?: string[]) => {
                   try {
                     const response = await fetch(`/api/member/quotations/${quotationForSpec.id}/convert`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
                       },
-                      body: JSON.stringify({}),
+                      body: JSON.stringify(
+                        selectedItemIds && selectedItemIds.length > 0
+                          ? { selectedItemIds }
+                          : {}
+                      ),
                     });
 
                     const result = await response.json();

@@ -21,8 +21,7 @@
 
 | Type | Address |
 |------|---------|
-| **Headquarters** | 2-11-21 Uenomaru, Akashi-shi, Hyogo 673-0882, Japan |
-| **Logistics Center** | 486 Rokubunichi, Inami-cho, Kako-gun, Hyogo 675-0144, Japan |
+| **Headquarters** | 486 Rokubunichi, Inami-cho, Kako-gun, Hyogo 675-1112, Japan |
 
 ### 1.3 Contact Information
 

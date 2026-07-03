@@ -43,6 +43,10 @@ interface AuthProviderProps {
 // Auth Boundaries for Route-Aware Session Refresh
 // =====================================================
 
+// Client-side profile cache: skip redundant current-user API round-trips
+// within the same auth zone. TTL-bounded; signIn/signOut/refreshSession/401 bypass it.
+const PROFILE_CACHE_TTL_MS = 30_000
+
 const AUTH_BOUNDARIES = {
   public: ['/', '/about', '/contact', '/catalog', '/auth', '/samples', '/pricing', '/inquiry', '/compare', '/service', '/cart', '/legal', '/csr', '/privacy', '/terms', '/design-system', '/blog', '/news', '/premium-content', '/archives', '/guide', '/industry', '/print', '/flow'],
   member: ['/member', '/quote-simulator'],
@@ -134,6 +138,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const pendingFetchId = useRef<number>(0)
   // Persist user state across route changes to prevent loss
   const previousUserRef = useRef<User | null>(null)
+  // Client-side profile cache timestamp (null = no cached fetch).
+  // Reduces current-user API calls on same-zone boundary crossings.
+  const profileCacheRef = useRef<{ timestamp: number } | null>(null)
 
   // =====================================================
   // Session Management & Auth State Listener
@@ -141,9 +148,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Memoized fetch session function that can be called on route changes
   // Uses fetchId to prevent race conditions from concurrent requests
-  const fetchSessionAndUpdateState = useCallback(async (fetchId?: number) => {
+  const fetchSessionAndUpdateState = useCallback(async (fetchId?: number, forceRefresh?: boolean) => {
     // Generate a new fetch ID if not provided
     const currentFetchId = fetchId ?? ++pendingFetchId.current
+
+    // Cache hit: skip the network round-trip when a recent successful
+    // fetch is still fresh. signIn/signOut/refreshSession/activity-refresh
+    // bypass the cache via forceRefresh. 401 busts the cache immediately.
+    if (
+      !forceRefresh &&
+      profileCacheRef.current &&
+      Date.now() - profileCacheRef.current.timestamp < PROFILE_CACHE_TTL_MS
+    ) {
+      console.log('[AuthContext] Profile cache hit, skipping current-user fetch', {
+        fetchId: currentFetchId,
+        ageMs: Date.now() - profileCacheRef.current.timestamp,
+      })
+      return
+    }
 
     try {
       console.log('[AuthContext] Fetching session from /api/auth/current-user...', { fetchId: currentFetchId })
@@ -171,6 +193,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(convertedUser)
           // Update ref for state persistence
           previousUserRef.current = convertedUser
+          // Mark cache fresh so near-term same-zone fetches skip the round-trip
+          profileCacheRef.current = { timestamp: Date.now() }
           console.log('[AuthContext] Session updated successfully', { fetchId: currentFetchId })
         } else {
           // Session is invalid or expired - only clear if we have valid previous state
@@ -179,6 +203,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setProfile(null)
           setUser(null)
           previousUserRef.current = null
+          profileCacheRef.current = null
         }
       } else {
         // Only clear user state on explicit 401 unauthorized
@@ -189,6 +214,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setProfile(null)
           setUser(null)
           previousUserRef.current = null
+          // 401 busts the cache immediately so the next fetch is a real round-trip
+          profileCacheRef.current = null
         } else {
           console.warn('[AuthContext] Session fetch failed:', response.status, '- preserving existing state')
           // Preserve current user state - don't clear on transient failures
@@ -432,6 +459,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSession(null)
       setProfile(null)
       setUser(null)
+      // Bust the profile cache so a re-login fetches fresh state
+      profileCacheRef.current = null
       // Redirect to login page (not home) after logout
       router.push('/auth/signin')
     }
@@ -442,7 +471,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Uses server-side API to refresh httpOnly cookies
    */
   const refreshSession = useCallback(async () => {
-    await fetchSessionAndUpdateState()
+    // forceRefresh bypasses the profile cache (manual user/system-initiated refresh)
+    await fetchSessionAndUpdateState(undefined, true)
   }, [fetchSessionAndUpdateState])
 
   /**
@@ -471,6 +501,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Update local state
     setProfile(updatedProfile)
     setUser(prev => prev ? { ...prev, ...updates } : null)
+    // Bust the profile cache so subsequent reads pick up the edited profile
+    profileCacheRef.current = null
   }, [user])
 
   /**
@@ -577,7 +609,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Only refresh if session expires in less than 10 minutes
       if (timeUntilExpiry <= 10 * 60 * 1000) {
         console.log('[AuthContext] Activity detected, refreshing session...')
-        await fetchSessionAndUpdateState()
+        // forceRefresh: this is a deliberate session-extension refresh, not a cacheable navigation
+        await fetchSessionAndUpdateState(undefined, true)
       }
     }
   }, [isAuthenticated, session, fetchSessionAndUpdateState])

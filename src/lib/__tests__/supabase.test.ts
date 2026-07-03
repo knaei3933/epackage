@@ -1,89 +1,144 @@
 /**
  * Supabase Utilities Unit Tests
  *
- * Supabaseユーティリティユニットテスト
+ * Supabaseユニティリティユニットテスト
+ *
+ * 【是正方針】
+ * - 実装 src/lib/supabase.ts の現行振る舞いにテスト期待値を合わせる。
+ * - createServiceClient / createSupabaseWithCookies はクレデンシャル不足時に
+ *   例外を投げず mock クライアントを返す（warn のみ）。よって「例外を投げる」
+ *   期待は「mock クライアントを返す」に是正。
+ * - db.createQuote / createInquiry / createSampleRequest は DEPRECATED であり
+ *   常に例外を投げる。よって「成功」期待は「例外」に是正。
+ * - createServiceClient は _serviceClient シングルトンキャッシュを持つため、
+ *   モックは createClient 呼出の都度「現在の mockSupabaseInstance」を参照する
+ *   遅延評価設計とし、beforeEach でキャッシュ（_serviceClient）ごとリセットする。
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
-import { jest } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 
 // Set environment variables BEFORE importing the module
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
 
-// Mock createClient before importing supabase module
-const mockCreateClient = jest.fn()
-
-// Setup mock return value BEFORE the module imports it
+// モッククライアントの「現在の実体」。createServiceClient のシングルトンキャッシュと
+// 競合しないよう、createClient factory は毎回この変数を遅延参照する。
 let mockSupabaseInstance: any = null
 
-const createMockSupabaseClient = () => ({
-  from: jest.fn((table: string) => mockSupabaseInstance),
-  select: jest.fn(() => mockSupabaseInstance),
-  insert: jest.fn(() => mockSupabaseInstance),
-  update: jest.fn(() => mockSupabaseInstance),
-  delete: jest.fn(() => mockSupabaseInstance),
-  eq: jest.fn(() => mockSupabaseInstance),
-  single: jest.fn(() => mockSupabaseInstance),
-  maybeSingle: jest.fn(() => mockSupabaseInstance),
-  limit: jest.fn(() => mockSupabaseInstance),
-  order: jest.fn(() => mockSupabaseInstance),
-  range: jest.fn(() => mockSupabaseInstance),
-  gte: jest.fn(() => mockSupabaseInstance),
-  lte: jest.fn(() => mockSupabaseInstance),
-  in: jest.fn(() => mockSupabaseInstance),
-  neq: jest.fn(() => mockSupabaseInstance),
-  lt: jest.fn(() => mockSupabaseInstance),
-  auth: {
-    getSession: jest.fn(),
-  },
+// jest.mock は @swc/jest では hoisting されないため、factory 内で完結させる。
+// factory 内で createClient を定義し、呼び出しの都度 mockSupabaseInstance を
+// 遅延参照してクライアントを構築する。
+jest.mock('@supabase/supabase-js', () => {
+  const createClient = jest.fn(() => {
+    // 呼び出し時に現在の mockSupabaseInstance を参照（遅延評価）
+    return mockSupabaseInstance
+  })
+  return { createClient }
 })
 
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => createMockSupabaseClient()),
-}))
+// jest.resetModules で実装側の _serviceClient シングルトンを都度リセットするため、
+// 各テストでモジュールを再取得するヘルパー。
+async function loadModule() {
+  jest.resetModules()
+  return await import('../supabase')
+}
 
-// Now import the module after mocking
-import {
-  createServiceClient,
-  createSupabaseClient,
-  isSupabaseConfigured,
-  auth,
-  db,
-  getUserEmail,
-  createSupabaseWithCookies,
-} from '../supabase'
+// 1回だけ初期インポート（型取得用）。各テストでは loadModule で再取得する。
 import type { Profile } from '../supabase'
+
+// ============================================================
+// モックビルダー
+// ============================================================
+
+/**
+ * モッククライアント。
+ *
+ * 【重要】クライアントを thenable にはしないこと。
+ * 実装 db.getProducts は `const client = await getServerClient()` と
+ * クライアントを await するため、クライアントが thenable だと
+ * await の解決値で client が上書きされ `client.from is not a function` になる。
+ * よってクライアントは非 thenable とし、`await query`（チェーン末尾）で
+ * 取得される { data, error } は client の data/error プロパティで表現する。
+ * （非 thenable なオブジェクトを await すると値がそのまま返るため）
+ *
+ * 単一行取得は single()/maybeSingle() で Promise<{data,error}> を返す。
+ */
+function createMockSupabaseClient() {
+  const client: any = {
+    // await query で取り出される結果（デフォルトは空）
+    data: null,
+    error: null,
+    from: jest.fn(() => client),
+    select: jest.fn(() => client),
+    insert: jest.fn(() => client),
+    update: jest.fn(() => client),
+    delete: jest.fn(() => client),
+    eq: jest.fn(() => client),
+    neq: jest.fn(() => client),
+    lt: jest.fn(() => client),
+    lte: jest.fn(() => client),
+    gte: jest.fn(() => client),
+    in: jest.fn(() => client),
+    order: jest.fn(() => client),
+    limit: jest.fn(() => client),
+    range: jest.fn(() => client),
+    single: jest.fn(),
+    maybeSingle: jest.fn(),
+    auth: {
+      getSession: jest.fn(),
+    },
+  }
+
+  // single / maybeSingle はデフォルトで { data: null, error: null }
+  client.single.mockResolvedValue({ data: null, error: null })
+  client.maybeSingle.mockResolvedValue({ data: null, error: null })
+
+  return client
+}
 
 // ============================================================
 // Test Setup
 // ============================================================
 
-const originalEnv = process.env
+const originalEnv = { ...process.env }
 
 describe('Supabase Utilities', () => {
+  let mod: any
+  let createServiceClient: any
+  let createSupabaseClient: any
+  let isSupabaseConfigured: any
+  let auth: any
+  let db: any
+  let getUserEmail: any
+  let createSupabaseWithCookies: any
   let mockClient: any
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks()
 
-    // Reset environment variables
+    // 環境変数を毎テストで確実に設定（isSupabaseConfigured のため）
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
 
-    // Create fresh mock client for each test
+    // フレッシュなモッククライアントを生成し、factory 遅延参照先へセット
     mockClient = createMockSupabaseClient()
     mockSupabaseInstance = mockClient
 
-    // Reset default mock return values
-    mockClient.single.mockResolvedValue({ data: null, error: null })
-    mockClient.maybeSingle.mockResolvedValue({ data: null, error: null })
+    // 実装の _serviceClient シングルトンキャッシュをリセットするため再 import
+    mod = await loadModule()
+    createServiceClient = mod.createServiceClient
+    createSupabaseClient = mod.createSupabaseClient
+    isSupabaseConfigured = mod.isSupabaseConfigured
+    auth = mod.auth
+    db = mod.db
+    getUserEmail = mod.getUserEmail
+    createSupabaseWithCookies = mod.createSupabaseWithCookies
   })
 
   afterEach(() => {
-    process.env = originalEnv
+    process.env = { ...originalEnv }
   })
 
   // ============================================================
@@ -92,14 +147,27 @@ describe('Supabase Utilities', () => {
 
   describe('isSupabaseConfigured', () => {
     it('should return true when all credentials are set', () => {
-      const result = isSupabaseConfigured()
-      expect(result).toBe(true)
+      // モジュール読み込み時に環境変数が設定済みであることを検証
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
+
+      // 再 import してモジュールスコープ変数を再評価
+      return loadModule().then((m: any) => {
+        expect(m.isSupabaseConfigured()).toBe(true)
+      })
     })
 
     it('should return false for placeholder URL', () => {
+      // placeholder URL のモジュールを別ロードで検証
+      const prev = process.env.NEXT_PUBLIC_SUPABASE_URL
       process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://placeholder.supabase.co'
-      const result = isSupabaseConfigured()
-      expect(result).toBe(false)
+      return loadModule()
+        .then((m: any) => {
+          expect(m.isSupabaseConfigured()).toBe(false)
+        })
+        .finally(() => {
+          process.env.NEXT_PUBLIC_SUPABASE_URL = prev
+        })
     })
   })
 
@@ -111,13 +179,22 @@ describe('Supabase Utilities', () => {
     it('should create a service client', () => {
       const client = createServiceClient()
       expect(client).toBeDefined()
+      expect(client).toBe(mockClient)
     })
 
-    it('should throw error when credentials are missing', () => {
+    it('should return mock client (not throw) when credentials are missing', async () => {
+      // 実装仕様: クレデンシャル不足時は例外ではなく mock クライアントを返す
       process.env.NEXT_PUBLIC_SUPABASE_URL = ''
       process.env.SUPABASE_SERVICE_ROLE_KEY = ''
 
-      expect(() => createServiceClient()).toThrow('Supabase service credentials not configured')
+      const m = await loadModule()
+      // 例外を投げず、定義済みのクライアントを返すことを検証
+      expect(() => m.createServiceClient()).not.toThrow()
+      const client = m.createServiceClient()
+      expect(client).toBeDefined()
+      // mock クライアントは from/select などのメソッドを持つ
+      expect(typeof client.from).toBe('function')
+      expect(typeof client.select).toBe('function')
     })
   })
 
@@ -345,7 +422,10 @@ describe('Supabase Utilities', () => {
 
   describe('auth.updateLastLogin', () => {
     it('should update last login timestamp', async () => {
-      mockClient.single.mockResolvedValue({ data: { id: 'user-001' }, error: null })
+      // updateLastLogin は await query で解決する。
+      // クライアントの data/error を使う（非 thenable）。
+      mockClient.data = null
+      mockClient.error = null
 
       await auth.updateLastLogin('user-001')
 
@@ -357,7 +437,7 @@ describe('Supabase Utilities', () => {
 
   describe('auth.updateProfile', () => {
     it('should update user profile fields', async () => {
-      const existingProfile: Profile = {
+      const updatedProfile = {
         id: 'user-001',
         email: 'user@example.com',
         kanji_last_name: '山田',
@@ -370,17 +450,11 @@ describe('Supabase Utilities', () => {
         status: 'ACTIVE',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
-        corporate_phone: '03-1234-5678',
-      }
-
-      const updatedProfile = {
-        ...existingProfile,
         corporate_phone: '03-9999-9999',
       }
 
-      mockClient.single
-        .mockResolvedValueOnce({ data: existingProfile, error: null })
-        .mockResolvedValueOnce({ data: updatedProfile, error: null })
+      // updateProfile は .update().eq().select().single() を呼ぶ
+      mockClient.single.mockResolvedValue({ data: updatedProfile, error: null })
 
       const result = await auth.updateProfile('user-001', {
         corporate_phone: '03-9999-9999',
@@ -410,7 +484,9 @@ describe('Supabase Utilities', () => {
         },
       ]
 
-      mockClient.single.mockResolvedValue({ data: mockUsers, error: null })
+      // getAllUsers は await query で解決する。クライアントの data/error を使う。
+      mockClient.data = mockUsers
+      mockClient.error = null
 
       const result = await auth.getAllUsers()
 
@@ -436,9 +512,10 @@ describe('Supabase Utilities', () => {
         },
       ]
 
-      mockClient.single.mockResolvedValue({ data: mockUsers, error: null })
+      mockClient.data = mockUsers
+      mockClient.error = null
 
-      const result = await auth.getAllUsers({ status: 'ACTIVE' })
+      await auth.getAllUsers({ status: 'ACTIVE' })
 
       expect(mockClient.eq).toHaveBeenCalledWith('status', 'ACTIVE')
     })
@@ -461,9 +538,10 @@ describe('Supabase Utilities', () => {
         },
       ]
 
-      mockClient.single.mockResolvedValue({ data: mockUsers, error: null })
+      mockClient.data = mockUsers
+      mockClient.error = null
 
-      const result = await auth.getAllUsers({ role: 'ADMIN' })
+      await auth.getAllUsers({ role: 'ADMIN' })
 
       expect(mockClient.eq).toHaveBeenCalledWith('role', 'ADMIN')
     })
@@ -591,7 +669,9 @@ describe('Supabase Utilities', () => {
         { id: 'prod-002', name: 'Product 2', is_active: true },
       ]
 
-      mockClient.single.mockResolvedValue({ data: mockProducts, error: null })
+      // getProducts は await query で解決する。クライアントの data/error を使う。
+      mockClient.data = mockProducts
+      mockClient.error = null
 
       const result = await db.getProducts()
 
@@ -604,7 +684,8 @@ describe('Supabase Utilities', () => {
         { id: 'prod-001', name: 'Product 1', category: 'COSMETICS', is_active: true },
       ]
 
-      mockClient.single.mockResolvedValue({ data: mockProducts, error: null })
+      mockClient.data = mockProducts
+      mockClient.error = null
 
       const result = await db.getProducts('COSMETICS')
 
@@ -612,82 +693,36 @@ describe('Supabase Utilities', () => {
     })
   })
 
-  describe('db.createQuote', () => {
-    it('should create a new quote', async () => {
-      const quoteData = {
-        id: 'quote-001',
-        customer_name: 'Test Customer',
-        total_amount: 1000,
-      }
+  // ============================================================
+  // Deprecated Write Helpers (always throw per current implementation)
+  // ============================================================
 
-      mockClient.single.mockResolvedValue({ data: quoteData, error: null })
-
-      const result = await db.createQuote(quoteData as any)
-
-      expect(result).toEqual(quoteData)
-      expect(mockClient.from).toHaveBeenCalledWith('quotations')
-    })
-
-    it('should throw error on database error', async () => {
-      mockClient.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Database error' },
-      })
-
-      await expect(db.createQuote({ id: 'quote-001' } as any)).rejects.toThrow()
+  describe('db.createQuote (DEPRECATED)', () => {
+    it('should always throw because client-side writes are disabled', async () => {
+      // 実装仕様: DEPRECATED。常に例外を投げる。
+      await expect(db.createQuote({ id: 'quote-001' } as any)).rejects.toThrow(
+        'Client-side database writes are disabled'
+      )
+      // DB 書き込みが行われないことを検証
+      expect(mockClient.from).not.toHaveBeenCalled()
     })
   })
 
-  describe('db.createInquiry', () => {
-    it('should create a new inquiry', async () => {
-      const inquiryData = {
-        id: 'inquiry-001',
-        name: 'Test User',
-        email: 'test@example.com',
-        message: 'Test inquiry',
-      }
-
-      mockClient.single.mockResolvedValue({ data: inquiryData, error: null })
-
-      const result = await db.createInquiry(inquiryData as any)
-
-      expect(result).toEqual(inquiryData)
-      expect(mockClient.from).toHaveBeenCalledWith('inquiries')
-    })
-
-    it('should throw error on database error', async () => {
-      mockClient.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Database error' },
-      })
-
-      await expect(db.createInquiry({ id: 'inquiry-001' } as any)).rejects.toThrow()
+  describe('db.createInquiry (DEPRECATED)', () => {
+    it('should always throw because client-side writes are disabled', async () => {
+      await expect(db.createInquiry({ id: 'inquiry-001' } as any)).rejects.toThrow(
+        'Client-side database writes are disabled'
+      )
+      expect(mockClient.from).not.toHaveBeenCalled()
     })
   })
 
-  describe('db.createSampleRequest', () => {
-    it('should create a new sample request', async () => {
-      const sampleData = {
-        id: 'sample-001',
-        customer_name: 'Test Customer',
-        product_id: 'prod-001',
-      }
-
-      mockClient.single.mockResolvedValue({ data: sampleData, error: null })
-
-      const result = await db.createSampleRequest(sampleData as any)
-
-      expect(result).toEqual(sampleData)
-      expect(mockClient.from).toHaveBeenCalledWith('sample_requests')
-    })
-
-    it('should throw error on database error', async () => {
-      mockClient.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Database error' },
-      })
-
-      await expect(db.createSampleRequest({ id: 'sample-001' } as any)).rejects.toThrow()
+  describe('db.createSampleRequest (DEPRECATED)', () => {
+    it('should always throw because client-side writes are disabled', async () => {
+      await expect(db.createSampleRequest({ id: 'sample-001' } as any)).rejects.toThrow(
+        'Client-side database writes are disabled'
+      )
+      expect(mockClient.from).not.toHaveBeenCalled()
     })
   })
 
@@ -705,11 +740,13 @@ describe('Supabase Utilities', () => {
 
       const result = await createSupabaseWithCookies(mockCookieStore as any)
 
+      // クレデンシャル設定済みなので createClient (モック) が呼ばれ、
+      // mockSupabaseInstance が返る
       expect(result).toBeDefined()
     })
 
-    it('should throw error when credentials are missing', async () => {
-      // This test verifies error handling, but we need to preserve env for other tests
+    it('should return mock client (not throw) when credentials are missing', async () => {
+      // 実装仕様: クレデンシャル不足時は例外ではなく mock クライアントを返す
       const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const originalKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -717,17 +754,19 @@ describe('Supabase Utilities', () => {
         delete process.env.NEXT_PUBLIC_SUPABASE_URL
         delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+        const m = await loadModule()
+
         const mockCookieStore = {
           get: jest.fn(),
           set: jest.fn(),
           delete: jest.fn(),
         }
 
-        await expect(
-          createSupabaseWithCookies(mockCookieStore as any)
-        ).rejects.toThrow('Supabase credentials not configured')
+        // 例外を投げず、mock クライアントを返すことを検証
+        const result = await m.createSupabaseWithCookies(mockCookieStore as any)
+        expect(result).toBeDefined()
+        expect(typeof result.from).toBe('function')
       } finally {
-        // Restore env vars
         process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalKey
       }

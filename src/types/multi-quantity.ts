@@ -9,7 +9,7 @@ export interface MultiQuantityRequest {
     depth?: number
     thicknessSelection?: string
     isUVPrinting?: boolean
-    printingType?: 'digital' | 'gravure'
+    printingType?: 'digital' | 'gravure' | 'auto'
     printingColors?: number
     doubleSided?: boolean
     postProcessingOptions?: string[]
@@ -103,7 +103,7 @@ export interface MultiQuantityQuoteState {
   depth: number
   thicknessSelection?: string
   isUVPrinting: boolean
-  printingType?: 'digital' | 'gravure'
+  printingType?: 'digital' | 'gravure' | 'auto'
   printingColors?: number
   doubleSided?: boolean
   postProcessingOptions: string[]

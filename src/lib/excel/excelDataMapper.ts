@@ -107,8 +107,8 @@ export const DEFAULT_SUPPLIER: SupplierInfo = {
   subBrand: 'by kanei-trade',
   description: 'オーダーメイドバッグ印刷専門',
   companyName: '金井貿易株式会社',
-  postalCode: '〒673-0846',
-  address: '兵庫県明石市上ノ丸2-11-21',
+  postalCode: '〒675-1112',
+  address: '兵庫県加古郡稲美町六分一486',
   phone: 'TEL: 050-1793-6500',
   email: 'info@package-lab.com'
 }
@@ -191,6 +191,16 @@ export async function mapDatabaseQuotationToExcel(
     : firstItem?.specifications || {}
   const rawPostProcessingOptions = specs.postProcessingOptions || specs.postProcessing || []
 
+  // Phase 5: グラビア原価明細（cost_breakdown）の読出
+  // 優先順位: (1) item.specifications.costBreakdown > (2) quotations ヘッダ cost_breakdown
+  // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
+  // quotationToPdfMapper で QuoteData.gravureDetails に変換される
+  const costBreakdown =
+    specs.costBreakdown ||
+    specs.cost_breakdown ||
+    (dbQuotation as any).cost_breakdown ||
+    undefined
+
   return {
     metadata: {
       quotationNumber: dbQuotation.quotation_number,
@@ -220,7 +230,9 @@ export async function mapDatabaseQuotationToExcel(
       }
     },
     notes: dbQuotation.notes || undefined,
-    adminNotes: dbQuotation.admin_notes || undefined
+    adminNotes: dbQuotation.admin_notes || undefined,
+    // Phase 5: グラビア原価明細（グラビア見積もりのみ設定・後方互換）
+    ...(costBreakdown ? { costBreakdown } : {})
   }
 }
 
@@ -331,7 +343,13 @@ function extractProductSpecifications(
     contents,
     size: specs.size || specs.dimensions || '',
     material: specs.material || '',
-    surfaceFinish: surfaceFinish
+    surfaceFinish: surfaceFinish,
+    // Phase 5: 印刷方式読出（printingType / printing_type / cost_breakdown.gravureFilmValueKRW から判定）
+    // 契約: src/lib/types/gravure-cost-breakdown.ts
+    // 'gravure' のみ明示設定。未設定時は undefined（デジタル扱い・後方互換）
+    printingType: (specs.printingType === 'gravure' || specs.printing_type === 'gravure')
+      ? 'gravure' as const
+      : undefined
   } as ProductSpecifications
 
   // For roll_film: pouch-only fields should be null/empty
@@ -882,7 +900,9 @@ function formatJapaneseDate(dateString: string): string {
  * Format currency to Japanese yen
  */
 export function formatJapaneseYen(amount: number): string {
-  return `¥${amount.toLocaleString('ja-JP')}`
+  // 日本の通貨は整数円が基本。端数（小数）は四捨五入で丸める。
+  // （toLocaleString のみでは 1234.56 → "1,234.56" と小数が維持されてしまうため）
+  return `¥${Math.round(amount).toLocaleString('ja-JP')}`
 }
 
 // ============================================================
@@ -947,9 +967,14 @@ export function booleanToSymbol(value: boolean | null | undefined): '○' | '-' 
  */
 export function formatPostalCode(postalCode: string): string {
   if (!postalCode) return ''
-  const cleaned = postalCode.replace(/[-]/g, '')
-  if (cleaned.length === 7) {
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`
+  // 全角数字を半角に正規化（ユーザー入力で全角が混入する実務ケースに対応）
+  const halfWidth = postalCode.replace(/[０-９]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+  )
+  // 数字以外（ハイフン・記号等）を除去して7桁判定
+  const digits = halfWidth.replace(/\D/g, '')
+  if (digits.length === 7) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`
   }
   return postalCode
 }

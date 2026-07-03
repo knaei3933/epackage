@@ -15,6 +15,7 @@ import {
   mapOrderStatusToState,
 } from '@/lib/state-machine/order-machine';
 import type { OrderStatus } from '@/types/order-status';
+import { mapStatusToCurrentStage } from '@/types/order-status';
 import { revalidatePath } from 'next/cache';
 
 interface UpdateStatusParams {
@@ -53,7 +54,7 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
     // 注文を取得
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, user_id, status, order_number, current_state, state_metadata')
+      .select('id, user_id, status, order_number, current_stage')
       .eq('id', orderId)
       .single();
 
@@ -89,7 +90,7 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
       .from('orders')
       .update({
         status: status,
-        current_state: targetState,
+        current_stage: mapStatusToCurrentStage(status),
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)
@@ -112,8 +113,8 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
           table_name: 'orders',
           record_id: orderId,
           action: 'UPDATE',
-          old_value: { status: order.status, current_state: order.current_state },
-          new_value: { status: status, current_state: targetState },
+          old_value: { status: order.status },
+          new_value: { status: status },
           changed_by: 'ADMIN', // Server ActionなのでユーザーIDを取得せず
           reason: reason || 'Admin status update via Server Action',
         });

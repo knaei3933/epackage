@@ -4,43 +4,50 @@
  * 管理者昇格API単体テスト
  * Unit tests for admin promotion API endpoint
  *
- * @jest-environment jsdom
+ * 注意: @jest-environment 指定は意図的に外してある。
+ * jest.config.js のカスタム環境 (jest-jsdom-env.js) が Node ネイティブの
+ * Web API (Request/fetch/Response 等) を注入する。ファイル内で @jest-environment jsdom
+ * を指定するとカスタム環境が上書きされ、next/server が参照する Request が未定義になる。
+ *
+ * 現行 route.ts は @/lib/supabase-ssr (getUser ベース) と
+ * @/lib/supabase-authenticated (service role) を使用する。
+ * 旧実装 (@supabase/auth-helpers-nextjs + getSession) から全面移行済み。
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { POST } from '../route';
 import { NextRequest } from 'next/server';
 
 // ============================================================
 // Mocks
+// factory は jest.fn() のみを返す (外部変数参照による TDZ を回避)。
+// 実際の戻り値は beforeEach / 各テストで設定する。
+// これらのモックにより supabase-authenticated.ts のサーバーサイド専用
+// window チェックも実行されなくなる。
 // ============================================================
 
-// Mock Supabase auth helpers
-const mockAuth = {
-  getSession: jest.fn(),
-};
-
-const mockFrom = jest.fn();
-
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => ({
-    auth: mockAuth,
-    from: mockFrom,
-  })),
+jest.mock('@/lib/supabase-ssr', () => ({
+  createSupabaseSSRClient: jest.fn(),
 }));
 
-// Mock Supabase client
+jest.mock('@/lib/supabase-authenticated', () => ({
+  createAuthenticatedServiceClient: jest.fn(),
+}));
+
+// route.ts は createClient を直接使用しないが、import 副作用を抑えるためモック
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      update: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          select: jest.fn(),
-        })),
-      })),
-    })),
-  })),
+  createClient: jest.fn(),
 }));
+
+// @swc/jest は jest.mock の hoisting を行わないため、require で遅延評価し、
+// jest.mock 適用後に route.ts (→ supabase-authenticated) をロードする。
+// これにより supabase-authenticated.ts のサーバーサイド専用 window チェックが
+// モック置換により実行されなくなる。
+ 
+const { POST } = require('../route');
+ 
+const { createSupabaseSSRClient } = require('@/lib/supabase-ssr');
+ 
+const { createAuthenticatedServiceClient } = require('@/lib/supabase-authenticated');
 
 // ============================================================
 // Test Data
@@ -69,6 +76,50 @@ const mockMemberProfile = {
 };
 
 // ============================================================
+// Helpers
+// ============================================================
+
+interface SSRSetup {
+  user: any;
+  error?: any;
+  profile: any;
+  profileError?: any;
+}
+
+// SSR client を設定: auth.getUser() と profiles クエリチェーン
+function setupSSRClient({ user, error = null, profile, profileError = null }: SSRSetup) {
+  const getUser = jest.fn().mockResolvedValue({ data: { user }, error });
+  const from = jest.fn(() => ({
+    select: jest.fn(() => ({
+      eq: jest.fn(() => ({
+        single: jest.fn(() => Promise.resolve({ data: profile, error: profileError })),
+      })),
+    })),
+  }));
+  const ssrClient = { auth: { getUser }, from };
+  (createSupabaseSSRClient as unknown as jest.Mock).mockResolvedValue({ client: ssrClient });
+  return { getUser, from };
+}
+
+// admin (service role) client を設定: update チェーン
+function setupAdminClient(result: { data: any; error: any }) {
+  const update = jest.fn(() => ({
+    eq: jest.fn(() => ({
+      select: jest.fn(() => Promise.resolve(result)),
+    })),
+  }));
+  const from = jest.fn(() => ({ update }));
+  (createAuthenticatedServiceClient as unknown as jest.Mock).mockReturnValue({ from });
+  return { update, from };
+}
+
+const makeRequest = (body: unknown) =>
+  new NextRequest('http://localhost:3000/api/dev/set-admin', {
+    method: 'POST',
+    body: typeof body === 'string' ? body : JSON.stringify(body),
+  });
+
+// ============================================================
 // Test Suite
 // ============================================================
 
@@ -86,38 +137,20 @@ describe('POST /api/dev/set-admin', () => {
   });
 
   describe('Authentication', () => {
-    it('should return 401 when no session exists', async () => {
-      // Mock no session
-      mockAuth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      });
+    it('should return 401 when no user', async () => {
+      setupSSRClient({ user: null, profile: null });
 
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({ email: 'test@example.com' }));
       const data = await response.json();
 
       expect(response.status).toBe(401);
       expect(data.error).toBe('認証されていません。ログインしてください。');
     });
 
-    it('should return 401 when session has error', async () => {
-      // Mock session error
-      mockAuth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: new Error('Session expired'),
-      });
+    it('should return 401 when getUser has error', async () => {
+      setupSSRClient({ user: null, error: new Error('Session expired'), profile: null });
 
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({ email: 'test@example.com' }));
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -127,34 +160,9 @@ describe('POST /api/dev/set-admin', () => {
 
   describe('Authorization', () => {
     it('should return 403 when requester is not ADMIN', async () => {
-      // Mock authenticated session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockMemberUser,
-          },
-        },
-        error: null,
-      });
+      setupSSRClient({ user: mockMemberUser, profile: mockMemberProfile });
 
-      // Mock profile query returns MEMBER
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: mockMemberProfile,
-              error: null,
-            })),
-          })),
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({ email: 'test@example.com' }));
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -162,34 +170,13 @@ describe('POST /api/dev/set-admin', () => {
     });
 
     it('should return 404 when requester profile not found', async () => {
-      // Mock authenticated session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockMemberUser,
-          },
-        },
-        error: null,
+      setupSSRClient({
+        user: mockMemberUser,
+        profile: null,
+        profileError: { message: 'Profile not found' },
       });
 
-      // Mock profile query returns not found
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: null,
-              error: { message: 'Profile not found' },
-            })),
-          })),
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({ email: 'test@example.com' }));
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -199,69 +186,19 @@ describe('POST /api/dev/set-admin', () => {
 
   describe('Request Validation', () => {
     it('should return 400 when email is missing', async () => {
-      // Mock authenticated admin session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockAdminUser,
-          },
-        },
-        error: null,
-      });
+      setupSSRClient({ user: mockAdminUser, profile: mockAdminProfile });
 
-      // Mock admin profile
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: mockAdminProfile,
-              error: null,
-            })),
-          })),
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({}), // Missing email
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({}));
       const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data.error).toBe('Email required');
     });
 
-    it('should return 400 for invalid JSON', async () => {
-      // Mock authenticated admin session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockAdminUser,
-          },
-        },
-        error: null,
-      });
+    it('should return 500 for invalid JSON', async () => {
+      setupSSRClient({ user: mockAdminUser, profile: mockAdminProfile });
 
-      // Mock admin profile
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: mockAdminProfile,
-              error: null,
-            })),
-          })),
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: 'invalid json',
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest('invalid json'));
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -271,57 +208,19 @@ describe('POST /api/dev/set-admin', () => {
 
   describe('Successful Admin Promotion', () => {
     it('should promote user to ADMIN when requested by admin', async () => {
-      // Mock authenticated admin session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockAdminUser,
-          },
-        },
+      setupSSRClient({ user: mockAdminUser, profile: mockAdminProfile });
+      const { update } = setupAdminClient({
+        data: [{ id: 'user-123', email: 'test@example.com', role: 'ADMIN', status: 'ACTIVE' }],
         error: null,
       });
 
-      // Mock admin profile query
-      const mockUpdate = jest.fn(() => ({
-        eq: jest.fn(() => ({
-          select: jest.fn(() => Promise.resolve({
-            data: [{ id: 'user-123', email: 'test@example.com', role: 'ADMIN', status: 'ACTIVE' }],
-            error: null,
-          })),
-        })),
-      }));
-
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: mockAdminProfile,
-              error: null,
-            })),
-          })),
-        })),
-      });
-
-      // Mock service role client
-      const { createClient } = require('@supabase/supabase-js');
-      (createClient as jest.Mock).mockReturnValue({
-        from: jest.fn(() => ({
-          update: mockUpdate,
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({ email: 'test@example.com' }));
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.message).toBe('User updated to ADMIN');
       expect(data.user).toBeDefined();
-      expect(mockUpdate).toHaveBeenCalledWith(
+      expect(update).toHaveBeenCalledWith(
         expect.objectContaining({
           role: 'ADMIN',
           status: 'ACTIVE',
@@ -330,54 +229,16 @@ describe('POST /api/dev/set-admin', () => {
     });
 
     it('should include updated_at timestamp when promoting user', async () => {
-      // Mock authenticated admin session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockAdminUser,
-          },
-        },
+      setupSSRClient({ user: mockAdminUser, profile: mockAdminProfile });
+      const { update } = setupAdminClient({
+        data: [{ id: 'user-123', email: 'test@example.com', role: 'ADMIN', status: 'ACTIVE' }],
         error: null,
       });
 
-      // Mock admin profile query
-      const mockUpdate = jest.fn(() => ({
-        eq: jest.fn(() => ({
-          select: jest.fn(() => Promise.resolve({
-            data: [{ id: 'user-123', email: 'test@example.com', role: 'ADMIN', status: 'ACTIVE' }],
-            error: null,
-          })),
-        })),
-      }));
-
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: mockAdminProfile,
-              error: null,
-            })),
-          })),
-        })),
-      });
-
-      // Mock service role client
-      const { createClient } = require('@supabase/supabase-js');
-      (createClient as jest.Mock).mockReturnValue({
-        from: jest.fn(() => ({
-          update: mockUpdate,
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      await POST(request);
+      await POST(makeRequest({ email: 'test@example.com' }));
 
       // Verify updated_at is included in the update
-      expect(mockUpdate).toHaveBeenCalledWith(
+      expect(update).toHaveBeenCalledWith(
         expect.objectContaining({
           updated_at: expect.any(String),
         })
@@ -387,49 +248,10 @@ describe('POST /api/dev/set-admin', () => {
 
   describe('Error Handling', () => {
     it('should return 500 when database update fails', async () => {
-      // Mock authenticated admin session
-      mockAuth.getSession.mockResolvedValue({
-        data: {
-          session: {
-            user: mockAdminUser,
-          },
-        },
-        error: null,
-      });
+      setupSSRClient({ user: mockAdminUser, profile: mockAdminProfile });
+      setupAdminClient({ data: null, error: { message: 'Database connection failed' } });
 
-      // Mock admin profile query
-      mockFrom.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: mockAdminProfile,
-              error: null,
-            })),
-          })),
-        })),
-      });
-
-      // Mock service role client with error
-      const { createClient } = require('@supabase/supabase-js');
-      (createClient as jest.Mock).mockReturnValue({
-        from: jest.fn(() => ({
-          update: jest.fn(() => ({
-            eq: jest.fn(() => ({
-              select: jest.fn(() => Promise.resolve({
-                data: null,
-                error: { message: 'Database connection failed' },
-              })),
-            })),
-          })),
-        })),
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/dev/set-admin', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com' }),
-      });
-
-      const response = await POST(request);
+      const response = await POST(makeRequest({ email: 'test@example.com' }));
       const data = await response.json();
 
       expect(response.status).toBe(500);

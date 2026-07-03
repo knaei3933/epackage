@@ -16,45 +16,21 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key'
 // Mock Setup (MUST be before imports for hoisting)
 // ============================================================
 
-// Use var for hoisting - this ensures it's available when jest.mock runs
-let mockSupabaseClient: any = {}
-const mockFrom = jest.fn(() => mockSupabaseClient)
-const mockSelect = jest.fn(() => mockSupabaseClient)
-const mockInsert = jest.fn(() => mockSupabaseClient)
-const mockUpdate = jest.fn(() => mockSupabaseClient)
-const mockDelete = jest.fn(() => mockSupabaseClient)
-const mockEq = jest.fn(() => mockSupabaseClient)
-const mockSingle = jest.fn(() => Promise.resolve({ data: null, error: null }))
-const mockLimit = jest.fn(() => mockSupabaseClient)
-const mockOrder = jest.fn(() => mockSupabaseClient)
-const mockRange = jest.fn(() => Promise.resolve({ data: [], error: null, count: 0 }))
-const mockGte = jest.fn(() => mockSupabaseClient)
-const mockLte = jest.fn(() => mockSupabaseClient)
-const mockIn = jest.fn(() => mockSupabaseClient)
-const mockNeq = jest.fn(() => mockSupabaseClient)
-
-// Build the client object
-mockSupabaseClient = {
-  from: mockFrom,
-  select: mockSelect,
-  insert: mockInsert,
-  update: mockUpdate,
-  delete: mockDelete,
-  eq: mockEq,
-  single: mockSingle,
-  limit: mockLimit,
-  order: mockOrder,
-  range: mockRange,
-  gte: mockGte,
-  lte: mockLte,
-  in: mockIn,
-  neq: mockNeq,
-}
-
-// Mock @supabase/supabase-js - this is hoisted to the top
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => mockSupabaseClient),
-}))
+// Mock @supabase/supabase-js
+// 重要: factory 内で client を完結して構築する。外部の let 変数を参照すると
+// jest.mock の hoisting により factory 実行時に TDZ (初期化前アクセス) になる。
+// batch.ts 内のクエリチェーン (from().select().eq()...) は、この client の
+// モックメソッドで解決される。
+jest.mock('@supabase/supabase-js', () => {
+  const client: any = {}
+  const chainMethods = ['from', 'select', 'insert', 'update', 'delete', 'eq', 'limit', 'order', 'gte', 'lte', 'in', 'neq']
+  chainMethods.forEach(method => {
+    client[method] = jest.fn(() => client)
+  })
+  client.single = jest.fn(() => Promise.resolve({ data: null, error: null }))
+  client.range = jest.fn(() => Promise.resolve({ data: [], error: null, count: 0 }))
+  return { createClient: jest.fn(() => client) }
+})
 
 // ============================================================
 // Import after mocks are set up

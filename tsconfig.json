@@ -39,7 +39,13 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "/tmp/epac-build/types/**/*.ts",
+    "/tmp/epac-build/dev/types/**/*.ts",
+    "/tmp/epac-next/types/**/*.ts",
+    "/tmp/epac-next/dev/types/**/*.ts",
+    "/tmp/epac-next-build/types/**/*.ts",
+    "/tmp/epac-next-build/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

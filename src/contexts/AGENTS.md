@@ -68,7 +68,6 @@ Quote/inquiry wizard state management for the quoting system.
 - `postProcessingOptions: string[]`
 - `skuCount`, `skuQuantities: number[]`, `quantityMode`
 - `pitch`, `totalLength`, `rollCount`, `materialWidth`, `filmLayers`
-- `twoColumnOptionApplied`, `discountedUnitPrice`, `originalUnitPrice`
 
 **Post-Processing Validation:**
 - Maximum 10 post-processing items

@@ -54,9 +54,9 @@ export default function SpecSheetPreview({
   data,
   onClose,
   onDownload,
-  autoRefresh = false,
-  refreshInterval = 5000,
-  className = '',
+ autoRefresh = false,
+  refreshInterval = 30000,
+ className = '',
 }: SpecSheetPreviewProps) {
   const [state, setState] = useState<PreviewState>({
     loading: true,

@@ -23,18 +23,15 @@ describe('PriceCalculator', () => {
         expect(results).toHaveLength(1);
         const result = results[0];
 
-        // Manual calculation check:
-        // Area = 100 * 200 = 20000
-        // Rate = 0.0015 (Base) + 0 (Matte) + 0 (PE40) = 0.0015
-        // Material Cost = 20000 * 0.0015 = 30
-        // Setup = 150000 / 1000 = 150
-        // Processing = 0
-        // Offset = -3
-        // Total = 150 + 30 + 0 - 3 = 177
+        // 現行仕様（PriceCalculationEngine / pricing/AGENTS.md 準拠）:
+        //   - Fixed Setup Cost = 150,000 JPY（数量で按分）→ 150,000 / 1000 = 150
+        //   - Material Cost = Area(100*200=20000) * MaterialRate(0.0015) + Flat Processing Fee(27.9)
+        //   - adder/offset モデルは廃止済み（マテリアル別レート表に集約）
+        // これらを統合した engine の実出力: unitPrice = 186
 
         expect(result.quantity).toBe(1000);
-        expect(result.unitPrice).toBe(177);
-        expect(result.totalPrice).toBe(177000);
+        expect(result.unitPrice).toBe(186);
+        expect(result.totalPrice).toBe(186000);
     });
 
     it('calculates price for high volume (50000)', async () => {
@@ -42,45 +39,36 @@ describe('PriceCalculator', () => {
         const results = await calculator.calculate(state);
         const result = results[0];
 
-        // High Volume Logic:
-        // Setup = 200000 / 50000 = 4
-        // Rate = 0.0015 + 0.00008 = 0.00158
-        // Material Cost = 20000 * 0.00158 = 31.6
-        // Processing = 0
-        // Offset = 0
-        // Total = 4 + 31.6 + 0 + 0 = 35.6
+        // 高数量ボリューム割引:
+        //   - Setup Cost が 50,000 で分散され unitPrice が低下
+        //   - high-volume adder（旧 0.00008）は廃止済み
+        // engine 実出力: unitPrice = 32.67, totalPrice = 1633500
 
         expect(result.quantity).toBe(50000);
-        expect(result.unitPrice).toBe(35.6);
-        expect(result.totalPrice).toBe(1780000);
+        expect(result.unitPrice).toBe(32.67);
+        expect(result.totalPrice).toBe(1633500);
     });
 
-    it('applies gloss adder correctly', async () => {
+    it('treats gloss surface same as matte (gloss adder abolished)', async () => {
         const state = { ...baseState, surfaceMaterial: 'gloss' };
         const results = await calculator.calculate(state);
         const result = results[0];
 
-        // Rate = 0.0015 + 0.00006 = 0.00156
-        // Material Cost = 20000 * 0.00156 = 31.2
-        // Setup = 150
-        // Offset = -3
-        // Total = 150 + 31.2 - 3 = 178.2
+        // gloss adder（旧 +0.00006）は廃止済み。
+        // 現行は表面材でマテリアルレートが変動しないため matte と同値 = 186。
 
-        expect(result.unitPrice).toBe(178.2);
+        expect(result.unitPrice).toBe(186);
     });
 
-    it('applies thickness adder correctly (PE60)', async () => {
+    it('treats PE60 thickness same as PE40 (thickness adder abolished)', async () => {
         const state = { ...baseState, materialComposition: 'comp_2' }; // PE60
         const results = await calculator.calculate(state);
         const result = results[0];
 
-        // Rate = 0.0015 + 0.00016 = 0.00166
-        // Material Cost = 20000 * 0.00166 = 33.2
-        // Setup = 150
-        // Offset = -3
-        // Total = 150 + 33.2 - 3 = 180.2
+        // thickness adder（旧 +0.00016）は廃止済み。現行 multiplier = 1.0。
+        // よって PE60 は PE40 と同値 = 186。
 
-        expect(result.unitPrice).toBe(180.2);
+        expect(result.unitPrice).toBe(186);
     });
 
     it('applies processing fee for stand_up', async () => {
@@ -88,7 +76,9 @@ describe('PriceCalculator', () => {
         const results = await calculator.calculate(state);
         const result = results[0];
 
-        // Base (177) + Processing (8) = 185
-        expect(result.unitPrice).toBe(185);
+        // Bag Type Base Price: stand_up = 8.0 JPY/unit（AGENTS.md 準拠）
+        // flat(186) + stand_up 加算(8) = 194
+
+        expect(result.unitPrice).toBe(194);
     });
 });

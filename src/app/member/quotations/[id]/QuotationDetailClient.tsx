@@ -33,6 +33,7 @@ import { translateBagType, translateMaterialType, translatePostProcessing, BAG_T
 import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
 import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
@@ -54,6 +55,8 @@ interface QuotationDetailPageProps {
 
 const quotationStatusLabels: Record<string, string> = {
   DRAFT: 'ドラフト',
+  QUOTATION_PENDING: '見積承認待ち',
+  QUOTATION_APPROVED: '見積承認済み',
   SENT: '送信済み',
   APPROVED: '承認済み',
   REJECTED: '却下',
@@ -63,6 +66,8 @@ const quotationStatusLabels: Record<string, string> = {
 
 const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' | 'warning' | 'info' | 'default'> = {
   DRAFT: 'secondary',
+  QUOTATION_PENDING: 'warning',
+  QUOTATION_APPROVED: 'success',
   SENT: 'info',
   APPROVED: 'success',
   REJECTED: 'error',
@@ -142,18 +147,21 @@ function getThicknessName(materialId: string, thicknessSelection: string, fallba
   }
 
   // 素材別のデフォルト仕様
+  // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+  // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
   if (materialId) {
-    const defaultThicknessSpec: Record<string, string> = {
-      'ny_lldpe': 'NY 15μ + LLDPE 70μ',
-      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
-      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
-      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-    };
-    const defaultSpec = defaultThicknessSpec[materialId];
-    if (defaultSpec) return defaultSpec;
+    const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+    if (isKraft) {
+      const defaultThicknessSpec: Record<string, string> = {
+        'kraft_vmpet_lldpe': 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
+      };
+      const defaultSpec = defaultThicknessSpec[materialId];
+      if (defaultSpec) return defaultSpec;
+    } else {
+      const label = getFilmStructureLabel(materialId, thicknessSelection);
+      if (label && label !== materialId) return label;
+    }
   }
 
   // フォールバック: 日本語変換
@@ -298,16 +306,19 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
   }
   if (thicknessType === '-' && materialId) {
     // 素材別のデフォルト仕様
-    const defaultThicknessSpec: Record<string, string> = {
-      'ny_lldpe': 'NY 15μ + LLDPE 70μ',
-      'pet_ldpe': 'PET 12μ + LLDPE 70μ',
-      'pet_al': 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-      'pet_vmpet': 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
-      'pet_ny_al': 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-      'kraft_vmpet_lldpe': 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
-      'kraft_pet_lldpe': 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
-    };
-    thicknessType = defaultThicknessSpec[materialId] || '-';
+    // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+    // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
+    const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+    if (isKraft) {
+      const defaultThicknessSpec: Record<string, string> = {
+        'kraft_vmpet_lldpe': 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
+        'kraft_pet_lldpe': 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
+      };
+      thicknessType = defaultThicknessSpec[materialId] || '-';
+    } else {
+      const label = getFilmStructureLabel(materialId, thicknessSelection);
+      thicknessType = (label && label !== materialId) ? label : '-';
+    }
   }
 
   const result = {
@@ -703,10 +714,13 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   const subtotal = quotation?.subtotal || quotation?.subtotalAmount || quotation?.subtotal_amount || 0;
   // 消費税: DB保存値を優先、なければ小計の10%を四捨五入
   const taxAmount = quotation?.taxAmount || quotation?.tax_amount || Math.round(subtotal * 0.1);
-  // 合計: 小計 + 消費税を計算（常に正しい計算)
-  const displayTotalAmount = subtotal + taxAmount;
+  // 合計: DB保存値の total_amount を優先（100円切り上げ済みの正確な合計）
+  // フォールバック: 小計 + 消費税（レガシーデータ対応）
+  const displayTotalAmount = quotation?.totalAmount || quotation?.total_amount || (subtotal + taxAmount);
   // 注文変換可能か: APPROVED状態で注文未作成の場合のみ（大文字小文字を区別せずチェック）
-  const canConvert = quotation?.status?.toLowerCase() === 'approved';
+  const approvedStatuses = ['approved', 'QUOTATION_APPROVED'];
+  const statusLower = quotation?.status?.toLowerCase() || '';
+  const canConvert = statusLower === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED';
 
   return (
     <div className="space-y-6">
@@ -1064,21 +1078,45 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 <p className="text-sm text-text-muted mt-1">
                   数量: {item.quantity.toLocaleString()}個 × {formatPrice(item.unitPrice || 0)}円
                 </p>
-                {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (
-                  <div className="bg-purple-50 p-3 rounded-lg mt-4">
-                    <p className="font-medium text-purple-700">SKU分割: {item.specifications.sku_quantities.length}種類</p>
-                    <div className="text-sm text-purple-600 mt-2">
-                      {item.specifications.sku_quantities.map((qty: number, idx: number) => (
-                        <span key={idx} className="inline-block mr-3">
-                          SKU {idx + 1}: {qty}個
+                {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (() => {
+                  // SKU別明細の計算（枚数 × 単価 = 金額）
+                  const skuQuantities = item.specifications.sku_quantities;
+                  const unitPrice = item.unitPrice || 0;
+                  const totalQty = skuQuantities.reduce((sum: number, q: number) => sum + q, 0);
+                  const totalPrice = skuQuantities.reduce(
+                    (sum: number, q: number) => sum + q * unitPrice,
+                    0
+                  );
+
+                  return (
+                    <div className="bg-purple-50 p-3 rounded-lg mt-4">
+                      <p className="font-medium text-purple-700">SKU分割: {skuQuantities.length}種類</p>
+                      <div className="mt-2 space-y-1">
+                        {skuQuantities.map((qty: number, idx: number) => {
+                          // 各SKUの金額 = 数量 × 単価
+                          const skuAmount = qty * unitPrice;
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between text-sm text-purple-600"
+                            >
+                              <span>SKU {idx + 1}</span>
+                              <span>
+                                {qty.toLocaleString()}個 × ¥{formatPrice(unitPrice)} = ¥{formatPrice(skuAmount)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-medium text-purple-700 mt-2 pt-2 border-t border-purple-200">
+                        <span>合計</span>
+                        <span>
+                          {totalQty.toLocaleString()}個 / ¥{formatPrice(totalPrice)}
                         </span>
-                      ))}
+                      </div>
                     </div>
-                    <p className="text-xs text-purple-500 mt-1">
-                      合計: {item.specifications.sku_quantities.reduce((sum: number, q: number) => sum + q, 0)}個
-                    </p>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
 
               {/* Item Total */}
@@ -1159,8 +1197,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       )}
 
       {/* Status Message - Separate Card based on quotation status */}
-      {quotation?.status?.toLowerCase() === 'draft' ? (
-        // ⏳ ドラフト: 承認待ちメッセージ
+      {(quotation?.status?.toLowerCase() === 'draft' || (quotation?.status as string) === 'QUOTATION_PENDING') ? (
+        // ⏳ ドラフト/見積承認待ち: 承認待ちメッセージ
         <Card className="bg-yellow-50 border-yellow-200 p-4">
           <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0" />
@@ -1233,7 +1271,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             </Button>
 
             {/* 注文変換 - 状態に応じて表示を変える */}
-            {quotation?.status?.toLowerCase() === 'approved' && (
+            {(quotation?.status?.toLowerCase() === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED') && (
               <>
                 <Button
                   variant="primary"

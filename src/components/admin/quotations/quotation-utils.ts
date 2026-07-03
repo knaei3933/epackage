@@ -92,7 +92,8 @@ export function convertToPreviewOptions(postProcessingOptions: string[] = []) {
  * ステータスを正規化する関数
  */
 export function normalizeStatus(status: string): Quotation['status'] {
-  const validStatuses = ['DRAFT', 'SENT', 'APPROVED', 'REJECTED', 'EXPIRED', 'CONVERTED'];
+  const validStatuses = ['DRAFT', 'SENT', 'APPROVED', 'REJECTED', 'EXPIRED', 'CONVERTED',
+    'QUOTATION_PENDING', 'QUOTATION_APPROVED'];
   const upperStatus = status.toUpperCase();
 
   if (validStatuses.includes(upperStatus)) {
@@ -119,6 +120,8 @@ export const STATUS_LABELS: Record<string, { label: string; variant: 'success' |
   'DRAFT': { label: 'ドラフト', variant: 'default' },
   'SENT': { label: '送信済み', variant: 'warning' },
   'APPROVED': { label: '承認済み', variant: 'success' },
+  'QUOTATION_PENDING': { label: '見積承認待ち', variant: 'warning' },
+  'QUOTATION_APPROVED': { label: '見積承認済み', variant: 'success' },
   'REJECTED': { label: '拒否', variant: 'error' },
   'EXPIRED': { label: '期限切れ', variant: 'error' },
   'CONVERTED': { label: '注文変換済み', variant: 'success' },

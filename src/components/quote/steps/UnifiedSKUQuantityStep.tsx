@@ -5,20 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Layers,
   Plus,
-  Minus,
   ChevronLeft,
   ChevronRight,
   Settings,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react';
 import { useQuoteState, useQuote } from '@/contexts/QuoteContext';
-import { pouchCostCalculator, type TwoColumnProductionOptions } from '@/lib/pouch-cost-calculator';
 import { unifiedPricingEngine } from '@/lib/unified-pricing-engine';
 import { validateMOQ, isKraftMaterial } from '@/lib/pricing/validators/moq-validator';
-import { determineMaterialWidth } from '@/lib/material-width-selector';
-import { EconomicQuantityProposal } from '../shared/EconomicQuantityProposal';
 import { StatusIndicator } from '../shared/StatusIndicator';
-import { CurrentStateSummary } from '../shared/CurrentStateSummary';
 import { useToast } from '../shared/ErrorToast';
 
 /**
@@ -27,6 +23,25 @@ import { useToast } from '../shared/ErrorToast';
 export interface UnifiedSKUQuantityStepRef {
   validateQuantities: () => boolean;
 }
+
+/**
+ * UnifiedSKUQuantityStep の Props
+ *
+ * C1契約（callback prop 方式）:
+ * - patternQuantities: 複数パターン数量 [skuIndex][patternIndex]。
+ *   SKU数 <=5 時のみ親（ImprovedQuotingWizard）から渡される。
+ *   未渡し（undefined）時は複数パターンUIを表示しない（後方互換）。
+ * - onPatternQuantitiesChange: パターン数量変更のコールバック。
+ */
+export interface UnifiedSKUQuantityStepProps {
+  patternQuantities?: number[][];
+  onPatternQuantitiesChange?: (qties: number[][]) => void;
+}
+
+/**
+ * 複数パターン数量の最大パターン数（spec: 最小1・最大5）
+ */
+const MAX_PATTERN_COLUMNS = 5;
 
 /**
  * Unified SKU & Quantity Step Component
@@ -38,22 +53,19 @@ export interface UnifiedSKUQuantityStepRef {
  * 4. Bulk operations panel
  * 5. Film usage calculation per SKU
  * 6. Real-time price calculation
- * 7. Economic quantity suggestions
  *
  * Cost calculation logic:
  * - 1 SKU: 500m minimum + 400m loss = 900m total
  * - 2+ SKUs: 300m each + 400m loss shared
  */
-const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref) => {
+const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQuantityStepProps>((props, ref) => {
+  const { patternQuantities, onPatternQuantitiesChange } = props;
   const quoteState = useQuoteState();
   const {
     setSKUCount,
     setSKUQuantities,
     updateSKUQuantity,
-    setQuantityMode,
-    updateField,
-    applyTwoColumnOption: applyTwoColumnOptionContext,
-    clearAppliedOption
+    setQuantityMode
   } = useQuote();
 
   const { showSuccess, showError } = useToast();
@@ -72,293 +84,28 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     setTempQuantities(quoteState.skuQuantities);
   }, [quoteState.skuQuantities]);
 
-  // ★컴포넌트 마운트 시 항상 할인 초기화 (뒤로가기 대응)
-  // 키보드 왼쪽 화살표나 뒤로가기 버튼으로 돌아올 때 할인 상태를 초기화
-  useEffect(() => {
-    // 既にクリア済みの場合는スキップ（オプション適用後の再レンダリング対応）
-    if (didClearOnMountRef.current) {
-      console.log('[UnifiedSKUQuantityStep] Skipping clear - already cleared on mount');
-      return;
-    }
-    // マウント될 때 항상 적용된 옵션을初期化
-    // ただし、2列生産オプションが適用されている場合で、かつ割引価格が設定されている場合はスキップ
-    // （オプション適用直後の再マウントではクリアしない）
-    const shouldClear = (
-      (quoteState.twoColumnOptionApplied || quoteState.appliedOption !== null) &&
-      // 2列生産オプション適用直後（割引価格が現在の単価と一致する場合）はクリアしない
-      !(quoteState.twoColumnOptionApplied &&
-        quoteState.discountedUnitPrice !== undefined &&
-        quoteState.discountedUnitPrice === quoteState.unitPrice)
-    );
-
-    if (shouldClear) {
-      console.log('[UnifiedSKUQuantityStep] Component mounted, clearing applied discount', {
-        twoColumnOptionApplied: quoteState.twoColumnOptionApplied,
-        appliedOption: quoteState.appliedOption,
-        discountedUnitPrice: quoteState.discountedUnitPrice,
-        unitPrice: quoteState.unitPrice,
-        shouldClear
-      });
-      clearAppliedOption();
-      didClearOnMountRef.current = true;
-    } else {
-      console.log('[UnifiedSKUQuantityStep] Skipping clear on mount - option just applied', {
-        twoColumnOptionApplied: quoteState.twoColumnOptionApplied,
-        discountedUnitPrice: quoteState.discountedUnitPrice,
-        unitPrice: quoteState.unitPrice
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
-
-  // 割引が解除されたときにすべての関連状態をクリア
-  useEffect(() => {
-    if (!quoteState.twoColumnOptionApplied || quoteState.fixedTotalQuantity === undefined) {
-      // 総数量エラーをクリア
-      setTotalQuantityError(null);
-      // 前の状態をクリア
-      setPreviousState(null);
-      // tempQuantitiesを現在のskuQuantitiesに同期
-      setTempQuantities(quoteState.skuQuantities);
-
-      console.log('[UnifiedSKUQuantityStep] Discount cleared, resetting all related states');
-    }
-  }, [quoteState.twoColumnOptionApplied, quoteState.fixedTotalQuantity, quoteState.skuQuantities]);
-
-  // 2列生産オプションとSKU分割オプションの状態管理
-  const [isApplying, setIsApplying] = useState(false);
-
-  // 無限ループ防止用のref
-  const isApplyingTwoColumnRef = useRef(false);
-  const isClearingOptionRef = useRef(false);
-  // 初回マウント時のクリア済みフラグ（二重クリア防止）
-  const didClearOnMountRef = useRef(false);
-
   // ローカル価格計算用の状態とref（ImprovedQuotingWizardのRealTimePriceDisplayと同様のパターン）
   const [localUnitPrice, setLocalUnitPrice] = useState<number | null>(null);
   const [localTotalPrice, setLocalTotalPrice] = useState<number | null>(null);
   const previousPriceRef = useRef<number | null>(null);
   const isCalculatingPriceRef = useRef(false);
 
-  // 2列生産オプションの状態（非同期計算用）
-  // 拡張型: multiColumn（ロールフィルム多列オプション）を含む。実行時ロジック不変。
-  type ExtendedTwoColumnOptions = TwoColumnProductionOptions & {
-    multiColumn?: Array<{ columnCount: number; columnWidth: number; quantity: number; unitPrice: number; totalPrice: number; savingsRate: number }>;
-  };
-  const [twoColumnOptions, setTwoColumnOptions] = useState<ExtendedTwoColumnOptions | null>(null);
-
-  // 元に戻すための前の状態を保存
-  const [previousState, setPreviousState] = useState<{
-    skuCount: number;
-    quantities: number[];
-    unitPrice?: number;
-    totalPrice?: number;
-    originalUnitPrice?: number;
-  } | null>(null);
-
   // 総数量の計算
   const totalQuantity = quoteState.skuQuantities.reduce((sum, qty) => sum + qty, 0);
 
-  // 表示価格の計算（2列生産オプション適用時は割引価格を表示）
-  // ローカル計算価格またはQuoteContextの値を使用
-  const displayUnitPrice = quoteState.twoColumnOptionApplied
-    ? quoteState.discountedUnitPrice || localUnitPrice || quoteState.unitPrice || 50
-    : localUnitPrice || quoteState.unitPrice || 50;
+  // 表示価格の計算（ローカル計算価格またはQuoteContextの値を使用）
+  const displayUnitPrice = localUnitPrice || quoteState.unitPrice || 50;
+  const displayTotalPrice = localTotalPrice || quoteState.totalPrice || 0;
 
-  const displayTotalPrice = quoteState.twoColumnOptionApplied
-    ? quoteState.discountedTotalPrice || localTotalPrice || quoteState.totalPrice || 0
-    : localTotalPrice || quoteState.totalPrice || 0;
-
-  const displayOriginalPrice = quoteState.twoColumnOptionApplied
-    ? quoteState.originalUnitPrice
-    : null;
-
-  // 2列生産オプションを非同期計算（useEffectでdbSettingsをロード）
-  useEffect(() => {
-    const calculateTwoColumnOptions = async () => {
-      // オプション適用後も推奨変更のため計算を続ける
-      // 適用済みオプションは appliedOption prop で処理する
-      const isRollFilm = quoteState.bagTypeId === 'roll_film';
-
-      // ロールフィルムの場合：幅条件なしで2〜5列生産オプションを提供
-      if (isRollFilm) {
-        // 数量はメートル単位で500m以上必要
-        if (totalQuantity < 500) {
-          setTwoColumnOptions(null);
-          return;
-        }
-
-        const baseUnitPrice = localUnitPrice || quoteState.originalUnitPrice || quoteState.unitPrice || 50;
-        if (baseUnitPrice <= 0) {
-          setTwoColumnOptions(null);
-          return;
-        }
-
-        const width = quoteState.width || 0;
-
-        // 原反幅制約を考慮した最大列数の計算
-        // 760mm原反の有効幅は740mm（両端20mmマージン考慮）
-        const MAX_PRINTABLE_WIDTH = 740;
-        const maxColumns = Math.floor(MAX_PRINTABLE_WIDTH / width);
-        const minColumns = 2;
-
-        // 2列未満の場合はオプションを提供しない
-        if (maxColumns < minColumns) {
-          console.log('[UnifiedSKUQuantityStep] Width exceeds printable area:', {
-            width,
-            maxColumns,
-            minColumns,
-            message: `${width}mm exceeds limit for ${minColumns}-column production (max: ${MAX_PRINTABLE_WIDTH}mm)`
-          });
-          setTwoColumnOptions(null);
-          return;
-        }
-
-        const possibleMaxColumns = maxColumns;
-
-        // ロールフィルム用多列生産オプション（2〜possibleMaxColumns）
-        const multiColumnOptions: {
-          columnCount: number;
-          columnWidth: number;
-          quantity: number;
-          unitPrice: number;
-          totalPrice: number;
-          savingsRate: number;
-        }[] = [];
-
-        // 割引率（2026-01-30 再設計）
-        const discountRates: Record<number, number> = {
-          2: 0.40,   // 40% OFF
-          3: 0.48,   // 48% OFF
-          4: 0.55,   // 55% OFF
-          5: 0.58,   // 58% OFF
-          6: 0.61,   // 61% OFF
-          7: 0.64    // 64% OFF - 最大割引
-        };
-
-        // 可能な列数までのみ生成
-        for (let columns = minColumns; columns <= possibleMaxColumns; columns++) {
-          const discountRate = discountRates[columns];
-          const discountedUnitPrice = Math.round(baseUnitPrice * (1 - discountRate));
-          const actualTotalLength = totalQuantity * columns;
-          const totalPrice = Math.round(discountedUnitPrice * actualTotalLength);
-
-          multiColumnOptions.push({
-            columnCount: columns,
-            columnWidth: width,
-            quantity: actualTotalLength,
-            unitPrice: discountedUnitPrice,
-            totalPrice: totalPrice,
-            savingsRate: Math.round(discountRate * 10000) / 100
-          });
-        }
-
-        setTwoColumnOptions({
-          sameQuantity: multiColumnOptions[0],
-          doubleQuantity: multiColumnOptions[1],
-          multiColumn: multiColumnOptions
-        });
-        return;
-      }
-
-      // パウチ製品：従来のロジック
-      // 総数量が1000個以上の場合のみ計算
-      if (totalQuantity < 1000) {
-        setTwoColumnOptions(null);
-        return;
-      }
-
-      // 重要：originalUnitPrice（2列生産オプション適用前の元価格）を優先的に使用
-      // localUnitPriceは既に2列生産オプション適用後の割引価格の場合があるため
-      const baseUnitPrice = quoteState.originalUnitPrice || quoteState.unitPrice || localUnitPrice || 50;
-
-      // 単価が取得できなかった場合はスキップ
-      if (baseUnitPrice <= 0) {
-        setTwoColumnOptions(null);
-        return;
-      }
-
-      // 2列生産オプションを計算
-      try {
-        const dimensions = {
-          width: quoteState.width || 0,
-          height: quoteState.height || 0,
-          depth: quoteState.depth || 0
-        };
-        const pouchType = quoteState.bagTypeId || '';
-        const materialId = quoteState.materialId;
-
-        // パウチタイプに基づいて2列生産のフィルム幅を計算
-        const { height: H = 0, width: W = 0, depth: G = 0 } = dimensions;
-        let filmWidthFor2Columns = 0;
-
-        switch (pouchType) {
-          case 'roll_film':
-            filmWidthFor2Columns = W * 2;
-            break;
-          case 'flat_3_side':
-          case 'three_side':
-          case 'zipper':
-            filmWidthFor2Columns = (H * 4) + 71;
-            break;
-          case 'stand_up':
-          case 'zipper_stand':
-            filmWidthFor2Columns = (H * 4) + (G * 2) + 40;
-            break;
-          case 't_shape':
-            filmWidthFor2Columns = (W * 4) + 64;
-            break;
-          case 'box':
-            filmWidthFor2Columns = (G + W) * 4 + 84;
-            break;
-          default:
-            filmWidthFor2Columns = (H * 4) + 71;
-        }
-
-        // 原反幅を決定（2列生産フィルム幅に基づいて）
-        const materialWidth = determineMaterialWidth(filmWidthFor2Columns, materialId);
-
-        // DB設定を非同期ロード
-        const dbSettings = await pouchCostCalculator.loadFilmCostSettings();
-
-        const options = pouchCostCalculator.calculateTwoColumnProductionOptions(
-          totalQuantity,
-          baseUnitPrice,
-          pouchType,
-          dimensions,
-          materialWidth,
-          quoteState.filmLayers,
-          materialId,
-          quoteState.thicknessSelection,
-          quoteState.postProcessingOptions,
-          dbSettings
-        );
-
-        console.log('[UnifiedSKUQuantityStep] Two column options calculated:', {
-          baseUnitPrice,
-          totalQuantity,
-          options
-        });
-
-        setTwoColumnOptions(options);
-      } catch (error) {
-        console.error('[UnifiedSKUQuantityStep] Error calculating two column options:', error);
-        setTwoColumnOptions(null);
-      }
-    };
-
-    calculateTwoColumnOptions();
-  }, [totalQuantity, quoteState.skuQuantities, quoteState.width, quoteState.height, quoteState.depth, quoteState.bagTypeId, localUnitPrice, quoteState.originalUnitPrice, quoteState.unitPrice, quoteState.twoColumnOptionApplied, quoteState.filmLayers, quoteState.materialId, quoteState.thicknessSelection, quoteState.postProcessingOptions]);
-
-  const skuSplitOptions = useMemo(() => {
-    // SKU分割オプションを計算
-    try {
-      return pouchCostCalculator.calculateSKUSplitOptions(totalQuantity);
-    } catch (error) {
-      console.error('[UnifiedSKUQuantityStep] Error calculating SKU split options:', error);
-      return [];
-    }
-  }, [totalQuantity]);
+  // 複数パターン入力ビュー判定（spec AC-1 / C1契約）
+  // SKU数 1-10 かつ親から patternQuantities が渡された場合のみ有効。
+  // SKU数11以上は別途見積もり依頼を案内（needsCustomQuote）。
+  // ※価格計算useEffectより前で定義（同useEffect内で参照するため）
+  const useMultiPatternView =
+    quoteState.skuCount >= 1 &&
+    quoteState.skuCount <= 10 &&
+    patternQuantities !== undefined &&
+    onPatternQuantitiesChange !== undefined;
 
   // 価格計算（ImprovedQuotingWizardのRealTimePriceDisplayと同様のパターン）
   useEffect(() => {
@@ -367,10 +114,12 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       return;
     }
 
-    // 重要：2列生産オプション適用時は価格計算をスキップ
-    //（APPLY_TWO_COLUMN_OPTIONで価格が既に設定されているため）
-    if (quoteState.twoColumnOptionApplied) {
-      console.log('[UnifiedSKUQuantityStep] Price calculation skipped - 2-column option applied');
+    // 複数パターンビューでは従来 skuQuantities ベースのプレビュー計算をスキップ
+    // （patternQuantities は別系統・パターンごとの計算は Step3 ResultStep で実施。
+    //   パターン未入力=0 の時に誤って計算・表示させないため）
+    if (useMultiPatternView) {
+      setLocalUnitPrice(null);
+      setLocalTotalPrice(null);
       return;
     }
 
@@ -397,8 +146,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
 
     const calculatePrice = async () => {
       try {
-        // 重要：常に基本価格（2列生産オプション未適用時の価格）を計算する
-        // 2列生産オプション適用時の割引価格は、QuoteContextのdiscountedUnitPriceを使用
         console.log('[SKU Step] DIAGNOSTIC - calculateQuote PARAMS:', {
           bagTypeId: quoteState.bagTypeId,
           materialId: quoteState.materialId,
@@ -431,13 +178,10 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
           // Roll film specific parameters
           materialWidth: quoteState.materialWidth,
           filmLayers: quoteState.filmLayers,
-          // 2列生産オプション関連パラメータは渡さない（基本価格を計算するため）
-          // twoColumnOptionApplied: false, // 常にfalseで基本価格を計算
         });
 
         // CRITICAL FIX: Only update state if values have actually changed
         // This prevents infinite re-render loops
-        const previousPrice = previousPriceRef.current;
         setLocalUnitPrice(prev => prev !== quoteResult.unitPrice ? quoteResult.unitPrice : prev);
         setLocalTotalPrice(prev => prev !== quoteResult.totalPrice ? quoteResult.totalPrice : prev);
 
@@ -478,72 +222,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     quoteState.skuQuantities,
     quoteState.materialWidth,
     quoteState.filmLayers
-    // 2列生産オプション関連パラメータは削除（基本価格を計算するため）
   ]);
-
-  // 数量変更時に2列生産オプションのフラグをクリア
-  useEffect(() => {
-    console.log('[useEffect-skuQuantities] Triggered', {
-      skuQuantities: quoteState.skuQuantities,
-      twoColumnOptionApplied: quoteState.twoColumnOptionApplied,
-      isApplyingTwoColumnRef: isApplyingTwoColumnRef.current,
-      isClearingOptionRef: isClearingOptionRef.current
-    });
-
-    // 無限ループ防止：自動適用中ならスキップ
-    if (isApplyingTwoColumnRef.current) {
-      console.log('[useEffect-skuQuantities] Skipped: isApplyingTwoColumnRef is true');
-      return;
-    }
-
-    // 無限ループ防止：クリア中ならスキップ
-    if (isClearingOptionRef.current) {
-      console.log('[useEffect-skuQuantities] Skipped: isClearingOptionRef is true');
-      return;
-    }
-
-    // 2列生産オプション適用済みで数量が変更された場合、フラグをクリアして再計算
-    // ただし、2列生産オプションの適用直後の数量変更（APPLY_TWO_COLUMN_OPTIONによる変更）はクリアしない
-    if (quoteState.twoColumnOptionApplied) {
-      // APPLY_TWO_COLUMN_OPTIONアクションによる数量変更の場合はスキップ
-      // （割引価格が設定されているかをチェックして、適用直後かどうかを判断）
-      const isJustApplied = (
-        quoteState.discountedUnitPrice !== undefined &&  // 割引価格が設定されている
-        quoteState.discountedUnitPrice === quoteState.unitPrice  // 割引価格が現在の単価と一致
-      );
-
-      console.log('[useEffect-skuQuantities] Checking isJustApplied', {
-        discountedUnitPrice: quoteState.discountedUnitPrice,
-        unitPrice: quoteState.unitPrice,
-        isJustApplied,
-        areEqual: quoteState.discountedUnitPrice === quoteState.unitPrice
-      });
-
-      if (isJustApplied) {
-        console.log('[UnifiedSKUQuantityStep] Skipping clear - 2-column option just applied');
-        return;
-      }
-
-      // クリア中フラグをセット
-      isClearingOptionRef.current = true;
-
-      // 数量が変更された場合はフラグをクリア
-      console.log('[useEffect-skuQuantities] Clearing due to quantity change', {
-        skuQuantities: quoteState.skuQuantities,
-        twoColumnOptionApplied: quoteState.twoColumnOptionApplied,
-        isJustApplied
-      });
-      clearAppliedOption();
-
-      // クリア完了後にフラグをリセット
-      setTimeout(() => {
-        isClearingOptionRef.current = false;
-      }, 0);
-    }
-  }, [quoteState.skuQuantities]);
-
-  // 自動適用機能は無効化（無限ループ防止）
-  // ユーザーが手動で2列生産オプションを適用するように変更
 
   // Pagination settings for compact view
   const ITEMS_PER_PAGE = 10;
@@ -557,8 +236,119 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   // Determine which view to show
   const useCompactView = quoteState.skuCount > 10;
 
+  // SKU数11以上はウィザード対象外・別途見積もり依頼へ誘導
+  const needsCustomQuote = quoteState.skuCount >= 11;
+
   // Check if roll film (uses meter-based calculation)
   const isRollFilm = quoteState.bagTypeId === 'roll_film';
+
+  // 複数パターンUI用の正規化された数量（[skuIndex][patternIndex]）
+  // - SKU数と一致する行数を保証
+  // - 全行同じ列数を保証（jagged array 防止）
+  // - 親state（patternQuantities）が空/不正時は1パターン×0で初期化
+  const normalizedPatternQuantities = useMemo<number[][]>(() => {
+    if (!useMultiPatternView) return [];
+    const skuCount = quoteState.skuCount;
+    const source = patternQuantities ?? [];
+    // パターン列数: 実データの最大列数（最低2・最大5）。デフォルト2パターン誘導・追加ボタンで拡張。
+    const sourceCols = source.reduce((max, row) => Math.max(max, Array.isArray(row) ? row.length : 0), 0);
+    const colCount = Math.min(MAX_PATTERN_COLUMNS, Math.max(2, sourceCols));
+    const result: number[][] = [];
+    for (let s = 0; s < skuCount; s++) {
+      const row = Array.isArray(source[s]) ? source[s] : [];
+      const padded: number[] = [];
+      for (let p = 0; p < colCount; p++) {
+        const v = row[p];
+        padded.push(typeof v === 'number' && !isNaN(v) ? v : 0);
+      }
+      result.push(padded);
+    }
+    return result;
+  }, [useMultiPatternView, quoteState.skuCount, patternQuantities]);
+
+  // 複数パターンUIのパターン列数（全SKU共通）
+  const patternColumnCount = normalizedPatternQuantities[0]?.length ?? 0;
+
+  // 追加ボタン列が表示されているか（最大未満で表示）
+  const hasAddPatternColumn = patternColumnCount < MAX_PATTERN_COLUMNS && patternColumnCount > 0;
+
+  // 各セルに適用する最小数量（ユーザー要望: 最低1パターン500個/m）
+  // roll_film=500m / pouch系=500個 に統一
+  const minQtyPerCell = 500;
+
+  // 複数パターンのセル値変更ハンドラー（[skuIndex][patternIndex]）
+  const handlePatternCellChange = (skuIndex: number, patternIndex: number, value: string) => {
+    if (!onPatternQuantitiesChange) return;
+    const parsed = value === '' ? 0 : parseInt(value, 10);
+    const safe = isNaN(parsed) ? 0 : parsed;
+    const next = normalizedPatternQuantities.map((row, s) => {
+      if (s !== skuIndex) return row.slice();
+      const newRow = row.slice();
+      newRow[patternIndex] = safe;
+      return newRow;
+    });
+    onPatternQuantitiesChange(next);
+  };
+
+  // 指定SKU行の5パターン数量を他の全SKU行へ一括コピー（行コピー機能）
+  // ユーザー要望: SKU 1行目に入力した数量を1クリックで他行に反映。
+  // コピー元行自身は保持、他行は sourceRow の数量で上書き。
+  const handleCopyPatternRow = (sourceSkuIndex: number) => {
+    if (!onPatternQuantitiesChange) return;
+    const sourceRow = normalizedPatternQuantities[sourceSkuIndex];
+    if (!sourceRow) return;
+    const next = normalizedPatternQuantities.map((row, s) =>
+      s === sourceSkuIndex ? row.slice() : sourceRow.slice()
+    );
+    onPatternQuantitiesChange(next);
+    showSuccess(`SKU ${sourceSkuIndex + 1} の数量を他の全SKUにコピーしました`, 0);
+  };
+
+  // パターン列追加（全SKU一斉・min1 max5・jagged array防止）
+  const handleAddPatternColumn = () => {
+    if (!onPatternQuantitiesChange) return;
+    if (patternColumnCount >= MAX_PATTERN_COLUMNS) return;
+    const next = normalizedPatternQuantities.map(row => [...row, 0]);
+    onPatternQuantitiesChange(next);
+  };
+
+  // パターン列削除（全SKU一斉・min2・最後尾列を削除）
+  const handleRemovePatternColumn = () => {
+    if (!onPatternQuantitiesChange) return;
+    if (patternColumnCount <= 2) return;
+    const next = normalizedPatternQuantities.map(row => row.slice(0, -1));
+    onPatternQuantitiesChange(next);
+  };
+
+  // 複数パターンビュー用 特定SKU行削除（index指定・表の×ボタン用）
+  const handleRemovePatternSKU = (indexToRemove: number) => {
+    if (quoteState.skuCount <= 1) return;
+    const next = normalizedPatternQuantities.filter((_, i) => i !== indexToRemove);
+    setSKUCount(next.length);
+    if (onPatternQuantitiesChange) onPatternQuantitiesChange(next);
+  };
+
+  // 複数パターンビュー用 SKU数変更（spec AC-1: SKU数1-5）
+  // patternQuantities の行数も連動して調整（追加: [0,...] 行、削除: 最終行）
+  // setSKUCount と onPatternQuantitiesChange の両方を更新
+  const handlePatternSKUCountChange = (newCount: number) => {
+    const safe = Math.max(1, Math.min(10, newCount));
+    setSKUCount(safe);
+    if (!onPatternQuantitiesChange) return;
+    const current = normalizedPatternQuantities;
+    const colCount = current[0]?.length ?? 1;
+    let next: number[][];
+    if (safe > current.length) {
+      next = [...current];
+      while (next.length < safe) next.push(Array(colCount).fill(0));
+    } else if (safe < current.length) {
+      next = current.slice(0, safe);
+    } else {
+      next = current;
+    }
+    onPatternQuantitiesChange(next);
+  };
+
 
   // Quantity patterns for quick selection
   const quantityPatterns: number[] = isRollFilm
@@ -571,13 +361,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
    * Apply quantity pattern to all SKUs
    */
   const applyQuantityPattern = (pattern: number) => {
-    // 2列生産オプション適用後は、パターン適用時に割引を解除（総数量が変わるため）
-    if (quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity) {
-      console.log('[applyQuantityPattern] Applying pattern will change total quantity, clearing discount');
-      clearAppliedOption();
-      setTotalQuantityError(null);
-    }
-
     setQuantityMode('sku');
     const newQuantities = Array(quoteState.skuCount).fill(pattern);
     setSKUQuantities(newQuantities);
@@ -617,68 +400,10 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       setValidationError(null);
     }
 
-    // 固定数量モード時の総数量チェック
-    if (quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined) {
-      if (typeof parsedValue === 'number' && !isNaN(parsedValue)) {
-        // 100単位チェック
-        if (parsedValue % 100 !== 0) {
-          setTotalQuantityError(`SKU ${index + 1}の数量は100単位で入力してください`);
-          return;
-        }
-
-        // 最小数量チェック
-        const minQuantityPerSku = quoteState.bagTypeId === 'roll_film' ? 300 : 500;
-        if (parsedValue < minQuantityPerSku) {
-          setTotalQuantityError(`SKU ${index + 1}の数量は最小${minQuantityPerSku}個です`);
-          return;
-        }
-
-        // 新しい総数量を計算（tempQuantitiesベースで計算 - 他のSKUの変更も反映）
-        const newTotalQuantity = newTempQuantities.reduce<number>((sum, qty) => {
-          return sum + (typeof qty === 'number' ? qty : 0);
-        }, 0);
-
-        console.log('[handleSKUQuantityChange] Total quantity calculation:', {
-          index,
-          parsedValue,
-          newTempQuantities,
-          newTotalQuantity,
-          fixedTotalQuantity: quoteState.fixedTotalQuantity
-        });
-
-        // 総数量が固定数量と一致するかチェック
-        if (newTotalQuantity !== quoteState.fixedTotalQuantity) {
-          const diff = newTotalQuantity - quoteState.fixedTotalQuantity;
-          setTotalQuantityError(
-            `総数量が${diff > 0 ? '+' : ''}${diff}個です。総数量${quoteState.fixedTotalQuantity.toLocaleString()}個を維持してください`
-          );
-          // 入力値を一時的に保存するが、SKU数量は更新しない
-          return;
-        }
-
-        // すべてのチェックが通ったら更新
-        setTotalQuantityError(null);
-        setQuantityMode('sku');
-        updateSKUQuantity(index, parsedValue);
-
-        console.log('[handleSKUQuantityChange] Updated SKU quantity in fixed total mode:', {
-          index,
-          newQuantity: parsedValue,
-          fixedTotalQuantity: quoteState.fixedTotalQuantity,
-          newTotalQuantity,
-          allQuantities: newTempQuantities
-        });
-      }
-      return;
-    }
-
     // 通常モード時の更新
     if (typeof parsedValue === 'number' && !isNaN(parsedValue)) {
       setQuantityMode('sku');
       updateSKUQuantity(index, parsedValue);
-      if (quoteState.twoColumnOptionApplied) {
-        clearAppliedOption();
-      }
     }
   };
 
@@ -714,20 +439,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       }
     }
 
-    // 2列生産オプション適用時の総数量チェック
-    if (quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined) {
-      const currentTotalQuantity = tempQuantities.reduce<number>((sum, qty) => {
-        return sum + (typeof qty === 'number' ? qty : 0);
-      }, 0);
-
-      if (currentTotalQuantity !== quoteState.fixedTotalQuantity) {
-        const diff = currentTotalQuantity - quoteState.fixedTotalQuantity;
-        const errorMsg = `総数量が${diff > 0 ? '+' : ''}${diff}個です。総数量${quoteState.fixedTotalQuantity.toLocaleString()}個を維持してください`;
-        setValidationError(errorMsg);
-        return false;
-      }
-    }
-
     setValidationError(null);
     return true;
   };
@@ -737,190 +448,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
   }));
 
   /**
-   * 2列生産オプション適用ハンドラー
-   */
-  const handleApplyTwoColumnOption = (optionType: 'same' | 'double' | number) => {
-    console.log('[handleApplyTwoColumnOption] Called with optionType:', optionType, {
-      twoColumnOptions,
-      isApplying,
-      quoteStateTwoColumnOptionApplied: quoteState.twoColumnOptionApplied
-    });
-
-    // 個別の条件チェックとログ出力
-    if (!twoColumnOptions) {
-      console.log('[handleApplyTwoColumnOption] Early return: no twoColumnOptions available');
-      return;
-    }
-
-    if (isApplying) {
-      console.log('[handleApplyTwoColumnOption] Early return: already applying');
-      return;
-    }
-
-    // 同じオプションがクリックされた場合は何もしない
-    if (quoteState.twoColumnOptionApplied === optionType) {
-      return;
-    }
-
-    // 既に2列生産オプションが適用されている場合は、一旦クリアして元の数量に戻す
-    if (quoteState.twoColumnOptionApplied && quoteState.originalUnitPrice) {
-      console.log('[handleApplyTwoColumnOption] Clearing previous option, restoring original quantity:', quoteState.quantity);
-
-      // 元の単価と数量を復元
-      const originalQuantity = quoteState.quantity || 10000;
-      updateField('unitPrice', quoteState.originalUnitPrice);
-      updateField('totalPrice', quoteState.originalUnitPrice * originalQuantity);
-      updateField('quantity', originalQuantity);
-      setSKUQuantities([originalQuantity]);
-
-      // 重要：オプション適用状態をクリア
-      // これによりtwoColumnOptionsが再計算される
-      console.log('[handleApplyTwoColumnOption] Option cleared, waiting for re-render...');
-
-      // 一旦ここで処理を中断し、ユーザーに再度クリックさせる
-      // Reactの再レンダリング後にtwoColumnOptionsが正しく再計算される
-      setIsApplying(false);
-      isApplyingTwoColumnRef.current = false;
-      return;
-    }
-
-    console.log('[handleApplyTwoColumnOption] Proceeding with option application');
-    setIsApplying(true);
-    isApplyingTwoColumnRef.current = true; // refも設定してuseEffectのクリアを防止
-
-    try {
-      // ロールフィルムの場合：列数を指定
-      const isRollFilm = quoteState.bagTypeId === 'roll_film';
-      let option;
-
-      if (isRollFilm && typeof optionType === 'number') {
-        // 多列生産オプション（2〜5列）
-        const multiColumnOptions = (twoColumnOptions as any).multiColumn;
-        if (!multiColumnOptions) {
-          console.error('[handleApplyTwoColumnOption] MultiColumn options not found');
-          return;
-        }
-        option = multiColumnOptions.find((opt: any) => opt.columnCount === optionType);
-        if (!option) {
-          console.error('[handleApplyTwoColumnOption] Option not found for columnCount:', optionType);
-          return;
-        }
-      } else {
-        // パウチ用：2列生産オプション
-        option = optionType === 'same'
-          ? twoColumnOptions.sameQuantity
-          : twoColumnOptions.doubleQuantity;
-      }
-
-      console.log('[handleApplyTwoColumnOption] Selected option:', option);
-
-      setPreviousState({
-        skuCount: quoteState.skuCount,
-        quantities: [...quoteState.skuQuantities],
-        unitPrice: quoteState.unitPrice,
-        totalPrice: quoteState.totalPrice,
-        originalUnitPrice: quoteState.originalUnitPrice
-      });
-
-      // 複数SKUの場合の数量計算
-      const currentSKUCount = quoteState.skuCount;
-      const recommendedQuantity = option.quantity;
-      const quantityPerSKU = Math.floor(recommendedQuantity / currentSKUCount / 100) * 100;
-      const minQuantityPerSku = quoteState.bagTypeId === 'roll_film' ? 300 : 500;
-      const adjustedQuantityPerSKU = Math.max(quantityPerSKU, minQuantityPerSku);
-      const adjustedTotalQuantity = adjustedQuantityPerSKU * currentSKUCount;
-      const adjustedTotalPrice = Math.round(option.unitPrice * adjustedTotalQuantity);
-
-      // 重要：元の単価（2列生産オプション適用前の価格）を取得
-      // originalUnitPriceがあればそれを使い、なければ現在のunitPriceを使う
-      // ただし、2列生産オプションが既に適用されている場合は、originalUnitPriceを使う
-      const baseUnitPrice = quoteState.originalUnitPrice || quoteState.unitPrice || localUnitPrice || 50;
-
-      // SKU数を維持するフラグを設定
-      const preserveSKUCount = currentSKUCount > 1;
-
-      applyTwoColumnOptionContext(
-        optionType as any,
-        option.unitPrice as any,
-        preserveSKUCount ? adjustedTotalPrice : option.totalPrice,
-        baseUnitPrice, // 元の単価を使う（割引価格でないことを保証）
-        preserveSKUCount ? adjustedTotalQuantity : option.quantity
-      );
-
-      const currentTotal = quoteState.totalPrice || 0;
-      const newTotal = preserveSKUCount ? adjustedTotalPrice : option.totalPrice;
-      const savings = currentTotal - newTotal;
-
-      // ロールフィルムかどうかで単位を変える
-      const unit = isRollFilm ? 'm' : '個';
-
-      // 複数SKUの場合と単一SKUの場合でメッセージを分ける
-      const details = preserveSKUCount ? [
-        `総数量: ${totalQuantity.toLocaleString()}${unit} → ${adjustedTotalQuantity.toLocaleString()}${unit}`,
-        `SKU数: ${currentSKUCount}種類（維持）`,
-        `各SKU: ${adjustedQuantityPerSKU.toLocaleString()}${unit}`,
-        `単価: ¥${quoteState.unitPrice || 50}/${unit} → ¥${option.unitPrice}/${unit}`,
-        `合計: ¥${currentTotal.toLocaleString()} → ¥${newTotal.toLocaleString()}`,
-        savings > 0 ? `節減額: ¥${savings.toLocaleString()}` : ''
-      ].filter(Boolean) : [
-        `SKU数: ${quoteState.skuCount} → 1種類`,
-        `数量: ${totalQuantity.toLocaleString()}${unit} → ${option.quantity.toLocaleString()}${unit}`,
-        `単価: ¥${quoteState.unitPrice || 50}/${unit} → ¥${option.unitPrice}/${unit}`,
-        `合計: ¥${currentTotal.toLocaleString()} → ¥${newTotal.toLocaleString()}`,
-        savings > 0 ? `節減額: ¥${savings.toLocaleString()}` : ''
-      ].filter(Boolean);
-
-      // オプション名
-      const optionName = typeof optionType === 'number'
-        ? `${optionType}列生産`
-        : '2列生産';
-
-      showSuccess(
-        `${optionName}オプションを適用しました（${option.savingsRate}% OFF）`,
-        0,
-        {
-          undoAction: {
-            label: '元に戻す',
-            onClick: () => {
-              console.log('[UNDO ACTION] Undo button clicked!');
-              if (previousState) {
-                console.log('[UNDO ACTION] Restoring previous state');
-                clearAppliedOption();
-                setSKUCount(previousState.skuCount);
-                setSKUQuantities(previousState.quantities);
-                if (previousState.unitPrice !== undefined) {
-                  updateField('unitPrice', previousState.unitPrice);
-                }
-                clearAppliedOption();
-              }
-            }
-          },
-          details,
-          persistent: true
-        }
-      );
-
-      console.log(`[UnifiedSKUQuantityStep] Applied 2-column ${optionType} option:`, {
-        option,
-        preserveSKUCount,
-        adjustedQuantityPerSKU,
-        adjustedTotalQuantity
-      });
-      console.log('[handleApplyTwoColumnOption] Option application completed successfully');
-    } catch (error) {
-      console.error('[handleApplyTwoColumnOption] Error applying option:', error);
-    } finally {
-      setIsApplying(false);
-      // refも遅延してfalseに戻す（状態更新後にuseEffectが実行されるのを防ぐ）
-      setTimeout(() => {
-        isApplyingTwoColumnRef.current = false;
-        console.log('[handleApplyTwoColumnOption] isApplyingTwoColumnRef set to false');
-      }, 100);
-      console.log('[handleApplyTwoColumnOption] setIsApplying(false) called');
-    }
-  };
-
-  /**
    * Handle SKU removal
    */
   const handleRemoveSKU = (indexToRemove: number) => {
@@ -928,30 +455,12 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
       return;
     }
 
-    // 2列生産オプション適用後は、SKU削除時に割引を解除（総数量が変わるため）
-    if (quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity) {
-      console.log('[handleRemoveSKU] Removing SKU will change total quantity, clearing discount');
-      clearAppliedOption();
-      setTotalQuantityError(null);
-    }
-
-    setPreviousState({
-      skuCount: quoteState.skuCount,
-      quantities: [...quoteState.skuQuantities],
-      unitPrice: quoteState.unitPrice,
-      totalPrice: quoteState.totalPrice,
-      originalUnitPrice: quoteState.originalUnitPrice
-    });
-
     const newQuantities = quoteState.skuQuantities.filter((_, idx) => idx !== indexToRemove);
     const newCount = newQuantities.length;
 
     setTempQuantities(newQuantities);
     setSKUCount(newCount);
     setSKUQuantities(newQuantities);
-    if (quoteState.twoColumnOptionApplied) {
-      clearAppliedOption();
-    }
 
     console.log(`[handleRemoveSKU] Removed SKU at index ${indexToRemove}, new count: ${newCount}`);
   };
@@ -965,52 +474,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
     }
 
     const newSKUCount = quoteState.skuCount + 1;
-
-    // 2列生産オプション適用後は、総数量を維持しつつSKU数を増やす
-    if (quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity) {
-      // 固定総数量を新しいSKU数で均等分割（100単位に丸める）
-      const quantityPerSKU = Math.floor(quoteState.fixedTotalQuantity / newSKUCount / 100) * 100;
-      const minQuantityPerSku = quoteState.bagTypeId === 'roll_film' ? 300 : 500;
-      const adjustedQuantityPerSKU = Math.max(quantityPerSKU, minQuantityPerSku);
-      const adjustedQuantities = Array(newSKUCount).fill(adjustedQuantityPerSKU);
-
-      // 調整後の総数量を計算
-      const adjustedTotalQuantity = adjustedQuantityPerSKU * newSKUCount;
-
-      // ★割引適用後は固定総数量を超えてSKU追加できない（追加を阻止）
-      if (adjustedTotalQuantity > quoteState.fixedTotalQuantity) {
-        console.log('[copySKUToAddNew] Cannot add SKU - would exceed fixed total quantity');
-        // 사용자에게 알림 표시
-        const minQuantityPerSku = quoteState.bagTypeId === 'roll_film' ? 300 : 500;
-        const maxSKUs = Math.floor(quoteState.fixedTotalQuantity / minQuantityPerSku);
-        setTotalQuantityError(
-          `割引適用中は${quoteState.fixedTotalQuantity.toLocaleString()}個を超えるSKU追加はできません。現在の最小数量(${minQuantityPerSku}個)で最大${maxSKUs}個までのSKUが可能です。`
-        );
-        // SKU 추가를 하지 않고 종료
-        return;
-      }
-
-      // 総数量を維持してSKUを追加
-      setSKUQuantities(adjustedQuantities);
-      setQuantityMode('sku');
-      setCurrentPage(0);
-      setCopiedIndex(newSKUCount - 1);
-      setTempQuantities(adjustedQuantities);
-      setTotalQuantityError(null);
-
-      console.log('[copySKUToAddNew] Added SKU while maintaining fixed total quantity:', {
-        fixedTotalQuantity: quoteState.fixedTotalQuantity,
-        newSKUCount,
-        adjustedQuantityPerSKU,
-        adjustedTotalQuantity,
-        adjustedQuantities
-      });
-
-      setTimeout(() => {
-        setCopiedIndex(null);
-      }, 2000);
-      return;
-    }
 
     // 通常モード時の追加
     let sourceQuantity = quoteState.skuQuantities[sourceIndex];
@@ -1173,30 +636,8 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
         />
       )}
 
-      {/* 2列生産適用バッジと切り替えトグル */}
-      {quoteState.twoColumnOptionApplied && quoteState.originalUnitPrice && (
-        <div className="mt-4 p-4 bg-info-50 border border-info-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-info-900">
-                💎 {quoteState.twoColumnOptionApplied === 'same' ? '2列生産適用 (7.5% OFF)' : '多列生産適用'}
-              </p>
-              <p className="text-xs text-info-700">
-                ¥{displayOriginalPrice}/個 → ¥{displayUnitPrice}/個
-              </p>
-            </div>
-            <button
-              onClick={() => clearAppliedOption()}
-              className="px-3 py-1 text-xs bg-info-50 hover:bg-info-100 text-info-800 rounded"
-            >
-              1列生産に戻す
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Bulk Operations Panel */}
-      {quoteState.skuCount > 1 && (
+      {/* Bulk Operations Panel（複数パターンビューでは非表示・従来ビューのみ） */}
+      {quoteState.skuCount > 1 && !useMultiPatternView && (
         <div className="bg-info-50 p-6 rounded-lg border border-info-200">
           <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -1206,7 +647,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
           <div className="space-y-4">
             <div>
               <div className="text-sm text-gray-700 mb-2">
-                {isRollFilm ? '長さパターンを全SKUに適用（メートル）' : '数量パターンを全SKUに適用'}
+                {isRollFilm ? '長さパターンをすべてのデザインに適用（メートル）' : '数量パターンをすべてのデザインに適用'}
               </div>
               <div className="flex flex-wrap gap-2">
                 {quantityPatterns.map((pattern) => (
@@ -1215,7 +656,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                     onClick={() => applyQuantityPattern(pattern)}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                   >
-                    全SKU: {pattern.toLocaleString()}{isRollFilm ? 'm' : ''}
+                    全デザイン: {pattern.toLocaleString()}{isRollFilm ? 'm' : ''}
                   </button>
                 ))}
               </div>
@@ -1232,11 +673,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                 placeholder={isRollFilm
                   ? `長さを全SKUに適用 (最小: ${quoteState.skuCount === 1 ? '500' : '300'}m)`
                   : "数量を全SKUに適用 (最小500個)"}
-                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 ${
-                  quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined
-                    ? 'bg-info-50 border-info-300 focus:ring-info-500'
-                    : 'border-gray-300 focus:ring-info-500'
-                }`}
+                className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 border-gray-300 focus:ring-info-500"
               />
               <button
                 onClick={handleApplyBulkQuantity}
@@ -1255,31 +692,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
         <div className="bg-white p-6 rounded-lg border border-gray-200">
           <h4 className="font-medium text-gray-900 mb-4">各SKUの数量</h4>
 
-          {/* 固定数量モード時の通知バナー */}
-          {quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined && (
-            <div className="mb-4 p-4 bg-info-50 border-2 border-info-300 rounded-lg">
-              <div className="flex items-start gap-2">
-                <span className="text-info-600 text-lg">💎</span>
-                <div className="flex-1">
-                  <p className="text-info-900 font-medium mb-1">
-                    2列生産割引適用中 - 総数量{quoteState.fixedTotalQuantity.toLocaleString()}{quoteState.bagTypeId === 'roll_film' ? 'm' : '個'}
-                  </p>
-                  <p className="text-sm text-info-700 mb-2">
-                    各SKUの数量は100単位で自由に調整可能です（最小{quoteState.bagTypeId === 'roll_film' ? '500m' : '500個'}）。総数量が{quoteState.fixedTotalQuantity.toLocaleString()}{quoteState.bagTypeId === 'roll_film' ? 'm' : '個'}になるように配分してください。
-                  </p>
-                  <div className="text-xs text-info-600 bg-info-50 rounded p-2">
-                    現在の総数量: <strong>{totalQuantity.toLocaleString()}{quoteState.bagTypeId === 'roll_film' ? 'm' : '個'}</strong>
-                    {totalQuantity === quoteState.fixedTotalQuantity ? (
-                      <span className="ml-2 text-green-700">✓ 割引維持</span>
-                    ) : (
-                      <span className="ml-2 text-error-700">✗ 総数量が一致しません</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* 総数量バリデーションエラー */}
           {totalQuantityError && (
             <div className="mb-4 p-4 bg-warning-50 border-2 border-warning-300 rounded-lg">
@@ -1287,9 +699,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                 <span className="text-warning-600 text-lg">⚠️</span>
                 <div className="flex-1">
                   <p className="text-warning-900 font-medium">{totalQuantityError}</p>
-                  <p className="text-xs text-warning-700 mt-1">
-                    総数量を{quoteState.fixedTotalQuantity?.toLocaleString()}{quoteState.bagTypeId === 'roll_film' ? 'm' : '個'}に合わせると割引が維持されます
-                  </p>
                 </div>
                 <button
                   onClick={() => setTotalQuantityError(null)}
@@ -1325,7 +734,181 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
             </div>
           )}
 
-          {!useCompactView ? (
+          {/* 複数パターン入力UI（spec AC-1〜AC-4 / C1契約）
+              SKU数 <=5 かつ親から patternQuantities が渡された場合のみ表示。
+              それ以外は従来単一UI（!useCompactView / useCompactView 分岐）へフォールバック。 */}
+          {needsCustomQuote ? (
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-8 text-center">
+              <div className="text-4xl mb-3">📋</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                SKU数が11個以上のため、即時見積もり対象外です
+              </h3>
+              <p className="text-sm text-gray-600 mb-5 leading-relaxed">
+                SKU数 <strong>{quoteState.skuCount}個</strong> のカスタム見積もりは、別途お問い合わせページより承ります。<br />
+                専門スタッフが詳細をヒアリングの上、最適なご提案・お見積りをいたします。
+              </p>
+              <a
+                href="/inquiry/detailed?from=quote-simulator&type=custom-quote"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-info-600 text-white rounded-lg hover:bg-info-700 transition-colors font-medium shadow-sm"
+              >
+                別途見積もり依頼（詳細お問い合わせ）へ進む →
+              </a>
+              <p className="text-xs text-gray-500 mt-4">
+                ※ 遷移先のテンプレート（5ステップ）に沿って必要事項を記入してください
+              </p>
+            </div>
+          ) : useMultiPatternView ? (
+            <div className="space-y-3">
+              {/* 複数パターン入力の説明（デフォルト2パターン・追加ボタンで3〜5パターンに拡張） */}
+              <div className="bg-info-50 p-3 rounded-lg border border-info-200">
+                <h4 className="font-medium text-gray-900 flex items-center gap-2 text-sm">
+                  <Layers className="w-4 h-4" />
+                  数量パターン比較入力
+                </h4>
+                <p className="text-xs text-gray-600 mt-1">
+                  デフォルト2パターン。表の「+ 追加」ボタンで最大5パターンまで拡張できます（最低1パターン必須・各セル最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}）。未入力のパターンは計算時にスキップされます。
+                </p>
+              </div>
+
+              {/* SKU行 × パターン列 の表形式（AC-2・デフォルト2列・追加ボタンで拡張） */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 border border-gray-200 sticky left-0 bg-gray-50">
+                        SKU
+                      </th>
+                      {Array.from({ length: patternColumnCount }).map((_, p) => (
+                        <th key={p} className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 border border-gray-200 min-w-[80px] max-w-[110px] relative">
+                          パターン {p + 1}
+                          <div className="text-[10px] font-normal text-gray-500 mt-0.5">
+                            合計: {normalizedPatternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0).toLocaleString()}{isRollFilm ? 'm' : '個'}
+                          </div>
+                          {p === patternColumnCount - 1 && patternColumnCount > 2 && (
+                            <button
+                              type="button"
+                              onClick={handleRemovePatternColumn}
+                              className="absolute top-1 right-1 text-gray-300 hover:text-red-500 transition-colors"
+                              title="最後のパターン列を削除"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </th>
+                      ))}
+                      {patternColumnCount < MAX_PATTERN_COLUMNS && (
+                        <th className="px-2 py-1.5 text-center border border-gray-200 bg-gray-50 min-w-[60px]">
+                          <button
+                            type="button"
+                            onClick={handleAddPatternColumn}
+                            className="text-info-600 hover:text-info-700 text-xs flex items-center gap-1 font-medium justify-center"
+                            title="パターン列を追加（最大5）"
+                          >
+                            <Plus className="w-3.5 h-3.5" />追加
+                          </button>
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {normalizedPatternQuantities.map((row, skuIndex) => (
+                      <tr key={skuIndex} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 text-sm font-medium text-gray-900 border border-gray-200 bg-white sticky left-0">
+                          <div className="flex items-center gap-1">
+                            <span>SKU {skuIndex + 1}</span>
+                            {normalizedPatternQuantities.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopyPatternRow(skuIndex)}
+                                className="text-info-500 hover:text-info-700 transition-colors"
+                                title="この行の数量を他の全SKUにコピー"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {normalizedPatternQuantities.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePatternSKU(skuIndex)}
+                                className="text-gray-300 hover:text-red-500 transition-colors"
+                                title="このSKU行を削除"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        {row.map((cellValue, patternIndex) => {
+                          // AC-4: 最小数量ルール（L385側: roll_film=500m / pouch=100個）
+                          const belowMin = cellValue !== 0 && cellValue < minQtyPerCell;
+                          return (
+                            <td key={patternIndex} className="px-1 py-1 border border-gray-200 min-w-[80px] max-w-[110px]">
+                              <input
+                                type="number"
+                                min={minQtyPerCell}
+                                max="1000000"
+                                step={isRollFilm ? '0.1' : '1'}
+                                value={cellValue === 0 ? '' : cellValue}
+                                onChange={(e) => handlePatternCellChange(skuIndex, patternIndex, e.target.value)}
+                                className={`w-full px-1.5 py-1 text-xs border rounded text-center focus:ring-2 focus:ring-info-500 ${
+                                  belowMin
+                                    ? 'border-red-400 bg-red-50 text-red-700'
+                                    : 'border-gray-300 bg-white'
+                                }`}
+                                placeholder={`最小${minQtyPerCell}${isRollFilm ? 'm' : '個'}`}
+                              />
+                              {belowMin && (
+                                <p className="text-[10px] text-red-600 mt-1 text-center">
+                                  最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}未満
+                                </p>
+                              )}
+                            </td>
+                          );
+                        })}
+                        {hasAddPatternColumn && <td className="border border-gray-200" />}
+                      </tr>
+                    ))}
+                    {quoteState.skuCount < 10 ? (
+                      <tr>
+                        <td colSpan={patternColumnCount + 1 + (hasAddPatternColumn ? 1 : 0)} className="border border-gray-200 bg-gray-50">
+                          <button
+                            type="button"
+                            onClick={() => handlePatternSKUCountChange(quoteState.skuCount + 1)}
+                            className="w-full py-2 m-1 text-sm text-gray-500 hover:text-info-600 hover:bg-info-50 flex items-center justify-center gap-1 transition-colors border-2 border-dashed border-gray-300 rounded-lg"
+                            title="SKU行を追加（最大10）"
+                          >
+                            <Plus className="w-4 h-4" />
+                            SKU行を追加
+                          </button>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <td colSpan={patternColumnCount + 1 + (hasAddPatternColumn ? 1 : 0)} className="border border-gray-200 bg-amber-50">
+                          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 py-2 m-1 text-sm">
+                            <span className="text-amber-800 font-medium">SKU数が上限（10）に達しました。11個以上は別途見積もり依頼となります。</span>
+                            <a
+                              href="/inquiry/detailed?from=quote-simulator&type=custom-quote"
+                              className="text-info-600 hover:text-info-700 font-medium underline whitespace-nowrap"
+                            >
+                              別途見積もり依頼へ →
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 最小数量ルールの説明（AC-4） */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs text-amber-800">
+                  ※ 各セルの最小数量: {isRollFilm ? 'ロールフィルム 500m / SKU' : ' pouch系 100個 / SKU'}。未満の入力はバリデーションエラーになります。
+                </p>
+              </div>
+            </div>
+          ) : !useCompactView ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array.from({ length: quoteState.skuCount }).map((_, index) => (
                 <motion.div
@@ -1371,11 +954,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                         step={isRollFilm ? "0.1" : "1"}
                         value={(tempQuantities[index] ?? quoteState.skuQuantities[index]) && (tempQuantities[index] ?? quoteState.skuQuantities[index]) !== 0 ? (tempQuantities[index] ?? quoteState.skuQuantities[index]) : ''}
                         onChange={(e) => handleSKUQuantityChange(index, e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 ${
-                          quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined
-                            ? 'bg-info-50 border-info-300 focus:ring-info-500'
-                            : 'border-gray-300 focus:ring-info-500'
-                        }`}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 border-gray-300 focus:ring-info-500"
                         placeholder={isRollFilm
                           ? `ロールの長さをメートルで入力（最小: ${quoteState.skuCount === 1 ? '500' : '300'}m）`
                           : "数量を入力（最小500個）"}
@@ -1388,11 +967,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                       <button
                         key={pattern}
                         onClick={() => updateSKUQuantity(index, pattern)}
-                        className={`px-2 py-1 rounded text-xs transition-colors ${
-                          quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined
-                            ? 'bg-info-50 text-info-700 hover:bg-info-50'
-                            : 'bg-gray-100 hover:bg-gray-200'
-                        }`}
+                        className="px-2 py-1 rounded text-xs transition-colors bg-gray-100 hover:bg-gray-200"
                       >
                         {pattern}{isRollFilm ? 'm' : ''}
                       </button>
@@ -1438,11 +1013,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
                             max="1000000"
                             value={(tempQuantities[skuIndex] ?? quoteState.skuQuantities[skuIndex]) && (tempQuantities[skuIndex] ?? quoteState.skuQuantities[skuIndex]) !== 0 ? (tempQuantities[skuIndex] ?? quoteState.skuQuantities[skuIndex]) : ''}
                             onChange={(e) => handleSKUQuantityChange(skuIndex, e.target.value)}
-                            className={`w-full px-2 py-1 border rounded text-sm ${
-                              quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined
-                                ? 'bg-info-50 border-info-300'
-                                : 'border-gray-300'
-                            }`}
+                            className="w-full px-2 py-1 border rounded text-sm border-gray-300"
                           />
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
@@ -1515,56 +1086,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef>((props, ref
             </div>
           )}
         </div>
-      )}
-
-      {/* 【新規】経済的生産数量のご提案 - 2列生産オプションとSKU分割オプション */}
-      {(() => {
-        const showCondition = ((!isRollFilm && totalQuantity >= 1000) || (isRollFilm && totalQuantity >= 500)) && twoColumnOptions;
-        console.log('[UnifiedSKUQuantityStep] EconomicQuantityProposal render check:', {
-          isRollFilm,
-          totalQuantity,
-          twoColumnOptions,
-          showCondition,
-          pouchType: quoteState.bagTypeId,
-          bagTypeId: quoteState.bagTypeId
-        });
-        return showCondition;
-      })() && (
-        <EconomicQuantityProposal
-          suggestion={{
-            orderQuantity: totalQuantity,
-            minimumOrderQuantity: isRollFilm ? (quoteState.skuCount === 1 ? 500 : 300) : 500,
-            minimumFilmUsage: getMeterCalculationInfo().totalSecured,
-            pouchesPerMeter: getMeterCalculationInfo().theoreticalMeters > 0
-              ? totalQuantity / getMeterCalculationInfo().theoreticalMeters
-              : 0,
-            economicQuantity: totalQuantity,
-            economicFilmUsage: getMeterCalculationInfo().totalSecured,
-            efficiencyImprovement: 0,
-            unitCostAtOrderQty: quoteState.originalUnitPrice || quoteState.unitPrice || 50,
-            unitCostAtEconomicQty: quoteState.originalUnitPrice || quoteState.unitPrice || 50,
-            costSavings: 0,
-            costSavingsRate: 0,
-            recommendedQuantity: totalQuantity,
-            recommendationReason: '現在の数量に基づいた最適な生産オプションを提案します',
-            // 2列生産オプション
-            twoColumnProductionOptions: twoColumnOptions,
-            // SKU分割オプション
-            skuSplitOptions: skuSplitOptions.length > 0 ? skuSplitOptions.map(opt => ({
-              skuCount: opt.skuCount,
-              quantityPerSKU: opt.quantityPerSKU,
-              totalQuantity: opt.totalQuantity,
-              description: opt.description
-            })) : undefined
-          } as any}
-          appliedOption={quoteState.twoColumnOptionApplied}
-          isRollFilm={isRollFilm}
-          onAcceptRecommendation={() => {
-            // 推奨数量を受け入れるハンドラー
-            console.log('[UnifiedSKUQuantityStep] Recommendation accepted');
-          }}
-          onApplyTwoColumnOption={handleApplyTwoColumnOption}
-        />
       )}
 
       {/* Copy confirmation */}

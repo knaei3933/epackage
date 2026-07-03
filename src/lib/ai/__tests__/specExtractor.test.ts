@@ -92,8 +92,9 @@ function createMockAiFileData(overrides?: Partial<AiFileData>): AiFileData {
       {
         id: 'artboard1',
         name: 'スタンドパウチ',
-        width: 425.2,
-        height: 566.93,
+        // 実装は artboard.dimensions.width（Dimensions ネスト）でアクセスする。
+        // Artboard 型（types/aiFile.ts）も dimensions: Dimensions が正。
+        dimensions: { width: 425.2, height: 566.93 },
       },
     ],
     ...overrides,
@@ -130,6 +131,10 @@ describe('detectPouchType', () => {
       layers: [
         { id: 'l1', name: 'flat pouch design', visible: true, locked: false, opacity: 1, blendMode: 'normal' },
       ],
+      // 判定対象以外の textElements/artboards（デフォルトは 'スタンドパウチ' を含み
+      // STAND_POUCH に誤判定される）を空にし、対象レイヤー名のみで判定する。
+      textElements: [],
+      artboards: [],
     });
 
     expect(detectPouchType(aiData)).toBe('flat_3_side');
@@ -149,6 +154,8 @@ describe('detectPouchType', () => {
           layerName: 'Layer 1',
         },
       ],
+      // デフォルト artboards（'スタンドパウチ'）が STAND_POUCH に誤判定されるのを防ぐ。
+      artboards: [],
     });
 
     expect(detectPouchType(aiData)).toBe('zipper_pouch');
@@ -159,6 +166,8 @@ describe('detectPouchType', () => {
       layers: [
         { id: 'l1', name: 'gusset pouch', visible: true, locked: false, opacity: 1, blendMode: 'normal' },
       ],
+      textElements: [],
+      artboards: [],
     });
 
     expect(detectPouchType(aiData)).toBe('gusset_pouch');
@@ -178,6 +187,7 @@ describe('detectPouchType', () => {
           layerName: 'Layer 1',
         },
       ],
+      artboards: [],
     });
 
     expect(detectPouchType(aiData)).toBe('three_side_seal');
@@ -188,6 +198,8 @@ describe('detectPouchType', () => {
       layers: [
         { id: 'l1', name: 'random layer name', visible: true, locked: false, opacity: 1, blendMode: 'normal' },
       ],
+      textElements: [],
+      artboards: [],
     });
 
     expect(detectPouchType(aiData)).toBe('unknown');
@@ -201,8 +213,8 @@ describe('extractDimensions', () => {
         {
           id: 'artboard1',
           name: 'Test',
-          width: 425.2, // ~150mm
-          height: 566.93, // ~200mm
+          // 実装は artboard.dimensions.width でアクセスする（Dimensions ネスト）。
+          dimensions: { width: 425.2, height: 566.93 }, // ~150mm x ~200mm
         },
       ],
     });
@@ -272,12 +284,12 @@ describe('extractDimensions', () => {
   it('should set appropriate tolerance based on size', () => {
     const smallAiData = createMockAiFileData({
       artboards: [
-        { id: 'a1', name: 'Small', width: 100, height: 100 },
+        { id: 'a1', name: 'Small', dimensions: { width: 100, height: 100 } },
       ],
     });
     const largeAiData = createMockAiFileData({
       artboards: [
-        { id: 'a1', name: 'Large', width: 1000, height: 1000 },
+        { id: 'a1', name: 'Large', dimensions: { width: 1000, height: 1000 } },
       ],
     });
 

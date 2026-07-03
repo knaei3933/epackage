@@ -194,7 +194,7 @@ export function SpecificationEditModal({
               <option value="pet_al">PET/AL (アルミ箔ラミネート)</option>
               <option value="pet_ny">PET/NY (ナイロン)</option>
               <option value="pet_ny_al">PET/NY/AL</option>
-              <option value="kp_pe">KP/PE (クラフト紙)</option>
+              <option value="kp_pe">KP/PE (PVDCコート)</option>
             </select>
           </div>
 

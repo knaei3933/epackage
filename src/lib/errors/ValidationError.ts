@@ -92,7 +92,10 @@ export class ValidationError extends AppError {
    */
   getUserMessage(): string {
     if (this.details.length === 0) {
-      return super.getUserMessage();
+      // details がない場合は、AppError の errorCode ベース（VALIDATION_ERROR）の技術的メッセージ
+      // 「入力値の検証に失敗しました。」ではなく、ユーザー向けの基本メッセージを返す。
+      // （コンストラクタのデフォルト message と一致させる）
+      return '入力内容に誤りがあります。';
     }
 
     const fieldErrors = this.details

@@ -8,6 +8,10 @@ import { saveToLocalStorage, loadFromLocalStorage, deleteFromLocalStorage } from
 import { calculateRollWeight } from '@/lib/roll-film-utils';
 import { getDefaultFilmLayers } from '@/lib/film-structure';
 
+// Phase 3.1: 数量パターンの最大数（5数量パターン仕様）
+// 仕様: .omc/plans/gravure-integration-consensus.md Step 3.1 / AC-11
+export const MAX_QUANTITY_PATTERNS = 5;
+
 // Enhanced action types for multi-quantity functionality
 type MultiQuoteAction =
   | { type: 'SET_BASIC_SPECS'; payload: { bagTypeId: string; materialId: string; width: number; height: number; depth: number; thicknessSelection?: string } }
@@ -16,7 +20,7 @@ type MultiQuoteAction =
   | { type: 'REMOVE_QUANTITY'; payload: number }
   | { type: 'SET_SELECTED_QUANTITY'; payload: number | null }
   | { type: 'SET_COMPARISON_QUANTITIES'; payload: number[] }
-  | { type: 'SET_PRINTING_OPTIONS'; payload: { isUVPrinting: boolean; printingType?: 'digital' | 'gravure'; printingColors?: number; doubleSided?: boolean } }
+  | { type: 'SET_PRINTING_OPTIONS'; payload: { isUVPrinting: boolean; printingType?: 'digital' | 'gravure' | 'auto'; printingColors?: number; doubleSided?: boolean } }
   | { type: 'SET_POST_PROCESSING'; payload: { options: string[]; multiplier: number } }
   | { type: 'SET_DELIVERY'; payload: { location: 'domestic' | 'international'; urgency: 'standard' | 'express' } }
   | { type: 'SET_LOADING'; payload: boolean }
@@ -47,9 +51,13 @@ const initialState: MultiQuantityQuoteState = {
   thicknessSelection: 'medium',
 
   // Enhanced quantity fields
-  quantities: [1000, 2000, 5000, 10000], // Default selected quantities - 수정사항.md の例と一致
-  comparisonQuantities: [1000, 2000, 5000, 10000], // All quantities to compare - 수정사항.md の例と一致
-  selectedQuantity: 1000, // Currently selected for detailed view
+  // Phase 6 無害化: 固定値配列を廃止し空配列化（ユーザー入力駆動の唯一ソース化）。
+  // 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 6.1 / handoff C5
+  // 既存 reducer action（SET_QUANTITIES / SET_COMPARISON_QUANTITIES）でユーザー入力を上書き使用可能。
+  // 完全削除不可（calculateMultiQuantity が comparisonQuantities を活参照）。二重系統化しない。
+  quantities: [],
+  comparisonQuantities: [],
+  selectedQuantity: null, // Currently selected for detailed view（ユーザー入力後に設定）
   multiQuantityResults: new Map(),
   comparison: null,
   isLoading: false,
@@ -384,10 +392,11 @@ export function MultiQuantityQuoteProvider({ children }: MultiQuantityQuoteProvi
 
   const addQuantity = useCallback((quantity: number) => {
     // Roll film and regular pouches both have 500 minimum
-    if (quantity >= 500 && quantity <= 1000000) {
+    // Phase 3.1: 最大5数量パターンまで（上限到達時は追加しない）
+    if (quantity >= 500 && quantity <= 1000000 && state.quantities.length < MAX_QUANTITY_PATTERNS) {
       dispatch({ type: 'ADD_QUANTITY', payload: quantity });
     }
-  }, []);
+  }, [state.quantities.length]);
 
   const removeQuantity = useCallback((quantity: number) => {
     dispatch({ type: 'REMOVE_QUANTITY', payload: quantity });

@@ -7,14 +7,15 @@ import { motion } from 'framer-motion';
 import { Package, Layers, Calendar, Settings } from 'lucide-react';
 import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState, getSpecsValidationMessages } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { unifiedPricingEngine, UnifiedQuoteResult, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import { safeMap } from '@/lib/array-helpers';
 import EnvelopePreview from '../previews/EnvelopePreview';
 import MultiQuantityStep from '../steps/MultiQuantityStep';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
-import { MATERIAL_TYPE_LABELS, MATERIAL_TYPE_LABELS_JA, MATERIAL_DESCRIPTIONS, getMaterialLabel, getMaterialDescription, getThicknessLabel, getWeightRange } from '@/constants/materialTypes';
+import { getFilmStructureLabel, getLegendForSpecification, getPlainSpecSummary } from '@/constants/materialTypes';
+import { getMaterialsByCategory, getMaterialById } from '@/constants/materialData';
 import { getAvailableGussetSizes, ALL_GUSSET_SIZE_OPTIONS } from '@/lib/gusset-data';
+import { getAvailableSealWidths, isGussetedBag } from '@/lib/sealing-data';
 import {
   ChevronRight, ChevronLeft, Check, CheckCircle2, AlertCircle, Ticket, Printer,
   Info, Edit2, X, Phone, Mail, Clock, Calculator, RefreshCw, BarChart3, Download,
@@ -27,13 +28,20 @@ import { AuthPromptModal } from '../shared/AuthPromptModal';
 import { ResponsiveStepIndicators } from '../shared/ResponsiveStepIndicators';
 import { UnifiedSKUQuantityStep } from '../steps/UnifiedSKUQuantityStep';
 import { ParallelProductionOptions } from '../shared/ParallelProductionOptions';
-import { EconomicQuantityProposal } from '../shared/EconomicQuantityProposal';
 import { ResultStep } from '../sections/ResultStep';
 import { OrderSummarySection } from '../shared/OrderSummarySection';
 import { QuantityOptionsGrid } from '../selectors';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
+// グラビア原反幅・製作長計算（数量パターン比較表 C3 で使用）
+import {
+  determineGravureMaterialWidth,
+  determineGravureRollMaterialWidth,
+  type GravurePouchType,
+} from '@/lib/gravure-material-width';
+import { calculateGravureProcessingCount } from '@/lib/gravure-cost-calculator';
+import { determineAutoMultiColumnCount } from '@/lib/multi-column-auto';
+import { GRAVURE_CONSTANTS } from '@/lib/pricing/core/constants';
 import type { ParallelProductionOption } from '../shared/ParallelProductionOptions';
-import type { EconomicQuantitySuggestionData } from '../shared/EconomicQuantityProposal';
 import type { QuantityOption } from '../selectors';
 import { generateQuotePDF } from '@/lib/pdf-generator';
 import {
@@ -144,617 +152,6 @@ function SpecsStep() {
     }
   }, [state.width, state.depth, state.bagTypeId]);
 
-  // Enhanced material options with rich details and category
-  const materials = [
-    {
-      id: 'pet_al',
-      name: MATERIAL_TYPE_LABELS.pet_al,
-      nameJa: MATERIAL_TYPE_LABELS_JA.pet_al,
-      description: MATERIAL_DESCRIPTIONS.pet_al.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.pet_al.ja,
-      multiplier: 1.5,
-      features: ['高バリア性能', '遮光性に優れる', '酸素透過率が低い', '長期保存に適する'],
-      featuresJa: ['高バリア性能', '遮光性に優れる', '酸素透過率が低い', '長期保存に適する'],
-      recommendedFor: 'コーヒー豆、茶葉、ナッツ、スパイス、漬物',
-      category: 'high_barrier',
-      popular: true,
-      ecoFriendly: false,
-      thicknessOptions: [
-        {
-          id: 'light',
-          name: '軽量タイプ (~100g)',
-          nameJa: '軽量タイプ (~100g)',
-          specification: 'ポリエステル12μ+アルミ7μ+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 50μ',
-          weightRange: '~100g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'medium',
-          name: '標準タイプ (~300g)',
-          nameJa: '標準タイプ (~300g)',
-          specification: 'ポリエステル12μ+アルミ7μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ',
-          weightRange: '~300g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'standard',
-          name: 'レギュラータイプ (~500g)',
-          nameJa: 'レギュラータイプ (~500g)',
-          specification: 'ポリエステル12μ+アルミ7μ+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'heavy',
-          name: '高耐久タイプ (~800g)',
-          nameJa: '高耐久タイプ (~800g)',
-          specification: 'ポリエステル12μ+アルミ7μ+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'ultra',
-          name: '超耐久タイプ (800g~)',
-          nameJa: '超耐久タイプ (800g~)',
-          specification: 'ポリエステル12μ+アルミ7μ+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'PET 12μ + AL 7μ + PET 12μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'pet_vmpet',
-      name: MATERIAL_TYPE_LABELS.pet_vmpet,
-      nameJa: MATERIAL_TYPE_LABELS_JA.pet_vmpet,
-      description: MATERIAL_DESCRIPTIONS.pet_vmpet.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.pet_vmpet.ja,
-      multiplier: 1.4,
-      features: ['薄肉設計', '蒸着処理によるバリア性', 'フレキシブル対応', 'コストパフォーマンス'],
-      featuresJa: ['薄肉設計', '蒸着処理によるバリア性', 'フレキシブル対応', 'コストパフォーマンス'],
-      recommendedFor: 'スナック菓子、クッキー、煎餅',
-      category: 'high_barrier',
-      popular: false,
-      ecoFriendly: false,
-      thicknessOptions: [
-        {
-          id: 'light',
-          name: '軽量タイプ (~100g)',
-          nameJa: '軽量タイプ (~100g)',
-          specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 50μ',
-          weightRange: '~100g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'medium',
-          name: '標準タイプ (~300g)',
-          nameJa: '標準タイプ (~300g)',
-          specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 70μ',
-          weightRange: '~300g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'standard',
-          name: 'レギュラータイプ (~500g)',
-          nameJa: 'レギュラータイプ (~500g)',
-          specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'heavy',
-          name: '高耐久タイプ (~800g)',
-          nameJa: '高耐久タイプ (~800g)',
-          specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'ultra',
-          name: '超耐久タイプ (800g~)',
-          nameJa: '超耐久タイプ (800g~)',
-          specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'pet_ldpe',
-      name: MATERIAL_TYPE_LABELS.pet_ldpe,
-      nameJa: MATERIAL_TYPE_LABELS_JA.pet_ldpe,
-      description: MATERIAL_DESCRIPTIONS.pet_ldpe.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.pet_ldpe.ja,
-      multiplier: 1.0,
-      features: ['透明性に優れる', '中身が見える', 'シール性良好', 'コスト経済的'],
-      featuresJa: ['透明性に優れる', '中身が見える', 'シール性良好', 'コスト経済的'],
-      recommendedFor: 'お菓子、乾物、パン、小物包装',
-      category: 'transparent',
-      popular: false,
-      ecoFriendly: false,
-      thicknessOptions: [
-        {
-          id: 'light',
-          name: '軽量タイプ (~100g)',
-          nameJa: '軽量タイプ (~100g)',
-          specification: 'ポリエステル12μ+直押出ポリエチレン50μ',
-          specificationEn: 'PET 12μ + LLDPE 50μ',
-          weightRange: '~100g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'medium',
-          name: '標準タイプ (~300g)',
-          nameJa: '標準タイプ (~300g)',
-          specification: 'ポリエステル12μ+直押出ポリエチレン70μ',
-          specificationEn: 'PET 12μ + LLDPE 70μ',
-          weightRange: '~300g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'standard',
-          name: 'レギュラータイプ (~500g)',
-          nameJa: 'レギュラータイプ (~500g)',
-          specification: 'ポリエステル12μ+直押出ポリエチレン90μ',
-          specificationEn: 'PET 12μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'heavy',
-          name: '高耐久タイプ (~800g)',
-          nameJa: '高耐久タイプ (~800g)',
-          specification: 'ポリエステル12μ+直押出ポリエチレン100μ',
-          specificationEn: 'PET 12μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'ultra',
-          name: '超耐久タイプ (800g~)',
-          nameJa: '超耐久タイプ (800g~)',
-          specification: 'ポリエステル12μ+直押出ポリエチレン110μ',
-          specificationEn: 'PET 12μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'pet_ny_al',
-      name: MATERIAL_TYPE_LABELS.pet_ny_al,
-      nameJa: MATERIAL_TYPE_LABELS_JA.pet_ny_al,
-      description: MATERIAL_DESCRIPTIONS.pet_ny_al.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.pet_ny_al.ja,
-      multiplier: 1.6,
-      features: ['高強度・高バリア', '耐ピンホール性', 'ガスバリア性最高', '重包装に最適'],
-      featuresJa: ['高強度・高バリア', '耐ピンホール性', 'ガスバリア性最高', '重包装に最適'],
-      recommendedFor: '米、穀物、ペットフード、重包装',
-      category: 'high_barrier',
-      popular: false,
-      ecoFriendly: false,
-      thicknessOptions: [
-        {
-          id: 'light',
-          name: '軽量タイプ (~50g)',
-          nameJa: '軽量タイプ (~50g)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 50μ',
-          weightRange: '~50g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'NY', thickness: 16 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'light_medium',
-          name: '軽量タイプ (~200g)',
-          nameJa: '軽量タイプ (~200g)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 70μ',
-          weightRange: '~200g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'NY', thickness: 16 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'medium',
-          name: '標準タイプ (~500g)',
-          nameJa: '標準タイプ (~500g)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'NY', thickness: 16 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'heavy',
-          name: '高耐久タイプ (~800g)',
-          nameJa: '高耐久タイプ (~800g)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'NY', thickness: 16 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'ultra',
-          name: '超耐久タイプ (800g~)',
-          nameJa: '超耐久タイプ (800g~)',
-          specification: 'ポリエステル12μ+ナイロン16μ+アルミ7μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'PET 12μ + NY 16μ + AL 7μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'NY', thickness: 16 },
-            { materialId: 'AL', thickness: 7 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ],
-    },
-    {
-      id: 'ny_lldpe',
-      name: MATERIAL_TYPE_LABELS.ny_lldpe,
-      nameJa: MATERIAL_TYPE_LABELS_JA.ny_lldpe,
-      description: MATERIAL_DESCRIPTIONS.ny_lldpe.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.ny_lldpe.ja,
-      multiplier: 1.1,
-      features: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
-      featuresJa: ['電子レンジ解凍可能', '透明窓表現可能', 'コストパフォーマンス良好', '軽量化に最適'],
-      recommendedFor: '冷凍食品、惣菜、電子レンジ調理品',
-      category: 'transparent',
-      popular: false,
-      ecoFriendly: false,
-      thicknessOptions: [
-        {
-          id: 'light_50',
-          name: '軽量タイプ (~50g)',
-          nameJa: '軽量タイプ (~50g)',
-          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'NY 15μ + LLDPE 50μ',
-          weightRange: '~50g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'NY', thickness: 15 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'standard_70',
-          name: '標準タイプ (~200g)',
-          nameJa: '標準タイプ (~200g)',
-          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'NY 15μ + LLDPE 70μ',
-          weightRange: '~200g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'NY', thickness: 15 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'heavy_90',
-          name: '高耐久タイプ (~500g)',
-          nameJa: '高耐久タイプ (~500g)',
-          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'NY 15μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'NY', thickness: 15 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'ultra_100',
-          name: '超耐久タイプ (~800g)',
-          nameJa: '超耐久タイプ (~800g)',
-          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'NY 15μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'NY', thickness: 15 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'maximum_110',
-          name: 'マキシマムタイプ (800g~)',
-          nameJa: 'マキシマムタイプ (800g~)',
-          specification: 'ナイロン15μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'NY 15μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'NY', thickness: 15 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'kraft_vmpet_lldpe',
-      name: MATERIAL_TYPE_LABELS.kraft_vmpet_lldpe,
-      nameJa: MATERIAL_TYPE_LABELS_JA.kraft_vmpet_lldpe,
-      description: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.kraft_vmpet_lldpe.ja,
-      multiplier: 1.4,
-      features: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
-      featuresJa: ['自然素材風の外観', 'アルミ蒸着による優れたバリア性能', '環境に優しい', '透明窓表現可能'],
-      recommendedFor: 'ナッツ、ドライフルーツ、コーヒー豆、スパイス',
-      category: 'kraft',
-      popular: false,
-      ecoFriendly: true,
-      thicknessOptions: [
-        {
-          id: 'light_50',
-          name: '軽量タイプ (~50g)',
-          nameJa: '軽量タイプ (~50g)',
-          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ',
-          weightRange: '~50g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'standard_70',
-          name: '標準タイプ (~200g)',
-          nameJa: '標準タイプ (~200g)',
-          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ',
-          weightRange: '~200g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'heavy_90',
-          name: '高耐久タイプ (~500g)',
-          nameJa: '高耐久タイプ (~500g)',
-          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'ultra_100',
-          name: '超耐久タイプ (~800g)',
-          nameJa: '超耐久タイプ (~800g)',
-          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'maximum_110',
-          name: 'マキシマムタイプ (800g~)',
-          nameJa: 'マキシマムタイプ (800g~)',
-          specification: 'クラフト紙80g/m²+アルミ蒸着ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'VMPET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'kraft_pet_lldpe',
-      name: MATERIAL_TYPE_LABELS.kraft_pet_lldpe,
-      nameJa: MATERIAL_TYPE_LABELS_JA.kraft_pet_lldpe,
-      description: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.en,
-      descriptionJa: MATERIAL_DESCRIPTIONS.kraft_pet_lldpe.ja,
-      multiplier: 1.3,
-      features: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
-      featuresJa: ['自然素材風の外観', '短期バリア性能', 'コストパフォーマンス良好', '環境に優しい'],
-      recommendedFor: 'パン、菓子、クッキー、短期保存品',
-      category: 'kraft',
-      popular: false,
-      ecoFriendly: true,
-      thicknessOptions: [
-        {
-          id: 'light_50',
-          name: '軽量タイプ (~50g)',
-          nameJa: '軽量タイプ (~50g)',
-          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ',
-          weightRange: '~50g',
-          multiplier: 0.85,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 50 }
-          ]
-        },
-        {
-          id: 'standard_70',
-          name: '標準タイプ (~200g)',
-          nameJa: '標準タイプ (~200g)',
-          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
-          weightRange: '~200g',
-          multiplier: 0.95,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 70 }
-          ]
-        },
-        {
-          id: 'heavy_90',
-          name: '高耐久タイプ (~500g)',
-          nameJa: '高耐久タイプ (~500g)',
-          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ',
-          weightRange: '~500g',
-          multiplier: 1.0,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 90 }
-          ]
-        },
-        {
-          id: 'ultra_100',
-          name: '超耐久タイプ (~800g)',
-          nameJa: '超耐久タイプ (~800g)',
-          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ',
-          weightRange: '~800g',
-          multiplier: 1.1,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 100 }
-          ]
-        },
-        {
-          id: 'maximum_110',
-          name: 'マキシマムタイプ (800g~)',
-          nameJa: 'マキシマムタイプ (800g~)',
-          specification: 'クラフト紙80g/m²+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-          specificationEn: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ',
-          weightRange: '800g~',
-          multiplier: 1.2,
-          filmLayers: [
-            { materialId: 'KRAFT', grammage: 80 },
-            { materialId: 'PET', thickness: 12 },
-            { materialId: 'LLDPE', thickness: 110 }
-          ]
-        }
-      ]
-    }
-  ];
-
   // Contents dropdown options
   const PRODUCT_CATEGORIES = [
     { value: '', label: '選択してください', labelJa: '選択してください', disabled: true },
@@ -815,6 +212,7 @@ function SpecsStep() {
             <div>
               <label className="block text-base text-gray-700 mb-1">製品タイプ</label>
               <select
+                data-testid="product-category-select"
                 value={selectedCategory}
                 onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1012,6 +410,7 @@ function SpecsStep() {
                 <input
                   type="number"
                   min="50"
+                  data-testid="width-input"
                   value={state.width ?? ''}
                   onChange={(e) => updateBasicSpecs({ width: e.target.value === '' ? undefined : parseInt(e.target.value) })}
                   className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
@@ -1039,6 +438,7 @@ function SpecsStep() {
                     type="number"
                     min="50"
                     max="1000"
+                    data-testid="pitch-input"
                     value={state.pitch || ''}
                     onChange={(e) => updateBasicSpecs({ pitch: parseInt(e.target.value) || undefined })}
                     className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
@@ -1061,6 +461,7 @@ function SpecsStep() {
                     <input
                       type="number"
                       min="50"
+                      data-testid="height-input"
                       value={state.height ?? ''}
                       onChange={(e) => {
                         const newHeight = e.target.value === '' ? undefined : parseInt(e.target.value);
@@ -1104,6 +505,7 @@ function SpecsStep() {
                   <div>
                     <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                     <select
+                      data-testid="gusset-depth-input"
                       value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                       onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
                       className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1174,8 +576,8 @@ function SpecsStep() {
                     </select>
                     <p className="mt-1 text-xs text-gray-400">
                       {state.hasGusset
-                        ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
-                        : 'マチなし: 平袋計算式を適用 (H×2+41)'}
+                        ? 'マチあり: 自立するスタンドパウチ向けの計算を適用します'
+                        : 'マチなし: 平らな袋向けの計算を適用します'}
                     </p>
                   </div>
                 </div>
@@ -1183,8 +585,12 @@ function SpecsStep() {
 
               {shouldShowGusset(state.bagTypeId) && state.bagTypeId !== 'roll_film' && (
                 <div>
-                  <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
+                  <label className="block text-base text-gray-700 mb-1">
+                    マチ（底の広がり）
+                    <span className="ml-1 text-xs text-gray-400 font-normal">袋の底を広げて自立させる部分</span>
+                  </label>
                   <select
+                    data-testid="depth-input"
                     value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                     onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
                     className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -1205,6 +611,30 @@ function SpecsStep() {
                       まず幅を入力してください
                     </p>
                   )}
+                  {/* マチ概念の図解（C3: 専門用語の平易化） */}
+                  <details className="mt-1.5 text-xs text-gray-500">
+                    <summary className="cursor-pointer hover:text-gray-700 inline-flex items-center">
+                      <Info className="w-3 h-3 mr-1" />
+                      マチとは？（図で確認）
+                    </summary>
+                    <div className="mt-2 flex items-start gap-3 p-2 bg-gray-50 rounded">
+                      {/* マチ付き袋の簡易図解: 底が広がっている様子 */}
+                      <svg width="70" height="64" viewBox="0 0 70 64" className="flex-shrink-0" aria-hidden="true">
+                        {/* 袋の胴体（上窄まり） */}
+                        <path d="M 20 8 L 50 8 L 56 40 L 14 40 Z" fill="#e0e7ff" stroke="#4f46e5" strokeWidth="1.5" />
+                        {/* マチ（底の広がり）: 三角形で底の張りを表現 */}
+                        <path d="M 14 40 L 56 40 L 50 56 L 20 56 Z" fill="#fde68a" stroke="#d97706" strokeWidth="1.5" />
+                        {/* マチ部の指示線 */}
+                        <line x1="56" y1="48" x2="64" y2="48" stroke="#d97706" strokeWidth="1" />
+                        <text x="65" y="46" fontSize="7" fill="#d97706">マチ</text>
+                      </svg>
+                      <p className="leading-relaxed">
+                        <span className="font-semibold text-gray-700">マチ</span>とは、袋の底を内側に折り込んで広げた部分です。
+                        これがあると袋が<span className="font-semibold">自立</span>し、底面積が広がって<span className="font-semibold">多く入る</span>ようになります（スタンドパウチ等）。
+                        数値が大きいほど底が広く・しっかり立ちます。
+                      </p>
+                    </div>
+                  </details>
                 </div>
               )}
               {/* 側面 (よこめん) - ガゼットパウチのみ */}
@@ -1241,7 +671,7 @@ function SpecsStep() {
 
             {/* Categories */}
             {MATERIAL_CATEGORIES.map(category => {
-              const categoryMaterials = materials.filter(m => m.category === category.id);
+              const categoryMaterials = getMaterialsByCategory(category.id);
               if (categoryMaterials.length === 0) return null;
 
               return (
@@ -1260,6 +690,7 @@ function SpecsStep() {
                       {categoryMaterials.map(material => (
                         <button
                           key={material.id}
+                          data-testid="material-card"
                           onClick={() => updateBasicSpecs({ materialId: material.id })}
                           className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${
                             state.materialId === material.id
@@ -1310,7 +741,7 @@ function SpecsStep() {
 
         {/* Enhanced Thickness Selection */}
         {(() => {
-          const selectedMaterial = materials.find(m => m.id === state.materialId);
+          const selectedMaterial = getMaterialById(state.materialId);
           if (!selectedMaterial?.thicknessOptions) return null;
 
           const materialsWithThickness = ['pet_al', 'pet_vmpet', 'pet_ldpe', 'pet_ny_al', 'ny_lldpe', 'kraft_vmpet_lldpe', 'kraft_pet_lldpe'];
@@ -1353,9 +784,42 @@ function SpecsStep() {
                   ))}
                 </select>
                 {state.thicknessSelection && selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection) && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    規格: {selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection)?.specificationEn || ''}
-                  </p>
+                  (() => {
+                    const selectedThickness = selectedMaterial.thicknessOptions.find(t => t.id === state.thicknessSelection);
+                    const specText = selectedThickness?.specificationEn || selectedThickness?.specification || '';
+                    const plainSummary = getPlainSpecSummary(state.materialId);
+                    const legend = getLegendForSpecification(specText);
+                    return (
+                      <div className="mt-2 space-y-1.5">
+                        <p className="text-sm text-gray-600">
+                          <span className="text-gray-500">規格:</span>{' '}
+                          <span className="font-medium text-gray-800">{specText}</span>
+                        </p>
+                        {plainSummary && (
+                          <p className="text-xs text-indigo-700 flex items-start">
+                            <Lightbulb className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                            <span>{plainSummary}</span>
+                          </p>
+                        )}
+                        {legend.length > 0 && (
+                          <details className="text-xs text-gray-500">
+                            <summary className="cursor-pointer hover:text-gray-700 inline-flex items-center">
+                              <Info className="w-3 h-3 mr-1" />
+                              略号の意味を見る
+                            </summary>
+                            <dl className="mt-1.5 ml-4 space-y-0.5">
+                              {legend.map((item) => (
+                                <div key={item.label} className="flex">
+                                  <dt className="font-semibold text-gray-700 w-16 flex-shrink-0">{item.label}</dt>
+                                  <dd><span className="text-gray-700">{item.name}</span> — {item.description}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })()
                 )}
               </div>
               <p className="mt-2 text-xs text-gray-500">
@@ -1364,6 +828,7 @@ function SpecsStep() {
             </div>
           );
         })()}
+
       </div>
     </div>
   );
@@ -1384,6 +849,46 @@ function PostProcessingStep() {
   const state = useQuoteState();
   const { updatePostProcessing, setSealWidth } = useQuote();
   const getStepSummary = (step: string) => createStepSummary(state, () => getPostProcessingLimitStatusForState(state), step);
+
+  // 底マチあり判定（3軸: bagTypeId + hasGusset + depth）※ sealing-data.ts の isGussetedBag で共通化
+  const isGusseted = isGussetedBag(state.bagTypeId, state.hasGusset, state.depth);
+
+  // 動的シール幅選択肢（Excel D24:J101 厳密一致・Rev.5 必須選択/自動決定/昇順）
+  // 依存はプリミティブのみ（effectiveOptions 配列を依存にしない＝無限ループ回避）
+  const FALLBACK_SEALING_OPTIONS = SEALING_WIDTH_OPTIONS;
+  const effectiveSealingOptions = useMemo(
+    () => {
+      // depth undefined / 0 ガード（底マチなし）= 従来3択フォールバック
+      if (state.depth === undefined || state.depth === 0) return FALLBACK_SEALING_OPTIONS;
+      if (!state.width) return FALLBACK_SEALING_OPTIONS;
+      const widths = isGusseted
+        ? getAvailableSealWidths(state.width, state.depth)
+        : [];
+      // 底マチあり・Excel該当なし（空配列）= 従来3択フォールバック（必須選択）
+      return widths.length > 0
+        ? widths.map(n => ({
+            id: `${n}mm`.replace('.', '-'),
+            name: `シール幅 ${n}mm`,
+            value: `${n}mm`,
+            priceMultiplier: 1.0,
+            previewImage: `/images/post-processing/seal_${n}.jpg`,
+          }))
+        : FALLBACK_SEALING_OPTIONS;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.width, state.depth, state.bagTypeId, state.hasGusset]
+  );
+
+  // 1候補時: 自動決定（useEffect）。複数候補/0候補時: 未選択を許容（必須選択は checkStepComplete で担保）
+  useEffect(() => {
+    if (!state.width || state.depth === undefined || state.depth === 0) return;
+    const widths = isGusseted
+      ? getAvailableSealWidths(state.width, state.depth)
+      : [];
+    if (widths.length === 1) {
+      setSealWidth(`${widths[0]}mm`);
+    }
+  }, [state.width, state.depth, state.bagTypeId, state.hasGusset]);
 
   // ホバー状態管理（パターンA用）
   const [hoveredOption, setHoveredOption] = useState<{option: any; element: HTMLElement} | null>(null);
@@ -1579,6 +1084,9 @@ function PostProcessingStep() {
             {/* Category Header */}
             <div className="flex items-center gap-3 mb-3">
               <h3 className="text-base font-bold text-gray-900">シール幅</h3>
+              {isGusseted && !state.sealWidth && (
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">必須</span>
+              )}
               {state.sealWidth && (
                 <Check className="w-5 h-5 text-green-500" />
               )}
@@ -1586,7 +1094,7 @@ function PostProcessingStep() {
 
             {/* Horizontal Scroll Options */}
             <div className="flex gap-2 pb-2 scrollbar-hide flex-wrap">
-              {SEALING_WIDTH_OPTIONS.map((option) => {
+              {effectiveSealingOptions.map((option) => {
                 const isSelected = state.sealWidth === option.value;
                 return (
                   <div key={option.id} className="relative flex-shrink-0">
@@ -1733,6 +1241,13 @@ function RealTimePriceDisplay() {
     };
     priceBreak: string;
     minimumPriceApplied: boolean;
+    // Phase 3.2: 両方式比較（推奨表示用）
+    // 仕様: .omc/plans/gravure-integration-consensus.md Step 3.2 / AC-9
+    // printingType='auto' の場合、各数量でデジタル/グラビア両方を計算し安い方を推奨
+    digital?: { unitPrice: number; totalPrice: number };
+    gravure?: { unitPrice: number; totalPrice: number };
+    recommendedMethod?: 'digital' | 'gravure';
+    recommendedReason?: string;
   }>>([]);
 
   const previousPriceRef = useRef<number | null>(null);
@@ -1837,43 +1352,88 @@ function RealTimePriceDisplay() {
           discountRate: number;
           priceBreak: string;
           minimumPriceApplied: boolean;
+          digital?: { unitPrice: number; totalPrice: number };
+          gravure?: { unitPrice: number; totalPrice: number };
+          recommendedMethod?: 'digital' | 'gravure';
+          recommendedReason?: string;
         }> = [];
 
+        // Phase 3.2: 両方式ループ判定
+        // printingType='auto' の場合のみデジタル/グラビア両方を計算（推奨表示用）
+        // 明示指定（'digital'/'gravure'）時は後方互換でその方式のみ計算（計算コスト抑制）
+        const isAutoMode = (state.printingType || 'digital') === 'auto';
+        const methodsToCalculate: Array<'digital' | 'gravure'> = isAutoMode
+          ? ['digital', 'gravure']
+          : [((state.printingType || 'digital') === 'gravure' ? 'gravure' : 'digital')];
+
         for (const quantity of quantities) {
-          console.log('[RealTimePriceDisplay] 計算開始 - 数量:', quantity, 'markupRate:', customerMarkupRate, 'ユーザーID:', currentUser?.id);
-          const quoteResult = await unifiedPricingEngine.calculateQuote({
-            bagTypeId: state.bagTypeId,
-            materialId: state.materialId,
-            width: state.width,
-            height: state.height,
-            depth: state.depth,
-            quantity: quantity,
-            thicknessSelection: state.thicknessSelection,
-            isUVPrinting: state.isUVPrinting,
-            postProcessingOptions: state.postProcessingOptions,
-            printingType: state.printingType,
-            printingColors: state.printingColors,
-            doubleSided: state.doubleSided,
-            deliveryLocation: state.deliveryLocation,
-            urgency: state.urgency,
-            // 顧客別マークアップ率
-            markupRate: customerMarkupRate,
-            rollCount: state.rollCount, // 롤 필름 시 롤 개수
-            // SKU計算を使用（handleNextと同じ計算方法）
-            useSKUCalculation: true,
-            skuQuantities: state.skuCount > 1 ? state.skuQuantities : [quantity],
-            // Roll film specific parameters
-            materialWidth: state.materialWidth,
-            filmLayers: state.filmLayers,
-            // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
-            useFilmCostCalculation: true,
-            // 2列生産オプション関連パラメータ
-            twoColumnOptionApplied: state.twoColumnOptionApplied,
-            discountedUnitPrice: state.discountedUnitPrice,
-            discountedTotalPrice: state.discountedTotalPrice,
-            originalUnitPrice: state.originalUnitPrice
-          });
-          console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '価格:', quoteResult.totalPrice, '円');
+          console.log('[RealTimePriceDisplay] 計算開始 - 数量:', quantity, 'markupRate:', customerMarkupRate, 'ユーザーID:', currentUser?.id, '方式:', methodsToCalculate.join('/'));
+
+          // 各方式の計算結果を保持
+          const methodResults: Partial<Record<'digital' | 'gravure', { unitPrice: number; totalPrice: number; minimumPriceApplied: boolean }>> = {};
+
+          for (const method of methodsToCalculate) {
+            const quoteResult = await unifiedPricingEngine.calculateQuote({
+              bagTypeId: state.bagTypeId,
+              materialId: state.materialId,
+              width: state.width,
+              height: state.height,
+              depth: state.depth,
+              quantity: quantity,
+              thicknessSelection: state.thicknessSelection,
+              isUVPrinting: state.isUVPrinting,
+              postProcessingOptions: state.postProcessingOptions,
+              // Phase 3.2: 方式別に計算（auto時は両方式、明示時は指定方式）
+              printingType: method,
+              printingColors: state.printingColors,
+              doubleSided: state.doubleSided,
+              deliveryLocation: state.deliveryLocation,
+              urgency: state.urgency,
+              // 顧客別マークアップ率
+              markupRate: customerMarkupRate,
+              rollCount: state.rollCount, // 롤 필름 시 롤 개수
+              // SKU計算を使用（handleNextと同じ計算方法）
+              useSKUCalculation: true,
+              skuQuantities: state.skuCount > 1 ? state.skuQuantities : [quantity],
+              // Roll film specific parameters
+              materialWidth: state.materialWidth,
+              filmLayers: state.filmLayers,
+              // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
+              useFilmCostCalculation: true,
+            });
+            console.log('[RealTimePriceDisplay] 計算結果 - 数量:', quantity, '方式:', method, '価格:', quoteResult.totalPrice, '円');
+            methodResults[method] = {
+              unitPrice: quoteResult.unitPrice,
+              totalPrice: quoteResult.totalPrice,
+              minimumPriceApplied: quoteResult.minimumPriceApplied || false
+            };
+          }
+
+          // 推奨方式判定（auto時のみ）：安い方を推奨
+          let recommendedMethod: 'digital' | 'gravure' | undefined;
+          let recommendedReason: string | undefined;
+          let primaryResult: { unitPrice: number; totalPrice: number; minimumPriceApplied: boolean };
+
+          if (isAutoMode && methodResults.digital && methodResults.gravure) {
+            const dTotal = methodResults.digital.totalPrice;
+            const gTotal = methodResults.gravure.totalPrice;
+            if (gTotal < dTotal) {
+              recommendedMethod = 'gravure';
+              // グラビア推奨理由：分岐点以上でグラビアが安い
+              const savings = dTotal - gTotal;
+              const savingsPct = dTotal > 0 ? Math.round((savings / dTotal) * 100) : 0;
+              recommendedReason = `グラビア推奨（デジタル比 ${savingsPct}% 安）`;
+            } else {
+              recommendedMethod = 'digital';
+              // デジタル推奨理由：分岐点未満でグラビア高単価
+              recommendedReason = 'デジタル推奨（グラビア分岐点未満）';
+            }
+            primaryResult = recommendedMethod === 'gravure' ? methodResults.gravure : methodResults.digital;
+          } else {
+            // 明示指定時：その方式の結果を主結果に
+            const soleMethod = methodsToCalculate[0];
+            primaryResult = methodResults[soleMethod]!;
+          }
 
           // Determine price break and discount rate
           let discountRate = 0;
@@ -1895,11 +1455,16 @@ function RealTimePriceDisplay() {
 
           quotes.push({
             quantity: quantity,
-            unitPrice: quoteResult.unitPrice,
-            totalPrice: quoteResult.totalPrice,
+            unitPrice: primaryResult.unitPrice,
+            totalPrice: primaryResult.totalPrice,
             discountRate: Math.round(discountRate * 100),
             priceBreak: priceBreak,
-            minimumPriceApplied: quoteResult.minimumPriceApplied || false
+            minimumPriceApplied: primaryResult.minimumPriceApplied,
+            // Phase 3.2: 両方式結果と推奨（auto時のみ設定）
+            ...(methodResults.digital ? { digital: { unitPrice: methodResults.digital.unitPrice, totalPrice: methodResults.digital.totalPrice } } : {}),
+            ...(methodResults.gravure ? { gravure: { unitPrice: methodResults.gravure.unitPrice, totalPrice: methodResults.gravure.totalPrice } } : {}),
+            ...(recommendedMethod ? { recommendedMethod } : {}),
+            ...(recommendedReason ? { recommendedReason } : {}),
           });
         }
 
@@ -2017,11 +1582,38 @@ function RealTimePriceDisplay() {
                       最低価格適用
                     </span>
                   )}
+                  {/* Phase 3.2: 推奨印刷方式バッジ（auto時のみ表示） */}
+                  {quote.recommendedMethod && (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      quote.recommendedMethod === 'gravure'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      推奨: {quote.recommendedMethod === 'gravure' ? 'グラビア' : 'デジタル'}
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-1 text-sm text-gray-600">
                   <div>単価: ¥{quote.unitPrice.toLocaleString()}（税別）</div>
                   <div>{quote.priceBreak} ({quote.discountRate}%引)</div>
+                  {/* Phase 3.2: 両方式価格比較表示（auto時のみ） */}
+                  {quote.digital && quote.gravure && (
+                    <div className="mt-1 flex items-center space-x-3 text-xs">
+                      <span className={quote.recommendedMethod === 'digital' ? 'font-semibold text-blue-700' : 'text-gray-500'}>
+                        デジタル: ¥{quote.digital.totalPrice.toLocaleString()}
+                      </span>
+                      <span className={quote.recommendedMethod === 'gravure' ? 'font-semibold text-purple-700' : 'text-gray-500'}>
+                        グラビア: ¥{quote.gravure.totalPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {/* Phase 3.2: 推奨理由 */}
+                  {quote.recommendedReason && (
+                    <div className="mt-1 text-xs text-gray-500 italic">
+                      {quote.recommendedReason}
+                    </div>
+                  )}
                 </div>
 
                 {quote.minimumPriceApplied && (
@@ -2051,9 +1643,29 @@ function RealTimePriceDisplay() {
           </div>
           <div className="mt-1 text-xs text-gray-500">
             サイズ: {state.bagTypeId === 'roll_film' ? `幅: ${state.width}mm / ピッチ: ${state.pitch}mm` : `${state.width}×${state.height}${state.depth > 0 ? `×${state.depth}` : ''}`}mm
-            {state.thicknessSelection && ` | 厚さ: ${getThicknessLabel(state.thicknessSelection)}`}
+            {state.thicknessSelection && state.materialId && ` | フィルム構成: ${getFilmStructureLabel(state.materialId, state.thicknessSelection)}`}
           </div>
         </div>
+
+        {/* グラビア多列生産: 自動適用（C2 Followup #1・ユーザー指示 2026-06-28）
+            顧客選択UIは廃止。製作数量に応じて自動判定（1列基準の製作長が1,000m超で最大列数）。 */}
+        {state.printingType !== 'digital' && state.bagTypeId !== 'roll_film' && (() => {
+          // bagTypeId → パウチ形状の判定（グラビア計算と同一ロジック）
+          const bt = state.bagTypeId || '';
+          const isPouch =
+            bt.includes('lap_seal') || bt.includes('t_shape') ||
+            bt.includes('3_side') || bt.includes('flat') ||
+            bt.includes('stand') || bt.includes('m_shape');
+          if (!isPouch) return null;
+          return (
+            <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="text-xs text-purple-700">
+                💰 多列生産で自動割引: 製作数量が多い場合（1列基準の製作長が1,000m超）は、
+                物理可能な最大列数で自動計算し銅版費を按分して単価を下げます。
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -2092,13 +1704,22 @@ function getPostProcessingLabel(optionId: string): string {
 export function ImprovedQuotingWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<UnifiedQuoteResult | null>(null);
+  // C2: multiQuantityResult の型を明示化（any → 具体型）
+  // Map キー = パターン index (0-4)、値 = そのパターンの計算結果 + 推奨方式 + 合計数量
+  // ※UnifiedQuoteResult は quantity フィールドを持たないため、patternTotalQuantity を
+  //   calculations 値の追加フィールドとして保持（逆算による数量表示の正確性担保）
+  const [multiQuantityResult, setMultiQuantityResult] = useState<{
+    calculations: Map<number, UnifiedQuoteResult & { recommendation: { method: 'digital' | 'gravure' } } & { patternTotalQuantity: number }>;
+  } | null>(null);
+  // C1: 複数数量パターンの局所 state（[skuIndex][patternIndex]）
+  // SKU数 <=5 時のみ使用。>5 時は空配列。QuoteContext は拡張しない（既存 skuQuantities pipeline は完全非接触）
+  const [patternQuantities, setPatternQuantities] = useState<number[][]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const state = useQuoteState();
   const { dispatch, resetQuote } = useQuote();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const isStepComplete = (step: string) => checkStepComplete(state, step);
-  const { calculateMultiQuantity, canCalculateMultiQuantity } = useMultiQuantityQuote();
 
   // Toast notification system
   const { toasts, dismissToast, showError, showSuccess } = useToast();
@@ -2255,11 +1876,6 @@ export function ImprovedQuotingWizard() {
             filmLayers: state.filmLayers,
             // 【重要】フィルム原価計算を有効化（管理画面での詳細表示用）
             useFilmCostCalculation: true,
-            // 2列生産オプションパラメータ
-            twoColumnOptionApplied: state.twoColumnOptionApplied,
-            discountedUnitPrice: state.discountedUnitPrice,
-            discountedTotalPrice: state.discountedTotalPrice,
-            originalUnitPrice: state.originalUnitPrice
           });
 
           console.log('[handleNext] 価格計算完了 - 総額:', quoteResult.totalPrice, '円, markupRate:', markupRate, 'ユーザーID:', user?.id);
@@ -2288,6 +1904,157 @@ export function ImprovedQuotingWizard() {
           console.log('[handleNext] Setting result with hasValidSKUData:', enhancedResult.hasValidSKUData);
           console.log('[handleNext] Setting result with skuQuantities:', enhancedResult.skuQuantities);
           setResult(enhancedResult);
+
+          // Phase 1.2: 複数パターン比較データを直接計算（MultiQuantityQuoteContextに依存しない）
+          // C3: SKU数 <=5 時は state の patternQuantities([skuIndex][patternIndex]) を転置して
+          //     各パターン（列）の全SKU数量配列を取得し、各パターン合計数量で digital/gravure 両計算。
+          //     SKU数 >5 時は従来単一計算を維持、setMultiQuantityResult(null)。
+          try {
+            const skuCountForPattern = state.skuCount ?? 0;
+            const usePatternMode = skuCountForPattern > 0 && skuCountForPattern <= 5
+              && Array.isArray(patternQuantities)
+              && patternQuantities.length === skuCountForPattern
+              && patternQuantities.some(row => Array.isArray(row) && row.length > 0);
+
+            if (usePatternMode) {
+              // patternQuantities([skuIndex][patternIndex]) を転置 → patternQtyByPattern[patternIndex][skuIndex]
+              const maxPatternCount = patternQuantities.reduce((max, row) => Math.max(max, Array.isArray(row) ? row.length : 0), 0);
+              const transposed: number[][] = [];
+              for (let p = 0; p < maxPatternCount; p++) {
+                const patternQtyForAllSkus: number[] = [];
+                for (let s = 0; s < skuCountForPattern; s++) {
+                  const row = patternQuantities[s];
+                  patternQtyForAllSkus.push(Array.isArray(row) && p < row.length ? (row[p] || 0) : 0);
+                }
+                transposed.push(patternQtyForAllSkus);
+              }
+
+              const calculations = new Map<number, UnifiedQuoteResult & { recommendation: { method: 'digital' | 'gravure' } } & { patternTotalQuantity: number }>();
+              const baseQuoteParams = {
+                bagTypeId: state.bagTypeId,
+                materialId: state.materialId,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                thicknessSelection: state.thicknessSelection,
+                isUVPrinting: state.isUVPrinting,
+                postProcessingOptions: state.postProcessingOptions,
+                printingColors: state.printingColors,
+                doubleSided: state.doubleSided,
+                deliveryLocation: state.deliveryLocation,
+                urgency: state.urgency,
+                markupRate: 0,
+                rollCount: state.rollCount,
+                materialWidth: state.materialWidth,
+                filmLayers: state.filmLayers,
+                useFilmCostCalculation: true,
+                useSKUCalculation: true,
+              };
+
+              // 各パターン（列）ごとに digital/gravure 両方式を計算し推奨（安い方）を格納
+              for (let patternIdx = 0; patternIdx < transposed.length; patternIdx++) {
+                const skuQtyArray = transposed[patternIdx];
+                const patternTotal = skuQtyArray.reduce((sum, qty) => sum + (qty || 0), 0);
+                // パターン合計0（未入力等）はスキップ
+                if (!patternTotal || patternTotal <= 0) continue;
+
+                // デジタル計算
+                const digitalResult = await unifiedPricingEngine.calculateQuote({
+                  ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'digital',
+                });
+                // グラビア計算
+                // 仕様 docs/gravure-pricing-calculation-formula.md §3/§4/§14 準拠:
+                //   - 原反幅: bagTypeId/寸法から動的算出（740mm固定は誤り）
+                //   - 製作長: 1ロット(6000m)あたりの加工個数から必要ロット数を算出し、
+                //             総製作長 = ロット数 × 6000m で数量スケール（未指定だと常に1ロット固定になるバグを修正）
+                //   - laminationType: 2026-06-27 廃止（ラミ種別→AL有無。filmLayers から自動判定）
+                let gravureResult: UnifiedQuoteResult | null = null;
+                try {
+                  const bagTypeId = state.bagTypeId;
+                  const gWidth = state.width;
+                  const gHeight = state.height;
+                  const gDepth = state.depth ?? 0;
+
+                  // bagTypeId → GravurePouchType マッピング（unified-pricing-engine.ts L2244-2257 と同一ロジック）
+                  let pouchType: GravurePouchType | null = null;
+                  if (bagTypeId === 'roll_film') {
+                    pouchType = null; // ロールフィルムは袋加工なし
+                  } else if (bagTypeId.includes('lap_seal') || bagTypeId.includes('t_shape')) {
+                    pouchType = 't_shape';
+                  } else if (bagTypeId.includes('3_side') || bagTypeId.includes('flat')) {
+                    pouchType = 'flat_3_side';
+                  } else if (bagTypeId.includes('stand')) {
+                    pouchType = 'stand_up';
+                  } else if (bagTypeId.includes('m_shape')) {
+                    pouchType = 'm_shape';
+                  }
+
+                  // 原反幅の動的算出
+                  let gravureMaterialWidth: number;
+                  let gravureProductionMeters: number;
+                  if (bagTypeId === 'roll_film' || !pouchType) {
+                    // ロールフィルム: 仕様幅ベース（state.materialWidth があればそれ、なければ最小500mm）
+                    gravureMaterialWidth = determineGravureRollMaterialWidth(state.materialWidth && state.materialWidth > 0 ? state.materialWidth : 500);
+                    // ロールは長さで注文されるため、製作長 = 要求数量(m) をそのまま使用（1ロット6000m未満なら6000m）
+                    gravureProductionMeters = Math.max(GRAVURE_CONSTANTS.STANDARD_LOT_METERS, patternTotal);
+                  } else {
+                    // パウチ: 公式による原反幅算出
+                    gravureMaterialWidth = determineGravureMaterialWidth(pouchType, gHeight, gWidth, gDepth);
+                    // 1ロットあたり加工個数 → 必要ロット数 → 総製作長（仕様§4/§14）
+                    const perLotCount = calculateGravureProcessingCount(pouchType, gHeight, gWidth, gDepth);
+                    const requiredLots = perLotCount > 0 ? Math.max(1, Math.ceil(patternTotal / perLotCount)) : 1;
+                    gravureProductionMeters = requiredLots * GRAVURE_CONSTANTS.STANDARD_LOT_METERS;
+                  }
+
+                  // 多列生産列数の自動決定（C2 Followup #1・ユーザー指示 2026-06-28）
+                  // 顧客選択UIではなく、1列基準の製作長（パウチピッチ×数量）が1000m超で
+                  // 物理可能な最大列数を自動適用（パウチ袋=2列上限）。1000m以下は1列。
+                  // 例: ピッチ130mm×1万個=1300m > 1000m → 2列（650m相当）。
+                  let gravureColumnCount = 1;
+                  if (pouchType) {
+                    gravureColumnCount = determineAutoMultiColumnCount(pouchType, gHeight, gWidth, patternTotal);
+                  }
+
+                  gravureResult = await unifiedPricingEngine.calculateQuote({
+                    ...baseQuoteParams, quantity: patternTotal, skuQuantities: skuQtyArray, printingType: 'gravure',
+                    gravureMaterialWidth,
+                    gravureProductionMeters,
+                    copperPlateType: 'new',         // 初回見積もり想定
+                    columnCount: gravureColumnCount, // 多列生産列数（グラビア 2/3/4列・AC6）
+                  });
+                } catch (e) {
+                  console.warn('[handleNext] Gravure calc failed for pattern', patternIdx, e);
+                  gravureResult = null;
+                }
+                // 推奨判定
+                const dTotal = digitalResult.totalPrice;
+                const gTotal = gravureResult?.totalPrice ?? Infinity;
+                const recommended: 'digital' | 'gravure' = gTotal < dTotal ? 'gravure' : 'digital';
+                const recommendedResult = recommended === 'gravure' ? gravureResult! : digitalResult;
+                calculations.set(patternIdx, {
+                  ...recommendedResult,
+                  recommendation: {
+                    method: recommended,
+                    resolvedMethod: recommended,
+                    breakevenQuantity: -1,
+                    digitalTotalPrice: dTotal,
+                    gravureTotalPrice: gTotal === Infinity ? -1 : gTotal,
+                    reason: recommended === 'gravure' ? `グラビア推奨（デジタル比 ${Math.round((1 - gTotal / dTotal) * 100)}% 安）` : 'デジタル推奨（分岐点未満）',
+                  },
+                  // そのパターンの全SKU数量合計（UnifiedQuoteResult は quantity を持たないため保持）
+                  patternTotalQuantity: patternTotal,
+                });
+              }
+              setMultiQuantityResult({ calculations });
+              console.log('[handleNext] Multi-quantity result set (pattern mode):', calculations.size, 'patterns');
+            } else {
+              // SKU数 >5 / patternQuantities 未入力: 従来単一計算を維持、比較表非表示
+              setMultiQuantityResult(null);
+            }
+          } catch (e) {
+            console.warn('[handleNext] Multi-quantity calculation failed:', e);
+            setMultiQuantityResult(null);
+          }
 
           // Force state update before changing step
           await new Promise(resolve => setTimeout(resolve, 0));
@@ -2356,7 +2123,25 @@ export function ImprovedQuotingWizard() {
     }
   };
 
-  const canProceed = currentStepId ? isStepComplete(currentStepId) : false;
+  // 複数パターンビュー（SKU 1-10）の判定
+  const isMultiPatternMode =
+    state.skuCount >= 1 && state.skuCount <= 10 && patternQuantities.length > 0;
+
+  // canProceed: 複数パターンビューの場合は patternQuantities で判定
+  // （少なくとも1パターンの合計が最小数量500以上なら進行可能）
+  const canProceed = (() => {
+    if (!currentStepId) return false;
+    if (currentStepId === 'sku-quantity' && isMultiPatternMode) {
+      const colCount = patternQuantities[0]?.length ?? 0;
+      const minQty = 500; // 最低1パターン500個/m
+      for (let p = 0; p < colCount; p++) {
+        const patternTotal = patternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0);
+        if (patternTotal >= minQty) return true;
+      }
+      return false;
+    }
+    return isStepComplete(currentStepId);
+  })();
   const isLastStep = currentStep === STEPS.length - 1;
 
   // SKU数量MOQエラーがある場合は進行不可
@@ -2368,21 +2153,6 @@ export function ImprovedQuotingWizard() {
     return true;
   }, [canProceed, currentStepId, state.skuQuantityValidationError]);
 
-  // Compute validation error message for 2-column production total quantity mismatch
-  // This is displayed when canProceed is false due to total quantity validation failure
-  const getNavigationBlockReason = (): string | null => {
-    if (currentStepId !== 'sku-quantity') return null;
-    if (state.quantityMode !== 'sku') return null;
-    if (!state.twoColumnOptionApplied || state.fixedTotalQuantity === undefined) return null;
-
-    const currentTotalQuantity = state.skuQuantities.reduce((sum, qty) => sum + (qty || 0), 0);
-    if (currentTotalQuantity !== state.fixedTotalQuantity) {
-      const diff = currentTotalQuantity - state.fixedTotalQuantity;
-      return `総数量が${diff > 0 ? '+' : ''}${diff.toLocaleString()}個です。総数量${state.fixedTotalQuantity.toLocaleString()}個を維持してください`;
-    }
-    return null;
-  };
-
   // Get validation messages for specs step
   const specsValidationErrors = useMemo(() => {
     if (currentStepId === 'specs' && !canProceed) {
@@ -2390,8 +2160,6 @@ export function ImprovedQuotingWizard() {
     }
     return [];
   }, [currentStepId, canProceed, state]);
-
-  const navigationBlockReason = getNavigationBlockReason();
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -2500,6 +2268,7 @@ export function ImprovedQuotingWizard() {
                     return (
                       <button
                         key={step.id}
+                        data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
                         onClick={() => index < currentStep && setCurrentStep(index)}
                         disabled={index > currentStep}
                         className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-all ${isActive
@@ -2544,8 +2313,8 @@ export function ImprovedQuotingWizard() {
               {/* Step Content */}
               {currentStepId === 'specs' && <SpecsStep />}
               {currentStepId === 'post-processing' && <PostProcessingStep />}
-              {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep />}
-              {currentStepId === 'result' && result && <ResultStep result={result} multiQuantityResult={null} onReset={handleReset} />}
+              {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep patternQuantities={patternQuantities} onPatternQuantitiesChange={setPatternQuantities} />}
+              {currentStepId === 'result' && result && <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} />}
 
               {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
               {/* Specs step validation errors */}
@@ -2566,26 +2335,6 @@ export function ImprovedQuotingWizard() {
                           <li key={index}>{error}</li>
                         ))}
                       </ul>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {!canProceed && navigationBlockReason && currentStepId === 'sku-quantity' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
-                >
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-800">
-                        {navigationBlockReason}
-                      </p>
-                      <p className="text-xs text-red-600 mt-1">
-                        総数量を調整してから次へ進んでください
-                      </p>
                     </div>
                   </div>
                 </motion.div>

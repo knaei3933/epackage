@@ -226,7 +226,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '軽量タイプ (~100g)',
         nameJa: '軽量タイプ (~100g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン50μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 50μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 50μ',
         weightRange: '~100g',
         multiplier: 0.85,
         filmLayers: [
@@ -241,7 +241,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '標準タイプ (~300g)',
         nameJa: '標準タイプ (~300g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 70μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 70μ',
         weightRange: '~300g',
         multiplier: 0.95,
         filmLayers: [
@@ -256,7 +256,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: 'レギュラータイプ (~500g)',
         nameJa: 'レギュラータイプ (~500g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン90μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 90μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ',
         weightRange: '~500g',
         multiplier: 1.0,
         filmLayers: [
@@ -271,7 +271,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '高耐久タイプ (~800g)',
         nameJa: '高耐久タイプ (~800g)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン100μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 100μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 100μ',
         weightRange: '~800g',
         multiplier: 1.1,
         filmLayers: [
@@ -286,7 +286,7 @@ export const MATERIALS_DATA: MaterialData[] = [
         name: '超耐久タイプ (800g~)',
         nameJa: '超耐久タイプ (800g~)',
         specification: 'ポリエステル12μ+VMPET12μ+ポリエステル12μ+直鎖状低密度ポリエチレン110μ',
-        specificationEn: 'PET 12μ + VMPET12μ + PET 12μ + LLDPE 110μ',
+        specificationEn: 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 110μ',
         weightRange: '800g~',
         multiplier: 1.2,
         filmLayers: [
@@ -466,6 +466,66 @@ export const MATERIALS_DATA: MaterialData[] = [
         filmLayers: [
           { materialId: 'NY', thickness: 15 },
           { materialId: 'LLDPE', thickness: 110 }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'pet_ny',
+    name: 'PET/NY/PET/LLDPE',
+    nameJa: 'PET/NY/PET/LLDPE',
+    description: 'High strength transparent film with nylon',
+    descriptionJa: 'ナイロン補強による高強度透明フィルム',
+    multiplier: 1.0,
+    features: ['高強度・耐衝撃性', '透明性維持', 'ガスバリア性', '汎用性が高い'],
+    featuresJa: ['高強度・耐衝撃性', '透明性維持', 'ガスバリア性', '汎用性が高い'],
+    recommendedFor: '冷凍食品、レトルト食品、一般食品包装',
+    category: 'transparent',
+    popular: false,
+    ecoFriendly: false,
+    thicknessOptions: [
+      {
+        id: 'standard_70',
+        name: '標準タイプ (~300g)',
+        nameJa: '標準タイプ (~300g)',
+        specification: 'ポリエステル12μ+ナイロン15μ+ポリエステル12μ+直鎖状低密度ポリエチレン70μ',
+        specificationEn: 'PET 12μ + NY 15μ + PET 12μ + LLDPE 70μ',
+        weightRange: '~300g',
+        multiplier: 1.0,
+        filmLayers: [
+          { materialId: 'PET', thickness: 12 },
+          { materialId: 'NY', thickness: 15 },
+          { materialId: 'PET', thickness: 12 },
+          { materialId: 'LLDPE', thickness: 70 }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'kp_pe',
+    name: 'KP/PE',
+    nameJa: 'KP/PE',
+    description: 'PVDC coated high barrier film',
+    descriptionJa: 'PVDCコートによる高バリア性フィルム',
+    multiplier: 1.0,
+    features: ['高ガスバリア性', '優れた防湿性', '透明性', '食品の鮮度保持'],
+    featuresJa: ['高ガスバリア性', '優れた防湿性', '透明性', '食品の鮮度保持'],
+    recommendedFor: '乾物、スナック、ドライフルーツ、乾燥食品',
+    category: 'high_barrier',
+    popular: false,
+    ecoFriendly: false,
+    thicknessOptions: [
+      {
+        id: 'standard',
+        name: '標準タイプ (~200g)',
+        nameJa: '標準タイプ (~200g)',
+        specification: 'PVDCコートポリエステル12μ+ポリエチレン60μ',
+        specificationEn: 'KP 12μ + PE 60μ',
+        weightRange: '~200g',
+        multiplier: 1.0,
+        filmLayers: [
+          { materialId: 'KP', thickness: 12 },
+          { materialId: 'PE', thickness: 60 }
         ]
       }
     ]

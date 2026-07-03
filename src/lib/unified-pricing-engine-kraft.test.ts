@@ -49,8 +49,8 @@ describe('UnifiedPricingEngine - Kraft Grammage Fix', () => {
     it('grammage使用時の重量計算が正しいこと', async () => {
       const result = await engine.calculateQuote(kraftVmpetParams);
 
-      // Kraft 50g/m² + VMPET 12μ + LLDPE 70μ
-      // 重量 = (50/1000) × 幅 × 長さ (g/m² → kg/m²)
+      // Kraft 80g/m² + VMPET 12μ + LLDPE 70μ
+      // 重量 = (80/1000) × 幅 × 長さ (g/m² → kg/m²)
 
       console.log('=== Kraft Weight Calculation Test ===');
       console.log('Breakdown:', JSON.stringify(result.breakdown, null, 2));

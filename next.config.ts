@@ -213,9 +213,14 @@ const nextConfig: NextConfig = {
   // =====================================================
   experimental: {
     // optimizeCss: true, // 一時的に無効化してCSSの問題を解決
+    // PERFORMANCE: framer-motion / recharts は全ページで静的 import されており
+    // バンドル肥大化の主因。optimizePackageImports で使用コンポーネントのみ
+    // ツリーシェイク（低リスク・Next.js 標準機能）。
     optimizePackageImports: [
       'lucide-react',
       'date-fns',
+      'framer-motion',
+      'recharts',
     ],
   },
 };

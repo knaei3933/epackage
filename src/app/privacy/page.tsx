@@ -51,7 +51,7 @@ export default function PrivacyPolicy() {
               </div>
               <div>
                 <span className="font-medium">所在地：</span>
-                <span className="ml-2">兵庫県明石市上ノ丸2-11-21</span>
+                <span className="ml-2">兵庫県加古郡稲美町六分一486</span>
               </div>
               <div>
                 <span className="font-medium">代表者：</span>
@@ -350,7 +350,7 @@ export default function PrivacyPolicy() {
                     <div className="bg-surface-secondary rounded-lg p-4 mt-4">
                       <p className="font-medium text-text-primary">個人情報保護管理者</p>
                       <p>金　乾雄</p>
-                      <p>兵庫県明石市上ノ丸2-11-21</p>
+                      <p>兵庫県加古郡稲美町六分一486</p>
                       <p>電話：050-1793-6500</p>
                       <p>メール：info@package-lab.com</p>
                     </div>

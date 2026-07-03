@@ -9,8 +9,10 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAdminAuth } from '../loader';
-import AdminSettingsClient from './AdminSettingsClient';
 import { FullPageSpinner } from '@/components/ui';
+// Client wrapper so that next/dynamic { ssr: false } is allowed in a Server
+// Component (Next.js 16 forbids ssr: false directly in Server Components).
+import AdminSettingsClient from './AdminSettingsClientLazy';
 
 async function SettingsContent() {
   let authContext;

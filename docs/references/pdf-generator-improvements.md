@@ -113,8 +113,8 @@ Current supplier information in PDF:
 EPACKAGE Lab
 by kanei-trade
 金井貿易株式会社
-〒673-0846
-兵庫県明石市上ノ丸2-11-21-102
+〒675-1112
+兵庫県加古郡稲美町六分一486
 TEL：080-6942-7235
 ```
 

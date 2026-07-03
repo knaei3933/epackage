@@ -146,7 +146,7 @@ test.describe('Design Revision Workflow v2 - Component Display', () => {
 test.describe('Design Revision Workflow v2 - File Naming Tests', () => {
   test('should test file naming functions', async ({ page }) => {
     // Test the file naming utility functions
-    const { parseCustomerFilename, generateCorrectionFilename, extractLanguage } = require('../src/lib/file-naming');
+    const { parseCustomerFilename, generateCorrectionFilename, extractLanguage } = require('../../src/lib/file-naming');
 
     // Test 1: Parse standard Chinese filename
     const chineseFilename = '中国語_入稿データ_ORD-2026-MLU0AQIY_20260220.pdf';

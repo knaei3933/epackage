@@ -11,12 +11,32 @@ import type {
   SKUCostBreakdown
 } from './pouch-cost-calculator'
 import { determineMaterialWidth } from './material-width-selector'
+import { getFilmStructureLabel } from '../constants/materialTypes'
 import { processingOptionsConfig, type ProcessingOptionConfig } from '../components/quote/shared/processingConfig'
-import { PRICING_CONSTANTS } from './pricing/core/constants'
+import { PRICING_CONSTANTS, PRINTING_COSTS, GRAVURE_CONSTANTS } from './pricing/core/constants'
+import { calculateGravureFilmValue, calculateCopperPlateCost } from './gravure-cost-calculator'
 
 // ========================================
 // ヘルパー関数
 // ========================================
+
+/**
+ * ウォン(KRW) → 円(JPY) 換算の集約ヘルパー（AC-22・Phase 1b）
+ *
+ * 仕様 gravure-integration-consensus.md AC-22「円変換は集約レイヤーで統一」に基づき、
+ * 従来コード内に散在した `* 0.12` マジックナンバーを本関数に集約（DRY化）。
+ *
+ * - 唯一ソース（SSoT）: PRICING_CONSTANTS.EXCHANGE_RATE_KRW_TO_JPY（constants.ts）
+ * - 計算結果は従来の `krw * 0.12` と数学的に完全一致（後方互換性維持）
+ * - デジタル計算: 各計算関数は引き続き円を返す（従来通り）
+ * - グラビア計算: gravure-cost-calculator.ts がウォンを返し、1c アダプタ層で本関数を呼び円変換
+ *
+ * @param krw ウォン金額
+ * @returns 円金額（krw × 為替レート）
+ */
+export function convertKRWtoJPY(krw: number): number {
+  return krw * PRICING_CONSTANTS.EXCHANGE_RATE_KRW_TO_JPY
+}
 
 /**
  * 素材IDと厚さ選択から材料構造を取得
@@ -29,10 +49,14 @@ export function getMaterialSpecification(
   thicknessSelection: string
 ): string {
   const options = MATERIAL_THICKNESS_OPTIONS[materialId]
-  if (!options) return '-'
-
-  const thickness = options.find(opt => opt.id === thicknessSelection)
-  return thickness?.specification || '-'
+  if (options) {
+    const thickness = options.find(opt => opt.id === thicknessSelection)
+    if (thickness?.specification) return thickness.specification
+  }
+  // フォールバック: pet_ny/kp_pe 等の旧系 MATERIAL_THICKNESS_OPTIONS 未登録素材、
+  // または thicknessSelection 非該当時は materialData.ts の specificationEn
+  // （getFilmStructureLabel）を参照して '-' 表示を回避する。
+  return getFilmStructureLabel(materialId, thicknessSelection)
 }
 
 // ========================================
@@ -86,7 +110,7 @@ export interface UnifiedQuoteParams {
   isUVPrinting?: boolean
   postProcessingOptions?: string[]
   postProcessingMultiplier?: number
-  printingType?: 'digital' | 'gravure'
+  printingType?: 'digital' | 'gravure' | 'auto' // Phase 2: 'auto' = 分岐点レコメンドで自動解決
   printingColors?: number
   doubleSided?: boolean
   deliveryLocation?: 'domestic' | 'international'
@@ -103,18 +127,19 @@ export interface UnifiedQuoteParams {
   skuQuantities?: number[] // SKU별 수량 [500, 500]
   useSKUCalculation?: boolean // SKU 계산 사용 여부
 
-  // 2열생산 옵션 관련 파라미터
-  twoColumnOptionApplied?: 'same' | 'double' | null
-  discountedUnitPrice?: number // 옵션 적용 후 단가
-  discountedTotalPrice?: number // 옵션 적용 후 총가
-  originalUnitPrice?: number // 옵션 적용 전 원래 단가
-
   // Roll film specific parameters
   rollCount?: number // 롤 필름 시 롤 개수 (롤당 배송비 계산용)
 
   // Spout pouch specific parameters
   spoutSize?: 9 | 15 | 18 | 22 | 28 // スパウトサイズ（パイ径）
   spoutPosition?: 'top-left' | 'top-center' | 'top-right' // スパウト位置
+
+  // グラビア印刷専用パラメータ（Phase 1c・printingType='gravure' 時のみ使用）
+  // デジタル計算（printingType='digital'・既定）はこれらのフィールドを参照しない（後方互換性）
+  gravureMaterialWidth?: number // 原反幅 (mm)。未指定時は gravure-material-width.ts で計算、または roll 仕様幅
+  copperPlateType?: 'new' | 'modify' | 'none' // 銅版種別（初回=new / リピート=modify / なし=none）
+  gravureProductionMeters?: number // グラビア製作長 (m)。未指定時は STANDARD_LOT(6000m) 使用
+  columnCount?: number // 多列生産列数（グラビア 2/3/4列）。計画 multi-column-gravure-unification.md AC6。1=単列
 }
 
 export interface UnifiedQuoteResult {
@@ -148,6 +173,14 @@ export interface UnifiedQuoteResult {
     baseCost?: number
     // SKU追加料金（SKU数量に基づく追加料金）
     skuSurcharge?: number // SKU数による追加料金: (skuCount - 1) × ¥10,000
+    // グラビア専用内訳（Phase 1c・printingType='gravure' 時のみ設定）
+    gravureFilmValueKRW?: number // グラビア原反値（ウォン）= 原材+印刷+ラミ
+    gravureMaterialCostKRW?: number // グラビア原材料費（ウォン）
+    gravurePrintingCostKRW?: number // グラビア印刷費（ウォン）
+    gravureLaminationCostKRW?: number // グラビアラミネート費（ウォン）
+    gravureCopperPlateCostKRW?: number // 銅版費（ウォン・別途計上）
+    gravureProductionMeters?: number // グラビア製作長 (m・ロス500m込み)
+    gravureMaterialWidthMM?: number // グラビア原反幅 (mm)
   }
   leadTimeDays: number
   validUntil: Date
@@ -204,6 +237,17 @@ export interface UnifiedQuoteResult {
   theoreticalMeters?: number // 이론 미터 수
   securedMeters?: number // 확보량
   totalMeters?: number // 총량 (로스 포함)
+
+  // Phase 2: 印刷方式自動選択（分岐点レコメンド・AC-8/9/10）
+  // printingType='auto' 解決時に推奨結果を格納。明示指定時は undefined。
+  recommendation?: {
+    method: 'digital' | 'gravure' // 推奨方式
+    resolvedMethod: 'digital' | 'gravure' // 実際に計算に使用した方式
+    breakevenQuantity: number // 分岐点数量（個・-1=計算不可）
+    digitalTotalPrice: number // デジタル総額（円・-1=計算不可）
+    gravureTotalPrice: number // グラビア総額（円・-1=計算不可）
+    reason: string // 推奨理由
+  }
 }
 
 // 厚さ設定
@@ -433,7 +477,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'light_50',
       name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 50μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 50μ',
       weightRange: '~100g',
       multiplier: 0.9
     },
@@ -441,7 +485,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'standard_70',
       name: '標準タイプ (~300g)',
       nameJa: '標準タイプ (~300g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 70μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 70μ',
       weightRange: '~300g',
       multiplier: 1.0
     },
@@ -449,7 +493,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'heavy_90',
       name: 'レギュラータイプ (~500g)',
       nameJa: 'レギュラータイプ (~500g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
@@ -457,7 +501,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'ultra_100',
       name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 100μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
     },
@@ -465,7 +509,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'maximum_110',
       name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
-      specification: 'Kraft 50g/m² + VMPET 12μ + LLDPE 110μ',
+      specification: 'Kraft 80g/m² + VMPET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }
@@ -475,7 +519,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'light_50',
       name: '軽量タイプ (~100g)',
       nameJa: '軽量タイプ (~100g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 50μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 50μ',
       weightRange: '~100g',
       multiplier: 0.9
     },
@@ -483,7 +527,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'standard_70',
       name: '標準タイプ (~300g)',
       nameJa: '標準タイプ (~300g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 70μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 70μ',
       weightRange: '~300g',
       multiplier: 1.0
     },
@@ -491,7 +535,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'heavy_90',
       name: 'レギュラータイプ (~500g)',
       nameJa: 'レギュラータイプ (~500g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 90μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 90μ',
       weightRange: '~500g',
       multiplier: 1.0
     },
@@ -499,7 +543,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'ultra_100',
       name: '高耐久タイプ (~800g)',
       nameJa: '高耐久タイプ (~800g)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 100μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 100μ',
       weightRange: '~800g',
       multiplier: 1.1
     },
@@ -507,7 +551,7 @@ export const MATERIAL_THICKNESS_OPTIONS: Record<string, ThicknessOption[]> = {
       id: 'maximum_110',
       name: '超耐久タイプ (800g~)',
       nameJa: '超耐久タイプ (800g~)',
-      specification: 'Kraft 50g/m² + PET 12μ + LLDPE 110μ',
+      specification: 'Kraft 80g/m² + PET 12μ + LLDPE 110μ',
       weightRange: '800g~',
       multiplier: 1.2
     }
@@ -558,19 +602,9 @@ const CONSTANTS = {
     'spout_pouch': 20
   } as const,
 
-  // 印刷設定
-  PRINTING_COSTS: {
-    digital: {
-      setupFee: 10000,      // セットアップ費: 10,000ウォン (¥1,200)
-      perColorPerMeter: 475,// 印刷費: 475ウォン/m² (¥57)
-      minCharge: 5000
-    },
-    gravure: {
-      setupFee: 50000,      // セットアップ費: 50,000ウォン (¥6,000)
-      perColorPerMeter: 200,// 印刷費: 200ウォン/m² (¥24)
-      minCharge: 20000
-    }
-  } as const,
+  // 印刷設定（SSoT: pricing/core/constants.ts の PRINTING_COSTS を正とする）
+  // グラビア perColorPerMeter=19₫/m は仕様§6.1準拠
+  PRINTING_COSTS,
 
   // 配送料
   DELIVERY_COSTS: {
@@ -599,19 +633,20 @@ const CONSTANTS = {
   // 後加工乗数（デフォルト）
   DEFAULT_POST_PROCESSING_MULTIPLIER: 1.0,
 
-  // ロールフィルム専用定数（475元/m印刷費、ラミネート・スリッター計算用）
-  ROLL_FILM_PRINTING_COST_PER_M: 475, // 원/m (폭 무관)
-  ROLL_FILM_LAMINATION_COST_PER_M: 75,  // 원/m
+  // ロールフィルム専用定数（520원/m印刷費、ラミネート・スリッター計算用）- 2026-06-27 改定
+  ROLL_FILM_PRINTING_COST_PER_M: 520, // 원/m (폭 무관)（475→520 原価上昇）
+  ROLL_FILM_LAMINATION_COST_PER_M_NO_AL: 65,  // 원/m（AL素材なし）
+  ROLL_FILM_LAMINATION_COST_PER_M_WITH_AL: 80, // 원/m（AL素材あり）
   ROLL_FILM_SLITTER_MIN_COST: 30000,    // 원
   ROLL_FILM_SLITTER_COST_PER_M: 10,    // 원/m
 
   // 필름 원가 계산 설정 (새로운 기능)
   // ガイド準拠値（AC-Q6/S1.1）: pricing/core/constants.ts の PRICING_CONSTANTS を正とする
-  // 製造者マージン40%・販売マージン20%（ガイド 06-마진:115-117）
-  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.4（ガイド準拠）
-  SALES_MARGIN: PRICING_CONSTANTS.SALES_MARGIN, // 0.2（ガイド準拠）
-  DEFAULT_MARKUP_RATE: PRICING_CONSTANTS.SALES_MARGIN, // 0.2（販売マージン=ガイド準拠）
-  // 총 마진율 = (1 + 0.4) × (1 + 0.2) - 1 = 0.68 (68%)
+  // 製造者マージン40%・販売マージン25%（2026-06-27 改定: 販売マージン 20%→25%）
+  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.4（製造社原価に40%）
+  SALES_MARGIN: PRICING_CONSTANTS.SALES_MARGIN, // 0.25（小計に25%）
+  DEFAULT_MARKUP_RATE: PRICING_CONSTANTS.SALES_MARGIN, // 0.25（販売マージン）
+  // 총 마진율 = (1 + 0.4) × (1 + 0.25) - 1 = 0.75 (75%)
   DEFAULT_LOSS_RATE: PRICING_CONSTANTS.DEFAULT_LOSS_RATE, // 0.4（기본 로스율 40%）
   DEFAULT_MATERIAL_WIDTH: PRICING_CONSTANTS.DEFAULT_MATERIAL_WIDTH, // 760（기본 원단 폭）
 
@@ -791,35 +826,27 @@ export class UnifiedPricingEngine {
       quantity: params.quantity,
       markupRate: params.markupRate,
       bagTypeId: params.bagTypeId,
-      twoColumnOptionApplied: params.twoColumnOptionApplied,
     });
 
-    // 2列生産オプションが適用されている場合は、割引価格を直接返す
-    if (params.twoColumnOptionApplied && params.discountedUnitPrice && params.discountedTotalPrice) {
-      logPriceCalculationDetail('2列生産割引適用', {
-        適用オプション: params.twoColumnOptionApplied === 'same' ? '同数量（15% OFF）' : '倍数量（31% OFF）',
-        割引単価: `¥${params.discountedUnitPrice.toLocaleString()}/個`,
-        割引総額: `¥${params.discountedTotalPrice.toLocaleString()}`
-      });
-
-      // 基本計算を実行してbreakdownを取得
-      const baseResult = await this.performSKUCalculation(params);
-
-      // 割引率を計算
-      const discountRate = params.originalUnitPrice
-        ? params.discountedUnitPrice / params.originalUnitPrice
-        : (params.twoColumnOptionApplied === 'same' ? 0.85 : 0.70);
-
-      // breakdownも割引率に合わせて調整
-      const discountedBreakdown = baseResult.breakdown ? this.adjustBreakdownForDiscount(baseResult.breakdown, discountRate) : undefined;
-
-      // 割引価格で上書き（breakdownも含める）
-      return {
-        ...baseResult,
-        unitPrice: params.discountedUnitPrice,
-        totalPrice: params.discountedTotalPrice,
-        breakdown: discountedBreakdown || baseResult.breakdown
-      };
+    // ========================================
+    // Phase 2: printingType='auto' 解決（AC-9）
+    // 推奨方式を決定し、実計算に流す。推奨結果は result.recommendation に格納。
+    // ※ キャッシュは解決後の method ベースで行う（auto 自体はキャッシュキーに含めない）。
+    // ========================================
+    let recommendation: UnifiedQuoteResult['recommendation'] | undefined
+    if (params.printingType === 'auto') {
+      const rec = await this.recommendPrintingMethod(params)
+      // 推奨方式で実計算を実行
+      params = { ...params, printingType: rec.method }
+      recommendation = {
+        method: rec.method,
+        resolvedMethod: rec.method,
+        breakevenQuantity: rec.breakevenQuantity,
+        digitalTotalPrice: rec.digitalTotalPrice,
+        gravureTotalPrice: rec.gravureTotalPrice,
+        reason: rec.reason,
+      }
+      console.log('[calculateQuote] AUTO resolved →', rec.method, '(breakeven:', rec.breakevenQuantity, ')')
     }
 
     // キャッシュキー生成
@@ -833,13 +860,19 @@ export class UnifiedPricingEngine {
     // キャッシュ確認
     if (this.cache.has(cacheKey)) {
       console.log('[calculateQuote] CACHE HIT - returning cached result');
-      return { ...this.cache.get(cacheKey)! }
+      const cached = { ...this.cache.get(cacheKey)! }
+      // auto 解決情報はキャッシュに含まれない場合があるため再付与
+      if (recommendation) cached.recommendation = recommendation
+      return cached
     }
 
     console.log('[calculateQuote] CACHE MISS - performing calculation');
 
     // 무조건 SKU 모드로 계산（일반 모드는 삭제됨）
     const skuResult = await this.performSKUCalculation(params)
+
+    // auto 解決情報を付与
+    if (recommendation) skuResult.recommendation = recommendation
 
     // キャッシュ保存（コピー保存）
     this.cache.set(cacheKey, { ...skuResult })
@@ -875,6 +908,10 @@ export class UnifiedPricingEngine {
       spoutSize,
       spoutPosition
     } = params
+
+    // Phase 2: 'auto' は calculateQuote で解決済みだが、本関数へ直接流入した場合の安全弁。
+    // フィルム原価計算経路ではデジタル計算を適用。
+    const resolvedPrintingType: 'digital' | 'gravure' = printingType === 'gravure' ? 'gravure' : 'digital'
 
     // postProcessingMultiplierの決定: 渡された値を優先、なければオプションから計算
     const postProcessingMultiplier = paramsPostProcessingMultiplier ?? (
@@ -925,14 +962,19 @@ export class UnifiedPricingEngine {
       // 総メートル数 = 注文長さ + ロス量
       const totalMeters = quantity + lossMeters
 
-      // ラミネート費(ウォン) = 原反幅(m) × 総メートル数 × 75ウォン/m × 3回（4層構造）
-      const laminationCostKRW = materialWidthM * totalMeters * CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M * 3
+      // AL素材の有無でラミ単価を切替（2026-06-27 改定: AL有無2段階化）
+      const hasALMaterial = filmLayers?.some(layer => layer.materialId === 'AL') ?? false
+      const laminationPerM = hasALMaterial
+        ? CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M_WITH_AL  // 80ウォン/m
+        : CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M_NO_AL    // 65ウォン/m
+      // ラミネート費(ウォン) = 原反幅(m) × 総メートル数 × ラミ単価 × 3回（4層構造）
+      const laminationCostKRW = materialWidthM * totalMeters * laminationPerM * 3
 
       // スリッター費(ウォン) = MAX(30,000ウォン, 総メートル数 × 10ウォン/m)
       const slitterCostKRW = Math.max(CONSTANTS.ROLL_FILM_SLITTER_MIN_COST, totalMeters * CONSTANTS.ROLL_FILM_SLITTER_COST_PER_M)
 
-      // 合計加工費（円換算）
-      processingCost = (laminationCostKRW + slitterCostKRW) * 0.12
+      // 合計加工費（円換算: AC-22 集約ヘルパー）
+      processingCost = convertKRWtoJPY(laminationCostKRW + slitterCostKRW)
 
       console.log('[Processing Cost] Roll film: lamination + slitter only', {
         materialWidthM,
@@ -1034,8 +1076,8 @@ export class UnifiedPricingEngine {
       }
     }
 
-    // 円換算（×0.12）
-    materialCost = materialCostKRW * 0.12;
+    // 円換算（AC-22: 集約ヘルパーで統一）
+    materialCost = convertKRWtoJPY(materialCostKRW);
 
     logPriceCalculationDetail('素材費計算', {
       パウチタイプ: bagTypeId,
@@ -1053,7 +1095,7 @@ export class UnifiedPricingEngine {
     // ロールフィルムの場合は、メートル数とフィルム幅を使用
     // パウチの場合は、使用メートル数を使用（ドキュメント仕様準拠）
     const printingCost = await this.calculatePrintingCost(
-      printingType,
+      resolvedPrintingType,
       printingColors,
       quantity,
       doubleSided,
@@ -1088,8 +1130,8 @@ export class UnifiedPricingEngine {
       // マット印刷追加費(ウォン) = 原反幅(m) × 40ウォン/m × 長さ(m)
       const matteCostKRW = materialWidthM * 40 * totalUsedMeters
 
-      // エン換算（×0.12）
-      mattePrintingCost = matteCostKRW * 0.12
+      // エン換算（AC-22: 集約ヘルパーで統一）
+      mattePrintingCost = convertKRWtoJPY(matteCostKRW)
 
       logPriceCalculationDetail('マット印刷追加費', {
         原反幅_m: `${materialWidthM}m`,
@@ -1199,7 +1241,7 @@ export class UnifiedPricingEngine {
     // ガイド準拠（AC-Q1）: 配送料も販売マージン計算対象
     //   docs/reports/calcultae/06-마진_및_최종가격.md:139
     //   最終価格 = (円貨製造者価格 + 関税 + 配送料) × 1.2
-    // DB設定から販売マージン率を取得（フォールバック=CONSTANTS.SALES_MARGIN=0.2 ガイド準拠）
+    // DB設定から販売マージン率を取得（フォールバック=CONSTANTS.SALES_MARGIN=0.25 ガイド準拠）
     const salesMargin = await this.getSetting('pricing', 'default_markup_rate', CONSTANTS.SALES_MARGIN);
 
     // AC-Q6/S1.1: :1115 の既存 subtotal（中間計算）と同名衝突を避けるため別名。
@@ -1230,7 +1272,7 @@ export class UnifiedPricingEngine {
     // AC-Q5: 100円単位切り上げに統一（performFilmCostCalculation:1445 と一致）
     const roundedTotal = Math.ceil(total / 100) * 100;
     const result: UnifiedQuoteResult = {
-      unitPrice: roundedTotal / quantity, // 小数点を保持（例: 36.6円）
+      unitPrice: Math.ceil((roundedTotal / quantity) * 10) / 10, // 小数点第1位まで切り上げ
       totalPrice: roundedTotal,
       currency: 'JPY',
       quantity,
@@ -1325,6 +1367,7 @@ export class UnifiedPricingEngine {
       printing_cost_per_m2: await this.getSetting('printing', 'cost_per_m2', undefined),
       matte_cost_per_m: await this.getSetting('printing', 'matte_cost_per_m', undefined),
       lamination_cost_per_m2: await this.getSetting('lamination', 'cost_per_m2', undefined),
+      lamination_cost_per_m2_with_al: await this.getSetting('lamination', 'cost_per_m2_with_al', undefined),
       slitter_cost_per_m: await this.getSetting('slitter', 'cost_per_m', undefined),
       slitter_min_cost: await this.getSetting('slitter', 'min_cost', undefined),
       exchange_rate_krw_to_jpy: await this.getSetting('exchange_rate', 'krw_to_jpy', undefined),
@@ -1468,10 +1511,10 @@ export class UnifiedPricingEngine {
       console.log('[100円丸め] 丸め後 roundedTotalPrice:', roundedTotalPrice, '(差分:', roundedTotalPrice - totalPrice, ')');
       console.log('[100円丸め] 計算式: Math.ceil(', totalPrice, '/ 100) * 100 =', Math.ceil(totalPrice / 100), '* 100 =', roundedTotalPrice);
     }
-    // unitPriceは小数点まで保持して、API側で正確な計算ができるようにする
-    // Math.round()を使用すると354.94→355になり、30円の誤差が発生するため小数点を保持
-    // 100円単位で切り上げた totalPrice から unitPrice を再計算
-    unitPrice = roundedTotalPrice / quantity;
+    // 単価は小数点第1位まで切り上げ（要件: 単価1桁切り上げ）。
+    // 100円単位で切り上げた totalPrice から unitPrice を算出し、第1位で切り上げ。
+    // ※切り上げの性質上、単価×数量が totalPrice と数円単位でズレる場合あり。
+    unitPrice = Math.ceil((roundedTotalPrice / quantity) * 10) / 10;
     const result: UnifiedQuoteResult = {
       unitPrice: unitPrice,
       totalPrice: roundedTotalPrice,
@@ -1576,6 +1619,15 @@ export class UnifiedPricingEngine {
     }
 
     // ========================================
+    // グラビア印刷専用ブランチ（Phase 1c・AC-22/Critic Critical#1）
+    // performCalculation には転送せず、performSKUCalculation 内で独立計算。
+    // デジタル（既定）はこのブロックをスキップし、下位の pouch-cost-calculator 経路へ（後方互換）。
+    // ========================================
+    if (params.printingType === 'gravure') {
+      return await this.performGravureSKUCalculation(params)
+    }
+
+    // ========================================
     // SKU原価計算 (pouch-cost-calculator.ts 사용)
     // ========================================
     const { pouchCostCalculator } = await import('./pouch-cost-calculator')
@@ -1662,8 +1714,8 @@ export class UnifiedPricingEngine {
       // マット印刷追加費(ウォン) = 原反幅 × 40ウォン/m × 長さ
       const matteCostKRW = materialWidthM * 40 * totalUsedMeters
 
-      // 円換算（×0.12）
-      const mattePrintingCostJPY = matteCostKRW * 0.12
+      // 円換算（AC-22: 集約ヘルパーで統一）
+      const mattePrintingCostJPY = convertKRWtoJPY(matteCostKRW)
 
       logPriceCalculationDetail('SKUマット印刷追加費', {
         原反幅_m: `${materialWidthM}m`,
@@ -1759,11 +1811,14 @@ export class UnifiedPricingEngine {
         printing: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.printingCost, 0)),
         setup: 0,
         discount: 0,
-        // マージン・関税・配送料（基本原価から計算）
-        manufacturingMargin: Math.round(baseCost * 0.3), // 製造者マージン30%
-        duty: Math.round(baseCost * 0.05), // 関税5%
-        delivery: Math.round(baseCost * 0.08), // 配送料8%
-        salesMargin: Math.round(baseCost * 0.3), // 販売マージン30%
+        // マージン・関税・配送料: pouch-cost-calculator が各SKU単位で正確計算した値を集計。
+        // （旧実装は baseCost * 固定係数 の概算だったが、baseCost は既に最終販売価格ベースのため不正確。
+        //  costPerSKU[].costBreakdown の正確値〔manufacturingMargin=製造者価格-baseCost, duty=製造者価格*0.05,
+        //  delivery=重量ベース実配送費, salesMargin=小計*0.25〕を reduce で集計する）
+        manufacturingMargin: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + (sku.costBreakdown.manufacturingMargin || 0), 0)),
+        duty: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.duty, 0)),
+        delivery: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.delivery, 0)),
+        salesMargin: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + (sku.costBreakdown.salesMargin || 0), 0)),
         subtotal: Math.round(baseCost),
         total: Math.round(totalPrice),
         pouchProcessingCost: Math.round(skuCostResult.costPerSKU.reduce((sum, sku) => sum + sku.costBreakdown.pouchProcessingCost, 0)),
@@ -1797,6 +1852,356 @@ export class UnifiedPricingEngine {
     }
 
     return result
+  }
+
+  /**
+   * グラビア印刷専用SKU計算（Phase 1c・AC-22準拠）
+   *
+   * 仕様: docs/gravure-pricing-calculation-formula.md §1-14
+   * - 純粋計算は gravure-cost-calculator.ts が行い「ウォン」を返す
+   * - 円変換・マージン・関税はデジタルと共通の集約パターン（AC-22）
+   * - ロス500m固定（仕様§4）、製作長は gravureProductionMeters or STANDARD_LOT(6000m)
+   * - 銅版費は別途計上（copperPlateType !== 'none' の場合のみ加算）
+   *
+   * 後方互換性: printingType !== 'gravure' の場合は呼出されない（performSKUCalculation でガード済み）。
+   *
+   * @param params printingType='gravure' を含む見積パラメータ
+   */
+  private async performGravureSKUCalculation(params: UnifiedQuoteParams): Promise<UnifiedQuoteResult> {
+    // 多列生産列数（グラビア 2/3/4列）。計画 multi-column-gravure-unification.md AC6/AC1
+    // - 材料費(calculateGravureFilmValue)は原反幅ベースで触らない（マージン逆転防止の構造的根拠）
+    // - 銅版費のみ columnCount で除算（グラビアには独立したセットアップ費項目が存在しないため除算対象外。銅版1セットでN列分印刷可能）
+    const columnCount = params.columnCount && params.columnCount > 1 ? params.columnCount : 1
+
+    const {
+      bagTypeId,
+      width,
+      height,
+      depth = 0,
+      skuQuantities = [params.quantity],
+      printingColors = 1,
+      urgency = 'standard',
+      postProcessingOptions,
+      postProcessingMultiplier = postProcessingOptions ? this.calculatePostProcessingMultiplier(postProcessingOptions) : CONSTANTS.DEFAULT_POST_PROCESSING_MULTIPLIER,
+      deliveryLocation = 'domestic',
+    } = params
+
+    // グラビア必須パラメータのバリデーション
+    if (!params.filmLayers || params.filmLayers.length === 0) {
+      throw new Error('グラビア計算には filmLayers（フィルム構造）が必須です。')
+    }
+    if (!params.gravureMaterialWidth || params.gravureMaterialWidth <= 0) {
+      throw new Error('グラビア計算には gravureMaterialWidth（原反幅 mm）が必須です。')
+    }
+
+    const materialWidthMm = params.gravureMaterialWidth
+    const colors = printingColors
+    const layers = params.filmLayers
+
+    // 製作長: gravureProductionMeters or 標準ロット6000m（仕様§4/§10.4）
+    // ※ グラビアのロス500mは製作長に含まれる前提（純粋計算モジュールは製作長をそのまま使用）
+    const productionMeters = params.gravureProductionMeters && params.gravureProductionMeters > 0
+      ? params.gravureProductionMeters
+      : GRAVURE_CONSTANTS.STANDARD_LOT_METERS
+
+    // ========================================
+    // 1. グラビア純粋計算（ウォン）— gravure-cost-calculator.ts
+    // ========================================
+    const filmValueKRW = calculateGravureFilmValue(
+      layers,
+      materialWidthMm,
+      productionMeters,
+      colors,
+    )
+
+    // 銅版費（別途計上・仕様§9。copperPlateType='none' でなければ加算）
+    const copperPlateType = params.copperPlateType ?? 'new'
+    let copperPlateCostKRW = 0
+    if (copperPlateType !== 'none') {
+      copperPlateCostKRW = calculateCopperPlateCost(colors, materialWidthMm, copperPlateType === 'modify')
+    }
+
+    // 多列生産: 銅版費を列数で除算（計画 AC6/AC1）
+    // グラビアには独立したセットアップ費項目が存在しないため除算対象は銅版費のみ。
+    // 銅版1セットでN列分印刷可能なため、固定費を列数で按分。材料費は原反幅ベースで触らない。
+    const effectiveCopperPlateCostKRW = columnCount > 1 ? copperPlateCostKRW / columnCount : copperPlateCostKRW
+
+    // グラビア基礎原価（ウォン）= 原反値 + 銅版費(列数除算済)
+    const baseCostKRW = filmValueKRW.total + effectiveCopperPlateCostKRW
+
+    // SKU数量合計（配送・単価計算で使用）
+    const totalQuantity = skuQuantities.reduce((sum, q) => sum + q, 0)
+
+    // ========================================
+    // 2. 円変換（AC-22: 集約ヘルパー convertKRWtoJPY で統一）
+    // ========================================
+    const baseCostJPY = convertKRWtoJPY(baseCostKRW)
+
+    // ========================================
+    // 3. マージン・関税・配送（デジタルと共通の集約パターン・AC-22）
+    //    Step1: 基礎原価 × (1 + 製造者マージン[0.4]) = 製造者価格
+    //    Step2: 製造者価格 × 1.05（関税5%）= 輸入原価
+    //    Step3: (輸入原価 + 配送料) × (1 + 販売マージン[0.2]) = 最終価格
+    // ========================================
+    const manufacturerMargin = await this.getSetting('pricing', 'manufacturer_margin', CONSTANTS.MANUFACTURER_MARGIN)
+    const manufacturerPriceJPY = baseCostJPY * (1 + manufacturerMargin)
+    const importCostJPY = manufacturerPriceJPY * (1 + PRICING_CONSTANTS.DUTY_RATE) // 関税5%
+
+    // 配送料（グラビアも既存の配送計算を利用）
+    const deliveryCostJPY = await this.calculateDeliveryCost(
+      deliveryLocation,
+      totalQuantity,
+      width,
+      height,
+      depth,
+      params.materialId,
+      bagTypeId,
+    )
+
+    const salesMargin = await this.getSetting('pricing', 'default_markup_rate', CONSTANTS.SALES_MARGIN)
+    const subtotalWithDeliveryJPY = importCostJPY + deliveryCostJPY
+    const totalPriceJPY = subtotalWithDeliveryJPY * (1 + salesMargin)
+
+    // 後加工乗数（マット等）適用
+    const finalTotalPriceJPY = totalPriceJPY * postProcessingMultiplier
+
+    // ========================================
+    // 4. 単価計算（SKU数量ベース）
+    // ========================================
+    const unitPriceJPY = totalQuantity > 0 ? finalTotalPriceJPY / totalQuantity : finalTotalPriceJPY
+
+    // リードタイム
+    const leadTimeDays = this.calculateLeadTime(
+      urgency,
+      totalQuantity,
+      false,
+      !!(postProcessingOptions && postProcessingOptions.length > 0),
+    )
+
+    // ========================================
+    // 5. 結果構築
+    // ========================================
+    const result: UnifiedQuoteResult = {
+      unitPrice: Math.round(unitPriceJPY),
+      totalPrice: Math.round(finalTotalPriceJPY),
+      currency: 'JPY',
+      breakdown: {
+        filmCost: Math.round(convertKRWtoJPY(filmValueKRW.materialCost)),
+        material: Math.round(convertKRWtoJPY(filmValueKRW.materialCost)),
+        printing: Math.round(convertKRWtoJPY(filmValueKRW.printingCost)),
+        laminationCost: Math.round(convertKRWtoJPY(filmValueKRW.laminationCost)),
+        processing: 0, // グラビア原反値には加工費含まず（ロール前提）。パウチ加工は別途Phase 3
+        setup: Math.round(convertKRWtoJPY(effectiveCopperPlateCostKRW)),
+        // 多列割引相当額（AC3 breakdown 開示）: 1列基準の銅版費と列数除算後の差分
+        discount: columnCount > 1 ? Math.round(convertKRWtoJPY(copperPlateCostKRW - effectiveCopperPlateCostKRW)) : 0,
+        delivery: Math.round(deliveryCostJPY),
+        manufacturingMargin: Math.round(manufacturerPriceJPY - baseCostJPY),
+        duty: Math.round(importCostJPY - manufacturerPriceJPY),
+        salesMargin: Math.round(subtotalWithDeliveryJPY * salesMargin),
+        subtotal: Math.round(subtotalWithDeliveryJPY),
+        total: Math.round(finalTotalPriceJPY),
+        baseCost: Math.round(baseCostJPY),
+        // グラビア専用内訳（ウォン）
+        gravureFilmValueKRW: Math.round(filmValueKRW.total),
+        gravureMaterialCostKRW: Math.round(filmValueKRW.materialCost),
+        gravurePrintingCostKRW: Math.round(filmValueKRW.printingCost),
+        gravureLaminationCostKRW: Math.round(filmValueKRW.laminationCost),
+        gravureCopperPlateCostKRW: Math.round(copperPlateCostKRW),
+        gravureProductionMeters: productionMeters,
+        gravureMaterialWidthMM: materialWidthMm,
+      },
+      leadTimeDays,
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30日有効
+      minOrderQuantity: bagTypeId === 'roll_film' ? GRAVURE_CONSTANTS.LOSS_METERS : CONSTANTS.MIN_ORDER_QUANTITY,
+      quantity: totalQuantity,
+      details: {
+        fixedCost: Math.round(convertKRWtoJPY(copperPlateCostKRW)),
+        variableCostPerUnit: 0,
+        surcharge: 0,
+        materialRate: layers[0] ? (UnifiedPricingEngine.MATERIAL_PRICES_KRW as Record<string, { unitPrice: number }>)[layers[0].materialId]?.unitPrice ?? 0 : 0,
+        area: width * height,
+      },
+    }
+
+    return result
+  }
+
+  // ========================================
+  // Phase 2: 印刷方式自動選択（分岐点レコメンド・AC-8/9/10）
+  // SSoT: docs/gravure-pricing-calculation-formula.md §14
+  // ========================================
+
+  /**
+   * 印刷方式レコメンド結果（AC-8）
+   */
+  async recommendPrintingMethod(
+    params: UnifiedQuoteParams
+  ): Promise<{
+    method: 'digital' | 'gravure'
+    breakevenQuantity: number
+    digitalTotalPrice: number
+    gravureTotalPrice: number
+    reason: string
+  }> {
+    // グラビア計算の必須パラメータが揃っているか確認（揃わない場合はデジタル推奨）
+    const gravureReady = !!(
+      params.filmLayers &&
+      params.filmLayers.length > 0 &&
+      params.gravureMaterialWidth &&
+      params.gravureMaterialWidth > 0
+    )
+
+    // デジタル価格を取得（performSKUCalculation の digital 経路）
+    const digitalResult = await this.calculateMethodPrice({ ...params, printingType: 'digital' })
+    const digitalTotalPrice = digitalResult.totalPrice
+
+    // グラビア価格（必須パラメータ不足時は計算不可 → デジタル推奨）
+    let gravureTotalPrice = Number.POSITIVE_INFINITY
+    if (gravureReady) {
+      try {
+        const gravureResult = await this.calculateMethodPrice({ ...params, printingType: 'gravure' })
+        gravureTotalPrice = gravureResult.totalPrice
+      } catch {
+        gravureTotalPrice = Number.POSITIVE_INFINITY
+      }
+    }
+
+    // 分岐点探索（§14: digital総価 = gravure総価 となる数量 Q）
+    const breakevenQuantity = gravureReady
+      ? await this.findBreakevenQuantity(params)
+      : Number.POSITIVE_INFINITY
+
+    // 推奨決定（安い方）
+    const method: 'digital' | 'gravure' = digitalTotalPrice <= gravureTotalPrice ? 'digital' : 'gravure'
+
+    const reason = this.buildRecommendationReason({
+      method,
+      digitalTotalPrice,
+      gravureTotalPrice,
+      breakevenQuantity,
+      requestQuantity: params.skuQuantities?.reduce((a, b) => a + b, 0) ?? params.quantity ?? 0,
+      gravureReady,
+    })
+
+    return {
+      method,
+      breakevenQuantity: Number.isFinite(breakevenQuantity) ? Math.round(breakevenQuantity) : -1,
+      digitalTotalPrice: Math.round(digitalTotalPrice),
+      gravureTotalPrice: Number.isFinite(gravureTotalPrice) ? Math.round(gravureTotalPrice) : -1,
+      reason,
+    }
+  }
+
+  /**
+   * 指定印刷方式で実際に価格計算を実行し totalPrice を返す。
+   * printingType='digital' → performSKUCalculation の digital 経路
+   * printingType='gravure' → performGravureSKUCalculation
+   *
+   * ※ キャッシュを経由しない（推奨計算用・一時計算）。
+   */
+  private async calculateMethodPrice(params: UnifiedQuoteParams): Promise<UnifiedQuoteResult> {
+    // printingType に応じて performSKUCalculation 内で分岐（gravure → performGravureSKUCalculation）
+    return await this.performSKUCalculation(params)
+  }
+
+  /**
+   * 分岐点数量を二分探索で求める（§14）。
+   * 仕様を固定し、数量のみを変動させて digital vs gravure の totalPrice が逆転する点を探索。
+   *
+   * @returns 分岐点数量（個）。グラビアが常に高ければ Infinity。
+   */
+  private async findBreakevenQuantity(params: UnifiedQuoteParams): Promise<number> {
+    const LOW = 500
+    const HIGH = 100000 // validateParams の最大注文数量（10万個）に準拠
+    const MAX_ITER = 24
+
+    // 探索用に単一数量（非SKU）に正規化
+    const buildParams = (quantity: number): UnifiedQuoteParams => ({
+      ...params,
+      quantity,
+      skuQuantities: [quantity],
+      useSKUCalculation: true,
+    })
+
+    const priceAt = async (quantity: number): Promise<{ d: number; g: number }> => {
+      const p = buildParams(quantity)
+      let d = Number.POSITIVE_INFINITY
+      let g = Number.POSITIVE_INFINITY
+      try {
+        d = (await this.calculateMethodPrice({ ...p, printingType: 'digital' })).totalPrice
+      } catch {
+        d = Number.POSITIVE_INFINITY
+      }
+      try {
+        g = (await this.calculateMethodPrice({ ...p, printingType: 'gravure' })).totalPrice
+      } catch {
+        g = Number.POSITIVE_INFINITY
+      }
+      return { d, g }
+    }
+
+    // LOW で既にグラビア有利なら分岐点は LOW 未満（最小ロット未満）
+    const lowDiff = await priceAt(LOW)
+    if (lowDiff.g <= lowDiff.d) {
+      return LOW
+    }
+    // HIGH でもデジタル有利なら（実務的には稀）分岐点は HIGH 超過
+    const highDiff = await priceAt(HIGH)
+    if (highDiff.g >= highDiff.d) {
+      return Number.POSITIVE_INFINITY
+    }
+
+    // 単調減少（数量↑でグラビア相対有利）を仮定した二分探索
+    let lo = LOW
+    let hi = HIGH
+    for (let i = 0; i < MAX_ITER && hi - lo > 1; i++) {
+      const mid = Math.floor((lo + hi) / 2)
+      const midDiff = await priceAt(mid)
+      // digital <= gravure → まだデジタル有利 → 分岐点はより大
+      if (midDiff.d <= midDiff.g) {
+        lo = mid
+      } else {
+        hi = mid
+      }
+    }
+    return hi
+  }
+
+  /**
+   * レコメンド理由文を構築（AC-9: 推奨表示＋理由/分岐点）。
+   */
+  private buildRecommendationReason(args: {
+    method: 'digital' | 'gravure'
+    digitalTotalPrice: number
+    gravureTotalPrice: number
+    breakevenQuantity: number
+    requestQuantity: number
+    gravureReady: boolean
+  }): string {
+    const {
+      method,
+      digitalTotalPrice,
+      gravureTotalPrice,
+      breakevenQuantity,
+      requestQuantity,
+      gravureReady,
+    } = args
+
+    if (!gravureReady) {
+      return 'グラビア計算に必要な原反幅・ラミ種別・フィルム構造が未指定のため、デジタル印刷を推奨します。'
+    }
+
+    const fmt = (n: number) => (Number.isFinite(n) ? `¥${Math.round(n).toLocaleString()}` : '計算不可')
+    const bqText = Number.isFinite(breakevenQuantity)
+      ? `約${Math.round(breakevenQuantity).toLocaleString()}個`
+      : '（現在の仕様では逆転なし）'
+
+    if (method === 'digital') {
+      const savings = gravureTotalPrice - digitalTotalPrice
+      return `デジタル印刷が${fmt(savings)}安価です（デジタル${fmt(digitalTotalPrice)} / グラビア${fmt(gravureTotalPrice)}）。グラビアが有利になる分岐点は${bqText}です。現在の数量（${requestQuantity.toLocaleString()}個）は分岐点未満のためデジタル推奨。`
+    }
+    const savings = digitalTotalPrice - gravureTotalPrice
+    return `グラビア印刷が${fmt(savings)}安価です（グラビア${fmt(gravureTotalPrice)} / デジタル${fmt(digitalTotalPrice)}）。分岐点${bqText}を超過する大ロットのためグラビア推奨。`
   }
 
   /**
@@ -1877,8 +2282,8 @@ export class UnifiedPricingEngine {
       finalCostKRW: baseCostKRW
     })
 
-    // 엔화 환산 (0.12 고정 환율)
-    return baseCostKRW * 0.12
+    // 엔화 환산 (AC-22: 集約ヘルパーで統一)
+    return convertKRWtoJPY(baseCostKRW)
   }
 
   /**
@@ -2032,7 +2437,7 @@ export class UnifiedPricingEngine {
       const laminationCycles = adjustedLayers.length - 1; // 層数 - 1
 
       const laminateCostKRW = widthM * totalMeters * laminationPricePerMeter * laminationCycles;
-      const laminateCostJPY = laminateCostKRW * 0.12;
+      const laminateCostJPY = convertKRWtoJPY(laminateCostKRW);
 
       console.log('[Laminate Cost Calculation]', {
         hasALMaterial,
@@ -2047,7 +2452,7 @@ export class UnifiedPricingEngine {
       // === スリッターコスト計算 ===
       // スリッター費(ウォン) = MAX(30,000ウォン, 使用メートル数 × 10ウォン)
       const slitterCostKRW = Math.max(30000, totalMeters * 10);
-      const slitterCostJPY = slitterCostKRW * 0.12;
+      const slitterCostJPY = convertKRWtoJPY(slitterCostKRW);
 
       console.log('[Slitter Cost Calculation]', {
         totalMeters,
@@ -2088,8 +2493,8 @@ export class UnifiedPricingEngine {
         }
       }
 
-      // 円換算（×0.12）
-      const materialCostJPY = materialCostKRW * 0.12;
+      // 円換算（AC-22: 集約ヘルパーで統一）
+      const materialCostJPY = convertKRWtoJPY(materialCostKRW);
 
       console.log('[RollFilm Cost Calculation Result]', {
         materialCostKRW,
@@ -2125,7 +2530,7 @@ export class UnifiedPricingEngine {
               thickness: layer.thickness,
               weight: weight.toFixed(2),
               costKRW: cost.toFixed(0),
-              costJPY: (cost * 0.12).toFixed(0)
+              costJPY: convertKRWtoJPY(cost).toFixed(0)
             };
           }
           return null;
@@ -2229,8 +2634,8 @@ export class UnifiedPricingEngine {
       const printingCostKRW = totalMeters * rollFilmPrintingCostPerM;
       const totalCostKRW = Math.max(printingCostKRW, printingConfig.minCharge);
 
-      // 円換算（×0.12）
-      const totalCostJPY = totalCostKRW * 0.12;
+      // 円換算（AC-22: 集約ヘルパーで統一）
+      const totalCostJPY = convertKRWtoJPY(totalCostKRW);
 
       console.log('[Printing Cost Roll Film]', {
         filmWidthM: rollFilmParams.filmWidthM,
@@ -2253,7 +2658,7 @@ export class UnifiedPricingEngine {
     if (totalMeters > 0) {
       const printingCostKRW = totalMeters * printingConfig.perColorPerMeter;
       const totalCostKRW = Math.max(printingCostKRW, printingConfig.minCharge);
-      const totalCostJPY = totalCostKRW * 0.12;
+      const totalCostJPY = convertKRWtoJPY(totalCostKRW);
 
       console.log('[Printing Cost Pouch]', {
         totalMeters,
@@ -2441,8 +2846,7 @@ export class UnifiedPricingEngine {
 
       // 配送料計算（箱数 × 1箱あたりの配送料）
       const DELIVERY_COST_PER_BOX_KRW = 127980;
-      const EXCHANGE_RATE = 0.12;
-      const totalDeliveryJPY = deliveryBoxes * DELIVERY_COST_PER_BOX_KRW * EXCHANGE_RATE;
+      const totalDeliveryJPY = convertKRWtoJPY(deliveryBoxes * DELIVERY_COST_PER_BOX_KRW);
 
       console.log('[Pouch Delivery Cost]', {
         pouchAreaM2,
@@ -2512,8 +2916,8 @@ export class UnifiedPricingEngine {
     // 15%加算
     const totalWithSurcharge = totalDeliveryCostKRW * 1.15;
 
-    // 円換算（×0.12）
-    const deliveryCostJPY = totalWithSurcharge * 0.12;
+    // 円換算（AC-22: 集約ヘルパーで統一）
+    const deliveryCostJPY = convertKRWtoJPY(totalWithSurcharge);
 
     console.log('[Delivery Cost By Weight]', {
       packageCount,
@@ -2741,43 +3145,20 @@ export class UnifiedPricingEngine {
       params.lossRate?.toString() || CONSTANTS.DEFAULT_LOSS_RATE.toString(),
       // 필름 레이어 정보를 문자열로 변환
       params.filmLayers ? JSON.stringify(params.filmLayers) : 'default',
-      // 2열생산 옵션 관련 파라미터
-      params.twoColumnOptionApplied || 'none',
-      params.discountedUnitPrice?.toString() || 'none',
-      params.discountedTotalPrice?.toString() || 'none',
       // CRITICAL: 스파우트 파우치 관련 파라미터 - spoutSize가 다르면 가격이 다름
       params.spoutSize?.toString() || 'none',
-      params.spoutPosition || 'none'
+      params.spoutPosition || 'none',
+      // グラビア専用パラメータ（Phase 1c・AC-23: キャッシュ衝突防止）
+      // 異なる原反幅・銅版種別・製作長で別結果になるため、キーに含める必須
+      // ※ ラミ種別は2026-06-27廃止（AL有無は filmLayers から判定・layers構成でキャッシュ区分済み）
+      params.gravureMaterialWidth?.toString() || 'none',
+      params.copperPlateType || 'none',
+      params.gravureProductionMeters?.toString() || 'none',
+      // 多列生産列数（グラビア 2/3/4列・計画 multi-column-gravure-unification.md）。列数違いで別結果
+      params.columnCount?.toString() || '1'
     ]
 
     return keyParts.join('|')
-  }
-
-  /**
-   * 割引率に合わせてbreakdownを調整
-   * @param breakdown 元のbreakdown
-   * @param discountRate 割引率（0.85 = 15% OFF, 0.70 = 30% OFF）
-   * @returns 調整後のbreakdown
-   */
-  private adjustBreakdownForDiscount(breakdown: any, discountRate: number): any {
-    if (!breakdown) return breakdown;
-
-    const adjustedBreakdown: any = {};
-    const discountFields = [
-      'materialCost', 'laminationCost', 'slitterCost', 'surfaceTreatmentCost',
-      'pouchProcessingCost', 'printingCost', 'manufacturingMargin', 'duty',
-      'delivery', 'salesMargin', 'baseCost'
-    ];
-
-    for (const field of discountFields) {
-      if (typeof breakdown[field] === 'number') {
-        adjustedBreakdown[field] = Math.round(breakdown[field] * discountRate);
-      } else {
-        adjustedBreakdown[field] = breakdown[field];
-      }
-    }
-
-    return adjustedBreakdown;
   }
 
   /**

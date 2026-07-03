@@ -24,6 +24,7 @@ import {
   getUploadFolderId
 } from '@/lib/google-drive';
 import { generateUploadToken } from '@/lib/designer-tokens';
+import { getFilmStructureLabel } from '@/constants/materialTypes';
 
 export const dynamic = 'force-dynamic';
 
@@ -586,15 +587,22 @@ export async function POST(
               if (!specs) return undefined;
 
               // Get material specification from actual data or use defaults
-              const materialSpec = specs.material_specification ||
-                (specs.materialId === 'pet_al' ? 'PET 12μ + AL 7μ + PET 12μ + LLDPE 70μ' :
-                 specs.materialId === 'pet_ldpe' ? 'PET 12μ + LLDPE 70μ' :
-                 specs.materialId === 'ny_lldpe' ? 'NY 15μ + LLDPE 70μ' :
-                 specs.materialId === 'pet_vmpet' ? 'PET 12μ + VMPET 12μ + PET 12μ + LLDPE 90μ' :
-                 specs.materialId === 'pet_ny_al' ? 'PET 12μ + NY 16μ + AL 7μ + LLDPE 90μ' :
-                 specs.materialId === 'kraft_vmpet_lldpe' ? 'Kraft 50g/m² + VMPET 12μ + LLDPE 90μ' :
-                 specs.materialId === 'kraft_pet_lldpe' ? 'Kraft 50g/m² + PET 12μ + LLDPE 70μ' :
-                 undefined);
+              // kraft 系は仕様値（50g/80g）が未確定のため Phase 2 後退（現状維持）。
+              // kraft 以外は getFilmStructureLabel（materialData.ts の specificationEn）で統合。
+              const computeMaterialSpec = (): string | undefined => {
+                if (specs.material_specification) return specs.material_specification;
+                const materialId = specs.materialId as string;
+                if (!materialId) return undefined;
+                const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
+                if (isKraft) {
+                  return materialId === 'kraft_vmpet_lldpe'
+                    ? 'Kraft 80g/m² + VMPET 12μ + LLDPE 90μ'
+                    : 'Kraft 80g/m² + PET 12μ + LLDPE 70μ';
+                }
+                const label = getFilmStructureLabel(materialId, specs.thicknessSelection);
+                return (label && label !== materialId) ? label : undefined;
+              };
+              const materialSpec = computeMaterialSpec();
 
               return {
                 dimensions: specs.dimensions,

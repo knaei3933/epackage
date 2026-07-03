@@ -5,6 +5,18 @@
  * Tests for the PDF generator library including quotes, invoices, and contracts
  */
 
+// html2canvas は jsdom 環境で DOM の再帰クローンを試み、各テストが 5000ms
+// タイムアウトしてしまう。モックで即座に reject させ、実装の try/catch
+// (pdf-generator.ts L942) から success:false を返させることで、
+// expectBrowserOrSuccess / expectBrowserOrSkip が期待通り検証できるようにする。
+// factory は完結（外部変数参照なし）で @swc/jest の非 hoisting に対応。
+jest.mock('html2canvas', () => {
+  const mockFn = jest.fn().mockRejectedValue(
+    new Error('html2canvas not supported in jsdom test environment')
+  );
+  return { __esModule: true, default: mockFn };
+});
+
 import {
   generateQuotePDF,
   generateInvoicePDF,
@@ -344,8 +356,8 @@ describe('generateInvoicePDF', () => {
       ...mockInvoiceData,
       supplierInfo: {
         name: 'EPACKAGE Lab',
-        postalCode: '673-0846',
-        address: '兵庫県明石市...',
+        postalCode: '675-1112',
+        address: '兵庫県加古郡稲美町...',
         phone: '050-1793-6500',
         email: 'info@package-lab.com',
         registrationNumber: 'T2900001234567',

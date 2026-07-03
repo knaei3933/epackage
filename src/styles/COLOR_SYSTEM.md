@@ -254,7 +254,7 @@ Info messages, tips, and neutral notifications.
 
 // AFTER - Context-aware input styling
 <input className={`w-full px-3 py-2 border rounded-lg focus:ring-2 ${
-  quoteState.twoColumnOptionApplied && quoteState.fixedTotalQuantity !== undefined
+  quoteState.quantityMode === 'sku'
     ? 'bg-purple-50 border-purple-300 focus:ring-purple-500'
     : 'border-gray-300 focus:ring-blue-500'
 }`} />

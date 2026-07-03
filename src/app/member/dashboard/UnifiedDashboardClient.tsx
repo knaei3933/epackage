@@ -48,11 +48,11 @@ export function UnifiedDashboardClient({
 
       return data;
     },
-    {
-      fallbackData: initialStats,
-      refreshInterval: 30000, // 30秒自動更新
-      revalidateOnFocus: true,
-      shouldRetryOnError: true,
+   {
+     fallbackData: initialStats,
+     refreshInterval: 60000, // 60秒自動更新（負荷低減）
+     revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止
+     shouldRetryOnError: true,
       errorRetryCount: 3,
     }
   );

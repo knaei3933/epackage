@@ -1293,30 +1293,100 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     const serviceClient = createServiceClient();
 
-    // Get new orders
-    const { data: newOrders } = await serviceClient
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .in('status', ['PENDING', 'QUOTATION'])
-      .order('created_at', { ascending: false })
-      .limit(5);
+    // PERFORMANCE: 並列化 — 従来13クエリを直列実行していたため、独立クエリを
+    // Promise.all で並列取得。依存関係（transformations/announcements）は並列結果を
+    // 待ってから処理。エラー耐性は個別 try-catch で維持（1クエリ失敗が全体を落とさない）。
 
-    // Get processing orders
-    const { data: processingOrders } = await serviceClient
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'PRODUCTION');
+    // グループ1: 一覧データ（orders / quotations / samples / inquiries）
+    // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、
+    // 個別に fulfilled 判定し rejected は空 result でフォールバック（グループ2の
+    // .catch() パターンと同等のエラー耐性）。
+    const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
+    const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+    const g1Results = await Promise.allSettled([
+      serviceClient
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .in('status', ['PENDING', 'QUOTATION'])
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'PRODUCTION'),
+      serviceClient
+        .from('quotations')
+        .select('*, quotation_items (*)')
+        .eq('user_id', userId)
+        .in('status', ['draft', 'sent'])
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('sample_requests')
+        .select('*, sample_items (*)')
+        .eq('user_id', userId)
+        .in('status', ['received', 'processing'])
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('inquiries')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'responded')
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+      serviceClient
+        .from('quotations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+      serviceClient
+        .from('sample_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+      serviceClient
+        .from('inquiries')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId),
+    ]);
 
-    // Get pending quotations
-    const { data: pendingQuotations } = await serviceClient
-      .from('quotations')
-      .select('*, quotation_items (*)')
-      .eq('user_id', userId)
-      .in('status', ['draft', 'sent'])
-      .order('created_at', { ascending: false })
-      .limit(5);
+    // rejected クエリは空 result でフォールバック（一覧=空配列、カウント=0）
+    const [
+      newOrdersRes,
+      processingOrdersRes,
+      pendingQuotationsRes,
+      pendingSamplesRes,
+      unreadInquiriesRes,
+      totalOrdersRes,
+      totalQuotationsRes,
+      totalSamplesRes,
+      totalInquiriesRes,
+    ] = [
+      g1Results[0].status === 'fulfilled' ? g1Results[0].value : EMPTY_LIST_RESULT,
+      g1Results[1].status === 'fulfilled' ? g1Results[1].value : EMPTY_LIST_RESULT,
+      g1Results[2].status === 'fulfilled' ? g1Results[2].value : EMPTY_LIST_RESULT,
+      g1Results[3].status === 'fulfilled' ? g1Results[3].value : EMPTY_LIST_RESULT,
+      g1Results[4].status === 'fulfilled' ? g1Results[4].value : EMPTY_LIST_RESULT,
+      g1Results[5].status === 'fulfilled' ? g1Results[5].value : EMPTY_COUNT_RESULT,
+      g1Results[6].status === 'fulfilled' ? g1Results[6].value : EMPTY_COUNT_RESULT,
+      g1Results[7].status === 'fulfilled' ? g1Results[7].value : EMPTY_COUNT_RESULT,
+      g1Results[8].status === 'fulfilled' ? g1Results[8].value : EMPTY_COUNT_RESULT,
+    ];
+
+    const newOrders = newOrdersRes.data;
+    const processingOrders = processingOrdersRes.data;
+    const pendingQuotations = pendingQuotationsRes.data;
+    const pendingSamples = pendingSamplesRes.data;
+    const unreadInquiries = unreadInquiriesRes.data;
+    const totalOrders = totalOrdersRes.count;
+    const totalQuotations = totalQuotationsRes.count;
+    const totalSamples = totalSamplesRes.count;
+    const totalInquiries = totalInquiriesRes.count;
 
     // Transform quotation_items to items for type compatibility
     // Defensive: Ensure items is always an array, even if nested query fails
@@ -1326,15 +1396,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
     })) || [];
 
-    // Get pending sample requests
-    const { data: pendingSamples } = await serviceClient
-      .from('sample_requests')
-      .select('*, sample_items (*)')
-      .eq('user_id', userId)
-      .in('status', ['received', 'processing'])
-      .order('created_at', { ascending: false })
-      .limit(5);
-
     // Transform sample_items to samples for type compatibility
     // Defensive: Ensure samples is always an array, even if nested query fails
     const transformedSamples = (pendingSamples as any[])?.map(request => ({
@@ -1343,93 +1404,75 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       samples: Array.isArray(request.sample_items) ? request.sample_items : [],
     })) || [];
 
-    // Get unread inquiries
-    const { data: unreadInquiries } = await serviceClient
-      .from('inquiries')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'responded')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    // Get announcements - wrapped in try-catch for safety
+    // グループ2: announcements（独立・既存の try-catch で安全対策維持）+
+    // contracts（内部で Promise.all 済み・外部 try-catch 維持）+ notifications を並列実行
     let announcements: Announcement[] = [];
-    try {
-      announcements = await getAnnouncements(3);
-    } catch (annError) {
-      console.warn('[getDashboardStats] Failed to fetch announcements:', annError);
-      announcements = [];
-    }
-
-    // Get counts
-    const { count: totalOrders } = await serviceClient
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    const { count: totalQuotations } = await serviceClient
-      .from('quotations')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    const { count: totalSamples } = await serviceClient
-      .from('sample_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    const { count: totalInquiries } = await serviceClient
-      .from('inquiries')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    // B2B integration: Get contracts and notifications
     let pendingContracts: any[] | null = null;
     let totalContracts = 0;
     let signedContracts = 0;
     let notifications: any[] | null = null;
 
-    // Query contracts using the new user_id column
-    try {
-      const [pendingResult, totalCountResult, signedCountResult] = await Promise.all([
-        serviceClient
-          .from('contracts')
-          .select('*')
-          .eq('user_id', userId)
-          .in('status', ['DRAFT', 'SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'])
-          .order('created_at', { ascending: false }),
-        serviceClient
-          .from('contracts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId),
-        serviceClient
-          .from('contracts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .in('status', ['SIGNED', 'ADMIN_SIGNED', 'ACTIVE'])
-      ]);
+    const [announcementsResult, contractsResult, notifResult] = await Promise.all([
+      // Get announcements - wrapped to preserve safety
+      getAnnouncements(3)
+        .then((data): Announcement[] => data)
+        .catch((annError: unknown): Announcement[] => {
+          console.warn('[getDashboardStats] Failed to fetch announcements:', annError);
+          return [];
+        }),
+      // B2B integration: contracts (3 sub-queries internally parallelized)
+      (async () => {
+        try {
+          const [pendingResult, totalCountResult, signedCountResult] = await Promise.all([
+            serviceClient
+              .from('contracts')
+              .select('*')
+              .eq('user_id', userId)
+              .in('status', ['DRAFT', 'SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'])
+              .order('created_at', { ascending: false }),
+            serviceClient
+              .from('contracts')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', userId),
+            serviceClient
+              .from('contracts')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', userId)
+              .in('status', ['SIGNED', 'ADMIN_SIGNED', 'ACTIVE'])
+          ]);
+          return {
+            pending: pendingResult.data,
+            total: totalCountResult.count || 0,
+            signed: signedCountResult.count || 0,
+          };
+        } catch (contractError) {
+          console.warn('[getDashboardStats] Error fetching contracts:', contractError);
+          return { pending: [] as any[] | null, total: 0, signed: 0 };
+        }
+      })(),
+      // notifications (table may not exist → tolerate)
+      (async () => {
+        try {
+          const res = await serviceClient
+            .from('admin_notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          return res.data;
+        } catch (notifError) {
+          console.warn('[getDashboardStats] admin_notifications table not available or error:', notifError);
+          // notificationsテーブルがない場合はデフォルト値を使用
+          return null;
+        }
+      })(),
+    ]);
 
-      pendingContracts = pendingResult.data;
-      totalContracts = totalCountResult.count || 0;
-      signedContracts = signedCountResult.count || 0;
-    } catch (contractError) {
-      console.warn('[getDashboardStats] Error fetching contracts:', contractError);
-      pendingContracts = [];
-      totalContracts = 0;
-      signedContracts = 0;
-    }
-
-    try {
-      const notifResult = await serviceClient
-        .from('admin_notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      notifications = notifResult.data;
-    } catch (notifError) {
-      console.warn('[getDashboardStats] admin_notifications table not available or error:', notifError);
-      // notificationsテーブルがない場合はデフォルト値を使用
-    }
+    announcements = announcementsResult;
+    pendingContracts = contractsResult.pending;
+    totalContracts = contractsResult.total;
+    signedContracts = contractsResult.signed;
+    notifications = notifResult;
 
     return {
       orders: {
@@ -1647,28 +1690,11 @@ async function fetchAdminDashboardStats(
   todayStart.setHours(0, 0, 0, 0);
 
   // 並列クエリ - すべての統計データを取得
-  const [
-    totalOrdersResult,
-    pendingOrdersResult,
-    totalRevenueResult,
-    activeUsersResult,
-    ordersByStatusResult,
-    totalQuotationsResult,
-    approvedQuotationsResult,
-    pendingQuotationsResult,
-    recentQuotationsResult,
-    // 月別売上
-    monthlyRevenueResult,
-    // 本日出荷
-    todayShipmentsResult,
-    // 輸送中注文
-    inTransitShipmentsResult,
-    // サンプル統計
-    totalSamplesResult,
-    processingSamplesResult,
-    // 生産完了注文（製造期間計算用）
-    completedProductionOrdersResult,
-  ] = await Promise.all([
+  // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、rejected は
+  // 空 result（カウント系=0、一覧系=空配列）でフォールバック。
+  const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
+  const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+  const adminResults = await Promise.allSettled([
     serviceClient.from('orders').select('*', { count: 'exact', head: true }),
     serviceClient.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
     serviceClient.from('orders').select('total_amount').gte('created_at', startDate.toISOString()),
@@ -1714,6 +1740,50 @@ async function fetchAdminDashboardStats(
       .eq('status', 'SHIPPED')
       .gte('created_at', startDate.toISOString()),
   ]);
+
+  // rejected クエリは空 result でフォールバック
+  // インデックス順: 0-3,6-8,11-14 = カウント系(EMPTY_COUNT_RESULT)、4-5,9-10,13-14の一部 = 一覧系(EMPTY_LIST_RESULT)
+  // 判定は個別 status チェックで安全に取り出す
+  const settled = <T>(r: PromiseSettledResult<T>, fallback: T) =>
+    r.status === 'fulfilled' ? r.value : fallback;
+  const [
+    totalOrdersResult,
+    pendingOrdersResult,
+    totalRevenueResult,
+    activeUsersResult,
+    ordersByStatusResult,
+    totalQuotationsResult,
+    approvedQuotationsResult,
+    pendingQuotationsResult,
+    recentQuotationsResult,
+    // 月別売上
+    monthlyRevenueResult,
+    // 本日出荷
+    todayShipmentsResult,
+    // 輸送中注文
+    inTransitShipmentsResult,
+    // サンプル統計
+    totalSamplesResult,
+    processingSamplesResult,
+    // 生産完了注文（製造期間計算用）
+    completedProductionOrdersResult,
+  ] = [
+    settled(adminResults[0], EMPTY_COUNT_RESULT), // totalOrders (count)
+    settled(adminResults[1], EMPTY_COUNT_RESULT), // pendingOrders (count)
+    settled(adminResults[2], EMPTY_LIST_RESULT), // totalRevenue (data)
+    settled(adminResults[3], EMPTY_COUNT_RESULT), // activeUsers (count)
+    settled(adminResults[4], EMPTY_LIST_RESULT), // ordersByStatus (data)
+    settled(adminResults[5], EMPTY_COUNT_RESULT), // totalQuotations (count)
+    settled(adminResults[6], EMPTY_COUNT_RESULT), // approvedQuotations (count)
+    settled(adminResults[7], EMPTY_COUNT_RESULT), // pendingQuotations (count)
+    settled(adminResults[8], EMPTY_LIST_RESULT), // recentQuotations (data)
+    settled(adminResults[9], EMPTY_LIST_RESULT), // monthlyRevenue (data)
+    settled(adminResults[10], EMPTY_COUNT_RESULT), // todayShipments (count)
+    settled(adminResults[11], EMPTY_COUNT_RESULT), // inTransitShipments (count)
+    settled(adminResults[12], EMPTY_COUNT_RESULT), // totalSamples (count)
+    settled(adminResults[13], EMPTY_COUNT_RESULT), // processingSamples (count)
+    settled(adminResults[14], EMPTY_LIST_RESULT), // completedProductionOrders (data)
+  ];
 
   // 売上計算
   const totalRevenue = (totalRevenueResult.data || [])
@@ -1822,15 +1892,10 @@ async function fetchMemberDashboardStats(
   startDate.setDate(startDate.getDate() - period);
 
   // 並列クエリ
-  const [
-    totalOrdersResult,
-    pendingOrdersResult,
-    totalQuotationsResult,
-    totalSamplesResult,
-    pendingSamplesResult,
-    totalInquiriesResult,
-    respondedInquiriesResult,
-  ] = await Promise.all([
+  // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、rejected は
+  // count:0 の空 result でフォールバック（すべてカウント取得クエリのため）。
+  const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+  const unifiedResults = await Promise.allSettled([
     serviceClient
       .from('orders')
       .select('*', { count: 'exact', head: true })
@@ -1872,6 +1937,18 @@ async function fetchMemberDashboardStats(
       // 回答済みの問い合わせをカウント
       .in('status', ['responded', 'resolved', 'closed']),
   ]);
+
+  const settled = <T>(r: PromiseSettledResult<T>, fallback: T) =>
+    r.status === 'fulfilled' ? r.value : fallback;
+  const [
+    totalOrdersResult,
+    pendingOrdersResult,
+    totalQuotationsResult,
+    totalSamplesResult,
+    pendingSamplesResult,
+    totalInquiriesResult,
+    respondedInquiriesResult,
+  ] = unifiedResults.map((r) => settled(r, EMPTY_COUNT_RESULT));
 
   return {
     totalOrders: totalOrdersResult.count || 0,

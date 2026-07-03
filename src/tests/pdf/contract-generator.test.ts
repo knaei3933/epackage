@@ -307,8 +307,8 @@ describe('ContractPdfGenerator Integration', () => {
     const generator = new ContractPdfGenerator();
     const data = createMockContractData();
 
-    // 空の配列
-    data.specialTerms = [];
+    // 空の配列（specialTerms は data.terms 配下にネストしている点に注意）
+    data.terms.specialTerms = [];
     data.attachments = [];
 
     const templateData = generator.prepareTemplateData(data);

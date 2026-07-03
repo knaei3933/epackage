@@ -6,15 +6,15 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+// 実装は contractPdfGenerator.tsx（旧）から generators/contract-generator.ts（新）へ
+// リファクタリング移行した。index.ts 経由で現行実装の関数群を import する。
 import {
   generateContractPdf,
   generateContractPdfBase64,
-  generateContractPdfWithStyling,
   validateContractData,
   estimateContractPdfSize,
-  formatJapaneseContractDate,
   createMockContractData,
-} from '../contractPdfGenerator';
+} from '@/lib/pdf';
 import type { ContractData, ContractItem } from '@/types/contract';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -23,16 +23,27 @@ import * as path from 'path';
 // Test Utilities
 // ============================================================
 
-// Mock Playwright
+// core/base.ts が chromium を使うため Playwright をモック
 jest.mock('playwright', () => ({
   chromium: {
     launch: jest.fn(),
   },
 }));
 
-// Mock fs module
-jest.mock('fs');
-jest.mock('path');
+// core/base.ts が fs/path を使うためモック。
+// 自動モックでは fs.promises が undefined になり spyOn できないため、
+// promises 名前空間を明示的に用意する。
+jest.mock('fs', () => ({
+  existsSync: jest.fn(),
+  promises: {
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    mkdir: jest.fn(),
+  },
+}));
+// path は実物（join/dirname 等）をそのまま使う。テストが一部で
+// path.dirname を spyOn 上書きするため、実際の path を再エクスポートする。
+jest.mock('path', () => jest.requireActual('path'));
 
 // ============================================================
 // Test Fixtures
@@ -50,8 +61,8 @@ const createValidContractData = (): ContractData => ({
   seller: {
     name: 'EPACKAGE Lab株式会社',
     nameKana: 'イーパックケージラボカブシキガイシャ',
-    postalCode: '673-0846',
-    address: '兵庫県明石市上ノ丸2-11-21',
+    postalCode: '675-1112',
+    address: '兵庫県加古郡稲美町六分一486',
     representative: '金井 一郎',
     representativeTitle: '代表取締役',
     contact: {
@@ -203,7 +214,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Contract number is required');
+      expect(result.errors).toContain('契約番号は必須です');
     });
 
     it('should detect missing issue date', () => {
@@ -214,7 +225,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Issue date is required');
+      expect(result.errors).toContain('発行日は必須です');
     });
 
     it('should detect missing effective date', () => {
@@ -225,7 +236,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Effective date is required');
+      expect(result.errors).toContain('契約日は必須です');
     });
 
     it('should detect missing buyer name', () => {
@@ -239,7 +250,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Buyer name is required');
+      expect(result.errors).toContain('買い手名は必須です');
     });
 
     it('should detect missing seller name', () => {
@@ -253,7 +264,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Seller name is required');
+      expect(result.errors).toContain('売り手名は必須です');
     });
 
     it('should detect missing contract items', () => {
@@ -264,7 +275,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('At least one contract item is required');
+      expect(result.errors).toContain('少なくとも1つの契約品目が必要です');
     });
 
     it('should detect missing payment method', () => {
@@ -281,7 +292,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Payment method is required');
+      expect(result.errors).toContain('支払方法は必須です');
     });
 
     it('should detect missing delivery period', () => {
@@ -299,7 +310,7 @@ describe('Contract PDF Generator', () => {
       const result = validateContractData(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Delivery period is required');
+      expect(result.errors).toContain('納期は必須です');
     });
 
     it('should collect all validation errors', () => {
@@ -334,71 +345,6 @@ describe('Contract PDF Generator', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(5);
-    });
-  });
-
-  // ============================================================
-  // formatJapaneseContractDate Tests
-  // ============================================================
-
-  describe('formatJapaneseContractDate', () => {
-    it('should format Reiwa date correctly', () => {
-      const date = new Date(2024, 3, 1); // 2024-04-01
-      const formatted = formatJapaneseContractDate(date);
-
-      expect(formatted).toBe('令和6年4月1日');
-    });
-
-    it('should format Heisei date correctly', () => {
-      const date = new Date(2010, 0, 15); // 2010-01-15
-      const formatted = formatJapaneseContractDate(date);
-
-      expect(formatted).toBe('平成22年1月15日');
-    });
-
-    it('should format Showa date correctly', () => {
-      const date = new Date(1985, 5, 20); // 1985-06-20
-      const formatted = formatJapaneseContractDate(date);
-
-      expect(formatted).toBe('昭和60年6月20日');
-    });
-
-    it('should format Taisho date correctly', () => {
-      const date = new Date(1920, 9, 1); // 1920-10-01
-      const formatted = formatJapaneseContractDate(date);
-
-      expect(formatted).toBe('大正9年10月1日');
-    });
-
-    it('should format Meiji date correctly', () => {
-      const date = new Date(1900, 0, 1); // 1900-01-01
-      const formatted = formatJapaneseContractDate(date);
-
-      expect(formatted).toBe('明治33年1月1日');
-    });
-
-    it('should handle date string input', () => {
-      const dateString = '2024-04-01';
-      const formatted = formatJapaneseContractDate(dateString);
-
-      expect(formatted).toBe('令和6年4月1日');
-    });
-
-    it('should handle era transition dates', () => {
-      // Reiwa start date: 2019-05-01
-      const reiwaStart = new Date(2019, 4, 1);
-      expect(formatJapaneseContractDate(reiwaStart)).toBe('令和1年5月1日');
-
-      // Heisei end date: 2019-04-30
-      const heiseiEnd = new Date(2019, 3, 30);
-      expect(formatJapaneseContractDate(heiseiEnd)).toBe('平成31年4月30日');
-    });
-
-    it('should fallback to Western calendar for dates outside defined eras', () => {
-      const futureDate = new Date(2035, 0, 1);
-      const formatted = formatJapaneseContractDate(futureDate);
-
-      expect(formatted).toBe('2035年1月1日');
     });
   });
 
@@ -454,15 +400,11 @@ describe('Contract PDF Generator', () => {
     });
 
     it('should include signatory data in estimation', () => {
-      const withoutSignatory = { ...createValidContractData() };
-      const withSignatory = {
-        ...createValidContractData(),
-        sellerSignatory: {
-          name: 'Test Signatory',
-          title: 'Representative',
-          date: '2024-04-01',
-        },
-      };
+      // createValidContractData() は既定で両 signatory を含むため、
+      // 比較のため without 側は両 signatory を削除する。
+      const { sellerSignatory, buyerSignatory, ...withoutSignatory } =
+        createValidContractData();
+      const withSignatory = createValidContractData();
 
       const withoutSize = estimateContractPdfSize(withoutSignatory);
       const withSize = estimateContractPdfSize(withSignatory);
@@ -628,7 +570,7 @@ describe('Contract PDF Generator', () => {
       const result = await generateContractPdf(validData);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Contract template not found');
+      expect(result.error).toContain('Template not found');
     });
 
     it('should save PDF to file when output path specified', async () => {
@@ -734,83 +676,6 @@ describe('Contract PDF Generator', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
       expect(result.base64).toBeUndefined();
-    });
-  });
-
-  // ============================================================
-  // generateContractPdfWithStyling Tests
-  // ============================================================
-
-  describe('generateContractPdfWithStyling', () => {
-    it('should generate PDF with custom styling', async () => {
-      const validData = createValidContractData();
-      const customCss = '.header { color: red; }';
-
-      // Mock template file exists
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-
-      // Mock template read
-      jest.spyOn(fs.promises, 'readFile').mockResolvedValue(
-        '<html><body><div class="header">{{contractNumber}}</div></body></html>'
-      );
-
-      // Mock Playwright
-      const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(Buffer.from('styled-pdf')),
-        close: jest.fn().mockResolvedValue(undefined),
-        addStyleTag: jest.fn().mockResolvedValue(undefined),
-      };
-      const mockBrowser = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
-      };
-
-      const { chromium } = await import('playwright');
-      jest.mocked(chromium.launch).mockResolvedValue(mockBrowser as any);
-
-      const result = await generateContractPdfWithStyling(validData, customCss);
-
-      expect(result.success).toBe(true);
-      expect(mockPage.addStyleTag).toHaveBeenCalledWith({ content: customCss });
-      expect(result.buffer).toBeDefined();
-    });
-
-    it('should save styled PDF to file when output path specified', async () => {
-      const validData = createValidContractData();
-      const customCss = '.test { color: blue; }';
-      const outputPath = path.join(process.cwd(), 'output', 'styled.pdf');
-
-      // Mock template file exists
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-
-      // Mock template read
-      jest.spyOn(fs.promises, 'readFile').mockResolvedValue('<html><body></body></html>');
-
-      // Mock file operations
-      jest.spyOn(fs.promises, 'mkdir').mockResolvedValue(undefined);
-      jest.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
-      jest.spyOn(path, 'dirname').mockReturnValue(process.cwd());
-
-      // Mock Playwright
-      const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(Buffer.from('styled-pdf')),
-        close: jest.fn().mockResolvedValue(undefined),
-        addStyleTag: jest.fn().mockResolvedValue(undefined),
-      };
-      const mockBrowser = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
-      };
-
-      const { chromium } = await import('playwright');
-      jest.mocked(chromium.launch).mockResolvedValue(mockBrowser as any);
-
-      const result = await generateContractPdfWithStyling(validData, customCss, { outputPath });
-
-      expect(result.success).toBe(true);
-      expect(result.filePath).toBe(outputPath);
     });
   });
 

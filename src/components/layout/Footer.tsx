@@ -244,8 +244,7 @@ export function Footer() {
                   <div className="flex items-start space-x-3 text-slate-600 dark:text-slate-300">
                     <MapPin className="h-4 w-4 text-brixa-500 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <div>本社：兵庫県明石市上ノ丸2-11-21</div>
-                      <div className="text-xs mt-1">ロジスティクス：兵庫県加古郡稲美町六分一486</div>
+                      <div>本社：兵庫県加古郡稲美町六分一486</div>
                     </div>
                   </div>
                 </div>

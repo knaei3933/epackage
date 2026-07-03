@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { unifiedPricingEngine, type UnifiedQuoteParams } from '@/lib/unified-pricing-engine';
-import { getDefaultLayers } from '@/lib/common/film-calculations';
+import { getDefaultFilmLayers } from '@/lib/film-structure';
 import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
 
 export async function POST(
@@ -33,8 +33,8 @@ export async function POST(
     const materialId = (specs.materialId as string) || 'pet_pe';
     const thicknessSelection = (specs.thicknessSelection as string) || 'medium';
 
-    // Use getDefaultLayers from film-calculations.ts for proper Kraft support
-    const filmLayers: FilmStructureLayer[] = getDefaultLayers(materialId, thicknessSelection);
+    // getDefaultFilmLayers（正系: src/lib/film-structure）で kraft 系 + pet_vmpet を含む全系統のデフォルトレイヤーを取得
+    const filmLayers: FilmStructureLayer[] = getDefaultFilmLayers(materialId, thicknessSelection);
 
     // Build UnifiedQuoteParams from specifications
     const params: UnifiedQuoteParams = {

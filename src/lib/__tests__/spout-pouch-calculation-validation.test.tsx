@@ -37,7 +37,8 @@ describe('スパウトパウチ計算実データ検証', () => {
     test('9パイスパウト: 70ウォン × 10,000個 + 150,000ウォン = 850,000ウォン', async () => {
       const params = {
         ...BASE_PARAMS,
-        postProcessingOptions: ['spout-size-9']
+        postProcessingOptions: ['spout-size-9'],
+        spoutSize: 9
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -54,7 +55,8 @@ describe('スパウトパウチ計算実データ検証', () => {
     test('15パイスパウト: 80ウォン × 10,000個 + 150,000ウォン = 950,000ウォン', async () => {
       const params = {
         ...BASE_PARAMS,
-        postProcessingOptions: ['spout-size-15']
+        postProcessingOptions: ['spout-size-15'],
+        spoutSize: 15
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -69,7 +71,8 @@ describe('スパウトパウチ計算実データ検証', () => {
     test('18パイスパウト: 110ウォン × 10,000個 + 150,000ウォン = 1,250,000ウォン', async () => {
       const params = {
         ...BASE_PARAMS,
-        postProcessingOptions: ['spout-size-18']
+        postProcessingOptions: ['spout-size-18'],
+        spoutSize: 18
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -84,7 +87,8 @@ describe('スパウトパウチ計算実データ検証', () => {
     test('22パイスパウト: 130ウォン × 10,000個 + 150,000ウォン = 1,450,000ウォン', async () => {
       const params = {
         ...BASE_PARAMS,
-        postProcessingOptions: ['spout-size-22']
+        postProcessingOptions: ['spout-size-22'],
+        spoutSize: 22
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -99,7 +103,8 @@ describe('スパウトパウチ計算実データ検証', () => {
     test('28パイスパウト: 200ウォン × 10,000個 + 150,000ウォン = 2,150,000ウォン', async () => {
       const params = {
         ...BASE_PARAMS,
-        postProcessingOptions: ['spout-size-28']
+        postProcessingOptions: ['spout-size-28'],
+        spoutSize: 28
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -117,7 +122,8 @@ describe('スパウトパウチ計算実データ検証', () => {
       const params = {
         ...BASE_PARAMS,
         skuQuantities: [3000],
-        postProcessingOptions: ['spout-size-18']
+        postProcessingOptions: ['spout-size-18'],
+        spoutSize: 18
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -132,7 +138,8 @@ describe('スパウトパウチ計算実データ検証', () => {
       const params = {
         ...BASE_PARAMS,
         skuQuantities: [5000],
-        postProcessingOptions: ['spout-size-18']
+        postProcessingOptions: ['spout-size-18'],
+        spoutSize: 18
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -146,7 +153,8 @@ describe('スパウトパウチ計算実データ検証', () => {
       const params = {
         ...BASE_PARAMS,
         skuQuantities: [10000],
-        postProcessingOptions: ['spout-size-18']
+        postProcessingOptions: ['spout-size-18'],
+        spoutSize: 18
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -230,7 +238,8 @@ describe('スパウトパウチ計算実データ検証', () => {
           depth: 0
         },
         skuQuantities: [10000],
-        postProcessingOptions: ['spout-size-18']
+        postProcessingOptions: ['spout-size-18'],
+        spoutSize: 18
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -259,7 +268,8 @@ describe('スパウトパウチ計算実データ検証', () => {
           depth: 50
         },
         skuQuantities: [5000],
-        postProcessingOptions: ['spout-size-22']
+        postProcessingOptions: ['spout-size-22'],
+        spoutSize: 22
       };
 
       const result = await calculator.calculateSKUCost(params);
@@ -271,16 +281,15 @@ describe('スパウトパウチ計算実データ検証', () => {
       // 総コストが正しく計算されていることを確認
       expect(result.totalCostJPY).toBeGreaterThan(0);
 
-      // フィルム幅の確認（現在はマチなしの計算と同じ: H×2+41 = 441mm）
-      // 注: calculateSKUCostはスパウトパウチのマチ有無を考慮していない
-      // QuoteContext.tsxにはcalculateSpoutPouchFilmWidth関数があるが、calculateSKUCostには未実装
+      // フィルム幅の確認（マチあり: H×2 + G×2 + 35 = 200×2 + 50×2 + 35 = 535mm）
+      // 実装: pouch-cost-calculator.ts の calculateFilmWidth（spout_pouch, 1列）
+      //   (H*2) + (G*2) + 35 = 400 + 100 + 35 = 535（depth両面分 = G×2）
       console.log('=== スパウトパウチ（22パイ、マチあり、5,000個）の総合計算結果 ===');
       console.log(`スパウト加工費: ${pouchProcessingCost} 円`);
       console.log(`総コスト（JPY）: ${result.totalCostJPY} 円`);
-      console.log(`計算フィルム幅: ${result.calculatedFilmWidth} mm (期待値485mmだが、現在441mm)`);
+      console.log(`計算フィルム幅: ${result.calculatedFilmWidth} mm (マチあり計算: 535mm)`);
 
-      // TODO: calculateFilmWidthにスパウトパウチのマチ有無考慮を実装する必要あり
-      expect(result.calculatedFilmWidth).toBe(441);
+      expect(result.calculatedFilmWidth).toBe(535);
     });
 
     test('数量500個の場合、最小5,000個で計算されること（スパウトパウチ全体コスト）', async () => {
@@ -290,7 +299,8 @@ describe('スパウトパウチ計算実データ検証', () => {
         materialId: 'pet_al_pet',
         thicknessSelection: 'standard',
         skuQuantities: [500], // 500個を注文
-        postProcessingOptions: ['spout-size-22']
+        postProcessingOptions: ['spout-size-22'],
+        spoutSize: 22
       };
 
       const result = await calculator.calculateSKUCost(params);

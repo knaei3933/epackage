@@ -72,7 +72,7 @@ ON CONFLICT (category, key) DO NOTHING;
 -- ============================================
 INSERT INTO system_settings (category, key, value, value_type, description, unit) VALUES
 ('printing', 'gravure_setup_fee', 50000, 'number', 'グラビア印刷セットアップ費', 'ウォン'),
-('printing', 'gravure_per_color_per_meter', 200, 'number', 'グラビア印刷費（色・m²あたり）', 'ウォン/m²'),
+('printing', 'gravure_per_color_per_meter', 19, 'number', 'グラビア印刷費（色・mあたり）', 'ウォン/m'),
 ('printing', 'gravure_min_charge', 20000, 'number', 'グラビア印刷最低料金', 'ウォン')
 ON CONFLICT (category, key) DO NOTHING;
 

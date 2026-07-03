@@ -11,7 +11,7 @@
  */
 
 // Wizards
-export { QuoteWizard, ImprovedQuotingWizard, UnifiedQuoteSystem, InteractiveQuoteSystem } from './wizards'
+export { QuoteWizard, ImprovedQuotingWizard } from './wizards'
 
 // Steps
 export { SKUSelectionStep, MultiQuantityStep, UnifiedSKUQuantityStep } from './steps'
@@ -48,8 +48,8 @@ export { DataTemplateGuide } from './shared'
 
 // Shared - Analytics & Recommendations
 export { QuantityEfficiencyChart, MultiQuantityComparisonTable, ParallelProductionOptions } from './shared'
-export { EconomicQuantityProposal, OptimalQuantityRecommender } from './shared'
-export type { ParallelProductionOption, EconomicQuantitySuggestionData } from './shared'
+export { OptimalQuantityRecommender } from './shared'
+export type { ParallelProductionOption } from './shared'
 
 // Shared - Post-Processing Systems
 export { PostProcessingGroups, NextGenPostProcessingSystem, RedesignedPostProcessingWorkflow } from './shared'

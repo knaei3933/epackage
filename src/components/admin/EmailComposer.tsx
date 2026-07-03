@@ -75,7 +75,7 @@ const EMAIL_SIGNATURE = `
 --
 Epackage Lab (イーパックラボ)
 info@epackage-lab.com | 050-1793-6500
-本社：兵庫県明石市上ノ丸2-11-21
+本社：兵庫県加古郡稲美町六分一486
 https://epackage-lab.com`;
 
 const ANIMATION_VARIANTS = {
@@ -992,7 +992,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
                                 <div className="mt-4 pt-4 border-t border-gray-300 text-xs text-gray-600">
                                   <div className="font-semibold">Epackage Lab (イーパックラボ)</div>
                                   <div>info@epackage-lab.com | 050-1793-6500</div>
-                                  <div>本社：兵庫県明石市上ノ丸2-11-21</div>
+                                  <div>本社：兵庫県加古郡稲美町六分一486</div>
                                   <div>https://epackage-lab.com</div>
                                 </div>
                               </>

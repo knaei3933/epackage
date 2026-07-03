@@ -242,17 +242,56 @@ export function AdminQuotationItemDetail({ item, showFormula }: AdminQuotationIt
       )}
 
       {/* SKU情報 */}
-      {breakdown?.sku_info && breakdown.sku_info.count > 1 ? (
-        <div className="bg-purple-50 p-2 rounded text-xs">
-          <p className="font-medium text-purple-700">SKU分割: {breakdown.sku_info.count}SKU</p>
-          <p className="text-purple-600">数量: [{breakdown.sku_info.quantities.join(', ')}] 合計: {breakdown.sku_info.total}個</p>
-        </div>
-      ) : (
-        <div className="bg-gray-100 p-2 rounded text-xs">
-          <p className="text-gray-600">SKU数: 1種類</p>
-          <p className="text-gray-500">数量: {item.quantity}個</p>
-        </div>
-      )}
+      {(() => {
+        // SKU数量配列を取得（breakdown優先、フォールバックでspecifications）
+        const skuQuantities: number[] =
+          (breakdown?.sku_info?.quantities as number[] | undefined) ??
+          (specs.sku_quantities as number[] | undefined) ??
+          [];
+        const skuCount = breakdown?.sku_info?.count ?? skuQuantities.length;
+
+        // 単一SKU（count <= 1）の時はSKU別明細を表示しない
+        if (!skuCount || skuCount <= 1) {
+          return (
+            <div className="bg-gray-100 p-2 rounded text-xs">
+              <p className="text-gray-600">SKU数: 1種類</p>
+              <p className="text-gray-500">数量: {item.quantity}個</p>
+            </div>
+          );
+        }
+
+        // 単価（コンポーネント冒頭の表示と同じ源泉）
+        const unitPrice = item.unit_price ?? 0;
+
+        // 合計数量・合計金額を算出
+        const totalQty = skuQuantities.reduce((sum, q) => sum + (Number(q) || 0), 0);
+        const totalPrice = skuQuantities.reduce(
+          (sum, q) => sum + (Number(q) || 0) * unitPrice,
+          0,
+        );
+
+        return (
+          <div className="bg-purple-50 p-2 rounded text-xs">
+            <p className="font-medium text-purple-700 mb-1">SKU分割: {skuCount}SKU</p>
+            <div className="space-y-0.5">
+              {skuQuantities.map((qty, i) => {
+                const q = Number(qty) || 0;
+                const lineTotal = q * unitPrice;
+                return (
+                  <div key={`sku-${i}`} className="flex items-center justify-between text-purple-700">
+                    <span>SKU {i + 1}: {q}個 × ¥{unitPrice.toLocaleString()}</span>
+                    <span className="font-medium">¥{lineTotal.toLocaleString()}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between mt-1 pt-1 border-t border-purple-200 text-purple-800 font-semibold">
+              <span>合計 {totalQty}個</span>
+              <span>¥{totalPrice.toLocaleString()}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 詳細な原価内訳 */}
       {showFormula && breakdown?.breakdown && (

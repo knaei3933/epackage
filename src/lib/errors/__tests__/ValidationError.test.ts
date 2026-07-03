@@ -110,7 +110,9 @@ describe('RequiredFieldError', () => {
 
 describe('FormatError', () => {
   it('フォーマットエラーを作成する', () => {
-    const error = new FormatError('email', 'email@example.com', 'INVALID_FORMAT');
+    // FormatError(field, format, value): 第2引数=案内文用 format、第3引数=入力値 value。
+    // details.value に value が、details.code には固定 'INVALID_FORMAT' が入る。
+    const error = new FormatError('email', 'email', 'email@example.com');
 
     expect(error.message).toContain('emailの形式が正しくありません。');
     expect(error.details[0].field).toBe('email');

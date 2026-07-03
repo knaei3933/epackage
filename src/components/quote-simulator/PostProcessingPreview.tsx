@@ -25,6 +25,7 @@ interface PostProcessingPreviewProps {
     valve?: boolean
   }
   onPreviewToggle?: (show: boolean) => void
+  defaultExpanded?: boolean
   className?: string
 }
 
@@ -58,8 +59,8 @@ const postProcessingOptions: PostProcessingOption[] = [
   { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブ付き', imageName: 'バルブあり.png', category: 'opening-sealing' },
 ]
 
-export function PostProcessingPreview({ selectedOptions, onPreviewToggle, className }: PostProcessingPreviewProps) {
-  const [showPreview, setShowPreview] = useState(false)
+export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaultExpanded = false, className }: PostProcessingPreviewProps) {
+  const [showPreview, setShowPreview] = useState(defaultExpanded)
 
   const getActiveImages = () => {
     const activeImages: PostProcessingOption[] = []
@@ -130,33 +131,34 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, classN
 
   return (
     <Card className={`overflow-hidden ${className}`}>
-      <div className="p-4 border-b border-border-medium">
+      <div className="px-4 py-2.5 border-b border-border-medium bg-bg-secondary/30">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-text-primary">
+          <h3 className="text-sm font-semibold text-text-primary">
             後加工プレビュー
+            <span className="ml-2 text-xs font-normal text-text-muted">{activeImages.length}項目</span>
           </h3>
           <button
             onClick={togglePreview}
-            className="flex items-center space-x-2 px-3 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
+            className="flex items-center space-x-1.5 px-2 py-1 text-xs text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-bg-secondary"
           >
-            {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             <span>{showPreview ? '非表示' : '表示'}</span>
           </button>
         </div>
       </div>
 
       {showPreview && (
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="p-4">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {activeImages.map((option) => (
-              <div key={option.id} className="space-y-2">
+              <div key={option.id} className="space-y-1.5">
                 <div className="aspect-square relative overflow-hidden rounded-lg border border-border-medium bg-bg-primary">
                   <Image
                     src={`/images/post-processing/${option.imageName}`}
                     alt={option.nameJa}
                     fill
                     className="object-contain p-2"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 150px"
+                    sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 120px"
                   />
                 </div>
                 <div className="text-center">
@@ -168,9 +170,8 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, classN
             ))}
           </div>
 
-          <div className="text-xs text-text-secondary border-t border-border-medium pt-3">
+          <div className="text-xs text-text-muted mt-3 pt-2 border-t border-border-medium/50">
             <p>※ 画像は参考です。実際の製品仕様とは異なる場合があります。</p>
-            <p>※ Images are for reference only. Actual product specifications may vary.</p>
           </div>
         </div>
       )}

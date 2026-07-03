@@ -96,9 +96,9 @@ export function useOptimizedFetch<T>(
   options?: FetchOptions
 ) {
   const config: SWRConfiguration = {
-    // Revalidate on window focus
-    revalidateOnFocus: true,
-    // Revalidate on reconnect
+    // Revalidate on window focus disabled: prevents fetch storms on tab refocus
+   revalidateOnFocus: false,
+   // Revalidate on reconnect
     revalidateOnReconnect: true,
     // Retry on error
     shouldRetryOnError: true,

@@ -13,6 +13,12 @@ const ACTIVITY_EVENTS = [
 
 const STORAGE_KEY = 'epac_last_activity'
 
+// Throttle intervals: localStorage writes are decoupled from the activity
+// callback throttle so high-frequency mouse/scroll events don't block the
+// main thread with synchronous storage I/O.
+const ACTIVITY_THROTTLE_MS = 10_000
+const STORAGE_FLUSH_MS = 60_000
+
 // Role-based timeout configuration
 // NOTE: Client timeout must be SHORTER than server session
 // Configured for optimal balance between security and user experience
@@ -56,6 +62,9 @@ export function useActivityTracker({
   const warningFiredRef = useRef<boolean>(false)
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null)
   const warningTimeoutIdRef = useRef<NodeJS.Timeout | null>(null)
+  // Decoupled storage-flush throttle: only persist to localStorage once
+  // per STORAGE_FLUSH_MS window instead of on every activity event.
+  const lastStorageFlushRef = useRef<number>(0)
 
   // Update activity timestamp
   const updateActivity = useCallback(() => {
@@ -63,9 +72,17 @@ export function useActivityTracker({
     lastActivityRef.current = now
     warningFiredRef.current = false
 
-    // Persist to localStorage for cross-tab awareness
+    // Persist to localStorage for cross-tab awareness.
+    // Throttled separately from the activity callback: high-frequency
+    // mousemove/scroll events used to trigger synchronous localStorage
+    // writes on every throttle tick. Now we flush at most once per
+    // STORAGE_FLUSH_MS, reducing main-thread blocking while still
+    // keeping cross-tab awareness reasonably fresh.
     if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, now.toString())
+      if (now - lastStorageFlushRef.current >= STORAGE_FLUSH_MS) {
+        localStorage.setItem(STORAGE_KEY, now.toString())
+        lastStorageFlushRef.current = now
+      }
     }
 
     // Call activity callback for session refresh (activity-based, not polling)
@@ -131,10 +148,13 @@ export function useActivityTracker({
     // Throttled activity handler (10 seconds throttle)
     let throttleTimeout: NodeJS.Timeout | null = null
     const throttledUpdateActivity = () => {
+      // Throttle guard: while a throttle window is open, ignore further events
+      // rather than clearing/resetting the timer on every tick. lastActivityRef
+      // is kept current inside updateActivity, so the active timer stays valid.
       if (throttleTimeout) return
       throttleTimeout = setTimeout(() => {
         throttleTimeout = null
-      }, 10000) // Throttle to 10 seconds
+      }, ACTIVITY_THROTTLE_MS)
       updateActivity()
     }
 

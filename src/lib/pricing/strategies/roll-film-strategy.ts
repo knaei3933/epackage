@@ -87,7 +87,10 @@ export class RollFilmStrategy extends BasePricingStrategy {
     // AL素材チェック
     const layers = filmLayers || []
     const hasALMaterial = layers.some(layer => layer.materialId === 'AL')
-    const laminationPricePerMeter = hasALMaterial ? 75 : 65
+    // 2026-06-27 改定: AL有無2段階化（ALあり=80, ALなし=65）- constants 参照で一元管理
+    const laminationPricePerMeter = hasALMaterial
+      ? ROLL_FILM_CONSTANTS.LAMINATION_COST_PER_M_WITH_AL
+      : ROLL_FILM_CONSTANTS.LAMINATION_COST_PER_M_NO_AL
     const laminationCycles = Math.max(0, layers.length - 1)
 
     // ラミネート費（ウォン）

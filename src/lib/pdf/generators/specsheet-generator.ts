@@ -272,7 +272,7 @@ export class SpecSheetPdfGenerator extends BasePdfGenerator<
       header: {
         companyName: 'EPACKAGE Lab株式会社',
         companyNameKana: 'イーパックケージラボカブシキガイシャ',
-        address: '兵庫県明石市上ノ丸2-11-21',
+        address: '兵庫県加古郡稲美町六分一486',
         phone: '050-1793-6500',
         email: 'info@package-lab.com',
         website: 'https://epackage-lab.com',
