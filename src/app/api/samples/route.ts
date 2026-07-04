@@ -268,6 +268,28 @@ const { client: supabaseAuth } = await createSupabaseSSRClient(request);
       }
     }
 
+    // C-23: 配送先データを sample_request_destinations へ保存（監査可能化）
+    // 現状はメール本文のみで DB 未保存だった配送先（氏名/住所/電話）を正規化テーブルへ保存。
+    for (const dest of validatedData.deliveryDestinations) {
+      const { error: destError } = await supabase
+        .from('sample_request_destinations')
+        .insert({
+          sample_request_id: sampleRequestId,
+          company_name: dest.companyName || null,
+          contact_person: dest.contactPerson,
+          phone: dest.phone,
+          postal_code: dest.postalCode || null,
+          address: dest.address,
+        });
+
+      if (destError) {
+        console.error('[Sample API] Error inserting destination:', destError);
+        // ロールバック: 作成済みリクエスト（+sample_items は CASCADE）を削除
+        await supabase.from('sample_requests').delete().eq('id', sampleRequestId);
+        throw new Error(`Failed to create sample destination: ${destError.message}`);
+      }
+    }
+
     console.log('[Sample API] Sample request created successfully:', {
       sampleRequestId,
       requestNumber: requestId,

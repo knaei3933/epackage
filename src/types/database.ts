@@ -587,6 +587,25 @@ export type Database = {
                 Relationships: []
             }
 
+            // Sample request destinations table (C-23: 配送先データ DB保存・監査可能化)
+            // 注: 本テーブルは migration 20260704000001 で作成。本番適用後に
+            // `supabase gen types` で本型定義は自動再生成される（手動追加は一時的）。
+            sample_request_destinations: {
+                Row: {
+                    id: string
+                    sample_request_id: string
+                    company_name: string | null
+                    contact_person: string
+                    phone: string
+                    postal_code: string | null
+                    address: string
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['sample_request_destinations']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['sample_request_destinations']['Row']>
+                Relationships: []
+            }
+
             // Inquiries table (extended for contact form)
             // Note: Database uses 'type' column (not 'inquiry_type')
             inquiries: {
