@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { Database } from '@/types/database';
+import { getRBACContext, hasPermission, type Permission, type RBACContext } from '@/lib/rbac/rbac-helpers';
 
 /**
  * Result interface for admin authentication
@@ -190,6 +191,42 @@ export function forbiddenResponse() {
     { error: '管理者権限が必要です。' },
     { status: 403 }
   );
+}
+
+/**
+ * Server Action 用 管理者認証（cookie ベース・redirect しない）
+ *
+ * Server Component の requireAdminAuth と同等の認可だが、認証失敗時に
+ * redirect せず RBACContext | null を返す。Server Action は戻り値で
+ * クライアントへ結果を返す必要があるため、redirect する loader.ts の
+ * requireAdminAuth は使えず、このヘルパーを使う。
+ *
+ * 許可ロール: admin / operator / sales / accounting（requireAdminAuth と同一）
+ * 必須条件: status === 'ACTIVE'（退職者・停止アカウントを排除）
+ *
+ * @param requiredPermissions 要求する権限（省略時はロール + ACTIVE のみ検査）
+ * @returns 認証された RBACContext。未認証・権限不足・非アクティブ時は null
+ */
+export async function authenticateAdminAction(
+  requiredPermissions?: Permission[]
+): Promise<RBACContext | null> {
+  const context = await getRBACContext();
+  if (!context) return null;
+
+  // 管理者ロールのみ許可（requireAdminAuth と同一ラインアップ）
+  const adminRoles: RBACContext['role'][] = ['admin', 'operator', 'sales', 'accounting'];
+  if (!adminRoles.includes(context.role)) return null;
+
+  // ACTIVE ステータス必須（SUSPENDED/PENDING を排除）
+  if (context.status !== 'ACTIVE') return null;
+
+  // 権限チェック（admin ロールは hasPermission 内で全許可）
+  if (requiredPermissions && requiredPermissions.length > 0) {
+    const ok = requiredPermissions.every((p) => hasPermission(context, p));
+    if (!ok) return null;
+  }
+
+  return context;
 }
 
 /**

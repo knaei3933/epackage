@@ -1497,7 +1497,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             pouchProcessingCost: Math.round(result.breakdown?.pouchProcessingCost || (result.breakdown?.baseCost || 0) * 0.15),
             printingCost: Math.round(result.breakdown?.printing || (result.breakdown?.baseCost || 0) * 0.1),
             manufacturingMargin: Math.round(result.breakdown?.manufacturingMargin || (result.breakdown?.baseCost || 0) * 0.4),
-            duty: Math.round(result.breakdown?.duty || (result.breakdown?.baseCost || 0) * 0.05),
+            // M-2: duty フォールバックを calcDuty に統一（旧: baseCost*0.05 は約40%過小・L1064/L1084 と同じ正しい計算）
+            duty: Math.round(result.breakdown?.duty ?? calcDuty(result.breakdown?.baseCost || 0, result.breakdown?.manufacturingMargin)),
             delivery: Math.round(result.breakdown?.delivery || (result.breakdown?.baseCost || 0) * 0.08),
             salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.25),
             totalCost: Math.round(result.breakdown?.baseCost || (result.breakdown as Record<string, any>)?.totalCost || 0)

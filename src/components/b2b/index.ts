@@ -125,7 +125,7 @@ export { default as CustomerDashboard } from './CustomerDashboard';
 // Workflow Components
 // ============================================================
 
-export { default as OrderTimeline } from './OrderTimeline';
+// M-1: OrderTimeline は完全孤立（import 元ゼロ）のため削除。
 export { default as StockIn } from './StockIn';
 export { default as Shipment } from './Shipment';
 

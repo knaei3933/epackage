@@ -10,6 +10,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import type { FilmCostResult } from '@/lib/film-cost-calculator';
 import { POST_PROCESSING_JA } from '@/constants/enToJa';
+import { calcDuty } from '@/lib/duty-calculator';
 
 interface QuotationItem {
   id: string;
@@ -314,7 +315,8 @@ function calculateBreakdown(item: QuotationItem, headerPrintingType?: string) {
       manufacturingMargin: (savedBreakdown.manufacturingMargin ?? 0) > 0 ? savedBreakdown.manufacturingMargin : Math.round(baseCost * 0.4),
       salesMargin: (savedBreakdown.salesMargin ?? 0) > 0 ? savedBreakdown.salesMargin : Math.round(baseCost * 0.2),
       // dutyとdeliveryも念のため確認
-      duty: (savedBreakdown.duty ?? 0) > 0 ? savedBreakdown.duty : Math.round(baseCost * 0.05),
+      // C-8: duty フォールバックを calcDuty に統一（旧: baseCost*0.05 は約40%過小・Phase D M-2 と同じ根因）
+      duty: (savedBreakdown.duty ?? 0) > 0 ? savedBreakdown.duty : Math.round(calcDuty(baseCost)),
       delivery: (savedBreakdown.delivery ?? 0) > 0 ? savedBreakdown.delivery : Math.round(baseCost * 0.08),
     };
 
@@ -469,7 +471,8 @@ function calculateBreakdown(item: QuotationItem, headerPrintingType?: string) {
       pouchProcessingCost: estimatedProcessingCost,
       printingCost: estimatedPrintingCost,
       manufacturingMargin: Math.round((estimatedMaterialCost + estimatedProcessingCost + estimatedPrintingCost) * 0.4),
-      duty: Math.round((estimatedMaterialCost + estimatedProcessingCost + estimatedPrintingCost) * 1.4 * 0.12 * 0.05),
+      // C-8: duty を calcDuty に統一（旧: *1.4*0.12*0.05 は為替0.12誤混入で極端に過小・製造者価格×0.05 が正）
+      duty: Math.round(calcDuty(estimatedMaterialCost + estimatedProcessingCost + estimatedPrintingCost)),
       delivery: estimatedDelivery,
       salesMargin: estimatedMargin,
       totalCost: totalCost,

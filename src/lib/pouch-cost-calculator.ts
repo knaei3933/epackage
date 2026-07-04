@@ -84,7 +84,7 @@ export interface SKUCostParams {
   materialWidth?: number; // 再料幅 (540 or 740mm)
   filmLayers?: FilmStructureLayer[]; // フィルム構造レイヤー
   postProcessingOptions?: string[]; // 後加工オプション（ジッパーなど）
-  markupRate?: number; // 顧客別マークアップ率（デフォルト20%）
+  markupRate?: number; // 顧客別マークアップ率（デフォルト0.0=調整なし・判断2）
   // スパウトパウチ専用パラメータ
   spoutSize?: 9 | 15 | 18 | 22 | 28; // スパウトサイズ（パイ径）
   spoutPosition?: 'top-left' | 'top-center' | 'top-right'; // スパウト位置
@@ -272,7 +272,7 @@ export class PouchCostCalculator {
       slitter_cost_per_m: await this.getSetting('slitter', 'cost_per_m', undefined),
       slitter_min_cost: await this.getSetting('slitter', 'min_cost', undefined),
       exchange_rate_krw_to_jpy: await this.getSetting('exchange_rate', 'krw_to_jpy', undefined),
-      duty_rate_import_duty: await this.getSetting('duty_rate', 'import_duty', undefined),
+      duty_rate_import_duty: await this.getSetting('tax', 'import_duty', undefined),
       delivery_cost_per_roll: await this.getSetting('delivery', 'cost_per_roll', undefined),
       delivery_kg_per_roll: await this.getSetting('delivery', 'kg_per_roll', undefined),
       production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),
@@ -349,7 +349,7 @@ export class PouchCostCalculator {
       postProcessingOptions,
       spoutSize,
       spoutPosition,
-      markupRate = 0.0  // デフォルトは割引なし（販売マージン20%は計算済み）
+      markupRate = 0.0  // デフォルトは調整なし（販売マージン25%は計算済み・判断2）
     } = params;
 
     console.log('[calculateSKUCost] Spout Parameters:', {

@@ -193,8 +193,6 @@ admin/
 - **Purpose:** Modal to send document for signature
 #### `SignatureStatusBadge.tsx`
 - **Purpose:** Badge showing signature request status
-#### `CatalogDownloadAdmin.tsx`
-- **Purpose:** Admin catalog download functionality
 #### `CorrectionUploadClient.tsx`
 - **Purpose:** Client-side correction file upload
 #### `PaymentConfirmationClient.tsx`

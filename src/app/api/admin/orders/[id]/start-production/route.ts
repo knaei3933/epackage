@@ -142,6 +142,15 @@ export async function POST(
       );
     }
 
+    // H-12: 現 status を select して from_status にセット
+    // 旧実装は 'CUSTOMER_APPROVAL_PENDING' 決め打ちで、異常ケースの監査ログが実態と乖離していた。
+    const { data: currentOrder } = await serviceClient
+      .from('orders')
+      .select('status')
+      .eq('id', orderId)
+      .single();
+    const previousStatus = currentOrder?.status || 'CUSTOMER_APPROVAL_PENDING';
+
     // Update order: status PRODUCTION + current_stage
     await serviceClient
       .from('orders')
@@ -152,15 +161,14 @@ export async function POST(
       })
       .eq('id', orderId);
 
-    // Log to status history
+    // Log to status history（from_status は実態の現 status・changed_at は default now()）
     await serviceClient
       .from('order_status_history')
       .insert({
         order_id: orderId,
-        from_status: 'CUSTOMER_APPROVAL_PENDING',
+        from_status: previousStatus,
         to_status: 'PRODUCTION',
         changed_by: auth.userId,
-        changed_at: new Date().toISOString(),
         reason: '製造開始（管理者操作）',
       });
 

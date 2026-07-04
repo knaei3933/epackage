@@ -18,6 +18,7 @@ import { PageLoadingState } from '@/components/ui';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Download, Search, Filter, ChevronDown, FileText, Clock, CheckCircle, AlertCircle, DollarSign, Calendar } from 'lucide-react';
+import { generateInvoicePDF, type InvoiceData } from '@/lib/pdf-generator';
 
 // =====================================================
 // Types
@@ -165,6 +166,8 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // C-24: 請求書PDFダウンロード進行中表示用（クライアント側生成中のボタン無効化）
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
@@ -173,6 +176,33 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
     sortBy: 'date',
     sortOrder: 'desc',
   });
+
+  // C-24: サーバー側PDF生成（generateInvoicePDF・html2canvas/jsPDF は window 依存）は Node 環境で常に破損するため、
+  // InvoiceData JSON を fetch してクライアント側で generateInvoicePDF を呼ぶ
+  // （InvoiceDownloadButton と同一パターン・書式は現行 generateInvoicePDF のまま維持）。
+  const handleInvoiceDownload = async (invoiceId: string) => {
+    setDownloadingId(invoiceId);
+    try {
+      const response = await fetch(`/api/member/invoices/${invoiceId}/download`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || '請求書データの取得に失敗しました');
+      }
+      const data = await response.json();
+      if (!data.success || !data.invoice) {
+        throw new Error('請求書データが見つかりませんでした');
+      }
+      const pdfResult = await generateInvoicePDF(data.invoice as InvoiceData);
+      if (!pdfResult.success) {
+        throw new Error(pdfResult.error || 'PDF生成に失敗しました');
+      }
+    } catch (err) {
+      console.error('Invoice download error:', err);
+      alert(err instanceof Error ? err.message : '請求書のダウンロードに失敗しました');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const fetchInvoices = async () => {
     setIsLoading(true);
@@ -469,10 +499,11 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => window.open(`/api/member/invoices/${invoice.id}/download`, '_blank')}
+                        onClick={() => handleInvoiceDownload(invoice.id)}
+                        disabled={downloadingId === invoice.id}
                       >
                         <Download className="w-4 h-4 mr-1" />
-                        PDFダウンロード
+                        {downloadingId === invoice.id ? '生成中...' : 'PDFダウンロード'}
                       </Button>
                     </div>
                   </div>

@@ -9,7 +9,6 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { generateInvoicePDF } from '@/lib/pdf-generator';
 import type { InvoiceData, InvoiceItem } from '@/lib/pdf-generator';
 import { getCurrentUserId } from '@/lib/dashboard';
 
@@ -76,15 +75,13 @@ export async function GET(
       remarks: invoice.notes || undefined,
     };
 
-    // Generate PDF
-    const pdfBytes = await generateInvoicePDF(pdfData);
-
-    // Return PDF as downloadable file
-    return new NextResponse(pdfBytes as unknown as BodyInit, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${invoice.invoice_number}.pdf"`,
-      },
+    // C-24: サーバー側 PDF 生成（generateInvoicePDF・html2canvas/jsPDF は window 依存）は
+    // Node 環境で常に破損するため、InvoiceData JSON を返却してフロントでクライアント生成させる
+    // （InvoiceDownloadButton と同一パターン・書式は現行 generateInvoicePDF のまま維持）。
+    return NextResponse.json({
+      success: true,
+      invoice: pdfData,
+      requiresClientSideGeneration: true,
     });
 
   } catch (error) {

@@ -285,10 +285,10 @@ export function createMockContractData(): ContractData {
         email: 'info@package-lab.com',
       },
       bankInfo: {
-        bankName: 'PayPay銀行',
-        branchName: 'ビジネス営業部支店',
+        bankName: '三井住友銀行',
+        branchName: '明石支店',
         accountType: '普通',
-        accountNumber: '5630235',
+        accountNumber: '7346221',
         accountHolder: '金井貿易株式会社',
       },
     },

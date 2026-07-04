@@ -127,6 +127,22 @@ function sanitizeUserMessage(message: string): string {
   return clean.replace(/\n/g, '<br>');
 }
 
+/**
+ * C-16: 単行フィールド用 HTML エスケープ（contact メールの name/subject/email 等）
+ * sanitizeUserMessage は長文（message）用で sanitizeHtml + <br> 変換を行うが、
+ * 単行フィールドは実体参照エスケープのみで十分かつ軽量。
+ * 不正入力（<script> 等）による HTML インジェクション/XSS を防ぐ。
+ */
+function escapeHtml(value: string | undefined | null): string {
+  if (!value) return '';
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // =====================================================
 // Configuration
 // =====================================================
@@ -440,17 +456,17 @@ https://epackage-lab.com
     </div>
     <div class="content">
       <p style="margin-top: 0;">
-        ${data.company ? `<strong>${data.company}</strong><br>` : ''}<strong>${data.name}</strong> 様
+        ${data.company ? `<strong>${escapeHtml(data.company)}</strong><br>` : ''}<strong>${escapeHtml(data.name)}</strong> 様
       </p>
       <p>お問い合わせいただきありがとうございます。<br>以下の内容でお問い合わせを受け付けました。</p>
 
       <div class="info-box">
         <h3 style="margin-top: 0; color: #667eea;">お問い合わせ内容</h3>
         <div class="label">お問い合わせ種類</div>
-        <div class="value">${data.inquiryType}</div>
+        <div class="value">${escapeHtml(data.inquiryType)}</div>
 
         <div class="label">件名</div>
-        <div class="value">${data.subject}</div>
+        <div class="value">${escapeHtml(data.subject)}</div>
 
         <div class="label">お問い合わせ内容</div>
         <div class="value" style="white-space: pre-wrap; background: #f3f4f6; padding: 15px; border-radius: 4px;">${sanitizeUserMessage(data.message)}</div>
@@ -459,17 +475,17 @@ https://epackage-lab.com
       <div class="info-box">
         <h3 style="margin-top: 0; color: #667eea;">お問い合わせ者情報</h3>
         <div class="label">お名前</div>
-        <div class="value">${data.name}</div>
-        ${data.nameKana ? `<div class="label">フリガナ</div><div class="value">${data.nameKana}</div>` : ''}
+        <div class="value">${escapeHtml(data.name)}</div>
+        ${data.nameKana ? `<div class="label">フリガナ</div><div class="value">${escapeHtml(data.nameKana)}</div>` : ''}
 
         <div class="label">メールアドレス</div>
-        <div class="value">${data.email}</div>
-        ${data.company ? `<div class="label">会社名</div><div class="value">${data.company}</div>` : ''}
-        ${data.phone ? `<div class="label">電話番号</div><div class="value">${data.phone}</div>` : ''}
-        ${data.postalCode ? `<div class="label">郵便番号</div><div class="value">${data.postalCode}</div>` : ''}
-        ${data.address ? `<div class="label">住所</div><div class="value">${data.address}</div>` : ''}
-        ${data.urgency ? `<div class="label">緊急度</div><div class="value">${data.urgency}</div>` : ''}
-        ${data.preferredContact ? `<div class="label">ご希望の連絡方法</div><div class="value">${data.preferredContact}</div>` : ''}
+        <div class="value">${escapeHtml(data.email)}</div>
+        ${data.company ? `<div class="label">会社名</div><div class="value">${escapeHtml(data.company)}</div>` : ''}
+        ${data.phone ? `<div class="label">電話番号</div><div class="value">${escapeHtml(data.phone)}</div>` : ''}
+        ${data.postalCode ? `<div class="label">郵便番号</div><div class="value">${escapeHtml(data.postalCode)}</div>` : ''}
+        ${data.address ? `<div class="label">住所</div><div class="value">${escapeHtml(data.address)}</div>` : ''}
+        ${data.urgency ? `<div class="label">緊急度</div><div class="value">${escapeHtml(data.urgency)}</div>` : ''}
+        ${data.preferredContact ? `<div class="label">ご希望の連絡方法</div><div class="value">${escapeHtml(data.preferredContact)}</div>` : ''}
       </div>
 
       <p style="text-align: center; color: #667eea; font-weight: bold;">担当者より折り返しご連絡させていただきます。<br>今しばらくお待ちください。</p>
@@ -546,45 +562,45 @@ Epackage Lab 管理画面
     <div class="info-box">
       <h3 style="margin-top: 0;">お問い合わせ情報</h3>
       <div class="label">リクエストID</div>
-      <div class="value"><code>${data.requestId}</code></div>
+      <div class="value"><code>${escapeHtml(data.requestId)}</code></div>
 
       <div class="label">お問い合わせ種類</div>
-      <div class="value">${data.inquiryType}</div>
+      <div class="value">${escapeHtml(data.inquiryType)}</div>
 
       <div class="label">緊急度</div>
-      <div class="value">${data.urgency || '通常'}</div>
+      <div class="value">${escapeHtml(data.urgency || '通常')}</div>
     </div>
 
     <div class="info-box">
       <h3>お客様情報</h3>
       <div class="label">お名前</div>
-      <div class="value">${data.name}</div>
-      ${data.nameKana ? `<div class="label">フリガナ</div><div class="value">${data.nameKana}</div>` : ''}
+      <div class="value">${escapeHtml(data.name)}</div>
+      ${data.nameKana ? `<div class="label">フリガナ</div><div class="value">${escapeHtml(data.nameKana)}</div>` : ''}
 
       <div class="label">メールアドレス</div>
-      <div class="value"><a href="mailto:${data.email}">${data.email}</a></div>
+      <div class="value"><a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></div>
 
       <div class="label">電話番号</div>
-      <div class="value">${data.phone || '未入力'}</div>
+      <div class="value">${escapeHtml(data.phone || '未入力')}</div>
 
-      ${data.fax ? `<div class="label">FAX</div><div class="value">${data.fax}</div>` : ''}
-      ${data.company ? `<div class="label">会社名</div><div class="value">${data.company}</div>` : ''}
-      ${data.postalCode ? `<div class="label">郵便番号</div><div class="value">${data.postalCode}</div>` : ''}
-      ${data.address ? `<div class="label">住所</div><div class="value">${data.address}</div>` : ''}
-      ${data.preferredContact ? `<div class="label">ご希望の連絡方法</div><div class="value">${data.preferredContact}</div>` : ''}
+      ${data.fax ? `<div class="label">FAX</div><div class="value">${escapeHtml(data.fax)}</div>` : ''}
+      ${data.company ? `<div class="label">会社名</div><div class="value">${escapeHtml(data.company)}</div>` : ''}
+      ${data.postalCode ? `<div class="label">郵便番号</div><div class="value">${escapeHtml(data.postalCode)}</div>` : ''}
+      ${data.address ? `<div class="label">住所</div><div class="value">${escapeHtml(data.address)}</div>` : ''}
+      ${data.preferredContact ? `<div class="label">ご希望の連絡方法</div><div class="value">${escapeHtml(data.preferredContact)}</div>` : ''}
     </div>
 
     <div class="info-box">
       <h3>お問い合わせ内容</h3>
       <div class="label">件名</div>
-      <div class="value"><strong>${data.subject}</strong></div>
+      <div class="value"><strong>${escapeHtml(data.subject)}</strong></div>
 
       <div class="label">内容</div>
       <div class="value" style="white-space: pre-wrap; background: white; padding: 15px; border-radius: 4px; border: 1px solid #e5e7eb;">${sanitizeUserMessage(data.message)}</div>
     </div>
 
     <div style="text-align: center; margin-top: 30px;">
-      <a href="mailto:${data.email}" class="button">メールで返信</a>
+      <a href="mailto:${escapeHtml(data.email)}" class="button">メールで返信</a>
     </div>
   </div>
 </body>

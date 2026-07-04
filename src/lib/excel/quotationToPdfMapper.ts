@@ -123,11 +123,11 @@ export function mapQuotationDataToQuoteData(quotationData: QuotationData): Quote
       })),
     },
     bankInfo: quotationData.paymentTerms.bankInfo ? {
-      bankName: 'PayPay銀行',
-      branchName: 'ビジネス営業部支店',
+      bankName: '三井住友銀行',
+      branchName: '明石支店',
       accountType: '普通' as const,
-      accountNumber: '5630235',
-      accountHolder: 'カネイボウエキ株式会社',
+      accountNumber: '7346221',
+      accountHolder: '金井貿易株式会社',
     } : undefined,
     supplierInfo: quotationData.paymentTerms.bankInfo ? {
       name: quotationData.supplier.brandName || 'EPACKAGE Lab',

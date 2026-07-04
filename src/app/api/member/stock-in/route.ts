@@ -141,17 +141,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status
+    // 判断4: current_state/state_metadata は orders テーブル実列に非存在のため削除。
+    // 入庫詳細（quantity/warehouse_location/quality_status/photo_url）は production_logs に保存済み。
     const { error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         status: 'STOCK_IN',
-        current_state: 'stocked_in',
-        state_metadata: {
-          quantity,
-          warehouse_location: warehouseLocation,
-          quality_status: qualityStatus,
-          photo_url: photoUrl
-        }
       })
       .eq('id', orderId);
 

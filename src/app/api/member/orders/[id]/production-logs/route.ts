@@ -134,11 +134,12 @@ export async function POST(
       );
     }
 
-    // Update order current_state
+    // Update order status
+    // 判断4: current_state は orders テーブル実列に非存在のため削除。
+    // subStatus（製造サブステータス）は production_logs.sub_status に保存済み。
     await supabase
       .from('orders')
       .update({
-        current_state: subStatus,
         status: 'PRODUCTION'
       })
       .eq('id', orderId);

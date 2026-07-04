@@ -20,7 +20,7 @@ const PUBLIC_CATEGORIES = [
   'lamination',     // ラミネート料金
   'slitter',        // スリッター料金
   'exchange_rate',  // 為替レート
-  'duty_rate',      // 関税率
+  'tax',            // 関税率
   'delivery',       // 配送料
   'production',     // 生産設定
   'pricing',        // 価格計算設定（マージン率など）

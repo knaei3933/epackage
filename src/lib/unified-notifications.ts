@@ -184,15 +184,21 @@ export class UnifiedNotificationService {
   /**
    * 既読にする
    */
-  async markAsRead(notificationId: string): Promise<void> {
+  async markAsRead(notificationId: string, recipientId?: string): Promise<void> {
     // 自動初期化
     await this.initialize();
 
-    const { error } = await this.supabase
+    // C-14: recipient_id フィルタで自分の通知のみ既読化（IDOR 対策）
+    // recipientId 未指定（devMode 等）は従来動作（全件対象）を維持。
+    let query = this.supabase
       .from('unified_notifications')
       .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('id', notificationId);
+    if (recipientId) {
+      query = query.eq('recipient_id', recipientId);
+    }
 
+    const { error } = await query;
     if (error) throw error;
   }
 
@@ -216,15 +222,21 @@ export class UnifiedNotificationService {
   /**
    * 通知削除
    */
-  async deleteNotification(notificationId: string): Promise<void> {
+  async deleteNotification(notificationId: string, recipientId?: string): Promise<void> {
     // 自動初期化
     await this.initialize();
 
-    const { error } = await this.supabase
+    // C-14: recipient_id フィルタで自分の通知のみ削除（IDOR 対策）
+    // recipientId 未指定（devMode 等）は従来動作（全件対象）を維持。
+    let query = this.supabase
       .from('unified_notifications')
       .delete()
       .eq('id', notificationId);
+    if (recipientId) {
+      query = query.eq('recipient_id', recipientId);
+    }
 
+    const { error } = await query;
     if (error) throw error;
   }
 }

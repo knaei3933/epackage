@@ -10,12 +10,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import nodemailer from 'nodemailer';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const KOREA_EMAIL = 'info@kanei-trade.co.jp';
@@ -54,6 +52,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // C-15: 認証を verifyAdminAuth に統一（旧: 認証なしで service client 使用）
+    const auth = await verifyAdminAuth(request);
+    if (!auth) return unauthorizedResponse();
+
     const { id: orderId } = await params;
     const supabase = getServiceClient();
 
@@ -105,30 +107,9 @@ export async function POST(
       );
     }
 
-    // SSR Client for authentication
-    const cookieStore = await cookies();
-    const supabaseAuth = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    );
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-
-    if (authError || !user) {
-      console.error('[Notes POST] Auth error:', authError);
-      return NextResponse.json(
-        { success: false, error: '認証されていません' },
-        { status: 401 }
-      );
-    }
+    // C-15: 認証を verifyAdminAuth に統一（旧: auth.getUser のみ・role/status チェックなし）
+    const auth = await verifyAdminAuth(request);
+    if (!auth) return unauthorizedResponse();
 
     // Service client for database operations
     const supabase = getServiceClient();
@@ -158,7 +139,7 @@ export async function POST(
         .from('admin_order_notes')
         .insert({
           order_id: orderId,
-          admin_id: user.id,
+          admin_id: auth.userId,
           notes: notes.trim(),
         })
         .select('notes')
@@ -192,30 +173,9 @@ export async function PUT(
   try {
     const { id: orderId } = await params;
 
-    // SSR Client for authentication
-    const cookieStore = await cookies();
-    const supabaseAuth = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    );
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-
-    if (authError || !user) {
-      console.error('[Notes PUT] Auth error:', authError);
-      return NextResponse.json(
-        { success: false, error: '認証されていません' },
-        { status: 401 }
-      );
-    }
+    // C-15: 認証を verifyAdminAuth に統一
+    const auth = await verifyAdminAuth(request);
+    if (!auth) return unauthorizedResponse();
 
     // Service client for database operations
     const supabase = getServiceClient();
@@ -354,7 +314,7 @@ Epackage Lab - Package Lab
           .from('admin_order_notes')
           .insert({
             order_id: orderId,
-            admin_id: user.id,
+            admin_id: auth.userId,
             notes: '',
             sent_to_korea_at: new Date().toISOString(),
           });

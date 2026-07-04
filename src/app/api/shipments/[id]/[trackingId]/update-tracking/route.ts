@@ -127,43 +127,46 @@ export async function POST(
 
       // Auto-transition order status: READY_TO_SHIP → SHIPPED when shipped
       if (newShipmentStatus === 'shipped' && shipment.order_id) {
+        // C-20: current_stage を status と同期（4件の SHIPPED/current_stage 矛盾・Phase B C-3 根因を解消）
         await (supabase as any)
           .from('orders')
           .update({
             status: 'SHIPPED',
+            current_stage: 'SHIPPED',
             shipped_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq('id', shipment.order_id);
 
-        // Log status history
+        // C-20: old_status/new_status（存在しないカラム）→ from_status/to_status に正規化
         await (supabase as any).from('order_status_history').insert({
           order_id: shipment.order_id,
-          old_status: 'READY_TO_SHIP',
-          new_status: 'SHIPPED',
+          from_status: 'READY_TO_SHIP',
+          to_status: 'SHIPPED',
           changed_by: user.id,
-          changed_at: new Date().toISOString(),
         });
       }
 
       // Auto-transition order status: SHIPPED → DELIVERED when delivered
       if (newShipmentStatus === 'delivered' && shipment.order_id) {
+        // C-20: current_stage を status と同期（DELIVERED/current_stage 矛盾を解消）
         await (supabase as any)
           .from('orders')
           .update({
             status: 'DELIVERED',
+            current_stage: 'DELIVERED',
             delivered_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq('id', shipment.order_id);
 
-        // Log status history
+        // C-20: old_status/new_status（存在しないカラム）→ from_status/to_status に正規化。
+        // changed_by を user.id に統一（Phase 1 原則・本ルートは管理者のみ実行）。
         await (supabase as any).from('order_status_history').insert({
           order_id: shipment.order_id,
-          old_status: 'SHIPPED',
-          new_status: 'DELIVERED',
-          changed_by: 'SYSTEM',
-          changed_at: new Date().toISOString(),
+          from_status: 'SHIPPED',
+          to_status: 'DELIVERED',
+          changed_by: user.id,
         });
       }
     }

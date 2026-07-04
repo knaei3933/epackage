@@ -13,11 +13,11 @@ global.fetch = jest.fn();
 describe('BankInfoCard', () => {
   const mockQuotationId = 'test-quotation-id';
   const mockBankInfo = {
-    bankName: '三菱UFJ銀行',
-    branchName: '東京支店',
+    bankName: '三井住友銀行',
+    branchName: '明石支店',
     accountType: '普通',
-    accountNumber: '1234567',
-    accountHolder: 'イーパックラボ株式会社',
+    accountNumber: '7346221',
+    accountHolder: '金井貿易株式会社',
   };
 
   beforeEach(() => {
@@ -49,9 +49,9 @@ describe('BankInfoCard', () => {
     render(<BankInfoCard quotationId={mockQuotationId} />);
 
     await waitFor(() => {
-      expect(screen.getByText('三菱UFJ銀行')).toBeInTheDocument();
-      expect(screen.getByText('1234567')).toBeInTheDocument();
-      expect(screen.getByText('イーパックラボ株式会社')).toBeInTheDocument();
+      expect(screen.getByText('三井住友銀行')).toBeInTheDocument();
+      expect(screen.getByText('7346221')).toBeInTheDocument();
+      expect(screen.getByText('金井貿易株式会社')).toBeInTheDocument();
     });
   });
 
@@ -121,19 +121,19 @@ describe('BankInfoCard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('銀行名')).toBeInTheDocument();
-      expect(screen.getByText('三菱UFJ銀行')).toBeInTheDocument();
+      expect(screen.getByText('三井住友銀行')).toBeInTheDocument();
 
       expect(screen.getByText('支店名')).toBeInTheDocument();
-      expect(screen.getByText('東京支店')).toBeInTheDocument();
+      expect(screen.getByText('明石支店')).toBeInTheDocument();
 
       expect(screen.getByText('口座種別')).toBeInTheDocument();
       expect(screen.getByText('普通')).toBeInTheDocument();
 
       expect(screen.getByText('口座番号')).toBeInTheDocument();
-      expect(screen.getByText('1234567')).toBeInTheDocument();
+      expect(screen.getByText('7346221')).toBeInTheDocument();
 
       expect(screen.getByText('口座名義')).toBeInTheDocument();
-      expect(screen.getByText('イーパックラボ株式会社')).toBeInTheDocument();
+      expect(screen.getByText('金井貿易株式会社')).toBeInTheDocument();
     });
   });
 });

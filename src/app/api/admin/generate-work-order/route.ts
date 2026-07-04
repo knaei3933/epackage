@@ -486,15 +486,11 @@ export async function POST(request: NextRequest) {
     // ===================================================
 
     // Use type-safe helper for orders update
+    // 判断4: current_state/state_metadata は orders テーブル実列に非存在のため削除。
+    // work_order_id/work_order_number は work_orders テーブルに保存済み。status 値の正規化
+    // （production_start → PRODUCTION）と production_started_at の保存先は Phase 4。
     const { error: updateError } = await updateOrder(supabase, order_id, {
       status: 'production_start' as Database['public']['Tables']['orders']['Row']['status'],
-      current_state: 'design_received',
-      state_metadata: {
-        work_order_id: workOrder?.id,
-        work_order_number: workOrderNumber,
-        estimated_completion: estimatedCompletionDate,
-        production_started_at: new Date().toISOString(),
-      },
     } as any);
 
     if (updateError) {

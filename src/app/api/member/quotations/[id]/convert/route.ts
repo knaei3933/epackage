@@ -406,9 +406,11 @@ export async function POST(
     }
 
     // Update quotation status to converted
+    // H-17: quotations.status = quotation_status enum は大文字（database.ts L272 / judgment6 SQL 前提）
+    //   小文字 'converted' は DB 汚染の根因。大文字 'CONVERTED' へ修正（判断6 SQL と同時適用で再汚染防止）。
     await supabaseAdmin
       .from('quotations')
-      .update({ status: 'converted' })
+      .update({ status: 'CONVERTED' })
       .eq('id', quotationId);
 
     // Notify admins about new order
