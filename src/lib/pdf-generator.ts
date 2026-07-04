@@ -103,6 +103,7 @@ export interface QuoteData {
     size?: string;
     material?: string;
     thicknessType?: string;
+    printingType?: string;
     sealWidth?: string;
     sealDirection?: string;
     notchShape?: string;
@@ -1421,6 +1422,11 @@ function generateMultiQuantityHTML(
           <td class="spec-label">素材</td>
           <td>${resolveMaterialSpec(specs.material, specs.thicknessType)}</td>
         </tr>
+        ${specs.printingType ? `
+        <tr>
+          <td class="spec-label">印刷方式</td>
+          <td>${specs.printingType}</td>
+        </tr>` : ''}
         <tr>
           <td class="spec-label">表面処理</td>
           <td>${processing.surfaceFinish || '指定なし'}</td>
@@ -2790,6 +2796,11 @@ function generateQuoteHTML(
           <td class="spec-label">素材</td>
           <td>${resolveMaterialSpec(specs.material, specs.thicknessType)}</td>
         </tr>
+        ${specs.printingType ? `
+        <tr>
+          <td class="spec-label">印刷方式</td>
+          <td>${specs.printingType}</td>
+        </tr>` : ''}
         <tr>
           <td class="spec-label">表面処理</td>
           <td>${processing.surfaceFinish || '指定なし'}</td>

@@ -34,6 +34,7 @@ import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
 import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
+import { formatContentsDisplay } from '@/constants/contentsData';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
@@ -235,6 +236,11 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
   const bagTypeId = specs?.bagTypeId as string | undefined;
   const materialId = specs?.materialId as string | undefined;
   const postProcessingOptions = specs?.postProcessingOptions as string[] | undefined;
+  const productCategory = specs?.productCategory as string | undefined;
+  const contentsType = specs?.contentsType as string | undefined;
+  const mainIngredient = specs?.mainIngredient as string | undefined;
+  const distributionEnvironment = specs?.distributionEnvironment as string | undefined;
+  const printingType = specs?.printingType as string | undefined;
 
   // サイズ表示 - ロールフィルムの場合は常に「幅: ○mm、ピッチ: ○mm」
   // 旧データ（二重ネスト）と新データ（修正後）の両方に対応
@@ -323,7 +329,7 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
 
   const result = {
     bagType: bagTypeId ? translateBagType(bagTypeId) : 'スタンドパウチ',
-    contents: '粉体',
+    contents: formatContentsDisplay(productCategory as any, contentsType as any, mainIngredient as any, distributionEnvironment as any) || '指定なし',
     size: sizeDisplay,
     material: materialId ? translateMaterialType(materialId) : 'PET+AL',
     thicknessType,
@@ -336,6 +342,11 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
     zipperPosition: postProcessingOptions?.some(opt => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
     cornerR: postProcessingOptions?.includes('corner-round') ? 'R5' : postProcessingOptions?.includes('corner-square') ? 'R0' : 'R5',
     machiPrinting: postProcessingOptions?.includes('machi-printing-yes') ? 'あり' : 'なし',
+    printingType: printingType === 'gravure'
+      ? 'グラビア印刷（フルカラー）'
+      : printingType === 'digital'
+        ? 'デジタル印刷（フルカラー）'
+        : '',
   };
   return result;
 }
@@ -569,8 +580,14 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
           };
         })(),
         paymentTerms: '先払い',
-        deliveryDate: '校了から約1か月',
-        deliveryLocation: '指定なし',
+        deliveryDate: (() => {
+          const urgency = (quotation.items[0]?.specifications as any)?.urgency;
+          return urgency === 'express' ? '短納期（別途ご相談）' : '校了から約1か月';
+        })(),
+        deliveryLocation: (() => {
+          const loc = (quotation.items[0]?.specifications as any)?.deliveryLocation;
+          return loc === 'domestic' ? '国内' : loc === 'international' ? '海外' : '指定なし';
+        })(),
         validityPeriod: '見積発行から3ヶ月間',
         remarks: `※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10％程度の過不足が生じる場合がございます。
 数量の完全保証はいたしかねますので、あらかじめご了承ください。
