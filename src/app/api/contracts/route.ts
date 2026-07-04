@@ -119,18 +119,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status
-    // 注: 'CONTRACT_SENT' は旧設計値で OrderStatus 型に存在しない。また
-    // current_state/state_metadata は orders テーブル実列に非存在。実行時ロジック維持のため
-    // update オブジェクトをキャスト（ステータス遷移・メタデータの値は不変）。
+    // 注: 'CONTRACT_SENT' は旧設計値で OrderStatus 型に存在しない（本番 b2b_order_status enum の旧値）。
+    // 判断4: current_state/state_metadata は orders テーブル実列に非存在のため削除。
+    // contract_id/contract_number は contracts テーブルに保存済み。status 値の新14ステータス
+    // 正規化（CONTRACT_SENT → 適正値）は Phase 4。
     await supabase
       .from('orders')
       .update({
         status: 'CONTRACT_SENT',
-        current_state: 'contract_sent',
-        state_metadata: {
-          contract_id: contract.id,
-          contract_number: contractNumber
-        }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       .eq('id', order_id);

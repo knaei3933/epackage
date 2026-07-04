@@ -187,15 +187,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status
+    // 判断4: current_state/state_metadata は orders テーブル実列に非存在のため削除。
+    // work_order_id/work_order_number は work_orders テーブルに保存済み。
     await supabaseAdmin
       .from('orders')
       .update({
         status: 'WORK_ORDER',
-        current_state: 'work_order_created',
-        state_metadata: {
-          work_order_id: workOrder.id,
-          work_order_number: workOrderNumber
-        }
       })
       .eq('id', order_id);
 

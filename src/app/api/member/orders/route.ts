@@ -59,7 +59,6 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const state = searchParams.get('state');
     const searchUserId = searchParams.get('user_id');
     const search = searchParams.get('search');
     const startDate = searchParams.get('startDate');
@@ -100,11 +99,6 @@ export async function GET(request: NextRequest) {
     // Apply status filter
     if (status && status !== 'all') {
       query = query.eq('status', status.toUpperCase());
-    }
-
-    // Apply state filter
-    if (state) {
-      query = query.eq('current_state', state);
     }
 
     // Apply search filter (order_number, customer_name)
