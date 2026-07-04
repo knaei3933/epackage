@@ -1483,7 +1483,7 @@ export type Database = {
             system_settings: {
                 Row: {
                     id: string
-                    category: string  // e.g., 'film_material', 'pouch_processing', 'printing', 'lamination', 'slitter', 'exchange_rate', 'duty_rate', 'delivery', 'production', 'pricing'
+                    category: string  // e.g., 'film_material', 'pouch_processing', 'printing', 'lamination', 'slitter', 'exchange_rate', 'tax', 'delivery', 'production', 'pricing'
                     key: string  // e.g., 'PET_unit_price', 'AL_density', 'flat_3_side_cost', 'cost_per_m2'
                     value: Json  // JSONB value (number, string, boolean, or object)
                     value_type: string  // 'number', 'string', 'boolean', 'object'

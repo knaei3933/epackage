@@ -272,7 +272,7 @@ export class PouchCostCalculator {
       slitter_cost_per_m: await this.getSetting('slitter', 'cost_per_m', undefined),
       slitter_min_cost: await this.getSetting('slitter', 'min_cost', undefined),
       exchange_rate_krw_to_jpy: await this.getSetting('exchange_rate', 'krw_to_jpy', undefined),
-      duty_rate_import_duty: await this.getSetting('duty_rate', 'import_duty', undefined),
+      duty_rate_import_duty: await this.getSetting('tax', 'import_duty', undefined),
       delivery_cost_per_roll: await this.getSetting('delivery', 'cost_per_roll', undefined),
       delivery_kg_per_roll: await this.getSetting('delivery', 'kg_per_roll', undefined),
       production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),

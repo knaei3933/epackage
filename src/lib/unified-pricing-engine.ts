@@ -1236,7 +1236,7 @@ export class UnifiedPricingEngine {
 
     // Step 2: 製造者価格 × 関税 = 輸入原価
     // 判断9 (C-13): 関税率をDB駆動化（getSetting・フォールバック=PRICING_CONSTANTS.DUTY_RATE=0.05・計算結果不変）
-    const dutyRate = await this.getSetting('duty_rate', 'import_duty', PRICING_CONSTANTS.DUTY_RATE);
+    const dutyRate = await this.getSetting('tax', 'import_duty', PRICING_CONSTANTS.DUTY_RATE);
     const importCost = manufacturerPrice * (1 + dutyRate);
 
     // Step 3: 小計 = 輸入原価 + 配送料 → 最終販売価格 = 小計 × (1 + 販売マージン)
@@ -1374,7 +1374,7 @@ export class UnifiedPricingEngine {
       slitter_cost_per_m: await this.getSetting('slitter', 'cost_per_m', undefined),
       slitter_min_cost: await this.getSetting('slitter', 'min_cost', undefined),
       exchange_rate_krw_to_jpy: await this.getSetting('exchange_rate', 'krw_to_jpy', undefined),
-      duty_rate_import_duty: await this.getSetting('duty_rate', 'import_duty', undefined),
+      duty_rate_import_duty: await this.getSetting('tax', 'import_duty', undefined),
       delivery_cost_per_roll: await this.getSetting('delivery', 'cost_per_roll', undefined),
       delivery_kg_per_roll: await this.getSetting('delivery', 'kg_per_roll', undefined),
       production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),
@@ -1952,7 +1952,7 @@ export class UnifiedPricingEngine {
     const manufacturerMargin = await this.getSetting('pricing', 'manufacturer_margin', CONSTANTS.MANUFACTURER_MARGIN)
     const manufacturerPriceJPY = baseCostJPY * (1 + manufacturerMargin)
     // 判断9 (C-13): 関税率をDB駆動化（フォールバック=PRICING_CONSTANTS.DUTY_RATE=0.05・計算結果不変）
-    const dutyRate = await this.getSetting('duty_rate', 'import_duty', PRICING_CONSTANTS.DUTY_RATE)
+    const dutyRate = await this.getSetting('tax', 'import_duty', PRICING_CONSTANTS.DUTY_RATE)
     const importCostJPY = manufacturerPriceJPY * (1 + dutyRate)
 
     // 配送料（グラビアも既存の配送計算を利用）
