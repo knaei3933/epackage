@@ -84,7 +84,7 @@ export interface SKUCostParams {
   materialWidth?: number; // 再料幅 (540 or 740mm)
   filmLayers?: FilmStructureLayer[]; // フィルム構造レイヤー
   postProcessingOptions?: string[]; // 後加工オプション（ジッパーなど）
-  markupRate?: number; // 顧客別マークアップ率（デフォルト20%）
+  markupRate?: number; // 顧客別マークアップ率（デフォルト0.0=調整なし・判断2）
   // スパウトパウチ専用パラメータ
   spoutSize?: 9 | 15 | 18 | 22 | 28; // スパウトサイズ（パイ径）
   spoutPosition?: 'top-left' | 'top-center' | 'top-right'; // スパウト位置
@@ -349,7 +349,7 @@ export class PouchCostCalculator {
       postProcessingOptions,
       spoutSize,
       spoutPosition,
-      markupRate = 0.0  // デフォルトは割引なし（販売マージン20%は計算済み）
+      markupRate = 0.0  // デフォルトは調整なし（販売マージン25%は計算済み・判断2）
     } = params;
 
     console.log('[calculateSKUCost] Spout Parameters:', {
