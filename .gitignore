@@ -137,3 +137,85 @@ _e2e_*.js
 e2e_s8.js
 e2e-screenshot.js
 add-test-file*.js
+
+# === Cleanup: root-level scratch/junk files (2026-07-06) ===
+# Console capture / debug logs at repo root
+/.console-*.md
+/console-*.json
+/console-*.txt
+/console.log.txt
+/console-log.txt
+/network-requests-*.txt
+/ts_errors.txt
+/tsc_output*.txt
+
+# Root-level report/summary scratch files
+/AUTO_PDF_*.md
+/FINAL_SUMMARY_*.md
+/PROGRESS_*.md
+/QUICK_REFERENCE.md
+/REFACTORING_SUMMARY.md
+/TEST.md
+/TEST_PROGRESS.md
+/VERCEL_OPTIMIZATION_SUMMARY.md
+/admin-*-errors.txt
+/admin-*-page.md
+/clear-cache-instructions.txt
+/*_TEST_REPORT.md
+/*_QA_REPORT.md
+
+# Root-level one-off scripts (debugging, token gen, price checks)
+/check-*.ts
+/check-*.mjs
+/check-*.js
+/create-*-token.js
+/create-history.ts
+/debug-*.mjs
+/final-check.js
+/final-verification.js
+/fix-*.js
+/fix-*.mjs
+/generate-token.js
+/get-valid-token.js
+/list-posts.mjs
+/publish-posts.mjs
+/refresh-*.mjs
+/update-*.mjs
+/verify-*.js
+/verify-*.mjs
+/trace-*.mjs
+/test-admin-response.ts
+/test-api-response-*.ts
+/test-delete-api.sh
+/analyze-price.js
+/price-analysis.js
+
+# Root-level temp files
+/temp*.json
+/temp*.txt
+/temp-*.sql
+/temp*_cookies.txt
+/tempadmin_*
+/tempmember_*
+/temptest_*
+
+# Root-level test artifacts (HTML, images, samples)
+/test-*.html
+/test-*.json
+/test-*.jpg
+/test-*.png
+/test_*.jpg
+/test_*.png
+/test_preview.jpg
+/test_real.jpg
+/production-*.html
+
+# Root-level process ID files
+/*.pid
+
+# Git-tracked Windows temp path artifacts
+/CUsers*
+
+# docs hidden state files
+/docs/.*-memory.json
+/docs/.*-status.json
