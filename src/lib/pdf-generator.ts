@@ -751,7 +751,22 @@ const PDF_SANITIZE_OPTIONS = {
 };
 
 function sanitizePdfHtml(html: string): string {
-  return DOMPurify.sanitize(html, PDF_SANITIZE_OPTIONS);
+  // <style> ブロックは固定CSS（extractQuotePdfCss 由来・quoteData 非依存・ユーザー入力を
+  // 含まない）のため DOMPurify の対象外とし保護する。DOMPurify は body フラグメント
+  // モードでは ALLOWED_TAGS に 'style' を指定しても <style> 要素を許可せず除去して
+  // しまうため、<style> を正規表現で抽出 → 本文のみ sanitize → 結合して戻す。
+  // ユーザー入力（顧客名・担当者・備考 等）は本文の <td> 等に埋め込まれるため、本文の
+  // sanitize で XSS 対策（ADV-E2E-006）は維持される。
+  const styleBlocks: string[] = [];
+  const htmlWithoutStyle = html.replace(
+    /<style[^>]*>[\s\S]*?<\/style>/gi,
+    (m) => {
+      styleBlocks.push(m);
+      return '';
+    }
+  );
+  const sanitizedBody = DOMPurify.sanitize(htmlWithoutStyle, PDF_SANITIZE_OPTIONS);
+  return styleBlocks.join('') + sanitizedBody;
 }
 
 /**

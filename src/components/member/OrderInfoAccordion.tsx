@@ -211,8 +211,8 @@ export function OrderInfoAccordion({ order, statusHistory }: OrderInfoAccordionP
       />
 
       <Card className="p-6 shadow-sm">
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Main Grid Layout - Issue 2 fix: 4 columns (注文情報・納品先・請求先・ステータス履歴) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
           {/* Left Column: Order & Customer Info */}
           <div className="space-y-4">
@@ -351,37 +351,22 @@ export function OrderInfoAccordion({ order, statusHistory }: OrderInfoAccordionP
               </div>
             )}
           </div>
-        </div>
 
-        {/* Status History Expandable Section */}
-        <div className="mt-6 pt-6 border-t-2 border-gray-200">
-          <button
-            onClick={() => setStatusHistoryExpanded(!statusHistoryExpanded)}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            <div className="flex items-center gap-3">
+          {/* Issue 2 fix: 4th Column - ステータス履歴 (always visible, compact) */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b-2 border-gray-200">
               <Clock className="w-5 h-5 text-blue-600" />
-              <div className="text-left">
-                <h3 className="font-bold text-gray-900">ステータス履歴</h3>
-                <p className="text-sm text-gray-600">{statusHistory.length}件の履歴</p>
-              </div>
+              <h3 className="font-bold text-lg text-gray-900">ステータス履歴</h3>
             </div>
-            {statusHistoryExpanded ? (
-              <ChevronUp className="w-5 h-5 text-gray-600" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-600" />
-            )}
-          </button>
-
-          {statusHistoryExpanded && (
-            <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200">
+            <div className="bg-white rounded-xl border border-gray-200 p-3 max-h-80 overflow-y-auto">
               <OrderStatusTimeline
                 statusHistory={statusHistory}
                 currentStatus={order.status}
               />
             </div>
-          )}
+          </div>
         </div>
+
       </Card>
     </>
   );

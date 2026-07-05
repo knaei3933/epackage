@@ -11,6 +11,7 @@ import { AdminQuotationActions } from './AdminQuotationActions';
 import { AdminQuotationItemDetail } from './AdminQuotationItemDetail';
 import { normalizeStatus, STATUS_LABELS, BAG_TYPE_IMAGES, convertToPreviewOptions } from './quotation-utils';
 import type { Quotation } from '@/types/quotation';
+import { formatPrice } from '@/utils/formatters';
 
 interface AdminQuotationDetailPanelProps {
   quotation: Quotation;
@@ -291,15 +292,15 @@ export function AdminQuotationDetailPanel({
           <div className="bg-gray-50 p-3 rounded">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">小計</span>
-              <span className="font-medium">¥{subtotal.toLocaleString()}</span>
+              <span className="font-medium">¥{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">消費税</span>
-              <span className="font-medium">¥{tax.toLocaleString()}</span>
+              <span className="font-medium">¥{formatPrice(tax)}</span>
             </div>
             <div className="flex justify-between items-center border-t pt-2 mt-2">
               <span className="text-sm font-medium">合計</span>
-              <span className="text-lg font-bold text-blue-600">¥{calculatedTotal.toLocaleString()}</span>
+              <span className="text-lg font-bold text-blue-600">¥{formatPrice(calculatedTotal)}</span>
             </div>
           </div>
 

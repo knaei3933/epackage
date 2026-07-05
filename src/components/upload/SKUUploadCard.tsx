@@ -15,8 +15,9 @@ interface SKUUploadCardProps {
   isSelected: boolean;
   isUploading: boolean;
   onSelect: () => void;
-  formatSkuDisplayName: (productName: string, quantity: number) => string;
+  formatSkuDisplayName: (productName: string, quantity: number, specs?: { bagTypeId?: string; width?: number; height?: number; depth?: number; sideWidth?: number }) => string;
   quantity: number;
+  specifications?: { bagTypeId?: string; width?: number; height?: number; depth?: number; sideWidth?: number };
 }
 
 export function SKUUploadCard({
@@ -26,8 +27,9 @@ export function SKUUploadCard({
   onSelect,
   formatSkuDisplayName,
   quantity,
+  specifications,
 }: SKUUploadCardProps) {
-  const displayName = formatSkuDisplayName(skuState.skuName, quantity);
+  const displayName = formatSkuDisplayName(skuState.skuName, quantity, specifications);
 
   return (
     <div

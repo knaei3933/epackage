@@ -4,6 +4,7 @@ import { DetailedCostBreakdown } from '@/components/admin/quotation/DetailedCost
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { BAG_TYPE_IMAGES, convertToPreviewOptions } from './quotation-utils';
 import type { QuotationItem } from '@/types/quotation';
+import { formatPrice } from '@/utils/formatters';
 
 interface AdminQuotationItemDetailProps {
   item: QuotationItem;
@@ -23,9 +24,9 @@ export function AdminQuotationItemDetail({ item, showFormula }: AdminQuotationIt
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <p className="font-medium text-gray-900">{item.product_name}</p>
-          <p className="text-xs text-gray-500">数量: {item.quantity}個 × ¥{item.unit_price?.toLocaleString()}</p>
+          <p className="text-xs text-gray-500">数量: {item.quantity}個 × ¥{formatPrice(item.unit_price ?? 0)}</p>
         </div>
-        <p className="font-semibold text-gray-900">¥{item.total_price?.toLocaleString()}</p>
+        <p className="font-semibold text-gray-900">¥{formatPrice(item.total_price ?? 0)}</p>
       </div>
 
       {/* 仕様情報 */}
@@ -279,15 +280,15 @@ export function AdminQuotationItemDetail({ item, showFormula }: AdminQuotationIt
                 const lineTotal = q * unitPrice;
                 return (
                   <div key={`sku-${i}`} className="flex items-center justify-between text-purple-700">
-                    <span>SKU {i + 1}: {q}個 × ¥{unitPrice.toLocaleString()}</span>
-                    <span className="font-medium">¥{lineTotal.toLocaleString()}</span>
+                    <span>SKU {i + 1}: {q}個 × ¥{formatPrice(unitPrice)}</span>
+                    <span className="font-medium">¥{formatPrice(lineTotal)}</span>
                   </div>
                 );
               })}
             </div>
             <div className="flex items-center justify-between mt-1 pt-1 border-t border-purple-200 text-purple-800 font-semibold">
               <span>合計 {totalQty}個</span>
-              <span>¥{totalPrice.toLocaleString()}</span>
+              <span>¥{formatPrice(totalPrice)}</span>
             </div>
           </div>
         );
@@ -311,9 +312,9 @@ export function AdminQuotationItemDetail({ item, showFormula }: AdminQuotationIt
       {showFormula && breakdown && !breakdown.breakdown && (
         <div className="bg-white p-3 rounded border text-xs space-y-1">
           <p className="font-medium text-gray-700">計算式内訳:</p>
-          <p>単価: ¥{breakdown.unit_price?.toLocaleString()}</p>
+          <p>単価: ¥{formatPrice(breakdown.unit_price ?? 0)}</p>
           <p>数量: {breakdown.quantity}個</p>
-          <p className="border-t pt-1 font-medium">小計: ¥{breakdown.quantity} × ¥{breakdown.unit_price?.toLocaleString()} = ¥{breakdown.total_price?.toLocaleString()}</p>
+          <p className="border-t pt-1 font-medium">小計: ¥{breakdown.quantity} × ¥{formatPrice(breakdown.unit_price ?? 0)} = ¥{formatPrice(breakdown.total_price ?? 0)}</p>
           {breakdown.area && (
             <p className="text-gray-500">面積: {breakdown.area.mm2.toLocaleString()}mm² ({breakdown.area.m2.toFixed(4)}m²)</p>
           )}

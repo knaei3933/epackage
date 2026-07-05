@@ -16,7 +16,7 @@ import {
   DELIVERY_COST_BY_WEIGHT_KRW,
   PACKAGE_WEIGHT_LIMIT_KG,
   DELIVERY_SURCHARGE_RATE,
-  POUCH_DELIVERY_CONSTANTS,
+  DELIVERY_CONSTANTS_JP,
   MATERIAL_THICKNESS_OPTIONS,
   POST_PROCESSING_MULTIPLIERS,
 } from '../core/constants'
@@ -252,8 +252,8 @@ export abstract class BasePricingStrategy implements PricingStrategy {
     const layers = filmLayers || defaultLayers
     const adjustedLayers = this.adjustLayersForThickness(layers, params.thicknessSelection)
 
-    // パウチ面積（m²）
-    const pouchAreaM2 = (width * height) / 1000000
+    // パウチ面積（m²）: 앞면+뒷면 (W × H × 2) + 여유분 15mm
+    const pouchAreaM2 = ((width + 15) * height * 2) / 1000000
 
     // 各層の重量計算
     let totalWeightPerM2 = 0
@@ -274,14 +274,21 @@ export abstract class BasePricingStrategy implements PricingStrategy {
     // 1個あたりの重量
     const weightPerPouch = pouchAreaM2 * totalWeightPerM2
 
-    // 総配送重量
-    const totalWeightKg = weightPerPouch * quantity
+    // 総配送重量（중량 가산률: 삼방파우치 +10%, 기타 파우치 +15%）
+    const productType = params.bagTypeId || ''
+    const isFlatPouch = productType.includes('flat_3_side') || productType.includes('three_side')
+    const weightSurcharge = isFlatPouch ? 0.10 : 0.15
+    const totalWeightKg = weightPerPouch * quantity * (1 + weightSurcharge)
 
-    // 箱数計算
-    const deliveryBoxes = Math.ceil(totalWeightKg / POUCH_DELIVERY_CONSTANTS.BOX_CAPACITY_KG)
+    // 箱数計算（パウチ: 19kg/箱 + 박스무게 0.7kg/箱）— 2026-07-05 改定
+    const BOX_WEIGHT_KG = 0.7
+    const deliveryBoxes = Math.max(1, Math.ceil(totalWeightKg / (DELIVERY_CONSTANTS_JP.POUCH_BOX_CAPACITY_KG - BOX_WEIGHT_KG)))
 
-    // 配送料計算
-    const totalDeliveryJPY = deliveryBoxes * POUCH_DELIVERY_CONSTANTS.DELIVERY_COST_PER_BOX_KRW * PRICING_CONSTANTS.EXCHANGE_RATE_KRW_TO_JPY
+    // 総配送料 = 韓国→日本 国際配送 + 日本国内配送
+    // 2026-07-05: 日本国内配送 1,600円/箱 を追加
+    const internationalDeliveryJPY = deliveryBoxes * DELIVERY_CONSTANTS_JP.INTERNATIONAL_COST_PER_BOX_KRW * PRICING_CONSTANTS.EXCHANGE_RATE_KRW_TO_JPY
+    const domesticJPDeliveryJPY = deliveryBoxes * DELIVERY_CONSTANTS_JP.DOMESTIC_JP_COST_PER_BOX_JPY
+    const totalDeliveryJPY = internationalDeliveryJPY + domesticJPDeliveryJPY
 
     return totalDeliveryJPY
   }

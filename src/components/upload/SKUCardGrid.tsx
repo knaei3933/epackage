@@ -15,8 +15,8 @@ interface SKUCardGridProps {
   selectedSkuId: string | null;
   isUploading: boolean;
   onSelectSku: (skuId: string) => void;
-  formatSkuDisplayName: (productName: string, quantity: number) => string;
-  orderItems: Array<{ id: string; quantity: number }>;
+  formatSkuDisplayName: (productName: string, quantity: number, specs?: { bagTypeId?: string; width?: number; height?: number; depth?: number; sideWidth?: number }) => string;
+  orderItems: Array<{ id: string; quantity: number; product_name?: string; specifications?: any }>;
 }
 
 export function SKUCardGrid({
@@ -53,7 +53,6 @@ export function SKUCardGrid({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {skuStates.map((skuState) => {
-          const item = orderItems.find(i => i.id === skuState.orderItemId);
           return (
             <SKUUploadCard
               key={skuState.orderItemId}
@@ -62,7 +61,8 @@ export function SKUCardGrid({
               isUploading={isUploading}
               onSelect={() => onSelectSku(skuState.orderItemId)}
               formatSkuDisplayName={formatSkuDisplayName}
-              quantity={item?.quantity || 0}
+              quantity={skuState.quantity || 0}
+              specifications={skuState.specifications}
             />
           );
         })}

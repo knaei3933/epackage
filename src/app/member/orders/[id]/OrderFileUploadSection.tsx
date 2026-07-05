@@ -50,6 +50,13 @@ interface OrderItem {
   id: string;
   product_name: string;
   quantity: number;
+  specifications?: {
+    bagTypeId?: string;
+    width?: number;
+    height?: number;
+    depth?: number;
+    sideWidth?: number;
+  };
 }
 
 interface ValidationError {
@@ -107,10 +114,11 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   // Initialize order items from order prop
   useEffect(() => {
     if (order.items && order.items.length > 0) {
-      const items: OrderItem[] = order.items.map(item => ({
+      const items: OrderItem[] = order.items.map((item: any) => ({
         id: item.id,
         product_name: item.productName,
         quantity: item.quantity,
+        specifications: item.specifications || {},
       }));
       setOrderItems(items);
       // Auto-select first item if only one item exists
@@ -133,30 +141,34 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     updateSKUStates();
   }, [updateSKUStates]);
 
-  // Format SKU display name: "SKU번호_메인제품명_수량"
-  const formatSkuDisplayName = (productName: string, quantity: number): string => {
-    // Extract SKU number from pattern like "(SKU 1)" or "SKU 1"
+  // Issue 1 fix: Format SKU display name = SKU番号_製品名_数量_サイズ
+  // 製品名は bagTypeId から日本語の袋タイプ名に変換（三方シール平袋 / スタンドパウチ 等）
+  const formatSkuDisplayName = (productName: string, quantity: number, specs?: { bagTypeId?: string; width?: number; height?: number; depth?: number; sideWidth?: number }): string => {
     const skuMatch = productName.match(/[（(]SKU\s*(\d+)[）)]/i);
-    const skuNumber = skuMatch ? skuMatch[1] : '?';
+    const skuNumber = skuMatch ? skuMatch[1] : '1';
 
-    // Extract main product name only
-    // Format: "스탠드 파우치 - 알루미늄 박 라미네이트 (SKU 1)"
-    // or "スタンドパウチ - アルミ箔ラミネートによる高バリア性 (SKU 1)"
-    let mainProduct = '';
+    const bagTypeJa: Record<string, string> = {
+      'flat_3_side': '三方シール平袋',
+      'three_side_seal': '三方シール平袋',
+      'stand_up': 'スタンドパウチ',
+      'standup_pouch': 'スタンドパウチ',
+      'gusset_pouch': 'ガゼットパウチ',
+      'zipper_pouch': 'ジッパーパウチ',
+      'spout_pouch': 'スパウトパウチ',
+      'roll_film': 'ロールフィルム',
+      'lap_seal': '合掌袋',
+    };
+    const bagTypeId = specs?.bagTypeId;
+    const productLabel = (bagTypeId && bagTypeJa[bagTypeId])
+      || productName.split(/\s+-|\s+[(（]SKU/i)[0].trim();
 
-    // Try to split by " - " or " -" or "-"
-    if (productName.includes(' - ')) {
-      const parts = productName.split(' - ');
-      mainProduct = parts[0].trim();
-    } else {
-      mainProduct = productName.split(/\s+[（(]SKU/i)[0].trim();
+    let sizeLabel = '';
+    if (specs?.width && specs?.height) {
+      sizeLabel = `${specs.width}×${specs.height}`;
+      if (specs.depth && Number(specs.depth) > 0) sizeLabel += `×${specs.depth}`;
+      if (specs.sideWidth) sizeLabel += `×側面${specs.sideWidth}`;
     }
-
-    // Get first word only (main product name)
-    const simplifiedProduct = mainProduct.split(/\s+/)[0];
-
-    // Build format: "SKU번호_메인제품명_수량枚"
-    return `${skuNumber}_${simplifiedProduct}_${quantity}枚`;
+    return `SKU${skuNumber}_${productLabel}_${quantity.toLocaleString()}枚${sizeLabel ? `_${sizeLabel}` : ''}`;
   };
 
   // Load uploaded files
@@ -196,14 +208,18 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     const isAllowed = allowedExtensions.some(ext => fileName.endsWith(ext));
 
     if (!isAllowed) {
-      setError('⚠️ 入稿データはAI、EPS、PDF形式のみ可能です。');
+      const msg1 = '⚠️ 入稿データはAI、EPS、PDF形式のみ可能です。';
+      setError(msg1);
+      window.alert(msg1);
       setSelectedFile(null);
       return;
     }
 
     // Validate file size (100MB)
     if (file.size > 100 * 1024 * 1024) {
-      setError('ファイルサイズは100MB以下にしてください');
+      const msg2 = 'ファイルサイズは100MB以下にしてください。';
+      setError(msg2);
+      window.alert(msg2);
       setSelectedFile(null);
       return;
     }
@@ -234,9 +250,11 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    // Validate product name is required
+    // Validate product name is required (Issue 3: popup on failure)
     if (!productName.trim()) {
-      setError('製品名を入力してください');
+      const msg = '製品类を入力してください。入力しないとアップロードできません。';
+      setError(msg);
+      window.alert(msg);
       return;
     }
 
@@ -304,7 +322,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         setTimeout(() => setSuccessMessage(null), 5000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
+      const errMsg = err instanceof Error ? err.message : '予期しないエラーが発生しました';
+      setError(errMsg);
+      window.alert(`アップロードに失敗しました:\n${errMsg}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -398,7 +418,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (!file.order_item_id) return 'すべてのSKU (All SKUs)';
     const item = orderItems.find(i => i.id === file.order_item_id);
     if (item) {
-      return formatSkuDisplayName(item.product_name, item.quantity);
+      return formatSkuDisplayName(item.product_name, item.quantity, item.specifications);
     }
     return 'Unknown SKU';
   };

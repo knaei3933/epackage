@@ -9,6 +9,8 @@
 // 타입 정의
 // ========================================
 
+import { DELIVERY_CONSTANTS_JP } from './pricing/core/constants';
+
 // DB 설정값 타입
 export interface FilmCostSettings {
   // 필름 재료 단가 (원/kg)
@@ -449,13 +451,14 @@ export class FilmCostCalculator {
     const costWithDutyJPY = costJPY * (1 + dutyRate);
 
     // ========================================
-    // 8. 배송비 계산
+    // 8. 배송비 계산（2026-07-05 改定: 国際配送 + 日本国内配送）
     // ========================================
-    // ========================================
-    // 8. 배송비 계산
-    // ========================================
-    const deliveryCostPerBoxKRW = 127980; // Box per 29kg (KRW)
-    const kgPerBox = 29; // Max 29kg per box
+    // ロールフィルム: 29kg/箱。韓国→日本 国際配送(127,980ウォン/箱) + 日本国内配送(1,600円/箱)
+    const deliveryCostPerBoxKRW = DELIVERY_CONSTANTS_JP.INTERNATIONAL_COST_PER_BOX_KRW;
+    const kgPerBox = DELIVERY_CONSTANTS_JP.ROLL_FILM_BOX_CAPACITY_KG; // 29kg/箱
+    const domesticJPPerBox = DELIVERY_CONSTANTS_JP.DOMESTIC_JP_COST_PER_BOX_JPY; // 1,600円/箱
+    const BOX_WEIGHT_KG = 0.7; // 골판지 박스 1개 중량
+    const ROLL_WEIGHT_SURCHARGE = 0.10; // 롤 제품 중량 가산률 +10%
 
     let deliveryCostKRW = 0;
     let boxCount = 0;
@@ -469,11 +472,17 @@ export class FilmCostCalculator {
       totalWeight = materialBreakdown.totalWeight;
     }
 
-    boxCount = Math.ceil(totalWeight / kgPerBox);
+    // 롤 제품 중량 가산 +10%
+    totalWeight = totalWeight * (1 + ROLL_WEIGHT_SURCHARGE);
+
+    // 박스수 계산: 순수 제품 중량 + 박스무게(0.7kg×箱수)가 박스 용량을 초과하면 박스 증가
+    boxCount = Math.max(1, Math.ceil(totalWeight / (kgPerBox - BOX_WEIGHT_KG)));
     deliveryCostKRW = boxCount * deliveryCostPerBoxKRW;
 
-    // 엔화 환산 (기존 호환성 유지)
-    const deliveryCostJPY = deliveryCostKRW * exchangeRate; // ~15,357 JPY
+    // 국제 배송비 엔화 환산 + 일본 국내 배송비 추가
+    const internationalDeliveryJPY = deliveryCostKRW * exchangeRate; // ~15,357 JPY/箱
+    const domesticJPDeliveryJPY = boxCount * domesticJPPerBox;       // 1,600 JPY/箱
+    const deliveryCostJPY = internationalDeliveryJPY + domesticJPDeliveryJPY;
 
     // ========================================
     // 9. 최종 원가 (배송비 포함)
@@ -706,9 +715,10 @@ export class FilmCostCalculator {
     // DB 설정값 또는 기본값
     const printingCostPerM2 = dbSettings?.printing_cost_per_m2 ?? PRINTING_COST_PER_M2;
 
-    // 기본 인쇄비 = 필름 폭(m) × 미터수 × 인쇄 단가
-    // 실제 필름 폭을 사용하여 계산 (예: 590mm=0.59m, 740mm=0.74m)
-    const basic = widthM * lengthWithLoss * printingCostPerM2;
+    // 기본 인쇄비 = 1m(폭 고정) × 미터수 × 인쇄 단가
+    // 가이드 05-가공비용_계산.md §1-1: "인쇄비는 필름폭과 무관하게 항상 1m로 계산"
+    // 매트 후가공 선택 시에만 원단폭 기반 별도 가산(matte 변수)
+    const basic = 1.0 * lengthWithLoss * printingCostPerM2;
 
     // 매트 인쇄 추가비 계산 (요구사항 수정)
     // 매트 인쇄 추가비(원) = 필름 폭(m) × 40원/m × 사용 미터수

@@ -13,6 +13,9 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import { sendEmail } from '@/lib/email';
+import { subject as poSubject, plainText as poPlainText, html as poHtml, type PurchaseOrderData, type PurchaseOrderItemData } from '@/lib/email/templates/purchase_order';
+import { MANUFACTURER_ORDER_EMAIL, PRICING_CONSTANTS } from '@/lib/pricing/core/constants';
 
 // ============================================================
 // Types
@@ -158,8 +161,30 @@ export async function POST(
       );
     }
 
-    // Generate order number
-    const orderNumber = `ORD-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`;
+    // Issue 4 fix: Generate phone-friendly order number.
+    // Format: ORD-YYYY-XXXXXXX (7 chars, unambiguous alphabet: no 0/O/1/I/L)
+    // The 7-char tail is short enough to dictate over the phone ("末尾7桁は〜")
+    // Collision-safe: checked against existing orders, regenerated if needed.
+    const ORDER_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    const generateOrderCode = (): string => {
+      let code = '';
+      for (let i = 0; i < 7; i++) {
+        code += ORDER_CODE_ALPHABET[Math.floor(Math.random() * ORDER_CODE_ALPHABET.length)];
+      }
+      return code;
+    };
+    let orderNumber = `ORD-${new Date().getFullYear()}-${generateOrderCode()}`;
+    let collisionGuard = 0;
+    while (collisionGuard < 5) {
+      const { data: conflict } = await supabaseAdmin
+        .from('orders')
+        .select('id')
+        .eq('order_number', orderNumber)
+        .maybeSingle();
+      if (!conflict) break;
+      orderNumber = `ORD-${new Date().getFullYear()}-${generateOrderCode()}`;
+      collisionGuard++;
+    }
 
     // Get or create delivery and billing addresses
     // Note: delivery_address_id / billing_address_id are not on the generated
@@ -426,6 +451,187 @@ export async function POST(
       customerEmail: user.email,
       adminEmails: admins?.map((a: any) => a.email) || [],
     });
+
+    // ========================================
+    // Phase 3: 発注メール（製造社向け）送信 + purchase_orders 監査レコード保存
+    // ========================================
+    // 仕様: 製造社請求額 = 原価 × 1.4 (manufacturingMargin) + 国際配送費のみ。
+    //       国内配送 1,600 JPY/箱 は発注額に含めない。販売価格は一切含めない。
+    // 順序: purchase_orders insert 成功後にメール送信。メール失敗は非致命的（sent_at NULL で保持）。
+    try {
+      const exchangeRate = PRICING_CONSTANTS.EXCHANGE_RATE_KRW_TO_JPY; // 0.12
+
+      // 選択された（または全件の）quotation_items を対象に製造社向け原価を集計
+      const itemsForPo: PurchaseOrderItemData[] = (quotationItems || []).map((item: any) => {
+        const cb = (item.cost_breakdown || {}) as Record<string, number>;
+        const specs = (item.specifications || {}) as Record<string, any>;
+        // baseCost: cost_breakdown.totalCost（原価）。フォールバックで film_cost_details.costJPY。
+        const baseCostJPY = Number(cb.totalCost) || Number(item.film_cost_details?.costJPY) || 0;
+        const manufacturingMarginJPY = Math.round(baseCostJPY * PRICING_CONSTANTS.MANUFACTURER_MARGIN);
+        const manufacturerPriceJPY = baseCostJPY + manufacturingMarginJPY;
+        // 国際配送費: cost_breakdown.intlShippingJPY が保存されていればそれを使用（国内1,600円/箱除外済み）。
+        // フォールバック: 分離値がない旧データは delivery 全額を国際として扱う。
+        const intlShippingJPY = Number(cb.intlShippingJPY) || Number(cb.delivery) || 0;
+        const domesticShippingJPY = Number(cb.domesticShippingJPY) || 0;
+        const deliveryBoxes = Number(cb.deliveryBoxes) || 0;
+
+        return {
+          product_name: item.product_name,
+          quantity: item.quantity,
+          bagTypeId: specs.bagTypeId,
+          materialId: specs.materialId,
+          width: specs.width,
+          height: specs.height,
+          depth: specs.depth,
+          sideWidth: specs.sideWidth,
+          thicknessSelection: specs.thicknessSelection,
+          printingType: specs.printingType,
+          printingColors: specs.printingColors,
+          postProcessingOptions: specs.postProcessingOptions,
+          zipper: specs.zipper,
+          hasZipper: specs.postProcessingOptions?.some((o: string) => o?.includes('zipper')),
+          sku_quantities: specs.sku_quantities,
+          cost_breakdown: cb as any,
+          film_cost_details: item.film_cost_details || specs.film_cost_details,
+          baseCostJPY,
+          manufacturingMarginJPY,
+          manufacturerPriceJPY,
+          intlShippingJPY,
+          domesticShippingJPY,
+          deliveryBoxes,
+        };
+      });
+
+      const totalBaseCost = itemsForPo.reduce((s, i) => s + (i.baseCostJPY || 0), 0);
+      const totalMargin = itemsForPo.reduce((s, i) => s + (i.manufacturingMarginJPY || 0), 0);
+      const totalIntlShipping = itemsForPo.reduce((s, i) => s + (i.intlShippingJPY || 0), 0);
+      const totalDomesticShipping = itemsForPo.reduce((s, i) => s + (i.domesticShippingJPY || 0), 0);
+      const manufacturerAmountJPY = itemsForPo.reduce(
+        (s, i) => s + ((i.manufacturerPriceJPY || 0) + (i.intlShippingJPY || 0)), 0
+      );
+
+      // 会社名取得
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('company_name')
+        .eq('id', userId)
+        .maybeSingle();
+      const companyName = profile?.company_name || undefined;
+
+      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
+      const poData: PurchaseOrderData = {
+        quotation_number: quotation.quotation_number,
+        order_number: order.order_number,
+        customer_name: quotation.customer_name,
+        company_name: companyName,
+        manufacturer_amount_jpy: manufacturerAmountJPY,
+        base_cost_jpy: totalBaseCost,
+        manufacturing_margin_jpy: totalMargin,
+        intl_shipping_jpy: totalIntlShipping,
+        domestic_shipping_jpy: totalDomesticShipping,
+        exchange_rate_note: `為替レート KRW→JPY = ${exchangeRate}`,
+        items: itemsForPo,
+        submitted_at: new Date().toLocaleString('ja-JP'),
+        order_url: `${appUrl}/admin/orders/${order.id}`,
+      };
+
+      // 1. purchase_orders 監査レコード保存（メール送信前に commit）
+      const { data: poRecord, error: poInsertError } = await supabaseAdmin
+        .from('purchase_orders')
+        .insert({
+          quotation_id: quotationId,
+          order_id: order.id,
+          manufacturer_email: MANUFACTURER_ORDER_EMAIL,
+          manufacturer_amount_jpy: manufacturerAmountJPY,
+          base_cost_jpy: totalBaseCost,
+          manufacturing_margin_jpy: totalMargin,
+          intl_shipping_jpy: totalIntlShipping,
+          payload: poData as any,
+        })
+        .select('id')
+        .single();
+
+      const poRecordId = poRecord?.id ?? null;
+      if (poInsertError) {
+        // テーブル未作成等の場合: ログのみ。注文自体は成功済みなので継続。
+        console.error('[Convert to Order] Failed to insert purchase_orders record:', poInsertError.message);
+      }
+
+      // 2. メール送信（監査レコード保存の成否にかかわらず必ず送信）。
+      //    監査レコードは付加的なもの。purchase_orders テーブルが未作成でもメールは届く。
+      try {
+        const emailResult = await sendEmail(
+          MANUFACTURER_ORDER_EMAIL,
+          poSubject(poData),
+          poPlainText(poData),
+          poHtml(poData)
+        );
+
+        if (emailResult.success) {
+          if (poRecordId) {
+            await supabaseAdmin
+              .from('purchase_orders')
+              .update({ sent_at: new Date().toISOString() })
+              .eq('id', poRecordId);
+          }
+          console.log('[Convert to Order] Purchase order email sent to manufacturer:', MANUFACTURER_ORDER_EMAIL);
+        } else {
+          if (poRecordId) {
+            await supabaseAdmin
+              .from('purchase_orders')
+              .update({ send_error: emailResult.error || 'Unknown send error' })
+              .eq('id', poRecordId);
+          }
+          console.error('[Convert to Order] Failed to send PO email:', emailResult.error);
+        }
+      } catch (emailErr) {
+        console.error('[Convert to Order] PO email send exception:', emailErr);
+      }
+    } catch (poError) {
+      // 発注メール処理の失敗は注文成功を妨げない（ログのみ）
+      console.error('[Convert to Order] Purchase order processing error:', poError);
+    }
+
+    // ========================================
+    // Issue 4: 注文完了メールを顧客に送信（注文番号 + URL を明記）
+    // 電話対応でも「末尾7桁」で検索できるよう案内文を含める。
+    // ========================================
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
+      const orderUrl = `${baseUrl}/member/orders/${order.id}`;
+      const customerEmailAddr = quotation.customer_email || user.email;
+      const customerName = order.customer_name || 'お客様';
+
+      if (customerEmailAddr) {
+        const customerSubject = `【注文完了】ご注文番号 ${order.order_number} - EPAC PACKAGE LAB`;
+        const customerHtml = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <h2 style="color: #1e40af;">ご注文ありがとうございます</h2>
+            <p>${customerName} 様</p>
+            <p>この度はご注文いただき、誠にありがとうございます。<br />以下の内容で注文を受け付けいたしました。</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8fafc; font-weight: bold; width: 40%;">ご注文番号</td><td style="padding: 8px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #1e40af;">${order.order_number}</td></tr>
+              <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8fafc; font-weight: bold;">注文詳細URL</td><td style="padding: 8px; border: 1px solid #ddd;"><a href="${orderUrl}">${orderUrl}</a></td></tr>
+            </table>
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 14px;"><strong>お問い合わせ時のご案内</strong></p>
+              <p style="margin: 8px 0 0; font-size: 13px;">お電話やメールでのお問い合わせの際、<strong>ご注文番号</strong>をお伝えください。<br />番号が分からない場合は<strong>「末尾7桁」</strong>（${order.order_number.split('-').pop()}）だけでも検索可能です。</p>
+            </div>
+            <p style="font-size: 13px; color: #666;">今後の進捗は注文詳細ページからご確認いただけます。</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+            <p style="font-size: 12px; color: #999;">EPAC PACKAGE LAB</p>
+          </div>
+        `;
+        await sendEmail({
+          to: customerEmailAddr,
+          subject: customerSubject,
+          html: customerHtml,
+        });
+        console.log('[Convert to Order] Customer confirmation email sent:', customerEmailAddr);
+      }
+    } catch (custEmailErr) {
+      console.error('[Convert to Order] Customer confirmation email failed:', custEmailErr);
+    }
 
     return NextResponse.json({
       success: true,

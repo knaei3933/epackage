@@ -5,6 +5,7 @@ import { Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatDateJa } from '@/utils/formatters';
 import { useState } from 'react';
 import type { Quotation } from '@/types/quotation';
+import { formatPrice } from '@/utils/formatters';
 
 interface AdminQuotationListProps {
   quotations: Quotation[];
@@ -51,7 +52,7 @@ export function AdminQuotationList({
 
     // 数量と単価を計算
     const totalQuantity = items.reduce((sum, i) => sum + (i.quantity || 0), 0);
-    const unitPrice = quotation.subtotal_amount ? Math.round(quotation.subtotal_amount / totalQuantity) : 0;
+    const unitPrice = quotation.subtotal_amount ? Math.round(quotation.subtotal_amount / totalQuantity * 10) / 10 : 0;
 
     // タイプ表示
     const bagTypeDisplay = specifications.bag_type_display || specifications.bag_type || specifications.bagTypeId || '-';
@@ -209,7 +210,7 @@ export function AdminQuotationList({
                     <div className="flex items-center gap-2 ml-2">
                       <div className="text-right">
                         <p className="text-lg font-semibold text-gray-900">
-                          ¥{totalPrice.toLocaleString()}
+                          ¥{formatPrice(totalPrice)}
                         </p>
                         <p className="text-xs text-gray-500">
                           {formatDateJa(quotation.created_at)}
@@ -233,10 +234,10 @@ export function AdminQuotationList({
                     <div className="mt-2 pt-2 border-t border-gray-200">
                       <div className="flex items-center justify-between text-xs text-gray-700">
                         <span className="font-medium">
-                          {details.totalQuantity.toLocaleString()}個 × ¥{details.unitPrice.toLocaleString()}
+                          {details.totalQuantity.toLocaleString()}個 × ¥{formatPrice(details.unitPrice)}
                         </span>
                         <span className="font-bold text-blue-700">
-                          ¥{totalPrice.toLocaleString()}
+                          ¥{formatPrice(totalPrice)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 mt-1 text-xs">

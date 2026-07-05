@@ -27,6 +27,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Check,
 } from 'lucide-react';
 import { generateQuotePDF, type QuoteData } from '@/lib/pdf-generator';
 import { translateBagType, translateMaterialType, translatePostProcessing, BAG_TYPE_JA } from '@/constants/enToJa';
@@ -371,6 +372,16 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   const [lastDownloadedAt, setLastDownloadedAt] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [convertError, setConvertError] = useState<string | null>(null);
+  // Phase 2 fix: pattern (quantity) selection state. The quotation detail page
+  // previously rendered items as a static list and converted ALL items at once.
+  // Now the user selects exactly one quantity pattern before confirming the order.
+  // Single-item quotations auto-select.
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  // Issue 4: order confirmation modal state. Before converting to an order,
+  // the user must review a specs checklist + terms and check an agreement box.
+  const [showOrderConfirm, setShowOrderConfirm] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Fetch quotation details
   const fetchQuotation = async () => {
@@ -423,6 +434,16 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       fetchDownloadHistory();
     }
   }, [userId, quotationId]);
+
+  // Phase 2 fix: auto-select when there is exactly one item (single pattern).
+  useEffect(() => {
+    if (quotation?.items && quotation.items.length === 1) {
+      setSelectedItemId(quotation.items[0].id);
+    } else if (quotation?.items && quotation.items.length > 1 && !selectedItemId) {
+      // multi-pattern: leave unselected until the user picks one
+      setSelectedItemId(null);
+    }
+  }, [quotation?.items]);
 
   const handleDownloadPDF = async () => {
     if (!quotation) return;
@@ -936,6 +957,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 <span className="ml-2 text-text-primary">
                   {quotation.items[0].specifications?.printingType === 'digital' && 'デジタル印刷（フルカラー）'}
                   {quotation.items[0].specifications?.printingType === 'gravure' && 'グラビア印刷（フルカラー）'}
+                  {/* Issue 2 fix: legacy 'auto' records resolve via cost_breakdown.recommendedMethod or default to digital */}
+                  {quotation.items[0].specifications?.printingType === 'auto' && 'デジタル印刷（フルカラー）'}
                 </span>
               </div>
             )}
@@ -991,11 +1014,25 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 }
               }
 
-              // 후가공 옵션에서 sealing-width-* 제거
+              // Issue 3 fix: filter post-processing to only show ACTIVE selections.
+              // "none"-type options (zipper-no, valve-no, machi-printing-no, etc.) are excluded
+              // unless ALL options are "none", in which case show "なし".
               const allOptions = (specs.postProcessingOptions || []) as string[];
-              const otherOptions = allOptions.filter((opt: string) => !opt.startsWith('sealing-width-'));
 
-              // 시일 폭을 맨 앞에 추가 (롤필름/스파우트파우치가 아닌 경우만)
+              // Options that represent "none / not selected" — filtered out of active display
+              const noneOptionPatterns = [
+                'zipper-no', 'valve-no', 'machi-printing-no', 'notch-no', 'hang-hole-no',
+                'corner-square',
+              ];
+              const isNoneOption = (opt: string) =>
+                noneOptionPatterns.includes(opt) || /-no$/.test(opt);
+
+              // Remove sealing-width-* (handled separately) and filter out "none" options
+              const otherOptions = allOptions.filter((opt: string) =>
+                !opt.startsWith('sealing-width-') && !isNoneOption(opt)
+              );
+
+              // Limited post-processing (roll_film, standup_pouch): only show surface finish (glossy/matte)
               const allowedOptions = isLimitedPostProcessing
                 ? otherOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
                 : otherOptions;
@@ -1004,7 +1041,15 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 ? [{ label: sealWidthDisplay, isSealWidth: true }, ...allowedOptions.map((opt: string) => ({ label: opt, isSealWidth: false }))]
                 : allowedOptions.map((opt: string) => ({ label: opt, isSealWidth: false }));
 
-              if (displayOptions.length === 0) return null;
+              // If nothing active and no seal width, show "なし"
+              if (displayOptions.length === 0) {
+                return (
+                  <div className="text-sm">
+                    <span className="text-text-muted">後加工:</span>
+                    <span className="ml-2 text-text-primary">なし</span>
+                  </div>
+                );
+              }
 
               return (
                 <div className="text-sm">
@@ -1080,84 +1125,126 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
 
       {/* Line Items */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">品目明細</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-text-primary">品目明細</h2>
+          {/* Phase 2 fix: selection hint when multiple patterns exist */}
+          {canConvert && quotation.items && quotation.items.length > 1 && (
+            <span className={`text-sm font-medium ${selectedItemId ? 'text-green-700' : 'text-amber-700'}`}>
+              {selectedItemId ? '✓ 注文する数量を選択済み' : '※ 注文する数量を1つ選択してください'}
+            </span>
+          )}
+        </div>
         <div className="space-y-4">
-          {quotation.items?.map((item, index) => (
-            <div
-              key={item.id}
-              className="border border-border-secondary rounded-lg p-4 flex items-center justify-between"
-            >
-              {/* SKU Name and Quantity */}
-              <div>
-                <h3 className="text-base font-semibold text-text-primary">
-                  {item.productName || `SKU ${index + 1}`}
-                </h3>
-                <p className="text-sm text-text-muted mt-1">
-                  数量: {item.quantity.toLocaleString()}個 × {formatPrice(item.unitPrice || 0)}円
-                </p>
-                {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (() => {
-                  // SKU別明細の計算（枚数 × 単価 = 金額）
-                  const skuQuantities = item.specifications.sku_quantities;
-                  const unitPrice = item.unitPrice || 0;
-                  const totalQty = skuQuantities.reduce((sum: number, q: number) => sum + q, 0);
-                  const totalPrice = skuQuantities.reduce(
-                    (sum: number, q: number) => sum + q * unitPrice,
-                    0
-                  );
-
-                  return (
-                    <div className="bg-purple-50 p-3 rounded-lg mt-4">
-                      <p className="font-medium text-purple-700">SKU分割: {skuQuantities.length}種類</p>
-                      <div className="mt-2 space-y-1">
-                        {skuQuantities.map((qty: number, idx: number) => {
-                          // 各SKUの金額 = 数量 × 単価
-                          const skuAmount = qty * unitPrice;
-                          return (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between text-sm text-purple-600"
-                            >
-                              <span>SKU {idx + 1}</span>
-                              <span>
-                                {qty.toLocaleString()}個 × ¥{formatPrice(unitPrice)} = ¥{formatPrice(skuAmount)}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="flex items-center justify-between text-xs font-medium text-purple-700 mt-2 pt-2 border-t border-purple-200">
-                        <span>合計</span>
-                        <span>
-                          {totalQty.toLocaleString()}個 / ¥{formatPrice(totalPrice)}
-                        </span>
-                      </div>
+          {quotation.items?.map((item, index) => {
+            // Phase 2 fix: selectable pattern row. When the quotation is orderable (APPROVED),
+            // the user must pick exactly one quantity pattern. Visual feedback is unmistakable:
+            // selected = blue border + filled blue radio + check badge; unselected = neutral + outline radio.
+            const isSelectable = canConvert;
+            const isSelected = selectedItemId === item.id;
+            const rowBase = 'rounded-xl p-5 flex items-center justify-between transition-all duration-150 relative';
+            const rowState = isSelected
+              ? 'border-2 border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
+              : isSelectable
+                ? 'border-2 border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50/40 cursor-pointer'
+                : 'border border-border-secondary';
+            return (
+              <div
+                key={item.id}
+                role={isSelectable ? 'button' : undefined}
+                tabIndex={isSelectable ? 0 : undefined}
+                aria-pressed={isSelectable ? isSelected : undefined}
+                onClick={isSelectable ? () => setSelectedItemId(item.id) : undefined}
+                onKeyDown={isSelectable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedItemId(item.id); } } : undefined}
+                className={`${rowBase} ${rowState}`}
+              >
+                {/* Selection indicator (radio-style) - left side for clear visibility */}
+                {isSelectable && (
+                  <div className="flex items-center gap-3 pr-4">
+                    <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}>
+                      {isSelected && <Check className="w-5 h-5 text-white" strokeWidth={3} />}
                     </div>
-                  );
-                })()}
-              </div>
+                  </div>
+                )}
+                {/* Selected badge - top right */}
+                {isSelectable && isSelected && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-600 text-white shadow-sm">
+                      選択中
+                    </span>
+                  </div>
+                )}
+                {/* SKU Name and Quantity */}
+                <div className="flex-1 pr-8">
+                  <h3 className="text-base font-semibold text-text-primary">
+                    {item.productName || `SKU ${index + 1}`}
+                  </h3>
+                  <p className="text-sm text-text-muted mt-1">
+                    数量: {item.quantity.toLocaleString()}個 × {formatPrice(item.unitPrice || 0)}円
+                  </p>
+                  {item.specifications?.sku_quantities && item.specifications.sku_quantities.length > 1 && (() => {
+                    // SKU別明細の計算（枚数 × 単価 = 金額）
+                    const skuQuantities = item.specifications.sku_quantities;
+                    const unitPrice = item.unitPrice || 0;
+                    const totalQty = skuQuantities.reduce((sum: number, q: number) => sum + q, 0);
+                    const totalPrice = skuQuantities.reduce(
+                      (sum: number, q: number) => sum + q * unitPrice,
+                      0
+                    );
 
-              {/* Item Total */}
-              <div className="text-right">
-                <p className="text-lg font-semibold text-text-primary">
-                  ¥{formatPrice(item.totalPrice || item.unitPrice * item.quantity || 0)}
-                </p>
+                    return (
+                      <div className="bg-purple-50 p-3 rounded-lg mt-4">
+                        <p className="font-medium text-purple-700">SKU分割: {skuQuantities.length}種類</p>
+                        <div className="mt-2 space-y-1">
+                          {skuQuantities.map((qty: number, idx: number) => {
+                            // 各SKUの金額 = 数量 × 単価
+                            const skuAmount = qty * unitPrice;
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between text-sm text-purple-600"
+                              >
+                                <span>SKU {idx + 1}</span>
+                                <span>
+                                  {qty.toLocaleString()}個 × ¥{formatPrice(unitPrice)} = ¥{formatPrice(skuAmount)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-medium text-purple-700 mt-2 pt-2 border-t border-purple-200">
+                          <span>合計</span>
+                          <span>
+                            {totalQty.toLocaleString()}個 / ¥{formatPrice(totalPrice)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Item Total */}
+                <div className="text-right pr-8">
+                  <p className="text-lg font-semibold text-text-primary">
+                    ¥{formatPrice(item.totalPrice || item.unitPrice * item.quantity || 0)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="mt-4 pt-4 border-t border-border-secondary space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted">小計</span>
-            <span className="text-text-primary">¥{(subtotal || 0).toLocaleString()}</span>
+            <span className="text-text-primary">¥{formatPrice(subtotal || 0)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted">消費税 (10%)</span>
-            <span className="text-text-primary">¥{(taxAmount || 0).toLocaleString()}</span>
+            <span className="text-text-primary">¥{formatPrice(taxAmount || 0)}</span>
           </div>
           <div className="flex items-center justify-between text-lg font-semibold">
             <span className="text-text-primary">合計 (税込)</span>
             <span className="text-primary text-xl">
-              ¥{displayTotalAmount.toLocaleString()}
+              ¥{formatPrice(displayTotalAmount)}
             </span>
           </div>
         </div>
@@ -1290,37 +1377,20 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             {/* 注文変換 - 状態に応じて表示を変える */}
             {(quotation?.status?.toLowerCase() === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED') && (
               <>
+                {/* Phase 2 fix: require a pattern selection before allowing order conversion */}
+                {quotation.items && quotation.items.length > 1 && !selectedItemId && (
+                  <div className="text-sm text-amber-700 font-medium mr-2 self-center">
+                    数量パターンを選択してください
+                  </div>
+                )}
                 <Button
                   variant="primary"
                   size="md"
-                  onClick={async () => {
-                    setIsConverting(true);
-                    setConvertError(null);
-                    try {
-                      const response = await fetch(`/api/member/quotations/${quotationId}/convert`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ notes: quotation?.notes }),
-                      });
-
-                      const result = await response.json();
-
-                      if (response.ok && result.success) {
-                        router.push(`/member/orders/${result.data.id}`);
-                      } else if (result.alreadyExists) {
-                        router.push(`/member/orders/${result.data.id}`);
-                      } else {
-                        setConvertError(result.error || '注文作成に失敗しました');
-                      }
-                    } catch (error) {
-                      console.error('注文作成エラー:', error);
-                      setConvertError('注文作成中にエラーが発生しました');
-                    } finally {
-                      setIsConverting(false);
-                    }
+                  onClick={() => {
+                    setShowOrderConfirm(true);
+                    setAgreedToTerms(false);
                   }}
-                  disabled={isConverting}
+                  disabled={isConverting || (!!quotation.items && quotation.items.length > 1 && !selectedItemId)}
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   {isConverting ? '変換中...' : '注文確定'}
@@ -1339,6 +1409,135 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
           <p className="text-sm">{convertError}</p>
         </div>
       )}
+
+      {/* Issue 4: Order Confirmation Modal
+          Before converting to an order, the user reviews a specs checklist + terms
+          and must check an agreement box. Only then does the convert API fire. */}
+      <Dialog open={showOrderConfirm} onOpenChange={setShowOrderConfirm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>ご注文内容の確認</DialogTitle>
+            <DialogDescription>
+              発注前に以下の内容をご確認ください。ご同意いただいた上で注文を確定してください。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Specs Checklist */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <h4 className="font-semibold text-gray-900 text-sm">ご注文内容</h4>
+              {(() => {
+                const selectedItem = quotation.items?.find(i => i.id === selectedItemId) || quotation.items?.[0];
+                if (!selectedItem) return null;
+                const specs = selectedItem.specifications || {};
+                const pType = specs.printingType;
+                const printingLabel = pType === 'digital' ? 'デジタル印刷'
+                  : pType === 'gravure' ? 'グラビア印刷'
+                  : pType === 'auto' ? 'デジタル印刷'
+                  : '-';
+                const ppOpts = (specs.postProcessingOptions || []) as string[];
+                const nonePatterns = ['zipper-no','valve-no','machi-printing-no','notch-no','hang-hole-no','corner-square'];
+                const isNone = (o: string) => nonePatterns.includes(o) || /-no$/.test(o);
+                const activePP = ppOpts.filter(o => !o.startsWith('sealing-width-') && !isNone(o));
+                const ppLabel = activePP.length === 0 ? 'なし' : activePP.map(o => translatePostProcessing(o)).join('、');
+                return (
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <dt className="text-gray-500">商品</dt>
+                    <dd className="text-gray-900">{selectedItem.productName || '-'}</dd>
+                    <dt className="text-gray-500">数量</dt>
+                    <dd className="text-gray-900">{(selectedItem.quantity || 0).toLocaleString()}個</dd>
+                    <dt className="text-gray-500">単価</dt>
+                    <dd className="text-gray-900">¥{formatPrice(selectedItem.unitPrice || 0)}</dd>
+                    <dt className="text-gray-500">金額</dt>
+                    <dd className="text-gray-900 font-semibold">¥{formatPrice(selectedItem.totalPrice || (selectedItem.unitPrice * selectedItem.quantity) || 0)}</dd>
+                    <dt className="text-gray-500">印刷方式</dt>
+                    <dd className="text-gray-900">{printingLabel}</dd>
+                    <dt className="text-gray-500">後加工</dt>
+                    <dd className="text-gray-900">{ppLabel}</dd>
+                  </dl>
+                );
+              })()}
+            </div>
+
+            {/* Terms */}
+            <div className="border border-gray-200 rounded-lg p-4 space-y-3 text-xs text-gray-700 max-h-60 overflow-y-auto">
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">キャンセル</p>
+                <p>商品発注後の仕様変更、キャンセル等は受け付けておりません。契約成立日以降、仕様の変更が生じた場合には当社及びお客様はその都度協議し、書面をもって仕様の変更をすることが可能となります。</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">返品・交換</p>
+                <p>以下の場合、当社は代替品の納品または無償での再製造を行います。<br />・商品が受入検査に合格しなかった場合<br />・受入検査から3ヶ月以内に隠れた瑕疵が判明した場合（ただし以下の場合を除く）</p>
+                <p className="mt-1">【受入検査不合格の場合及び瑕疵が判明した場合でも返品・交換対象外となる場合】<br />①お客様の指示内容に起因する場合<br />②指定されたデザイン・材料・製造方法等に起因する場合<br />③上記①②の場合に、当社がその適当でないことを通知したにもかかわらず、指示変更が行われなかった場合<br />④その他、お客様に起因する理由による場合や当社の責めに帰すべき事由がない場合</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">返金</p>
+                <p>当社からお客様に返金する場合、当社が適当と認める方法（原則として銀行振込）により返金いたします。返金額には、遅滞利息、法定利息、その他の利息を付さないものとします。配送商品の返金の際には、返金額から送料を差し引かせていただくことがございます。</p>
+              </div>
+            </div>
+
+            {/* Agreement Checkbox */}
+            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-gray-300 hover:bg-gray-50">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-0.5 w-5 h-5 rounded border-gray-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-800">
+                上記の仕様内容・特約条件（キャンセル・返品・交換・返金）をすべて確認・同意の上、注文を確定します。
+              </span>
+            </label>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => { setShowOrderConfirm(false); setAgreedToTerms(false); }}
+              disabled={isConverting}
+            >
+              キャンセル
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              disabled={!agreedToTerms || isConverting}
+              onClick={async () => {
+                setIsConverting(true);
+                setConvertError(null);
+                try {
+                  const itemsToSend = quotation.items && quotation.items.length > 1
+                    ? (selectedItemId ? { selectedItemIds: [selectedItemId] } : {})
+                    : {};
+                  const response = await fetch(`/api/member/quotations/${quotationId}/convert`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ notes: quotation?.notes, ...itemsToSend }),
+                  });
+                  const result = await response.json();
+                  if (response.ok && result.success) {
+                    router.push(`/member/orders/${result.data.id}`);
+                  } else if (result.alreadyExists) {
+                    router.push(`/member/orders/${result.data.id}`);
+                  } else {
+                    setConvertError(result.error || '注文作成に失敗しました');
+                  }
+                } catch (error) {
+                  console.error('注文作成エラー:', error);
+                  setConvertError('注文作成中にエラーが発生しました');
+                } finally {
+                  setIsConverting(false);
+                }
+              }}
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              {isConverting ? '変換中...' : '同意して注文を確定する'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

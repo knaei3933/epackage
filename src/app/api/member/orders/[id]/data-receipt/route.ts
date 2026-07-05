@@ -311,11 +311,45 @@ export async function POST(
         );
       }
 
-      // Generate file name: {製品名}_入稿データ_{注文番号}_{日付}
+      // Issue 1 fix: file name format = SKU番号_製品名_数量_サイズ
+      // 製品名 (productName form input) が未入力でも order_items.specifications から自動生成。
+      const { data: driveOrderItem } = await adminClient
+        .from('order_items')
+        .select('id, product_name, quantity, specifications')
+        .eq('order_id', orderId)
+        .limit(1)
+        .single()
+        .then((r) => ({ data: r.data }))
+        .catch(() => ({ data: null }));
+
+      const oiSpecs = (driveOrderItem?.specifications || {}) as any;
+      const oiBagTypeJa: Record<string, string> = {
+        'flat_3_side': '三方シール平袋',
+        'three_side_seal': '三方シール平袋',
+        'stand_up': 'スタンドパウチ',
+        'standup_pouch': 'スタンドパウチ',
+        'gusset_pouch': 'ガゼットパウチ',
+        'zipper_pouch': 'ジッパーパウチ',
+        'spout_pouch': 'スパウトパウチ',
+        'roll_film': 'ロールフィルム',
+        'lap_seal': '合掌袋',
+      };
+      const oiBagTypeId = oiSpecs.bagTypeId;
+      const oiProductLabel = (oiBagTypeId && oiBagTypeJa[oiBagTypeId])
+        || (productName || '').trim()
+        || (driveOrderItem?.product_name || '製品').split(/\s+-|\s+[(（]SKU/i)[0].trim();
+      const oiQty = driveOrderItem?.quantity ?? 0;
+      const oiWidth = oiSpecs.width ?? '';
+      const oiHeight = oiSpecs.height ?? '';
+      let oiSizeLabel = '';
+      if (oiWidth && oiHeight) {
+        oiSizeLabel = `${oiWidth}×${oiHeight}`;
+        if (oiSpecs.depth && Number(oiSpecs.depth) > 0) oiSizeLabel += `×${oiSpecs.depth}`;
+        if (oiSpecs.sideWidth) oiSizeLabel += `×側面${oiSpecs.sideWidth}`;
+      }
+      const sanitizedProduct = oiProductLabel.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
       const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-      // 日本語、韓国語、中国語を含むUTF-8文字を許可
-      const sanitizedProductName = productName.trim().replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
-      driveFileName = `${sanitizedProductName}_入稿データ_${order.order_number}_${dateStr}${file.name.substring(file.name.lastIndexOf('.'))}`;
+      driveFileName = `入稿_${sanitizedProduct}_${oiQty.toLocaleString()}枚${oiSizeLabel ? `_${oiSizeLabel}` : ''}_${order.order_number}_${dateStr}${file.name.substring(file.name.lastIndexOf('.'))}`;
 
       console.log('[Data Receipt Upload] Generated file name:', driveFileName);
 
@@ -984,7 +1018,37 @@ export async function GET(
       if (file.order_item_id) {
         const item = orderItemsMap.get(file.order_item_id);
         if (item) {
-          skuName = `${item.product_name} (${item.quantity}枚)`;
+          // Issue 1 fix: format = SKU番号_製品名_数量_サイズ
+          // 例: SKU1_三方シール平袋_5000枚_100×120
+          const skuMatch = (item.product_name || '').match(/SKU\s*(\d+)/i);
+          const skuNumber = skuMatch ? skuMatch[1] : '1';
+          // 製品名: bagTypeId -> 日本語の袋タイプ。フォールバックは product_name の先頭語。
+          const bagTypeId = item.specifications?.bagTypeId;
+          const bagTypeJa: Record<string, string> = {
+            'flat_3_side': '三方シール平袋',
+            'three_side_seal': '三方シール平袋',
+            'stand_up': 'スタンドパウチ',
+            'standup_pouch': 'スタンドパウチ',
+            'gusset_pouch': 'ガゼットパウチ',
+            'zipper_pouch': 'ジッパーパウチ',
+            'spout_pouch': 'スパウトパウチ',
+            'roll_film': 'ロールフィルム',
+            'lap_seal': '合掌袋',
+          };
+          const productLabel = (bagTypeId && bagTypeJa[bagTypeId]) || (item.product_name || '製品').split(/\s+-|\s+[(（]SKU/i)[0].trim();
+          // サイズ: width×height（depth/sideWidth があれば追加）
+          const specs = item.specifications || {};
+          const width = specs.width ?? '';
+          const height = specs.height ?? '';
+          const depth = specs.depth;
+          const sideWidth = specs.sideWidth;
+          let sizeLabel = '';
+          if (width && height) {
+            sizeLabel = `${width}×${height}`;
+            if (depth && Number(depth) > 0) sizeLabel += `×${depth}`;
+            if (sideWidth) sizeLabel += `×側面${sideWidth}`;
+          }
+          skuName = `SKU${skuNumber}_${productLabel}_${item.quantity.toLocaleString()}枚${sizeLabel ? `_${sizeLabel}` : ''}`;
         }
       }
 

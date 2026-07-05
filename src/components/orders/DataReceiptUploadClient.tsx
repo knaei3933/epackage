@@ -35,6 +35,9 @@ interface UploadedFile {
   dataType: string;
   uploadedAt: string;
   aiExtractionStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+  // Phase 4: per-SKU design intake
+  orderItemId?: string | null;
+  skuLabel?: string | null;
 }
 
 interface ValidationError {
@@ -67,6 +70,9 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const [isPolling, setIsPolling] = useState(false);
   const [pollingRetries, setPollingRetries] = useState(0);
   const [extractionResults, setExtractionResults] = useState<Record<string, any>>({});
+  // Phase 4: per-SKU design intake. When the order has multiple items (SKUs),
+  // each upload is tagged with an order_item_id so approval can happen per-SKU.
+  const [selectedOrderItemId, setSelectedOrderItemId] = useState<string>('');
 
   // Polling configuration
   const POLLING_INTERVAL = 5000; // 5 seconds
@@ -76,6 +82,14 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   useEffect(() => {
     loadUploadedFiles();
   }, [order.id]);
+
+  // Phase 4: auto-select first SKU when the order has multiple items.
+  const hasMultipleItems = Array.isArray(order.items) && order.items.length > 1;
+  useEffect(() => {
+    if (hasMultipleItems && order.items.length > 0 && !selectedOrderItemId) {
+      setSelectedOrderItemId(order.items[0].id);
+    }
+  }, [hasMultipleItems, order.items, selectedOrderItemId]);
 
   // Poll for AI extraction results
   useEffect(() => {
@@ -135,7 +149,21 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
       const response = await fetch(`/api/member/orders/${order.id}/data-receipt`);
       if (response.ok) {
         const data = await response.json();
-        setUploadedFiles(data.data.files || []);
+        // Phase 4: map order_item_id + sku_name into the client-side UploadedFile shape.
+        const rawFiles = (data.data.files || []) as Array<Record<string, unknown>>;
+        const mapped: UploadedFile[] = rawFiles.map((f) => ({
+          id: String(f.id),
+          fileName: String(f.file_name ?? f.fileName ?? ''),
+          fileSize: Number(f.file_size ?? f.fileSize ?? 0),
+          fileType: String(f.file_type ?? f.fileType ?? ''),
+          downloadUrl: String(f.file_url ?? f.downloadUrl ?? ''),
+          dataType: String(f.data_type ?? f.dataType ?? 'other'),
+          uploadedAt: String(f.uploaded_at ?? f.uploadedAt ?? new Date().toISOString()),
+          aiExtractionStatus: (f.aiExtractionStatus as UploadedFile['aiExtractionStatus']) ?? null,
+          orderItemId: (f.order_item_id as string | null) ?? null,
+          skuLabel: (f.sku_name as string | null) ?? null,
+        }));
+        setUploadedFiles(mapped);
       }
     } catch (err) {
       console.error('Failed to load uploaded files:', err);
@@ -166,7 +194,9 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('ファイルサイズは10MB以下にしてください');
+      const msg = 'ファイルサイズは10MB以下にしてください。';
+      setError(msg);
+      window.alert(msg);
       return;
     }
 
@@ -198,6 +228,13 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   // Upload file
   const handleUpload = async () => {
     if (!selectedFile || !canUploadData) return;
+    // Phase 4: require SKU selection when the order has multiple items
+    if (hasMultipleItems && !selectedOrderItemId) {
+      const msg = '入稿対象のSKUを選択してください。';
+      setError(msg);
+      window.alert(msg);
+      return;
+    }
 
     setIsUploading(true);
     setError(null);
@@ -210,6 +247,10 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
       formData.append('data_type', dataType);
       if (description) {
         formData.append('description', description);
+      }
+      // Phase 4: tag the upload with the selected order_item_id when the order has multiple SKUs.
+      if (hasMultipleItems && selectedOrderItemId) {
+        formData.append('order_item_id', selectedOrderItemId);
       }
 
       // Upload with progress simulation
@@ -257,7 +298,9 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
+      const errMsg = err instanceof Error ? err.message : '予期しないエラーが発生しました';
+      setError(errMsg);
+      window.alert(`アップロードに失敗しました:\n${errMsg}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -359,6 +402,45 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             ファイルをアップロード
           </h2>
+
+          {/* Phase 4: SKU selector (only when order has multiple items) */}
+          {hasMultipleItems && (
+            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <label className="block text-sm font-medium text-amber-900 mb-2">
+                入稿対象SKUを選択 <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-amber-700 mb-2">
+                この注文は {order.items.length} 種類のSKUに分割されています。各SKUごとにデザインデータを入稿・承認してください。
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {order.items.map((item) => {
+                  const isSel = selectedOrderItemId === item.id;
+                  // そのSKUに既にファイルが入稿されているか確認
+                  const hasFile = uploadedFiles.some(f => f.orderItemId === item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedOrderItemId(item.id)}
+                      className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                        isSel
+                          ? 'border-amber-500 bg-amber-500 text-white shadow-md'
+                          : 'border-amber-200 bg-white text-amber-900 hover:border-amber-400'
+                      }`}
+                    >
+                      {item.productName}（{item.quantity.toLocaleString()}個）
+                      {hasFile && <span className="ml-1">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-amber-600 mt-2">
+                {selectedOrderItemId
+                  ? '✓ 選択中のSKUに入稿します'
+                  : '※ 入稿するSKUを選択してください'}
+              </p>
+            </div>
+          )}
 
           {/* Data Type Selection */}
           <div className="mb-4">
@@ -572,6 +654,12 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                     <span>{getDataTypeLabel(file.dataType)}</span>
                     <span>{new Date(file.uploadedAt).toLocaleString('ja-JP')}</span>
                   </div>
+                  {/* Phase 4: show which SKU this file belongs to */}
+                  {file.orderItemId && file.skuLabel && (
+                    <div className="mt-1 text-xs text-amber-700 font-medium">
+                      対象SKU: {file.skuLabel}
+                    </div>
+                  )}
                   {extractionResults[file.id] && (
                     <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                       <div className="flex items-center justify-between mb-2">

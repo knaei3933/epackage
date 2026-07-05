@@ -18,8 +18,9 @@ import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable
 import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
 import { calcDuty, calcManufacturingMargin } from '@/lib/duty-calculator';
+import { formatPrice } from '@/utils/formatters';
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription, getFilmStructureLabel } from '@/constants/materialTypes';
-import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck, Info } from 'lucide-react';
+import { RefreshCw, Download, List, BarChart3, ShoppingCart, Package, Layers, Settings, Truck, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -67,6 +68,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfStatus, setPdfStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  // Phase 1 fix: surface persistence errors to the user (no more silent fail).
+  // persistenceStatus tracks the auto-save outcome so the result page can show a banner.
+  const [persistenceStatus, setPersistenceStatus] = useState<{ status: 'idle' | 'success' | 'error'; message: string; quotationNumber?: string | null }>({ status: 'idle', message: '' });
+
   // 経済的数量提案・並列生産オプション用のステート
   const [showOptimizationSuggestions, setShowOptimizationSuggestions] = useState(false);
   const [parallelProductionOptions, setParallelProductionOptions] = useState<ParallelProductionOption[]>([]);
@@ -81,26 +86,33 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     console.log('[ResultStep] useEffect - state keys:', Object.keys(state));
   }, [state.bagTypeId]);
 
-  // 見積結果ページ表示時に自動でPDF生成・DB保存
   const hasAutoSaved = useRef(false);
+  // Phase 1 fix: track WHICH result was saved so a fresh quote run re-saves.
+  // The previous ref-only guard stayed true across a new calculation, silently skipping the save.
+  const lastSavedResultSignature = useRef<string | null>(null);
 
   useEffect(() => {
     console.log('[ResultStep] Auto-save useEffect triggered', { result: !!result, hasAutoSaved: hasAutoSaved.current });
 
-    // 既に自動保存済みの場合はスキップ
-    if (hasAutoSaved.current) {
-      console.log('[ResultStep] Already auto-saved, skipping');
+    // 見積結果ページ表示時に自動でPDF生成・DB保存
+    // Phase 1 fix: skip only if THIS exact result was already saved; a new calc triggers a new save.
+    const signature = result && result.totalPrice > 0
+      ? `${result.totalPrice}|${result.unitPrice}|${result.quantity ?? 0}`
+      : null;
+
+    if (!signature) {
+      console.log('[ResultStep] Result not ready or invalid:', result);
+      return;
+    }
+    if (lastSavedResultSignature.current === signature) {
+      console.log('[ResultStep] Already auto-saved this exact result, skipping');
       return;
     }
 
-    // resultが存在すれば自動保存実行（認証不要）
-    if (result && result.totalPrice > 0) {
-      console.log('[ResultStep] Starting auto-save with result:', result);
-      hasAutoSaved.current = true;
-      autoGenerateAndSave();
-    } else {
-      console.log('[ResultStep] Result not ready or invalid:', result);
-    }
+    console.log('[ResultStep] Starting auto-save with result:', result);
+    lastSavedResultSignature.current = signature;
+    hasAutoSaved.current = true;
+    autoGenerateAndSave();
   }, [result?.totalPrice, result?.unitPrice]);
 
   // ブラウザの戻るボタンを無効化（強化版）
@@ -460,7 +472,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           id: `item-${index + 1}`,
           name: `${getBagTypeDescriptionJa(state.bagTypeId)} - ${getMaterialDescriptionJa(state.materialId)}`,
           description: `サイズ: ${state.width}×${state.height}${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `×${state.depth}` : ''}mm`,
-          quantity: quote.quantity,
+          quantity: quote.patternTotalQuantity ?? quote.quantity,
           unit: state.bagTypeId === 'roll_film' ? 'm' : '個',
           unitPrice: quote.unitPrice,
           amount: quote.totalPrice
@@ -1002,6 +1014,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       console.log('[saveQuotationToDatabase] User not authenticated, skipping auto-save');
       return null;
     }
+    setPersistenceStatus({ status: 'idle', message: '見積を保存中...' });
 
     try {
       // ========================================
@@ -1040,7 +1053,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
           delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
           salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
-          totalCost: Math.round(totalBaseCost)
+          totalCost: Math.round(totalBaseCost),
+          // 配送料の内訳（国際 / 国内）を発注メール原価計算のために保存。
+          intlShippingJPY: result.skuCostDetails?.summary?.intlShippingJPY ?? 0,
+          domesticShippingJPY: result.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
+          deliveryBoxes: result.skuCostDetails?.summary?.deliveryBoxes ?? 0
         };
       } else if (result.breakdown?.baseCost || result.breakdown?.filmCost || result.breakdown?.pouchProcessingCost) {
         // 【追加】result.breakdownから直接計算（SKUモード対応）
@@ -1064,7 +1081,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           duty: Math.round(breakdown.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
           delivery: Math.round(breakdown.delivery || baseCost * 0.08),
           salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.25),
-          totalCost: Math.round(baseCost)
+          totalCost: Math.round(baseCost),
+          // フォールバック: 国際/国内分離不明のため delivery 全額を国際として扱う
+          intlShippingJPY: Math.round(breakdown.delivery || baseCost * 0.08),
+          domesticShippingJPY: 0,
+          deliveryBoxes: 0
         };
       } else if ((result.totalPrice && result.totalPrice > 0) || (result.unitPrice && result.unitPrice > 0) || (result.breakdown?.baseCost && result.breakdown.baseCost > 0)) {
         // 通常モード・単一SKUモード: resultから計算
@@ -1084,7 +1105,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           duty: Math.round(result.breakdown?.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
           delivery: Math.round(result.breakdown?.delivery || baseCost * 0.08), // 約8%
           salesMargin: Math.round(result.breakdown?.salesMargin || baseCost * 0.25), // 約25%
-          totalCost: Math.round(baseCost)
+          totalCost: Math.round(baseCost),
+          // フォールバック: 国際/国内分離不明のため delivery 全額を国際として扱う
+          intlShippingJPY: Math.round(result.breakdown?.delivery || baseCost * 0.08),
+          domesticShippingJPY: 0,
+          deliveryBoxes: 0
         };
       }
 
@@ -1101,7 +1126,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             return {
               productId: 'custom',
               productName: 'カスタム製品',
-              quantity: quote.quantity,
+              quantity: quote.patternTotalQuantity ?? quote.quantity,
               unitPrice: quote.unitPrice,
               totalPrice: quote.totalPrice, // 正確な合計金額を追加（丸め誤差防止）
               specifications: {
@@ -1114,7 +1139,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
                 thicknessSelection: state.thicknessSelection,
                 isUVPrinting: state.isUVPrinting,
-                printingType: state.printingType,
+                // Issue 2 fix: resolve 'auto' to actual method
+                printingType: state.printingType === 'auto' ? (quote.recommendedMethod || 'digital') : state.printingType,
                 printingColors: state.printingColors,
                 doubleSided: state.doubleSided,
                 // 後加工オプションは配列としてのみ保存（個別フィールドは保存しない）
@@ -1133,8 +1159,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 // 【追加】表示用フィールド（AdminQuotationListとの互換性）
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
-                // 印刷表示用
-                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'auto' ? '自動選択' : undefined,
+                // 印刷表示用 (Issue 2: resolve auto)
+                printing_display: (state.printingType === 'auto' ? (quote.recommendedMethod || 'digital') : state.printingType) === 'digital' ? 'デジタル印刷' : 'グラビア印刷',
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;
@@ -1201,7 +1227,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
                 thicknessSelection: state.thicknessSelection,
                 isUVPrinting: state.isUVPrinting,
-                printingType: state.printingType,
+                // Issue 2 fix: resolve 'auto' to actual method
+                printingType: state.printingType === 'auto' ? (quote.recommendedMethod || 'digital') : state.printingType,
                 printingColors: state.printingColors,
                 doubleSided: state.doubleSided,
                 // 後加工オプションは配列としてのみ保存（個別フィールドは保存しない）
@@ -1220,8 +1247,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 // 【追加】表示用フィールド（AdminQuotationListとの互換性）
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
-                // 印刷表示用
-                printing_display: state.printingType === 'digital' ? 'デジタル印刷' : state.printingType === 'gravure' ? 'グラビア印刷' : state.printingType === 'auto' ? '自動選択' : undefined,
+                // 印刷表示用 (Issue 2: resolve auto)
+                printing_display: (state.printingType === 'auto' ? (quote.recommendedMethod || 'digital') : state.printingType) === 'digital' ? 'デジタル印刷' : 'グラビア印刷',
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;
@@ -1312,14 +1339,20 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           notes: null,
           // 【追加】見積全体の原価内訳（合計）
           cost_breakdown: costBreakdown || {},
-          items: itemsToSave.map(item => ({
-            product_name: item.productName,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            specifications: item.specifications,
-            // 【追加】アイテム別原価内訳
-            cost_breakdown: (item as any).cost_breakdown || {}
-          })),
+          items: itemsToSave.map(item => {
+            // Sanitize: ensure quantity and unit_price are finite numbers.
+            // JSON.stringify omits undefined keys, so a missing unit_price would arrive as
+            // undefined on the API side and fail validation. Coerce to 0 if invalid.
+            const safeUnitPrice = (typeof item.unitPrice === 'number' && isFinite(item.unitPrice)) ? item.unitPrice : 0;
+            const safeQty = (typeof item.quantity === 'number' && isFinite(item.quantity) && item.quantity > 0) ? item.quantity : 1;
+            return {
+              product_name: item.productName || 'カスタム製品',
+              quantity: safeQty,
+              unit_price: safeUnitPrice,
+              specifications: item.specifications,
+              cost_breakdown: (item as any).cost_breakdown || {}
+            };
+          }),
         }),
       });
 
@@ -1341,7 +1374,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       const savedQuotation = await response.json();
       console.log('[saveQuotationToDatabase] 見積が自動保存されました:', savedQuotation);
-      return savedQuotation.id || savedQuotation.quotation?.id || null;
+      const qNumber = savedQuotation.quotation_number || savedQuotation.quotation?.quotation_number || null;
+      const qId = savedQuotation.id || savedQuotation.quotation?.id || null;
+      setPersistenceStatus({
+        status: 'success',
+        message: qId ? '見積を保存しました。会員ページの見積一覧に反映されています。' : '見積を保存しました。',
+        quotationNumber: qNumber,
+      });
+      return qId;
     } catch (error) {
       console.error('[saveQuotationToDatabase] ========================================');
       console.error('[saveQuotationToDatabase] 保存失敗 (CATCH):');
@@ -1351,9 +1391,12 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       console.error('[saveQuotationToDatabase] User authenticated:', !!user?.id);
       console.error('[saveQuotationToDatabase] User email:', user?.email || 'N/A');
       console.error('[saveQuotationToDatabase] ========================================');
-      // ✅ ユーザー体験を妨げないためにエラーを表示しない
-      // PDFダウンロードは成功したので継続
-      // エラーはコンソールにのみ出力
+      // Phase 1 fix: surface the failure to the user instead of silent console-only logging.
+      const msg = error instanceof Error ? error.message : String(error);
+      setPersistenceStatus({
+        status: 'error',
+        message: `見積の保存に失敗しました: ${msg}。PDFはダウンロード済みです。お手数ですが、お問い合わせフォームよりご連絡ください。`,
+      });
       return null;
     }
   };
@@ -1374,7 +1417,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       const itemsToSave = hasMultiQuantityResults && multiQuantityQuotes.length > 0
         ? multiQuantityQuotes.map((mq) => ({
             productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
-            quantity: mq.quantity,
+            quantity: mq.patternTotalQuantity ?? mq.quantity,
             unitPrice: mq.unitPrice,
             totalPrice: mq.totalPrice, // 正確な合計金額を追加（丸め誤差防止）
             specifications: {
@@ -1386,7 +1429,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
               thicknessSelection: state.thicknessSelection,
               isUVPrinting: state.isUVPrinting,
-              printingType: state.printingType,
+              // Issue 2 fix: resolve 'auto' to the actual recommended printing method (digital/gravure)
+              printingType: state.printingType === 'auto' ? (mq.recommendedMethod || 'digital') : state.printingType,
               printingColors: state.printingColors,
               doubleSided: state.doubleSided,
               postProcessingOptions: state.postProcessingOptions,
@@ -1430,7 +1474,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 dimensions: `${state.width} x ${state.height} ${state.depth > 0 ? `x ${state.depth}` : ''}${state.sideWidth ? ` x 側面${state.sideWidth}` : ''} mm`,
                 thicknessSelection: state.thicknessSelection,
                 isUVPrinting: state.isUVPrinting,
-                printingType: state.printingType,
+                // Issue 2 fix: resolve 'auto' to actual method
+                printingType: state.printingType === 'auto' ? (result.recommendation?.method || 'digital') : state.printingType,
                 printingColors: state.printingColors,
                 doubleSided: state.doubleSided,
                 postProcessingOptions: state.postProcessingOptions,
@@ -1503,14 +1548,17 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             salesMargin: Math.round(result.breakdown?.salesMargin || (result.breakdown?.baseCost || 0) * 0.25),
             totalCost: Math.round(result.breakdown?.baseCost || (result.breakdown as Record<string, any>)?.totalCost || 0)
           } : {},
-          items: itemsToSave.map(item => ({
-            product_name: item.productName,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            specifications: item.specifications,
-            // 【追加】アイテム別原価内訳
-            cost_breakdown: (item as any).cost_breakdown || (result.skuCostDetails?.costPerSKU?.[0]?.costBreakdown || null)
-          })),
+          items: itemsToSave.map(item => {
+            const safeUnitPrice = (typeof item.unitPrice === 'number' && isFinite(item.unitPrice)) ? item.unitPrice : 0;
+            const safeQty = (typeof item.quantity === 'number' && isFinite(item.quantity) && item.quantity > 0) ? item.quantity : 1;
+            return {
+              product_name: item.productName || 'カスタム製品',
+              quantity: safeQty,
+              unit_price: safeUnitPrice,
+              specifications: item.specifications,
+              cost_breakdown: (item as any).cost_breakdown || (result.skuCostDetails?.costPerSKU?.[0]?.costBreakdown || null)
+            };
+          }),
         }),
       });
 
@@ -1538,6 +1586,49 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
   return (
     <div className="space-y-8">
+      {/* Phase 1 fix: persistence status banner (auto-save result) */}
+      {persistenceStatus.status === 'success' && (
+        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-green-900">{persistenceStatus.message}</p>
+            {persistenceStatus.quotationNumber && (
+              <p className="text-sm text-green-700 mt-1">見積番号: {persistenceStatus.quotationNumber}</p>
+            )}
+            {user?.id && (
+              <a href="/member/quotations" className="inline-block mt-2 text-sm font-medium text-green-700 underline hover:text-green-900">
+                見積一覧を確認する →
+              </a>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setPersistenceStatus({ status: 'idle', message: '' })}
+            className="text-green-400 hover:text-green-700"
+            aria-label="閉じる"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      {persistenceStatus.status === 'error' && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold text-red-900">見積の保存に失敗しました</p>
+            <p className="text-sm text-red-700 mt-1">{persistenceStatus.message}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPersistenceStatus({ status: 'idle', message: '' })}
+            className="text-red-400 hover:text-red-700"
+            aria-label="閉じる"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           見積もり完了
@@ -1894,7 +1985,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                           )}
                         </td>
                         <td className={`text-right py-2 px-3 ${isCheapest ? 'font-bold text-green-700' : 'text-gray-700'}`}>
-                          ¥{Math.round(row.unitPrice).toLocaleString()}
+                          ¥{formatPrice(row.unitPrice)}
                         </td>
                         <td className="text-right py-2 px-3 text-gray-700">
                           ¥{Math.round(row.totalPrice).toLocaleString()}
@@ -1937,7 +2028,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                   ¥{roundedTotal.toLocaleString()}
                 </div>
                 <div className="text-sm opacity-90">
-                  単価: ¥{Math.round(result.unitPrice).toLocaleString()}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
+                  単価: ¥{formatPrice(result.unitPrice)}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
                 </div>
               </>
             );

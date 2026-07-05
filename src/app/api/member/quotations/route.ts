@@ -127,8 +127,23 @@ export async function POST(request: NextRequest) {
     // Parse and validate request body
     const body: CreateQuotationRequest = await request.json();
 
-    // Validation
+    // Validation (with diagnostic logging to pinpoint failures)
+    console.log('[Quotation API] POST body keys:', Object.keys(body));
+    console.log('[Quotation API] customer_name:', body.customer_name, '| customer_email:', body.customer_email);
+    console.log('[Quotation API] items count:', body.items?.length, '| items type:', typeof body.items);
+    if (body.items?.length > 0) {
+      console.log('[Quotation API] item[0]:', {
+        product_name: body.items[0].product_name,
+        quantity: body.items[0].quantity,
+        unit_price: body.items[0].unit_price,
+        typeof_qty: typeof body.items[0].quantity,
+        typeof_up: typeof body.items[0].unit_price,
+        has_unitPrice: 'unitPrice' in (body.items[0] as any),
+      });
+    }
+
     if (!body.customer_name || !body.customer_email) {
+      console.error('[Quotation API] FAIL: missing customer_name or customer_email');
       return NextResponse.json(
         { error: '必須項目が不足しています。', errorEn: 'Missing required fields' },
         { status: 400 }
@@ -136,6 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
+      console.error('[Quotation API] FAIL: items empty or not array');
       return NextResponse.json(
         { error: '見積項目が少なくとも1つ必要です。', errorEn: 'At least one quotation item is required' },
         { status: 400 }
@@ -143,24 +159,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate items
-    for (const item of body.items) {
+    for (let vi = 0; vi < body.items.length; vi++) {
+      const item = body.items[vi];
       if (!item.product_name) {
+        console.error(`[Quotation API] FAIL item[${vi}]: missing product_name`);
         return NextResponse.json(
-          { error: '製品名は必須です。', errorEn: 'Product name is required' },
+          { error: '製品名は必須です。', errorEn: 'Product name is required', field: 'product_name', itemIndex: vi },
           { status: 400 }
         );
       }
-      if (typeof item.quantity !== 'number' || item.quantity <= 0) {
-        return NextResponse.json(
-          { error: '数量は正の数でなければなりません。', errorEn: 'Quantity must be a positive number' },
-          { status: 400 }
-        );
+      // Defensive: coerce invalid quantity to 1 instead of hard-failing.
+      // Frontend multi-quantity mode can pass 0 when patternTotalQuantity falls back to Map index.
+      if (typeof item.quantity !== 'number' || !isFinite(item.quantity) || item.quantity <= 0) {
+        console.warn(`[Quotation API] WARN item[${vi}]: quantity invalid (${item.quantity}), coercing to 1`);
+        item.quantity = 1;
       }
-      if (typeof item.unit_price !== 'number' || item.unit_price < 0) {
-        return NextResponse.json(
-          { error: '単価は0以上でなければなりません。', errorEn: 'Unit price must be non-negative' },
-          { status: 400 }
-        );
+      // Defensive: coerce missing/non-finite unit_price to 0 instead of hard-failing.
+      // JSON.stringify omits undefined keys, so a missing unit_price arrives as undefined.
+      if (typeof item.unit_price !== 'number' || !isFinite(item.unit_price) || item.unit_price < 0) {
+        console.warn(`[Quotation API] WARN item[${vi}]: unit_price invalid (${item.unit_price}), coercing to 0`);
+        item.unit_price = 0;
       }
     }
 
@@ -456,6 +474,7 @@ export async function GET(request: NextRequest) {
         total_amount,
         valid_until,
         notes,
+        pdf_url,
         created_at,
         updated_at
       `)

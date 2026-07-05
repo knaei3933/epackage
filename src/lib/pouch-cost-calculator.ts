@@ -8,7 +8,7 @@
 import { FilmCostCalculator, FilmCostResult, FilmStructureLayer } from './film-cost-calculator';
 import { getDefaultFilmLayers } from './film-structure';
 import { determineMaterialWidth, MaterialWidthType } from './material-width-selector';
-import { PRICING_CONSTANTS } from './pricing/core/constants';
+import { PRICING_CONSTANTS, DELIVERY_CONSTANTS_JP } from './pricing/core/constants';
 
 // ========================================
 // タイプ定義
@@ -129,6 +129,8 @@ export interface SKUCostResult {
     totalWithLossMeters: number; // 総フィルム量（確保量 + ロス）
     totalWeight: number;
     deliveryBoxes: number;
+    intlShippingJPY?: number;  // 韓国→日本 国際配送費（円）— 発注メールの原価計算で国内配送を除外するため分離
+    domesticShippingJPY?: number; // 日本国内配送費（円、1,600円/箱）
   };
   // 필름 폭 계산 정보
   calculatedFilmWidth?: number;  // 計算されたフィルム幅
@@ -316,23 +318,15 @@ export class PouchCostCalculator {
     }
 
     // ========================================
-    // パウチの場合: 1~2列まで対応
-    // ========================================
-    // 2列フィルム幅計算（2列が可能か確認）
-    const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
-    const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
-    const canUse2Columns = filmWidth2Columns <= printableWidth;
-
-    // 製作長（1列基準の印刷M数）による判定（ユーザー指示 2026-06-29）
-    // 印刷M数 ≥ 1000m のときから列数を自動適用。
-    // スパウトパウチを含むすべてのパウチに共通適用（印刷条件は同一・2列フィルム幅は
-    // calculateFilmWidth で計算済み。canUse2Columns で物理可否を判定）。
-    // グラビアの determineAutoMultiColumnCount と同じ「製作長≥1000m」基準に統一。
-    const theoreticalMeters1Col = this.calculateTheoreticalMeters(totalQuantity, dimensions, pouchType, 1);
-    if (theoreticalMeters1Col >= 1000) {
-      return canUse2Columns ? 2 : 1; // 製作長≥1000m: 2列可能であれば2列使用
-    }
-    return 1; // 製作長<1000m: 1列（小量生産）
+    // パウチの場合: 物理可能な最大列数を常に使用（フィルム消費最小化）
+    // 【수정 2026-07-05】2列固定・1000m閾値を廃止。
+    // 常に「1列フィルム幅 ≤ 印刷可能幅」を満たす最大N列を選択する。
+    // 2列割引(0.85/0.70)ルールは廃止し、列数はフィルム使用量削減目的のみ。
+    // ※ 呼出元 calculateSKUCost で既に bestColumnCount を算出済みの場合は
+    //    ここは参照用。materialWidth から印刷可能幅を再計算して最大列数を返す。
+    const singleColumnWidth = this.calculateFilmWidth(pouchType, dimensions, 1);
+    const pw = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
+    return Math.max(1, Math.floor(pw / singleColumnWidth));
   }
 
   /**
@@ -384,38 +378,82 @@ export class PouchCostCalculator {
     const skuCount = adjustedQuantities.length;
 
     // ========================================
-    // 原反幅の決定（先に決定する必要がある）
+    // 原反幅の決定 + 物理可能最大列数の自動判定
     // ========================================
-    // 2列生産の可能性を事前に確認（原反幅選定用）
-    const filmWidth2Columns = this.calculateFilmWidth(pouchType, dimensions, 2);
+    // 各ロットサイズの原反(590/760/780/1190)の印刷可能幅と、
+    // 1列フィルム幅から「物理的に収まる最大列数」を選び、フィルム消費を最小化する。
+    // 【수정】2列固定ではなく N列(1~最大)を常に選ぶ。2列割引(0.85/0.70)は廃止。
+    // 지퍼 유무 판정 (필름폭 열간 간격에 영향)
+    const hasZipperFlag = postProcessingOptions?.includes('zipper-yes') ?? false;
+    const singleColumnWidth = this.calculateFilmWidth(pouchType, dimensions, 1, hasZipperFlag);
 
-    // 2列生産フィルム幅が570mmを超える場合は760mm原反を使用
-    // 例: 145×145×30mmのスタンドパウチ2列: (145×4) + (30×2) + 40 = 650mm > 570mm → 760mm原反
-    // 例: 130×130×30mmのスタンドパウチ2列: (130×4) + (30×2) + 40 = 620mm > 570mm → 760mm原反
-    let materialWidth: number;
-    if (filmWidth2Columns > 570) {
-      // 2列フィルム幅が570mmを超える場合は760mm原反を使用（印刷可能幅740mm）
-      materialWidth = 760;
-    } else {
-      // それ以外はパウチ幅に基づいて選択
-      materialWidth = this.selectMaterialWidth(dimensions.width, materialId);
+    // 候補原反幅と印刷可能幅（クラフト材料は 780/1190 のみ選択可）
+    const isKraftMaterial = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe' || materialId === 'kraft_pe';
+    const rollCandidates = isKraftMaterial
+      ? [{ materialWidth: 780 as number, printable: 760 }, { materialWidth: 1190 as number, printable: 1170 }]
+      : [{ materialWidth: 590 as number, printable: 570 }, { materialWidth: 760 as number, printable: 740 }];
+
+    // 各原反幅で物理可能な最大列数とそのときのN列フィルム幅を計算 →
+    // 「N列フィルム幅 ≤ 印刷可能幅」を満たす最大N を選ぶ。
+    // ※ N列フィルム幅は N×1列幅より小さく増加する（列間余白が1列あたりより小さい）ため、
+    //    単純な floor(printable/singleCol) ではなく実N列幅で判定する。
+    let bestMaterialWidth: number = this.selectMaterialWidth(dimensions.width, materialId);
+    let bestColumnCount = 1;
+    for (const cand of rollCandidates) {
+      let maxN = 1;
+      // 1列〜上限まで実N列幅で判定（上限: 原反の物理上限、パウチは実務上7列まで）
+      for (let n = 2; n <= 7; n++) {
+        if (this.calculateFilmWidth(pouchType, dimensions, n, hasZipperFlag) <= cand.printable) {
+          maxN = n;
+        } else {
+          break;
+        }
+      }
+      if (maxN > bestColumnCount || (maxN === bestColumnCount && cand.materialWidth < bestMaterialWidth)) {
+        bestMaterialWidth = cand.materialWidth;
+        bestColumnCount = maxN;
+      }
     }
 
+    // ========================================
+    // 列数自動判定ロジック（原反幅 + 印刷長しきい値を考慮）
+    // ========================================
+    // 【다열인쇄 기준 (2026-07-05)】
+    // - 파우치: 이론 인쇄길이(로스 제외) > 1000m 부터 다열인쇄 적용 (1000m까지는 1열)
+    // - 롤 제품: 인쇄길이 ≥ 500m 부터 다열인쇄 적용 (calculateOptimalColumnCount 内で判定)
+    const totalQtyForThreshold = adjustedQuantities.reduce((sum, q) => sum + q, 0);
+    const optimalColumnCount = pouchType === 'roll_film'
+      ? this.calculateOptimalColumnCount(
+          pouchType,
+          dimensions,
+          totalQtyForThreshold,
+          this.selectMaterialWidth(dimensions.width, materialId)
+        )
+      : (() => {
+          // 파우치: 1열 기준 이론 인쇄길이(로스 제외) > 1000m 부터 다열인쇄 적용 (1000m는 1열)
+          const theoreticalMeters1Col = this.calculateTheoreticalMeters(
+            totalQtyForThreshold, dimensions, pouchType, 1
+          );
+          if (theoreticalMeters1Col > 1000) {
+            return bestColumnCount; // 다열인쇄: 최대 물리 열수
+          }
+          return 1; // 인쇄길이 < 1000m: 1열 생산
+        })();
+
+    // ========================================
+    // 原反幅の最終決定（최소 적합 원반 선택）
+    // ========================================
+    // 가이드: 다열인쇄라도 N열 필름폭이 590mm 원반(인쇄가능 570mm)에 들어가면 590mm 사용.
+    // 570mm 초과 시에만 760mm 원반으로 승격.
+    // 크라프트材料는 별도 원반폭(780/1190)을 사용하므로 루프 결과(bestMaterialWidth)를 유지.
+    const nColFilmWidth = this.calculateFilmWidth(pouchType, dimensions, optimalColumnCount, hasZipperFlag);
+    const materialWidth = isKraftMaterial
+      ? bestMaterialWidth
+      : (nColFilmWidth <= 570 ? 590 : 760);
     const printableWidth = materialWidth === 590 ? 570 : materialWidth === 760 ? 740 : materialWidth === 780 ? 760 : 1170;
 
-    // ========================================
-    // 列数自動判定ロジック（原反幅を考慮）
-    // ========================================
-    // 最適列数を自動決定（パウチは1~2列、ロールフィルムは1~7列）
-    const optimalColumnCount = this.calculateOptimalColumnCount(
-      pouchType,
-      dimensions,
-      adjustedQuantities.reduce((sum, q) => sum + q, 0),
-      materialWidth
-    );
-
     // 最終フィルム幅計算
-    const filmWidth = this.calculateFilmWidth(pouchType, dimensions, optimalColumnCount);
+    const filmWidth = this.calculateFilmWidth(pouchType, dimensions, optimalColumnCount, hasZipperFlag);
 
     // 全数量の計算（後で使用）
     const totalQuantity = adjustedQuantities.reduce((sum, q) => sum + q, 0);
@@ -450,11 +488,11 @@ export class PouchCostCalculator {
 
     // 全体フィルム使用量（ロス込み）
     // Kraft材料: 最低1000mで価格計算（ユーザーが少量注文しても1000m分の価格）
-    const isKraftMaterial = materialId?.includes('kraft');
+    const isKraftMaterial2 = materialId?.includes('kraft');
     // filmLayers未指定時は materialId/thicknessSelection からデフォルト構造を補充
     // （L1022 calculateFilmCost と同一パターン・L776 は空配列 fallback より正確）
     const lossMeters = getLossMeters(filmLayers || getDefaultFilmLayers(materialId, thicknessSelection || 'medium'));
-    const totalWithLossMeters = isKraftMaterial
+    const totalWithLossMeters = isKraftMaterial2
       ? Math.max(totalSecuredMeters + lossMeters, 1000)
       : totalSecuredMeters + lossMeters;
 
@@ -462,9 +500,9 @@ export class PouchCostCalculator {
       totalSecuredMeters,
       lossMeters,
       totalWithLossMeters,
-      isKraftMaterial,
-      kraftMinimumApplied: isKraftMaterial && totalSecuredMeters + lossMeters < 1000,
-      note: isKraftMaterial ? 'Kraft材料: 最低1000m適用' : '全量を一度に印刷・加工するため、個別計算ではなく合計で計算'
+      isKraftMaterial: isKraftMaterial2,
+      kraftMinimumApplied: isKraftMaterial2 && totalSecuredMeters + lossMeters < 1000,
+      note: isKraftMaterial2 ? 'Kraft材料: 最低1000m適用' : '全量を一度に印刷・加工するため、個別計算ではなく合計で計算'
     });
 
     // 全体フィルム原価計算（530m全体に対して1回のみ計算）
@@ -527,7 +565,8 @@ export class PouchCostCalculator {
         layersForDelivery,
         materialWidth,
         quantity,
-        dimensions
+        dimensions,
+        pouchType
       );
 
       // フィルム原価を数量比で按分
@@ -557,7 +596,7 @@ export class PouchCostCalculator {
         allocatedFilmCost,
         allocatedPouchProcessingCostKRW,
         quantity,
-        15358,  // デフォルト配送料（後で上書き）
+        16958,  // デフォルト配送料（国際15,358円 + 国内1,600円、後で上書き）
         markupRate  // 顧客別マークアップ率を適用
       );
 
@@ -579,14 +618,21 @@ export class PouchCostCalculator {
     // 総配送重量の計算（全SKUの合計）
     const totalDeliveryWeight = costPerSKU.reduce((sum, sku) => sum + (sku.deliveryWeight || 0), 0);
 
-    // 必要な箱数の計算（29kg/箱）
-    const BOX_CAPACITY_KG = 29;
-    const deliveryBoxes = Math.ceil(totalDeliveryWeight / BOX_CAPACITY_KG);
+    // 必要な箱数の計算（パウチ: 19kg/箱 + 박스무게 0.7kg/箱）— 2026-07-05 改定
+    // 순수 제품 중량 + 박스무게(0.7kg×箱수)가 박스 용량을 초과하면 박스 증가
+    const BOX_CAPACITY_KG = DELIVERY_CONSTANTS_JP.POUCH_BOX_CAPACITY_KG;
+    const BOX_WEIGHT_KG = 0.7; // 골판지 박스 1개 중량
+    let deliveryBoxes = Math.ceil(totalDeliveryWeight / (BOX_CAPACITY_KG - BOX_WEIGHT_KG));
+    if (deliveryBoxes < 1) deliveryBoxes = 1;
 
-    // 総配送料の計算（箱数 × 1箱あたりの配送料）
-    const DELIVERY_COST_PER_BOX_KRW = 127980;
+    // 総配送料 = 韓国→日本 国際配送（127,980ウォン/箱 × 0.12）+ 日本国内配送（1,600円/箱）
+    // 2026-07-05: 日本国内配送を追加（ユーザー指示）
+    const DELIVERY_COST_PER_BOX_KRW = DELIVERY_CONSTANTS_JP.INTERNATIONAL_COST_PER_BOX_KRW;
+    const DOMESTIC_JP_PER_BOX_JPY = DELIVERY_CONSTANTS_JP.DOMESTIC_JP_COST_PER_BOX_JPY;
     const EXCHANGE_RATE = 0.12;
-    const totalDeliveryJPY = deliveryBoxes * DELIVERY_COST_PER_BOX_KRW * EXCHANGE_RATE;
+    const internationalDeliveryJPY = deliveryBoxes * DELIVERY_COST_PER_BOX_KRW * EXCHANGE_RATE;
+    const domesticJPDeliveryJPY = deliveryBoxes * DOMESTIC_JP_PER_BOX_JPY;
+    const totalDeliveryJPY = internationalDeliveryJPY + domesticJPDeliveryJPY;
 
     console.log('[calculateSKUCost] Delivery Calculation:', {
       totalDeliveryWeight,
@@ -631,7 +677,9 @@ export class PouchCostCalculator {
       lossMeters,
       totalWithLossMeters,
       totalWeight: totalDeliveryWeight,
-      deliveryBoxes
+      deliveryBoxes,
+      intlShippingJPY: Math.round(internationalDeliveryJPY),
+      domesticShippingJPY: Math.round(domesticJPDeliveryJPY)
     };
 
     return {
@@ -695,7 +743,8 @@ export class PouchCostCalculator {
       layersForDelivery,
       materialWidth,
       quantity,
-      dimensions
+      dimensions,
+      pouchType
     );
 
     console.log('[calculateSingleSKUCost] Delivery Weight:', {
@@ -741,7 +790,7 @@ export class PouchCostCalculator {
       filmCostResult,
       pouchProcessingCost, // KRW
       quantity,
-      15358,  // デフォルト配送料（1箱分）：127980ウォン × 0.12
+      16958,  // デフォルト配送料（1箱分）：国際127980ウォン×0.12 + 国内1,600円
       markupRate  // 顧客別マークアップ率を適用
     );
 
@@ -771,43 +820,48 @@ export class PouchCostCalculator {
   private calculateFilmWidth(
     pouchType: string,
     dimensions: PouchDimensions,
-    columnCount: number = 1
+    columnCount: number = 1,
+    hasZipper: boolean = false
   ): number {
     const { height: H, width: W, depth: G = 0 } = dimensions;
+    const N = Math.max(1, Math.floor(columnCount));
+    // 가이드 02-필름폭: 지퍼 유무에 따라 열간 간격이 다름
+    // - 지퍼 없음: 2열=(H×4)+41 (간격 0)
+    // - 지퍼 있음: 2열=(H×4)+71 (간격 30)
+    const interColGap = hasZipper ? 30 : 0;
 
     switch (pouchType) {
       case 'roll_film':
         // 롤 필름: columnCount × 롤 폭
-        return W * columnCount;
+        return W * N;
 
       case 'flat_3_side':
       case 'three_side':
       case 'zipper':
-        return columnCount === 1 ? (H * 2) + 41 : (H * 4) + 71;
+        // 1列=(H×2)+41, 2열 지퍼없음=(H×4)+41, 2열 지퍼있음=(H×4)+71
+        // N列=(H×2)×N + 41 + (N-1)×interColGap
+        return (H * 2) * N + 41 + (N - 1) * interColGap;
 
       case 'stand_up':
       case 'zipper_stand':
-        // 1列: (H × 2) + (G × 2) + 35, 2列: (H × 4) + (G × 2) + 40
-        // depth(G)は片面の値なので、両面分はG × 2（1列・2列共通）
-        return columnCount === 1 ? (H * 2) + (G * 2) + 35 : (H * 4) + (G * 2) + 40;
+        // 1列=(H×2)+(G×2)+35, 2列=(H×4)+(G×2)+40 → N列=(H×2)×N + (G×2) + 35 + (N-1)×5
+        return (H * 2) * N + (G * 2) + 35 + (N - 1) * 5;
 
       case 'spout':
       case 'spout_pouch':
-        // スパウトパウチ: スタンドパウチと同じ計算式（マチありの場合）
-        // 1列: (H × 2) + (G × 2) + 35, 2列: (H × 4) + (G × 2) + 40
-        // depth(G)は片面の値なので、両面分はG × 2（1列・2列共通）
-        return columnCount === 1 ? (H * 2) + (G * 2) + 35 : (H * 4) + (G * 2) + 40;
+        // スパウトパウチ: スタンドパウチと同じN列公式
+        return (H * 2) * N + (G * 2) + 35 + (N - 1) * 5;
 
       case 't_shape':
-        // 合掌袋（T封）: 1列=(W×2)+22, 2列=(W×4)+64 (2×A+20, A=(W×2)+22)
-        return columnCount === 1 ? (W * 2) + 22 : (W * 4) + 64;
+        // 1列=(W×2)+22, 2列=(W×4)+64 → N列=(W×2)×N + 22 + (N-1)×42
+        return (W * 2) * N + 22 + (N - 1) * 42;
 
       case 'box':
-        // M字袋(マチ袋)とボックス型パウチ: 1列=(G+W)×2+32, 2列=(G+W)×4+84 (2×A+20, A=(G+W)×2+32)
-        return columnCount === 1 ? (G + W) * 2 + 32 : (G + W) * 4 + 84;
+        // 1列=(G+W)×2+32, 2列=(G+W)×4+84 → N列=((G+W)×2)×N + 32 + (N-1)×52
+        return ((G + W) * 2) * N + 32 + (N - 1) * 52;
 
       default:
-        return columnCount === 1 ? (H * 2) + 41 : (H * 4) + 71;
+        return (H * 2) * N + 41 + (N - 1) * 30;
     }
   }
 
@@ -1163,7 +1217,7 @@ export class PouchCostCalculator {
     filmCostResult: FilmCostResult,
     pouchProcessingCostKRW: number,
     quantity: number,
-    deliveryJPY: number = 15358,  // デフォルトは1箱分（後で上書き）
+    deliveryJPY: number = 16958,  // デフォルトは1箱分（国際15,358円 + 国内1,600円、後で上書き）
     markupRate: number = 0.0  // 顧客別マークアップ率（デフォルト0% = 割引なし）
   ): Promise<SKUCostBreakdown> {
     const EXCHANGE_RATE = 0.12;
@@ -1299,10 +1353,11 @@ export class PouchCostCalculator {
     layers: FilmStructureLayer[],
     materialWidth: number,
     quantity: number,
-    dimensions: PouchDimensions
+    dimensions: PouchDimensions,
+    pouchType: string = ''
   ): number {
-    // パウチ1個の面積 (mm²)
-    const areaMM2 = (dimensions.width + 15) * dimensions.height;
+    // パウチ1個の面積 (mm²): 앞면+뒷면 (W × H × 2) + 여유분 15mm
+    const areaMM2 = (dimensions.width + 15) * dimensions.height * 2;
 
     // 面積 (m²)
     const areaM2 = areaMM2 / 1000000;
@@ -1328,7 +1383,16 @@ export class PouchCostCalculator {
     }
 
     // 全体重量 = 1個の重量 × 数量
-    return totalWeight * quantity;
+    let netWeight = totalWeight * quantity;
+
+    // 【중량 가산률 (2026-07-05)】
+    // - 삼방파우치(flat_3_side): +10%
+    // - 기타 파우치(stand_up, spout, box, t_shape 등): +15%
+    const isFlatPouch = pouchType.includes('flat_3_side') || pouchType.includes('three_side');
+    const weightSurcharge = isFlatPouch ? 0.10 : 0.15;
+    netWeight = netWeight * (1 + weightSurcharge);
+
+    return netWeight;
   }
 
   /**

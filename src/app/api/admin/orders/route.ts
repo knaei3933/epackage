@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       const searchParams = request.nextUrl.searchParams;
       const statusParam = searchParams.get('status');
       const quotationId = searchParams.get('quotation_id');
+      const search = searchParams.get('search');
       const page = parseInt(searchParams.get('page') || '1', 10);
       const pageSize = parseInt(searchParams.get('page_size') || '10', 10);
       const offset = (page - 1) * pageSize;
@@ -63,6 +64,12 @@ export async function GET(request: NextRequest) {
       if (quotationId) {
         query = query.eq('quotation_id', quotationId);
         console.log('[API] Admin orders: Filtering by quotation_id:', quotationId);
+      }
+
+      // Issue 4: search by order_number or customer name/email (supports tail-7 lookup)
+      if (search && search.trim()) {
+        const s = search.trim();
+        query = query.or(`order_number.ilike.%${s}%,customer_name.ilike.%${s}%,customer_email.ilike.%${s}%`);
       }
 
       const { data, error, count } = await query;
@@ -117,6 +124,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const statusParam = searchParams.get('status');
     const quotationId = searchParams.get('quotation_id');
+    const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1', 10);
     const pageSize = parseInt(searchParams.get('page_size') || '10', 10);
     const offset = (page - 1) * pageSize;
@@ -141,6 +149,12 @@ export async function GET(request: NextRequest) {
     if (quotationId) {
       query = query.eq('quotation_id', quotationId);
       console.log('[API] Admin orders: Filtering by quotation_id:', quotationId);
+    }
+
+    // Issue 4: search by order_number or customer name/email
+    if (search && search.trim()) {
+      const s = search.trim();
+      query = query.or(`order_number.ilike.%${s}%,customer_name.ilike.%${s}%,customer_email.ilike.%${s}%`);
     }
 
     const { data, error, count } = await query;

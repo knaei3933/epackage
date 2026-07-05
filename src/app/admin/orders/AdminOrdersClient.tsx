@@ -43,11 +43,14 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10); // 1페이지당 10개씩 표시
   const [total, setTotal] = useState(0);
+  // Issue 4: order number / customer search
+  const [searchTerm, setSearchTerm] = useState('');
 
   // 注文リスト取得
   useEffect(() => {
     fetchOrders();
-  }, [selectedStatus, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStatus, page, searchTerm]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -57,6 +60,9 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
       const params = new URLSearchParams();
       if (selectedStatus !== 'all') {
         params.set('status', selectedStatus);
+      }
+      if (searchTerm.trim()) {
+        params.set('search', searchTerm.trim());
       }
       params.set('page', page.toString());
       params.set('page_size', pageSize.toString());
@@ -233,6 +239,18 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Issue 4: order number / customer search */}
+            <div className="flex items-center gap-2">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">検索:</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+                placeholder="注文番号・末尾7桁・顧客名"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm w-56"
+              />
             </div>
 
             {/* 一括操作 */}

@@ -7,6 +7,8 @@
 export interface SKUUploadState {
   orderItemId: string;
   skuName: string;
+  quantity?: number;
+  specifications?: { bagTypeId?: string; width?: number; height?: number; depth?: number; sideWidth?: number };
   isUploaded: boolean;
   uploadedFileId?: string;
   uploadedFileName?: string;
@@ -30,7 +32,7 @@ export interface UploadedFile {
  * @returns SKUUploadState配列
  */
 export function computeSKUUploadStates(
-  orderItems: Array<{ id: string; product_name: string; quantity: number }>,
+  orderItems: Array<{ id: string; product_name: string; quantity: number; specifications?: any }>,
   uploadedFiles: UploadedFile[]
 ): SKUUploadState[] {
   return orderItems.map((item) => {
@@ -42,6 +44,8 @@ export function computeSKUUploadStates(
     return {
       orderItemId: item.id,
       skuName: item.product_name,
+      quantity: item.quantity,
+      specifications: item.specifications || {},
       isUploaded: !!matchingFile,
       uploadedFileId: matchingFile?.id,
       uploadedFileName: matchingFile?.file_name,

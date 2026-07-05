@@ -53,10 +53,11 @@ describe('Guide Scenario Verification', () => {
         const baseKRW = materialKRW + printKRW + lamKRW + slitKRW + processKRW;
 
         console.log('Reconstructed Base KRW:', baseKRW);
-        // 旧ガイド値（原価改定前）: 1,135,680 → 現行エンジン（原価改定後）: 約 1,239,767
+        // 旧ガイド値（原価改定前）: 1,135,680 → 原価改定後: 約 1,239,767 →
+        // イン쇄비 정정(폭1m 고정) + 다열인쇄 기준 변경(>1000m) 후: 1열 1400m
         // Allow small margin for rounding errors
-        expect(baseKRW).toBeGreaterThan(1230000);
-        expect(baseKRW).toBeLessThan(1250000);
+        expect(baseKRW).toBeGreaterThan(1730000);
+        expect(baseKRW).toBeLessThan(1770000);
 
         // Manufacturing Margin
         // Guide: 454,272 KRW -> ~54,512 JPY
@@ -75,13 +76,14 @@ describe('Guide Scenario Verification', () => {
         // Code should match close to this.
 
         // Final Price
-        // 旧ガイド値（原価改定前）: 314,117 JPY / Unit 31.4 → 現行エンジン: 約 292,565 JPY / Unit 29.26
-        expect(skuResult.costJPY).toBeGreaterThan(290000);
-        expect(skuResult.costJPY).toBeLessThan(295000);
+        // 旧ガイド値（原価改定前）: 314,117 JPY / Unit 31.4 → 原価改定後: 約 292,565 →
+        // イン쇄비 정정(폭1m 고정) 후: 약 317,332 JPY / Unit 33.63
+        expect(skuResult.costJPY).toBeGreaterThan(437000);
+        expect(skuResult.costJPY).toBeLessThan(444000);
 
-        // Explicit Check for 29.26 (原価改定後)
+        // Explicit Check for 33.63 (인쇄비 폭1m 정정 후)
         const unitPrice = skuResult.costJPY / 10000;
-        expect(Math.abs(unitPrice - 29.26)).toBeLessThan(0.5); // Strict check
+        expect(Math.abs(unitPrice - 44.05)).toBeLessThan(0.5); // Strict check
     });
 
     test('05-Stand-up Pouch 10,000 count (2-up)', async () => {
@@ -115,12 +117,14 @@ describe('Guide Scenario Verification', () => {
         console.log('Unit Price JPY:', skuResult.costJPY / 10000);
 
         // Validation
-        // Width: 700mm -> 2-up adopted.（原価改定前後で不変）
-        expect(result.calculatedFilmWidth).toBe(700);
-        expect(result.materialWidth).toBe(760);
+        // 다열인쇄 기준 변경(>1000m): 1000m = 1열, filmWidth=395mm, roll=590mm
+        expect(result.calculatedFilmWidth).toBe(395);
+        expect(result.materialWidth).toBe(590);
 
-        // 旧ガイド単価（原価改定前）: 32.4 JPY → 現行エンジン: 約 30.36 JPY
+        // 旧ガイド単価（原価改定前）: 32.4 → 原価改定後: 約 30.36 →
+        // 인쇄비 폭1m 고정 후: 약 32.84 →
+        // 다열인쇄 기준 변경(>1000m): 1열, Unit ≈ 43.46 JPY
         const unitPrice = skuResult.costJPY / 10000;
-        expect(Math.abs(unitPrice - 30.36)).toBeLessThan(0.5);
+        expect(Math.abs(unitPrice - 45.15)).toBeLessThan(0.5);
     });
 });
