@@ -644,7 +644,8 @@ export function formatWesternDate(date: string | Date): string {
  * 金額を日本円フォーマットに変換
  */
 export function formatYen(amount: number): string {
-  return `¥${amount.toLocaleString('ja-JP')}`;
+  const rounded = Math.round(amount * 10) / 10;
+  return `¥${rounded.toLocaleString('ja-JP', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}`;
 }
 
 /**
@@ -1302,7 +1303,7 @@ function generateMultiQuantityHTML(
             <td class="td-sku-sub">${sku.label}</td>
             <td class="td-sku-sub">${sku.quantity.toLocaleString('ja-JP')}${unit}</td>
             <td class="td-sku-sub">-</td>
-            <td class="td-sku-sub">¥${skuAmount.toLocaleString('ja-JP')}</td>
+            <td class="td-sku-sub">${formatYen(skuAmount)}</td>
             <td class="td-sku-sub">-</td>
           </tr>`;
         }).join('\n          ')
@@ -1310,8 +1311,8 @@ function generateMultiQuantityHTML(
     return `<tr class="${isCheapest ? 'summary-row' : ''}">
         <td>${skuMainLabel}</td>
         <td>${row.quantity.toLocaleString('ja-JP')}${unit}</td>
-        <td>¥${row.unitPrice.toLocaleString('ja-JP')}</td>
-        <td>¥${row.totalPrice.toLocaleString('ja-JP')}</td>
+        <td>${formatYen(row.unitPrice)}</td>
+        <td>${formatYen(row.totalPrice)}</td>
         <td>${methodLabel(row.recommendation.method)}</td>
       </tr>
       ${skuSubRows}`;
@@ -2062,7 +2063,7 @@ function generateQuoteHTML(
   console.log('[PDF HTML Generator] processing.surfaceFinish:', processing.surfaceFinish);
 
   // Format currency
-  const formatYen = (amount: number) => `¥${amount.toLocaleString('ja-JP')}`;
+  const formatYen = (amount: number) => { const r = Math.round(amount * 10) / 10; return `¥${r.toLocaleString('ja-JP', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}`; };
 
   // Phase 5: グラビア原価明細セクション（printingType='gravure' のみ表示）
   // 契約: src/lib/types/gravure-cost-breakdown.ts (GravureCostBreakdown)
@@ -3191,7 +3192,7 @@ function generateInvoiceHTML(
   const t = templates.ja; // Use Japanese template
 
   // Format currency
-  const formatYen = (amount: number) => `¥${amount.toLocaleString('ja-JP')}`;
+  const formatYen = (amount: number) => { const r = Math.round(amount * 10) / 10; return `¥${r.toLocaleString('ja-JP', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}`; };
 
   // Format date
   const formatDate = (dateStr: string) => {

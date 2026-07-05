@@ -425,7 +425,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   };
 
   // Helper to generate PDF quote data
-  const generateQuoteData = (): QuoteData => {
+  const generateQuoteData = (overrideQuoteNumber?: string): QuoteData => {
     const today = new Date();
     const issueDate = today.toISOString().split('T')[0];
     const expiryDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -676,7 +676,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     console.log('[generateQuoteData] bagTypeId:', state.bagTypeId, 'depth:', state.depth);
 
     return {
-      quoteNumber: `QT-${Date.now()}`,
+      quoteNumber: overrideQuoteNumber || `QT-${Date.now()}`,
       issueDate,
       expiryDate,
       customerName: user?.kanjiLastName && user?.kanjiFirstName
@@ -744,13 +744,13 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   };
 
   // C5/AC-9: 全パターンPDF生成＆ダウンロード（generateMultiQuantityPDF 呼出）
-  const generateAndDownloadMultiPatternPdf = async (): Promise<void> => {
+  const generateAndDownloadMultiPatternPdf = async (overrideQuoteNumber?: string): Promise<void> => {
     console.log('[MultiPatternPDF] 全パターンPDF生成開始');
     const inputs = buildMultiPatternPdfInputs();
     // 従来見積書と同一メタデータを使用（generateQuoteData を流用）
-    const quoteData = generateQuoteData();
+    const quoteData = generateQuoteData(overrideQuoteNumber);
     const blob = await generateMultiQuantityPDF(inputs, {
-      filename: `見積書_数量パターン比較_${Date.now()}.pdf`,
+      filename: `見積書_数量パターン比較_${quoteData.quoteNumber}.pdf`,
       header: {
         quoteNumber: quoteData.quoteNumber,
         issueDate: quoteData.issueDate,
@@ -787,16 +787,21 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     try {
       // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
       if (showPatternComparison && multiQuantityQuotes.length > 0) {
-        await generateAndDownloadMultiPatternPdf();
-        // DB保存（単一 quotation entity に代表データを保存・R3 follow-up）
-        const savedQuotationId = await saveQuotationToDatabase();
-        if (savedQuotationId) setQuotationId(savedQuotationId);
+        // DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
+        const savedResult = await saveQuotationToDatabase();
+        if (savedResult.id) setQuotationId(savedResult.id);
+        await generateAndDownloadMultiPatternPdf(savedResult.quotationNumber || undefined);
         setPdfStatus('success');
         return;
       }
 
-      // 1. PDF生成
-      const quoteData = generateQuoteData();
+      // 1. DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
+      const savedResult = await saveQuotationToDatabase();
+      if (savedResult.id) setQuotationId(savedResult.id);
+      const dbQuoteNumber = savedResult.quotationNumber;
+
+      // 2. PDF生成（DB保存済みの見積番号を使用）
+      const quoteData = generateQuoteData(dbQuoteNumber || undefined);
       const pdfResult = await generateQuotePDF(quoteData, {
         filename: `見積書_${quoteData.quoteNumber}.pdf`
       });
@@ -813,15 +818,12 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         if (a.parentNode) document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
 
-        // 3. DB保存
-        const savedQuotationId = await saveQuotationToDatabase();
-        if (savedQuotationId) setQuotationId(savedQuotationId);
-
-        // 4. Storage保存（認証済みのみ）- エラーハンドリング追加
-        if (savedQuotationId && pdfResult.pdfBuffer) {
+        // 3. Storage保存（認証済みのみ）- エラーハンドリング追加
+        //    DB保存はPDF生成前に行い済み（savedResult.id 使用）
+        if (savedResult.id && pdfResult.pdfBuffer) {
           try {
             const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer as unknown as ArrayBuffer);
-            const saveResponse = await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
+            const saveResponse = await fetch(`/api/member/quotations/${savedResult.id}/save-pdf`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
@@ -868,9 +870,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
     if (showPatternComparison && multiQuantityQuotes.length > 0) {
       try {
-        await generateAndDownloadMultiPatternPdf();
-        const savedQuotationId = await saveQuotationToDatabase();
-        if (savedQuotationId) setQuotationId(savedQuotationId);
+        // DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
+        const savedResult = await saveQuotationToDatabase();
+        if (savedResult.id) setQuotationId(savedResult.id);
+        await generateAndDownloadMultiPatternPdf(savedResult.quotationNumber || undefined);
         setPdfStatus('success');
         setTimeout(() => setPdfStatus('idle'), 3000);
       } catch (error) {
@@ -885,8 +888,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     }
 
     try {
+      // DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
+      console.log('[handleDownloadPdf] DB保存開始（PDF生成前）...');
+      const savedResult = await saveQuotationToDatabase();
+      if (savedResult.id) setQuotationId(savedResult.id);
+      const dbQuoteNumber = savedResult.quotationNumber;
+
       console.log('[handleDownloadPdf] Calling generateQuoteData...');
-      const quoteData = generateQuoteData();
+      const quoteData = generateQuoteData(dbQuoteNumber || undefined);
       console.log('[handleDownloadPdf] quoteData.optionalProcessing:', quoteData.optionalProcessing);
       console.log('[handleDownloadPdf] quoteData.optionalProcessing.surfaceFinish:', quoteData.optionalProcessing.surfaceFinish);
       console.log('[handleDownloadPdf] Calling generateQuotePDF...');
@@ -927,18 +936,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
           console.log('[handleDownloadPdf] PDF downloaded:', pdfResult.filename);
         }
 
-        // 2. 自動的にデータベースに保存（ゲストユーザーも対応）
-        console.log('[handleDownloadPdf] 自動保存開始...');
-        const savedQuotationId = await saveQuotationToDatabase();
-        if (savedQuotationId) setQuotationId(savedQuotationId);
-
-        // 3. PDFをStorageに保存（ユーザー認証済みの場合）
-        if (savedQuotationId && user?.id && pdfResult.pdfBuffer) {
+        // 2. Storage保存（ユーザー認証済みの場合）
+        //    DB保存はPDF生成前に行い済み（savedResult.id 使用）
+        if (savedResult.id && user?.id && pdfResult.pdfBuffer) {
           try {
             console.log('[handleDownloadPdf] Saving PDF to Storage...');
             const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer as unknown as ArrayBuffer);
 
-            const saveResponse = await fetch(`/api/member/quotations/${savedQuotationId}/save-pdf`, {
+            const saveResponse = await fetch(`/api/member/quotations/${savedResult.id}/save-pdf`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
@@ -1008,11 +1013,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // データベース保存関数 (handleDownloadPdfから自動呼び出し)
   // ✅ エラーハンドリング改善
   // 戻り値: 保存成功時は見積もりID、失敗時はnull
-  const saveQuotationToDatabase = async (): Promise<string | null> => {
+  const saveQuotationToDatabase = async (): Promise<{ id: string | null; quotationNumber: string | null }> => {
     // ✅ 認証チェック: ログインしていない場合は保存をスキップ
     if (!user?.id) {
       console.log('[saveQuotationToDatabase] User not authenticated, skipping auto-save');
-      return null;
+      return { id: null, quotationNumber: null };
     }
     setPersistenceStatus({ status: 'idle', message: '見積を保存中...' });
 
@@ -1381,7 +1386,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         message: qId ? '見積を保存しました。会員ページの見積一覧に反映されています。' : '見積を保存しました。',
         quotationNumber: qNumber,
       });
-      return qId;
+      return { id: qId, quotationNumber: qNumber };
     } catch (error) {
       console.error('[saveQuotationToDatabase] ========================================');
       console.error('[saveQuotationToDatabase] 保存失敗 (CATCH):');
@@ -1397,7 +1402,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         status: 'error',
         message: `見積の保存に失敗しました: ${msg}。PDFはダウンロード済みです。お手数ですが、お問い合わせフォームよりご連絡ください。`,
       });
-      return null;
+      return { id: null, quotationNumber: null };
     }
   };
 
