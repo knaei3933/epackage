@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Badge, PageLoadingState, Button } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Download, Trash2, FileText, Eye } from 'lucide-react';
+import { Download, Trash2, FileText, Eye, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Quotation, QuotationStatus } from '@/types/entities';
 import { MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS, convertToPreviewOptions } from '@/constants/product-type-config';
@@ -32,6 +32,7 @@ import {
   QuotationActions,
 } from '@/components/member/quotations';
 import { formatPrice, formatDate } from '@/utils/formatters';
+import { formatProductDisplayName } from '@/lib/product-display-name';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 
@@ -75,6 +76,27 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
 
   // Pagination state
   const [page, setPage] = useState(currentPage);
+
+  // Card expand/collapse state
+  // Page 1: all expanded by default; Page 2+: all collapsed
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(() => {
+    if (currentPage === 1) {
+      return new Set(initialData.quotations.map(q => q.id));
+    }
+    return new Set();
+  });
+
+  const toggleCard = (quotationId: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(quotationId)) {
+        next.delete(quotationId);
+      } else {
+        next.add(quotationId);
+      }
+      return next;
+    });
+  };
 
   // Spec approval modal state
   const [showSpecModal, setShowSpecModal] = useState(false);
@@ -545,11 +567,22 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
               </Card>
             ) : (
               <div className="space-y-4">
-                {quotations.map((quotation) => (
+                {quotations.map((quotation) => {
+                  const isExpanded = expandedCards.has(quotation.id);
+                  return (
                   <Card key={quotation.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                    {/* ── ヘッダー行: 見積番号・ステータス・日付・合計 ── */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border-secondary bg-bg-secondary/30">
+                    {/* ── ヘッダー行: クリックで折り畳み/展開 ── */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleCard(quotation.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCard(quotation.id); } }}
+                      className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border-secondary bg-bg-secondary/30 cursor-pointer hover:bg-bg-secondary/50 transition-colors select-none"
+                    >
                       <div className="flex items-center gap-2 flex-wrap">
+                        <ChevronDown
+                          className={`w-4 h-4 text-text-muted transition-transform shrink-0 ${isExpanded ? '' : '-rotate-90'}`}
+                        />
                         <h3 className="text-base font-semibold text-text-primary">
                           {quotation.quotationNumber}
                         </h3>
@@ -574,6 +607,9 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                       </div>
                     </div>
 
+                    {/* ── 折り畳み可能な詳細エリア（P1: 展開、P2+: 折り畳み） ── */}
+                    {isExpanded && (
+                    <>
                     {/* ── アイテム一覧（全件表示・コンパクト表形式） ── */}
                     {(quotation.items?.length ?? 0) > 0 && (
                       <div className="px-4 py-2">
@@ -593,6 +629,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                               const skuQuantities = specs.sku_quantities;
                               const hasMultipleSKUs = skuQuantities && skuQuantities.length > 1;
                               const isConverted = quotation.status.toLowerCase() === 'converted';
+                              const displayName = formatProductDisplayName(specs, item.productName || `SKU ${item.id}`);
 
                               return (
                                 <tr key={item.id} className="border-b border-border-secondary/50 last:border-0">
@@ -605,7 +642,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                                         </span>
                                       </span>
                                     ) : (
-                                      <span className="font-medium">{item.productName || `SKU ${item.id}`}</span>
+                                      <span className="font-medium">{displayName}</span>
                                     )}
                                   </td>
                                   <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">
@@ -670,7 +707,10 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                       );
                     })()}
 
-                    {/* ── フッターアクションバー ── */}
+                    </>
+                    )}
+
+                    {/* ── フッターアクションバー（常時表示） ── */}
                     <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-border-secondary bg-bg-secondary/20">
                       <div className="flex items-center gap-3 text-xs text-text-muted">
                         {downloadStats[quotation.id]?.count > 0 && (
@@ -743,7 +783,8 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                       </div>
                     </div>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
 

@@ -16,6 +16,7 @@ import { Package, Building2, Tag, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order, AppliedCoupon } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
+import { formatProductDisplayName } from '@/lib/product-display-name';
 import { processingOptionsConfig } from '@/components/quote/shared/processingConfig';
 
 // =====================================================
@@ -128,49 +129,10 @@ function getSealWidthLabel(value: string): string {
 
 /**
  * 仕様情報から適切な商品名を生成
+ * 統一フォーマット: {袋タイプJA}_{サイズ}_{厚さスペック}
  */
 function generateProductName(specifications: any): string {
-  if (!specifications || Object.keys(specifications).length === 0) {
-    return 'カスタム製品';
-  }
-
-  const parts: string[] = [];
-
-  // タイプ（袋の種類）
-  if (specifications.bagTypeId) {
-    const typeMap: Record<string, string> = {
-      flat_3_side: '三方シール平袋',
-      stand_up: 'スタンドパウチ',
-      gazette: 'ガゼットパウチ',
-      roll_film: 'ロールフィルム',
-      spout_pouch: 'スパウトパウチ',
-      zipper_pouch: 'チャック付袋',
-    };
-    parts.push(typeMap[specifications.bagTypeId] || '');
-  }
-
-  // 素材構成（最上位レベル）
-  if (specifications.materialId) {
-    const materialMap: Record<string, string> = {
-      pet_al: 'PET/AL',
-      pet_pe: 'PET/PE',
-      cpp: 'CPP',
-      lldpe: 'LLDPE',
-    };
-    parts.push(materialMap[specifications.materialId] || '');
-  }
-
-  // シール幅
-  if (specifications.sealWidth) {
-    parts.push(getSealWidthLabel(specifications.sealWidth));
-  }
-
-  // その他オプション
-  if (specifications.doubleSided) {
-    parts.push('両面印刷');
-  }
-
-  return parts.length > 0 ? parts.join('・') : 'カスタム製品';
+  return formatProductDisplayName(specifications);
 }
 
 // =====================================================
