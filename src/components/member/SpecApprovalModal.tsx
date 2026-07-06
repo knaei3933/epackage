@@ -8,9 +8,10 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui';
-import { CheckCircle, X } from 'lucide-react';
+import { CheckCircle, X, Check, Package } from 'lucide-react';
 import type { Quotation, QuotationItem } from '@/types/dashboard';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { formatProductDisplayName } from '@/lib/product-display-name';
 
 // =====================================================
 // Types
@@ -358,11 +359,16 @@ export default function SpecApprovalModal({
   const firstItem = quotation.items?.[0];
   const specs = firstItem?.specifications ? parseSpecifications(firstItem.specifications) : null;
 
-  // 商品名の取得
-  const productName = firstItem?.productName || (firstItem as any)?.product_name ||
-                      (firstItem as any)?.name || '商品名なし';
-  const quantity = firstItem?.quantity || 0;
-  const unitPrice = firstItem?.unitPrice || (firstItem as any)?.unit_price || 0;
+  // 各アイテムごとの統一製品表示名（仕様から生成）
+  const getItemDisplayName = (item: any): string => {
+    const itemSpecs = item?.specifications;
+    if (itemSpecs && typeof itemSpecs === 'object') {
+      const name = formatProductDisplayName(itemSpecs, '');
+      if (name) return name;
+    }
+    return item?.productName || (item as any)?.product_name ||
+           (item as any)?.name || 'カスタム製品';
+  };
 
   const handleApprove = async () => {
     if (selectedIds.size === 0) {
@@ -433,50 +439,78 @@ export default function SpecApprovalModal({
               </p>
             )}
 
-            {/* パターン一覧テーブル */}
-            <div className="border border-border-secondary rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-bg-secondary/50">
-                  <tr className="text-text-muted">
-                    {hasMultipleItems && <th className="text-center font-medium py-2 px-3 w-10">選択</th>}
-                    <th className="text-left font-medium py-2 px-3">品目</th>
-                    <th className="text-right font-medium py-2 px-3 w-24">数量</th>
-                    <th className="text-right font-medium py-2 px-3 w-28">単価</th>
-                    <th className="text-right font-medium py-2 px-3 w-32">金額</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(quotation.items || []).map((item: any, idx: number) => {
-                    const isSelected = selectedIds.has(item.id);
-                    const itemQty = item.quantity || 0;
-                    const itemUnit = item.unitPrice || item.unit_price || 0;
-                    const itemTotal = calcItemTotal(item);
-                    return (
-                      <tr
-                        key={item.id}
-                        className={`border-t border-border-secondary/50 transition-colors ${isSelected ? 'bg-primary/5' : 'opacity-50'}`}
-                      >
+            {/* パターン一覧（カード型選択UI） */}
+            <div className="space-y-2.5">
+              {(quotation.items || []).map((item: any, idx: number) => {
+                const isSelected = selectedIds.has(item.id);
+                const itemQty = item.quantity || 0;
+                const itemUnit = item.unitPrice || item.unit_price || 0;
+                const itemTotal = calcItemTotal(item);
+                const itemDisplayName = getItemDisplayName(item);
+                const isRowClickable = hasMultipleItems;
+                return (
+                  <div
+                    key={item.id}
+                    role={isRowClickable ? 'button' : undefined}
+                    onClick={isRowClickable ? () => toggleItem(item.id) : undefined}
+                    className={`group relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border-medium bg-bg-primary hover:border-primary/40 hover:bg-bg-secondary/30'
+                    } ${isRowClickable ? 'cursor-pointer' : 'cursor-default'}`}
+                  >
+                    {/* 選択チェック（カスタム円形） */}
+                    {hasMultipleItems && (
+                      <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                        isSelected
+                          ? 'border-primary bg-primary text-white'
+                          : 'border-border-medium text-transparent group-hover:border-primary/50'
+                      }`}>
+                        {isSelected && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                      </div>
+                    )}
+
+                    {/* パターン番号バッジ + 製品名 */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
                         {hasMultipleItems && (
-                          <td className="text-center py-2.5 px-3">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleItem(item.id)}
-                              className="w-4 h-4 rounded border-border-secondary text-primary focus:ring-primary cursor-pointer"
-                            />
-                          </td>
+                          <span className={`flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                            isSelected ? 'bg-primary text-white' : 'bg-bg-tertiary text-text-muted'
+                          }`}>
+                            {idx + 1}
+                          </span>
                         )}
-                        <td className="py-2.5 px-3 text-text-primary">
-                          {productName}{hasMultipleItems && ` (パターン${idx + 1})`}
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-text-muted tabular-nums">{itemQty.toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-right text-text-muted tabular-nums">¥{itemUnit.toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-right text-text-primary font-semibold tabular-nums">¥{itemTotal.toLocaleString()}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Package className="w-4 h-4 text-text-muted flex-shrink-0" />
+                          <span className="text-sm font-medium text-text-primary truncate">
+                            {itemDisplayName}
+                          </span>
+                        </div>
+                      </div>
+                      {/* 価格情報 */}
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 pl-8 text-xs">
+                        <span className="text-text-muted">
+                          数量: <span className="font-semibold text-text-primary tabular-nums">{itemQty.toLocaleString()}</span> 枚
+                        </span>
+                        <span className="text-text-muted">
+                          単価: <span className="font-semibold text-text-primary tabular-nums">¥{itemUnit.toLocaleString()}</span>
+                        </span>
+                        <span className="text-primary font-bold tabular-nums sm:hidden">
+                          ¥{itemTotal.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 右側: 金額（sm以上で表示） */}
+                    <div className="hidden sm:flex flex-col items-end flex-shrink-0">
+                      <span className="text-xs text-text-muted">金額</span>
+                      <span className={`text-lg font-bold tabular-nums ${isSelected ? 'text-primary' : 'text-text-primary'}`}>
+                        ¥{itemTotal.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* 選択サマリー */}
