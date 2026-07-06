@@ -70,16 +70,18 @@ export default function AdminContractsClient() {
   const totalContracts = paginationData?.total || contractsArray.length;
 
   const filteredContracts = contractsArray.filter((c: Contract) =>
-    filterStatus === 'all' || c.status === filterStatus
+    filterStatus === 'all' || normStatus(c.status) === normStatus(filterStatus)
   );
 
+  // 大文字小文字を区別せずステータスを比較（DB値は大文字、レガシーは小文字の可能性）
+  const normStatus = (s: string) => (s || '').toUpperCase();
   const stats = useMemo(() => ({
     total: totalContracts || 0,
-    draft: contractsArray.filter((c: Contract) => c.status === 'DRAFT').length || 0,
-    sent: contractsArray.filter((c: Contract) => c.status === 'SENT').length || 0,
+    draft: contractsArray.filter((c: Contract) => normStatus(c.status) === 'DRAFT').length || 0,
+    sent: contractsArray.filter((c: Contract) => normStatus(c.status) === 'SENT').length || 0,
     pending: contractsArray.filter((c: Contract) => ['PENDING_SIGNATURE', 'CUSTOMER_SIGNED', 'ADMIN_SIGNED'].includes(c.status)).length || 0,
-    signed: contractsArray.filter((c: Contract) => c.status === 'SIGNED').length || 0,
-    active: contractsArray.filter((c: Contract) => c.status === 'ACTIVE').length || 0,
+    signed: contractsArray.filter((c: Contract) => normStatus(c.status) === 'SIGNED').length || 0,
+    active: contractsArray.filter((c: Contract) => normStatus(c.status) === 'ACTIVE').length || 0,
   }), [contractsArray, totalContracts]);
 
   // Calculate expiring contracts safely (avoid Date.now() in render)

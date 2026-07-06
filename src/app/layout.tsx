@@ -6,6 +6,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ToastProvider } from "@/components/ui/Toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CatalogProvider } from "@/contexts/CatalogContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
@@ -192,7 +193,7 @@ export default function RootLayout({
                   <ModalWrapper />
                   <HeaderWrapper />
                   <BreadcrumbList />
-                  <main>{children}</main>
+                  <ToastProvider><main>{children}</main></ToastProvider>
                   <Footer />
                   <ChatWidget />
                   {/* InactivityWarningModal only for logged-in users */}

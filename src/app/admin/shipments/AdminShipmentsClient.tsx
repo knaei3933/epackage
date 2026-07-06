@@ -5,6 +5,8 @@
 
 'use client';
 
+import { useToastContext } from '@/components/ui/Toast';
+
 import { useState, useEffect } from 'react';
 
 import { Plus, Search, Filter, Download, RefreshCw, Package } from 'lucide-react';
@@ -43,6 +45,7 @@ type TabType = 'shipments' | 'ready-orders';
 
 export default function AdminShipmentsClient() {
   const [activeTab, setActiveTab] = useState<TabType>('shipments');
+  const { showError, showSuccess } = useToastContext();
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
     carrier: 'all',
@@ -133,7 +136,7 @@ export default function AdminShipmentsClient() {
       }
     } catch (error) {
       console.error('Failed to refresh tracking:', error);
-      alert('追跡情報の更新に失敗しました');
+      showError('追跡情報の更新に失敗しました');
     } finally {
       setRefreshingId(null);
     }
@@ -166,7 +169,7 @@ export default function AdminShipmentsClient() {
       }
     } catch (error) {
       console.error('Failed to download label:', error);
-      alert('ラベルのダウンロードに失敗しました');
+      showError('ラベルのダウンロードに失敗しました');
     }
   };
 
@@ -264,7 +267,7 @@ export default function AdminShipmentsClient() {
               <Button
                 onClick={() => {
                   // Bulk create would be here
-                  alert('一括作成機能は開発中です');
+                  showError('一括作成機能は開発中です');
                 }}
                 variant="primary"
               >

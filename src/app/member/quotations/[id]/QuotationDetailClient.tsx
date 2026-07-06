@@ -30,7 +30,6 @@ import {
   Check,
 } from 'lucide-react';
 import { translateBagType, translateMaterialType, translatePostProcessing, BAG_TYPE_JA } from '@/constants/enToJa';
-import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
 import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
@@ -39,6 +38,7 @@ import { getPrintingLabelJa } from '@/lib/product-display-name';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
+import { useToastContext } from '@/components/ui/Toast';
 
 // =====================================================
 // Types
@@ -359,6 +359,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   const id = quotationId || params.id as string;
 
   const [quotation, setQuotation] = useState<Quotation | null>(null);
+  const { showError, showSuccess } = useToastContext();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -491,10 +492,10 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       }
       // No saved PDF — do NOT regenerate a different PDF.
       // Match QuotationsClient.tsx behavior: inform the user to re-issue via simulator.
-      alert('保存済みPDFがありません。見積シミュレーターで再度PDFを発行してください。');
+      showError('保存済みPDFがありません。見積シミュレーターで再度PDFを発行してください。');
     } catch (error) {
       console.error('Failed to download PDF:', error);
-      alert('PDFのダウンロードに失敗しました');
+      showError('PDFのダウンロードに失敗しました');
     } finally {
       setDownloadingPDF(false);
     }
@@ -521,7 +522,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       router.push('/member/quotations');
     } catch (error) {
       console.error('Failed to delete quotation:', error);
-      alert('見積の削除に失敗しました');
+      showError('見積の削除に失敗しました');
     } finally {
       setIsDeleting(false);
     }
@@ -1066,7 +1067,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       </Card>
 
       {/* Bank Information - Hidden for quotation detail page */}
-      {/* <BankInfoCard quotationId={quotation.id} /> */}
 
       {/* Download History */}
       {downloadCount > 0 && (

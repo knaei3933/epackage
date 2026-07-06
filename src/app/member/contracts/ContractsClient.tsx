@@ -6,6 +6,8 @@
 
 'use client';
 
+import { useToastContext } from '@/components/ui/Toast';
+
 import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -176,6 +178,7 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
   const searchParams = useSearchParams();
 
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const { showError, showSuccess } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,7 +253,7 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
     try {
       const contract = contracts.find((c) => c.id === contractId);
       if (!contract?.final_contract_url) {
-        alert('PDFがまだ利用できません。');
+        showError('PDFがまだ利用できません。');
         return;
       }
 
@@ -263,7 +266,7 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
       document.body.removeChild(link);
     } catch (err) {
       console.error('Error downloading contract:', err);
-      alert('契約書のダウンロードに失敗しました。');
+      showError('契約書のダウンロードに失敗しました。');
     }
   };
 
@@ -287,11 +290,11 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
         throw new Error(errorData.error || '署名に失敗しました。');
       }
 
-      alert('契約書に署名しました。');
+      showError('契約書に署名しました。');
       fetchContracts(); // Refresh list
     } catch (err) {
       console.error('Error signing contract:', err);
-      alert(err instanceof Error ? err.message : '署名に失敗しました。');
+      showError(err instanceof Error ? err.message : '署名に失敗しました。');
     }
   };
 

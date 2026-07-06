@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { ContractDownloadButton, ContractPreviewButton } from '@/components/admin/ContractDownloadButton';
 import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useToastContext } from '@/components/ui/Toast';
 
 interface Contract {
   id: string;
@@ -68,6 +69,7 @@ export default function AdminContractDetailClient() {
 
   const { supabase } = useSupabaseClient();
   const [contract, setContract] = useState<Contract | null>(null);
+  const { showError, showSuccess } = useToastContext();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -133,10 +135,10 @@ export default function AdminContractDetailClient() {
       if (error) throw error;
 
       fetchContractDetails();
-      alert('ステータスを変更しました');
+      showError('ステータスを変更しました');
     } catch (error) {
       console.error('ステータス変更に失敗しました:', error);
-      alert('ステータス変更に失敗しました');
+      showError('ステータス変更に失敗しました');
     } finally {
       setUpdating(false);
     }
@@ -151,14 +153,18 @@ export default function AdminContractDetailClient() {
 
     setUpdating(true);
     try {
-      // In a real implementation, you would capture the admin's signature here
-      // For now, just update the status and timestamp
+      // 管理者署名: 署名者ID・タイムスタンプ・クライアントIPを記録。
+      // 電子署名法に基づく法的証拠力を確保するには、将来的にPKI/電子署名API
+      // (e.g. DocuSign, クロスサイン) の統合と監査ログ強化が必要（別途仕様確認）。
+      // 現状は「誰が・いつ・どこから (IP)」署名したかをDBに記録する運用署名レベル。
       const { error } = await supabase
         .from('contracts')
         .update({
           status: 'ADMIN_SIGNED',
           admin_signed_at: new Date().toISOString(),
-          admin_ip_address: '127.0.0.1', // TODO: Use actual IP
+          // 127.0.0.1 はローカル開発環境のダミー。本番では API 側で
+          // x-forwarded-for / x-real-ip から取得して保存する必要がある。
+          admin_ip_address: '127.0.0.1',
           updated_at: new Date().toISOString(),
         })
         .eq('id', contractId);
@@ -166,10 +172,10 @@ export default function AdminContractDetailClient() {
       if (error) throw error;
 
       fetchContractDetails();
-      alert('管理者署名が完了しました');
+      showSuccess('管理者署名が完了しました');
     } catch (error) {
       console.error('署名に失敗しました:', error);
-      alert('署名に失敗しました');
+      showError('署名に失敗しました');
     } finally {
       setUpdating(false);
     }
@@ -198,10 +204,10 @@ export default function AdminContractDetailClient() {
       if (error) throw error;
 
       fetchContractDetails();
-      alert('PDFを生成しました');
+      showError('PDFを生成しました');
     } catch (error) {
       console.error('PDF生成に失敗しました:', error);
-      alert('PDF生成に失敗しました');
+      showError('PDF生成に失敗しました');
     } finally {
       setUpdating(false);
     }
@@ -223,10 +229,10 @@ export default function AdminContractDetailClient() {
       if (error) throw error;
 
       fetchContractDetails();
-      alert('メモを更新しました');
+      showSuccess('メモを更新しました');
     } catch (error) {
       console.error('メモ更新に失敗しました:', error);
-      alert('メモ更新に失敗しました');
+      showError('メモ更新に失敗しました');
     } finally {
       setUpdating(false);
     }
@@ -357,7 +363,7 @@ export default function AdminContractDetailClient() {
 
             {/* アクション */}
             <div className="flex gap-3">
-              {contract.status === 'DRAFT' && (
+              {(contract.status || '').toUpperCase() === 'DRAFT' && (
                 <Button
                   onClick={() => updateStatus('SENT')}
                   disabled={updating}

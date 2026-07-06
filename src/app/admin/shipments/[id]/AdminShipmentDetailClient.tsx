@@ -15,6 +15,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase-browser';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { useToastContext } from '@/components/ui/Toast';
 
 interface TrackingEvent {
   id: string;
@@ -66,6 +67,7 @@ export default function AdminShipmentDetailClient() {
   const shipmentId = params.id as string;
 
   const [shipment, setShipment] = useState<Shipment | null>(null);
+  const { showError, showSuccess } = useToastContext();
   const [order, setOrder] = useState<Order | null>(null);
   const [trackingEvents, setTrackingEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,10 +145,10 @@ export default function AdminShipmentDetailClient() {
 
       setNewStatus('');
       fetchShipmentDetails();
-      alert('ステータスを変更しました');
+      showError('ステータスを変更しました');
     } catch (error) {
       console.error('ステータス変更に失敗しました:', error);
-      alert('ステータス変更に失敗しました');
+      showError('ステータス変更に失敗しました');
     } finally {
       setUpdating(false);
     }
@@ -156,7 +158,7 @@ export default function AdminShipmentDetailClient() {
     if (!supabase || !shipment) return;
 
     if (!shipment.tracking_number) {
-      alert('配送伝票番号を入力してください');
+      showError('配送伝票番号を入力してください');
       return;
     }
 
@@ -177,10 +179,10 @@ export default function AdminShipmentDetailClient() {
       if (error) throw error;
 
       fetchShipmentDetails();
-      alert('配送追跡情報を更新しました');
+      showSuccess('配送追跡情報を更新しました');
     } catch (error) {
       console.error('追跡情報の更新に失敗しました:', error);
-      alert('追跡情報の更新に失敗しました');
+      showError('追跡情報の更新に失敗しました');
     } finally {
       setUpdating(false);
     }

@@ -17,11 +17,7 @@ import { Download, Trash2, FileText, Eye, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Quotation, QuotationStatus } from '@/types/entities';
 import { MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS, convertToPreviewOptions } from '@/constants/product-type-config';
-import { getFilmStructureLabel } from '@/constants/materialTypes';
-import { formatContentsDisplay } from '@/constants/contentsData';
 import SpecApprovalModal from '@/components/member/SpecApprovalModal';
-import { mapDatabaseQuotationToExcel } from '@/lib/excel/excelDataMapper';
-import { mapQuotationDataToQuoteData } from '@/lib/excel/quotationToPdfMapper';
 import {
   QuotationFilters,
   QuotationList,
@@ -32,6 +28,7 @@ import { formatPrice, formatDate } from '@/utils/formatters';
 import { formatProductDisplayName } from '@/lib/product-display-name';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
+import { useToastContext } from '@/components/ui/Toast';
 
 function safeMap<T, U>(array: T[] | null | undefined, fn: (item: T, index: number) => U): U[] {
   if (!array) return [];
@@ -64,6 +61,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
 
   // Initialize state from Server Component props
   const [quotations, setQuotations] = useState<Quotation[]>(initialData.quotations);
+  const { showError, showSuccess } = useToastContext();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<QuotationStatus | 'all'>(initialStatus as QuotationStatus | 'all');
   const [error, setError] = useState<string | null>(null);
@@ -198,11 +196,11 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
       }
 
       // No saved PDF — do NOT regenerate, just inform the user
-      alert('保存済みPDFがありません。見積シミュレーターで再度PDFを発行してください。');
+      showError('保存済みPDFがありません。見積シミュレーターで再度PDFを発行してください。');
 
     } catch (error) {
       console.error('[handleDownloadPDF] Error:', error);
-      alert('PDFのダウンロードに失敗しました');
+      showError('PDFのダウンロードに失敗しました');
     } finally {
       setDownloadingQuoteId(null);
     }
@@ -227,7 +225,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
       window.location.reload();
     } catch (error) {
       console.error('見積もり削除エラー:', error);
-      alert('削除に失敗しました');
+      showError('削除に失敗しました');
     } finally {
       setDeletingQuoteId(null);
     }
@@ -378,7 +376,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                           </thead>
                           <tbody>
                             {safeMap(quotation.items, (item) => {
-                              const isConverted = quotation.status.toLowerCase() === 'converted';
+                              const isConverted = (quotation.status || '').toUpperCase() === 'CONVERTED';
 
                               return (
                                 <tr key={item.id} className="border-b border-border-secondary/50 last:border-0">
@@ -529,14 +527,14 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                       } else if (result.alreadyExists && result.data?.id) {
                         window.location.href = `/member/orders/${result.data.id}`;
                       } else {
-                        alert('注文が生成されましたが、注文詳細ページに遷移できませんでした。');
+                        showError('注文が生成されましたが、注文詳細ページに遷移できませんでした。');
                       }
                     } else {
-                      alert(result.error || '注文の生成に失敗しました');
+                      showError(result.error || '注文の生成に失敗しました');
                     }
                   } catch (error) {
                     console.error('注文生成エラー:', error);
-                    alert('注文の生成に失敗しました');
+                    showError('注文の生成に失敗しました');
                   }
                 }}
               />

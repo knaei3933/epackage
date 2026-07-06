@@ -29,6 +29,7 @@ import { normalizeStatus, STATUS_LABELS } from '@/components/admin/quotations/qu
 import type { Quotation } from '@/types/quotation';
 
 import type { AdminAuthContext } from '@/types/admin';
+import { useToastContext } from '@/components/ui/Toast';
 
 interface AdminQuotationsClientProps {
   initialStatus: string;
@@ -42,6 +43,7 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const { showError, showSuccess } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>(initialStatus);
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
@@ -50,11 +52,14 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
   const [total, setTotal] = useState(0);
   const [emailComposerOpen, setEmailComposerOpen] = useState(false);
   const [selectedCustomersForEmail, setSelectedCustomersForEmail] = useState<Recipient[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Fetch quotations
   useEffect(() => {
     fetchQuotations();
-  }, [filterStatus, page]);
+  }, [filterStatus, page, searchTerm, dateFrom, dateTo]);
 
   // URLパラメータから見積もりIDを取得して自動選択
   useEffect(() => {
@@ -81,8 +86,17 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
       if (filterStatus !== 'all') {
         url.searchParams.set('status', filterStatus);
       }
+      if (searchTerm) {
+        url.searchParams.set('search', searchTerm);
+      }
+      if (dateFrom) {
+        url.searchParams.set('dateFrom', dateFrom);
+      }
+      if (dateTo) {
+        url.searchParams.set('dateTo', dateTo);
+      }
       url.searchParams.set('page', page.toString());
-      url.searchParams.set('page_size', pageSize.toString());
+      url.searchParams.set('limit', pageSize.toString());
 
       const response = await fetch(url.toString(), {
         credentials: 'include',
@@ -125,54 +139,20 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
     router.push(`/admin/quotations?${params.toString()}`);
   };
 
-  // Approve quotation
-  const approveQuotation = async (quotationId: string) => {
-    try {
-      const response = await fetch(`/api/admin/quotations?id=${quotationId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'APPROVED' }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      fetchQuotations();
-      alert('見積もりを承認しました。');
-    } catch (error) {
-      console.error('見積もり承認失敗:', error);
-      alert('見積もりの承認に失敗しました。');
-    }
+  // Approval removed — all quotes are orderable immediately
+  const approveQuotation = async (_quotationId: string) => {
+    // No-op: approval flow deprecated
   };
 
-  // Reject quotation
-  const rejectQuotation = async (quotationId: string) => {
-    try {
-      const response = await fetch(`/api/admin/quotations?id=${quotationId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'REJECTED' }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      fetchQuotations();
-      alert('見積もりを拒否しました。');
-    } catch (error) {
-      console.error('見積もり拒否失敗:', error);
-      alert('見積もりの拒否に失敗しました。');
-    }
+  // Rejection removed
+  const rejectQuotation = async (_quotationId: string) => {
+    // No-op: rejection flow deprecated
   };
 
   // Handle send email
   const handleSendEmail = (quotation: Quotation) => {
     if (!quotation.customer_email) {
-      alert('顧客のメールアドレスが登録されていません。');
+      showError('顧客のメールアドレスが登録されていません。');
       return;
     }
 
@@ -188,10 +168,10 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
 
   const stats = {
     total: total,
-    draft: quotations.filter(q => q.status === 'DRAFT').length,
+    draft: quotations.filter(q => q.status === 'DRAFT' || q.status === 'QUOTATION_PENDING').length,
     sent: quotations.filter(q => q.status === 'SENT').length,
-    approved: quotations.filter(q => q.status === 'APPROVED').length,
-    rejected: quotations.filter(q => q.status === 'REJECTED').length,
+    approved: quotations.filter(q => q.status === 'CONVERTED' || q.status === 'QUOTATION_APPROVED').length,
+    rejected: 0,
   };
 
   if (loading) {
@@ -235,6 +215,12 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
           filterStatus={filterStatus}
           onStatusChange={handleStatusChange}
           onRefresh={fetchQuotations}
+          searchTerm={searchTerm}
+          onSearchChange={(term) => { setSearchTerm(term); setPage(1); }}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={(d) => { setDateFrom(d); setPage(1); }}
+          onDateToChange={(d) => { setDateTo(d); setPage(1); }}
         />
 
         {/* Quotations List & Detail */}

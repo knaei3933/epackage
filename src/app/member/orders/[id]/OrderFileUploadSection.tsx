@@ -24,6 +24,7 @@ import {
   type SKUUploadState
 } from '@/lib/sku-upload-state';
 import { SKUCardGrid } from '@/components/upload/SKUCardGrid';
+import { useToastContext } from '@/components/ui/Toast';
 
 // =====================================================
 // Props & Types
@@ -86,6 +87,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
   // State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { showError, showSuccess } = useToastContext();
   const [currentPage, setCurrentPage] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -210,7 +212,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (!isAllowed) {
       const msg1 = '⚠️ 入稿データはAI、EPS、PDF形式のみ可能です。';
       setError(msg1);
-      window.alert(msg1);
+      window.showError(msg1);
       setSelectedFile(null);
       return;
     }
@@ -219,7 +221,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (file.size > 100 * 1024 * 1024) {
       const msg2 = 'ファイルサイズは100MB以下にしてください。';
       setError(msg2);
-      window.alert(msg2);
+      window.showError(msg2);
       setSelectedFile(null);
       return;
     }
@@ -254,7 +256,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (!productName.trim()) {
       const msg = '製品类を入力してください。入力しないとアップロードできません。';
       setError(msg);
-      window.alert(msg);
+      window.showError(msg);
       return;
     }
 
@@ -324,7 +326,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : '予期しないエラーが発生しました';
       setError(errMsg);
-      window.alert(`アップロードに失敗しました:\n${errMsg}`);
+      window.showError(`アップロードに失敗しました:\n${errMsg}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Input, Button } from '@/components/ui';
+import { useToastContext } from '@/components/ui/Toast';
 
 // =====================================================
 // Types
@@ -65,6 +66,7 @@ export function EditClient({
 }: EditClientProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const { showError, showSuccess } = useToastContext();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -190,14 +192,14 @@ export function EditClient({
       setDeletionSummary(summary);
 
       if (!summary.canDelete) {
-        alert(summary.warning || 'アカウントを削除できません');
+        showError(summary.warning || 'アカウントを削除できません');
         return;
       }
 
       setShowDeleteConfirmation(true);
     } catch (err) {
       console.error('Failed to fetch deletion summary:', err);
-      alert('削除サマリーの取得に失敗しました。時間をおいて再度お試しください。');
+      showError('削除サマリーの取得に失敗しました。時間をおいて再度お試しください。');
     }
   };
 
@@ -220,7 +222,7 @@ export function EditClient({
    */
   const handleDeleteAccountFinal = async () => {
     if (deleteConfirmationText !== 'DELETE') {
-      alert('「DELETE」と入力してください');
+      showError('「DELETE」と入力してください');
       return;
     }
 
@@ -244,16 +246,14 @@ export function EditClient({
       const result = await response.json();
 
       // Show success message
-      alert(
-        `アカウントを削除しました。\n\n` +
+      showError(`アカウントを削除しました。\n\n` +
         `削除されたデータ:\n` +
         `- サンプル要求: ${result.deletedCounts?.sampleRequests || 0}件\n` +
         `- 通知: ${result.deletedCounts?.notifications || 0}件\n` +
         `- 契約: ${result.deletedCounts?.contracts || 0}件\n` +
         `- 見積もり: ${result.deletedCounts?.quotations || 0}件\n` +
         `- 注文: ${result.deletedCounts?.orders || 0}件\n\n` +
-        `削除確認メールを送信いたしました。`
-      );
+        `削除確認メールを送信いたしました。`);
 
       // Sign out and redirect to home
       await signOut();
@@ -261,10 +261,8 @@ export function EditClient({
     } catch (err) {
       console.error('Account deletion error:', err);
       setError(err instanceof Error ? err.message : 'アカウント削除に失敗しました');
-      alert(
-        'アカウント削除に失敗しました。\n' +
-        '時間をおいて再度お試しいただくか、管理者にお問い合わせください。'
-      );
+      showError('アカウント削除に失敗しました。\n' +
+        '時間をおいて再度お試しいただくか、管理者にお問い合わせください。');
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirmation(false);

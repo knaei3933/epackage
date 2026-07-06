@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui';
 import SpecificationEditModal from '@/components/member/orders/SpecificationEditModal';
+import { useToastContext } from '@/components/ui/Toast';
 
 // =====================================================
 // Types
@@ -50,6 +51,7 @@ export function OrderSpecificationItemList({
   canModify
 }: OrderSpecificationItemListProps) {
   const [modals, setModals] = useState<Record<string, boolean>>({});
+  const { showError, showSuccess } = useToastContext();
   const [changeHistories, setChangeHistories] = useState<Record<string, any[]>>({});
 
   const toggleModal = (itemId: string, isOpen: boolean) => {
@@ -77,12 +79,12 @@ export function OrderSpecificationItemList({
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
         console.error('[OrderSpecificationItemList] specification-change failed:', errJson);
-        alert(errJson?.error || '仕様変更の送信に失敗しました');
+        showError(errJson?.error || '仕様変更の送信に失敗しました');
         return;
       }
     } catch (err) {
       console.error('[OrderSpecificationItemList] specification-change error:', err);
-      alert('仕様変更の送信中にエラーが発生しました');
+      showError('仕様変更の送信中にエラーが発生しました');
       return;
     }
 

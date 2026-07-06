@@ -19,6 +19,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Download, Search, Filter, ChevronDown, FileText, Clock, CheckCircle, AlertCircle, DollarSign, Calendar } from 'lucide-react';
 import { generateInvoicePDF, type InvoiceData } from '@/lib/pdf-generator';
+import { useToastContext } from '@/components/ui/Toast';
 
 // =====================================================
 // Types
@@ -163,6 +164,7 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
   const router = useRouter();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const { showError, showSuccess } = useToastContext();
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -198,7 +200,7 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
       }
     } catch (err) {
       console.error('Invoice download error:', err);
-      alert(err instanceof Error ? err.message : '請求書のダウンロードに失敗しました');
+      showError(err instanceof Error ? err.message : '請求書のダウンロードに失敗しました');
     } finally {
       setDownloadingId(null);
     }

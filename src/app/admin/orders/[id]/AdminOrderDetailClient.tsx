@@ -27,6 +27,7 @@ const EmailComposer = nextDynamic(() =>
 import { adminFetch } from '@/lib/auth-client';
 import type { Order as DashboardOrder } from '@/types/dashboard';
 import { Package, User, Calendar, MapPin, CreditCard, FileText, AlertCircle, CheckCircle, XCircle, Mail } from 'lucide-react';
+import { useToastContext } from '@/components/ui/Toast';
 
 interface OrderItem {
   id: string;
@@ -208,6 +209,7 @@ export default function AdminOrderDetailClient({
   initialAdminNotes = '',
 }: AdminOrderDetailClientProps) {
   const [adminNotes, setAdminNotes] = useState(initialAdminNotes);
+  const { showError, showSuccess } = useToastContext();
   const [sendingToKorea, setSendingToKorea] = useState(false);
   const [koreaMessage, setKoreaMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notifyingDesigner, setNotifyingDesigner] = useState(false);
@@ -322,7 +324,7 @@ export default function AdminOrderDetailClient({
   // Handle sending email to customer
   const handleSendEmail = () => {
     if (!order?.customer_email) {
-      alert('顧客メールアドレスが見つかりません');
+      showError('顧客メールアドレスが見つかりません');
       return;
     }
 
@@ -511,14 +513,14 @@ function CancellationRequestBanner({
 
       const result = await response.json();
       if (result.success) {
-        alert('キャンセルを承認しました');
+        showError('キャンセルを承認しました');
         onRequestProcessed();
       } else {
-        alert(result.error || '承認に失敗しました');
+        showError(result.error || '承認に失敗しました');
       }
     } catch (error) {
       console.error('Failed to approve cancellation:', error);
-      alert('承認に失敗しました');
+      showError('承認に失敗しました');
     } finally {
       setIsProcessing(false);
     }
@@ -538,14 +540,14 @@ function CancellationRequestBanner({
 
       const result = await response.json();
       if (result.success) {
-        alert('キャンセルリクエストを拒否しました');
+        showError('キャンセルリクエストを拒否しました');
         onRequestProcessed();
       } else {
-        alert(result.error || '拒否に失敗しました');
+        showError(result.error || '拒否に失敗しました');
       }
     } catch (error) {
       console.error('Failed to reject cancellation:', error);
-      alert('拒否に失敗しました');
+      showError('拒否に失敗しました');
     } finally {
       setIsProcessing(false);
     }

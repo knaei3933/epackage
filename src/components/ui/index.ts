@@ -79,3 +79,6 @@ export {
   DialogTitle,
   DialogDescription,
 } from './dialog';
+
+// Toast
+export { ToastProvider, useToastContext } from './Toast';

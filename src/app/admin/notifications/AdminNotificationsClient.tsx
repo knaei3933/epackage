@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, Plus, Pencil, Trash2, Eye, EyeOff, Save, X } from 'lucide-react'
+import { useToastContext } from '@/components/ui/Toast';
 
 interface Notification {
   id: string
@@ -35,6 +36,7 @@ interface NotificationFormData {
 
 export default function AdminNotificationsClient() {
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const { showError, showSuccess } = useToastContext();
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -85,11 +87,11 @@ export default function AdminNotificationsClient() {
         setShowForm(false)
         resetForm()
       } else {
-        alert('作成に失敗しました: ' + (result.error || '不明なエラー'))
+        showError('作成に失敗しました: ' + (result.error || '不明なエラー'))
       }
     } catch (error) {
       console.error('Failed to create notification:', error)
-      alert('作成に失敗しました')
+      showError('作成に失敗しました')
     }
   }
 
@@ -110,11 +112,11 @@ export default function AdminNotificationsClient() {
         setEditingId(null)
         resetForm()
       } else {
-        alert('更新に失敗しました: ' + (result.error || '不明なエラー'))
+        showError('更新に失敗しました: ' + (result.error || '不明なエラー'))
       }
     } catch (error) {
       console.error('Failed to update notification:', error)
-      alert('更新に失敗しました')
+      showError('更新に失敗しました')
     }
   }
 
@@ -130,11 +132,11 @@ export default function AdminNotificationsClient() {
       if (result.success) {
         setNotifications((prev) => prev.filter((n) => n.id !== id))
       } else {
-        alert('削除に失敗しました: ' + (result.error || '不明なエラー'))
+        showError('削除に失敗しました: ' + (result.error || '不明なエラー'))
       }
     } catch (error) {
       console.error('Failed to delete notification:', error)
-      alert('削除に失敗しました')
+      showError('削除に失敗しました')
     }
   }
 
@@ -492,6 +494,5 @@ export default function AdminNotificationsClient() {
           </div>
         )}
       </div>
-    </div>
-  )
+    </div>)
 }

@@ -16,6 +16,7 @@ import { OrderStatusBadge } from '@/components/orders';
 import { cn } from '@/lib/utils';
 
 import type { AdminAuthContext } from '@/types/admin';
+import { useToastContext } from '@/components/ui/Toast';
 
 interface Order {
   id: string;
@@ -37,6 +38,7 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const { showError, showSuccess } = useToastContext();
   const [loading, setLoading] = useState(false); // 初期データがあるのでロード中ではない
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
@@ -120,17 +122,17 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
       }
 
       fetchOrders();
-      alert('注文ステータスが変更されました。');
+      showError('注文ステータスが変更されました。');
     } catch (error) {
       console.error('注文ステータス変更失敗:', error);
-      alert('注文ステータスの変更に失敗しました。');
+      showError('注文ステータスの変更に失敗しました。');
     }
   };
 
   // 一括ステータス変更
   const bulkUpdateStatus = async (newStatus: OrderStatus) => {
     if (selectedOrders.size === 0) {
-      alert('選択された注文がありません。');
+      showError('選択された注文がありません。');
       return;
     }
 
@@ -158,10 +160,10 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
 
       setSelectedOrders(new Set());
       fetchOrders();
-      alert('一括ステータス変更が完了しました。');
+      showSuccess('一括ステータス変更が完了しました。');
     } catch (error) {
       console.error('一括ステータス変更失敗:', error);
-      alert('一括ステータスの変更に失敗しました。');
+      showError('一括ステータスの変更に失敗しました。');
     }
   };
 
