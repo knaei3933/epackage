@@ -43,22 +43,48 @@ export default function AdminLeadsClient() {
   })
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Mock data 削除済み - 実際のAPI呼び出し必要
-  // TODO: /api/admin/leads エンドポイントからデータ取得
+  // /api/admin/leads からリード一覧を取得（テーブル未作成時は空配列が返る）
   useEffect(() => {
-    // API 呼び出し例:
-    // fetch('/api/admin/leads')
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     setLeads(data.data || [])
-    //     setFilteredLeads(data.data || [])
-    //   })
-    //   .finally(() => setLoading(false))
-
-    // 現在は空の配列で開始
-    setLeads([])
-    setFilteredLeads([])
-    setLoading(false)
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/leads', { credentials: 'include' });
+        const json = await res.json();
+        if (cancelled) return;
+        const rows = (json && json.data) || [];
+        // DBカラム(snake_case) → UI型(camelCase) へのマッピング
+        const mapped: Lead[] = rows.map((r: Record<string, unknown>) => ({
+          id: String(r.id ?? ''),
+          name: String(r.contact_name ?? r.name ?? ''),
+          company: String(r.company_name ?? r.company ?? ''),
+          email: String(r.email ?? ''),
+          phone: String(r.phone ?? ''),
+          leadScore: Number(r.lead_score ?? 0),
+          leadQuality: (r.lead_quality as Lead['leadQuality']) ?? 'Standard',
+          priorityLevel: (r.priority_level as Lead['priorityLevel']) ?? 'Normal',
+          source: String(r.source ?? ''),
+          inquiryType: String(r.inquiry_type ?? ''),
+          submissionDate: String(r.created_at ?? r.submission_date ?? ''),
+          status: (r.status as Lead['status']) ?? 'new',
+          calculatedValue: r.calculated_value != null ? Number(r.calculated_value) : undefined,
+          assignedTo: r.assigned_to != null ? String(r.assigned_to) : undefined,
+          followUpDate: r.follow_up_date != null ? String(r.follow_up_date) : undefined,
+          notes: String(r.notes ?? ''),
+        }));
+        if (cancelled) return;
+        setLeads(mapped);
+        setFilteredLeads(mapped);
+      } catch (err) {
+        console.error('[AdminLeadsClient] Failed to fetch leads:', err);
+        if (!cancelled) {
+          setLeads([]);
+          setFilteredLeads([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [])
 
   // Apply filters

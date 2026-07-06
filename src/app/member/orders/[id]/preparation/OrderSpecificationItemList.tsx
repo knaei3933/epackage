@@ -62,9 +62,29 @@ export function OrderSpecificationItemList({
     newSpecifications: any,
     priceDifference: any
   ) => {
-    // 仕様変更確定の処理
-    console.log('Specification change confirmed:', { newSpecifications, priceDifference });
-    // TODO: 実際の仕様変更処理を実装
+    // 仕様変更確定の処理: メンバー用 specification-change API へ送信
+    try {
+      const res = await fetch(`/api/member/orders/${orderId}/specification-change`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          orderId,
+          itemId,
+          specifications: newSpecifications,
+        }),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        console.error('[OrderSpecificationItemList] specification-change failed:', errJson);
+        alert(errJson?.error || '仕様変更の送信に失敗しました');
+        return;
+      }
+    } catch (err) {
+      console.error('[OrderSpecificationItemList] specification-change error:', err);
+      alert('仕様変更の送信中にエラーが発生しました');
+      return;
+    }
 
     // 変更履歴を更新
     setChangeHistories(prev => ({

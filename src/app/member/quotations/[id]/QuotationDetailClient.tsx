@@ -29,7 +29,6 @@ import {
   XCircle,
   Check,
 } from 'lucide-react';
-import { generateQuotePDF, type QuoteData } from '@/lib/pdf-generator';
 import { translateBagType, translateMaterialType, translatePostProcessing, BAG_TYPE_JA } from '@/constants/enToJa';
 import { BankInfoCard } from '@/components/quote/shared/BankInfoCard';
 import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownloadButton';
@@ -490,193 +489,9 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
 
         return;
       }
-      if (!quotation.items || quotation.items.length === 0) {
-        throw new Error('見積明細がありません');
-      }
-
-      const quoteItems = quotation.items
-        .filter((item) => item.productName && item.quantity > 0 && item.unitPrice >= 0)
-        .map((item) => {
-          const specs = item?.specifications as Record<string, unknown> | undefined;
-          const materialId = specs?.materialId as string | undefined;
-          const dimensions = specs?.dimensions as string | undefined;
-          const bagTypeId = specs?.bagTypeId as string | undefined;
-
-          // サイズ表示 - ロールフィルムの場合は常に「幅: ○mm、ピッチ: ○mm」
-          // 旧データ（二重ネスト）と新データ（修正後）の両方に対応
-          let sizeText: string;
-          if (bagTypeId === 'roll_film' || bagTypeId === 'standup_pouch') {
-            const pitchVal = specs?.pitch || (specs?.specifications as any)?.pitch || 0;
-            sizeText = `幅: ${specs?.width || 0}mm${pitchVal ? `、ピッチ: ${pitchVal}mm` : ''}`;
-          } else {
-            const itemSideWidth = specs?.sideWidth as number | undefined;
-            if (dimensions) {
-              // 既存のdimensionsに側面が含まれていない場合、追加する
-              if (itemSideWidth && !dimensions.includes('側面')) {
-                sizeText = dimensions.replace(' mm', `${itemSideWidth ? `×側面${itemSideWidth}` : ''} mm`);
-              } else {
-                sizeText = dimensions;
-              }
-            } else {
-              // dimensionsがない場合は個別フィールドから構築
-              sizeText = `${specs?.width || 0}×${specs?.height || 0}${((specs?.depth as number || 0) > 0 && bagTypeId !== 'lap_seal') ? `×${specs?.depth}` : ''}${itemSideWidth ? `×側面${itemSideWidth}` : ''}`;
-            }
-          }
-
-          return {
-            id: item.id,
-            name: item.productName || '製品名なし',
-            description: sizeText
-              ? `サイズ: ${sizeText} | ${materialId ? translateMaterialType(materialId) : '-'}`
-              : '-',
-            quantity: item.quantity || 0,
-            unit: '個',
-            unitPrice: item.unitPrice || 0,
-            amount: item.totalPrice || item.unitPrice * item.quantity || 0,
-          };
-        });
-
-      if (quoteItems.length === 0) {
-        throw new Error('有効な見積明細がありません');
-      }
-
-      const pdfData = {
-        quoteNumber: quotation.quotationNumber,
-        issueDate: formatDate(quotation.createdAt),
-        expiryDate: formatDate(quotation.validUntil),
-        quoteCreator: 'EPACKAGE Lab 見積システム',
-        // 見積データに保存された顧客情報を優先使用（キャメルケースとスネークケースの両方に対応）
-        customerName: quotation.customerName || quotation.customer_name ||
-          (userProfile?.kanji_last_name && userProfile?.kanji_first_name
-            ? `${userProfile.kanji_last_name} ${userProfile.kanji_first_name}`
-            : (userProfile?.company_name || userEmail?.split('@')[0] || 'お客様')),
-        customerNameKana: quotation.customer_name_kana || '',
-        companyName: quotation.customer_company || userProfile?.company_name || '',
-        postalCode: quotation.customer_postal_code || userProfile?.postal_code || '',
-        address: quotation.customer_address ||
-          ((userProfile?.prefecture || userProfile?.city || userProfile?.street)
-            ? `${userProfile?.prefecture || ''}${userProfile?.city || ''}${userProfile?.street || ''}`
-            : ''),
-        contactPerson: quotation.customer_contact_person ||
-          (userProfile?.kanji_last_name && userProfile?.kanji_first_name
-            ? `${userProfile.kanji_last_name} ${userProfile.kanji_first_name}`
-            : ''),
-        phone: quotation.customerPhone || quotation.customer_phone || userProfile?.corporate_phone || userProfile?.personal_phone || '',
-        email: quotation.customerEmail || quotation.customer_email || userEmail || '',
-        items: quoteItems,
-        specifications: (() => {
-          const mappedSpecs = mapSpecificationsToPDF(quotation.items[0]?.specifications);
-
-          // 製品タイプ固有のフィールド（spoutSize, spoutPosition, hasGusset, rollFilmSpecs, sideWidthなど）を元データから引き継ぐ
-          const originalSpecs = quotation.items[0]?.specifications as Record<string, unknown> | undefined;
-          const productTypeSpecificFields: Record<string, unknown> = {};
-
-          // スパウトパウチ固有フィールド
-          if (originalSpecs?.spoutSize) productTypeSpecificFields.spoutSize = originalSpecs.spoutSize;
-          if (originalSpecs?.spoutPosition) productTypeSpecificFields.spoutPosition = originalSpecs.spoutPosition;
-          if (originalSpecs?.hasGusset !== undefined) productTypeSpecificFields.hasGusset = originalSpecs.hasGusset;
-
-          // ロールフィルム固有フィールド
-          if (originalSpecs?.rollFilmSpecs) productTypeSpecificFields.rollFilmSpecs = originalSpecs.rollFilmSpecs;
-
-          // 共通フィールド（sideWidthなど）
-          if (originalSpecs?.sideWidth !== undefined) productTypeSpecificFields.sideWidth = originalSpecs.sideWidth;
-          if (originalSpecs?.bagTypeId) productTypeSpecificFields.bagTypeId = originalSpecs.bagTypeId;
-
-          // マッピングされた仕様と製品タイプ固有フィールドをマージ
-          return { ...mappedSpecs, ...productTypeSpecificFields };
-        })(),
-        optionalProcessing: (() => {
-          const allPostProcessingOptions = quotation.items.flatMap(item =>
-            (item?.specifications as Record<string, unknown>)?.postProcessingOptions as string[] || []
-          );
-          return {
-            zipper: allPostProcessingOptions.some(opt => opt.includes('zipper') || opt.includes('zip')),
-            notch: allPostProcessingOptions.some(opt => opt.includes('notch') || opt.includes('tear')),
-            hangingHole: allPostProcessingOptions.some(opt => opt.includes('hang') || opt.includes('hole')),
-            cornerProcessing: allPostProcessingOptions.some(opt => opt.includes('corner') || opt.includes('r')),
-          };
-        })(),
-        paymentTerms: '先払い',
-        deliveryDate: (() => {
-          const urgency = (quotation.items[0]?.specifications as any)?.urgency;
-          return urgency === 'express' ? '短納期（別途ご相談）' : '校了から約1か月';
-        })(),
-        deliveryLocation: (() => {
-          const loc = (quotation.items[0]?.specifications as any)?.deliveryLocation;
-          return loc === 'domestic' ? '国内' : loc === 'international' ? '海外' : '指定なし';
-        })(),
-        validityPeriod: '見積発行から3ヶ月間',
-        remarks: `※製造工程上の都合により、実際の納品数量はご注文数量に対し最大10％程度の過不足が生じる場合がございます。
-数量の完全保証はいたしかねますので、あらかじめご了承ください。
-※不足分につきましては、実際に納品した数量に基づきご請求いたします。
-前払いにてお支払いいただいた場合は、差額分を返金いたします。
-※原材料価格の変動等により、見積有効期限経過後は価格が変更となる場合がございます。
-再見積の際は、あらかじめご了承くださいますようお願いいたします。
-※本見積金額には郵送費を含んでおります。
-※お客様によるご確認の遅れ、その他やむを得ない事情により、納期が前後する場合がございます。
-※年末年始等の長期休暇期間を挟む場合、通常より納期が延びる可能性がございます。
-※天候不良、事故、交通事情等の影響により、やむを得ず納期が遅延する場合がございますので、あらかじめご了承ください。`,
-      };
-
-      const result = await generateQuotePDF(pdfData as QuoteData, {
-        filename: `${quotation.quotationNumber}.pdf`,
-      });
-
-      if (!result.success || !result.pdfBuffer) {
-        throw new Error(result.error || 'PDF generation failed');
-      }
-
-      const uint8Array = new Uint8Array(result.pdfBuffer);
-      const blob = new Blob([uint8Array], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-
-      // 新しいタブでPDFを開く
-      window.open(url, '_blank');
-
-      // Cleanup
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 1000);
-
-      // PDFをSupabase Storageに保存してpdf_urlを更新（管理者ページで同じPDFを使用するため）
-      try {
-        // Uint8Arrayをbase64に変換
-        const binaryString = uint8Array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
-        const base64Data = btoa(binaryString);
-        const dataUrl = `data:application/pdf;base64,${base64Data}`;
-
-        await fetch(`/api/member/quotations/${quotationId}/save-pdf`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ pdfData: dataUrl }),
-        });
-
-      } catch (saveError) {
-        console.error('[handleDownloadPDF] Failed to save PDF to storage:', saveError);
-        // 保存失敗はダウンロード失敗として扱わない
-      }
-
-      // Log PDF download to database
-      try {
-        await fetch('/api/member/documents', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            document_type: 'quote',
-            document_id: quotation.id,
-            quotation_id: quotation.id,
-            action: 'downloaded',
-          }),
-        });
-        // Refresh download history after logging
-        fetchDownloadHistory();
-      } catch (logError) {
-        console.error('Failed to log PDF download:', logError);
-        // Don't alert user about logging failure
-      }
+      // No saved PDF — do NOT regenerate a different PDF.
+      // Match QuotationsClient.tsx behavior: inform the user to re-issue via simulator.
+      alert('保存済みPDFがありません。見積シミュレーターで再度PDFを発行してください。');
     } catch (error) {
       console.error('Failed to download PDF:', error);
       alert('PDFのダウンロードに失敗しました');
@@ -752,10 +567,13 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   // 合計: DB保存値の total_amount を優先（100円切り上げ済みの正確な合計）
   // フォールバック: 小計 + 消費税（レガシーデータ対応）
   const displayTotalAmount = quotation?.totalAmount || quotation?.total_amount || (subtotal + taxAmount);
-  // 注文変換可能か: APPROVED状態で注文未作成の場合のみ（大文字小文字を区別せずチェック）
-  const approvedStatuses = ['approved', 'QUOTATION_APPROVED'];
-  const statusLower = quotation?.status?.toLowerCase() || '';
-  const canConvert = statusLower === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED';
+  // 注文変換可能か: convert API と同じ !isTerminal ロジックに統一。
+  // キャンセル済み・既に注文変換済み以外はすべて注文可能（承認ゲートは API 側で除去済み）。
+  const rawStatus = (quotation?.status as string) || '';
+  const statusUpper = rawStatus.toUpperCase();
+  const isTerminal = statusUpper === 'CANCELLED';
+  const isConverted = statusUpper === 'CONVERTED';
+  const canConvert = !isTerminal && !isConverted;
 
   return (
     <div className="space-y-6">
@@ -1298,22 +1116,22 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       )}
 
       {/* Status Message - Separate Card based on quotation status */}
-      {(quotation?.status?.toLowerCase() === 'draft' || (quotation?.status as string) === 'QUOTATION_PENDING') ? (
-        // ⏳ ドラフト/見積承認待ち: 承認待ちメッセージ
-        <Card className="bg-yellow-50 border-yellow-200 p-4">
+      {(statusUpper === 'DRAFT' || statusUpper === 'QUOTATION_PENDING') ? (
+        // ⏳ ドラフト/見積承認待ち: 注文可能だが、管理者審査中の案内
+        <Card className="bg-blue-50 border-blue-200 p-4">
           <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+            <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
             <div className="text-left">
-              <p className="text-sm font-medium text-yellow-800">
-                現在、管理者の承認待ちです
+              <p className="text-sm font-medium text-blue-800">
+                この見積はご注文可能です
               </p>
-              <p className="text-xs text-yellow-600 mt-1">
-                承認完了後、注文確定ボタンが表示されます
+              <p className="text-xs text-blue-600 mt-1">
+                内容をご確認のうえ「注文確定」ボタンからご発注ください
               </p>
             </div>
           </div>
         </Card>
-      ) : quotation?.status?.toLowerCase() === 'converted' ? (
+      ) : statusUpper === 'CONVERTED' ? (
         // ✓ 変換済み: 注文済みメッセージ
         <Card className="bg-green-50 border-green-200 p-4">
           <div className="flex items-center gap-3">
@@ -1323,12 +1141,24 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 この見積は既に注文に変換されています
               </p>
               <p className="text-xs text-green-600 mt-1">
-                注文詳細ページからご確認いただけます
+                注文一覧ページからご確認いただけます
               </p>
             </div>
           </div>
         </Card>
-      ) : quotation?.status?.toLowerCase() === 'rejected' ? (
+      ) : statusUpper === 'CANCELLED' ? (
+        // ✗ キャンセル: キャンセルメッセージ
+        <Card className="bg-gray-50 border-gray-200 p-4">
+          <div className="flex items-center gap-3">
+            <XCircle className="w-5 h-5 text-gray-500 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-gray-700">
+                この見積はキャンセルされています
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : statusUpper === 'REJECTED' ? (
         // ✗ 却下: 却下メッセージ
         <Card className="bg-red-50 border-red-200 p-4">
           <div className="flex items-center gap-3">
@@ -1343,7 +1173,22 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             </div>
           </div>
         </Card>
-      ) : null}
+      ) : (
+        // その他の注文可能状態（APPROVED / SENT / QUOTATION_APPROVED 等）: ご注文可能
+        <Card className="bg-blue-50 border-blue-200 p-4">
+          <div className="flex items-center gap-3">
+            <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-blue-800">
+                この見積はご注文可能です
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                内容をご確認のうえ「注文確定」ボタンからご発注ください
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Action Buttons */}
       <Card className="p-6">
@@ -1372,7 +1217,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             </Button>
 
             {/* 注文変換 - 状態に応じて表示を変える */}
-            {(quotation?.status?.toLowerCase() === 'approved' || (quotation?.status as string) === 'QUOTATION_APPROVED') && (
+            {canConvert ? (
               <>
                 {/* Phase 2 fix: require a pattern selection before allowing order conversion */}
                 {quotation.items && quotation.items.length > 1 && !selectedItemId && (
@@ -1394,7 +1239,16 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 </Button>
                 <InvoiceDownloadButton quotationId={quotation.id} variant="outline" />
               </>
-            )}
+            ) : isConverted ? (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => router.push('/member/orders')}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                注文を確認
+              </Button>
+            ) : null}
           </div>
         </div>
       </Card>

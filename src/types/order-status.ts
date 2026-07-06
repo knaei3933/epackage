@@ -55,6 +55,7 @@ export type OrderStatus =
   | 'PRODUCTION'               // 제조중 - Production in progress
   | 'READY_TO_SHIP'            // 출하 예정 - Ready to ship
   | 'SHIPPED'                  // 출하 완료 - Shipped
+  | 'WORK_ORDER'              // 작업 지시서 작성 - Work order created
   | 'CANCELLED';               // 취소 - Cancelled
 
 /**
@@ -178,6 +179,13 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, {
     ko: '생산 중',
     en: 'Production',
     description: '고객 승인 후 제조 시작',
+    category: 'production',
+  },
+  WORK_ORDER: {
+    ja: '作業指示書作成',
+    ko: '작업 지시서 작성',
+    en: 'Work Order Created',
+    description: '작업 지시서 생성 완료',
     category: 'production',
   },
   READY_TO_SHIP: {
@@ -311,6 +319,7 @@ export const OrderStatusMapping = {
       CORRECTION_COMPLETED: 'processing',
       CUSTOMER_APPROVAL_PENDING: 'processing',
       PRODUCTION: 'manufacturing',
+      WORK_ORDER: 'manufacturing',
       READY_TO_SHIP: 'ready',
       SHIPPED: 'shipped',
       CANCELLED: 'cancelled',
@@ -335,6 +344,7 @@ export const OrderStatusMapping = {
       CORRECTION_COMPLETED: 'processing',
       CUSTOMER_APPROVAL_PENDING: 'processing',
       PRODUCTION: 'manufacturing',
+      WORK_ORDER: 'manufacturing',
       READY_TO_SHIP: 'ready',
       SHIPPED: 'shipped',
       CANCELLED: 'cancelled',
@@ -373,7 +383,8 @@ export const VALID_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   CORRECTION_IN_PROGRESS: ['CORRECTION_COMPLETED', 'CANCELLED'],
   CORRECTION_COMPLETED: ['CUSTOMER_APPROVAL_PENDING', 'CANCELLED'],
   CUSTOMER_APPROVAL_PENDING: ['PRODUCTION', 'CANCELLED'],
-  PRODUCTION: ['READY_TO_SHIP', 'CANCELLED'],
+  PRODUCTION: ['WORK_ORDER', 'READY_TO_SHIP', 'CANCELLED'],
+  WORK_ORDER: ['READY_TO_SHIP', 'CANCELLED'],
   READY_TO_SHIP: ['SHIPPED', 'CANCELLED'],
   SHIPPED: [],  // Terminal state
   CANCELLED: [],  // Terminal state
@@ -557,7 +568,8 @@ export function getStatusProgress(status: OrderStatus): number {
     CORRECTION_IN_PROGRESS: 50,
     CORRECTION_COMPLETED: 60,
     CUSTOMER_APPROVAL_PENDING: 70,
-    PRODUCTION: 85,
+    PRODUCTION: 80,
+    WORK_ORDER: 85,
     READY_TO_SHIP: 95,
     SHIPPED: 100,
     CANCELLED: 0,
@@ -604,6 +616,8 @@ export function mapStatusToCurrentStage(status: OrderStatus): string {
       return 'AWAITING_CUSTOMER_APPROVAL';
     case 'PRODUCTION':
       return 'PRODUCTION';
+    case 'WORK_ORDER':
+      return 'WORK_ORDER';
     case 'READY_TO_SHIP':
       return 'READY_TO_SHIP';
     case 'SHIPPED':
