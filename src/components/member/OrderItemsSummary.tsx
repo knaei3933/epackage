@@ -16,7 +16,7 @@ import { Package, Building2, Tag, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Order, AppliedCoupon } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
-import { formatProductDisplayName } from '@/lib/product-display-name';
+import { formatProductDisplayName, getPrintingLabelJa } from '@/lib/product-display-name';
 import { processingOptionsConfig } from '@/components/quote/shared/processingConfig';
 
 // =====================================================

@@ -744,7 +744,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   };
 
   // C5/AC-9: 全パターンPDF生成＆ダウンロード（generateMultiQuantityPDF 呼出）
-  const generateAndDownloadMultiPatternPdf = async (overrideQuoteNumber?: string): Promise<void> => {
+  const generateAndDownloadMultiPatternPdf = async (overrideQuoteNumber?: string, quotationId?: string): Promise<void> => {
     console.log('[MultiPatternPDF] 全パターンPDF生成開始');
     const inputs = buildMultiPatternPdfInputs();
     // 従来見積書と同一メタデータを使用（generateQuoteData を流用）
@@ -778,6 +778,30 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     } finally {
       setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
     }
+
+    // Storage保存（quotationIdがある場合）
+    if (quotationId) {
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const pdfBase64 = arrayBufferToBase64(arrayBuffer);
+        const saveResponse = await fetch(`/api/member/quotations/${quotationId}/save-pdf`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            pdfData: `data:application/pdf;base64,${pdfBase64}`,
+          }),
+        });
+        if (!saveResponse.ok) {
+          console.warn('[MultiPatternPDF] Failed to save PDF to Storage:', await saveResponse.text());
+        } else {
+          console.log('[MultiPatternPDF] PDF saved to Storage');
+        }
+      } catch (saveError) {
+        console.warn('[MultiPatternPDF] Error saving PDF to Storage:', saveError);
+      }
+    }
+
     console.log('[MultiPatternPDF] 全パターンPDF生成完了:', inputs.length, 'パターン');
   };
 
@@ -790,7 +814,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         // DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
         const savedResult = await saveQuotationToDatabase();
         if (savedResult.id) setQuotationId(savedResult.id);
-        await generateAndDownloadMultiPatternPdf(savedResult.quotationNumber || undefined);
+        await generateAndDownloadMultiPatternPdf(savedResult.quotationNumber || undefined, savedResult.id);
         setPdfStatus('success');
         return;
       }
@@ -873,7 +897,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         // DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
         const savedResult = await saveQuotationToDatabase();
         if (savedResult.id) setQuotationId(savedResult.id);
-        await generateAndDownloadMultiPatternPdf(savedResult.quotationNumber || undefined);
+        await generateAndDownloadMultiPatternPdf(savedResult.quotationNumber || undefined, savedResult.id);
         setPdfStatus('success');
         setTimeout(() => setPdfStatus('idle'), 3000);
       } catch (error) {

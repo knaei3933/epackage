@@ -134,19 +134,16 @@ export async function POST(
       );
     }
 
-    // Check if quotation is approved (only if no existing order)
-    // Support both legacy statuses (approved, APPROVED) and new workflow (QUOTATION_APPROVED)
-    // Cast status to string to allow legacy/new comparisons without TS2367.
+    // Approval gate removed: all quotations are orderable regardless of status.
+    // Only block terminal statuses that make conversion meaningless.
     const quotationStatus = quotation.status as unknown as string;
-    const isApproved = quotationStatus === 'approved' ||
-                      quotationStatus === 'APPROVED' ||
-                      quotationStatus === 'QUOTATION_APPROVED';
+    const isTerminal = quotationStatus === 'cancelled' || quotationStatus === 'CANCELLED';
 
-    if (!isApproved) {
+    if (isTerminal) {
       return NextResponse.json(
         {
           success: false,
-          error: '承認された見積のみ注文に変換できます。',
+          error: 'この見積はキャンセルされているため注文に変換できません。',
           currentStatus: quotation.status,
         },
         { status: 400 }
@@ -711,12 +708,10 @@ export async function GET(
       .maybeSingle();
 
     // Check conversion eligibility
-    // Support both legacy statuses (approved, APPROVED) and new workflow (QUOTATION_APPROVED)
-    // Cast status to string to allow legacy/new comparisons without TS2367.
+    // Approval gate removed: all non-cancelled quotations are orderable.
     const quotationStatus = quotation.status as unknown as string;
-    const canConvert = quotationStatus === 'approved' ||
-                      quotationStatus === 'APPROVED' ||
-                      quotationStatus === 'QUOTATION_APPROVED';
+    const isCancelled = quotationStatus === 'cancelled' || quotationStatus === 'CANCELLED';
+    const canConvert = !isCancelled;
     const isExpired =
       quotation.valid_until && new Date(quotation.valid_until) < new Date();
     const hasOrder = !!existingOrder;
@@ -737,7 +732,7 @@ export async function GET(
           hasOrder,
           existingOrder,
           reason: !canConvert
-            ? '見積が承認されていません。'
+            ? 'この見積はキャンセルされています。'
             : hasOrder
             ? '既に注文が生成されています。'
             : isExpired

@@ -14,49 +14,19 @@
 
 export const dynamic = 'force-dynamic';
 
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Route entry-point debug logging
   console.log('[save-pdf API] Route hit, quotationId will be extracted from params');
 
   try {
-    // Create Supabase client from request cookies
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get('sb-ijlgpzjdfipzmjvawofp-auth-token')?.value;
-
-    if (!authCookie) {
-      console.error('[save-pdf API] No auth token found in cookies');
-      return NextResponse.json(
-        { error: 'Unauthorized - No session found' },
-        { status: 401 }
-      );
-    }
-
-    // Remove base64: prefix if present
-    const authToken = authCookie.startsWith('base64:')
-      ? authCookie.substring(7)
-      : authCookie;
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${authToken}`
-          }
-        }
-      }
-    );
-
-    // Get user from session
+    // Use SSR client for proper cookie handling (same pattern as convert route)
+    const { client: supabase } = await createSupabaseSSRClient(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -70,7 +40,7 @@ export async function POST(
     const userId = user.id;
     console.log('[save-pdf API] Authenticated user:', userId);
 
-    // Create service client for all operations
+    // Create service client for storage/DB operations
     const serviceClient = createServiceClient();
 
     // Await params in Next.js 15

@@ -27,6 +27,11 @@ interface PostProcessingPreviewProps {
   onPreviewToggle?: (show: boolean) => void
   defaultExpanded?: boolean
   className?: string
+  /**
+   * インラインモード: Card枠なし、表示/非表示トグルなし、常時横並び表示。
+   * メンバー/注文ページの仕様サマリーで使用。
+   */
+  inline?: boolean
 }
 
 const postProcessingOptions: PostProcessingOption[] = [
@@ -59,7 +64,7 @@ const postProcessingOptions: PostProcessingOption[] = [
   { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブ付き', imageName: 'バルブあり.png', category: 'opening-sealing' },
 ]
 
-export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaultExpanded = false, className }: PostProcessingPreviewProps) {
+export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaultExpanded = false, className, inline = false }: PostProcessingPreviewProps) {
   const [showPreview, setShowPreview] = useState(defaultExpanded)
 
   const getActiveImages = () => {
@@ -129,6 +134,37 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaul
     return null
   }
 
+  // ── インラインモード: Card枠なし、常時表示、横並び ──
+  if (inline) {
+    return (
+      <div className={className}>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <span className="text-xs font-semibold text-text-muted">後加工</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {activeImages.map((option) => (
+            <div
+              key={option.id}
+              className="group relative flex items-center gap-1.5 px-2 py-1 rounded-lg border border-border-medium bg-bg-secondary/30 cursor-default transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 z-0 hover:z-10"
+            >
+              <div className="w-8 h-8 relative overflow-visible flex-shrink-0 transition-transform duration-200 group-hover:scale-[8.5]">
+                <Image
+                  src={`/images/post-processing/${option.imageName}`}
+                  alt={option.nameJa}
+                  fill
+                  className="object-contain p-0.5 group-hover:drop-shadow-lg"
+                  sizes="32px"
+                />
+              </div>
+              <span className="text-xs text-text-primary whitespace-nowrap transition-colors duration-200 group-hover:text-primary group-hover:font-medium">{option.nameJa}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ── 標準モード: Card枠 + 表示/非表示トグル ──
   return (
     <Card className={`overflow-hidden ${className}`}>
       <div className="px-4 py-2.5 border-b border-border-medium bg-bg-secondary/30">
