@@ -28,6 +28,7 @@ import {
 } from '@/constants/product-type-config';
 import { translateBagType, translateMaterialType, BAG_TYPE_JA, POST_PROCESSING_JA } from '@/constants/enToJa';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import { getPrintingLabelJa } from '@/lib/product-display-name';
 import type { Quotation, QuotationStatus } from '@/types/entities';
 
 export interface QuotationListProps {
@@ -289,9 +290,7 @@ export function QuotationList({
                     enrichedSpecs.distributionEnvironment ? distributionEnvironmentMap[enrichedSpecs.distributionEnvironment] : null,
                   ].filter(Boolean).join('、') || '-';
 
-                  const printingJa = enrichedSpecs.printingType === 'digital'
-                    ? 'デジタル印刷（フルカラー）'
-                    : enrichedSpecs.printingType === 'gravure' ? 'グラビア印刷（フルカラー）' : '-';
+                  const printingJa = getPrintingLabelJa(enrichedSpecs.printingType, enrichedSpecs.cost_breakdown);
 
                   const deliveryJa = enrichedSpecs.deliveryLocation === 'domestic' ? '国内' : enrichedSpecs.deliveryLocation === 'international' ? '海外' : '-';
                   const urgencyJa = enrichedSpecs.urgency === 'standard' ? '標準' : enrichedSpecs.urgency === 'express' ? '急ぎ' : '-';

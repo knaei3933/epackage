@@ -77,11 +77,8 @@ function getBagTypeName(bagTypeId: string): string {
 }
 
 function getPrintingName(type: string): string {
-  const typeNames: Record<string, string> = {
-    digital: 'デジタル印刷',
-    gravure: 'グラビア印刷',
-  };
-  return typeNames[type] || type || '-';
+  // 'auto' を含む全ての printingType を digital/gravure に解決して表示
+  return getPrintingLabelJa(type, undefined).replace('（フルカラー）', '');
 }
 
 function getPostProcessingName(option: string): string {

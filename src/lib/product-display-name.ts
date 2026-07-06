@@ -81,3 +81,40 @@ export function formatProductDisplayName(
 
   return parts.length > 0 ? parts.join('_') : fallback;
 }
+
+/**
+ * 印刷方式を 'digital' / 'gravure' に解決する。
+ *
+ * DBには printingType='auto' で保存されたレガシーデータが存在する。
+ * 'auto' の場合は cost_breakdown のグラビア指標（copperPlateCost > 0）で判定し、
+ * 指標がなければデジタル（小ロット標準）とみなす。
+ *
+ * @param printingType DB格納値 ('digital' | 'gravure' | 'auto' | undefined)
+ * @param costBreakdown 原価内訳（copperPlateCost の有無でグラビア判定）
+ * @returns 'digital' | 'gravure'
+ */
+export function resolvePrintingType(
+  printingType?: string,
+  costBreakdown?: Record<string, unknown> | null
+): 'digital' | 'gravure' {
+  if (printingType === 'gravure') return 'gravure';
+  if (printingType === 'digital') return 'digital';
+  // 'auto' or undefined: resolve from cost data
+  if (costBreakdown) {
+    const copper = (costBreakdown as Record<string, number | null>).copperPlateCost;
+    if (typeof copper === 'number' && copper > 0) return 'gravure';
+  }
+  return 'digital';
+}
+
+/**
+ * 印刷方式の日本語表示ラベルを返す。
+ * resolvePrintingType で解決した結果を表示用ラベルに変換。
+ */
+export function getPrintingLabelJa(
+  printingType?: string,
+  costBreakdown?: Record<string, unknown> | null
+): string {
+  const resolved = resolvePrintingType(printingType, costBreakdown);
+  return resolved === 'gravure' ? 'グラビア印刷（フルカラー）' : 'デジタル印刷（フルカラー）';
+}

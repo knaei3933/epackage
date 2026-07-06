@@ -5,6 +5,7 @@ import { BAG_TYPE_JA, POST_PROCESSING_JA, translateMaterialType } from '@/consta
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
+import { getPrintingLabelJa } from '@/lib/product-display-name';
 
 /**
  * MemberSpecificationDisplay - メンバー用仕様表示コンポーネント
@@ -92,12 +93,8 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
     }
   }
 
-  // 印刷情報
-  const printingJa = specs.printingType === 'digital'
-    ? 'デジタル印刷（フルカラー）'
-    : specs.printingType === 'gravure'
-      ? 'グラビア印刷（フルカラー）'
-      : '-';
+  // 印刷情報: 'auto' を含む全ての printingType を digital/gravure に解決
+  const printingJa = getPrintingLabelJa(specs.printingType, specs.cost_breakdown || item?.breakdown?.breakdown);
 
   // 後加工処理
   const isLimitedPostProcessing = specs.bagTypeId === 'roll_film' || specs.bagTypeId === 'spout_pouch';

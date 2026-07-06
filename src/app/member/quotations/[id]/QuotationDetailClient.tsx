@@ -36,6 +36,7 @@ import { InvoiceDownloadButton } from '@/components/quote/shared/InvoiceDownload
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 import { formatContentsDisplay } from '@/constants/contentsData';
+import { getPrintingLabelJa } from '@/lib/product-display-name';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
@@ -343,11 +344,7 @@ function mapSpecificationsToPDF(specs: Record<string, unknown> | undefined): Rec
     zipperPosition: postProcessingOptions?.some(opt => opt.includes('zipper') || opt.includes('zip')) ? '指定位置' : 'なし',
     cornerR: postProcessingOptions?.includes('corner-round') ? 'R5' : postProcessingOptions?.includes('corner-square') ? 'R0' : 'R5',
     machiPrinting: postProcessingOptions?.includes('machi-printing-yes') ? 'あり' : 'なし',
-    printingType: printingType === 'gravure'
-      ? 'グラビア印刷（フルカラー）'
-      : printingType === 'digital'
-        ? 'デジタル印刷（フルカラー）'
-        : '',
+    printingType: getPrintingLabelJa(printingType, undefined),
   };
   return result;
 }
@@ -955,10 +952,10 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
               <div className="text-sm">
                 <span className="text-text-muted">印刷:</span>
                 <span className="ml-2 text-text-primary">
-                  {quotation.items[0].specifications?.printingType === 'digital' && 'デジタル印刷（フルカラー）'}
-                  {quotation.items[0].specifications?.printingType === 'gravure' && 'グラビア印刷（フルカラー）'}
-                  {/* Issue 2 fix: legacy 'auto' records resolve via cost_breakdown.recommendedMethod or default to digital */}
-                  {quotation.items[0].specifications?.printingType === 'auto' && 'デジタル印刷（フルカラー）'}
+                  {(() => {
+                    const pt = quotation.items[0].specifications?.printingType;
+                    return getPrintingLabelJa(pt, quotation.items[0].specifications?.cost_breakdown);
+                  })()}
                 </span>
               </div>
             )}
@@ -1431,10 +1428,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 if (!selectedItem) return null;
                 const specs = selectedItem.specifications || {};
                 const pType = specs.printingType;
-                const printingLabel = pType === 'digital' ? 'デジタル印刷'
-                  : pType === 'gravure' ? 'グラビア印刷'
-                  : pType === 'auto' ? 'デジタル印刷'
-                  : '-';
+                const printingLabel = getPrintingLabelJa(pType, specs.cost_breakdown).replace('（フルカラー）', '');
                 const ppOpts = (specs.postProcessingOptions || []) as string[];
                 const nonePatterns = ['zipper-no','valve-no','machi-printing-no','notch-no','hang-hole-no','corner-square'];
                 const isNone = (o: string) => nonePatterns.includes(o) || /-no$/.test(o);
