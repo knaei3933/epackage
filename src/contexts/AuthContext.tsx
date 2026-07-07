@@ -45,6 +45,8 @@ interface AuthProviderProps {
 
 // Client-side profile cache: skip redundant current-user API round-trips
 // within the same auth zone. TTL-bounded; signIn/signOut/refreshSession/401 bypass it.
+
+import { flushGuestQuotes } from '@/lib/guest-quote-flush';
 const PROFILE_CACHE_TTL_MS = 30_000
 
 const AUTH_BOUNDARIES = {
@@ -377,6 +379,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       role: data.profile.role,
       status: data.profile.status,
     })
+
+    // Flush any pending guest quotes from sessionStorage to DB
+    flushGuestQuotes(data.user).catch((e) => {
+      console.warn('[AuthContext] Guest quote flush failed:', e);
+    });
   }, [])
 
   /**

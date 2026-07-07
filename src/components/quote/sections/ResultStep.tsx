@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 ;
 import { useQuote, useQuoteState, validateProductTypeSpecificFields } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { saveGuestQuote } from '@/lib/guest-quote-storage';
 import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
 import { generateQuotePDF, generateMultiQuantityPDF, QuoteData, MultiQuantityQuoteInput } from '@/lib/pdf-generator';
@@ -1038,11 +1039,8 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // ✅ エラーハンドリング改善
   // 戻り値: 保存成功時は見積もりID、失敗時はnull
   const saveQuotationToDatabase = async (): Promise<{ id: string | null; quotationNumber: string | null }> => {
-    // ✅ 認証チェック: ログインしていない場合は保存をスキップ
-    if (!user?.id) {
-      console.log('[saveQuotationToDatabase] User not authenticated, skipping auto-save');
-      return { id: null, quotationNumber: null };
-    }
+    // ✅ 認証チェック: ログインしていない場合でも itemsToSave 構築後にsessionStorageへ保存
+    const isGuest = !user?.id;
     setPersistenceStatus({ status: 'idle', message: '見積を保存中...' });
 
     try {
@@ -1350,6 +1348,38 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       console.log('[saveQuotationToDatabase] Saving quotation:', quotationData);
       console.log('[saveQuotationToDatabase] itemsToSave[0].specifications:', itemsToSave[0]?.specifications);
 
+      // ✅ ゲスト（非ログイン）の場合: sessionStorageに一時保存し、ログイン時に自動連携
+      if (isGuest) {
+        console.log('[saveQuotationToDatabase] Guest user — saving snapshot to sessionStorage');
+        try {
+          const guestItems = itemsToSave.map(item => {
+            const safeUnitPrice = (typeof item.unitPrice === 'number' && isFinite(item.unitPrice)) ? item.unitPrice : 0;
+            const safeQty = (typeof item.quantity === 'number' && isFinite(item.quantity) && item.quantity > 0) ? item.quantity : 1;
+            return {
+              product_name: item.productName || 'カスタム製品',
+              quantity: safeQty,
+              unit_price: safeUnitPrice,
+              specifications: item.specifications,
+              cost_breakdown: (item as any).cost_breakdown || {}
+            };
+          });
+          saveGuestQuote({
+            savedAt: new Date().toISOString(),
+            totalAmount: totalAmountFromItems,
+            items: guestItems,
+            cost_breakdown: costBreakdown || null,
+          });
+          setPersistenceStatus({
+            status: 'success',
+            message: '見積を一時保存しました。ログインすると自動的に会員見積に反映されます。',
+          });
+        } catch (e) {
+          console.warn('[saveQuotationToDatabase] Failed to save guest quote:', e);
+          setPersistenceStatus({ status: 'error', message: '一時保存に失敗しました。' });
+        }
+        return { id: null, quotationNumber: null };
+      }
+
       // ✅ /api/member/quotations を使用（認証必須）
       const response = await fetch('/api/member/quotations', {
         method: 'POST',
@@ -1628,6 +1658,16 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
               <a href="/member/quotations" className="inline-block mt-2 text-sm font-medium text-green-700 underline hover:text-green-900">
                 見積一覧を確認する →
               </a>
+            )}
+            {!user?.id && persistenceStatus.message.includes('一時保存') && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href="/auth/signin" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                  ログインして見積を保存 →
+                </a>
+                <a href="/auth/register" className="inline-flex items-center px-4 py-2 bg-white border-2 border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors">
+                  新規会員登録
+                </a>
+              </div>
             )}
           </div>
           <button
