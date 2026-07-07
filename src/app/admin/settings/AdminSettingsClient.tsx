@@ -68,6 +68,8 @@ interface SettingGroup {
   description: string;
   icon: any;
   keywords: string[];
+  /** Settings in these keys are listed in this exact order */
+  settingKeys?: string[];
 }
 
 // Enhanced tab configuration with groups
@@ -77,8 +79,27 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: 'フィルム材料',
     icon: Package,
     groups: [
-      { title: '가격 설정', description: '필름 재료의 단가 관리', icon: Tag, keywords: ['PRICE', '가격', '단가', '원가'] },
-      { title: '밀도 설정', description: '재료별 물리적 밀도값', icon: Layers, keywords: ['DENSITY', '밀도', '무게'] },
+      { title: '① 표준 필름', description: 'PET · PE · PP · NY 기본 소재', icon: Layers, keywords: ['표준','standard'], settingKeys: [
+        'PET_unit_price', 'PET_density',
+        'PE_density',
+        'PP_density',
+        'NY_unit_price', 'NY_density',
+        'pet_cost', 'pe_cost', 'pp_cost',
+      ]},
+      { title: '② 알루미늄 / 증착', description: 'AL · VMPET · 알루미늄 증착', icon: Layers, keywords: ['알루미늄','AL','VMPET'], settingKeys: [
+        'AL_unit_price', 'AL_density',
+        'VMPET_unit_price', 'VMPET_density',
+        'alu_vapor_cost', 'aluminum_cost',
+        'opp_alu_foil_cost',
+        'pet_transparent_cost',
+      ]},
+      { title: '③ 종이 / 크라프트', description: '크라프트지 · 종이 라미네이트', icon: Layers, keywords: ['크라프트','KRAFT','종이','PAPER'], settingKeys: [
+        'KRAFT_unit_price', 'KRAFT_density',
+        'kraft_pe_cost', 'paper_laminate_cost', 'PAPER_LAMINATE_density',
+      ]},
+      { title: '④ LLDPE', description: 'LLDPE 단가/밀도', icon: Layers, keywords: ['LLDPE'], settingKeys: [
+        'LLDPE_unit_price', 'LLDPE_density',
+      ]},
     ]
   },
   pouch_processing: {
@@ -86,8 +107,26 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: 'ポーチ加工',
     icon: Layers,
     groups: [
-      { title: '가공비', description: '파우치 가공 공정 비용', icon: Coins, keywords: ['가공', 'COST', '비용', 'PRICE'] },
-      { title: '추가 옵션', description: '추가 작업 및 옵션 비용', icon: Settings2, keywords: ['추가', 'OPTION', '마무리', 'MATCHE'] },
+      { title: '① 삼방(3면 붙임)', description: 'flat_3_side 계열', icon: Layers, keywords: ['3_side','삼방'], settingKeys: [
+        'flat_3_side_cost', 'flat_3_side_coefficient', 'flat_3_side_minimum_price', 'flat_3_side_zipper_surcharge',
+      ]},
+      { title: '② 스탠드파우치', description: 'stand_up 계열', icon: Layers, keywords: ['stand_up','스탠드'], settingKeys: [
+        'stand_up_cost', 'stand_up_coefficient', 'stand_up_minimum_price', 'stand_up_zipper_surcharge',
+      ]},
+      { title: '③ T방 / M방', description: 't_shape · m_shape 계열', icon: Layers, keywords: ['t_shape','m_shape'], settingKeys: [
+        't_shape_cost', 't_shape_coefficient', 't_shape_minimum_price', 't_shape_zipper_surcharge',
+        'm_shape_cost', 'm_shape_coefficient', 'm_shape_minimum_price', 'm_shape_zipper_surcharge',
+      ]},
+      { title: '④ 박스형(가제트)', description: 'box 계열', icon: Layers, keywords: ['box','박스'], settingKeys: [
+        'box_cost', 'box_coefficient', 'box_minimum_price', 'box_zipper_surcharge',
+      ]},
+      { title: '⑤ 기본 단가형 (개당)', description: 'flat · standing · spout · soft · gusset · special · roll · zip', icon: Coins, keywords: ['cost'], settingKeys: [
+        'flat_pouch_cost', 'flat_with_zip_cost', 'standing_pouch_cost', 'spout_pouch_cost',
+        'soft_pouch_cost', 'gusset_cost', 'special_cost', 'roll_film_cost',
+      ]},
+      { title: '⑥ 기타', description: 'other 계열', icon: Settings2, keywords: ['other','기타'], settingKeys: [
+        'other_cost', 'other_coefficient', 'other_minimum_price',
+      ]},
     ]
   },
   printing: {
@@ -95,8 +134,15 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: '印刷',
     icon: Printer,
     groups: [
-      { title: '인쇄 비용', description: '인쇄 방식별 비용', icon: DollarSign, keywords: ['인쇄', 'PRINT', '비용', 'COST', 'PRICE'] },
-      { title: '판매비', description: '인쇄판 제작 비용', icon: Factory, keywords: ['판', 'PLATE', '제작'] },
+      { title: '① 그라비아 인쇄', description: '그라비아 방식 설정', icon: Printer, keywords: ['그라비아','gravure'], settingKeys: [
+        'gravure_per_color_per_meter', 'gravure_min_charge', 'gravure_setup_fee',
+      ]},
+      { title: '② 디지털 인쇄', description: '디지털 방식 설정', icon: Printer, keywords: ['디지털','digital'], settingKeys: [
+        'digital_per_color_per_meter', 'digital_min_charge', 'digital_setup_fee',
+      ]},
+      { title: '③ 공통 / 특수', description: '공통 단가 · UV · 매트', icon: Factory, keywords: ['공통','UV','매트'], settingKeys: [
+        'cost_per_m2', 'uv_fixed_cost', 'uv_surcharge', 'matte_cost_per_m',
+      ]},
     ]
   },
   lamination: {
@@ -104,8 +150,9 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: 'ラミネート',
     icon: Layers,
     groups: [
-      { title: '라미 가공', description: '라미네이트 가공 비용', icon: Layers, keywords: ['라미', 'LAMINATION', '가공', '비용'] },
-      { title: '코팅', description: '코팅 처리 비용', icon: Package, keywords: ['코팅', 'COATING'] },
+      { title: '① 라미네이트 단가', description: 'm²당 단가 (AL 유무별)', icon: Layers, keywords: ['라미','LAMINATION','cost'], settingKeys: [
+        'cost_per_m2', 'cost_per_m2_with_al',
+      ]},
     ]
   },
   slitter: {
@@ -113,7 +160,9 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: 'スリッター',
     icon: Slash,
     groups: [
-      { title: '슬리팅 비용', description: '재단 공정 비용', icon: Slash, keywords: ['슬리', 'SLIT', '재단', 'COST'] },
+      { title: '① 슬리팅 비용', description: '재단 공정 비용', icon: Slash, keywords: ['슬리','SLIT','재단','COST'], settingKeys: [
+        'cost_per_m', 'min_cost',
+      ]},
     ]
   },
   exchange_rate: {
@@ -121,8 +170,12 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: '為替/関税',
     icon: TrendingUp,
     groups: [
-      { title: '환율 정보', description: '통화별 환율', icon: TrendingUp, keywords: ['환율', 'EXCHANGE', 'RATE'] },
-      { title: '관세 및 부가세', description: '수입 관련 세율 (관세율)', icon: Coins, keywords: ['관세', 'tax', '부가세', 'vat', '関税', 'duty', 'import'] },
+      { title: '① 환율', description: '통화별 환율', icon: TrendingUp, keywords: ['환율','EXCHANGE','RATE'], settingKeys: [
+        'krw_to_jpy',
+      ]},
+      { title: '② 관세 / 부가세', description: '수입 관련 세율 (관세율)', icon: Coins, keywords: ['관세','tax','부가세','vat','関税','duty','import'], settingKeys: [
+        'import_duty',
+      ]},
     ]
   },
   delivery: {
@@ -130,8 +183,15 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: '配送',
     icon: Truck,
     groups: [
-      { title: '배송비', description: '지역별 배송 비용', icon: Truck, keywords: ['배송', 'DELIVERY', '운송'] },
-      { title: '추가 비용', description: '배송 관련 추가 비용', icon: Package, keywords: ['추가', '필수', 'ADDITIONAL'] },
+      { title: '① 롤당 기준', description: '롤당 배송비 / 중량', icon: Truck, keywords: ['롤','roll','kg_per'], settingKeys: [
+        'cost_per_roll', 'kg_per_roll',
+      ]},
+      { title: '② 국내 배송', description: 'domestic 단가/임계값', icon: Truck, keywords: ['domestic','국내'], settingKeys: [
+        'domestic_base', 'domestic_per_kg', 'domestic_free_threshold',
+      ]},
+      { title: '③ 국제 배송', description: 'international 단가/임계값', icon: Truck, keywords: ['international','국제'], settingKeys: [
+        'international_base', 'international_per_kg', 'international_free_threshold',
+      ]},
     ]
   },
   production: {
@@ -139,7 +199,22 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: '生産設定',
     icon: Factory,
     groups: [
-      { title: '생산 파라미터', description: '생산 공정 설정값', icon: Settings2, keywords: ['생산', 'PRODUCTION', '설정'] },
+      { title: '① 주문 수량', description: '최소/최대 주문 · 소량 기준', icon: Settings2, keywords: ['주문','order','small_lot'], settingKeys: [
+        'min_order_quantity', 'max_order_quantity', 'small_lot_threshold', 'small_lot_surcharge',
+      ]},
+      { title: '② 원단 / 폭', description: '원단 폭 설정', icon: Layers, keywords: ['폭','width','material'], settingKeys: [
+        'default_material_width', 'material_width_540', 'material_width_760',
+      ]},
+      { title: '③ 롤 필름', description: '롤 필름 단가/인쇄/라미/슬리터', icon: Layers, keywords: ['roll_film'], settingKeys: [
+        'roll_film_cost_per_m', 'roll_film_printing_cost_per_m', 'roll_film_lamination_cost_per_m',
+        'roll_film_slitter_cost_per_m', 'roll_film_slitter_min_cost',
+      ]},
+      { title: '④ 마진 / 로스율', description: '제조 마진 · 로스율 · 후가공 배수', icon: TrendingUp, keywords: ['margin','loss','multiplier'], settingKeys: [
+        'manufacturer_margin', 'default_loss_rate', 'default_post_processing_multiplier',
+      ]},
+      { title: '⑤ 최소 가격 / UV', description: '최소 가격 · UV 인쇄 비용', icon: Coins, keywords: ['minimum','uv'], settingKeys: [
+        'minimum_price', 'uv_printing_fixed_cost', 'uv_printing_surcharge',
+      ]},
     ]
   },
   pricing: {
@@ -147,8 +222,10 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     nameJa: '価格設定',
     icon: Coins,
     groups: [
-      { title: '마진율', description: '가격 정책 설정', icon: TrendingUp, keywords: ['마진', 'MARGIN', '마크업', 'MARKUP', '기본', '제조업체', '최소', '판매'] },
-      { title: '고객별 할인율', description: '고객별 할인율 관리 (0% ~ -50%)', icon: PercentIcon, keywords: ['__CUSTOMER_MARKUP__'] },
+      { title: '① 마진율', description: '가격 정책 설정', icon: TrendingUp, keywords: ['마진','MARGIN','마크업','MARKUP','기본','제조업체','최소','판매'], settingKeys: [
+        'default_markup_rate', 'manufacturer_margin', 'minimum_price_jpy',
+      ]},
+      { title: '② 고객별 할인율', description: '고객별 할인율 관리 (0% ~ -50%)', icon: PercentIcon, keywords: ['__CUSTOMER_MARKUP__'] },
     ]
   },
   designer: {
@@ -211,6 +288,16 @@ function groupSettingsByCategory(settings: CategoryData, category: TabKey): Map<
 
     // Try to match with groups
     for (const group of config.groups) {
+      // If group defines explicit settingKeys, match by exact key
+      if (group.settingKeys && group.settingKeys.includes(key)) {
+        groups.set(group.title, {
+          ...groups.get(group.title),
+          [key]: data
+        });
+        grouped = true;
+        break;
+      }
+
       const matchesKeyword = group.keywords.some(keyword =>
         cleanDesc.includes(keyword.toLowerCase()) ||
         key.toLowerCase().includes(keyword.toLowerCase())
@@ -239,6 +326,26 @@ function groupSettingsByCategory(settings: CategoryData, category: TabKey): Map<
       ...ungrouped
     });
   }
+
+  // If any group defines settingKeys, sort its entries in that order
+  config.groups.forEach(group => {
+    if (group.settingKeys) {
+      const existing = groups.get(group.title);
+      if (existing) {
+        const ordered: CategoryData = {};
+        group.settingKeys.forEach(sk => {
+          if (existing[sk] !== undefined) {
+            ordered[sk] = existing[sk];
+          }
+        });
+        // Append any remaining keys not in settingKeys (safety)
+        Object.entries(existing).forEach(([k, v]) => {
+          if (ordered[k] === undefined) ordered[k] = v;
+        });
+        groups.set(group.title, ordered);
+      }
+    }
+  });
 
   return groups;
 }
@@ -980,15 +1087,15 @@ export default function AdminSettingsClient() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* For special tabs (designer, email, pricing), skip the "no settings" message */}
-            {!['designer', 'email', 'pricing'].includes(activeTab) && settingCount === 0 ? (
+            {/* For special tabs (designer, email), skip the "no settings" message */}
+            {!['designer', 'email'].includes(activeTab) && settingCount === 0 ? (
               <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                 <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">
                   {searchQuery ? '검색 결과가 없습니다.' : '이 카테고리에는 설정이 없습니다.'}
                 </p>
               </div>
-            ) : !['designer', 'email', 'pricing'].includes(activeTab) ? (
+            ) : !['designer', 'email'].includes(activeTab) ? (
               <div className="space-y-6">
                 {Array.from(groupedSettings.entries()).map(([groupTitle, groupData]) => {
                   const groupConfig = currentTabConfig.groups.find(g => g.title === groupTitle);
@@ -1026,7 +1133,7 @@ export default function AdminSettingsClient() {
 
                       {/* Settings Table */}
                       <div className="divide-y divide-gray-100">
-                        {Object.entries(groupData).map(([key, data]) => {
+                        {Object.entries(groupData).map(([key, data], index) => {
                           const settingKey = `${activeTab}.${key}`;
                           const isModified = modifiedSettings.has(settingKey);
                           const cleanDesc = cleanDescription(data.description || key);
@@ -1035,17 +1142,19 @@ export default function AdminSettingsClient() {
                             <div
                               key={key}
                               className={cn(
-                                "px-6 py-4 hover:bg-gray-50/50 transition-colors",
+                                "flex items-center px-6 py-4 hover:bg-gray-50/50 transition-colors gap-4",
                                 isModified && "bg-blue-50/30"
                               )}
                             >
-                              <div className="flex items-start gap-4">
-                                <div className="flex-1 min-w-0">
-                                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                                    {cleanDesc}
-                                  </label>
-                                  <p className="text-xs text-gray-500 mb-2 font-mono">{key}</p>
-                                </div>
+                              <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">
+                                {index + 1}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <label className="block text-sm font-medium text-gray-900 mb-1">
+                                  {cleanDesc}
+                                </label>
+                                <p className="text-xs text-gray-400 mb-0 font-mono">{key}</p>
+                              </div>
                                 <div className="flex items-center gap-3 flex-shrink-0">
                                   <input
                                     type="number"
@@ -1095,9 +1204,8 @@ export default function AdminSettingsClient() {
                                     ) : (
                                       '저장'
                                     )}
-                                  </button>
+                                </button>
                                 </div>
-                              </div>
                             </div>
                           );
                         })}
