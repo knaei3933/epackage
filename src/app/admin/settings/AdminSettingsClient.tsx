@@ -42,6 +42,7 @@ interface SettingValue {
   description: string;
   unit: string;
   originalValue?: number;
+  dbCategory?: string;
 }
 
 interface CategoryData {
@@ -121,7 +122,7 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
     icon: TrendingUp,
     groups: [
       { title: '환율 정보', description: '통화별 환율', icon: TrendingUp, keywords: ['환율', 'EXCHANGE', 'RATE'] },
-      { title: '관세 및 부가세', description: '수입 관련 세율', icon: Coins, keywords: ['관세', 'TAX', '부가세', 'VAT'] },
+      { title: '관세 및 부가세', description: '수입 관련 세율 (관세율)', icon: Coins, keywords: ['관세', 'tax', '부가세', 'vat', '関税', 'duty', 'import'] },
     ]
   },
   delivery: {
@@ -306,7 +307,14 @@ export default function AdminSettingsClient() {
       const result = await response.json();
 
       if (result.success) {
-        // Store original values for change detection
+        // Store original values for change detection.
+        // 'tax' is a separate DB category but is surfaced in the exchange_rate tab
+        // (환율/관세 = 為替/関税). dbCategory is preserved so save operations
+        // target the correct API path (e.g. /api/admin/settings/tax/import_duty).
+        const tabForCategory = (cat: string): TabKey => {
+          if (cat === 'tax') return 'exchange_rate';
+          return cat as TabKey;
+        };
         const settingsWithOriginals: Record<TabKey, CategoryData> = {
           film_material: {},
           pouch_processing: {},
@@ -322,14 +330,17 @@ export default function AdminSettingsClient() {
           integrations: {}
         };
         Object.entries(result.data).forEach(([category, data]: [string, any]) => {
-          settingsWithOriginals[category as TabKey] = {};
+          const tabKey = tabForCategory(category);
+          if (!settingsWithOriginals[tabKey]) return;
+          if (!settingsWithOriginals[tabKey]) settingsWithOriginals[tabKey] = {};
           // data is an array, use forEach with the item's key property
           data.forEach((item: any) => {
-            settingsWithOriginals[category as TabKey][item.key] = {
+            settingsWithOriginals[tabKey][item.key] = {
               value: item.value,
               description: item.description || item.key,
               unit: item.unit || '',
-              originalValue: item.value
+              originalValue: item.value,
+              dbCategory: category
             };
           });
         });
@@ -379,12 +390,13 @@ export default function AdminSettingsClient() {
   const handleSaveOne = async (category: TabKey, key: string) => {
     const settingKey = `${category}.${key}`;
     const newValue = settings[category]?.[key]?.value;
+    const dbCategory = settings[category]?.[key]?.dbCategory || category;
 
     if (newValue === undefined) return;
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/settings/${category}/${key}`, {
+      const response = await fetch(`/api/admin/settings/${dbCategory}/${key}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: newValue })
@@ -434,11 +446,13 @@ export default function AdminSettingsClient() {
 
     modifiedSettings.forEach(settingKey => {
       const [category, key] = settingKey.split('.');
-      const newValue = settings[category as TabKey]?.[key]?.value;
+      const tabData = settings[category as TabKey]?.[key];
+      const newValue = tabData?.value;
+      const dbCategory = tabData?.dbCategory || category;
 
       if (newValue !== undefined) {
         saves.push(
-          fetch(`/api/admin/settings/${category}/${key}`, {
+          fetch(`/api/admin/settings/${dbCategory}/${key}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: newValue })
