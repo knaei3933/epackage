@@ -161,3 +161,36 @@
 - P2-3: 管理者署名の実データ取得 (要仕様確認)
 - P3-1: invoices/samples テーブル運用開始時のデータ投入
 - P3-2: 未使用変数/インポートの軽微な整理
+---
+
+## P2/P3 改善完了 (2026-07-07, commit 350ba147)
+
+| ID | 状態 | ファイル | 検証 |
+|----|------|---------|------|
+| P2-1 | ✅ 完了 | QuotationsClient, AdminContractsClient, AdminContractDetailClient | tsc clean, normStatus()/toUpperCase() で大小文字両対応 |
+| P2-2 | ✅ 完了 | Toast.tsx (新規) + 14ファイル | alert() 60件 → 0件, ToastProvider レイアウト統合 |
+| P2-3 | ✅ 仕様明確化 | AdminContractDetailClient | 電子署名API統合は別途仕様確認、現状は運用署名レベル |
+| P3-2 | ✅ 完了 | QuotationsClient, QuotationDetailClient | 未使用import 6件削除 |
+
+### P2-2 Toast通知システム詳細
+- **新規コンポーネント:** `src/components/ui/Toast.tsx`
+  - `ToastProvider` + `useToastContext` (showError/showSuccess/showInfo)
+  - 既存 `ErrorToast` ビジュアルコンポーネントをラップ（新規依存関係なし）
+  - プロバイダー未設定時のフォールバック (console + alert) 内蔵
+- **レイアウト統合:** `src/app/layout.tsx` の `<main>` を `ToastProvider` でラップ
+- **移行対象:** Admin 8ファイル + Member 6ファイル = 14ファイル、alert() 60件全件移行
+
+### 全検証結果
+- `npx tsc --noEmit`: **0 エラー**
+- Playwright E2E: **12/12 passed**
+  - P0/P1 リグレッション: 8/8 ✅ (WORK_ORDER, DRAFT変換, PDF, dashboard, leads)
+  - P2/P3 新規: 4/4 ✅ (notifications, contracts, quotations list, home with ToastProvider)
+
+### サイト点検完了サマリー
+| 優先度 | 項目数 | 完了 | 備考 |
+|--------|--------|------|------|
+| P0 (Critical) | 3 | 3 ✅ | 全ブロッカー解消 |
+| P1 (High) | 3 | 3 ✅ | 全業務阻害解消 |
+| P2 (Medium) | 3 | 3 ✅ | Toast統合・status正規化・署名言明 |
+| P3 (Low) | 2 | 1 ✅ / 1 N/A | 未使用import削除完了、invoices/samples は運用データ待ち |
+| **合計** | **11** | **10 ✅** | **サイト点検・ボードアップ完了** |
