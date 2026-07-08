@@ -20,6 +20,9 @@ import { safeMap } from '@/lib/array-helpers';
 import { OrderStatusBadge } from '@/components/orders';
 import { BAG_TYPE_IMAGES } from '@/constants/product-type-config';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
+import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
+import { convertToPreviewOptions, MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS } from '@/constants/product-type-config';
+import { formatProductDisplayName } from '@/lib/product-display-name';
 
 // =====================================================
 // Types
@@ -615,63 +618,64 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
                     )}
                   </div>
 
-                  <div className="space-y-3 mb-4">
-                    {safeMap((order.items || []).slice(0, 2), (item: any, itemIndex: number) => {
-                      // Find matching quotation item by index
-                      const quotationItems = order.quotations?.quotation_items;
-                      const quotationItem = (Array.isArray(quotationItems) ? quotationItems : quotationItems?.data)?.[itemIndex];
-                      const specs = quotationItem?.specifications || item.specifications;
+                  {(() => {
+                    const quotationItemsList = extractQuotationItems(order.quotations);
+                    const firstQuotationItem = quotationItemsList[0];
+                    const firstItem = (order.items || [])[0];
+                    const specs = firstQuotationItem?.specifications || firstItem?.specifications;
 
-                      return (
-                        <div key={item.id} className="border border-border-secondary rounded-lg p-3 bg-bg-secondary/30">
-                          {/* Product Type Preview Image */}
-                          {specs?.bagTypeId && (() => {
-                            const bagTypeInfo = BAG_TYPE_IMAGES[specs.bagTypeId as keyof typeof BAG_TYPE_IMAGES];
-                            if (bagTypeInfo) {
-                              return (
-                                <div className="flex items-center gap-3 mb-2 pb-2 border-b border-border-secondary">
-                                  <div className="w-16 h-16 relative bg-white rounded-lg p-1 shadow-sm flex-shrink-0">
-                                    <img
-                                      src={bagTypeInfo.image}
-                                      alt={bagTypeInfo.name}
-                                      className="w-full h-full object-contain"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                      }}
-                                    />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="text-sm font-semibold text-text-primary">{bagTypeInfo.name}</div>
-                                    <div className="text-xs text-text-muted">{item.product_name || item.productName}</div>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
-
-                          {/* Detailed Specifications */}
-                          <MemberSpecificationDisplay item={{ specifications: specs }} />
-
-                          {/* Quantity and Price */}
-                          <div className="flex items-center justify-between text-sm pt-2 border-t border-border-secondary">
-                            <div>
-                              <span className="text-text-muted">数量: </span>
-                              <span className="text-text-primary font-medium">{item.quantity}個</span>
-                            </div>
-                            <span className="text-text-primary font-semibold">
-                              {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
-                            </span>
+                    return (
+                      <div className="space-y-2 mb-4">
+                        {/* 製品仕様サマリー（1回のみ） */}
+                        {specs && (
+                          <div className="border border-border-secondary rounded-lg p-3 bg-bg-secondary/30">
+                            <MemberSpecificationDisplay item={{ specifications: specs }} />
+                            {/* 後加工プレビュー（インライン） */}
+                            {specs.postProcessingOptions && specs.postProcessingOptions.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-border-secondary">
+                                <PostProcessingPreview
+                                  selectedOptions={convertToPreviewOptions(specs.postProcessingOptions)}
+                                  inline={true}
+                                />
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      );
-                    })}
-                    {order.items && order.items.length > 2 && (
-                      <p className="text-text-muted text-sm text-center">
-                        他 {order.items.length - 2} 点
-                      </p>
-                    )}
-                  </div>
+                        )}
+
+                        {/* 数量別価格表 */}
+                        <table className="w-full text-sm border border-border-secondary rounded-lg overflow-hidden">
+                          <thead>
+                            <tr className="text-xs text-text-muted border-b border-border-secondary bg-bg-secondary/30">
+                              <th className="text-left font-medium py-1.5 px-3">品目</th>
+                              <th className="text-right font-medium py-1.5 px-2 w-20">数量</th>
+                              <th className="text-right font-medium py-1.5 px-2 w-24">単価</th>
+                              <th className="text-right font-medium py-1.5 pl-2 w-28">金額</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {safeMap((order.items || []), (item: any, itemIndex: number) => {
+                              const qi = quotationItemsList[itemIndex];
+                              const itemSpecs = qi?.specifications || item.specifications || {};
+                              const displayName = formatProductDisplayName(itemSpecs, item.product_name || item.productName || 'カスタム製品');
+
+                              return (
+                                <tr key={item.id} className="border-b border-border-secondary/50 last:border-0">
+                                  <td className="py-1.5 px-3 text-sm font-medium text-text-primary">{displayName}</td>
+                                  <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">{item.quantity}個</td>
+                                  <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">
+                                    ¥{(item.unit_price || item.unitPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                  </td>
+                                  <td className="py-1.5 pl-2 text-right text-text-primary font-semibold tabular-nums">
+                                    {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
 
                   <div className="text-lg font-semibold text-text-primary">
                     合計: {(order.total_amount || order.totalAmount || 0).toLocaleString()}円
@@ -717,63 +721,64 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
                     </div>
                   )}
 
-                  <div className="text-sm text-text-muted space-y-1 mb-3">
-                    {safeMap((order.items || []).slice(0, 2), (item: any, itemIndex: number) => {
-                      // Extract quotation_items using helper function
-                      const quotationItems = extractQuotationItems(order.quotations);
-                      const quotationItem = quotationItems?.[itemIndex];
-                      const specs = quotationItem?.specifications || item.specifications;
+                  {(() => {
+                    const quotationItemsList = extractQuotationItems(order.quotations);
+                    const firstQuotationItem = quotationItemsList[0];
+                    const firstItem = (order.items || [])[0];
+                    const specs = firstQuotationItem?.specifications || firstItem?.specifications;
 
-                      return (
-                        <div key={item.id} className="border border-border-secondary rounded-lg p-3 bg-bg-secondary/30">
-                          {/* Product Type Preview Image */}
-                          {specs?.bagTypeId && (() => {
-                            const bagTypeInfo = BAG_TYPE_IMAGES[specs.bagTypeId as keyof typeof BAG_TYPE_IMAGES];
-                            if (bagTypeInfo) {
-                              return (
-                                <div className="flex items-center gap-3 mb-2 pb-2 border-b border-border-secondary">
-                                  <div className="w-16 h-16 relative bg-white rounded-lg p-1 shadow-sm flex-shrink-0">
-                                    <img
-                                      src={bagTypeInfo.image}
-                                      alt={bagTypeInfo.name}
-                                      className="w-full h-full object-contain"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                      }}
-                                    />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="text-sm font-semibold text-text-primary">{bagTypeInfo.name}</div>
-                                    <div className="text-xs text-text-muted">{item.product_name || item.productName}</div>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
-
-                          {/* Detailed Specifications */}
-                          <MemberSpecificationDisplay item={{ specifications: specs }} />
-
-                          {/* Quantity and Price */}
-                          <div className="flex items-center justify-between text-sm pt-2 border-t border-border-secondary">
-                            <div>
-                              <span className="text-text-muted">数量: </span>
-                              <span className="text-text-primary font-medium">{item.quantity}個</span>
-                            </div>
-                            <span className="text-text-primary font-semibold">
-                              {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
-                            </span>
+                    return (
+                      <div className="space-y-2 mb-3">
+                        {/* 製品仕様サマリー（1回のみ） */}
+                        {specs && (
+                          <div className="border border-border-secondary rounded-lg p-3 bg-bg-secondary/30">
+                            <MemberSpecificationDisplay item={{ specifications: specs }} />
+                            {/* 後加工プレビュー（インライン） */}
+                            {specs.postProcessingOptions && specs.postProcessingOptions.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-border-secondary">
+                                <PostProcessingPreview
+                                  selectedOptions={convertToPreviewOptions(specs.postProcessingOptions)}
+                                  inline={true}
+                                />
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      );
-                    })}
-                    {order.items && order.items.length > 2 && (
-                      <p className="text-text-muted">
-                        他 {order.items.length - 2} 点
-                      </p>
-                    )}
-                  </div>
+                        )}
+
+                        {/* 数量別価格表 */}
+                        <table className="w-full text-sm border border-border-secondary rounded-lg overflow-hidden">
+                          <thead>
+                            <tr className="text-xs text-text-muted border-b border-border-secondary bg-bg-secondary/30">
+                              <th className="text-left font-medium py-1.5 px-3">品目</th>
+                              <th className="text-right font-medium py-1.5 px-2 w-20">数量</th>
+                              <th className="text-right font-medium py-1.5 px-2 w-24">単価</th>
+                              <th className="text-right font-medium py-1.5 pl-2 w-28">金額</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {safeMap((order.items || []), (item: any, itemIndex: number) => {
+                              const qi = quotationItemsList[itemIndex];
+                              const itemSpecs = qi?.specifications || item.specifications || {};
+                              const displayName = formatProductDisplayName(itemSpecs, item.product_name || item.productName || 'カスタム製品');
+
+                              return (
+                                <tr key={item.id} className="border-b border-border-secondary/50 last:border-0">
+                                  <td className="py-1.5 px-3 text-sm font-medium text-text-primary">{displayName}</td>
+                                  <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">{item.quantity}個</td>
+                                  <td className="py-1.5 px-2 text-right text-text-muted tabular-nums">
+                                    ¥{(item.unit_price || item.unitPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                  </td>
+                                  <td className="py-1.5 pl-2 text-right text-text-primary font-semibold tabular-nums">
+                                    {(item.total_price || (item.unit_price || item.unitPrice) * item.quantity).toLocaleString()}円
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
 
                   <div className="text-lg font-semibold text-text-primary">
                     合計: {(order.total_amount || order.totalAmount || 0).toLocaleString()}円

@@ -103,6 +103,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const userId = searchParams.get('userId');
     const search = searchParams.get('search');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
     const sortBy = searchParams.get('sortBy') || 'created_at';
     const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc';
 
@@ -120,6 +122,12 @@ export async function GET(request: NextRequest) {
     }
     if (search) {
       query = query.or(`quotation_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_email.ilike.%${search}%`);
+    }
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+    if (dateTo) {
+      query = query.lte('created_at', dateTo + 'T23:59:59');
     }
 
     // Apply sorting and pagination

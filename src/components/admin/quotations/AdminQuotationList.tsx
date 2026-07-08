@@ -1,11 +1,16 @@
 'use client';
 
-import { Card, Badge } from '@/components/ui';
-import { Mail, ChevronDown, ChevronRight } from 'lucide-react';
+import { Card, Badge, Button } from '@/components/ui';
+import { Mail, Download, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import { formatDateJa } from '@/utils/formatters';
 import { useState } from 'react';
 import type { Quotation } from '@/types/quotation';
 import { formatPrice } from '@/utils/formatters';
+import { formatProductDisplayName } from '@/lib/product-display-name';
+import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
+import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
+import { convertToPreviewOptions } from '@/constants/product-type-config';
+import { normalizeStatus, STATUS_LABELS } from './quotation-utils';
 
 interface AdminQuotationListProps {
   quotations: Quotation[];
@@ -15,349 +20,198 @@ interface AdminQuotationListProps {
   statusLabels: Record<string, { label: string; variant: 'success' | 'warning' | 'error' | 'default' }>;
 }
 
-/**
- * AdminQuotationList - 管理者用見積リストコンポーネント
- * 明細情報を折りたたみ可能で表示
- */
 export function AdminQuotationList({
   quotations,
   selectedQuotation,
   onSelectQuotation,
   onSendEmail,
-  statusLabels,
 }: AdminQuotationListProps) {
-  // 各見積もの展開状態を管理
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
-  // 明細情報を取得するヘルパー関数
-  const getItemDetails = (quotation: Quotation) => {
+  const toggleExpand = (id: string) => {
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const calcCost = (quotation: Quotation): { totalCost: number; margin: number } => {
     const items = quotation.items || [];
-    if (items.length === 0) return null;
-
-    const item = items[0];
-    // breakdown.specificationsを優先、なければspecificationsを使用
-    const specifications = item.breakdown?.specifications || item.specifications || {};
-
-    // デバッグログ: データ構造を確認
-    console.log('[AdminQuotationList] Item data:', {
-      quotationId: quotation.id,
-      itemId: item.id,
-      hasBreakdown: !!item.breakdown,
-      hasBreakdownSpecs: !!item.breakdown?.specifications,
-      hasDirectSpecs: !!item.specifications,
-      specifications,
-      breakdown: item.breakdown,
-      keys: Object.keys(item)
-    });
-
-    // 数量と単価を計算
-    const totalQuantity = items.reduce((sum, i) => sum + (i.quantity || 0), 0);
-    const unitPrice = quotation.subtotal_amount ? Math.round(quotation.subtotal_amount / totalQuantity * 10) / 10 : 0;
-
-    // タイプ表示
-    const bagTypeDisplay = specifications.bag_type_display || specifications.bag_type || specifications.bagTypeId || '-';
-
-    // サイズ表示
-    let sizeDisplay = '-';
-    if (specifications.width && specifications.height) {
-      sizeDisplay = `${specifications.width}×${specifications.height}`;
-      if (specifications.depth) {
-        sizeDisplay += `×${specifications.depth}`;
+    let totalCost = 0;
+    for (const item of items) {
+      const specs = item.specifications || {};
+      const cb = specs.cost_breakdown || item.cost_breakdown;
+      if (cb && cb.totalCost) {
+        totalCost += cb.totalCost * item.quantity;
       }
-      sizeDisplay += 'mm';
-    } else if (specifications.size) {
-      sizeDisplay = specifications.size;
-    } else if (specifications.dimensions) {
-      sizeDisplay = specifications.dimensions;
     }
-
-    // 素材表示：film_cost_details.materialLayerDetailsから構築
-    let materialDisplay = '-';
-    const filmCostDetails = specifications.film_cost_details;
-    if (filmCostDetails?.materialLayerDetails && filmCostDetails.materialLayerDetails.length > 0) {
-      const layers = filmCostDetails.materialLayerDetails;
-      materialDisplay = layers
-        .map((layer: { nameJa: string; thicknessMicron: number }) => `${layer.nameJa} ${layer.thicknessMicron}μ`)
-        .join(' + ');
-    } else if (specifications.material_display || specifications.material || specifications.material_specification) {
-      materialDisplay = specifications.material_display || specifications.material || specifications.material_specification;
-    }
-
-    // 印刷表示
-    const printingDisplay = specifications.printing_display || specifications.printing || '-';
-
-    // 厚さ表示：film_cost_detailsから取得
-    let thicknessDisplay = materialDisplay;
-    if (filmCostDetails?.materialLayerDetails && filmCostDetails.materialLayerDetails.length > 0) {
-      // materialDisplayと同じなので、そのまま使用
-      thicknessDisplay = materialDisplay;
-    } else if (specifications.thickness_display || specifications.thickness) {
-      thicknessDisplay = specifications.thickness_display || specifications.thickness;
-    }
-
-    // 後加工表示 - postProcessingOptionsから取得
-    const postProcessingOptions = specifications.postProcessingOptions || specifications.post_processing_display || specifications.post_processing || [];
-
-    // 後加工を配列に変換
-    const postProcessingList = Array.isArray(postProcessingOptions)
-      ? postProcessingOptions
-      : typeof postProcessingOptions === 'string'
-        ? postProcessingOptions.split(',').map(s => s.trim())
-        : [];
-
-    // 後加工の日本語表示マップ（POST_PROCESSING_JAと一致させる）
-    const postProcessingLabels: Record<string, string> = {
-      'zipper-yes': 'ジッパー付き',
-      'zipper-no': 'ジッパーなし',
-      'zipper': 'ジッパー',
-      'matte': 'マット紙',
-      'glossy': '光沢紙',
-      'corner-round': '角丸',
-      'corner-square': '角直角',
-      'hang-hole-6mm': '吊り下げ穴 (6mm)',
-      'hang-hole-8mm': '吊り下げ穴 (8mm)',
-      'hang-hole-no': '吊り穴なし',
-      'notch-yes': 'ノッチ付き',
-      'notch-no': 'ノッチなし',
-      'valve-yes': 'バルブ付き',
-      'valve-no': 'バルブなし',
-      'top-open': '上端開封',
-      'bottom-open': '下端開封',
-      'machi-printing-yes': 'マチ印刷あり',
-      'machi-printing-no': 'マチ印刷なし',
-      'easy-cut': 'イージーカット',
-      'embossing': 'エンボス加工',
-    };
-
-    const postProcessingJapanese = postProcessingList
-      .map(pp => postProcessingLabels[pp] || pp)
-      .join('、');
-
-    // 重量表示
-    const weightDisplay = specifications.weight_range || '-';
-
-    // 色数表示
-    const colorsDisplay = specifications.colors === 'フルカラー' ? 'フルカラー' : specifications.colors || '-';
-
-    // ジッパー表示
-    const zipperDisplay = specifications.zipper || specifications.zipper === true ? 'あり' : '-';
-
-    // SKU情報
-    const skuInfo = (item as any).sku_info || (item.breakdown as any)?.sku_info;
-    const skuCountDisplay = skuInfo ? `${skuInfo.count}種類` : '-';
-
-    return {
-      totalQuantity,
-      unitPrice,
-      bagTypeDisplay,
-      sizeDisplay,
-      materialDisplay,
-      printingDisplay,
-      thicknessDisplay,
-      postProcessingJapanese,
-      weightDisplay,
-      colorsDisplay,
-      zipperDisplay,
-      skuCountDisplay,
-      hasData: items.length > 0
-    };
+    const subtotal = quotation.subtotal_amount || (quotation.total_amount ? quotation.total_amount / 1.1 : 0);
+    const margin = subtotal > 0 ? ((subtotal - totalCost) / subtotal) * 100 : 0;
+    return { totalCost, margin };
   };
 
-  const toggleExpanded = (quotationId: string) => {
-    setExpandedItems(prev => ({
-      ...prev,
-      [quotationId]: !prev[quotationId]
-    }));
-  };
+  if (quotations.length === 0) {
+    return (
+      <Card className="p-8 text-center text-gray-500">
+        <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+        <p>該当する見積もりがありません</p>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">見積もり一覧</h2>
-      <div className="space-y-3">
-        {quotations.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            見積もりがありません
-          </div>
-        ) : (
-          quotations.map((quotation) => {
-            const details = getItemDetails(quotation);
-            const totalPrice = quotation.subtotal_amount || quotation.total_amount || 0;
-            const isExpanded = expandedItems[quotation.id] || false;
+    <div className="space-y-3">
+      {quotations.map((quotation) => {
+        const normalizedStatus = normalizeStatus(quotation.status);
+        const isExpanded = expandedItems[quotation.id] || false;
+        const isSelected = selectedQuotation?.id === quotation.id;
+        const { totalCost, margin } = calcCost(quotation);
+        const subtotal = quotation.subtotal_amount || (quotation.total_amount ? quotation.total_amount / 1.1 : 0);
 
-            return (
-              <div
-                key={quotation.id}
-                className={`border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${
-                  selectedQuotation?.id === quotation.id ? 'bg-blue-50 border-blue-300' : ''
-                }`}
-              >
-                {/* ヘッダー: 見積番号とステータス */}
-                <div
-                  className="p-3 cursor-pointer"
-                  onClick={() => onSelectQuotation(quotation)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-gray-900 text-sm">{quotation.quotation_number}</p>
-                        <Badge variant={statusLabels[quotation.status]?.variant || 'default'} className="text-xs">
-                          {statusLabels[quotation.status]?.label || quotation.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-gray-600 truncate mt-1">{quotation.company_name || quotation.customer_name}</p>
-                      <p className="text-xs text-gray-500 truncate">{quotation.customer_email}</p>
-                    </div>
-                    <div className="flex items-center gap-2 ml-2">
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-gray-900">
-                          ¥{formatPrice(totalPrice)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatDateJa(quotation.created_at)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSendEmail(quotation);
-                        }}
-                        className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"
-                        title="メール送信"
-                      >
-                        <Mail className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
+        const firstItem = quotation.items?.[0];
+        const firstSpecs = firstItem?.breakdown?.specifications || firstItem?.specifications || {};
+        const displayName = formatProductDisplayName(firstSpecs, firstItem?.product_name || 'カスタム製品');
 
-                  {/* 明細情報（コンパクト表示） */}
-                  {details?.hasData && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <div className="flex items-center justify-between text-xs text-gray-700">
-                        <span className="font-medium">
-                          {details.totalQuantity.toLocaleString()}個 × ¥{formatPrice(details.unitPrice)}
-                        </span>
-                        <span className="font-bold text-blue-700">
-                          ¥{formatPrice(totalPrice)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600 mt-1 text-xs">
-                        <span className="bg-gray-100 px-1.5 py-0.5 rounded">
-                          {details.bagTypeDisplay}
-                        </span>
-                        {details.sizeDisplay !== '-' && (
-                          <span>{details.sizeDisplay}</span>
-                        )}
-                      </div>
-                    </div>
+        return (
+          <Card
+            key={quotation.id}
+            className={`overflow-hidden cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-500' : 'hover:shadow-md'}`}
+          >
+            {/* Quote header row */}
+            <div
+              onClick={() => onSelectQuotation(quotation)}
+              className="px-4 py-3"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-sm text-gray-900">{quotation.quotation_number}</span>
+                  <Badge variant={STATUS_LABELS[normalizedStatus]?.variant || 'default'}>
+                    {STATUS_LABELS[normalizedStatus]?.label || normalizedStatus}
+                  </Badge>
+                  <span className="text-xs text-gray-500">{formatDateJa(quotation.created_at)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-bold text-blue-600">¥{formatPrice(quotation.total_amount)}</span>
+                  <span className="text-xs text-gray-400 ml-1">(税込)</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-3">
+                  <span className="font-medium text-gray-700">{displayName}</span>
+                  <span className="text-gray-500">{quotation.customer_name}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  {totalCost > 0 && (
+                    <>
+                      <span>原価: ¥{formatPrice(Math.round(totalCost))}</span>
+                      <Badge variant={margin > 30 ? 'success' : margin > 15 ? 'warning' : 'error'} size="sm">
+                        利益率 {margin.toFixed(1)}%
+                      </Badge>
+                    </>
                   )}
                 </div>
+              </div>
+            </div>
 
-                {/* 詳細仕様（折りたたみ） */}
-                {details?.hasData && (
-                  <div className="border-t border-gray-200">
-                    <button
-                      onClick={() => toggleExpanded(quotation.id)}
-                      className="w-full px-3 py-2 text-xs text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-between"
-                    >
-                      <span>詳細仕様</span>
-                      {isExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
-                    </button>
+            {/* Expand/collapse button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleExpand(quotation.id); }}
+              className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-gray-500 hover:bg-gray-50 border-t border-gray-100"
+            >
+              {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+              {isExpanded ? '閉じる' : '詳細を見る'}
+            </button>
 
-                    {isExpanded && (
-                      <div className="px-3 py-2 text-xs bg-gray-50 space-y-1.5">
-                        {/* タイプ */}
-                        <div className="flex items-center">
-                          <span className="text-gray-500 w-16 shrink-0">タイプ:</span>
-                          <span className="text-gray-900">{details.bagTypeDisplay}</span>
-                        </div>
+            {/* Expanded detail */}
+            {isExpanded && (
+              <div className="px-4 pb-3 space-y-3 bg-gray-50/50">
+                {/* Product specifications (once) */}
+                {firstItem && (() => {
+                  const specs = firstItem.breakdown?.specifications || firstItem.specifications;
+                  return specs && (
+                    <div className="pt-2">
+                      <MemberSpecificationDisplay item={{ specifications: specs }} />
+                    </div>
+                  );
+                })()}
 
-                        {/* 素材 */}
-                        {details.materialDisplay !== '-' ? (
-                          <div className="flex items-start">
-                            <span className="text-gray-500 w-16 shrink-0">素材:</span>
-                            <span className="text-gray-900">{details.materialDisplay}</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-gray-500 w-16 shrink-0">素材:</span>
-                            <span className="text-gray-400">データなし</span>
-                          </div>
-                        )}
+                {/* Post-processing inline */}
+                {firstSpecs?.postProcessingOptions?.length > 0 && (
+                  <PostProcessingPreview
+                    selectedOptions={convertToPreviewOptions(firstSpecs.postProcessingOptions)}
+                    inline={true}
+                  />
+                )}
 
-                        {/* サイズ */}
-                        <div className="flex items-center">
-                          <span className="text-gray-500 w-16 shrink-0">サイズ:</span>
-                          <span className="text-gray-900">{details.sizeDisplay}</span>
-                        </div>
-
-                        {/* 印刷 */}
-                        {details.printingDisplay && details.printingDisplay !== '-' && (
-                          <div className="flex items-center">
-                            <span className="text-gray-500 w-16 shrink-0">印刷:</span>
-                            <span className="text-gray-900">{details.printingDisplay}</span>
-                          </div>
-                        )}
-
-                        {/* 色数 */}
-                        {details.colorsDisplay && details.colorsDisplay !== '-' && (
-                          <div className="flex items-center">
-                            <span className="text-gray-500 w-16 shrink-0">色数:</span>
-                            <span className="text-gray-900">{details.colorsDisplay}</span>
-                          </div>
-                        )}
-
-                        {/* 厚さ */}
-                        {details.thicknessDisplay && details.thicknessDisplay !== '-' && details.thicknessDisplay !== details.materialDisplay && (
-                          <div className="flex items-start">
-                            <span className="text-gray-500 w-16 shrink-0">厚さ:</span>
-                            <span className="text-gray-900">{details.thicknessDisplay}</span>
-                          </div>
-                        )}
-
-                        {/* 重量 */}
-                        {details.weightDisplay && details.weightDisplay !== '-' && (
-                          <div className="flex items-center">
-                            <span className="text-gray-500 w-16 shrink-0">重量:</span>
-                            <span className="text-gray-900">{details.weightDisplay}</span>
-                          </div>
-                        )}
-
-                        {/* ジッパー */}
-                        {details.zipperDisplay && details.zipperDisplay !== '-' && (
-                          <div className="flex items-center">
-                            <span className="text-gray-500 w-16 shrink-0">ジッパー:</span>
-                            <span className="text-gray-900">{details.zipperDisplay}</span>
-                          </div>
-                        )}
-
-                        {/* SKU数 */}
-                        {details.skuCountDisplay && details.skuCountDisplay !== '-' && (
-                          <div className="flex items-center">
-                            <span className="text-gray-500 w-16 shrink-0">SKU数:</span>
-                            <span className="text-gray-900">{details.skuCountDisplay}</span>
-                          </div>
-                        )}
-
-                        {/* 後加工 */}
-                        {details.postProcessingJapanese && (
-                          <div className="flex items-start">
-                            <span className="text-gray-500 w-16 shrink-0">後加工:</span>
-                            <span className="text-gray-900">{details.postProcessingJapanese}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                {/* Quantity pattern table */}
+                {quotation.items && quotation.items.length > 0 && (
+                  <div className="border-t border-gray-200 pt-2">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-xs text-gray-500 border-b border-gray-200">
+                          <th className="text-right font-medium py-1.5 pr-2 w-20">数量</th>
+                          <th className="text-right font-medium py-1.5 px-2 w-24">単価</th>
+                          <th className="text-right font-medium py-1.5 pl-2 w-28">金額</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {quotation.items.map((item) => (
+                          <tr key={item.id} className="border-b border-gray-100 last:border-0">
+                            <td className="py-1.5 pr-2 text-right text-gray-600 tabular-nums">{item.quantity.toLocaleString()}</td>
+                            <td className="py-1.5 px-2 text-right text-gray-600 tabular-nums">¥{formatPrice(item.unit_price)}</td>
+                            <td className="py-1.5 pl-2 text-right text-gray-900 font-medium tabular-nums">¥{formatPrice(item.total_price || item.unit_price * item.quantity)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
+
+                {/* Cost summary */}
+                {totalCost > 0 && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">売上(税抜)</span>
+                      <span className="font-medium text-gray-900">¥{formatPrice(Math.round(subtotal))}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">原価合計</span>
+                      <span className="font-medium text-gray-900">¥{formatPrice(Math.round(totalCost))}</span>
+                    </div>
+                    <div className="flex justify-between text-xs border-t pt-1">
+                      <span className="text-gray-500">粗利</span>
+                      <span className="font-medium text-gray-900">¥{formatPrice(Math.round(subtotal - totalCost))}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">利益率</span>
+                      <span className="font-bold text-blue-600">{margin.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  {quotation.pdf_url && (
+                    <a
+                      href={quotation.pdf_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      PDF
+                    </a>
+                  )}
+                  {quotation.customer_email && (
+                    <Button size="sm" variant="outline" onClick={() => onSendEmail(quotation)}>
+                      <Mail className="w-3.5 h-3.5 mr-1" />
+                      メール
+                    </Button>
+                  )}
+                </div>
               </div>
-            );
-          })
-        )}
-      </div>
-    </Card>
+            )}
+          </Card>
+        );
+      })}
+    </div>
   );
 }

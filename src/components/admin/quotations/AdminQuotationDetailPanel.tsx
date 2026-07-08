@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Card, Button, Badge } from '@/components/ui';
-import { Download, Mail, RefreshCw } from 'lucide-react';
+import { Download, Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { adminFetch } from '@/lib/auth-client';
 import { DetailedCostBreakdown } from '@/components/admin/quotation/DetailedCostBreakdown';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { formatDateJa } from '@/utils/formatters';
-import { AdminQuotationActions } from './AdminQuotationActions';
+
 import { AdminQuotationItemDetail } from './AdminQuotationItemDetail';
 import { normalizeStatus, STATUS_LABELS, BAG_TYPE_IMAGES, convertToPreviewOptions } from './quotation-utils';
 import type { Quotation } from '@/types/quotation';
@@ -19,6 +19,126 @@ interface AdminQuotationDetailPanelProps {
   onReject: () => void;
   onUpdate: () => void;
   onSendEmail: () => void;
+}
+
+/**
+ * CostSummaryTable - 数量別の原価サマリーをコンパクトに表示
+ * 各数量の詳細はクリックで展開
+ */
+function CostSummaryTable({ items, showFormula }: { items: any[]; showFormula: boolean }) {
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+
+  const extractCost = (item: any): { unitCost: number; totalCost: number; hasData: boolean } => {
+    const specs = item.specifications || {};
+    const cb = specs.cost_breakdown || item.cost_breakdown;
+    if (cb && cb.totalCost) {
+      return { unitCost: cb.totalCost, totalCost: cb.totalCost * item.quantity, hasData: true };
+    }
+    return { unitCost: 0, totalCost: 0, hasData: false };
+  };
+
+  const allCosts = items.map(extractCost);
+  const grandTotalCost = allCosts.reduce((sum, c) => sum + c.totalCost, 0);
+  const grandTotalRevenue = items.reduce((sum, i) => sum + (i.total_price || i.unit_price * i.quantity), 0);
+  const grandMargin = grandTotalRevenue > 0 ? ((grandTotalRevenue - grandTotalCost) / grandTotalRevenue) * 100 : 0;
+
+  return (
+    <div>
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">原価サマリー</h4>
+
+      {/* サマリーテーブル */}
+      <div className="overflow-hidden rounded-lg border border-gray-200">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 text-gray-500">
+              <th className="text-right font-medium py-2 px-2 w-16">数量</th>
+              <th className="text-right font-medium py-2 px-2 w-24">売単価</th>
+              <th className="text-right font-medium py-2 px-2 w-24">原単価</th>
+              <th className="text-right font-medium py-2 px-2 w-20">原価計</th>
+              <th className="text-right font-medium py-2 px-2 w-16">利益率</th>
+              <th className="text-center font-medium py-2 px-1 w-10"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, index) => {
+              const cost = allCosts[index];
+              const revenue = item.total_price || item.unit_price * item.quantity;
+              const margin = revenue > 0 && cost.hasData ? ((revenue - cost.totalCost) / revenue) * 100 : 0;
+              const isExpanded = expandedRow === index;
+
+              return (
+                <Fragment key={item.id || index}>
+                  <tr
+                    className={`border-t border-gray-100 ${isExpanded ? 'bg-blue-50/50' : 'hover:bg-gray-50'} ${cost.hasData ? 'cursor-pointer' : ''}`}
+                    onClick={() => cost.hasData && setExpandedRow(isExpanded ? null : index)}
+                  >
+                    <td className="py-1.5 px-2 text-right text-gray-700 tabular-nums">{item.quantity.toLocaleString()}</td>
+                    <td className="py-1.5 px-2 text-right text-gray-700 tabular-nums">¥{formatPrice(item.unit_price)}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {cost.hasData ? `¥${formatPrice(Math.round(cost.unitCost))}` : <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {cost.hasData ? `¥${formatPrice(Math.round(cost.totalCost))}` : <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {cost.hasData ? (
+                        <span className={margin > 30 ? 'text-green-600 font-medium' : margin > 15 ? 'text-yellow-600' : 'text-red-600'}>
+                          {margin.toFixed(1)}%
+                        </span>
+                      ) : <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="py-1.5 px-1 text-center text-gray-400">
+                      {cost.hasData && (isExpanded ? <ChevronDown className="w-3.5 h-3.5 inline" /> : <ChevronRight className="w-3.5 h-3.5 inline" />)}
+                    </td>
+                  </tr>
+
+                  {/* 展開時の詳細原価内訳 */}
+                  {isExpanded && cost.hasData && (
+                    <tr>
+                      <td colSpan={6} className="p-0">
+                        <div className="bg-white border-t border-blue-100 p-3">
+                          <DetailedCostBreakdown
+                            breakdown={item.specifications?.cost_breakdown || item.cost_breakdown || item.specifications?.film_cost_details || {}}
+                            filmCostDetails={item.specifications?.film_cost_details || item.film_cost_details}
+                            specifications={item.specifications || {}}
+                            quotationSubtotal={revenue}
+                            showFormula={showFormula}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+          {/* 合計行 */}
+          {grandTotalCost > 0 && (
+            <tfoot>
+              <tr className="bg-gray-100 font-medium border-t-2 border-gray-200">
+                <td className="py-2 px-2 text-right text-gray-500" colSpan={3}>合計</td>
+                <td className="py-2 px-2 text-right text-gray-900 tabular-nums">¥{formatPrice(Math.round(grandTotalCost))}</td>
+                <td className="py-2 px-2 text-right">
+                  <span className={grandMargin > 30 ? 'text-green-600' : grandMargin > 15 ? 'text-yellow-600' : 'text-red-600'}>
+                    {grandMargin.toFixed(1)}%
+                  </span>
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+
+      {/* 原価データなしの警告 */}
+      {!allCosts.some(c => c.hasData) && (
+        <div className="mt-2 text-xs text-gray-400 text-center">
+          原価データがありません
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -36,7 +156,7 @@ export function AdminQuotationDetailPanel({
   const [showFormula, setShowFormula] = useState(true);
   const [relatedOrderId, setRelatedOrderId] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [recalculating, setRecalculating] = useState(false);
+  
 
   // 選択された見積の詳細を取得
   useEffect(() => {
@@ -93,80 +213,42 @@ export function AdminQuotationDetailPanel({
     }
   };
 
-  // 再計算ハンドラー
-  const handleRecalculate = async () => {
-    if (!confirm('原価内訳を再計算します。よろしいですか？')) {
-      return;
-    }
-
-    setRecalculating(true);
-    try {
-      const response = await adminFetch(`/api/admin/quotations/${quotation.id}/recalculate`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        alert(`再計算が完了しました。${result.updatedItems?.length || 0}件のアイテムを更新しました。`);
-        // データを再取得
-        await fetchQuotationDetail();
-        if (onUpdate) onUpdate();
-      } else {
-        throw new Error('再計算に失敗しました');
-      }
-    } catch (error) {
-      console.error('[handleRecalculate] Error:', error);
-      alert('再計算に失敗しました。');
-    } finally {
-      setRecalculating(false);
-    }
-  };
-
   // PDF表示 - 保存済みPDFを新しいタブで開く
   const handleDownloadPDF = async () => {
     setDownloadingPdf(true);
     try {
       const displayQuotation = detailData || quotation;
-      console.log('[handleDownloadPDF] Admin PDF open for:', displayQuotation.quotation_number);
 
-      // 保存済みPDF URLがある場合は新しいタブで開く
+      // 保存済みPDF URLがある場合はfetch+blobで開く（CORS回避）
       if (displayQuotation.pdf_url) {
-        console.log('[handleDownloadPDF] Opening saved PDF URL:', displayQuotation.pdf_url);
-        window.open(displayQuotation.pdf_url, '_blank');
-        console.log('[handleDownloadPDF] PDF opened successfully');
+        const response = await fetch(displayQuotation.pdf_url);
+        if (!response.ok) {
+          throw new Error('保存済みPDFの取得に失敗しました');
+        }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 2000);
         return;
       }
 
-      // PDF URLがない場合: 既存のexport APIを呼び出し
-      console.log('[handleDownloadPDF] No saved PDF, calling export API...');
-
+      // PDF URLがない場合: export APIで生成
       const response = await fetch(`/api/admin/quotations/${quotation.id}/export`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ format: 'pdf' }),
       });
 
       if (!response.ok) {
-        throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+        throw new Error(`PDF生成に失敗しました: ${response.status}`);
       }
 
-      // PDFファイルダウンロード
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `見積書_${displayQuotation.quotation_number}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 2000);
 
-      console.log('[handleDownloadPDF] PDF downloaded successfully via export API');
-
-      // データ更新
       await fetchQuotationDetail();
     } catch (error) {
       console.error('[handleDownloadPDF] Failed:', error);
@@ -222,18 +304,6 @@ export function AdminQuotationDetailPanel({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{displayQuotation.quotation_number}</h3>
           <div className="flex gap-2">
-            {!hasDetailedCostBreakdown && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRecalculate}
-                disabled={recalculating}
-                className="text-xs bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-              >
-                <RefreshCw className={`w-4 h-4 mr-1 ${recalculating ? 'animate-spin' : ''}`} />
-                {recalculating ? '再計算中...' : '原価再計算'}
-              </Button>
-            )}
             <Button
               size="sm"
               variant="outline"
@@ -320,55 +390,31 @@ export function AdminQuotationDetailPanel({
           )}
 
           {/* アクション */}
-          <AdminQuotationActions
-            quotation={displayQuotation}
-            onApprove={onApprove}
-            onReject={onReject}
-            onSendEmail={onSendEmail}
-          />
+          <div className="flex gap-2 flex-wrap">
+            {displayQuotation.pdf_url && (
+              <a
+                href={displayQuotation.pdf_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="sm">
+                  <Download className="w-4 h-4 mr-1" />
+                  PDFを開く
+                </Button>
+              </a>
+            )}
+            <Button size="sm" variant="outline" onClick={onSendEmail}>
+              <Mail className="w-4 h-4 mr-1" />
+              メール送信
+            </Button>
+          </div>
 
-          {/* 原価内訳 */}
+          {/* 原価サマリーテーブル（コンパクト） */}
           {displayQuotation.items && displayQuotation.items.length > 0 && (
-            <div className="space-y-3">
-              {displayQuotation.items.map((item, index) => {
-                // specifications.film_cost_detailsとspecifications.cost_breakdownを確認
-                const specs = item.specifications || {};
-                const filmCostDetails = specs.film_cost_details;
-                const costBreakdown = specs.cost_breakdown;
-
-                const itemHasFilmCostDetails = filmCostDetails && Object.keys(filmCostDetails).length > 0;
-                const itemHasCostBreakdown = costBreakdown && Object.keys(costBreakdown).length > 0;
-
-                if (!itemHasFilmCostDetails && !itemHasCostBreakdown) {
-                  return (
-                    <div key={item.id || index} className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 text-center">
-                      <p className="text-sm text-yellow-800">⚠️ 原価データがありません</p>
-                      <p className="text-xs text-yellow-700 mt-1">
-                        「原価再計算」ボタンをクリックしてデータを生成してください
-                      </p>
-                    </div>
-                  );
-                }
-
-                // cost_breakdownを優先して使用（各コスト内訳が含まれているため）
-                const breakdownForDisplay = itemHasCostBreakdown ? costBreakdown : (filmCostDetails || {});
-
-                // 見積小計（subtotalまたはunit_price * quantityから計算）
-                const itemSubtotal = (item as any).subtotal || (item.unit_price * item.quantity) || 0;
-
-                return (
-                  <div key={item.id || index} className="border border-gray-200 rounded-lg p-3 bg-white">
-                    <DetailedCostBreakdown
-                      breakdown={breakdownForDisplay}
-                      filmCostDetails={filmCostDetails}
-                      specifications={specs}
-                      quotationSubtotal={itemSubtotal}
-                      showFormula={showFormula}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            <CostSummaryTable
+              items={displayQuotation.items}
+              showFormula={showFormula}
+            />
           )}
         </div>
       </div>
