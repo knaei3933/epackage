@@ -313,14 +313,22 @@ export async function POST(
 
       // Issue 1 fix: file name format = SKU番号_製品名_数量_サイズ
       // 製品名 (productName form input) が未入力でも order_items.specifications から自動生成。
-      const { data: driveOrderItem } = await adminClient
-        .from('order_items')
-        .select('id, product_name, quantity, specifications')
-        .eq('order_id', orderId)
-        .limit(1)
-        .single()
-        .then((r) => ({ data: r.data }))
-        .catch(() => ({ data: null }));
+      let driveOrderItem: { id: string; product_name: string | null; quantity: number; specifications: unknown } | null = null;
+      try {
+        const orderItemResult = await adminClient
+          .from('order_items')
+          .select('id, product_name, quantity, specifications')
+          .eq('order_id', orderId)
+          .limit(1)
+          .single();
+        // .single() はエラー時に throw せず { data: null, error } を返す
+        if (!orderItemResult.error) {
+          driveOrderItem = orderItemResult.data;
+        }
+      } catch {
+        // ネットワークエラー等の例外的失敗時も null にフォールバック
+        driveOrderItem = null;
+      }
 
       const oiSpecs = (driveOrderItem?.specifications || {}) as any;
       const oiBagTypeJa: Record<string, string> = {

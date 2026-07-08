@@ -773,7 +773,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 <span className="ml-2 text-text-primary">
                   {(() => {
                     const pt = quotation.items[0].specifications?.printingType;
-                    return getPrintingLabelJa(pt, quotation.items[0].specifications?.cost_breakdown);
+                    return getPrintingLabelJa(pt as string | undefined, quotation.items[0].specifications?.cost_breakdown as Record<string, unknown> | null | undefined);
                   })()}
                 </span>
               </div>
@@ -1282,7 +1282,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 if (!selectedItem) return null;
                 const specs = selectedItem.specifications || {};
                 const pType = specs.printingType;
-                const printingLabel = getPrintingLabelJa(pType, specs.cost_breakdown).replace('（フルカラー）', '');
+                const printingLabel = getPrintingLabelJa(pType as string | undefined, specs.cost_breakdown as Record<string, unknown> | null | undefined).replace('（フルカラー）', '');
                 const ppOpts = (specs.postProcessingOptions || []) as string[];
                 const nonePatterns = ['zipper-no','valve-no','machi-printing-no','notch-no','hang-hole-no','corner-square'];
                 const isNone = (o: string) => nonePatterns.includes(o) || /-no$/.test(o);

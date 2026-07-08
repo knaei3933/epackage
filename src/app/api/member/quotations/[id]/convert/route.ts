@@ -619,11 +619,27 @@ export async function POST(
             <p style="font-size: 12px; color: #999;">EPAC PACKAGE LAB</p>
           </div>
         `;
-        await sendEmail({
-          to: customerEmailAddr,
-          subject: customerSubject,
-          html: customerHtml,
-        });
+        // HTML非表示メーラー向けプレーンテキスト（HTMLと同内容）
+        const customerText = [
+          `ご注文ありがとうございます`,
+          ``,
+          `${customerName} 様`,
+          ``,
+          `この度はご注文いただき、誠にありがとうございます。`,
+          `以下の内容で注文を受け付けいたしました。`,
+          ``,
+          `ご注文番号: ${order.order_number}`,
+          `注文詳細URL: ${orderUrl}`,
+          ``,
+          `【お問い合わせ時のご案内】`,
+          `お電話やメールでのお問い合わせの際、ご注文番号をお伝えください。`,
+          `番号が分からない場合は「末尾7桁」（${order.order_number.split('-').pop()}）だけでも検索可能です。`,
+          ``,
+          `今後の進捗は注文詳細ページからご確認いただけます。`,
+          ``,
+          `EPAC PACKAGE LAB`,
+        ].join('\n');
+        await sendEmail(customerEmailAddr, customerSubject, customerText, customerHtml);
         console.log('[Convert to Order] Customer confirmation email sent:', customerEmailAddr);
       }
     } catch (custEmailErr) {

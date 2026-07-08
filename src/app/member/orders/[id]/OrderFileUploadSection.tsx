@@ -212,7 +212,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (!isAllowed) {
       const msg1 = '⚠️ 入稿データはAI、EPS、PDF形式のみ可能です。';
       setError(msg1);
-      window.showError(msg1);
+      showError(msg1);
       setSelectedFile(null);
       return;
     }
@@ -221,7 +221,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (file.size > 100 * 1024 * 1024) {
       const msg2 = 'ファイルサイズは100MB以下にしてください。';
       setError(msg2);
-      window.showError(msg2);
+      showError(msg2);
       setSelectedFile(null);
       return;
     }
@@ -229,7 +229,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     setSelectedFile(file);
     setError(null);
     setSuccessMessage(null);
-  }, []);
+  }, [showError]);
 
   // Handle drag and drop
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -256,7 +256,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     if (!productName.trim()) {
       const msg = '製品类を入力してください。入力しないとアップロードできません。';
       setError(msg);
-      window.showError(msg);
+      showError(msg);
       return;
     }
 
@@ -326,7 +326,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : '予期しないエラーが発生しました';
       setError(errMsg);
-      window.showError(`アップロードに失敗しました:\n${errMsg}`);
+      showError(`アップロードに失敗しました:\n${errMsg}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

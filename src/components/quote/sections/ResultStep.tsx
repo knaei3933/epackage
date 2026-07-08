@@ -1255,7 +1255,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 thicknessSelection: state.thicknessSelection,
                 isUVPrinting: state.isUVPrinting,
                 // Issue 2 fix: resolve 'auto' to actual method
-                printingType: state.printingType === 'auto' ? (quote.recommendedMethod || 'digital') : state.printingType,
+                printingType: state.printingType === 'auto' ? (result.breakdown.gravureProductionMeters ? 'gravure' : 'digital') : state.printingType,
                 printingColors: state.printingColors,
                 doubleSided: state.doubleSided,
                 // 後加工オプションは配列としてのみ保存（個別フィールドは保存しない）
@@ -1275,7 +1275,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 colors: state.printingColors ? 'フルカラー' : undefined,
                 zipper: state.postProcessingOptions?.some(opt => opt.includes('zipper-yes') || opt.includes('zipper')),
                 // 印刷表示用 (Issue 2: resolve auto)
-                printing_display: (state.printingType === 'auto' ? (quote.recommendedMethod || 'digital') : state.printingType) === 'digital' ? 'デジタル印刷' : 'グラビア印刷',
+                printing_display: (state.printingType === 'auto' ? (result.breakdown.gravureProductionMeters ? 'gravure' : 'digital') : state.printingType) === 'digital' ? 'デジタル印刷' : 'グラビア印刷',
                 // 重量範囲（MATERIAL_THICKNESS_OPTIONSから取得）
                 weight_range: (() => {
                   if (!state.materialId || !state.thicknessSelection) return undefined;

@@ -480,6 +480,7 @@ function CancellationRequestBanner({
   const [isProcessing, setIsProcessing] = useState(false);
   const [adminNote, setAdminNote] = useState('');
   const [requestDetails, setRequestDetails] = useState<any>(null);
+  const { showError } = useToastContext();
 
   // Fetch cancellation request details on mount
   useEffect(() => {
