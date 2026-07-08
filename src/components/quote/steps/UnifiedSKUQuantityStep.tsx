@@ -250,9 +250,9 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
     if (!useMultiPatternView) return [];
     const skuCount = quoteState.skuCount;
     const source = patternQuantities ?? [];
-    // パターン列数: 実データの最大列数（最低2・最大5）。デフォルト2パターン誘導・追加ボタンで拡張。
+    // パターン列数: 5固定表示（Math.max(5, sourceCols) と MAX_PATTERN_COLUMNS=5 のため）。
     const sourceCols = source.reduce((max, row) => Math.max(max, Array.isArray(row) ? row.length : 0), 0);
-    const colCount = Math.min(MAX_PATTERN_COLUMNS, Math.max(2, sourceCols));
+    const colCount = Math.min(MAX_PATTERN_COLUMNS, Math.max(5, sourceCols));
     const result: number[][] = [];
     for (let s = 0; s < skuCount; s++) {
       const row = Array.isArray(source[s]) ? source[s] : [];
@@ -899,13 +899,6 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                     )}
                   </tbody>
                 </table>
-              </div>
-
-              {/* 最小数量ルールの説明（AC-4） */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-xs text-amber-800">
-                  ※ 各セルの最小数量: {isRollFilm ? 'ロールフィルム 500m / SKU' : ' pouch系 100個 / SKU'}。未満の入力はバリデーションエラーになります。
-                </p>
               </div>
             </div>
           ) : !useCompactView ? (

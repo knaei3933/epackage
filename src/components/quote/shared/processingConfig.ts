@@ -211,32 +211,6 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
     applicationsJa: ['間食', 'スナック', '医薬品'],
     isDefault: true  // デフォルト値（Vノッチ）
   },
-  // 3-2. Notch Straight (直線ノッチ)
-  {
-    id: 'notch-straight',
-    name: '直線ノッチ',
-    nameJa: '直線ノッチ',
-    description: '直線的なノッチ加工',
-    descriptionJa: '直線的なノッチ加工',
-    beforeImage: '/images/post-processing/3.ノッチなし.png',
-    afterImage: '/images/post-processing/3.直線ノッチ.png',
-    thumbnail: '/images/post-processing/3.直線ノッチ.png',
-    priceMultiplier: 1.0,
-    features: ['綺麗な切断', '直線的デザイン', '開封簡単'],
-    featuresJa: ['きれいな切断', '直線的デザイン', '開封簡単'],
-    compatibleWith: ['stand_up', 'flat_3_side', 'box', 'lap_seal'],
-    category: 'opening-sealing',
-    processingTime: '+1 business day',
-    processingTimeJa: '+1営業日',
-    minimumQuantity: 1000,
-    technicalNotes: 'Straight-line tear notch',
-    technicalNotesJa: '直線型ティアノッチ',
-    benefits: ['綺麗な開封', 'デザイン性'],
-    benefitsJa: ['きれいな開封', 'デザイン性'],
-    applications: ['スナック', '菓子', '食品'],
-    applicationsJa: ['間食', 'スナック', '食品']
-    // isDefault: false  // デフォルトは notch-yes (Vノッチ)
-  },
   {
     id: 'notch-no',
     name: 'ノッチなし',
@@ -872,7 +846,6 @@ const OPTION_CATEGORIES: Record<string, string> = {
   'glossy': 'finish',
   'matte': 'finish',
   'notch-yes': 'notch',
-  'notch-straight': 'notch',
   'notch-no': 'notch',
   'hang-hole-6mm': 'hang-hole',
   'hang-hole-8mm': 'hang-hole',

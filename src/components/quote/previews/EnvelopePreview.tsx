@@ -6,41 +6,6 @@ import { Package, Maximize2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 
-// 素材ID → 見た目色味マッピング（半透明オーバーレイ用）
-// 「色」の定義: 素材の見た目色（印刷色数は対象外＝デザイン依存で図反映不可）
-// AL(アルミ)系 = 銀 / VMPET(蒸着)系 = 銀（やや暖色）/ クラフト系 = 茶色 /
-// NY(ナイロン)系 = 薄黄 / PET+LLDPE 透明系 = クリア（クリアベースの薄青）
-interface MaterialTint {
-  label: string;
-  color: string;   // 見た目色（オーバーレイ用 rgb）
-  opacity: number; // オーバーレイ強度（0〜1）
-}
-
-const MATERIAL_TINTS: Record<string, MaterialTint> = {
-  // AL（アルミ箔）系: 銀色（不透明に近いメタリック）
-  'pet_al': { label: '銀（アルミ）', color: '192,197,202', opacity: 0.45 },
-  'pet_ny_al': { label: '銀（アルミ）', color: '192,197,202', opacity: 0.45 },
-  // VMPET（アルミ蒸着）系: 銀色（やや暖色）
-  'pet_vmpet': { label: '銀（蒸着）', color: '186,190,196', opacity: 0.4 },
-  'kraft_vmpet_lldpe': { label: '茶（クラフト+蒸着）', color: '160,120,75', opacity: 0.5 },
-  // クラフト紙系: 茶色
-  'kraft_pet_lldpe': { label: '茶（クラフト）', color: '170,130,80', opacity: 0.5 },
-  // NY（ナイロン）系: 薄い黄み
-  'ny_lldpe': { label: 'クリア（NY）', color: '210,205,180', opacity: 0.18 },
-  // PET+LLDPE 透明系: クリア（クリアベースの薄青）
-  'pet_ldpe': { label: 'クリア（透明）', color: '180,210,230', opacity: 0.12 }
-};
-
-// 素材色味を取得（未定義IDはクリア）
-const getMaterialTint = (materialId?: string): MaterialTint | null => {
-  if (!materialId) return null;
-  return MATERIAL_TINTS[materialId] || null;
-};
-
-// 後加工オーバーレイ表示判定（ジッパー / スパウト / ノッチのみ図反映対象）
-const hasPostProcessing = (options: string[], key: string): boolean =>
-  options.some(opt => opt.includes(key));
-
 // 素材ラベルマッピング
 const MATERIAL_TYPE_LABELS_JA: Record<string, string> = {
   'pet_ldpe': 'PET LLDPE',
@@ -81,6 +46,7 @@ interface EnvelopePreviewProps {
   thicknessSelection?: string;
   postProcessingOptions?: string[];
   spoutPosition?: string;
+  sealWidth?: string;
 }
 
 // 封筒タイプ別プレビュー設定
@@ -139,14 +105,11 @@ const bagTypeConfigs = {
 const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
   bagTypeId,
   dimensions,
-  productCategory,
-  contentsType,
-  mainIngredient,
-  distributionEnvironment,
   materialId,
   thicknessSelection,
   postProcessingOptions = [],
-  spoutPosition
+  spoutPosition,
+  sealWidth
 }) => {
   const config = bagTypeConfigs[bagTypeId as keyof typeof bagTypeConfigs];
 
@@ -162,14 +125,6 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
   const PREVIEW_BOX = 300;
   const previewWidth = actualRatio >= 1 ? PREVIEW_BOX : PREVIEW_BOX * actualRatio;
   const previewHeight = actualRatio >= 1 ? PREVIEW_BOX / actualRatio : PREVIEW_BOX;
-
-  // 素材の見た目色味（オーバーレイ用）
-  const materialTint = getMaterialTint(materialId);
-
-  // 後加工オーバーレイ表示判定
-  const showZipper = hasPostProcessing(postProcessingOptions, 'zipper');
-  const showSpout = hasPostProcessing(postProcessingOptions, 'spout') || bagTypeId === 'spout_pouch';
-  const showNotch = hasPostProcessing(postProcessingOptions, 'notch');
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
@@ -208,7 +163,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 borderColor: config.color
               }}
             >
-              {/* 実寸比率で縮尺された袋レイヤ（静的PNG + 色味オーバーレイ） */}
+              {/* 実寸比率で縮尺された袋レイヤ（静的PNG） */}
               <div
                 className="relative"
                 style={{
@@ -243,96 +198,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                     }
                   }}
                 />
-
-                {/* 素材色味オーバーレイ（素材IDに応じた見た目色） */}
-                {materialTint && (
-                  <div
-                    className="absolute inset-0 pointer-events-none rounded-sm mix-blend-multiply"
-                    style={{
-                      backgroundColor: `rgba(${materialTint.color}, ${materialTint.opacity})`
-                    }}
-                    title={`素材色味: ${materialTint.label}`}
-                  />
-                )}
-
-                {/* 後加工オーバーレイ: ジッパー（袋上部のライン） */}
-                {showZipper && (
-                  <div
-                    className="absolute left-0 right-0 pointer-events-none flex items-center"
-                    style={{ top: '8%', height: '6%' }}
-                    title="ジッパー"
-                  >
-                    <div
-                      className="w-full rounded-sm"
-                      style={{
-                        height: '100%',
-                        background: 'repeating-linear-gradient(90deg, #4A5568 0 4px, #CBD5E0 4px 8px)',
-                        border: '1px solid #4A5568'
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* 後加工オーバーレイ: スパウト（袋上部中央の円筒） */}
-                {showSpout && (
-                  <div
-                    className="absolute left-1/2 pointer-events-none flex flex-col items-center"
-                    style={{ top: '-4%', transform: 'translateX(-50%)' }}
-                    title="スパウト"
-                  >
-                    <div
-                      style={{
-                        width: '24px',
-                        height: '14px',
-                        borderRadius: '3px 3px 0 0',
-                        backgroundColor: '#A0AEC0',
-                        border: '1px solid #4A5568'
-                      }}
-                    />
-                    <div
-                      style={{
-                        width: '32px',
-                        height: '4px',
-                        backgroundColor: '#718096',
-                        border: '1px solid #4A5568'
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* 後加工オーバーレイ: ノッチ（袋上部両端のV字切り欠き） */}
-                {showNotch && (
-                  <>
-                    <svg
-                      className="absolute pointer-events-none"
-                      style={{ top: '14%', left: '0' }}
-                      width="14" height="14" viewBox="0 0 14 14"
-                      role="img"
-                      aria-label="ノッチ"
-                    >
-                      <title>ノッチ</title>
-                      <polyline points="0,0 7,7 0,14" fill="none" stroke="#E53E3E" strokeWidth="2" />
-                    </svg>
-                    <svg
-                      className="absolute pointer-events-none"
-                      style={{ top: '14%', right: '0' }}
-                      width="14" height="14" viewBox="0 0 14 14"
-                      role="img"
-                      aria-label="ノッチ"
-                    >
-                      <title>ノッチ</title>
-                      <polyline points="14,0 7,7 14,14" fill="none" stroke="#E53E3E" strokeWidth="2" />
-                    </svg>
-                  </>
-                )}
               </div>
-
-              {/* 比率メモ（縮尺参照用、控えめ表示） */}
-              {dimensions.width > 0 && dimensions.height > 0 && (
-                <div className="absolute bottom-1 right-2 text-[10px] text-gray-400 font-mono pointer-events-none">
-                  {actualRatio.toFixed(2)}:1
-                </div>
-              )}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -378,14 +244,6 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                 </span>
               </div>
             )}
-            {bagTypeId !== 'roll_film' && dimensions.width > 0 && dimensions.height > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">面積</span>
-                <span className="font-medium text-gray-900">
-                  {(dimensions.width * dimensions.height / 1000).toFixed(1)}cm²
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -415,56 +273,110 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
         {/* 後加工オプション */}
         {(() => {
           if (!postProcessingOptions || postProcessingOptions.length === 0) return null;
-          // 表示対象オプションをフィルタ
+          // 表示対象オプションの完全IDリスト
+          // 正規表現 `^id(-|$)` で先頭完全一致させるため、部分一致による誤表示を防ぐ
           const displayOptions = [
-            'zipper',
+            'zipper-yes',
+            'zipper-no',
+            'glossy',
+            'matte',
+            'notch-yes',
             'notch-straight',
+            'notch-no',
             'hang-hole-6mm',
             'hang-hole-8mm',
+            'hang-hole-no',
             'corner-round',
             'corner-square',
             'valve-yes',
-            'easy-cut-yes',
-            'matte',
-            'glossy'
+            'valve-no',
+            'top-open',
+            'bottom-open',
+            'sealing-width-5mm',
+            'sealing-width-7-5mm',
+            'sealing-width-10mm',
+            'machi-printing-yes',
+            'machi-printing-no',
+            'spout-size-9',
+            'spout-size-15',
+            'spout-size-18',
+            'spout-size-22',
+            'spout-size-28'
           ];
           const optionLabels: Record<string, string> = {
-            'zipper': 'ジッパー',
+            'zipper-yes': 'ジッパー',
+            'zipper-no': 'ジッパーなし',
+            'glossy': '光沢',
+            'matte': 'マット',
+            'notch-yes': 'Vノッチ',
             'notch-straight': '直線ノッチ',
+            'notch-no': 'ノッチなし',
             'hang-hole-6mm': '吊り穴(6mm)',
             'hang-hole-8mm': '吊り穴(8mm)',
+            'hang-hole-no': '吊り穴なし',
             'corner-round': '角丸(R5)',
             'corner-square': '角切り(R0)',
             'valve-yes': 'ガスバルブ',
-            'easy-cut-yes': 'イージーカット',
-            'matte': 'マット',
-            'glossy': '光沢'
+            'valve-no': 'バルブなし',
+            'top-open': '上端開封',
+            'bottom-open': '下端開封',
+            'sealing-width-5mm': 'シール幅5mm',
+            'sealing-width-7-5mm': 'シール幅7.5mm',
+            'sealing-width-10mm': 'シール幅10mm',
+            'machi-printing-yes': 'マチ印刷あり',
+            'machi-printing-no': 'マチ印刷なし',
+            'spout-size-9': 'スパウト9パイ',
+            'spout-size-15': 'スパウト15パイ',
+            'spout-size-18': 'スパウト18パイ',
+            'spout-size-22': 'スパウト22パイ',
+            'spout-size-28': 'スパウト28パイ'
           };
-          // フィルタ後のリスト（フィルタ前ではなく、フィルタ後の長さで「なし」を判定）
-          const visibleOptions = postProcessingOptions.filter(option =>
-            displayOptions.some(display => option.includes(display))
+
+          // シール幅表示: sealWidth prop優先、なければ過去データ(sealing-width-*)から復元
+          const sealWidthDisplay = sealWidth
+            ? `シール幅${sealWidth}`
+            : (() => {
+                const sealOpt = postProcessingOptions.find(o => o.startsWith('sealing-width-'));
+                if (!sealOpt) return null;
+                const match = sealOpt.match(/sealing-width-(.+)$/);
+                if (!match) return null;
+                return `シール幅${match[1].replace('-', '.')}`;
+              })();
+
+          // 先頭完全一致（部分一致誤表示を防止: zipper-no が zipper に誤ヒットしない）
+          let visibleOptions = postProcessingOptions.filter(option =>
+            displayOptions.some(display => option === display || option.startsWith(display + '-'))
           );
+
+          // sealWidth表示がある場合は sealing-width-* を重複回避で除外
+          if (sealWidthDisplay) {
+            visibleOptions = visibleOptions.filter(o => !o.startsWith('sealing-width-'));
+          }
+
+          // 表示項目リスト構築（シール幅は先頭）
+          const displayItems: { key: string; label: string }[] = [];
+          if (sealWidthDisplay) {
+            displayItems.push({ key: 'seal-width', label: sealWidthDisplay });
+          }
+          visibleOptions.forEach(option => {
+            displayItems.push({ key: option, label: optionLabels[option] || option });
+          });
+
+          if (displayItems.length === 0) return null;
+
           return (
             <div>
               <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">後加工</h4>
               <div className="flex flex-wrap gap-1.5">
-                {visibleOptions.length === 0 ? (
-                  <span className="text-xs text-gray-400 italic">なし</span>
-                ) : (
-                  visibleOptions.map((option) => {
-                    // オプションIDからラベルを取得
-                    const label = Object.entries(optionLabels).find(([key]) => option.includes(key))?.[1] || option;
-                    return (
-                      <span
-                        key={option}
-                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white text-gray-700 border border-gray-300 shadow-sm"
-                        title={label}
-                      >
-                        {label}
-                      </span>
-                    );
-                  })
-                )}
+                {displayItems.map((item) => (
+                  <span
+                    key={item.key}
+                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white text-gray-700 border border-gray-300 shadow-sm"
+                    title={item.label}
+                  >
+                    {item.label}
+                  </span>
+                ))}
               </div>
             </div>
           );
@@ -472,60 +384,13 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
       </div>
 
       {/* 通知メッセージ */}
-      {dimensions.width === 0 || dimensions.height === 0 ? (
+      {(dimensions.width === 0 || dimensions.height === 0) && (
         <motion.div
           className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
         >
           幅と高さを入力すると、実際のサイズでプレビューが表示されます。
-        </motion.div>
-      ) : (
-        <motion.div
-          className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-        >
-          {(() => {
-            const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-              'food': '食品',
-              'health_supplement': '健康食品',
-              'cosmetic': '化粧品',
-              'quasi_drug': '医薬部外品',
-              'drug': '医薬品',
-              'other': 'その他'
-            };
-            const CONTENTS_TYPE_LABELS: Record<string, string> = {
-              'solid': '固体',
-              'powder': '粉体',
-              'liquid': '液体'
-            };
-            const MAIN_INGREDIENT_LABELS: Record<string, string> = {
-              'general_neutral': '一般/中性',
-              'oil_surfactant': 'オイル/界面活性剤',
-              'acidic_salty': '酸性/塩分',
-              'volatile_fragrance': '揮発性/香料',
-              'other': 'その他'
-            };
-            const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
-              'general_roomTemp': '一般/常温',
-              'light_oxygen_sensitive': '光/酸素敏感',
-              'refrigerated': '冷凍保管',
-              'high_temp_sterilized': '高温殺菌',
-              'other': 'その他'
-            };
-            const categoryLabel = PRODUCT_CATEGORY_LABELS[productCategory || ''] || '';
-            const typeLabel = CONTENTS_TYPE_LABELS[contentsType || ''] || '';
-            const ingredientLabel = MAIN_INGREDIENT_LABELS[mainIngredient || ''] || '';
-            const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[distributionEnvironment || ''] || '';
-            const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
-              ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
-              : '';
-            return contentsDisplay ? (
-              <div className="mb-2">内容物: {contentsDisplay}</div>
-            ) : null;
-          })()}
-          サイズを変更するとリアルタイムで更新されます。
         </motion.div>
       )}
     </div>

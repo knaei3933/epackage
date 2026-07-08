@@ -922,7 +922,6 @@ function PostProcessingStep() {
       required: false,
       options: [
         { id: 'notch-yes', name: 'Vノッチ', multiplier: 1.03, previewImage: '/images/post-processing/3.ノッチあり.png' },
-        { id: 'notch-straight', name: '直線ノッチ', multiplier: 1.02, previewImage: '/images/post-processing/3.直線ノッチ.png' },
         { id: 'notch-no', name: 'ノッチなし', multiplier: 1.0, previewImage: '/images/post-processing/3.ノッチなし.png' }
       ]
     },
@@ -2128,17 +2127,18 @@ export function ImprovedQuotingWizard() {
     state.skuCount >= 1 && state.skuCount <= 10 && patternQuantities.length > 0;
 
   // canProceed: 複数パターンビューの場合は patternQuantities で判定
-  // （少なくとも1パターンの合計が最小数量500以上なら進行可能）
+  // （パターン1・パターン2の両方の合計が最小数量500以上であることが必須）
   const canProceed = (() => {
     if (!currentStepId) return false;
     if (currentStepId === 'sku-quantity' && isMultiPatternMode) {
       const colCount = patternQuantities[0]?.length ?? 0;
-      const minQty = 500; // 最低1パターン500個/m
-      for (let p = 0; p < colCount; p++) {
+      if (colCount < 2) return false;
+      const minQty = 500; // 各パターンとも最低500個/m
+      for (let p = 0; p < 2; p++) {
         const patternTotal = patternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0);
-        if (patternTotal >= minQty) return true;
+        if (patternTotal < minQty) return false;
       }
-      return false;
+      return true;
     }
     return isStepComplete(currentStepId);
   })();
@@ -2255,6 +2255,7 @@ export function ImprovedQuotingWizard() {
                 thicknessSelection={state.thicknessSelection}
                 postProcessingOptions={state.postProcessingOptions}
                 spoutPosition={state.spoutPosition}
+                sealWidth={state.sealWidth}
               />
 
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
