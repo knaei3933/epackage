@@ -43,6 +43,7 @@ interface SettingValue {
   unit: string;
   originalValue?: number;
   dbCategory?: string;
+  isActive?: boolean;
 }
 
 interface CategoryData {
@@ -97,11 +98,14 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
         'KRAFT_unit_price', 'KRAFT_density',
         'kraft_pe_cost', 'paper_laminate_cost', 'PAPER_LAMINATE_density',
       ]},
-      { title: '④ LLDPE', description: 'LLDPE 단가/밀도', icon: Layers, keywords: ['LLDPE'], settingKeys: [
-        'LLDPE_unit_price', 'LLDPE_density',
+     { title: '④ LLDPE', description: 'LLDPE 단가/밀도', icon: Layers, keywords: ['LLDPE'], settingKeys: [
+       'LLDPE_unit_price', 'LLDPE_density',
+     ]},
+      { title: '⑤ 원단 인상률', description: '원단 단가 일괄 인상 (협상결과 10%)', icon: PercentIcon, keywords: ['markup','인상률','rate'], settingKeys: [
+        'material_markup_rate',
       ]},
-    ]
-  },
+   ]
+ },
   pouch_processing: {
     name: '파우치 가공',
     nameJa: 'ポーチ加工',
@@ -124,11 +128,15 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
         'flat_pouch_cost', 'flat_with_zip_cost', 'standing_pouch_cost', 'spout_pouch_cost',
         'soft_pouch_cost', 'gusset_cost', 'special_cost', 'roll_film_cost',
       ]},
-      { title: '⑥ 기타', description: 'other 계열', icon: Settings2, keywords: ['other','기타'], settingKeys: [
-        'other_cost', 'other_coefficient', 'other_minimum_price',
+     { title: '⑥ 기타', description: 'other 계열', icon: Settings2, keywords: ['other','기타'], settingKeys: [
+       'other_cost', 'other_coefficient', 'other_minimum_price',
+     ]},
+      { title: '⑦ 스패들 / 외주 배송', description: '스패웃 단가 · 왕복배송 · 외주배송', icon: Coins, keywords: ['spout','스패웃','outsourcing','round_trip'], settingKeys: [
+        'spout_price_9', 'spout_price_15', 'spout_price_18', 'spout_price_22', 'spout_price_28',
+        'spout_round_trip_shipping', 'outsourcing_shipping',
       ]},
-    ]
-  },
+   ]
+ },
   printing: {
     name: '인쇄',
     nameJa: '印刷',
@@ -189,11 +197,14 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
       { title: '② 국내 배송', description: 'domestic 단가/임계값', icon: Truck, keywords: ['domestic','국내'], settingKeys: [
         'domestic_base', 'domestic_per_kg', 'domestic_free_threshold',
       ]},
-      { title: '③ 국제 배송', description: 'international 단가/임계값', icon: Truck, keywords: ['international','국제'], settingKeys: [
-        'international_base', 'international_per_kg', 'international_free_threshold',
+     { title: '③ 국제 배송', description: 'international 단가/임계값', icon: Truck, keywords: ['international','국제'], settingKeys: [
+       'international_base', 'international_per_kg', 'international_free_threshold',
+     ]},
+      { title: '④ 박스 중량', description: '골판지 박스 1개 중량 (배송 박스수 계산)', icon: Package, keywords: ['box','박스','weight'], settingKeys: [
+        'box_weight_kg',
       ]},
-    ]
-  },
+   ]
+ },
   production: {
     name: '생산 설정',
     nameJa: '生産設定',
@@ -212,11 +223,14 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
       { title: '④ 마진 / 로스율', description: '제조 마진 · 로스율 · 후가공 배수', icon: TrendingUp, keywords: ['margin','loss','multiplier'], settingKeys: [
         'manufacturer_margin', 'default_loss_rate', 'default_post_processing_multiplier',
       ]},
-      { title: '⑤ 최소 가격 / UV', description: '최소 가격 · UV 인쇄 비용', icon: Coins, keywords: ['minimum','uv'], settingKeys: [
-        'minimum_price', 'uv_printing_fixed_cost', 'uv_printing_surcharge',
+     { title: '⑤ 최소 가격 / UV', description: '최소 가격 · UV 인쇄 비용', icon: Coins, keywords: ['minimum','uv'], settingKeys: [
+       'minimum_price', 'uv_printing_fixed_cost', 'uv_printing_surcharge',
+     ]},
+      { title: '⑥ 스패들 최소 수량', description: '스패웃파우치 최소 주문 수량', icon: Settings2, keywords: ['spout','스패웃','min_quantity'], settingKeys: [
+        'spout_min_quantity',
       ]},
-    ]
-  },
+   ]
+ },
   pricing: {
     name: '가격 설정',
     nameJa: '価格設定',
@@ -443,12 +457,13 @@ export default function AdminSettingsClient() {
           // data is an array, use forEach with the item's key property
           data.forEach((item: any) => {
             settingsWithOriginals[tabKey][item.key] = {
-              value: item.value,
-              description: item.description || item.key,
-              unit: item.unit || '',
-              originalValue: item.value,
-              dbCategory: category
-            };
+             value: item.value,
+             description: item.description || item.key,
+             unit: item.unit || '',
+             originalValue: item.value,
+             dbCategory: category,
+             isActive: item.isActive !== false
+           };
           });
         });
         setSettings(settingsWithOriginals);
@@ -1133,28 +1148,43 @@ export default function AdminSettingsClient() {
 
                       {/* Settings Table */}
                       <div className="divide-y divide-gray-100">
-                        {Object.entries(groupData).map(([key, data], index) => {
-                          const settingKey = `${activeTab}.${key}`;
-                          const isModified = modifiedSettings.has(settingKey);
-                          const cleanDesc = cleanDescription(data.description || key);
+                      {Object.entries(groupData).map(([key, data], index) => {
+                        const settingKey = `${activeTab}.${key}`;
+                        const isModified = modifiedSettings.has(settingKey);
+                        const cleanDesc = cleanDescription(data.description || key);
+                        const isInactive = data.isActive === false;
 
-                          return (
-                            <div
-                              key={key}
-                              className={cn(
-                                "flex items-center px-6 py-4 hover:bg-gray-50/50 transition-colors gap-4",
-                                isModified && "bg-blue-50/30"
-                              )}
-                            >
+                        return (
+                          <div
+                            key={key}
+                            className={cn(
+                              "flex items-center px-6 py-4 hover:bg-gray-50/50 transition-colors gap-4",
+                              isModified && "bg-blue-50/30",
+                              isInactive && "opacity-50"
+                            )}
+                          >
                               <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">
                                 {index + 1}
                               </span>
-                              <div className="flex-1 min-w-0">
-                                <label className="block text-sm font-medium text-gray-900 mb-1">
-                                  {cleanDesc}
-                                </label>
-                                <p className="text-xs text-gray-400 mb-0 font-mono">{key}</p>
-                              </div>
+                             <div className="flex-1 min-w-0">
+                               <label className="block text-sm font-medium text-gray-900 mb-1">
+                                 {cleanDesc}
+                                  {isInactive && (
+                                    <span className="ml-2 px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 bg-gray-100 rounded">비활성</span>
+                                  )}
+                               </label>
+                               <p className="text-xs text-gray-400 mb-0 font-mono">{key}</p>
+                                {activeTab === 'film_material' && key.endsWith('_unit_price') && (() => {
+                                  const markupRate = (settings['film_material']?.['material_markup_rate']?.value as number) ?? 0;
+                                  const basePrice = data.value as number;
+                                  const appliedPrice = Math.round(basePrice * (1 + markupRate));
+                                  return markupRate > 0 ? (
+                                    <p className="text-xs text-blue-600 mt-1">
+                                      적용단가: ₩{appliedPrice.toLocaleString()}/kg (₩{basePrice.toLocaleString()} × {((1 + markupRate) * 100).toFixed(0)}%)
+                                    </p>
+                                  ) : null;
+                                })()}
+                             </div>
                                 <div className="flex items-center gap-3 flex-shrink-0">
                                   <input
                                     type="number"

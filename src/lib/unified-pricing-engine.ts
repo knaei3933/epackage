@@ -960,18 +960,20 @@ export class UnifiedPricingEngine {
       const lossMeters = getProcessingLossMeters(filmLayers);
 
       // 総メートル数 = 注文長さ + ロス量
-      const totalMeters = quantity + lossMeters
+     const totalMeters = quantity + lossMeters
 
-      // AL素材の有無でラミ単価を切替（2026-06-27 改定: AL有無2段階化）
-      const hasALMaterial = filmLayers?.some(layer => layer.materialId === 'AL') ?? false
+     // DB設定からラミ単価を取得（AL有無別、フォールバック = CONSTANTS値）
+     const hasALMaterial = filmLayers?.some(layer => layer.materialId === 'AL') ?? false
       const laminationPerM = hasALMaterial
-        ? CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M_WITH_AL  // 80ウォン/m
-        : CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M_NO_AL    // 65ウォン/m
+        ? await this.getSetting('lamination', 'cost_per_m2_with_al', CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M_WITH_AL) // 80ウォン/m
+        : await this.getSetting('lamination', 'cost_per_m2', CONSTANTS.ROLL_FILM_LAMINATION_COST_PER_M_NO_AL)           // 65ウォン/m
       // ラミネート費(ウォン) = 原反幅(m) × 総メートル数 × ラミ単価 × 3回（4層構造）
       const laminationCostKRW = materialWidthM * totalMeters * laminationPerM * 3
 
       // スリッター費(ウォン) = MAX(30,000ウォン, 総メートル数 × 10ウォン/m)
-      const slitterCostKRW = Math.max(CONSTANTS.ROLL_FILM_SLITTER_MIN_COST, totalMeters * CONSTANTS.ROLL_FILM_SLITTER_COST_PER_M)
+      const slitterMinCost = await this.getSetting('slitter', 'min_cost', CONSTANTS.ROLL_FILM_SLITTER_MIN_COST)
+      const slitterCostPerM = await this.getSetting('slitter', 'cost_per_m', CONSTANTS.ROLL_FILM_SLITTER_COST_PER_M)
+      const slitterCostKRW = Math.max(slitterMinCost, totalMeters * slitterCostPerM)
 
       // 合計加工費（円換算: AC-22 集約ヘルパー）
       processingCost = convertKRWtoJPY(laminationCostKRW + slitterCostKRW)
@@ -1063,6 +1065,8 @@ export class UnifiedPricingEngine {
       );
 
       if (unitPrice > 0) {
+        const materialMarkupRate = await this.getSetting('film_material', 'material_markup_rate', 0);
+        const appliedUnitPrice = unitPrice * (1 + materialMarkupRate);
         let weight: number;
         // Kraft等のgrammage指定材料: densityを使用せずgrammageを直接使用
         if (layer.grammage !== undefined) {
@@ -1071,7 +1075,7 @@ export class UnifiedPricingEngine {
           const thicknessMm = layer.thickness / 1000;
           weight = thicknessMm * widthM * totalUsedMeters * density;
         }
-        const cost = weight * unitPrice;
+        const cost = weight * appliedUnitPrice;
         materialCostKRW += cost;
       }
     }
@@ -1145,8 +1149,8 @@ export class UnifiedPricingEngine {
       })
     }
 
-    // 5. 小量注文手数料計算
-    const surcharge = this.calculateSmallLotSurcharge(
+   // 5. 小量注文手数料計算
+    const surcharge = await this.calculateSmallLotSurcharge(
       quantity,
       bagTypeId,
       isUVPrinting
@@ -1380,6 +1384,7 @@ export class UnifiedPricingEngine {
       production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),
       pricing_default_markup_rate: await this.getSetting('pricing', 'default_markup_rate', undefined),
       pricing_manufacturer_margin: await this.getSetting('pricing', 'manufacturer_margin', CONSTANTS.MANUFACTURER_MARGIN)
+      ,material_markup_rate: await this.getSetting('film_material', 'material_markup_rate', 0)
     }
 
     // ========================================
@@ -2566,10 +2571,12 @@ export class UnifiedPricingEngine {
       return processingCostOnlyJPY;
     }
 
-    // DB設定から加工費を取得、ない場合は定数を使用
+   // DB設定から加工費を取得、ない場合は定数を使用
+    // 注: 旧カテゴリ 'processing_cost' は DB に存在せず常にフォールバックしていた（phantom category）。
+    //     正しいカテゴリ 'pouch_processing' の `${bagTypeId}_cost` キーを使用する。
     const baseCost = await this.getSetting(
-      'processing_cost',
-      bagTypeId,
+      'pouch_processing',
+      `${bagTypeId}_cost`,
       (CONSTANTS.PROCESSING_COSTS as any)[bagTypeId] || CONSTANTS.PROCESSING_COSTS['flat-pouch']
     )
     const isFlat = bagTypeId.toLowerCase().includes('flat') || bagTypeId.toLowerCase().includes('3_side')
@@ -2695,13 +2702,15 @@ export class UnifiedPricingEngine {
   /**
    * 設定費計算
    */
-  private calculateSetupCost(
+  private async calculateSetupCost(
     bagTypeId: string,
     quantity: number,
     isUVPrinting: boolean = false
-  ): number {
+  ): Promise<number> {
+    // DB設定からUV固定費を取得（フォールバック = CONSTANTS値）
+    const uvFixedCost = await this.getSetting('printing', 'uv_fixed_cost', CONSTANTS.UV_PRINTING_FIXED_COST)
     if (isUVPrinting) {
-      return CONSTANTS.UV_PRINTING_FIXED_COST
+      return uvFixedCost
     }
 
     const isFlat = bagTypeId.toLowerCase().includes('flat') || bagTypeId.toLowerCase().includes('3_side')
@@ -2718,19 +2727,23 @@ export class UnifiedPricingEngine {
   /**
    * 小量注文手数料計算
    */
-  private calculateSmallLotSurcharge(
+  private async calculateSmallLotSurcharge(
     quantity: number,
     bagTypeId: string,
     isUVPrinting: boolean = false
-  ): number {
+  ): Promise<number> {
+    // DB設定から各値を取得（フォールバック = CONSTANTS値）
+    const uvSurcharge = await this.getSetting('printing', 'uv_surcharge', CONSTANTS.UV_PRINTING_SURCHARGE)
+    const smallLotSurcharge = await this.getSetting('production', 'small_lot_surcharge', CONSTANTS.SMALL_LOT_SURCHARGE)
+
     if (isUVPrinting && quantity < CONSTANTS.SMALL_LOT_THRESHOLD) {
-      return CONSTANTS.UV_PRINTING_SURCHARGE
+      return uvSurcharge
     }
 
     const isFlat = bagTypeId.toLowerCase().includes('flat') || bagTypeId.toLowerCase().includes('3_side')
 
     if (isFlat && quantity < CONSTANTS.SMALL_LOT_THRESHOLD) {
-      return CONSTANTS.SMALL_LOT_SURCHARGE
+      return smallLotSurcharge
     }
 
     return 0

@@ -16,6 +16,7 @@ import { createServiceClient } from '@/lib/supabase';
  */
 const PUBLIC_CATEGORIES = [
   'film_material',  // 素材価格（PET, AL, LLDPE等）
+  'pouch_processing', // パウチ加工費（加工係数・最小価格・スパウト・外注配送等）
   'printing',       // 印刷料金
   'lamination',     // ラミネート料金
   'slitter',        // スリッター料金

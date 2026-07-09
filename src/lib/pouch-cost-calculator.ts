@@ -91,6 +91,21 @@ export interface SKUCostParams {
 }
 
 /**
+ * パウチ加工設定（DB から一括プリロード — getSetting の同期参照を可能にする）
+ */
+export interface PouchProcessingSettings {
+  exchangeRate: number;
+  boxWeightKg: number;
+  outsourcingShipping: number;
+  spoutRoundTripShipping: number;
+  spoutMinQuantity: number;
+  spoutPrices: Record<number, number>;
+  coefficients: Record<string, number>;
+  minimumPrices: Record<string, number>;
+  zipperSurcharges: Record<string, number>;
+}
+
+/**
  * SKU別原価内訳
  */
 export interface SKUCostBreakdown {
@@ -278,7 +293,58 @@ export class PouchCostCalculator {
       delivery_cost_per_roll: await this.getSetting('delivery', 'cost_per_roll', undefined),
       delivery_kg_per_roll: await this.getSetting('delivery', 'kg_per_roll', undefined),
       production_default_loss_rate: await this.getSetting('production', 'default_loss_rate', undefined),
-      pricing_default_markup_rate: await this.getSetting('pricing', 'default_markup_rate', undefined)
+     pricing_default_markup_rate: await this.getSetting('pricing', 'default_markup_rate', undefined)
+      ,material_markup_rate: await this.getSetting('film_material', 'material_markup_rate', 0)
+    };
+  }
+
+  /**
+   * Pouch processing settings loaded once from DB (preload pattern — keeps
+   * calculatePouchProcessingCost synchronous, mirroring loadFilmCostSettings).
+   * All hardcoded pouch/spout constants are sourced here with the code value
+   * as the explicit fallback so DB failures are safe.
+   */
+  async loadPouchProcessingSettings(): Promise<PouchProcessingSettings> {
+    return {
+      exchangeRate: await this.getSetting('exchange_rate', 'krw_to_jpy', 0.12),
+      boxWeightKg: await this.getSetting('delivery', 'box_weight_kg', 0.7),
+      outsourcingShipping: await this.getSetting('pouch_processing', 'outsourcing_shipping', 150000),
+      spoutRoundTripShipping: await this.getSetting('pouch_processing', 'spout_round_trip_shipping', 150000),
+      spoutMinQuantity: await this.getSetting('production', 'spout_min_quantity', 5000),
+      spoutPrices: {
+        9: await this.getSetting('pouch_processing', 'spout_price_9', 70),
+        15: await this.getSetting('pouch_processing', 'spout_price_15', 80),
+        18: await this.getSetting('pouch_processing', 'spout_price_18', 110),
+        22: await this.getSetting('pouch_processing', 'spout_price_22', 130),
+        28: await this.getSetting('pouch_processing', 'spout_price_28', 200),
+      },
+      coefficients: {
+        flat_3_side: await this.getSetting('pouch_processing', 'flat_3_side_coefficient', 0.4),
+        stand_up: await this.getSetting('pouch_processing', 'stand_up_coefficient', 1.2),
+        t_shape: await this.getSetting('pouch_processing', 't_shape_coefficient', 1.2),
+        m_shape: await this.getSetting('pouch_processing', 'm_shape_coefficient', 1.2),
+        box: await this.getSetting('pouch_processing', 'box_coefficient', 1.2),
+        spout: 1.2,
+        other: await this.getSetting('pouch_processing', 'other_coefficient', 1.2),
+      },
+      minimumPrices: {
+        flat_3_side: await this.getSetting('pouch_processing', 'flat_3_side_minimum_price', 200000),
+        stand_up: await this.getSetting('pouch_processing', 'stand_up_minimum_price', 250000),
+        t_shape: await this.getSetting('pouch_processing', 't_shape_minimum_price', 440000),
+        m_shape: await this.getSetting('pouch_processing', 'm_shape_minimum_price', 440000),
+        box: await this.getSetting('pouch_processing', 'box_minimum_price', 440000),
+        spout: 250000,
+        other: await this.getSetting('pouch_processing', 'other_minimum_price', 200000),
+      },
+      zipperSurcharges: {
+        flat_3_side: await this.getSetting('pouch_processing', 'flat_3_side_zipper_surcharge', 50000),
+        stand_up: await this.getSetting('pouch_processing', 'stand_up_zipper_surcharge', 30000),
+        t_shape: await this.getSetting('pouch_processing', 't_shape_zipper_surcharge', 0),
+        m_shape: await this.getSetting('pouch_processing', 'm_shape_zipper_surcharge', 0),
+        box: await this.getSetting('pouch_processing', 'box_zipper_surcharge', 0),
+        spout: 0,
+        other: 0,
+      },
     };
   }
 
@@ -346,6 +412,9 @@ export class PouchCostCalculator {
       markupRate = 0.0  // デフォルトは調整なし（販売マージン25%は計算済み・判断2）
     } = params;
 
+    // パウチ加工設定を一括プリロード（同期 calculatePouchProcessingCost に渡す）
+    const pouchSettings = await this.loadPouchProcessingSettings();
+
     console.log('[calculateSKUCost] Spout Parameters:', {
       pouchType,
       spoutSize,
@@ -356,7 +425,7 @@ export class PouchCostCalculator {
     // ========================================
     // スパウトパウチの最小注文数適用（5000個）
     // ========================================
-    const MIN_SPOUT_QUANTITY = 5000;
+    const MIN_SPOUT_QUANTITY = pouchSettings.spoutMinQuantity;
     let adjustedQuantities = [...skuQuantities];
 
     if (pouchType === 'spout_pouch') {
@@ -531,13 +600,14 @@ export class PouchCostCalculator {
 
     // 全体パウチ加工費計算（固定費用方式）
     // 同一スペックの場合、加工費は1回のみ計算（SKU数に関わらず固定）
-    const totalPouchProcessingCostKRW = this.calculatePouchProcessingCost(
-      pouchType,
-      dimensions.width,
-      totalQuantity,  // 全数量に対して1回のみ計算
-      postProcessingOptions,
-      params.spoutSize  // スパウトサイズ（スパウトパウチ用）
-    );
+   const totalPouchProcessingCostKRW = this.calculatePouchProcessingCost(
+     pouchType,
+     dimensions.width,
+     totalQuantity,  // 全数量に対して1回のみ計算
+     postProcessingOptions,
+      params.spoutSize,  // スパウトサイズ（スパウトパウチ用）
+      pouchSettings
+   );
 
     console.log('[calculateSKUCost] Total Processing Cost:', {
       totalQuantity,
@@ -620,8 +690,8 @@ export class PouchCostCalculator {
 
     // 必要な箱数の計算（パウチ: 19kg/箱 + 박스무게 0.7kg/箱）— 2026-07-05 改定
     // 순수 제품 중량 + 박스무게(0.7kg×箱수)가 박스 용량을 초과하면 박스 증가
-    const BOX_CAPACITY_KG = DELIVERY_CONSTANTS_JP.POUCH_BOX_CAPACITY_KG;
-    const BOX_WEIGHT_KG = 0.7; // 골판지 박스 1개 중량
+   const BOX_CAPACITY_KG = DELIVERY_CONSTANTS_JP.POUCH_BOX_CAPACITY_KG;
+    const BOX_WEIGHT_KG = pouchSettings.boxWeightKg; // 골판지 박스 1개 중량 (DB: delivery.box_weight_kg)
     let deliveryBoxes = Math.ceil(totalDeliveryWeight / (BOX_CAPACITY_KG - BOX_WEIGHT_KG));
     if (deliveryBoxes < 1) deliveryBoxes = 1;
 
@@ -629,7 +699,7 @@ export class PouchCostCalculator {
     // 2026-07-05: 日本国内配送を追加（ユーザー指示）
     const DELIVERY_COST_PER_BOX_KRW = DELIVERY_CONSTANTS_JP.INTERNATIONAL_COST_PER_BOX_KRW;
     const DOMESTIC_JP_PER_BOX_JPY = DELIVERY_CONSTANTS_JP.DOMESTIC_JP_COST_PER_BOX_JPY;
-    const EXCHANGE_RATE = 0.12;
+    const EXCHANGE_RATE = pouchSettings.exchangeRate; // DB: exchange_rate.krw_to_jpy (폴백 0.12)
     const internationalDeliveryJPY = deliveryBoxes * DELIVERY_COST_PER_BOX_KRW * EXCHANGE_RATE;
     const domesticJPDeliveryJPY = deliveryBoxes * DOMESTIC_JP_PER_BOX_JPY;
     const totalDeliveryJPY = internationalDeliveryJPY + domesticJPDeliveryJPY;
@@ -776,13 +846,14 @@ export class PouchCostCalculator {
     );
 
     // 6. 袋加工費計算
-    const pouchProcessingCost = this.calculatePouchProcessingCost(
-      pouchType,
-      dimensions.width,
-      quantity,
-      postProcessingOptions,
-      spoutSize  // スパウトサイズ（スパウトパウチ用）
-    );
+   const pouchProcessingCost = this.calculatePouchProcessingCost(
+     pouchType,
+     dimensions.width,
+     quantity,
+     postProcessingOptions,
+      spoutSize,  // スパウトサイズ（スパウトパウチ用）
+      await this.loadPouchProcessingSettings()  // DB設定をプリロードして注入
+   );
 
     // 7. 原価内訳集計 (KRW 기준으로 엄격한 마진 및 관세 계산)
     // デフォルトは1箱分の配送料（calculateSKUCostメソッドで後で上書き）
@@ -1021,22 +1092,36 @@ export class PouchCostCalculator {
    * @param postProcessingOptions 後加工オプション（ジッパーなど）
    * @returns 袋加工費 (KRW)
    */
-  private calculatePouchProcessingCost(
-    pouchType: string,
-    widthMM: number,
-    quantity: number,
-    postProcessingOptions?: string[],
-    spoutSize?: 9 | 15 | 18 | 22 | 28  // スパウトサイズ（スパウトパウチ用）
-  ): number {
-    // デバッグログ：パラメータを確認
-    console.log('[calculatePouchProcessingCost] ENTRY:', {
-      pouchType,
-      widthMM,
-      quantity,
-      spoutSize,
-      spoutSizeType: typeof spoutSize,
-      postProcessingOptions
-    });
+ private calculatePouchProcessingCost(
+   pouchType: string,
+   widthMM: number,
+   quantity: number,
+   postProcessingOptions?: string[],
+    spoutSize?: 9 | 15 | 18 | 22 | 28,  // スパウトサイズ（スパウトパウチ用）
+    settings?: PouchProcessingSettings  // DB プリロード設定（calculateSKUCost から注入）
+ ): number {
+    // DB 未指定時はコード値のフォールバックを生成（後方互換・テスト・旧呼出元）
+    const s: PouchProcessingSettings = settings ?? {
+      exchangeRate: 0.12,
+      boxWeightKg: 0.7,
+      outsourcingShipping: 150000,
+      spoutRoundTripShipping: 150000,
+      spoutMinQuantity: 5000,
+      spoutPrices: { 9: 70, 15: 80, 18: 110, 22: 130, 28: 200 },
+      coefficients: { flat_3_side: 0.4, stand_up: 1.2, t_shape: 1.2, m_shape: 1.2, box: 1.2, spout: 1.2, other: 1.2 },
+      minimumPrices: { flat_3_side: 200000, stand_up: 250000, t_shape: 440000, m_shape: 440000, box: 440000, spout: 250000, other: 200000 },
+      zipperSurcharges: { flat_3_side: 50000, stand_up: 30000, t_shape: 0, m_shape: 0, box: 0, spout: 0, other: 0 },
+    };
+
+   // デバッグログ：パラメータを確認
+   console.log('[calculatePouchProcessingCost] ENTRY:', {
+     pouchType,
+     widthMM,
+     quantity,
+     spoutSize,
+     spoutSizeType: typeof spoutSize,
+     postProcessingOptions
+   });
 
     // 基本パウチタイプを判定（ジッパーなし）
     // ジッパー追加は postProcessingMultiplier で調整するため、
@@ -1081,20 +1166,14 @@ export class PouchCostCalculator {
 
     if (basePouchType === 'spout') {
       console.log('[calculatePouchProcessingCost] ENTERING SPOUT LOGIC');
-      // docs/reports/calcultae/05-가공비용_계산.md 基準
-      // スパウト加工費(ウォン) = (スパウト単価 × 数量) + 往復配送料
-      // 最小注文数量: 5,000個
+     // docs/reports/calcultae/05-가공비용_계산.md 基準
+     // スパウト加工費(ウォン) = (スパウト単価 × 数量) + 往復配送料
+     // 最小注文数量: 5,000個
 
-      const SPOUT_PRICES = {
-        9: 70,    // 9パイ（φ9mm）: 70ウォン
-        15: 80,   // 15パイ（φ15mm）: 80ウォン
-        18: 110,  // 18パイ（φ18mm）: 110ウォン
-        22: 130,  // 22パイ（φ22mm）: 130ウォン
-        28: 200   // 28パイ（φ28mm）: 200ウォン
-      } as const;
-
-      const ROUND_TRIP_SHIPPING = 150000; // 往復配送料: 150,000ウォン
-      const MIN_SPOUT_QUANTITY = 5000;    // 最小注文数量: 5,000個
+      // スパウト単価・往復配送料・最小数量は DB 設定から取得（フォールバック = コード値）
+      const SPOUT_PRICES = s.spoutPrices;
+      const ROUND_TRIP_SHIPPING = s.spoutRoundTripShipping;
+      const MIN_SPOUT_QUANTITY = s.spoutMinQuantity;
 
       // スパウト単価を取得（デフォルトは18パイ）
       console.log('[calculatePouchProcessingCost] Getting spout price:', {
@@ -1127,35 +1206,26 @@ export class PouchCostCalculator {
       return spoutProcessingCostKRW;
     }
 
-    // 基本価格設定（ジッパーなし）- 数量比例方式
-    // docs/reports/calcultae/05-가공비용_계산.md 基準
-    // 基本加工費(ウォン) = パウチ横幅(cm) × 単価(ウォン/cm) × 数量
-    // 製袋加工費(ウォン) = MAX(基本加工費, 最小単価)
-    const POUCH_PROCESSING_COSTS_BASE = {
-      'flat_3_side': { pricePerCm: 0.4, minimumPrice: 200000 },    // 平袋: 0.4ウォン/cm, 最小200,000ウォン
-      'stand_up': { pricePerCm: 1.2, minimumPrice: 250000 },    // スタンドパウチ: 1.2ウォン/cm, 最小250,000ウォン
-      't_shape': { pricePerCm: 1.2, minimumPrice: 440000 },      // 合掌袋: 1.2ウォン/cm, 最小440,000ウォン
-      'm_shape': { pricePerCm: 1.2, minimumPrice: 440000 },      // M封: 1.2ウォン/cm, 最小440,000ウォン
-      'box': { pricePerCm: 1.2, minimumPrice: 440000 },          // ガゼットパウチ: 1.2ウォン/cm, 最小440,000ウォン
-      'other': { pricePerCm: 1.2, minimumPrice: 200000 }         // その他: 1.2ウォン/cm, 最小200,000ウォン
-    } as const;
-
-    // ジッパーありの場合の最低価格上乗
-    const ZIPPER_SURCHARGE = {
-      'flat_3_side': 50000,   // 200,000 → 250,000
-      'stand_up': 30000,      // 250,000 → 280,000
-      't_shape': 0,           // 440,000 → 440,000 (변화 없음)
-      'm_shape': 0,           // 440,000 → 440,000 (변화 없음)
-      'box': 0                // 440,000 → 440,000 (변화 없음)
-    } as const;
-
-    // 外注配送料（合掌袋とガゼットパウチは外注処理）
-    const OUTSOURCING_SHIPPING = 150000; // 150,000ウォン
+   // 基本価格設定（ジッパーなし）- 数量比例方式
+   // docs/reports/calcultae/05-가공비용_계산.md 基準
+   // 基本加工費(ウォン) = パウチ横幅(cm) × 単価(ウォン/cm) × 数量
+   // 製袋加工費(ウォン) = MAX(基本加工費, 最小単価)
+    // 加工係数・最小価格・ジッパー追加・外注配送料は DB 設定から取得（フォールバック = コード値）
+    // POUCH_PROCESSING_COSTS_BASE.pricePerCm → s.coefficients[type]
+    // POUCH_PROCESSING_COSTS_BASE.minimumPrice → s.minimumPrices[type]
+    // ZIPPER_SURCHARGE[type] → s.zipperSurcharges[type]
+    // OUTSOURCING_SHIPPING → s.outsourcingShipping
+    const POUCH_PROCESSING_COSTS_BASE = (type: string) => ({
+      pricePerCm: s.coefficients[type] ?? 1.2,
+      minimumPrice: s.minimumPrices[type] ?? 200000,
+    });
+    const ZIPPER_SURCHARGE = s.zipperSurcharges;
+    const OUTSOURCING_SHIPPING = s.outsourcingShipping;
 
     const finalPouchType = basePouchType;
 
     // 基本設定を取得
-    const costConfig = POUCH_PROCESSING_COSTS_BASE[finalPouchType] || POUCH_PROCESSING_COSTS_BASE.other;
+    const costConfig = POUCH_PROCESSING_COSTS_BASE(finalPouchType);
 
     // パウチ横幅をcmに変換
     const widthCM = widthMM / 10;
@@ -1217,10 +1287,11 @@ export class PouchCostCalculator {
     filmCostResult: FilmCostResult,
     pouchProcessingCostKRW: number,
     quantity: number,
-    deliveryJPY: number = 16958,  // デフォルトは1箱分（国際15,358円 + 国内1,600円、後で上書き）
-    markupRate: number = 0.0  // 顧客別マークアップ率（デフォルト0% = 割引なし）
-  ): Promise<SKUCostBreakdown> {
-    const EXCHANGE_RATE = 0.12;
+   deliveryJPY: number = 16958,  // デフォルトは1箱分（国際15,358円 + 国内1,600円、後で上書き）
+   markupRate: number = 0.0  // 顧客別マークアップ率（デフォルト0% = 割引なし）
+ ): Promise<SKUCostBreakdown> {
+    // DB設定から為替レートを取得（フォールバック 0.12）
+    const EXCHANGE_RATE = await this.getSetting('exchange_rate', 'krw_to_jpy', 0.12);
 
     // 1. 基礎原価 (KRW)
     const baseCostKRW = filmCostResult.totalCostKRW + pouchProcessingCostKRW;
