@@ -24,6 +24,9 @@ export function ResponsiveStepIndicators({
   onStepClick,
   isStepCompleted,
 }: ResponsiveStepIndicatorsProps) {
+  // 進捗バーのパーセンテージ計算（currentStep は 0-indexed）
+  const progressPercent = Math.round(((currentStep + 1) / steps.length) * 100);
+
   return (
     <>
       {/* Mobile: Vertical Step Indicators */}
@@ -34,11 +37,11 @@ export function ResponsiveStepIndicators({
         {steps.map((step, index) => {
           const isActive = index === currentStep;
           const isCompleted = isStepCompleted(index);
-          const StepIcon = step.icon;
 
           return (
             <button
               key={step.id}
+              data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
               onClick={() => isCompleted && onStepClick(index)}
               disabled={!isCompleted}
               className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left transition-all min-h-[44px] md:min-h-[48px] ${
@@ -54,7 +57,7 @@ export function ResponsiveStepIndicators({
               aria-current={isActive ? 'step' : undefined}
             >
               <div
-                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all font-semibold text-sm ${
                   isActive
                     ? 'bg-white/20'
                     : isCompleted
@@ -65,7 +68,7 @@ export function ResponsiveStepIndicators({
                 {isCompleted ? (
                   <Check className="w-6 h-6" aria-hidden="true" />
                 ) : (
-                  <StepIcon className="w-6 h-6" aria-hidden="true" />
+                  <span aria-hidden="true">{index + 1}</span>
                 )}
               </div>
 
@@ -97,13 +100,12 @@ export function ResponsiveStepIndicators({
 
       {/* Tablet+: Horizontal Step Indicators */}
       <nav
-        className="hidden lg:flex justify-between mt-3 md:mt-4 mb-5 md:mb-6 max-w-4xl mx-auto"
+        className="hidden lg:flex justify-between mt-3 md:mt-4 mb-3 md:mb-4 max-w-4xl mx-auto"
         aria-label="見積もり作成のステップ"
       >
         {steps.map((step, index) => {
           const isActive = index === currentStep;
           const isCompleted = isStepCompleted(index);
-          const StepIcon = step.icon;
 
           return (
             <div
@@ -113,7 +115,8 @@ export function ResponsiveStepIndicators({
               }`}
             >
               <button
-                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 ${
+                data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
+                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 font-semibold text-sm ${
                   isActive
                     ? 'bg-navy-700 text-white shadow-lg scale-110 ring-4 ring-navy-200 focus:ring-navy-400'
                     : isCompleted
@@ -130,27 +133,41 @@ export function ResponsiveStepIndicators({
                 {isCompleted ? (
                   <Check className="w-6 h-6" aria-hidden="true" />
                 ) : (
-                  <StepIcon className="w-6 h-6" aria-hidden="true" />
+                  <span aria-hidden="true">{index + 1}</span>
                 )}
               </button>
 
-              <span
-                className={`text-xs mt-2 text-center transition-colors ${
-                  isActive
-                    ? 'text-navy-700 font-semibold'
-                    : isCompleted
-                    ? 'text-green-700 font-medium'
-                    : 'text-gray-500'
-                }`}
-                aria-hidden="true"
-              >
-                {step.title}
-              </span>
+              <div className="mt-2 text-center">
+                <span
+                  className={`text-xs sm:text-sm transition-colors block ${
+                    isActive
+                      ? 'text-navy-700 font-semibold'
+                      : isCompleted
+                      ? 'text-green-700 font-medium'
+                      : 'text-gray-500'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {step.title}
+                </span>
+                <span
+                  className={`text-[10px] sm:text-xs mt-0.5 block leading-tight ${
+                    isActive
+                      ? 'text-navy-600'
+                      : isCompleted
+                      ? 'text-green-600'
+                      : 'text-gray-400'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {step.description}
+                </span>
+              </div>
 
               {/* Connector Line */}
               {index < steps.length - 1 && (
                 <div
-                  className={`absolute top-5 left-10 w-full h-0.5 -ml-5 transition-colors duration-300 ${
+                  className={`absolute top-5 left-10 h-0.5 -ml-5 transition-colors duration-300 ${
                     isCompleted ? 'bg-green-400' : 'bg-gray-300'
                   }`}
                   style={{ width: 'calc(100% - 44px)' }}
@@ -161,6 +178,30 @@ export function ResponsiveStepIndicators({
           );
         })}
       </nav>
+
+      {/* Progress Bar */}
+      <div className="hidden lg:block max-w-4xl mx-auto mb-5 md:mb-6">
+        <div className="flex justify-between items-center mb-1.5">
+          <span className="text-xs text-gray-600 font-medium">進捗状況</span>
+          <span className="text-xs font-bold text-navy-700" aria-live="polite">
+            {progressPercent}% 完了
+          </span>
+        </div>
+        <div
+          className="w-full bg-gray-200 rounded-full h-2 md:h-2.5 shadow-inner overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="見積もり作成の進捗状況"
+        >
+          <div
+            className="bg-gradient-to-r from-navy-600 to-navy-700 h-2 md:h-2.5 rounded-full transition-all duration-500 ease-out shadow-lg"
+            style={{ width: `${progressPercent}%` }}
+            aria-hidden="true"
+          />
+        </div>
+      </div>
     </>
   );
 }

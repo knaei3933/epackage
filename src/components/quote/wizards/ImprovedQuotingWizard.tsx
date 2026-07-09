@@ -22,7 +22,6 @@ import {
   Save, Send, Eye, Shield, Leaf, Lightbulb
 } from 'lucide-react';
 import { ErrorToast, useToast } from '../shared/ErrorToast';
-import { KeyboardShortcutsHint } from '../shared/KeyboardShortcutsHint';
 import { useKeyboardNavigation } from '../shared/useKeyboardNavigation';
 import { AuthPromptModal } from '../shared/AuthPromptModal';
 import { ResponsiveStepIndicators } from '../shared/ResponsiveStepIndicators';
@@ -2195,41 +2194,13 @@ export function ImprovedQuotingWizard() {
 
       <div ref={wizardRef} className="max-w-7xl mx-auto p-4 lg:p-8" id="quote-wizard-content">
 
-        {/* Enhanced Progress Bar - Hidden */}
-        {false && (
-        <div className="mb-4 md:mb-6 lg:mb-8 max-w-2xl mx-auto">
-          <div role="progressbar" aria-valuenow={Math.round(((currentStep + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="見積もり作成の進捗状況">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600 font-medium">進捗状況</span>
-              <span className="text-sm font-bold text-navy-700" aria-live="polite">
-                {Math.round(((currentStep + 1) / STEPS.length) * 100)}% 完了
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 md:h-2.5 lg:h-3 shadow-inner">
-              <div
-                className="bg-gradient-to-r from-navy-600 to-navy-700 h-2 md:h-2.5 lg:h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden"
-                style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
-                aria-hidden="true"
-              >
-                <div className="absolute inset-0 bg-white opacity-20 animate-pulse" />
-              </div>
-            </div>
-
-            {/* Keyboard Shortcuts Hint - Desktop only */}
-            <KeyboardShortcutsHint className="mb-4" />
-
-            {/* Step Indicators - Responsive */}
-            <ResponsiveStepIndicators
-              steps={STEPS}
-              currentStep={currentStep}
-              onStepClick={(index) => {
-                if (index < currentStep) setCurrentStep(index);
-              }}
-              isStepCompleted={(index) => index < currentStep || (result && index === STEPS.length - 1)}
-            />
-          </div>
-        </div>
-        )}
+        {/* Step Indicators - Responsive (横型ステッパー + 進捗バー) */}
+        <ResponsiveStepIndicators
+          steps={STEPS}
+          currentStep={currentStep}
+          onStepClick={(index) => { if (index < currentStep) setCurrentStep(index); }}
+          isStepCompleted={(index) => index < currentStep || (result && index === STEPS.length - 1)}
+        />
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -2257,53 +2228,6 @@ export function ImprovedQuotingWizard() {
                 spoutPosition={state.spoutPosition}
                 sealWidth={state.sealWidth}
               />
-
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">手順</h2>
-                <nav className="space-y-3">
-                  {STEPS.map((step, index) => {
-                    const isActive = index === currentStep;
-                    const isCompleted = index < currentStep || (result && index === STEPS.length - 1);
-                    const StepIcon = step.icon;
-
-                    return (
-                      <button
-                        key={step.id}
-                        data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
-                        onClick={() => index < currentStep && setCurrentStep(index)}
-                        disabled={index > currentStep}
-                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-all ${isActive
-                          ? 'bg-navy-100 border-2 border-navy-600 shadow-md'
-                          : isCompleted
-                            ? 'bg-green-50 border-2 border-green-300 text-green-800 hover:bg-green-100'
-                            : 'bg-gray-50 border-2 border-gray-200 text-gray-400 cursor-not-allowed'
-                          }`}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${isActive
-                          ? 'bg-navy-600 text-white'
-                          : isCompleted
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-300 text-gray-500'
-                          }`}>
-                          {isCompleted ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <StepIcon className="w-4 h-4" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className={`font-medium text-sm ${isActive ? 'text-navy-900' : isCompleted ? 'text-green-800' : 'text-gray-400'}`}>
-                            {step.title}
-                          </div>
-                          <div className={`text-xs ${isActive ? 'text-navy-600' : isCompleted ? 'text-success-600' : 'text-gray-400'}`}>
-                            {step.description}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
 
             </div>
           </div>
