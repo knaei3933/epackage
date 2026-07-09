@@ -120,6 +120,22 @@ export interface SKUCostBreakdown {
   manufacturingMargin?: number; // 제조 마진 (円)
   salesMargin?: number;      // 판매 마진 (円)
   totalCost: number;         // 総原価 (円) = 최종 판매가
+  // === G002: 누락 항목 표시용 DB 기반 실제값 (선택적, 과거 견적은 undefined) ===
+  exchangeRate?: number;              // 적용된 환율 (KRW→JPY)
+  manufacturerMarginRate?: number;    // 적용된 제조 마진율
+  spoutPriceKRW?: number;             // 스파웃 단가 (원/개)
+  spoutQuantity?: number;             // 스파웃 적용 수량
+  spoutCostKRW?: number;              // 스파웃 부품비 (원)
+  spoutRoundTripShippingKRW?: number; // 스파웃 왕복 배송료 (원)
+  outsourcingShippingKRW?: number;    // 외주 가공 배송료 (원)
+  materialMarkupRate?: number;        // 원단 인상률 (예: 0.10)
+  laminationUnitPriceKRW?: number;    // 라미 단가 (원/m)
+  laminationCycles?: number;          // 라미 회수
+  hasALMaterial?: boolean;            // AL 유무 (라미 단가 분기용)
+  slitterUnitPriceKRW?: number;       // 슬리터 단가 (원/m)
+  slitterMinCostKRW?: number;         // 슬리터 최소 비용 (원)
+  boxWeightKg?: number;               // 골판지 박스 중량 (kg)
+  deliveryBoxes?: number;             // 배송 박스수
 }
 
 /**
@@ -667,7 +683,8 @@ export class PouchCostCalculator {
         allocatedPouchProcessingCostKRW,
         quantity,
         16958,  // デフォルト配送料（国際15,358円 + 国内1,600円、後で上書き）
-        markupRate  // 顧客別マークアップ率を適用
+        markupRate,  // 顧客別マークアップ率を適用
+        { pouchType, spoutSize, pouchSettings }  // G002: 누락 항목 표시용 컨텍스트
       );
 
       const costJPY = costBreakdown.totalCost;
@@ -862,7 +879,8 @@ export class PouchCostCalculator {
       pouchProcessingCost, // KRW
       quantity,
       16958,  // デフォルト配送料（1箱分）：国際127980ウォン×0.12 + 国内1,600円
-      markupRate  // 顧客別マークアップ率を適用
+      markupRate,  // 顧客別マークアップ率を適用
+      { pouchType, spoutSize, pouchSettings: await this.loadPouchProcessingSettings() }  // G002: 누락 항목 표시용 컨텍스트
     );
 
     // 8. 総原価（円） = 最終販売価格
@@ -1287,9 +1305,14 @@ export class PouchCostCalculator {
     filmCostResult: FilmCostResult,
     pouchProcessingCostKRW: number,
     quantity: number,
-   deliveryJPY: number = 16958,  // デフォルトは1箱分（国際15,358円 + 国内1,600円、後で上書き）
-   markupRate: number = 0.0  // 顧客別マークアップ率（デフォルト0% = 割引なし）
- ): Promise<SKUCostBreakdown> {
+    deliveryJPY: number = 16958,  // デフォルトは1箱分（国際15,358円 + 国内1,600円、後で上書き）
+   markupRate: number = 0.0,  // 顧客別マークアップ率（デフォルト0% = 割引なし）
+    costDetailContext?: {
+      spoutSize?: number;
+      pouchType?: string;
+      pouchSettings?: PouchProcessingSettings;
+    }
+  ): Promise<SKUCostBreakdown> {
     // DB設定から為替レートを取得（フォールバック 0.12）
     const EXCHANGE_RATE = await this.getSetting('exchange_rate', 'krw_to_jpy', 0.12);
 
@@ -1407,7 +1430,34 @@ export class PouchCostCalculator {
       duty: roundedDutyJPY,
       delivery: roundedDeliveryJPY,
       salesMargin: roundedSalesMarginJPY,
-      totalCost: consistentTotalCost
+      totalCost: consistentTotalCost,
+      // === G002: 누락 항목 표시용 DB 기반 실제값 (과거 견적은 undefined, 폴백 안전) ===
+      exchangeRate: EXCHANGE_RATE,
+      manufacturerMarginRate: MANUFACTURER_MARGIN,
+      materialMarkupRate: filmCostResult.materialMarkupRate ?? 0,
+      laminationUnitPriceKRW: filmCostResult.laminationUnitPriceKRW,
+      laminationCycles: filmCostResult.laminationCycles,
+      hasALMaterial: filmCostResult.hasALMaterial,
+      slitterUnitPriceKRW: filmCostResult.slitterUnitPriceKRW,
+      slitterMinCostKRW: filmCostResult.slitterMinCostKRW,
+      ...(costDetailContext?.pouchSettings ? {
+        boxWeightKg: costDetailContext.pouchSettings.boxWeightKg,
+      } : {}),
+      ...(costDetailContext?.spoutSize && costDetailContext.pouchSettings ? (() => {
+        const ps = costDetailContext.pouchSettings!;
+        const sp = ps.spoutPrices[costDetailContext.spoutSize!] ?? 110;
+        const sq = Math.max(quantity, ps.spoutMinQuantity);
+        return {
+          spoutPriceKRW: sp,
+          spoutQuantity: sq,
+          spoutCostKRW: sp * sq,
+          spoutRoundTripShippingKRW: ps.spoutRoundTripShipping,
+        };
+      })() : {}),
+      ...(costDetailContext?.pouchType && costDetailContext.pouchSettings &&
+        (costDetailContext.pouchType.includes('t_shape') || costDetailContext.pouchType.includes('m_shape') ||
+         costDetailContext.pouchType.includes('box') || costDetailContext.pouchType.includes('gusset'))
+        ? { outsourcingShippingKRW: costDetailContext.pouchSettings.outsourcingShipping } : {})
     };
   }
 

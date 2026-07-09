@@ -226,9 +226,14 @@ export function calculateFiveStepBreakdown(
   const postProcessingTotal = laminationJPY + slitterJPY + pouchJPY + surfaceTreatmentJPY;
 
   // ラミネート・スリッターの数式パラメータ（表示用）
-  const hasALMaterial = filmCostDetails?.materialLayerDetails?.some(l => l.materialId === 'AL') || false;
-  const laminationPricePerMeterKRW = hasALMaterial ? 75 : 65;
-  const laminationCycles = filmCostDetails?.breakdown?.lamination?.count || ((filmCostDetails?.materialLayerDetails?.length || 1) - 1);
+  // G004: 저장값 우선 (신규 견적), 폴백 하드코딩 (과거 견적)
+  const hasALMaterial = (filmCostDetails as any)?.hasALMaterial
+    ?? (filmCostDetails?.materialLayerDetails?.some(l => l.materialId === 'AL') || false);
+  const laminationPricePerMeterKRW = (filmCostDetails as any)?.laminationUnitPriceKRW
+    ?? (hasALMaterial ? 75 : 65);
+  const laminationCycles = (filmCostDetails as any)?.laminationCycles
+    ?? (filmCostDetails?.breakdown?.lamination?.count
+    || ((filmCostDetails?.materialLayerDetails?.length || 1) - 1));
 
   // KRW値: filmCostDetails.breakdownから実際の計算値を優先使用（DB設定反映済み）
   // フォールバック: 数式パラメータから計算 → JPY逆変換
@@ -257,18 +262,19 @@ export function calculateFiveStepBreakdown(
     ? `基本単価 ₩${laminationPricePerMeterKRW}/m × ${materialWidthM.toFixed(2)}m(幅) × ${laminationCycles}回 × ${totalMeters.toFixed(1)}m = ₩${laminationKRW.toLocaleString()}`
     : undefined;
 
-  // スリッター表示: 最小単価30,000ウォンを明示
-  // ドキュメント: スリッター費 = MAX(30,000ウォン, 使用メートル数 × 10ウォン)
-  const slitterCalculatedCost = Math.round(totalMeters * 10);
-  const slitterIsMinimum = slitterKRW === 30000 && slitterCalculatedCost < 30000;
+  // G004: スリッター表示: 저장값 우선, 폴백 하드코딩 (10원/m, 최소 30,000원)
+  const slitterUnitPriceKRW = (filmCostDetails as any)?.slitterUnitPriceKRW ?? 10;
+  const slitterMinCostKRW = (filmCostDetails as any)?.slitterMinCostKRW ?? 30000;
+  const slitterCalculatedCost = Math.round(totalMeters * slitterUnitPriceKRW);
+  const slitterIsMinimum = slitterKRW === slitterMinCostKRW && slitterCalculatedCost < slitterMinCostKRW;
 
   const slitterFormula = slitterJPY > 0 && totalMeters > 0
     ? `¥${Math.round(slitterJPY / totalMeters).toLocaleString()}/m × ${totalMeters.toFixed(1)}m`
     : undefined;
   const slitterFormulaKRW = slitterKRW > 0 && totalMeters > 0
     ? slitterIsMinimum
-      ? `最小単価 ₩30,000（${totalMeters.toFixed(1)}m × ₩10/m = ₩${slitterCalculatedCost.toLocaleString()}）`
-      : `₩${slitterKRW.toLocaleString()}（${totalMeters.toFixed(1)}m × ₩10/m）`
+      ? `最小単価 ₩${slitterMinCostKRW.toLocaleString()}（${totalMeters.toFixed(1)}m × ₩${slitterUnitPriceKRW}/m = ₩${slitterCalculatedCost.toLocaleString()}）`
+      : `₩${slitterKRW.toLocaleString()}（${totalMeters.toFixed(1)}m × ₩${slitterUnitPriceKRW}/m）`
     : undefined;
 
   // スパウトパウチの場合、詳細な計算式を表示
@@ -287,9 +293,10 @@ export function calculateFiveStepBreakdown(
       22: 130,  // 22パイ（φ22mm）: 130ウォン
       28: 200   // 28パイ（φ28mm）: 200ウォン
     };
-    const spoutPrice = SPOUT_PRICES[spoutSize] || 80;
-    const ROUND_TRIP_SHIPPING = 150000; // 往復配送料: 150,000ウォン
-    const MIN_SPOUT_QUANTITY = 5000;    // 最小注文数量: 5,000個
+    // G004: 저장값 우선 (신규 견적), 폴백 하드코딩 (과거 견적)
+    const spoutPrice = (breakdown as any)?.spoutPriceKRW ?? SPOUT_PRICES[spoutSize] ?? 80;
+    const ROUND_TRIP_SHIPPING = (breakdown as any)?.spoutRoundTripShippingKRW ?? 150000; // 往復配送料: 150,000ウォン
+    const MIN_SPOUT_QUANTITY = (breakdown as any)?.spoutQuantity ?? 5000;    // 最小注文数量: 5,000個
     const actualQuantity = Math.max(quantity, MIN_SPOUT_QUANTITY);
     const spoutCost = spoutPrice * actualQuantity;
 
@@ -309,14 +316,14 @@ export function calculateFiveStepBreakdown(
   // Reference: docs/reports/calcultae/06-마진_및_최종가격.md
   // ========================================
 
-  // 為替レート: 1円 = 約8.33ウォン (0.12 = ウォン→円)
-  const KRW_TO_JPY_RATE = 0.12;
+  // G004: 저장값 우선 (신규 견적: DB 실제값), 폴백 하드코딩 (과거 견적: 0.12)
+  const KRW_TO_JPY_RATE = (breakdown as any)?.exchangeRate ?? 0.12;
 
   // Step 4: 基礎原価 (KRW) = 原材料費 + 印刷費 + 後加工費
   const baseCostKRW = rawMaterialTotalKRW + printingCostKRW + postProcessingTotalKRW;
 
-  // Step 5: 製造者マージン (40%)
-  const MANUFACTURER_MARGIN_RATE = 0.4; // 40%
+  // G004: 저장값 우선 (신규 견적: DB 0.3), 폴백 하드코딩 (과거 견적: 0.4)
+  const MANUFACTURER_MARGIN_RATE = (breakdown as any)?.manufacturerMarginRate ?? 0.4; // 30%(DB) / 40%(legacy)
   const manufacturerMarginKRW = Math.round(baseCostKRW * MANUFACTURER_MARGIN_RATE);
   const marginFormulaKRW = `₩${baseCostKRW.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
 

@@ -977,7 +977,7 @@ export async function middleware(request: NextRequest) {
       // Not a designer and not in the whitelist - redirect based on their actual role
       if (normalizedRole === 'admin') {
         // Admins can also access designer routes for management purposes
-        console.log('[Middleware] Admin accessing designer route - allowing access');
+        if (process.env.NODE_ENV === 'development') console.log('[Middleware] Admin accessing designer route - allowing access');
         // Continue to set headers below
       } else {
         // Members and others - redirect to designer login

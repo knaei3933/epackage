@@ -60,6 +60,17 @@ export interface DetailedCostBreakdownProps {
     totalCost: number;
     // 基本原価 (Korea-friendly display)
     baseCost?: number;
+    // === G002: 저장된 DB 기반 실제값 (과거 견적은 undefined, 폴백 안전) ===
+    exchangeRate?: number;              // 적용된 환율 (KRW→JPY)
+    manufacturerMarginRate?: number;    // 적용된 제조 마진율
+    spoutPriceKRW?: number;             // 스파웃 단가 (원/개)
+    spoutQuantity?: number;             // 스파웃 적용 수량
+    spoutCostKRW?: number;              // 스파웃 부품비 (원)
+    spoutRoundTripShippingKRW?: number; // 스파웃 왕복 배송료 (원)
+    outsourcingShippingKRW?: number;    // 외주 가공 배송료 (원)
+    materialMarkupRate?: number;        // 원단 인상률 (예: 0.10)
+    boxWeightKg?: number;               // 골판지 박스 중량 (kg)
+    deliveryBoxes?: number;             // 배송 박스수
   };
   // 実際の見積価格（小計）- 販売価格として使用
   quotationSubtotal?: number;
@@ -133,6 +144,13 @@ export interface DetailedCostBreakdownProps {
     totalMeters?: number; // 総メートル数（ロス込み）
     materialWidthMM?: number; // 原料幅（mm）
     areaM2?: number; // 総面積（m²）
+    // === G003: 상세 패널 표시용 DB 기반 실제값 (선택적) ===
+    materialMarkupRate?: number;      // 원단 인상률 (예: 0.10)
+    laminationUnitPriceKRW?: number;  // 라미 단가 (원/m, AL유무별)
+    laminationCycles?: number;        // 라미 회수
+    hasALMaterial?: boolean;          // AL 유무 (라미 단가 분기용)
+    slitterUnitPriceKRW?: number;     // 슬리터 단가 (원/m)
+    slitterMinCostKRW?: number;       // 슬리터 최소 비용 (원)
     breakdown?: {
       materials?: Array<{
         materialId: string;
@@ -259,6 +277,9 @@ export function DetailedCostBreakdown({
             <div className="flex-1 min-w-0">
               <h5 className="font-semibold text-gray-900">原材料費</h5>
               <p className="text-xs text-gray-600">各層の重量 × 単価の合計</p>
+              {(filmCostDetails as any)?.materialMarkupRate ? (
+                <p className="text-xs text-orange-600 font-medium">원단 인상률 {((filmCostDetails as any).materialMarkupRate * 100).toFixed(0)}% 적용</p>
+              ) : null}
             </div>
             {fiveStep.rawMaterialCost.details.length > 0 ? (
               <span className="font-bold text-blue-900 shrink-0">₩{fiveStep.rawMaterialCost.totalKRW.toLocaleString()}</span>
@@ -402,6 +423,17 @@ export function DetailedCostBreakdown({
                 )}
               </div>
             )}
+            {(breakdown as any)?.outsourcingShippingKRW ? (
+              <div>
+                <div className="flex justify-between">
+                  <span>외주 가공 배송료</span>
+                  <span className="font-medium">₩{(breakdown as any).outsourcingShippingKRW.toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1 pl-2">
+                  T방/M방/박스파우치 외주 가공 왕복 배송료
+                </div>
+              </div>
+            ) : null}
             <div className="flex justify-between pt-2 border-t border-gray-300">
               <span className="font-semibold">小計</span>
               <span className="font-semibold">₩{fiveStep.postProcessingCost.totalKRW.toLocaleString()}</span>
@@ -475,12 +507,21 @@ export function DetailedCostBreakdown({
               </div>
             )}
             {fiveStep.additionalCosts.delivery > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">配送料</span>
-                <div className="text-right">
-                  <span className="font-medium text-gray-900">¥{fiveStep.additionalCosts.delivery.toLocaleString()}</span>
-                  <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.additionalCosts.deliveryKRW.toLocaleString()})</span>
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">配送料</span>
+                  <div className="text-right">
+                    <span className="font-medium text-gray-900">¥{fiveStep.additionalCosts.delivery.toLocaleString()}</span>
+                    <span className="text-xs text-gray-500 ml-2">(₩{fiveStep.additionalCosts.deliveryKRW.toLocaleString()})</span>
+                  </div>
                 </div>
+                {((breakdown as any)?.boxWeightKg || (breakdown as any)?.deliveryBoxes) && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    {(breakdown as any)?.boxWeightKg ? `박스 중량 ${(breakdown as any).boxWeightKg}kg/박스` : ''}
+                    {(breakdown as any)?.boxWeightKg && (breakdown as any)?.deliveryBoxes ? ' · ' : ''}
+                    {(breakdown as any)?.deliveryBoxes ? `박스수 ${(breakdown as any).deliveryBoxes}박스` : ''}
+                  </div>
+                )}
               </div>
             )}
             <div className="flex justify-between items-center pt-2 border-t border-orange-300">

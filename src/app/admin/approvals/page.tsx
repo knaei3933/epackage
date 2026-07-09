@@ -9,7 +9,7 @@
 
 import { Suspense } from 'react';
 import { getAdminAuth } from '../loader';
-import AdminApprovalsClient from './AdminApprovalsClient';
+import AdminApprovalsClient from './AdminApprovalsClientLazy';
 import { FullPageSpinner } from '@/components/ui';
 
 // ============================================================

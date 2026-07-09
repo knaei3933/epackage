@@ -1063,25 +1063,21 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
       if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
         // 複数SKUモード: 各SKUの原価を合計
-        const firstSkuCost = result.skuCostDetails.costPerSKU[0];
-        const totalBaseCost = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.baseCost || 0), 0);
+        // totalCost = 各SKUの最終販売価格合計（costBreakdown.totalCost は per-SKU final price in JPY）
+        const totalFinalPrice = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.totalCost || 0), 0);
 
         costBreakdown = {
           materialCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
           laminationCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
           slitterCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
-          surfaceTreatmentCost: 0,
+          surfaceTreatmentCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
           pouchProcessingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
           printingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
-          // マージン・関税・配送料: pouch-cost-calculator が各SKU単位で正確計算した値を集計。
-          // （旧実装は totalBaseCost * 固定係数 の概算だったが、totalBaseCost は原価ベースのため
-          //  duty（製造者価格×0.05）・salesMargin（小計×0.25）等の正確値と乖離していた）
           manufacturingMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
           duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
           delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
           salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
-          totalCost: Math.round(totalBaseCost),
-          // 配送料の内訳（国際 / 国内）を発注メール原価計算のために保存。
+          totalCost: Math.round(totalFinalPrice),
           intlShippingJPY: result.skuCostDetails?.summary?.intlShippingJPY ?? 0,
           domesticShippingJPY: result.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
           deliveryBoxes: result.skuCostDetails?.summary?.deliveryBoxes ?? 0
@@ -1230,11 +1226,37 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 totalWeight: result.filmCostDetails.totalWeight,
                 totalMeters: result.filmCostDetails.totalMeters,
                 materialWidthMM: result.filmCostDetails.materialWidthMM,
-                areaM2: result.filmCostDetails.areaM2
+                areaM2: result.filmCostDetails.areaM2,
+                // G003: 상세 패널 표시용 DB 기반 실제값
+                materialMarkupRate: result.filmCostDetails.materialMarkupRate,
+                laminationUnitPriceKRW: result.filmCostDetails.laminationUnitPriceKRW,
+                laminationCycles: result.filmCostDetails.laminationCycles,
+                hasALMaterial: result.filmCostDetails.hasALMaterial,
+                slitterUnitPriceKRW: result.filmCostDetails.slitterUnitPriceKRW,
+                slitterMinCostKRW: result.filmCostDetails.slitterMinCostKRW
               } : null,
               sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
             },
-            cost_breakdown: costBreakdown
+            cost_breakdown: quote.skuCostDetails?.costPerSKU && quote.skuCostDetails.costPerSKU.length > 0 ? {
+                materialCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
+                laminationCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
+                slitterCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
+                surfaceTreatmentCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
+                pouchProcessingCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
+                printingCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
+                manufacturingMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
+                duty: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
+                delivery: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+                salesMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
+                totalCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.totalCost || 0), 0)),
+                intlShippingJPY: quote.skuCostDetails?.summary?.intlShippingJPY ?? 0,
+                domesticShippingJPY: quote.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
+                deliveryBoxes: quote.skuCostDetails?.summary?.deliveryBoxes ?? 0,
+                exchangeRate: quote.skuCostDetails?.costPerSKU?.[0]?.costBreakdown?.exchangeRate,
+                manufacturerMarginRate: quote.skuCostDetails?.costPerSKU?.[0]?.costBreakdown?.manufacturerMarginRate,
+                materialMarkupRate: quote.skuCostDetails?.costPerSKU?.[0]?.costBreakdown?.materialMarkupRate,
+                boxWeightKg: quote.skuCostDetails?.costPerSKU?.[0]?.costBreakdown?.boxWeightKg,
+              } : costBreakdown
           };
         })
         : [
@@ -1318,7 +1340,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 totalWeight: result.filmCostDetails.totalWeight,
                 totalMeters: result.filmCostDetails.totalMeters,
                 materialWidthMM: result.filmCostDetails.materialWidthMM,
-                areaM2: result.filmCostDetails.areaM2
+                areaM2: result.filmCostDetails.areaM2,
+                // G003: 상세 패널 표시용 DB 기반 실제값
+                materialMarkupRate: result.filmCostDetails.materialMarkupRate,
+                laminationUnitPriceKRW: result.filmCostDetails.laminationUnitPriceKRW,
+                laminationCycles: result.filmCostDetails.laminationCycles,
+                hasALMaterial: result.filmCostDetails.hasALMaterial,
+                slitterUnitPriceKRW: result.filmCostDetails.slitterUnitPriceKRW,
+                slitterMinCostKRW: result.filmCostDetails.slitterMinCostKRW
               } : null,
               // 【追加】SKU数量情報（単一アイテムモード）
               sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
@@ -1473,12 +1502,46 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     const totalSKUQuantity = state.skuQuantities?.reduce((sum, qty) => sum + (Number(qty) || 0), 0) || state.quantity;
 
     try {
+      // 複数数量モード: 各パターンのSKU原価からitem別cost_breakdownを生成
+      const buildItemCostBreakdown = (skuDetails: any): any => {
+        if (!skuDetails?.costPerSKU || skuDetails.costPerSKU.length === 0) return undefined;
+        const skus = skuDetails.costPerSKU;
+        const totalFinalPrice = skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.totalCost || 0), 0);
+        return {
+          materialCost: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
+          laminationCost: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
+          slitterCost: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
+          surfaceTreatmentCost: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
+          pouchProcessingCost: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
+          printingCost: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
+          manufacturingMargin: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
+          duty: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
+          delivery: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+          salesMargin: Math.round(skus.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
+          totalCost: Math.round(totalFinalPrice),
+          intlShippingJPY: skuDetails?.summary?.intlShippingJPY ?? 0,
+          domesticShippingJPY: skuDetails?.summary?.domesticShippingJPY ?? 0,
+          deliveryBoxes: skuDetails?.summary?.deliveryBoxes ?? 0,
+          // G002: DB実値を転送
+          exchangeRate: skus[0]?.costBreakdown?.exchangeRate,
+          manufacturerMarginRate: skus[0]?.costBreakdown?.manufacturerMarginRate,
+          materialMarkupRate: skus[0]?.costBreakdown?.materialMarkupRate,
+          boxWeightKg: skus[0]?.costBreakdown?.boxWeightKg,
+          spoutPriceKRW: skus[0]?.costBreakdown?.spoutPriceKRW,
+          spoutQuantity: skus[0]?.costBreakdown?.spoutQuantity,
+          spoutCostKRW: skus[0]?.costBreakdown?.spoutCostKRW,
+          spoutRoundTripShippingKRW: skus[0]?.costBreakdown?.spoutRoundTripShippingKRW,
+          outsourcingShippingKRW: skus[0]?.costBreakdown?.outsourcingShippingKRW,
+        };
+      };
+
       const itemsToSave = hasMultiQuantityResults && multiQuantityQuotes.length > 0
         ? multiQuantityQuotes.map((mq) => ({
             productName: `${getBagTypeLabel(state.bagTypeId)} - ${getMaterialDescription(state.materialId, 'ja')}`,
             quantity: mq.patternTotalQuantity ?? mq.quantity,
             unitPrice: mq.unitPrice,
-            totalPrice: mq.totalPrice, // 正確な合計金額を追加（丸め誤差防止）
+            totalPrice: mq.totalPrice,
+            cost_breakdown: buildItemCostBreakdown(mq.skuCostDetails),
             specifications: {
               bagTypeId: state.bagTypeId,
               materialId: state.materialId,

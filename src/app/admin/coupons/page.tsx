@@ -9,7 +9,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAdminAuth } from '../loader';
-import AdminCouponsClient from './AdminCouponsClient';
+import AdminCouponsClient from './AdminCouponsClientLazy';
 import { FullPageSpinner } from '@/components/ui';
 
 async function CouponsContent() {

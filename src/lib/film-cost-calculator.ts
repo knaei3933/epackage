@@ -57,6 +57,7 @@ export interface FilmCostSettings {
   production_default_loss_rate?: number
   pricing_default_markup_rate?: number
   pricing_manufacturer_margin?: number
+  material_markup_rate?: number
 }
 
 export interface FilmMaterial {
@@ -146,6 +147,13 @@ export interface FilmCostResult {
   totalMeters: number; // 総メートル数（ロス込み）
   materialWidthMM: number; // 原料幅（mm）
   areaM2: number; // 総面積（m²）
+  // === G003: 상세 패널 표시용 DB 기반 실제값 (선택적) ===
+  materialMarkupRate?: number;      // 원단 인상률 (예: 0.10)
+  laminationUnitPriceKRW?: number;  // 라미 단가 (원/m, AL유무별)
+  laminationCycles?: number;        // 라미 회수
+  hasALMaterial?: boolean;          // AL 유무
+  slitterUnitPriceKRW?: number;     // 슬리터 단가 (원/m)
+  slitterMinCostKRW?: number;       // 슬리터 최소 비용 (원)
 
   // 상세 정보
   breakdown: {
@@ -514,6 +522,13 @@ export class FilmCostCalculator {
       totalMeters: lengthWithLoss,
       materialWidthMM: materialWidth, // 既にmm単位なのでそのまま使用
       areaM2: widthM * lengthWithLoss,
+      // === G003: 상세 패널 표시용 DB 기반 실제값 ===
+      materialMarkupRate: dbSettings?.material_markup_rate ?? 0,
+      laminationUnitPriceKRW: laminationBreakdown.unitPrice ?? (hasAL ? LAMINATION_COST_PER_M2_WITH_AL : LAMINATION_COST_PER_M2_NO_AL),
+      laminationCycles: laminationBreakdown.count,
+      hasALMaterial: hasAL,
+      slitterUnitPriceKRW: dbSettings?.slitter_cost_per_m ?? SLITTER_COST_PER_M,
+      slitterMinCostKRW: dbSettings?.slitter_min_cost ?? SLITTER_MIN_COST,
       breakdown: {
         materials: materialBreakdown.materials,
         printing: printingBreakdown,
@@ -600,11 +615,15 @@ export class FilmCostCalculator {
       }
     };
 
+    const materialMarkupRate = dbSettings?.material_markup_rate ?? 0;
+
     console.log('[calculateMaterialCost] INPUT:', { layers, widthM, lengthWithLoss });
 
     for (const layer of layers) {
       const material = filmMaterials[layer.materialId];
       if (!material) continue;
+
+      const unitPrice = material.unitPrice * (1 + materialMarkupRate);
 
       // grammage에서 계산한 유효 두께를 사용 (Kraft等の坪量指定材料対応)
       const effectiveThickness = this.getLayerEffectiveThickness(layer, material.density);
@@ -619,13 +638,13 @@ export class FilmCostCalculator {
         // 重量 = (grammage / 1000) * widthM * lengthWithLoss
         weight = (layer.grammage / 1000) * widthM * lengthWithLoss;
         // 【修正】コスト = 重量 × 単価
-        cost = weight * material.unitPrice;
+        cost = weight * unitPrice;
       } else {
         // その他: thickness × density 方式
         const thicknessM = effectiveThickness / 1000000; // μm → m
         weight = thicknessM * widthM * lengthWithLoss * material.density * 1000; // g → kg
         // 【修正】コスト = 重量 × 単価
-        cost = weight * material.unitPrice;
+        cost = weight * unitPrice;
       }
 
       console.log('[calculateMaterialCost] LAYER:', {
@@ -637,7 +656,7 @@ export class FilmCostCalculator {
         widthM,
         lengthWithLoss,
         density: material.density,
-        unitPrice: material.unitPrice,
+        unitPrice,
         cost,
         weight: Math.round(weight * 10000) / 10000  // 小数点4桁に修正
       });
@@ -661,7 +680,7 @@ export class FilmCostCalculator {
         nameJa: material.nameJa,
         thicknessMicron: effectiveThickness,
         density: material.density,
-        unitPriceKRW: material.unitPrice,
+        unitPriceKRW: unitPrice,
         areaM2: Math.round(areaM2 * 100) / 100,
         meters: Math.round(lengthWithLoss * 10) / 10,
         widthM: Math.round(widthM * 1000) / 1000,
@@ -759,7 +778,8 @@ export class FilmCostCalculator {
 
     return {
       count: laminationCount,
-      cost: Math.round(cost)
+      cost: Math.round(cost),
+      unitPrice: laminationCostPerM2
     };
   }
 

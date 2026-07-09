@@ -229,8 +229,11 @@ const tabConfig: Record<TabKey, { name: string; nameJa: string; icon: any; group
       { title: '⑥ 스패들 최소 수량', description: '스패웃파우치 최소 주문 수량', icon: Settings2, keywords: ['spout','스패웃','min_quantity'], settingKeys: [
         'spout_min_quantity',
       ]},
-   ]
- },
+      { title: '⑦ 제조사 발주 메일', description: '한국 제조사 발주 메일 수신 주소', icon: Mail, keywords: ['manufacturer','order_email','발주','제조사'], settingKeys: [
+        'manufacturer_order_email',
+      ]},
+    ]
+  },
   pricing: {
     name: '가격 설정',
     nameJa: '価格設定',

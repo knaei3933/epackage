@@ -31,9 +31,26 @@ function CostSummaryTable({ items, showFormula }: { items: any[]; showFormula: b
 
   const extractCost = (item: any): { unitCost: number; totalCost: number; hasData: boolean } => {
     const specs = item.specifications || {};
-    const cb = specs.cost_breakdown || item.cost_breakdown;
-    if (cb && cb.totalCost) {
-      return { unitCost: cb.totalCost, totalCost: cb.totalCost * item.quantity, hasData: true };
+    // API処理済みbreakdown（baseCost付き）を優先、なければ生DB列
+    const cb = item.breakdown?.breakdown || specs.cost_breakdown || item.cost_breakdown;
+    if (cb) {
+      // cost_breakdown の値は該当数量の「総原価」(単価ではない)
+      // totalCost>0 の場合はそれを総原価として使用、totalCost=0 の場合はコンポーネントから合成
+      const hasComponents = (cb.materialCost || 0) > 0 || (cb.printingCost || 0) > 0 || (cb.laminationCost || 0) > 0;
+      const synthesized = (cb.totalCost && cb.totalCost > 0)
+        ? cb.totalCost
+        : (cb.materialCost || 0) + (cb.printingCost || 0) + (cb.laminationCost || 0)
+          + (cb.slitterCost || 0) + (cb.surfaceTreatmentCost || 0) + (cb.pouchProcessingCost || 0)
+          + (cb.manufacturingMargin || 0) + (cb.duty || 0) + (cb.delivery || 0) + (cb.salesMargin || 0);
+      if (synthesized > 0) {
+        // unitCost = 総原価 / 数量 (1個あたりの原価)
+        const qty = item.quantity > 0 ? item.quantity : 1;
+        return { unitCost: Math.round(synthesized / qty), totalCost: synthesized, hasData: true };
+      }
+      if (hasComponents) {
+        const qty = item.quantity > 0 ? item.quantity : 1;
+        return { unitCost: Math.round(synthesized / qty), totalCost: synthesized, hasData: true };
+      }
     }
     return { unitCost: 0, totalCost: 0, hasData: false };
   };
@@ -99,8 +116,8 @@ function CostSummaryTable({ items, showFormula }: { items: any[]; showFormula: b
                       <td colSpan={6} className="p-0">
                         <div className="bg-white border-t border-blue-100 p-3">
                           <DetailedCostBreakdown
-                            breakdown={item.specifications?.cost_breakdown || item.cost_breakdown || item.specifications?.film_cost_details || {}}
-                            filmCostDetails={item.specifications?.film_cost_details || item.film_cost_details}
+                            breakdown={item.breakdown?.breakdown || item.specifications?.cost_breakdown || item.cost_breakdown || {}}
+                            filmCostDetails={item.specifications?.film_cost_details || item.film_cost_details || item.breakdown?.filmCostDetails}
                             specifications={item.specifications || {}}
                             quotationSubtotal={revenue}
                             showFormula={showFormula}
@@ -156,6 +173,7 @@ export function AdminQuotationDetailPanel({
   const [showFormula, setShowFormula] = useState(true);
   const [relatedOrderId, setRelatedOrderId] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sendingManufacturerEmail, setSendingManufacturerEmail] = useState(false);
   
 
   // 選択された見積の詳細を取得
@@ -210,6 +228,30 @@ export function AdminQuotationDetailPanel({
       }
     } catch (error) {
       console.error('[fetchRelatedOrder] Error:', error);
+    }
+  };
+
+  // G007: 한국 제조사 발주 메일 발송
+  const handleSendManufacturerOrderEmail = async () => {
+    if (!confirm('한국 제조사에게 KRW 발주 메일을 발송하시겠습니까?')) return;
+    setSendingManufacturerEmail(true);
+    try {
+      const response = await adminFetch(`/api/admin/quotations/${quotation.id}/manufacturer-order-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        alert(`발주 메일 발송 완료${result.previewUrl ? '\n\nPreview: ' + result.previewUrl : ''}`);
+      } else {
+        alert(`발송 실패: ${result.error || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('[handleSendManufacturerOrderEmail] Error:', error);
+      alert('발송 중 오류가 발생했습니다.');
+    } finally {
+      setSendingManufacturerEmail(false);
     }
   };
 
@@ -406,6 +448,16 @@ export function AdminQuotationDetailPanel({
             <Button size="sm" variant="outline" onClick={onSendEmail}>
               <Mail className="w-4 h-4 mr-1" />
               メール送信
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSendManufacturerOrderEmail}
+              disabled={sendingManufacturerEmail}
+              className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50"
+            >
+              <Mail className="w-4 h-4 mr-1" />
+              {sendingManufacturerEmail ? '발송중...' : '제조사 발주 메일'}
             </Button>
           </div>
 

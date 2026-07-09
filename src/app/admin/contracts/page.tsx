@@ -9,7 +9,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAdminAuth } from '../loader';
-import AdminContractsClient from './AdminContractsClient';
+import AdminContractsClient from './AdminContractsClientLazy';
 import { FullPageSpinner } from '@/components/ui';
 
 async function ContractsContent() {

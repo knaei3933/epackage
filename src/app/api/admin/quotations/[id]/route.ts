@@ -178,6 +178,20 @@ interface CostBreakdown {
   salesMargin: number;
   // 総原価
   totalCost: number;
+  // G002: 保存された DB 実値（過去は undefined → フォールバック安全）
+  baseCost?: number;
+  exchangeRate?: number;
+  manufacturerMarginRate?: number;
+  spoutPriceKRW?: number;
+  spoutQuantity?: number;
+  spoutCostKRW?: number;
+  spoutRoundTripShippingKRW?: number;
+  outsourcingShippingKRW?: number;
+  materialMarkupRate?: number;
+  boxWeightKg?: number;
+  deliveryBoxes?: number;
+  intlShippingJPY?: number;
+  domesticShippingJPY?: number;
 }
 
 // =====================================================
@@ -299,25 +313,40 @@ function calculateBreakdown(item: QuotationItem, headerPrintingType?: string) {
     // VALIDATION: マージンフィールドが存在するか確認
     // スキーマ修正前に保存されたレコードに対する互換性処置
     const materialCost = savedBreakdown.materialCost || 0;
-    const totalCost = savedBreakdown.totalCost || 0;
+    // totalCost=0 の場合は各コンポーネントから合成（SKU集計時の totalCost 欠落に対応）
+    const componentSum = (savedBreakdown.materialCost || 0) + (savedBreakdown.printingCost || 0)
+      + (savedBreakdown.laminationCost || 0) + (savedBreakdown.slitterCost || 0)
+      + (savedBreakdown.surfaceTreatmentCost || 0) + (savedBreakdown.pouchProcessingCost || 0)
+      + (savedBreakdown.manufacturingMargin || 0) + (savedBreakdown.duty || 0)
+      + (savedBreakdown.delivery || 0) + (savedBreakdown.salesMargin || 0);
+    const totalCost = savedBreakdown.totalCost && savedBreakdown.totalCost > 0
+      ? savedBreakdown.totalCost
+      : componentSum;
 
-    // Null-safe baseCost計算: materialCostから逆算し、0の場合はtotalCostを使用
-    const baseCost = materialCost > 0
-      ? Math.round(materialCost / 0.4)
-      : totalCost > 0
-        ? Math.round(totalCost / 1.73)  // 総費用から概算ベースコストを逆算
-        : 0;
+    // baseCost: DB保存値を優先、なければ materialCost から計算
+    // materialMarkupRate + manufacturerMarginRate が保存されていれば DB 実値を使用
+    const baseCost = savedBreakdown.baseCost && savedBreakdown.baseCost > 0
+      ? savedBreakdown.baseCost
+      : materialCost > 0
+        ? Math.round(materialCost / (savedBreakdown.manufacturerMarginRate ?? 0.4))
+        : totalCost > 0
+          ? Math.round(totalCost / 1.73)  // 総費用から概算ベースコストを逆算
+          : 0;
 
     // マージン値が欠けている場合は計算して補完
     // 注意: ??演算子はnull/undefinedのみチェックするため、0もfalsyとして扱う必要がある
+    // 製造マージン率: DB保存値を優先、フォールバック 0.4(legacy) or 0.3(current)
+    const marginRate = savedBreakdown.manufacturerMarginRate ?? 0.4;
     const validatedBreakdown: CostBreakdown = {
-      ...savedBreakdown,
-      manufacturingMargin: (savedBreakdown.manufacturingMargin ?? 0) > 0 ? savedBreakdown.manufacturingMargin : Math.round(baseCost * 0.4),
+      ...savedBreakdown,  // G002 フィールド（exchangeRate, manufacturerMarginRate 等）を全保持
+      baseCost,  // 計算した baseCost を保存
+      manufacturingMargin: (savedBreakdown.manufacturingMargin ?? 0) > 0 ? savedBreakdown.manufacturingMargin : Math.round(baseCost * marginRate),
       salesMargin: (savedBreakdown.salesMargin ?? 0) > 0 ? savedBreakdown.salesMargin : Math.round(baseCost * 0.2),
       // dutyとdeliveryも念のため確認
       // C-8: duty フォールバックを calcDuty に統一（旧: baseCost*0.05 は約40%過小・Phase D M-2 と同じ根因）
       duty: (savedBreakdown.duty ?? 0) > 0 ? savedBreakdown.duty : Math.round(calcDuty(baseCost)),
       delivery: (savedBreakdown.delivery ?? 0) > 0 ? savedBreakdown.delivery : Math.round(baseCost * 0.08),
+      totalCost: totalCost > 0 ? totalCost : (baseCost + (savedBreakdown.manufacturingMargin ?? 0) + (savedBreakdown.duty ?? 0) + (savedBreakdown.delivery ?? 0) + (savedBreakdown.salesMargin ?? 0)),
     };
 
     return {

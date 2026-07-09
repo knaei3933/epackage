@@ -9,7 +9,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAdminAuth } from '../loader';
-import AdminShipmentsClient from './AdminShipmentsClient';
+import AdminShipmentsClient from './AdminShipmentsClientLazy';
 import { FullPageSpinner } from '@/components/ui';
 
 async function ShipmentsContent() {
