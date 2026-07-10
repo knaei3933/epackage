@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Badge } from '@/components/ui/Badge'
 import { PageLoadingState } from '@/components/ui'
+import { fetchLeads as fetchLeadsAPI } from '@/lib/api/admin/leads';
 
 interface Lead {
   id: string
@@ -48,8 +49,7 @@ export default function AdminLeadsClient() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/admin/leads', { credentials: 'include' });
-        const json = await res.json();
+        const json = await fetchLeadsAPI();
         if (cancelled) return;
         const rows = (json && json.data) || [];
         // DBカラム(snake_case) → UI型(camelCase) へのマッピング

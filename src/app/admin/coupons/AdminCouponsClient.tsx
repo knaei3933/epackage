@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { Tag, Plus, Trash2, Edit } from 'lucide-react';
+import { fetchCoupons as fetchCouponsAPI, deleteCoupon as deleteCouponAPI, upsertCoupon as upsertCouponAPI } from '@/lib/api/admin/coupons';
 
 type CouponType = 'percentage' | 'fixed_amount' | 'free_shipping';
 type CouponStatus = 'active' | 'inactive' | 'expired' | 'scheduled';
@@ -44,13 +45,9 @@ export default function AdminCouponsClient() {
   const loadCoupons = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/coupons?page=${page}&page_size=${pageSize}`);
-      const result = await response.json();
-
-      if (result.success) {
-        setCoupons(result.data);
-        setTotal(result.pagination?.total || 0);
-      }
+      const result = await fetchCouponsAPI(page, pageSize);
+      setCoupons((result as any).data || []);
+      setTotal((result as any).pagination?.total || 0);
     } catch (error) {
       console.error('Failed to load coupons:', error);
     } finally {
@@ -67,14 +64,9 @@ export default function AdminCouponsClient() {
     if (!confirm('쿠폰을 삭제하시겠습니까?')) return;
 
     try {
-      const response = await fetch(`/api/admin/coupons/${couponId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        setCoupons(prev => prev.filter(c => c.id !== couponId));
-        showMessage('success', '쿠폰이 삭제되었습니다');
-      }
+      await deleteCouponAPI(couponId);
+      setCoupons(prev => prev.filter(c => c.id !== couponId));
+      showMessage('success', '쿠폰이 삭제되었습니다');
     } catch (error) {
       console.error('Failed to delete coupon:', error);
       showMessage('error', '삭제 실패');
@@ -83,26 +75,11 @@ export default function AdminCouponsClient() {
 
   const handleFormSubmit = async (formData: any) => {
     try {
-      const url = editingCoupon
-        ? `/api/admin/coupons/${editingCoupon.id}`
-        : '/api/admin/coupons';
-
-      const response = await fetch(url, {
-        method: editingCoupon ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        await loadCoupons();
-        setShowForm(false);
-        setEditingCoupon(null);
-        showMessage('success', editingCoupon ? '쿠폰이 수정되었습니다' : '쿠폰이 생성되었습니다');
-      } else {
-        showMessage('error', result.error || '저장 실패');
-      }
+      await upsertCouponAPI(formData, editingCoupon?.id);
+      await loadCoupons();
+      setShowForm(false);
+      setEditingCoupon(null);
+      showMessage('success', editingCoupon ? '쿠폰이 수정되었습니다' : '쿠폰이 생성되었습니다');
     } catch (error) {
       console.error('Failed to save coupon:', error);
       showMessage('error', '저장 실패');

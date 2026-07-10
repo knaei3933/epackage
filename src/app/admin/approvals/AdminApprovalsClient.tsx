@@ -75,6 +75,7 @@ interface FetchPendingMembersResponse {
 }
 
 import type { AdminAuthContext } from '@/types/admin';
+import { fetchApprovals as fetchApprovalsAPI, approveMember as approveMemberAPI, rejectMember as rejectMemberAPI } from '@/lib/api/admin/approvals';
 
 interface AdminApprovalsClientProps {
   authContext: AdminAuthContext;
@@ -132,17 +133,9 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
   useEffect(() => {
     const fetchPendingMembers = async () => {
       try {
-        const url = new URL('/api/admin/approve-member', window.location.origin);
-        url.searchParams.set('page', page.toString());
-        url.searchParams.set('page_size', pageSize.toString());
-        const response = await fetch(url.toString(), {
-          credentials: 'include',
-        });
-        const data: FetchPendingMembersResponse = await response.json();
-        if (data.success) {
-          setPendingMembers(data.data || []);
-          setTotal(data.pagination?.total || 0);
-        }
+        const data: any = await fetchApprovalsAPI({ page, limit: pageSize });
+        setPendingMembers(data.data || []);
+        setTotal(data.pagination?.total || 0);
       } catch (error) {
         console.error('Failed to fetch pending members:', error);
       } finally {
@@ -159,22 +152,9 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
   const handleApprove = async (userId: string) => {
     setIsProcessing(userId);
     try {
-      const response = await fetch('/api/admin/approve-member', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action: 'approve' }),
-      });
-
-      const result: ApprovalResponse = await response.json();
-
-      if (result.success) {
-        setToast({ type: 'success', message: '会員を承認しました' });
-        // Remove approved user from list
-        setPendingMembers(prev => prev.filter(m => m.id !== userId));
-      } else {
-        setToast({ type: 'error', message: result.error || '承認に失敗しました' });
-      }
+      await approveMemberAPI(userId, {});
+      setToast({ type: 'success', message: '会員を承認しました' });
+      setPendingMembers(prev => prev.filter(m => m.id !== userId));
     } catch {
       setToast({ type: 'error', message: 'エラーが発生しました' });
     } finally {
@@ -185,28 +165,11 @@ export default function AdminApprovalsClient({ authContext }: AdminApprovalsClie
   const handleReject = async (userId: string) => {
     setIsProcessing(userId);
     try {
-      const response = await fetch('/api/admin/approve-member', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          action: 'reject',
-          reason: rejectReason || undefined,
-        }),
-      });
-
-      const result: ApprovalResponse = await response.json();
-
-      if (result.success) {
-        setToast({ type: 'success', message: '会員を拒否しました' });
-        setRejectUserId(null);
-        setRejectReason('');
-        // Remove rejected user from list
-        setPendingMembers(prev => prev.filter(m => m.id !== userId));
-      } else {
-        setToast({ type: 'error', message: result.error || '拒否に失敗しました' });
-      }
+      await rejectMemberAPI(userId, { reason: rejectReason || undefined });
+      setToast({ type: 'success', message: '会員を拒否しました' });
+      setRejectUserId(null);
+      setRejectReason('');
+      setPendingMembers(prev => prev.filter(m => m.id !== userId));
     } catch {
       setToast({ type: 'error', message: 'エラーが発生しました' });
     } finally {
