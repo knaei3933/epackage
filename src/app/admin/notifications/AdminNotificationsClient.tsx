@@ -12,6 +12,13 @@
 import { useState, useEffect } from 'react'
 import { Bell, Plus, Pencil, Trash2, Eye, EyeOff, Save, X } from 'lucide-react'
 import { useToastContext } from '@/components/ui/Toast';
+import {
+  fetchNotifications as fetchNotificationsAPI,
+  createNotification as createNotificationAPI,
+  updateNotification as updateNotificationAPI,
+  deleteNotification as deleteNotificationAPI,
+  markNotificationRead as markNotificationReadAPI,
+} from '@/lib/api/admin/notifications';
 
 interface Notification {
   id: string
@@ -56,12 +63,9 @@ export default function AdminNotificationsClient() {
   const fetchNotifications = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/admin/notifications?limit=${pageSize}&page=${page}`)
-      const result = await response.json()
-      if (result.success) {
-        setNotifications(result.data.notifications || [])
-        setTotal(result.data.pagination?.total || 0)
-      }
+      const result = await fetchNotificationsAPI(page, pageSize)
+      setNotifications((result as any).data?.notifications || [])
+      setTotal((result as any).data?.pagination?.total || 0)
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
     } finally {
@@ -76,19 +80,10 @@ export default function AdminNotificationsClient() {
   // 通知を作成
   const handleCreate = async () => {
     try {
-      const response = await fetch('/api/admin/notifications/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      const result = await response.json()
-      if (result.success) {
-        fetchNotifications()
-        setShowForm(false)
-        resetForm()
-      } else {
-        showError('作成に失敗しました: ' + (result.error || '不明なエラー'))
-      }
+      await createNotificationAPI(formData)
+      fetchNotifications()
+      setShowForm(false)
+      resetForm()
     } catch (error) {
       console.error('Failed to create notification:', error)
       showError('作成に失敗しました')
@@ -100,20 +95,11 @@ export default function AdminNotificationsClient() {
     if (!editingId) return
 
     try {
-      const response = await fetch(`/api/admin/notifications/${editingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      const result = await response.json()
-      if (result.success) {
-        fetchNotifications()
-        setShowForm(false)
-        setEditingId(null)
-        resetForm()
-      } else {
-        showError('更新に失敗しました: ' + (result.error || '不明なエラー'))
-      }
+      await updateNotificationAPI(editingId, formData)
+      fetchNotifications()
+      setShowForm(false)
+      setEditingId(null)
+      resetForm()
     } catch (error) {
       console.error('Failed to update notification:', error)
       showError('更新に失敗しました')
@@ -125,15 +111,8 @@ export default function AdminNotificationsClient() {
     if (!confirm('この通知を削除してもよろしいですか？')) return
 
     try {
-      const response = await fetch(`/api/admin/notifications/${id}`, {
-        method: 'DELETE',
-      })
-      const result = await response.json()
-      if (result.success) {
-        setNotifications((prev) => prev.filter((n) => n.id !== id))
-      } else {
-        showError('削除に失敗しました: ' + (result.error || '不明なエラー'))
-      }
+      await deleteNotificationAPI(id)
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
     } catch (error) {
       console.error('Failed to delete notification:', error)
       showError('削除に失敗しました')
@@ -143,14 +122,10 @@ export default function AdminNotificationsClient() {
   // 既読/未読を切り替え
   const toggleReadStatus = async (id: string, isRead: boolean) => {
     try {
-      const response = await fetch(`/api/admin/notifications/${id}/read`, {
-        method: 'PATCH',
-      })
-      if (response.ok) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, is_read: !isRead } : n))
-        )
-      }
+      await markNotificationReadAPI(id)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: !isRead } : n))
+      )
     } catch (error) {
       console.error('Failed to toggle read status:', error)
     }
