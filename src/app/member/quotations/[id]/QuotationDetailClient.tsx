@@ -39,6 +39,7 @@ import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
 import { useToastContext } from '@/components/ui/Toast';
+import { fetchQuotation as fetchQuotationAPI, fetchDocumentHistory as fetchDocumentHistoryAPI, logDocumentAction as logDocumentActionAPI, deleteQuotationById as deleteQuotationByIdAPI, convertQuotationToOrderWithNotes as convertQuotationToOrderWithNotesAPI, downloadPdfBlob as downloadPdfBlobAPI } from '@/lib/api/member/quotations';
 
 // =====================================================
 // Types
@@ -388,17 +389,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
     setError(null);
 
     try {
-      const response = await fetch(`/api/member/quotations/${quotationId}`, {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch quotation');
-      }
-
-      const { quotation: quotationData } = await response.json();
-      setQuotation(quotationData);
+      const result = await fetchQuotationAPI(quotationId) as any;
+      setQuotation(result);
     } catch (err) {
       console.error('Failed to fetch quotation:', err);
       setError('見積の取得に失敗しました');
@@ -410,15 +402,11 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   // Fetch download history
   const fetchDownloadHistory = async () => {
     try {
-      const response = await fetch(`/api/member/documents/history?quotation_id=${quotationId}`, {
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const { data } = await response.json();
+      const data = await fetchDocumentHistoryAPI(quotationId) as any;
+      if (data) {
         setDownloadHistory(data.history || []);
-        setDownloadCount(data.statistics.downloadCount || 0);
-        setLastDownloadedAt(data.statistics.lastDownloadedAt);
+        setDownloadCount(data.statistics?.downloadCount || 0);
+        setLastDownloadedAt(data.statistics?.lastDownloadedAt);
       }
     } catch (err) {
       console.error('Failed to fetch download history:', err);
@@ -452,12 +440,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       if (quotation.pdf_url) {
 
         // Supabase StorageからPDFをダウンロード
-        const response = await fetch(quotation.pdf_url);
-        if (!response.ok) {
-          throw new Error('Failed to fetch saved PDF');
-        }
-
-        const blob = await response.blob();
+        const blob = await downloadPdfBlobAPI(quotation.pdf_url!);
         const url = window.URL.createObjectURL(blob);
 
         // 新しいタブでPDFを開く
@@ -470,16 +453,11 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
 
         // Log PDF download to database
         try {
-          await fetch('/api/member/documents', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              document_type: 'quote',
-              document_id: quotation.id,
-              quotation_id: quotation.id,
-              action: 'downloaded',
-            }),
+          await logDocumentActionAPI({
+            document_type: 'quote',
+            document_id: quotation.id,
+            quotation_id: quotation.id,
+            action: 'downloaded',
           });
           // Refresh download history after logging
           fetchDownloadHistory();
@@ -509,15 +487,7 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/member/quotations/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete quotation');
-      }
+      await deleteQuotationByIdAPI(id);
 
       router.push('/member/quotations');
     } catch (error) {
@@ -1358,14 +1328,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                   const itemsToSend = quotation.items && quotation.items.length > 1
                     ? (selectedItemId ? { selectedItemIds: [selectedItemId] } : {})
                     : {};
-                  const response = await fetch(`/api/member/quotations/${quotationId}/convert`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ notes: quotation?.notes, ...itemsToSend }),
-                  });
-                  const result = await response.json();
-                  if (response.ok && result.success) {
+                  const result = await convertQuotationToOrderWithNotesAPI(quotationId, { notes: quotation?.notes, ...itemsToSend });
+                  if (result.success) {
                     router.push(`/member/orders/${result.data.id}`);
                   } else if (result.alreadyExists) {
                     router.push(`/member/orders/${result.data.id}`);

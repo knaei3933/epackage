@@ -27,6 +27,7 @@ import { TrackingTimeline } from '@/components/admin/TrackingTimeline';
 
 import { Edit3 } from 'lucide-react';
 
+import { fetchShipments as fetchShipmentsAPI, createShipment as createShipmentAPI, trackShipment as trackShipmentAPI, updateShipment as updateShipmentAPI, fetchShipmentById as fetchShipmentByIdAPI, fetchReadyOrders as fetchReadyOrdersAPI, fetchShipmentLabelJson as fetchShipmentLabelJsonAPI } from '@/lib/api/admin/shipments';
 import {
   Shipment,
   ShipmentStatus,
@@ -90,8 +91,7 @@ export default function AdminShipmentsClient() {
       if (filters.carrier !== 'all') params.append('carrier', filters.carrier);
       if (filters.search) params.append('search', filters.search);
 
-      const response = await fetch(`/api/shipments?${params}`);
-      const data = await response.json();
+      const data = await fetchShipmentsAPI({ page, limit: pageSize, status: filters.status !== 'all' ? filters.status : undefined }) as any;
 
       if (data.success) {
         setShipments(data.shipments);
@@ -108,8 +108,7 @@ export default function AdminShipmentsClient() {
   const fetchReadyOrders = async () => {
     setLoadingOrders(true);
     try {
-      const response = await fetch('/api/shipments/create');
-      const data = await response.json();
+      const data = await fetchReadyOrdersAPI() as any;
 
       if (data.success) {
         setReadyOrders(data.orders);
@@ -125,10 +124,7 @@ export default function AdminShipmentsClient() {
   const refreshTracking = async (shipmentId: string) => {
     setRefreshingId(shipmentId);
     try {
-      const response = await fetch(`/api/shipments/${shipmentId}/track`, {
-        method: 'POST',
-      });
-      const data = await response.json();
+      const data = await trackShipmentAPI(shipmentId, {}) as any;
 
       if (data.success) {
         // Refresh shipments list
@@ -145,8 +141,7 @@ export default function AdminShipmentsClient() {
   // Download shipping label
   const downloadLabel = async (shipmentId: string) => {
     try {
-      const response = await fetch(`/api/shipments/${shipmentId}/label`);
-      const data = await response.json();
+      const data = await fetchShipmentLabelJsonAPI(shipmentId) as any;
 
       if (data.success && data.label_data) {
         // Convert base64 to blob and download
@@ -176,13 +171,7 @@ export default function AdminShipmentsClient() {
   // Create shipment
   const createShipment = async (data: any) => {
     try {
-      const response = await fetch('/api/shipments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
+      const result = await createShipmentAPI(data) as any;
 
       if (!result.success) {
         throw new Error(result.error?.message || 'Failed to create shipment');
@@ -201,8 +190,7 @@ export default function AdminShipmentsClient() {
   // Fetch shipment details
   const fetchShipmentDetails = async (shipmentId: string) => {
     try {
-      const response = await fetch(`/api/shipments/${shipmentId}`);
-      const data = await response.json();
+      const data = await fetchShipmentByIdAPI(shipmentId) as any;
 
       if (data.success) {
         setSelectedShipment(data.shipment);
@@ -216,13 +204,7 @@ export default function AdminShipmentsClient() {
   // Update shipment
   const updateShipment = async (shipmentId: string, data: any) => {
     try {
-      const response = await fetch(`/api/shipments/${shipmentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
+      const result = await updateShipmentAPI(shipmentId, data) as any;
 
       if (!result.success) {
         throw new Error(result.error?.message || 'Failed to update shipment');

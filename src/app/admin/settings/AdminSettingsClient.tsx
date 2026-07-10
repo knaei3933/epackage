@@ -31,6 +31,7 @@ import type { TabKey, CategoryData, CustomerMarkupData } from './parts/types';
 import { tabConfig } from './parts/tab-config';
 import { cleanDescription, groupSettingsByCategory } from './parts/helpers';
 import { useSettingsApi } from './parts/useSettingsApi';
+import { fetchCustomerMarkup as fetchCustomerMarkupAPI, updateCustomerMarkup as updateCustomerMarkupAPI, fetchEmailConfig as fetchEmailConfigAPI, updateEmailConfig as updateEmailConfigAPI, fetchDesignerEmails as fetchDesignerEmailsAPI, updateDesignerEmails as updateDesignerEmailsAPI, fetchGoogleDriveStatus as fetchGoogleDriveStatusAPI } from '@/lib/api/admin/settings';
 
 export const dynamic = "force-dynamic";
 
@@ -117,8 +118,7 @@ export default function AdminSettingsClient() {
         ...(customerSearch && { search: customerSearch })
       });
 
-      const response = await fetch(`/api/admin/settings/customer-markup?${params}`);
-      const result = await response.json();
+      const result = await fetchCustomerMarkupAPI({ page: 1, limit: 100 }) as any;
 
       if (result.success) {
         setCustomers(result.data || []);
@@ -174,8 +174,7 @@ export default function AdminSettingsClient() {
   const loadEmailSettings = async () => {
     setLoadingEmailSettings(true);
     try {
-      const response = await fetch('/api/admin/settings/email-config');
-      const result = await response.json();
+      const result = await fetchEmailConfigAPI() as any;
 
       if (result.success) {
         setEmailSettings(result.data);
@@ -193,13 +192,7 @@ export default function AdminSettingsClient() {
   const saveEmailSettingsSection = async (section: 'smtp' | 'toggles' | 'companyInfo' | 'bankInfo' | 'recipients', data: any) => {
     setSavingEmailSettings(true);
     try {
-      const response = await fetch('/api/admin/settings/email-config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, data })
-      });
-
-      const result = await response.json();
+      const result = await updateEmailConfigAPI({ section, data }) as any;
 
       if (result.success) {
         showMessage('success', '설정을 저장했습니다');
@@ -232,16 +225,10 @@ export default function AdminSettingsClient() {
   const handleSaveCustomerMarkup = async (customerId: string) => {
     setSavingCustomer(customerId);
     try {
-      const response = await fetch(`/api/admin/settings/customer-markup?id=${customerId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          markupRate: editFormData.markupRate,
-          markupRateNote: editFormData.markupRateNote || null
-        })
-      });
-
-      const result = await response.json();
+      const result = await updateCustomerMarkupAPI(customerId, {
+        markupRate: editFormData.markupRate,
+        markupRateNote: editFormData.markupRateNote || null
+      }) as any;
 
       if (result.success) {
         // Update local state
@@ -267,8 +254,7 @@ export default function AdminSettingsClient() {
   const loadDesignerEmails = async () => {
     setLoadingDesignerEmails(true);
     try {
-      const response = await fetch('/api/admin/settings/designer-emails');
-      const result = await response.json();
+      const result = await fetchDesignerEmailsAPI() as any;
 
       if (result.success) {
         setDesignerEmails(result.emails || []);
@@ -286,13 +272,7 @@ export default function AdminSettingsClient() {
   const saveDesignerEmails = async (emails: string[]) => {
     setSavingDesignerEmails(true);
     try {
-      const response = await fetch('/api/admin/settings/designer-emails', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails })
-      });
-
-      const result = await response.json();
+      const result = await updateDesignerEmailsAPI({ emails }) as any;
 
       if (result.success) {
         setDesignerEmails(result.emails || []);
@@ -391,9 +371,8 @@ export default function AdminSettingsClient() {
   useEffect(() => {
     if (activeTab !== 'integrations') return;
     setGoogleDriveStatus(prev => ({ ...prev, loading: true }));
-    fetch('/api/admin/google-drive/status')
-      .then(res => res.json())
-      .then(data => {
+    fetchGoogleDriveStatusAPI()
+      .then((data) => {
         setGoogleDriveStatus({ connected: data?.data?.tokenStatus?.hasTokenInDb ?? false, loading: false });
       })
       .catch(() => setGoogleDriveStatus({ connected: false, loading: false }));

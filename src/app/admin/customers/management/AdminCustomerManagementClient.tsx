@@ -40,6 +40,7 @@ import { formatDate } from '@/types/portal';
 import type { UserStatus, UserRole } from '@/types/auth';
 import nextDynamic from 'next/dynamic';
 import type { Recipient } from '@/components/admin/EmailComposer';
+import { fetchCustomers as fetchCustomersAPI, fetchCustomerById as fetchCustomerByIdAPI, exportCustomers as exportCustomersAPI } from '@/lib/api/admin/customers';
 // Defer the EmailComposer bundle until it is actually opened.
 const EmailComposer = nextDynamic(() =>
   import('@/components/admin/EmailComposer').then((m) => m.EmailComposer)
@@ -212,8 +213,13 @@ export default function AdminCustomerManagementClient() {
         period: selectedPeriod,
       });
 
-      const response = await fetch(`/api/admin/customers/management?${params}`);
-      const result: CustomerListResponse = await response.json();
+      const result: CustomerListResponse = await fetchCustomersAPI({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchQuery,
+        status: selectedStatus,
+        period: selectedPeriod,
+      }) as CustomerListResponse;
 
       if (result.success && result.data) {
         setCustomers(result.data);
@@ -234,13 +240,12 @@ export default function AdminCustomerManagementClient() {
   const loadCustomerDetail = async (customerId: string) => {
     setLoadingCustomerDetail(true);
     try {
-      const response = await fetch(`/api/admin/customers/${customerId}`);
-      const result: CustomerDetailResponse = await response.json();
+      const result: CustomerDetailResponse = await fetchCustomerByIdAPI(customerId) as CustomerDetailResponse;
 
       if (result.success && result.data) {
         setCustomerDetail(result.data);
       } else {
-        showMessage('error', result.error || '顧客詳細の読み込みに失敗しました');
+        showMessage('error', result.error || '顧客詳細の読進みに失敗しました');
       }
     } catch (error) {
       console.error('Failed to load customer detail:', error);
@@ -327,37 +332,23 @@ export default function AdminCustomerManagementClient() {
   // Export functionality
   const handleExport = async (format: 'csv' | 'excel') => {
     try {
-      const response = await fetch('/api/admin/customers/management/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerIds: Array.from(selectedCustomers),
-          format,
-          filters: {
-            status: selectedStatus,
-            search: searchQuery,
-            period: selectedPeriod,
-          },
-        }),
+      const blob = await exportCustomersAPI({
+        format,
+        status: selectedStatus,
+        search: searchQuery,
       });
+      // Download file
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `customers_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-      if (response.ok) {
-        // Download file
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `customers_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        showMessage('success', `${format.toUpperCase()}形式でエクスポートしました`);
-        setShowExportModal(false);
-      } else {
-        showMessage('error', 'エクスポートに失敗しました');
-      }
+      showMessage('success', `${format.toUpperCase()}形式でエクスポートしました`);
+      setShowExportModal(false);
     } catch (error) {
       console.error('Export error:', error);
       showMessage('error', 'エクスポートに失敗しました');

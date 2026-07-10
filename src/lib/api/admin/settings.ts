@@ -27,3 +27,8 @@ export async function fetchDesignerEmails(): Promise<{ data: unknown[] }> {
 export async function updateDesignerEmails(data: unknown): Promise<void> {
   await putJson('/api/admin/settings/designer-emails', data);
 }
+
+
+export async function fetchGoogleDriveStatus(): Promise<any> {
+  return getJson('/api/admin/google-drive/status');
+}

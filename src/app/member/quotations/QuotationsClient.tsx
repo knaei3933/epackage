@@ -29,6 +29,7 @@ import { formatProductDisplayName } from '@/lib/product-display-name';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { useToastContext } from '@/components/ui/Toast';
+import { fetchDocumentHistory as fetchDocumentHistoryAPI, logDocumentAction as logDocumentActionAPI, deleteQuotation as deleteQuotationAPI, convertQuotationToOrder as convertQuotationToOrderAPI, downloadPdfBlob as downloadPdfBlobAPI } from '@/lib/api/member/quotations';
 
 function safeMap<T, U>(array: T[] | null | undefined, fn: (item: T, index: number) => U): U[] {
   if (!array) return [];
@@ -136,16 +137,12 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
     await Promise.all(
       quotations.map(async (quotation) => {
         try {
-          const response = await fetch(
-            `${window.location.origin}/api/member/documents/history?quotation_id=${quotation.id}`,
-            { credentials: 'include' }
-          );
+          const result = await fetchDocumentHistoryAPI(quotation.id) as any;
 
-          if (response.ok) {
-            const { data } = await response.json();
+          if (result?.data?.statistics) {
             stats[quotation.id] = {
-              count: data.statistics.downloadCount || 0,
-              lastDownloadedAt: data.statistics.lastDownloadedAt,
+              count: result.data.statistics.downloadCount || 0,
+              lastDownloadedAt: result.data.statistics.lastDownloadedAt,
             };
           }
         } catch (err) {
@@ -169,24 +166,17 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
       const savedPdfUrl = quotation.pdfUrl || (quotation as any).pdf_url;
 
       if (savedPdfUrl && typeof savedPdfUrl === 'string' && savedPdfUrl.startsWith('http')) {
-        const response = await fetch(savedPdfUrl);
-        if (!response.ok) throw new Error('PDFの取得に失敗しました');
-        const blob = await response.blob();
+        const blob = await downloadPdfBlobAPI(savedPdfUrl);
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');
         setTimeout(() => window.URL.revokeObjectURL(url), 2000);
 
         try {
-          await fetch('/api/member/documents', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              document_type: 'quote',
-              document_id: quotation.id,
-              quotation_id: quotation.id,
-              action: 'downloaded',
-            }),
+          await logDocumentActionAPI({
+            document_type: 'quote',
+            document_id: quotation.id,
+            quotation_id: quotation.id,
+            action: 'downloaded',
           });
           fetchDownloadStats();
         } catch (logError) {
@@ -212,14 +202,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
     setDeletingQuoteId(quotationId);
 
     try {
-      const response = await fetch(`/api/member/quotations?id=${quotationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('削除に失敗しました');
-      }
+      await deleteQuotationAPI(quotationId);
 
       // 削除成功後にページをリロード
       window.location.reload();
@@ -507,19 +490,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                 quotation={quotationForSpec}
                 onApprove={async (selectedItemIds?: string[]) => {
                   try {
-                    const response = await fetch(`/api/member/quotations/${quotationForSpec.id}/convert`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify(
-                        selectedItemIds && selectedItemIds.length > 0
-                          ? { selectedItemIds }
-                          : {}
-                      ),
-                    });
-
-                    const result = await response.json();
+                    const result = await convertQuotationToOrderAPI(quotationForSpec.id, selectedItemIds);
 
                     if (result.success) {
                       if (result.data?.id) {

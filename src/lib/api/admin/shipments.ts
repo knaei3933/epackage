@@ -30,3 +30,12 @@ export async function fetchShipmentLabel(id: string): Promise<Blob> {
   if (!response.ok) throw new Error('Failed to fetch label');
   return response.blob();
 }
+
+
+export async function fetchReadyOrders(): Promise<{ success: boolean; orders: unknown[] }> {
+  return getJson('/api/shipments/create');
+}
+
+export async function fetchShipmentLabelJson(id: string): Promise<{ success: boolean; label_data?: string }> {
+  return getJson(`/api/shipments/${id}/label`);
+}
