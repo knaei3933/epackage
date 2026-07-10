@@ -7,6 +7,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { getJson, postJson, patchJson } from '@/lib/api-fetch';
 import type { CategoryData, TabKey } from './types';
 
 const TAB_KEYS: TabKey[] = [
@@ -40,10 +41,8 @@ export function useSettingsApi() {
 
   const invalidateCache = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/settings/cache/invalidate', {
-        method: 'POST'
-      });
-      if (response.ok) {
+      await postJson('/api/admin/settings/cache/invalidate');
+      {
         setTimeout(() => {
           window.location.reload();
         }, 500);
@@ -56,8 +55,7 @@ export function useSettingsApi() {
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/settings');
-      const result = await response.json();
+      const result = await getJson<any>('/api/admin/settings');
 
       if (result.success) {
         const settingsWithOriginals = emptySettings();
@@ -121,12 +119,7 @@ export function useSettingsApi() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/settings/${dbCategory}/${key}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: newValue })
-      });
-      const result = await response.json();
+      const result = await patchJson<any>(`/api/admin/settings/${dbCategory}/${key}`, { value: newValue });
       if (result.success) {
         setSettings(prev => ({
           ...prev,
@@ -157,10 +150,7 @@ export function useSettingsApi() {
       const dbCategory = tabData?.dbCategory || category;
       if (newValue !== undefined) {
         saves.push(
-          fetch(`/api/admin/settings/${dbCategory}/${key}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value: newValue })
-          }).then(res => res.json()).then(result => {
+          patchJson<any>(`/api/admin/settings/${dbCategory}/${key}`, { value: newValue }).then(result => {
             if (!result.success) throw new Error(result.error || '저장 실패');
           })
         );
