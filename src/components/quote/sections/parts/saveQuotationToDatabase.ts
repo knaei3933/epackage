@@ -54,24 +54,24 @@ export async function saveQuotationToDatabase({
       });
 
       // SKUモードの場合はskuCostDetailsから、通常モードはresultから計算
-      let costBreakdown: any = null;
+      let costBreakdown: Record<string, number> | null = null;
 
       if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
         // 複数SKUモード: 各SKUの原価を合計
         // totalCost = 各SKUの最終販売価格合計（costBreakdown.totalCost は per-SKU final price in JPY）
-        const totalFinalPrice = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.totalCost || 0), 0);
+        const totalFinalPrice = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.totalCost || 0), 0);
 
         costBreakdown = {
-          materialCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
-          laminationCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
-          slitterCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
-          surfaceTreatmentCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
-          pouchProcessingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
-          printingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
-          manufacturingMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
-          duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
-          delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
-          salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
+          materialCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
+          laminationCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
+          slitterCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
+          surfaceTreatmentCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
+          pouchProcessingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
+          printingCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
+          manufacturingMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
+          duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.duty || 0), 0)),
+          delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+          salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
           totalCost: Math.round(totalFinalPrice),
           intlShippingJPY: result.skuCostDetails?.summary?.intlShippingJPY ?? 0,
           domesticShippingJPY: result.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
@@ -184,7 +184,7 @@ export async function saveQuotationToDatabase({
                   if (!state.materialId || !state.thicknessSelection) return undefined;
                   const { MATERIAL_THICKNESS_OPTIONS } = require('@/lib/unified-pricing-engine');
                   const options = MATERIAL_THICKNESS_OPTIONS[state.materialId];
-                  const option = options?.find((opt: any) => opt.id === state.thicknessSelection);
+                  const option = options?.find((opt: { id: string }) => opt.id === state.thicknessSelection);
                   return option?.weightRange;
                 })(),
                 // ロールフィルム専用フィールド
@@ -233,17 +233,17 @@ export async function saveQuotationToDatabase({
               sku_quantities: hasValidSKUData ? state.skuQuantities : undefined
             },
             cost_breakdown: quote.skuCostDetails?.costPerSKU && quote.skuCostDetails.costPerSKU.length > 0 ? {
-                materialCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
-                laminationCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
-                slitterCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
-                surfaceTreatmentCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
-                pouchProcessingCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
-                printingCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
-                manufacturingMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
-                duty: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.duty || 0), 0)),
-                delivery: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.delivery || 0), 0)),
-                salesMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
-                totalCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: any) => sum + (sku.costBreakdown?.totalCost || 0), 0)),
+                materialCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
+                laminationCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.laminationCost || 0), 0)),
+                slitterCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.slitterCost || 0), 0)),
+                surfaceTreatmentCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.surfaceTreatmentCost || 0), 0)),
+                pouchProcessingCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.pouchProcessingCost || 0), 0)),
+                printingCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.printingCost || 0), 0)),
+                manufacturingMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.manufacturingMargin || 0), 0)),
+                duty: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.duty || 0), 0)),
+                delivery: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.delivery || 0), 0)),
+                salesMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
+                totalCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.totalCost || 0), 0)),
                 intlShippingJPY: quote.skuCostDetails?.summary?.intlShippingJPY ?? 0,
                 domesticShippingJPY: quote.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
                 deliveryBoxes: quote.skuCostDetails?.summary?.deliveryBoxes ?? 0,
@@ -298,7 +298,7 @@ export async function saveQuotationToDatabase({
                   if (!state.materialId || !state.thicknessSelection) return undefined;
                   const { MATERIAL_THICKNESS_OPTIONS } = require('@/lib/unified-pricing-engine');
                   const options = MATERIAL_THICKNESS_OPTIONS[state.materialId];
-                  const option = options?.find((opt: any) => opt.id === state.thicknessSelection);
+                  const option = options?.find((opt: { id: string }) => opt.id === state.thicknessSelection);
                   return option?.weightRange;
                 })(),
                 // ロールフィルム専用フィールド
