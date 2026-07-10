@@ -14,64 +14,12 @@ import { useRouter } from 'next/navigation';
 import { Card, Button, Badge } from '@/components/ui';
 import { DeliveryAddressForm } from '@/components/dashboard/DeliveryAddressForm';
 import type { DeliveryAddress, DeliveryAddressFormData } from '@/types/dashboard';
-
-// =====================================================
-// API Client Functions
-// =====================================================
-
-async function fetchDeliveryAddresses(): Promise<DeliveryAddress[]> {
-  const response = await fetch('/api/member/addresses/delivery', {
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: '住所の取得に失敗しました' }));
-    throw new Error(error.error || '住所の取得に失敗しました');
-  }
-
-  const result = await response.json();
-  return result.data;
-}
-
-async function createDeliveryAddressAPI(formData: DeliveryAddressFormData): Promise<void> {
-  const response = await fetch('/api/member/addresses/delivery', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: '住所の作成に失敗しました' }));
-    throw new Error(error.error || '住所の作成に失敗しました');
-  }
-}
-
-async function updateDeliveryAddressAPI(id: string, formData: DeliveryAddressFormData): Promise<void> {
-  const response = await fetch(`/api/member/addresses/delivery/${id}`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: '住所の更新に失敗しました' }));
-    throw new Error(error.error || '住所の更新に失敗しました');
-  }
-}
-
-async function deleteDeliveryAddressAPI(id: string): Promise<void> {
-  const response = await fetch(`/api/member/addresses/delivery/${id}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: '住所の削除に失敗しました' }));
-    throw new Error(error.error || '住所の削除に失敗しました');
-  }
-}
+import {
+  fetchDeliveryAddresses,
+  createDeliveryAddress as createDeliveryAddressAPI,
+  updateDeliveryAddress as updateDeliveryAddressAPI,
+  deleteDeliveryAddress as deleteDeliveryAddressAPI,
+} from '@/lib/api/member/addresses';
 
 // =====================================================
 // Page Component

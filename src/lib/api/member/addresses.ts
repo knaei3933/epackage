@@ -4,7 +4,7 @@
  * 住所API関数
  */
 
-import type { DeliveryAddress, BillingAddress, DeliveryAddressFormData, BillingAddressFormData } from '@/types/dashboard';
+import type { DeliveryAddress, BillingAddress, MemberBillingAddress, DeliveryAddressFormData, BillingAddressFormData } from '@/types/dashboard';
 
 // =====================================================
 // API Client Functions
@@ -104,7 +104,7 @@ export async function setDefaultDeliveryAddress(id: string): Promise<void> {
 /**
  * Fetch billing addresses for the current member
  */
-export async function fetchBillingAddresses(): Promise<BillingAddress[]> {
+export async function fetchBillingAddresses(): Promise<MemberBillingAddress[]> {
   const response = await fetch('/api/member/addresses/billing', {
     credentials: 'include',
   });
@@ -121,7 +121,7 @@ export async function fetchBillingAddresses(): Promise<BillingAddress[]> {
 /**
  * Create a new billing address
  */
-export async function createBillingAddress(data: BillingAddressFormData): Promise<BillingAddress> {
+export async function createBillingAddress(data: BillingAddressFormData): Promise<MemberBillingAddress> {
   const response = await fetch('/api/member/addresses/billing', {
     method: 'POST',
     headers: {
@@ -143,7 +143,7 @@ export async function createBillingAddress(data: BillingAddressFormData): Promis
 /**
  * Update a billing address
  */
-export async function updateBillingAddress(id: string, data: Partial<BillingAddressFormData>): Promise<BillingAddress> {
+export async function updateBillingAddress(id: string, data: Partial<BillingAddressFormData>): Promise<MemberBillingAddress> {
   const response = await fetch(`/api/member/addresses/billing/${id}`, {
     method: 'PATCH',
     headers: {
