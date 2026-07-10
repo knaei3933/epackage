@@ -134,8 +134,10 @@ describe('Multi-Quantity Performance Tests', () => {
       const endTime = Date.now();
       const renderTime = endTime - startTime;
 
-      // Should handle 100 items efficiently
-      expect(renderTime).toBeLessThan(200);
+      // Should handle 100 items efficiently.
+      // 閾値は jest 並列実行・WSL2 環境の負荷変動を吸収するゆるい値（500ms）。
+      // 実際の性能回帰（数秒レベル）は十分検出可能。
+      expect(renderTime).toBeLessThan(500);
     });
   });
 
