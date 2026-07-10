@@ -92,7 +92,7 @@ export default function AdminShipmentsClient() {
       if (filters.carrier !== 'all') params.append('carrier', filters.carrier);
       if (filters.search) params.append('search', filters.search);
 
-      const data = await fetchShipmentsAPI({ page, limit: pageSize, status: filters.status !== 'all' ? filters.status : undefined }) as any;
+      const data = await fetchShipmentsAPI({ page, limit: pageSize, status: filters.status !== 'all' ? filters.status : undefined });
 
       if (data.success) {
         setShipments(data.shipments);
@@ -109,7 +109,7 @@ export default function AdminShipmentsClient() {
   const fetchReadyOrders = async () => {
     setLoadingOrders(true);
     try {
-      const data = await fetchReadyOrdersAPI() as any;
+      const data = await fetchReadyOrdersAPI();
 
       if (data.success) {
         setReadyOrders(data.orders);
@@ -125,7 +125,7 @@ export default function AdminShipmentsClient() {
   const refreshTracking = async (shipmentId: string) => {
     setRefreshingId(shipmentId);
     try {
-      const data = await trackShipmentAPI(shipmentId, {}) as any;
+      const data = await trackShipmentAPI(shipmentId, {});
 
       if (data.success) {
         // Refresh shipments list
@@ -142,7 +142,7 @@ export default function AdminShipmentsClient() {
   // Download shipping label
   const downloadLabel = async (shipmentId: string) => {
     try {
-      const data = await fetchShipmentLabelJsonAPI(shipmentId) as any;
+      const data = await fetchShipmentLabelJsonAPI(shipmentId);
 
       if (data.success && data.label_data) {
         // Convert base64 to blob and download
@@ -172,10 +172,10 @@ export default function AdminShipmentsClient() {
   // Create shipment
   const createShipment = async (data: any) => {
     try {
-      const result = await createShipmentAPI(data) as any;
+      const result = await createShipmentAPI(data);
 
       if (!result.success) {
-        throw new Error(result.error?.message || 'Failed to create shipment');
+        throw new Error(result.error || 'Failed to create shipment');
       }
 
       // Refresh both lists
@@ -191,7 +191,7 @@ export default function AdminShipmentsClient() {
   // Fetch shipment details
   const fetchShipmentDetails = async (shipmentId: string) => {
     try {
-      const data = await fetchShipmentByIdAPI(shipmentId) as any;
+      const data = await fetchShipmentByIdAPI(shipmentId);
 
       if (data.success) {
         setSelectedShipment(data.shipment);
@@ -205,10 +205,10 @@ export default function AdminShipmentsClient() {
   // Update shipment
   const updateShipment = async (shipmentId: string, data: any) => {
     try {
-      const result = await updateShipmentAPI(shipmentId, data) as any;
+      const result = await updateShipmentAPI(shipmentId, data);
 
       if (!result.success) {
-        throw new Error(result.error?.message || 'Failed to update shipment');
+        throw new Error(result.error || 'Failed to update shipment');
       }
 
       // Refresh shipments list and shipment details
@@ -318,7 +318,7 @@ export default function AdminShipmentsClient() {
               <select
                 className="w-full md:w-auto rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value as ShipmentStatus | 'all' })}
               >
                 <option value="all">すべてのステータス</option>
                 {Object.values(ShipmentStatus).map((status) => (
@@ -331,7 +331,7 @@ export default function AdminShipmentsClient() {
               <select
                 className="w-full md:w-auto rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 value={filters.carrier}
-                onChange={(e) => setFilters({ ...filters, carrier: e.target.value as any })}
+                onChange={(e) => setFilters({ ...filters, carrier: e.target.value as CarrierType | 'all' })}
               >
                 <option value="all">すべての配送業者</option>
                 {Object.values(CarrierType).map((carrier) => (
@@ -607,7 +607,7 @@ export default function AdminShipmentsClient() {
             setSelectedOrder(null);
           }}
           order={selectedOrder}
-          onCreateShipment={createShipment}
+          onCreateShipment={async (data: any) => { await createShipment(data); }}
         />
       )}
 

@@ -123,10 +123,10 @@ export default function AdminSettingsClient() {
         ...(customerSearch && { search: customerSearch })
       });
 
-      const result = await fetchCustomerMarkupAPI({ page: 1, limit: 100 }) as any;
+      const result = await fetchCustomerMarkupAPI({ page: 1, limit: 100 });
 
       if (result.success) {
-        setCustomers(result.data || []);
+        setCustomers((result.data || []) as CustomerMarkupData[]);
         setTotalPages(result.pagination?.totalPages || 1);
         setTotalCustomers(result.pagination?.total || 0);
         setCurrentPage(page);
@@ -179,10 +179,10 @@ export default function AdminSettingsClient() {
   const loadEmailSettings = async () => {
     setLoadingEmailSettings(true);
     try {
-      const result = await fetchEmailConfigAPI() as any;
+      const result = await fetchEmailConfigAPI();
 
       if (result.success) {
-        setEmailSettings(result.data);
+        setEmailSettings(result.data as typeof emailSettings);
       } else {
         showMessage('error', result.error || '이메일 설정을 불러오지 못했습니다');
       }
@@ -197,7 +197,7 @@ export default function AdminSettingsClient() {
   const saveEmailSettingsSection = async (section: 'smtp' | 'toggles' | 'companyInfo' | 'bankInfo' | 'recipients', data: any) => {
     setSavingEmailSettings(true);
     try {
-      const result = await updateEmailConfigAPI({ section, data }) as any;
+      const result = await updateEmailConfigAPI({ section, data });
 
       if (result.success) {
         showMessage('success', '설정을 저장했습니다');
@@ -233,7 +233,7 @@ export default function AdminSettingsClient() {
       const result = await updateCustomerMarkupAPI(customerId, {
         markupRate: editFormData.markupRate,
         markupRateNote: editFormData.markupRateNote || null
-      }) as any;
+      });
 
       if (result.success) {
         // Update local state
@@ -259,7 +259,7 @@ export default function AdminSettingsClient() {
   const loadDesignerEmails = async () => {
     setLoadingDesignerEmails(true);
     try {
-      const result = await fetchDesignerEmailsAPI() as any;
+      const result = await fetchDesignerEmailsAPI();
 
       if (result.success) {
         setDesignerEmails(result.emails || []);
@@ -277,7 +277,7 @@ export default function AdminSettingsClient() {
   const saveDesignerEmails = async (emails: string[]) => {
     setSavingDesignerEmails(true);
     try {
-      const result = await updateDesignerEmailsAPI({ emails }) as any;
+      const result = await updateDesignerEmailsAPI({ emails });
 
       if (result.success) {
         setDesignerEmails(result.emails || []);

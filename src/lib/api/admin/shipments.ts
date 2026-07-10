@@ -1,6 +1,6 @@
 import { getJson, postJson, putJson } from '@/lib/api-fetch';
 
-export async function fetchShipments(params: { page?: number; limit?: number; status?: string; tracking?: string }): Promise<{ data: unknown[]; pagination: { total: number } }> {
+export async function fetchShipments(params: { page?: number; limit?: number; status?: string; tracking?: string }): Promise<{ success: boolean; shipments: unknown[]; pagination: { total: number; totalPages?: number } }> {
   const query = new URLSearchParams();
   if (params.page) query.set('page', String(params.page));
   if (params.limit) query.set('limit', String(params.limit));
@@ -9,20 +9,20 @@ export async function fetchShipments(params: { page?: number; limit?: number; st
   return getJson(`/api/shipments?${query.toString()}`);
 }
 
-export async function fetchShipmentById(id: string): Promise<{ data: unknown }> {
+export async function fetchShipmentById(id: string): Promise<{ success: boolean; shipment: unknown }> {
   return getJson(`/api/shipments/${id}`);
 }
 
-export async function createShipment(data: unknown): Promise<unknown> {
+export async function createShipment(data: unknown): Promise<{ success: boolean; data?: unknown; error?: string }> {
   return postJson('/api/shipments/create', data);
 }
 
-export async function trackShipment(id: string, data: unknown): Promise<unknown> {
+export async function trackShipment(id: string, data: unknown): Promise<{ success: boolean }> {
   return postJson(`/api/shipments/${id}/track`, data);
 }
 
-export async function updateShipment(id: string, data: unknown): Promise<void> {
-  await putJson(`/api/shipments/${id}`, data);
+export async function updateShipment(id: string, data: unknown): Promise<{ success: boolean; shipment?: unknown; error?: string }> {
+  return putJson(`/api/shipments/${id}`, data);
 }
 
 export async function fetchShipmentLabel(id: string): Promise<Blob> {
