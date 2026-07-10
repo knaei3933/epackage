@@ -10,6 +10,7 @@ import { useToastContext } from '@/components/ui/Toast';
 
 import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getJson, postJson } from '@/lib/api-fetch';
 import {
   Card,
   Button,
@@ -204,22 +205,7 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
       params.set('limit', String(limit));
       params.set('offset', String((page - 1) * limit));
 
-      const response = await fetch(`/api/contracts?${params}`);
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/auth/signin?redirect=/member/contracts');
-          return;
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch contracts');
-      }
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch contracts');
-      }
+      const result = await getJson<any>(`/api/contracts?${params}`);
 
       // Transform API response to match our interface
       const transformedContracts: Contract[] = (result.data || []).map((item: any) => ({
@@ -281,14 +267,7 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
       }
 
       // Call API to sign
-      const response = await fetch(`/api/contracts/${contractId}/sign`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '署名に失敗しました。');
-      }
+      await postJson(`/api/contracts/${contractId}/sign`);
 
       showError('契約書に署名しました。');
       fetchContracts(); // Refresh list

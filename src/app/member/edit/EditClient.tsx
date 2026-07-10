@@ -14,6 +14,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Input, Button } from '@/components/ui';
 import { useToastContext } from '@/components/ui/Toast';
+import { deleteAccount as deleteAccountAPI } from '@/lib/api/member/settings';
+import { getJson } from '@/lib/api-fetch';
 
 // =====================================================
 // Types
@@ -179,16 +181,7 @@ export function EditClient({
    */
   const fetchDeletionSummary = async () => {
     try {
-      const response = await fetch('/api/member/delete-account', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('削除サマリーの取得に失敗しました');
-      }
-
-      const summary: DeletionSummary = await response.json();
+      const summary = await getJson<DeletionSummary>('/api/member/delete-account');
       setDeletionSummary(summary);
 
       if (!summary.canDelete) {
@@ -230,20 +223,7 @@ export function EditClient({
     setError(null);
 
     try {
-      const response = await fetch('/api/member/delete-account', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'アカウント削除に失敗しました');
-      }
-
-      const result = await response.json();
+      const result = await deleteAccountAPI({ confirmation: 'DELETE' }) as any;
 
       // Show success message
       showError(`アカウントを削除しました。\n\n` +

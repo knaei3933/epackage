@@ -15,6 +15,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, Badge } from '@/components/ui';
 import { PageLoadingState } from '@/components/ui';
+import { fetchSettings as fetchSettingsAPI, updateSettings as updateSettingsAPI, deleteAccount as deleteAccountAPI } from '@/lib/api/member/settings';
+import { getJson } from '@/lib/api-fetch';
 
 // =====================================================
 // Types
@@ -92,15 +94,9 @@ export function SettingsClient({
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const response = await fetch('/api/member/settings', {
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            setSettings(data.data);
-          }
+        const data = await fetchSettingsAPI() as any;
+        if (data.success && data.data) {
+          setSettings(data.data);
         }
       } catch (error) {
         console.error('Failed to load settings:', error);
@@ -126,18 +122,7 @@ export function SettingsClient({
     setSaveMessage(null);
 
     try {
-      const response = await fetch('/api/member/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(settings),
-      });
-
-      if (!response.ok) {
-        throw new Error('設定の保存に失敗しました。');
-      }
+      await updateSettingsAPI(settings);
 
       setSaveMessage({ type: 'success', text: '設定を保存しました。' });
     } catch (error) {
@@ -162,16 +147,7 @@ export function SettingsClient({
     setDeleteError(null);
 
     try {
-      const response = await fetch('/api/member/delete-account', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('削除情報の取得に失敗しました');
-      }
-
-      const summary = await response.json();
+      const summary = await getJson<any>('/api/member/delete-account');
       setDeletionSummary(summary);
       setShowDeleteConfirm(true);
     } catch (error) {
@@ -194,16 +170,7 @@ export function SettingsClient({
     setDeleteError(null);
 
     try {
-      const response = await fetch('/api/member/delete-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || errorData.reason || '削除に失敗しました');
-      }
+      await deleteAccountAPI({});
 
       // Show success message before redirecting
       setSaveMessage({

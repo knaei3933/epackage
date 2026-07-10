@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Building2, Mail, Percent } from 'lucide-react';
+import { fetchCustomerMarkup as fetchCustomerMarkupAPI, updateCustomerMarkup as updateCustomerMarkupAPI } from '@/lib/api/admin/settings';
 
 interface Customer {
   id: string;
@@ -25,12 +26,8 @@ export default function AdminCustomerSettingsClient() {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/settings/customer-markup');
-      const result = await response.json();
-
-      if (result.success) {
-        setCustomers(result.data);
-      }
+      const result = await fetchCustomerMarkupAPI() as any;
+      setCustomers(result.data || []);
     } catch (error) {
       console.error('Failed to load customers:', error);
     } finally {
@@ -46,25 +43,11 @@ export default function AdminCustomerSettingsClient() {
   const handleUpdateMarkup = async (customerId: string, markupRate: number, note: string) => {
     setSaving(customerId);
     try {
-      const response = await fetch(`/api/admin/settings/customer-markup?id=${customerId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          markupRate,
-          markupRateNote: note
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setCustomers(prev => prev.map(c =>
-          c.id === customerId ? { ...c, markupRate, markupRateNote: note } : c
-        ));
-        showMessage('success', '마크업율이 저장되었습니다');
-      } else {
-        showMessage('error', result.error || '저장 실패');
-      }
+      await updateCustomerMarkupAPI(customerId, { markupRate, markupRateNote: note });
+      setCustomers(prev => prev.map(c =>
+        c.id === customerId ? { ...c, markupRate, markupRateNote: note } : c
+      ));
+      showMessage('success', '마크업율이 저장되었습니다');
     } catch (error) {
       console.error('Failed to update markup:', error);
       showMessage('error', '저장 실패');

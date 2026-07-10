@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getJson } from '@/lib/api-fetch';
 import {
   Cloud,
   CheckCircle,
@@ -66,11 +67,8 @@ export default function AdminGoogleDriveClient() {
   const loadStatus = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/google-drive/status');
-      if (response.ok) {
-        const result = await response.json();
-        setStatus(result.data);
-      }
+      const result = await getJson<any>('/api/admin/google-drive/status');
+      setStatus(result.data);
     } catch (error) {
       console.error('Failed to load status:', error);
     } finally {
@@ -81,12 +79,9 @@ export default function AdminGoogleDriveClient() {
   const handleConnect = async () => {
     setConnecting(true);
     try {
-      const response = await fetch('/api/auth/google');
-      const result = await response.json();
-
+      const result = await getJson<any>('/api/auth/google');
       if (result.success && result.data.authUrl) {
         setAuthUrl(result.data.authUrl);
-        // Redirect to Google OAuth
         window.location.href = result.data.authUrl;
       }
     } catch (error) {

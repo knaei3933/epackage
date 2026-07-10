@@ -20,6 +20,8 @@ import { ja } from 'date-fns/locale';
 import { Download, Search, Filter, ChevronDown, FileText, Clock, CheckCircle, AlertCircle, DollarSign, Calendar } from 'lucide-react';
 import { generateInvoicePDF, type InvoiceData } from '@/lib/pdf-generator';
 import { useToastContext } from '@/components/ui/Toast';
+import { fetchInvoices as fetchInvoicesAPI } from '@/lib/api/member/invoices';
+import { getJson } from '@/lib/api-fetch';
 
 // =====================================================
 // Types
@@ -185,12 +187,7 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
   const handleInvoiceDownload = async (invoiceId: string) => {
     setDownloadingId(invoiceId);
     try {
-      const response = await fetch(`/api/member/invoices/${invoiceId}/download`);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || '請求書データの取得に失敗しました');
-      }
-      const data = await response.json();
+      const data = await getJson<any>(`/api/member/invoices/${invoiceId}/download`);
       if (!data.success || !data.invoice) {
         throw new Error('請求書データが見つかりませんでした');
       }
@@ -215,16 +212,8 @@ export function InvoicesClient({ userId }: InvoicesClientProps) {
         params.append('status', filters.status);
       }
 
-      const response = await fetch(`/api/member/invoices?${params}`, {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch invoices');
-      }
-
-      const { data } = await response.json();
-      setInvoices(data || []);
+      const result = await fetchInvoicesAPI({ status: filters.status !== 'all' ? filters.status : undefined });
+      setInvoices((result as any).data || []);
     } catch (err) {
       console.error('Failed to fetch invoices:', err);
       setError('請求書の取得に失敗しました');
