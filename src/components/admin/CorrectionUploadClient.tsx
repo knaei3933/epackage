@@ -190,9 +190,9 @@ export function CorrectionUploadClient({ order }: CorrectionUploadClientProps) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (type === 'preview') {
-        !isUploading && previewInputRef.current?.click();
+        if (!isUploading) { previewInputRef.current?.click(); }
       } else {
-        !isUploading && fileInputRef.current?.click();
+        if (!isUploading) { fileInputRef.current?.click(); }
       }
     }
   }, [isUploading]);

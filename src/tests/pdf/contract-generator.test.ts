@@ -187,8 +187,8 @@ describe('ContractPdfGenerator', () => {
       const data = createMockContractData();
       const templateData = generator.prepareTemplateData(data);
 
-      expect(templateData.bankInfo).toContain('PayPay銀行');
-      expect(templateData.bankInfo).toContain('ビジネス営業部支店');
+      expect(templateData.bankInfo).toContain('三井住友銀行');
+      expect(templateData.bankInfo).toContain('明石支店');
     });
   });
 

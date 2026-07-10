@@ -38,6 +38,7 @@ module.exports = {
     '/tests/e2e/',
     '/server/',
     '/scripts/',
+    '/.next/',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [

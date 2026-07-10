@@ -272,7 +272,7 @@ export default function AdminNotificationsClient() {
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                editingId ? handleUpdate() : handleCreate()
+                if (editingId) { handleUpdate() } else { handleCreate() }
               }}
               className="space-y-4"
             >
