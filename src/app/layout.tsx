@@ -17,6 +17,7 @@ import { ModalWrapper } from "./components/ModalWrapper";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
 import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal";
+import { SWRConfig } from "swr";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -193,7 +194,7 @@ export default function RootLayout({
                   <ModalWrapper />
                   <HeaderWrapper />
                   <BreadcrumbList />
-                  <ToastProvider><main>{children}</main></ToastProvider>
+                  <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
                   <Footer />
                   <ChatWidget />
                   {/* InactivityWarningModal only for logged-in users */}

@@ -7,6 +7,7 @@
  */
 
 import useSWR, { SWRConfiguration, Key } from 'swr';
+import { getJson } from '@/lib/api-fetch';
 
 // ============================================================
 // Types
@@ -29,21 +30,7 @@ interface FetchOptions extends SWRConfiguration {
  * Enhanced fetcher with automatic retry and error handling
  */
 async function fetcher<T>(url: string): Promise<T> {
-  const response = await fetch(url, {
-    // Add cache control header
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const error = new Error(`HTTP error! status: ${response.status}`);
-    (error as any).status = response.status;
-    (error as any).response = response;
-    throw error;
-  }
-
-  return response.json();
+  return getJson<T>(url);
 }
 
 /**
