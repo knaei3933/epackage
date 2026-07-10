@@ -864,4 +864,7 @@ const OPTION_CATEGORIES: Record<string, string> = {
 };
 
 // Utility functions moved to ./parts/processingUtils.ts for maintainability
-export { getDefaultPostProcessingOptions, calculatePostProcessingMultiplier, validateCategorySelection, calculateProcessingImpact, getProcessingCategories } from './parts/processingUtils';
+export { getDefaultPostProcessingOptions, calculatePostProcessingMultiplier, validateCategorySelection, calculateProcessingImpact } from './parts/processingUtils';
+
+// getProcessingCategories is a simple alias - keep inline to avoid circular import
+export const getProcessingCategories = PROCESSING_CATEGORIES;

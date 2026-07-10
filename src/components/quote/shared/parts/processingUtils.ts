@@ -144,7 +144,4 @@ export const calculateProcessingImpact = (selectedOptions: string[]) => {
   }
 }
 
-/**
- * 後加工カテゴリ一覧を取得
- */
-export const getProcessingCategories = PROCESSING_CATEGORIES
+// getProcessingCategories moved back to processingConfig.ts to avoid circular import
