@@ -26,6 +26,15 @@ import { useRouter } from 'next/navigation';
 import { ButtonSpinner } from '@/components/ui/LoadingSpinner';
 import Link from 'next/link';
 import CostBreakdownPanel from '../shared/CostBreakdownPanel';
+import {
+  getMaterialDescriptionJa,
+  getMaterialLabelJa,
+  getBagTypeDescriptionJa,
+  getBagTypeLabel,
+  getPostProcessingLabel,
+  translateSpoutPosition,
+  getFilteredPostProcessingOptions,
+} from './result-helpers';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
 import type { ParallelProductionOption } from '../shared';
 
@@ -287,143 +296,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     }
   }, [state.bagTypeId, state.quantity, state.width, state.height, state.depth, result.unitPrice, state.filmLayers, state.materialId, state.thicknessSelection, state.postProcessingOptions]);
 
-  // Helper function to get material description in Japanese
-  const getMaterialDescriptionJa = (materialId: string): string => {
-    const descriptions: Record<string, string> = {
-      'pet_al': 'PET+AL (高バリア)',
-      'pet_vmpet': 'PET+VMPET (蒸着)',
-      'pet_ldpe': 'PET+LLDPE (透明)',
-      'pet_ny_al': 'PET+NY+AL (超高バリア)'
-    };
-    return descriptions[materialId] || materialId;
-  };
-
-  // Get material label (for PDF display)
-  const getMaterialLabelJa = (materialId: string): string => {
-    return MATERIAL_TYPE_LABELS_JA[materialId as keyof typeof MATERIAL_TYPE_LABELS_JA] || materialId;
-  };
-
-  // フィルム実構成ラベルは materialTypes.ts の getFilmStructureLabel（単一データソース: materialData.ts）
-  // に集約。本ファイルでのローカル再定義（`/` 区切り）は廃止済み。
-  // ※保存値の区切り文字が `/` → `+` に変化（新規見積のみ・既存DBは遡及禁止）。
-
-  // Helper function to get bag type description in Japanese
-  const getBagTypeDescriptionJa = (bagTypeId: string): string => {
-    const descriptions: Record<string, string> = {
-      'flat_3_side': '三方シール平袋',
-      'stand_up': 'スタンドパウチ',
-      'box': 'ガゼットパウチ',
-      'spout_pouch': 'スパウトパウチ',
-      'roll_film': 'ロールフィルム'
-    };
-    return descriptions[bagTypeId] || bagTypeId;
-  };
-
-  // Helper function to get bag type label
-  const getBagTypeLabel = (bagTypeId: string): string => {
-    const labels: Record<string, string> = {
-      'flat_3_side': '三方シール平袋',
-      'stand_up': 'スタンドパウチ',
-      'box': 'ガゼットパウチ',
-      'spout_pouch': 'スパウトパウチ',
-      'roll_film': 'ロールフィルム'
-    };
-    return labels[bagTypeId] || bagTypeId;
-  };
-
-  // Helper function to get post-processing label
-  const getPostProcessingLabel = (optionId: string): string => {
-    // DEBUG: Log the received optionId
-    console.log('[getPostProcessingLabel] Received optionId:', optionId, 'type:', typeof optionId);
-    const labels: Record<string, string> = {
-      'zipper-yes': 'ジッパー付き',
-      'zipper-no': 'ジッパーなし',
-      'hanging_hole-6mm': '吊り下げ穴 (6mm)',
-      'hanging_hole-8mm': '吊り下げ穴 (8mm)',
-      'zipper-position-delegate': 'ジッパー位置 (お任せ)',
-      'zipper-position-specify': 'ジッパー位置 (指定)',
-      'zipper-position-any': 'ジッパー位置 (お任せ)',
-      'zipper-position-specified': 'ジッパー位置 (指定)',
-      'glossy': '光沢仕上げ',
-      'matte': 'マット仕上げ',
-      'notch-yes': 'Vノッチ',
-      'notch-straight': '直線ノッチ',
-      'notch-no': 'ノッチなし',
-      'hang-hole-6mm': '吊り下げ穴 (6mm)',
-      'hang-hole-8mm': '吊り下げ穴 (8mm)',
-      'hang-hole-no': '吊り穴なし',
-      'corner-round': '角丸',
-      'corner-square': '角直角',
-      'valve-yes': 'ガス抜きバルブ',
-      'valve-no': 'バルブなし',
-      'top-open': '上端開封',
-      'bottom-open': '下端開封',
-      // シール幅関連（フィルタリング対象識別用）
-      'sealing-width-5mm': 'シール幅 5mm',
-      'sealing-width-7.5mm': 'シール幅 7.5mm',
-      'sealing-width-7-5mm': 'シール幅 7.5mm',
-      'sealing-width-10mm': 'シール幅 10mm',
-      'sealing width 5mm': 'シール幅 5mm',
-      'sealing width 7.5mm': 'シール幅 7.5mm',
-      'sealing width 10mm': 'シール幅 10mm',
-      // マチ印刷関連
-      'machi-printing-yes': 'マチ印刷あり',
-      'machi-printing-no': 'マチ印刷なし'
-    };
-    const result = labels[optionId];
-    console.log('[getPostProcessingLabel] labels[optionId]:', result);
-    console.log('[getPostProcessingLabel] Available machi keys:', Object.keys(labels).filter(k => k.includes('machi')));
-    return result || optionId.replace(/[-_]/g, ' ');
-  };
-
-  // Filter post-processing options for roll film - only show surface treatments
-  const getFilteredPostProcessingOptions = (): string[] => {
-    if (!state.postProcessingOptions || state.postProcessingOptions.length === 0) {
-      return [];
-    }
-
-    // For roll_film and spout_pouch, only show glossy/matte surface treatments
-    if (state.bagTypeId === 'roll_film' || state.bagTypeId === 'spout_pouch') {
-      const allowedOptions = ['glossy', 'matte'];
-      return state.postProcessingOptions.filter(opt => allowedOptions.includes(opt));
-    }
-
-    // For all other bag types, filter out seal width options since they are displayed separately
-    // sealWidth is stored in state.sealWidth and displayed as a separate field
-    const sealWidthOptionIds = [
-      'sealing-width-5mm',
-      'sealing-width-7.5mm',
-      'sealing-width-7-5mm',
-      'sealing-width-10mm',
-      'seal-width-5mm',
-      'seal-width-7.5mm',
-      'seal-width-7-5mm',
-      'seal-width-10mm'
-    ];
-
-    return state.postProcessingOptions.filter(opt =>
-      !sealWidthOptionIds.includes(opt) &&
-      !opt.includes('sealing width') &&
-      !opt.includes('sealing-width') &&
-      !opt.includes('seal-width') &&
-      opt !== '5mm' &&
-      opt !== '7.5mm' &&
-      opt !== '7-5mm' &&
-      opt !== '10mm'
-    );
-  };
-
-  // Helper function to translate spout position to Japanese
-  const translateSpoutPosition = (position: string): string => {
-    const translations: Record<string, string> = {
-      'top-center': '上端中央',
-      'top-left': '上端左',
-      'top-right': '上端右',
-      'center': '中央',
-      'bottom-center': '下端中央'
-    };
-    return translations[position] || position;
-  };
 
   // Helper to generate PDF quote data
   const generateQuoteData = (overrideQuoteNumber?: string): QuoteData => {
@@ -2026,7 +1898,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
                 <h4 className="text-sm font-semibold text-gray-900">後加工</h4>
               </div>
               <div className="flex flex-wrap gap-2">
-                {safeMap(getFilteredPostProcessingOptions(), option => (
+                {safeMap(getFilteredPostProcessingOptions(state.postProcessingOptions, state.bagTypeId), option => (
                   <span
                     key={option}
                     className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-sm text-gray-700"
