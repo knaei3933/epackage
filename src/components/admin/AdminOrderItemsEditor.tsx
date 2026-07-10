@@ -17,9 +17,21 @@ import { ChevronDown, ChevronUp, Package, Edit2, Save, X, Check, Percent } from 
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types/dashboard';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
-import { getFilmStructureLabel } from '@/constants/materialTypes';
 import { processingOptionsConfig, PROCESSING_CATEGORIES } from '@/components/quote/shared/processingConfig';
 import { adminFetch } from '@/lib/auth-client';
+import {
+  formatNumber,
+  formatThicknessDisplay,
+  getItemValue,
+  getBagTypeLabel,
+  getMaterialLabel,
+  getThicknessLabel,
+  getPrintingLabel,
+  getUrgencyLabel,
+  getDeliveryLocationLabel,
+  getSpoutPositionLabel,
+  getSealWidthLabel,
+} from './order-items/parts/labelUtils';
 
 // =====================================================
 // Types
@@ -44,133 +56,6 @@ const EDITABLE_STATUSES = [
 // =====================================================
 // Helper Functions
 // =====================================================
-
-function formatNumber(value: number | undefined | null): string {
-  if (value === undefined || value === null || isNaN(value)) {
-    return '0';
-  }
-  return value.toLocaleString();
-}
-
-/**
- * 厚さ情報を詳細表示用にフォーマット
- * 保存された完全なスペック文字列（例: PET 12μ + AL 7μ + PET 12μ + LLDPE 80μ）を返す
- */
-function formatThicknessDisplay(specs: any): string {
-  // 保存された完全なスペック文字列があれば使用
-  if (specs.specification) {
-    return specs.specification;
-  }
-  // materialIdとthicknessSelectionからスペックを生成
-  if (specs.materialId && specs.thicknessSelection) {
-    const spec = getMaterialSpecification(specs.materialId, specs.thicknessSelection);
-    if (spec !== '-') {
-      return spec;
-    }
-  }
-  // フォールバック
-  return specs.thicknessSelection || '-';
-}
-
-function getItemValue(item: any, camelCaseKey: string, snakeCaseKey: string): any {
-  return item[camelCaseKey] ?? item[snakeCaseKey];
-}
-
-// =====================================================
-// Helper Functions for Labels
-// =====================================================
-
-function getBagTypeLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'flat_3_side': '三方シール平袋',
-    'stand_up': 'スタンドパウチ',
-    'gazette': 'ガゼットパウチ',
-    'roll_film': 'ロールフィルム',
-    'spout_pouch': 'スパウトパウチ',
-    'zipper_pouch': 'チャック付袋',
-  };
-  return labels[value] || value || '-';
-}
-
-function getMaterialLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'pet_al': 'PET/AL (アルミ箔ラミネート)',
-    'pet_pe': 'PET/PE',
-    'cpp': 'CPP (未延伸ポリプロピレン)',
-    'lldpe': 'LLDPE (直鎖状低密度ポリエチレン)',
-  };
-  return labels[value] || value || '-';
-}
-
-function getThicknessLabel(value: string, materialId?: string): string {
-  // materialId + thicknessSelection から実フィルム構成を取得（kraft 系は仕様値未確定のため Phase 2 後退・抽象フォールバック維持）
-  if (materialId) {
-    const isKraft = materialId === 'kraft_vmpet_lldpe' || materialId === 'kraft_pet_lldpe';
-    if (!isKraft) {
-      const structureLabel = getFilmStructureLabel(materialId, value);
-      if (structureLabel && structureLabel !== materialId) return structureLabel;
-    }
-    // kraft 系は従来の nameJa フォールバック
-    const options = MATERIAL_THICKNESS_OPTIONS[materialId];
-    if (options) {
-      const opt = options.find(o => o.id === value);
-      if (opt) return opt.nameJa;
-    }
-  }
-  // フォールバック
-  const labels: Record<string, string> = {
-    'thin': '薄い',
-    'medium': '標準',
-    'thick': '厚い',
-    'light': '軽量タイプ (~100g)',
-    'heavy': '高耐久タイプ (~800g)',
-    'ultra': '超耐久タイプ (800g~)',
-  };
-  return labels[value] || value || '-';
-}
-
-function getPrintingLabel(type: string): string {
-  const labels: Record<string, string> = {
-    'digital': 'デジタル印刷',
-    'gravure': 'グラビア印刷',
-    'none': 'なし',
-  };
-  return labels[type] || type || '-';
-}
-
-function getUrgencyLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'standard': '標準',
-    'urgent': '至急',
-  };
-  return labels[value] || value || '-';
-}
-
-function getDeliveryLocationLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'domestic': '国内',
-    'international': '海外',
-  };
-  return labels[value] || value || '-';
-}
-
-function getSpoutPositionLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'top-left': '左上',
-    'top-center': '上中央',
-    'top-right': '右上',
-  };
-  return labels[value] || value || '-';
-}
-
-function getSealWidthLabel(value: string): string {
-  const labels: Record<string, string> = {
-    '5mm': '5mm',
-    '7.5mm': '7.5mm',
-    '10mm': '10mm',
-  };
-  return labels[value] || value || '-';
-}
 
 // =====================================================
 // Editable Spec Item Component
