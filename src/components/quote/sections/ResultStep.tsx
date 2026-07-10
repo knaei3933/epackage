@@ -35,6 +35,12 @@ import {
   translateSpoutPosition,
   getFilteredPostProcessingOptions,
 } from './result-helpers';
+import { arrayBufferToBase64 } from './parts/arrayBufferToBase64';
+import { PersistenceStatusBanner } from './parts/PersistenceStatusBanner';
+import { ActionButtons } from './parts/ActionButtons';
+import { PrintingRecommendation } from './parts/PrintingRecommendation';
+import { SpecificationsCard } from './parts/SpecificationsCard';
+import { PriceComparisonSection } from './parts/PriceComparisonSection';
 import type { MultiQuantityResult } from '@/types/multi-quantity';
 import type { ParallelProductionOption } from '../shared';
 
@@ -898,17 +904,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   };
 
   // Helper function to convert ArrayBuffer to Base64
-  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-  };
-
-  // データベース保存関数 (handleDownloadPdfから自動呼び出し)
-  // ✅ エラーハンドリング改善
   // 戻り値: 保存成功時は見積もりID、失敗時はnull
   const saveQuotationToDatabase = async (): Promise<{ id: string | null; quotationNumber: string | null }> => {
     // ✅ 認証チェック: ログインしていない場合でも itemsToSave 構築後にsessionStorageへ保存
@@ -1580,58 +1575,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
   return (
     <div className="space-y-8">
-      {/* Phase 1 fix: persistence status banner (auto-save result) */}
-      {persistenceStatus.status === 'success' && (
-        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold text-green-900">{persistenceStatus.message}</p>
-            {persistenceStatus.quotationNumber && (
-              <p className="text-sm text-green-700 mt-1">見積番号: {persistenceStatus.quotationNumber}</p>
-            )}
-            {user?.id && (
-              <a href="/member/quotations" className="inline-block mt-2 text-sm font-medium text-green-700 underline hover:text-green-900">
-                見積一覧を確認する →
-              </a>
-            )}
-            {!user?.id && persistenceStatus.message.includes('一時保存') && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a href="/auth/signin" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                  ログインして見積を保存 →
-                </a>
-                <a href="/auth/register" className="inline-flex items-center px-4 py-2 bg-white border-2 border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors">
-                  新規会員登録
-                </a>
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setPersistenceStatus({ status: 'idle', message: '' })}
-            className="text-green-400 hover:text-green-700"
-            aria-label="閉じる"
-          >
-            ×
-          </button>
-        </div>
-      )}
-      {persistenceStatus.status === 'error' && (
-        <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold text-red-900">見積の保存に失敗しました</p>
-            <p className="text-sm text-red-700 mt-1">{persistenceStatus.message}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setPersistenceStatus({ status: 'idle', message: '' })}
-            className="text-red-400 hover:text-red-700"
-            aria-label="閉じる"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      <PersistenceStatusBanner
+        persistenceStatus={persistenceStatus}
+        userId={user?.id}
+        setPersistenceStatus={setPersistenceStatus}
+      />
 
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -1642,495 +1590,31 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         </p>
       </div>
 
-      {/* Phase 2: 印刷方式レコメンド表示（printingType='auto' 解決時のみ・AC-9）
-          複数パターンビューでは比較表で各パターンの推奨方式を表示するため非表示 */}
-      {result.recommendation && !showPatternComparison && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-              推
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-blue-900 mb-1">
-                おすすめの印刷方法: {result.recommendation.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}
-              </h3>
-              <p className="text-sm text-blue-800 mb-3">{result.recommendation.reason}</p>
-              {/* 2方式の違いと分岐点の平易な説明（C3: 専門用語の平易化） */}
-              <details className="text-xs text-blue-700 mb-3">
-                <summary className="cursor-pointer hover:text-blue-900 inline-flex items-center font-medium">
-                  <Info className="w-3.5 h-3.5 mr-1" />
-                  グラビアとデジタルの違いについて
-                </summary>
-                <div className="mt-2 space-y-1.5 text-blue-800 leading-relaxed">
-                  <p>
-                    <span className="font-semibold">デジタル印刷</span>：版（かなばん）を作らず、プリンターのように直接印刷。
-                    <span className="font-semibold">少量向け</span>。初期費用がかからず、少量なら安く早く仕上がります。
-                  </p>
-                  <p>
-                    <span className="font-semibold">グラビア印刷</span>：専用の銅版（どうばん＝印刷の型）を作って印刷。
-                    <span className="font-semibold">多量向け</span>。版づくりの初期費用がかかりますが、多く刷るほど1個あたりの単価が下がり、品質も安定します。
-                  </p>
-                  <p className="text-blue-600 pt-1 border-t border-blue-200">
-                    つまり「<span className="font-semibold">分岐点数量</span>」は、グラビアがデジタルより安くなる<span className="font-semibold">境界の個数</span>です。
-                    これより多く発注するならグラビア、少ないならデジタルがお得、という目安です。
-                  </p>
-                </div>
-              </details>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-gray-500 text-xs mb-1">デジタル総額</div>
-                  <div className={`font-semibold ${result.recommendation.method === 'digital' ? 'text-blue-700' : 'text-gray-700'}`}>
-                    {result.recommendation.digitalTotalPrice >= 0
-                      ? `¥${result.recommendation.digitalTotalPrice.toLocaleString()}`
-                      : '計算不可'}
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-gray-500 text-xs mb-1">グラビア総額</div>
-                  <div className={`font-semibold ${result.recommendation.method === 'gravure' ? 'text-blue-700' : 'text-gray-700'}`}>
-                    {result.recommendation.gravureTotalPrice >= 0
-                      ? `¥${result.recommendation.gravureTotalPrice.toLocaleString()}`
-                      : '計算不可'}
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-gray-500 text-xs mb-1">分岐点数量</div>
-                  <div className="font-semibold text-gray-700">
-                    {result.recommendation.breakevenQuantity >= 0
-                      ? `約${result.recommendation.breakevenQuantity.toLocaleString()}個`
-                      : '－'}
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-blue-600 mt-3">
-                ※ 推奨は目安です。数量・仕様変更で分岐点は前後します。印刷方式は設定で「デジタル/グラビア/自動選択」から上書き選択できます。
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==============================================
-          注文内容の確認（プロフェッショナル・カードUI）
-          - showPatternComparison / 従来ビュー両対応
-          - ロジック・データは既存のまま（state / result / multiQuantityQuotes）
-          ============================================== */}
-      <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* セクションヘッダー */}
-        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-navy-600 text-white">
-              <Package className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 leading-tight">注文内容の確認</h3>
-              <p className="text-xs text-gray-500 mt-0.5">ご指定いただいた仕様・条件のまとめ</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ボディ：2カラム（モバイル1列） */}
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ── 基本仕様 ── */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                <Package className="w-4 h-4 text-navy-600 flex-shrink-0" />
-                <h4 className="text-sm font-semibold text-gray-900">基本仕様</h4>
-              </div>
-              <dl className="space-y-2.5 text-sm">
-                {((): null => { console.log('[ResultStep] Basic specs - bagTypeId:', state.bagTypeId, 'is roll_film:', state.bagTypeId === 'roll_film'); return null; })()}
-                {/* 内容物 */}
-                {(() => {
-                  const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-                    'food': '食品',
-                    'health_supplement': '健康食品',
-                    'cosmetic': '化粧品',
-                    'quasi_drug': '医薬部外品',
-                    'drug': '医薬品',
-                    'other': 'その他'
-                  };
-                  const CONTENTS_TYPE_LABELS: Record<string, string> = {
-                    'solid': '固体',
-                    'powder': '粉体',
-                    'liquid': '液体'
-                  };
-                  const MAIN_INGREDIENT_LABELS: Record<string, string> = {
-                    'general_neutral': '一般/中性',
-                    'oil_surfactant': 'オイル/界面活性剤',
-                    'acidic_salty': '酸性/塩分',
-                    'volatile_fragrance': '揮発性/香料',
-                    'other': 'その他'
-                  };
-                  const DISTRIBUTION_ENVIRONMENT_LABELS: Record<string, string> = {
-                    'general_roomTemp': '一般/常温',
-                    'light_oxygen_sensitive': '光/酸素敏感',
-                    'refrigerated': '冷凍保管',
-                    'high_temp_sterilized': '高温殺菌',
-                    'other': 'その他'
-                  };
-                  const categoryLabel = PRODUCT_CATEGORY_LABELS[state.productCategory || ''];
-                  const typeLabel = CONTENTS_TYPE_LABELS[state.contentsType || ''];
-                  const ingredientLabel = MAIN_INGREDIENT_LABELS[state.mainIngredient || ''];
-                  const environmentLabel = DISTRIBUTION_ENVIRONMENT_LABELS[state.distributionEnvironment || ''];
-                  const contentsDisplay = (categoryLabel && typeLabel && ingredientLabel && environmentLabel)
-                    ? `${categoryLabel}（${typeLabel}） / ${ingredientLabel} / ${environmentLabel}`
-                    : '';
-                  return contentsDisplay ? (
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">内容物</dt>
-                      <dd className="text-gray-900 font-medium">{contentsDisplay}</dd>
-                    </div>
-                  ) : null;
-                })()}
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">袋タイプ</dt>
-                  <dd className="text-gray-900 font-medium">{getBagTypeLabel(state.bagTypeId)}</dd>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">サイズ</dt>
-                  <dd className="text-gray-900 font-medium">
-                    {state.bagTypeId === 'roll_film'
-                      ? `幅: ${state.width} mm`
-                      : `${state.width} × ${state.height} ${(state.depth > 0 && state.bagTypeId !== 'lap_seal') ? `× ${state.depth}` : ''} mm`}
-                  </dd>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                  <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">素材</dt>
-                  <dd className="text-gray-900 font-medium">{getMaterialDescription(state.materialId, 'ja')}</dd>
-                </div>
-                {state.thicknessSelection && (
-                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                    <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">厚さ</dt>
-                    <dd className="text-gray-900 font-medium">{getFilmStructureLabel(state.materialId, state.thicknessSelection)}</dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-
-            {/* ── 数量・印刷 ── */}
-            <div className="space-y-3 md:border-l md:border-gray-100 md:pl-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                <Layers className="w-4 h-4 text-navy-600 flex-shrink-0" />
-                <h4 className="text-sm font-semibold text-gray-900">数量・印刷</h4>
-              </div>
-              <dl className="space-y-2.5 text-sm">
-                {showPatternComparison ? (
-                  <>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">数量</dt>
-                      <dd className="text-gray-900 font-medium">
-                        下記「数量パターン比較表」をご参照ください（{multiQuantityQuotes.length}パターン）
-                      </dd>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷方式</dt>
-                      <dd className="text-gray-900 font-medium">各パターンの推奨（デジタル/グラビア）は比較表に記載</dd>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
-                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
-                    </div>
-                  </>
-                ) : hasValidSKUData ? (
-                  <>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">SKU別数量</dt>
-                      <dd className="text-gray-900 font-medium">
-                        {result?.skuCount || state.skuCount}種類
-                      </dd>
-                    </div>
-                    <div className="ml-0 sm:ml-[108px] space-y-1 text-gray-700">
-                      {(result?.skuQuantities || state.skuQuantities || []).map((qty, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <span className="text-gray-400">•</span>
-                          <span>SKU {index + 1}: <span className="font-medium text-gray-900">{qty.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}</span></span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3 pt-1 border-t border-gray-100">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">総数量</dt>
-                      <dd className="text-navy-700 font-bold">
-                        {(result?.skuQuantities || state.skuQuantities || []).reduce((sum, qty) => sum + (qty || 0), 0).toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                      </dd>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
-                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
-                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">数量</dt>
-                      <dd className="text-gray-900 font-medium">
-                        {
-                          // ロールフィルムの場合はSKU数量を優先、それ以外はstate.quantityを使用
-                          state.bagTypeId === 'roll_film' && state.skuQuantities && state.skuQuantities.length > 0
-                            ? state.skuQuantities[0].toLocaleString()
-                            : state.quantity.toLocaleString()
-                        }{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                      </dd>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
-                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
-                      <dd className="text-gray-900 font-medium">{state.printingColors} {state.doubleSided && '（両面）'}</dd>
-                    </div>
-                  </>
-                )}
-              </dl>
-            </div>
-          </div>
-
-          {/* ── 後加工（全幅・条件付き） ── */}
-          {state.postProcessingOptions && state.postProcessingOptions.length > 0 && (
-            <div className="space-y-3 pt-6 border-t border-gray-100">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                <Settings className="w-4 h-4 text-navy-600 flex-shrink-0" />
-                <h4 className="text-sm font-semibold text-gray-900">後加工</h4>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {safeMap(getFilteredPostProcessingOptions(state.postProcessingOptions, state.bagTypeId), option => (
-                  <span
-                    key={option}
-                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-sm text-gray-700"
-                  >
-                    {getPostProcessingLabel(option)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── 配送・納期（全幅） ── */}
-          <div className="space-y-3 pt-6 border-t border-gray-100">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-              <Truck className="w-4 h-4 text-navy-600 flex-shrink-0" />
-              <h4 className="text-sm font-semibold text-gray-900">配送・納期</h4>
-            </div>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">配送先</dt>
-                <dd className="text-gray-900 font-medium">{state.deliveryLocation === 'domestic' ? '国内' : '海外'}</dd>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">納期</dt>
-                <dd className="text-gray-900 font-medium">
-                  {state.urgency === 'standard' ? '標準' : '迅速'}
-                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">
-                    {result.leadTimeDays}日
-                  </span>
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </section>
-
-      {/* C4: 数量パターン比較表（最安ハイライト・AC-7/AC-8） */}
-      {/* 仕様: .omc/plans/quantity-pattern-ui-consensus.md Phase 4
-          multiQuantityResult.calculations (Map<number, UnifiedQuoteResult & {recommendation}>) から
-          ユーザー入力パターンごとの価格を表形式で表示。最安パターンをハイライト。
-          AC-8: SKU数 <=5 のみ表示（showPatternMode ガード）。>5 は非表示。 */}
-      {showPatternComparison && multiQuantityResult?.calculations && (() => {
-        // C4: Mapキー=パターンindex(0-4)。
-        // fix #16: 実数量は calc.patternTotalQuantity（handleNext で保持）を使用。逆算廃止。
-        const rows = Array.from(multiQuantityResult.calculations.entries())
-          .map(([patternIdx, calc]) => {
-            const actualQuantity = calc.patternTotalQuantity ?? 0;
-            return {
-              patternIdx,
-              actualQuantity,
-              totalPrice: calc.totalPrice,
-              unitPrice: calc.unitPrice,
-              method: calc.recommendation?.method,
-            };
-          })
-          .sort((a, b) => a.actualQuantity - b.actualQuantity);
-
-        // 最安の単価を特定（ハイライト用）
-        const minUnitPrice = Math.min(...rows.map(r => r.unitPrice));
-
-        return (
-          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">数量パターン比較表</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-300 text-gray-600">
-                    <th className="text-left py-2 px-3">数量合計</th>
-                    <th className="text-right py-2 px-3">単価</th>
-                    <th className="text-right py-2 px-3">総額（税別）</th>
-                    <th className="text-center py-2 px-3">推奨方式</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => {
-                    const isCheapest = row.unitPrice === minUnitPrice;
-                    return (
-                      <tr
-                        key={row.patternIdx}
-                        className={`border-b border-gray-100 ${isCheapest ? 'bg-green-50' : ''}`}
-                      >
-                        <td className="py-2 px-3 font-medium text-gray-900">
-                          {row.actualQuantity.toLocaleString()}{state.bagTypeId === 'roll_film' ? 'm' : '枚'}
-                          {isCheapest && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              最安
-                            </span>
-                          )}
-                        </td>
-                        <td className={`text-right py-2 px-3 ${isCheapest ? 'font-bold text-green-700' : 'text-gray-700'}`}>
-                          ¥{formatPrice(row.unitPrice)}
-                        </td>
-                        <td className="text-right py-2 px-3 text-gray-700">
-                          ¥{Math.round(row.totalPrice).toLocaleString()}
-                        </td>
-                        <td className="text-center py-2 px-3">
-                          {row.method ? (
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              row.method === 'gravure'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-blue-100 text-blue-800'
-                            }`}>
-                              {row.method === 'gravure' ? 'グラビア' : 'デジタル'}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              ※ 単価最安のパターンをハイライト。グラビアは分岐点以上の数量で単価が下がります。
-            </p>
-          </div>
-        );
-      })()}
-
-      {/* Price Display（複数パターンビューでは非表示・比較表で代替） */}
-      {!showPatternComparison && (
-        <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white p-8 rounded-xl text-center">
-          <div className="text-sm font-medium mb-2">合計金額（税別）</div>
-          {(() => {
-            const roundedTotal = Math.ceil(result.totalPrice / 100) * 100;
-            return (
-              <>
-                <div className="text-4xl font-bold mb-4">
-                  ¥{roundedTotal.toLocaleString()}
-                </div>
-                <div className="text-sm opacity-90">
-                  単価: ¥{formatPrice(result.unitPrice)}/{state.bagTypeId === 'roll_film' ? 'm' : '個'}
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Admin-only cost breakdown */}
-      {isAdmin && result.skuCostDetails && (
-        <CostBreakdownPanel
-          costBreakdown={result.skuCostDetails as any}
-          markedUpPrice={result.totalPrice}
-          marginRate={0.5}
+      {result.recommendation && (
+        <PrintingRecommendation
+          recommendation={result.recommendation}
+          showPatternComparison={showPatternComparison}
         />
       )}
 
-      {/* Multi-Quantity Comparison Results */}
-      {multiQuantityState.comparison && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <BarChart3 className="w-5 h-5 mr-2 text-navy-600" />
-              数量比較分析結果
-            </h3>
+      <SpecificationsCard
+        state={state}
+        result={result}
+        showPatternComparison={showPatternComparison}
+        multiQuantityQuotes={multiQuantityQuotes}
+      />
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-4 bg-success-50 rounded-lg">
-                <p className="text-xs text-gray-500">最適数量</p>
-                <p className="text-lg font-bold text-success-600">
-                  {multiQuantityState.comparison.bestValue.quantity.toLocaleString()}個
-                </p>
-              </div>
-              <div className="text-center p-4 bg-info-50 rounded-lg">
-                <p className="text-xs text-gray-500">最大節約</p>
-                <p className="text-lg font-bold text-info-600">
-                  {multiQuantityState.comparison.bestValue.percentage}%
-                </p>
-              </div>
-              <div className="text-center p-4 bg-brixa-primary-50 rounded-lg">
-                <p className="text-xs text-gray-500">効率性改善</p>
-                <p className="text-lg font-bold text-brixa-primary-600">
-                  {multiQuantityState.comparison.trends.optimalQuantity.toLocaleString()}個
-                </p>
-              </div>
-              <div className="text-center p-4 bg-warning-50 rounded-lg">
-                <p className="text-xs text-gray-500">価格トレンド</p>
-                <p className="text-lg font-bold text-warning-600">
-                  {multiQuantityState.comparison.trends.priceTrend === 'decreasing' ? '低下' :
-                   multiQuantityState.comparison.trends.priceTrend === 'increasing' ? '上昇' : '安定'}
-                </p>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">数量比較詳細</h4>
-              <MultiQuantityComparisonTable
-                quotes={Object.entries(multiQuantityState.comparison!.economiesOfScale).map(([quantity, data]) => ({
-                  quantity: parseInt(quantity),
-                  unitPrice: data.unitPrice,
-                  totalPrice: data.unitPrice * parseInt(quantity),
-                  discountRate: Math.round((1 - data.efficiency / 100) * 100),
-                  priceBreak: multiQuantityState.comparison!.priceBreaks.find(pb => pb.quantity === parseInt(quantity))?.priceBreak || '通常',
-                  leadTimeDays: result.leadTimeDays,
-                  isValid: true
-                }))}
-                comparison={multiQuantityState.comparison!}
-                selectedQuantity={state.quantity}
-                onQuantitySelect={(quantity) => setSelectedQuantity(quantity)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Optimization Suggestions - Parallel Production & Economic Quantity */}
-      {/* 最終ページでは数量推薦UIを削除 - ユーザーが入力した数量を尊重 */}
-      {/* showOptimizationSuggestions && parallelProductionOptions.length > 0 && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <BarChart3 className="w-5 h-5 mr-2 text-yellow-600" />
-              並列生産オプションのご提案
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              複数個まとめて注文すると、同じ原反を効率的に使用でき、単価が下がります。
-            </p>
-            <ParallelProductionOptions
-              options={parallelProductionOptions}
-              currentUnitCost={result.unitPrice}
-              onOptionSelect={(option) => {
-                console.log('Selected parallel production option:', option);
-                // TODO: Update quantity and recalculate quote
-                // setState({ ...state, quantity: option.quantity });
-              }}
-            />
-          </div>
-        </div>
-      ) */}
+      <PriceComparisonSection
+        showPatternComparison={showPatternComparison}
+        multiQuantityResult={multiQuantityResult}
+        state={state}
+        result={result}
+        isAdmin={isAdmin}
+        multiQuantityState={multiQuantityState}
+        setSelectedQuantity={setSelectedQuantity}
+        multiQuantityQuotes={multiQuantityQuotes}
+        parallelProductionOptions={parallelProductionOptions}
+      />
 
       {/* Price Breakdown - 非表示（内部詳細はユーザーに表示しない） */}
       {/*
@@ -2185,136 +1669,16 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       </div>
       */}
 
-      {/* Action Buttons */}
-      <div className="flex flex-wrap justify-center gap-3">
-        {/* 注文ボタン（会員限定） */}
-        {user?.id && quotationId && (
-          <button
-            onClick={async () => {
-              try {
-                const res = await fetch(`/api/member/quotations/${quotationId}/convert`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                });
-                if (res.ok) {
-                  const data = await res.json();
-                  alert('注文を確定しました。注文履歴からご確認ください。');
-                  window.location.href = '/member/orders';
-                } else {
-                  alert('注文の確定に失敗しました。もう一度お試しください。');
-                }
-              } catch (e) {
-                alert('通信エラーが発生しました。');
-              }
-            }}
-            className="px-6 py-3 bg-brixa-600 text-white rounded-lg font-medium hover:bg-brixa-700 transition-colors flex items-center"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            この内容で注文
-          </button>
-        )}
-
-        <motion.button
-          onClick={() => {
-            if (window.confirm('新しい見積もりを作成します。現在の入力内容はリセットされます。よろしいですか？')) {
-              onReset();
-            }
-          }}
-          className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
-          <RefreshCw className="w-4 h-4 inline mr-2" />
-          新しい見積もり
-        </motion.button>
-
-        {/* 見積一覧リンク（認証済みのみ） */}
-        {user?.id && (
-          <Link
-            href="/member/quotations"
-            className="px-6 py-3 border border-navy-300 text-navy-700 rounded-lg font-medium hover:bg-navy-50 transition-colors flex items-center"
-          >
-            <List className="w-4 h-4 mr-2" />
-            見積一覧
-          </Link>
-        )}
-
-        <button
-          onClick={handleDownloadPdf}
-          disabled={isGeneratingPdf}
-          className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center ${
-            isGeneratingPdf
-              ? 'bg-gray-400 cursor-not-allowed'
-              : pdfStatus === 'success'
-              ? 'bg-info-600 hover:bg-info-700 text-white'
-              : pdfStatus === 'error'
-              ? 'bg-error-600 hover:bg-error-700 text-white'
-              : 'bg-navy-700 hover:bg-navy-600 text-white'
-          }`}
-        >
-          {isGeneratingPdf ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              PDF生成中...
-            </>
-          ) : pdfStatus === 'success' ? (
-            <>
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              ダウンロード完了 (自動保存済み)
-            </>
-          ) : pdfStatus === 'error' ? (
-            <>
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              失敗
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              {showPatternComparison && multiQuantityQuotes.length > 0
-                ? `全パターンPDFダウンロード (${multiQuantityQuotes.length}パターン・自動保存)`
-                : 'PDFダウンロード (自動保存)'}
-            </>
-          )}
-        </button>
-
-        {/* 未認証ユーザー向け会員登録促進メッセージ */}
-        {!user?.id && (
-          <div className="w-full mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-amber-900">この見積を保存するには会員登録</p>
-                <p className="text-sm text-amber-700 mt-1">
-                  会員登録（無料）すると、見積履歴の保存・管理や、専任担当者からのご連絡が可能になります。
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <Link
-                    href="/auth/register?redirect=/quote-simulator"
-                    className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
-                  >
-                    今すぐ会員登録
-                  </Link>
-                  <Link
-                    href="/auth/signin?redirect=/quote-simulator"
-                    className="px-4 py-2 border border-amber-600 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-50 transition-colors"
-                  >
-                    ログイン
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <ActionButtons
+        userId={user?.id}
+        quotationId={quotationId}
+        onReset={onReset}
+        handleDownloadPdf={handleDownloadPdf}
+        isGeneratingPdf={isGeneratingPdf}
+        pdfStatus={pdfStatus}
+        showPatternComparison={showPatternComparison}
+        multiQuantityQuotesLength={multiQuantityQuotes.length}
+      />
     </div>
   );
 }
