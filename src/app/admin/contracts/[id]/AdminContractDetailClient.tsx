@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { ContractDownloadButton, ContractPreviewButton } from '@/components/admin/ContractDownloadButton';
 import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { useToastContext } from '@/components/ui/Toast';
+import { downloadContractPdf as downloadContractPdfAPI } from '@/lib/api/admin/contracts';
 
 interface Contract {
   id: string;
@@ -187,13 +188,7 @@ export default function AdminContractDetailClient() {
     setUpdating(true);
     try {
       // Call PDF generation API
-      const response = await fetch(`/api/admin/contracts/${contractId}/pdf`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) throw new Error('PDF generation failed');
-
-      const data = await response.json();
+      const data = await downloadContractPdfAPI(contractId) as any;
 
       // Update contract with PDF URL
       const { error } = await supabase

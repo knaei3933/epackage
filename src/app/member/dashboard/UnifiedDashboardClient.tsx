@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
+import { fetcher } from '@/hooks/use-optimized-fetch';
 
 // =====================================================
 // Types
@@ -30,24 +31,7 @@ export function UnifiedDashboardClient({
   // Include userId as query param for client-side auth fallback
   const { data: stats, error, isValidating, mutate } = useSWR<UnifiedDashboardStats>(
     `/api/member/dashboard/unified-stats?period=${period}&userId=${userId}`,
-    async (url) => {
-      // Cookie-based authentication (primary) with userId fallback
-      // The API will authenticate via cookies server-side, with userId as fallback
-      const response = await fetch(url, {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      return data;
-    },
+    fetcher,
    {
      fallbackData: initialStats,
      refreshInterval: 60000, // 60秒自動更新（負荷低減）

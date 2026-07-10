@@ -7,9 +7,10 @@ import useSWR from 'swr';
 import { supabase } from '@/lib/supabase-browser';
 
 import { Card, Badge, Button } from '@/components/ui';
+import { fetcher } from '@/hooks/use-optimized-fetch';
 
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+// fetcher imported from use-optimized-fetch
 
 interface Shipment {
   id: string;
@@ -59,9 +60,9 @@ export default function AdminShippingClient() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCarrier, setFilterCarrier] = useState<string>('all');
 
-  const { data: shipments, error, mutate } = useSWR(
+  const { data: shipments, error, mutate } = useSWR<Shipment[]>(
     '/api/admin/shipping/shipments',
-    fetcher,
+    fetcher as any,
     { refreshInterval: 60000 } // 60秒ごとに更新（負荷低減）
   );
 
@@ -260,9 +261,9 @@ function getStatusVariant(status: string): 'success' | 'warning' | 'error' | 'de
 }
 
 function ShipmentDetailPanel({ shipment, onUpdate }: { shipment: Shipment; onUpdate: () => void }) {
-  const { data: tracking } = useSWR(
+  const { data: tracking } = useSWR<TrackingEvent[]>(
     shipment.id ? `/api/admin/shipping/tracking/${shipment.id}` : null,
-    fetcher
+    fetcher as any
   );
 
   return (

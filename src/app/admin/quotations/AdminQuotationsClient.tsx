@@ -30,6 +30,7 @@ import type { Quotation } from '@/types/quotation';
 
 import type { AdminAuthContext } from '@/types/admin';
 import { useToastContext } from '@/components/ui/Toast';
+import { fetchQuotations as fetchQuotationsAPI } from '@/lib/api/admin/quotations';
 
 interface AdminQuotationsClientProps {
   initialStatus: string;
@@ -98,26 +99,19 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
       url.searchParams.set('page', page.toString());
       url.searchParams.set('limit', pageSize.toString());
 
-      const response = await fetch(url.toString(), {
-        credentials: 'include',
-      });
+      const result = await fetchQuotationsAPI({
+        page,
+        limit: pageSize,
+        status: filterStatus !== 'all' ? filterStatus : undefined,
+        search: searchTerm || undefined,
+      }) as any;
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        const normalizedQuotations = (result.quotations || []).map((q: any) => ({
-          ...q,
-          status: normalizeStatus(q.status),
-        }));
-        setQuotations(normalizedQuotations);
-        setTotal(result.pagination?.total || 0);
-      } else {
-        throw new Error(result.error || 'Failed to fetch quotations');
-      }
+      const normalizedQuotations = (result.quotations || []).map((q: any) => ({
+        ...q,
+        status: normalizeStatus(q.status),
+      }));
+      setQuotations(normalizedQuotations);
+      setTotal(result.pagination?.total || 0);
     } catch (error) {
       console.error('見積もりリスト取得失敗:', error);
       setQuotations([]);

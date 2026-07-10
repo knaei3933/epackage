@@ -8,8 +8,9 @@ import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { ContractWorkflowList } from '@/components/admin/contract-workflow/ContractWorkflowList';
 import { ContractTimeline } from '@/components/admin/contract-workflow/ContractTimeline';
 import { ContractReminderModal } from '@/components/admin/contract-workflow/ContractReminderModal';
+import { fetcher } from '@/hooks/use-optimized-fetch';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+// fetcher imported from use-optimized-fetch
 
 interface Contract {
   id: string;
@@ -34,9 +35,9 @@ export default function AdminContractsClient() {
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
 
-  const { data: contracts, mutate } = useSWR(
+  const { data: contracts, mutate } = useSWR<any>(
     `/api/admin/contracts/workflow?page=${page}&page_size=${pageSize}`,
-    fetcher,
+    fetcher as any,
     { refreshInterval: 60000 } // 60秒ごとに更新（リアルタイム性よりも負荷低減を優先）
   );
 

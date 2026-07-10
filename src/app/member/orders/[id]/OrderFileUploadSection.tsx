@@ -25,6 +25,7 @@ import {
 } from '@/lib/sku-upload-state';
 import { SKUCardGrid } from '@/components/upload/SKUCardGrid';
 import { useToastContext } from '@/components/ui/Toast';
+import { deleteJson } from '@/lib/api-fetch';
 
 // =====================================================
 // Props & Types
@@ -354,21 +355,8 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
     try {
       console.log('[Delete File] Starting deletion for file:', fileId);
-      const response = await fetch(`/api/member/orders/${order.id}/data-receipt/${fileId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      console.log('[Delete File] Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('[Delete File] Error response:', errorData);
-        throw new Error(errorData.error || '削除に失敗しました');
-      }
-
-      const result = await response.json();
-      console.log('[Delete File] Success response:', result);
+      const result = await deleteJson(`/api/member/orders/${order.id}/data-receipt/${fileId}`) as any;
+      console.log('[Delete File] Success:', result);
 
       // Reload the file list
       console.log('[Delete File] Reloading file list...');

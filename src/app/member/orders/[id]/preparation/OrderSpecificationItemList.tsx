@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui';
 import SpecificationEditModal from '@/components/member/orders/SpecificationEditModal';
 import { useToastContext } from '@/components/ui/Toast';
+import { submitSpecificationChange as submitSpecificationChangeAPI } from '@/lib/api/member/orders';
 
 // =====================================================
 // Types
@@ -66,20 +67,15 @@ export function OrderSpecificationItemList({
   ) => {
     // 仕様変更確定の処理: メンバー用 specification-change API へ送信
     try {
-      const res = await fetch(`/api/member/orders/${orderId}/specification-change`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
+      try {
+        await submitSpecificationChangeAPI(orderId, {
           orderId,
           itemId,
           specifications: newSpecifications,
-        }),
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        console.error('[OrderSpecificationItemList] specification-change failed:', errJson);
-        showError(errJson?.error || '仕様変更の送信に失敗しました');
+        });
+      } catch (err: any) {
+        console.error('[OrderSpecificationItemList] specification-change error:', err);
+        showError(err?.message || '仕様変更の送信に失敗しました');
         return;
       }
     } catch (err) {

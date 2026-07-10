@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase-browser';
 import { OrderStatus } from '@/types/database';
+import type { DashboardStatistics } from '@/types/admin';
 import {
   OrderStatisticsWidget,
   RecentActivityWidget,
@@ -17,34 +18,7 @@ import { AlertCircle, TrendingUp, Package, FileText, Activity, BarChart3, Users,
 import { Card } from '@/components/ui';
 
 // データフェッチャー - エラーハンドリング強化
-const fetcher = async (url: string) => {
-  try {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    const response = await fetch(url, {
-      credentials: 'include',
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // API エラーレスポンスのチェック
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    return data;
-  } catch (error) {
-    // エラーは静かに処理（SWRのonErrorコールバックで処理される）
-    throw error;
-  }
-};
+// fetcher imported from use-optimized-fetch
 
 // デフォルト統計データ（フォールバック用）
 const defaultStats = {
@@ -71,6 +45,7 @@ const defaultStats = {
 };
 
 import type { AdminAuthContext } from '@/types/admin';
+import { fetcher } from '@/hooks/use-optimized-fetch';
 
 interface AdminDashboardClientProps {
   authContext: AdminAuthContext;
@@ -91,9 +66,9 @@ export default function AdminDashboardClient({
   const [period, setPeriod] = useState(initialPeriod); // 期間フィルター (日)
 
   // SWRによるデータフェッチ - 統合APIを使用
-  const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR(
+  const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR<DashboardStatistics & { recentQuotations?: any[]; activeCustomers?: number; quotations?: any; samples?: any; production?: any; shipments?: any }>(
     `/api/admin/dashboard/unified-stats?period=${period}`,
-    fetcher,
+    fetcher as any,
    {
      refreshInterval: 60000, // 60秒ごとに更新（リアルタイム性よりメインスレッド負荷低減）
      revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止

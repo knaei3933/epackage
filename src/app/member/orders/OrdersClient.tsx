@@ -23,6 +23,7 @@ import { MemberSpecificationDisplay } from '@/components/member/quotations/Membe
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { convertToPreviewOptions, MEMBER_STATUS_LABELS, MEMBER_STATUS_VARIANTS } from '@/constants/product-type-config';
 import { formatProductDisplayName } from '@/lib/product-display-name';
+import { fetchOrders as fetchOrdersAPI } from '@/lib/api/member/orders';
 
 // =====================================================
 // Types
@@ -316,16 +317,8 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
     setError(null);
     try {
       // API呼び出し（全注文取得）
-      const response = await fetch('/api/member/orders', {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-
-      const { data } = await response.json();
-      setOrders(data || []);
+      const result = await fetchOrdersAPI();
+      setOrders((result.data || []) as unknown as Order[]);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
       setError('注文の取得に失敗しました');
