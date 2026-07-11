@@ -324,6 +324,11 @@ function generateMultiQuantityHTML(
           <td class="spec-label">印刷方式</td>
           <td>${specs.printingType}</td>
         </tr>` : ''}
+        ${(specs as any).printingColors ? `
+        <tr>
+          <td class="spec-label">色数</td>
+          <td>${(specs as any).printingColors}</td>
+        </tr>` : ''}
         <tr>
           <td class="spec-label">表面処理</td>
           <td>${processing.surfaceFinish || '指定なし'}</td>

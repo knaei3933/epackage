@@ -42,6 +42,26 @@ interface GenerateQuoteDataParams {
   user?: QuoteUser | null;
 }
 
+/**
+ * Resolve the printing type for display.
+ * - Explicit 'digital'/'gravure' → 日本語ラベル
+ * - 'auto' (or undefined) → result.recommendation.method で解決
+ * - フォールバック → 'digital'
+ */
+function resolvePrintingTypeLabel(state: QuoteState, result: UnifiedQuoteResult): string {
+  const explicit = state.printingType;
+  let method: 'digital' | 'gravure';
+  if (explicit === 'gravure') {
+    method = 'gravure';
+  } else if (explicit === 'digital') {
+    method = 'digital';
+  } else {
+    // 'auto' or undefined: use the engine's resolved recommendation
+    method = result.recommendation?.method === 'gravure' ? 'gravure' : 'digital';
+  }
+  return method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷';
+}
+
 // Label maps for contents field (preserved from original).
 const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   'food': '食品',
@@ -201,6 +221,10 @@ export function generateQuoteData({
       thicknessType: state.thicknessSelection && state.materialId
         ? getFilmStructureLabel(state.materialId, state.thicknessSelection)
         : '指定なし',
+      // 印刷方式: 'auto' を実際の方式（デジタル/グラビア）に解決して表示
+      printingType: resolvePrintingTypeLabel(state, result),
+      // 色数
+      printingColors: state.printingColors ? `${state.printingColors}色` : 'フルカラー',
       sealWidth: state.sealWidth || '5mm',
       sealDirection: '上',
       notchShape: state.postProcessingOptions?.includes('notch-yes') ? 'V' :
