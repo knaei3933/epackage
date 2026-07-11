@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { buildQuoteFilename } from '@/lib/quote-filename';
 
 // 型定義（既存のQuotation型を使用）
 export interface Quotation {
@@ -334,7 +335,7 @@ export function useQuotations({
 
       // PDF生成
       const pdfResult = await generateQuotePDF(quoteData, {
-        filename: `${data.quotation.quotation_number}.pdf`
+        filename: buildQuoteFilename(data.userProfile?.company_name, quoteData.issueDate)
       });
 
       if (!pdfResult.success) {
@@ -347,7 +348,7 @@ export function useQuotations({
         const url = window.URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = pdfResult.filename || `${data.quotation.quotation_number}.pdf`;
+        a.download = pdfResult.filename || buildQuoteFilename(data.userProfile?.company_name, quoteData.issueDate);
         document.body.appendChild(a);
         a.click();
 

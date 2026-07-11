@@ -15,6 +15,7 @@ import { useMultiQuantityQuote } from '@/contexts/MultiQuantityQuoteContext';
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
 import { generateQuotePDF, generateMultiQuantityPDF, QuoteData, MultiQuantityQuoteInput } from '@/lib/pdf-generator';
 import { safeMap } from '@/lib/array-helpers';
+import { buildQuoteFilename } from '@/lib/quote-filename';
 import MultiQuantityComparisonTable from '../shared/MultiQuantityComparisonTable';
 import { ParallelProductionOptions } from '../shared';
 import { pouchCostCalculator } from '@/lib/pouch-cost-calculator';
@@ -329,7 +330,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     // 従来見積書と同一メタデータを使用（generateQuoteData を流用）
     const quoteData = generateQuoteData(overrideQuoteNumber);
     const blob = await generateMultiQuantityPDF(inputs, {
-      filename: `見積書_数量パターン比較_${quoteData.quoteNumber}.pdf`,
+      filename: buildQuoteFilename(user?.companyName, quoteData.issueDate),
       header: {
         quoteNumber: quoteData.quoteNumber,
         issueDate: quoteData.issueDate,
@@ -350,7 +351,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = objectUrl;
-      a.download = `見積書_数量パターン比較_${Date.now()}.pdf`;
+      a.download = buildQuoteFilename(user?.companyName, quoteData.issueDate);
       document.body.appendChild(a);
       a.click();
       if (a.parentNode) document.body.removeChild(a);
@@ -406,7 +407,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       // 2. PDF生成（DB保存済みの見積番号を使用）
       const quoteData = generateQuoteData(dbQuoteNumber || undefined);
       const pdfResult = await generateQuotePDF(quoteData, {
-        filename: `見積書_${quoteData.quoteNumber}.pdf`
+        filename: buildQuoteFilename(user?.companyName, quoteData.issueDate)
       });
 
       if (pdfResult.success && pdfResult.pdfBuffer) {
@@ -415,7 +416,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = objectUrl;
-        a.download = pdfResult.filename || `見積書_${quoteData.quoteNumber}.pdf`;
+        a.download = pdfResult.filename || buildQuoteFilename(user?.companyName, quoteData.issueDate);
         document.body.appendChild(a);
         a.click();
         if (a.parentNode) document.body.removeChild(a);
@@ -503,7 +504,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       console.log('[handleDownloadPdf] quoteData.optionalProcessing.surfaceFinish:', quoteData.optionalProcessing.surfaceFinish);
       console.log('[handleDownloadPdf] Calling generateQuotePDF...');
       const pdfResult = await generateQuotePDF(quoteData, {
-        filename: `見積書_${quoteData.quoteNumber}.pdf`
+        filename: buildQuoteFilename(user?.companyName, quoteData.issueDate)
       });
       console.log('[handleDownloadPdf] pdfResult:', pdfResult);
 
@@ -521,7 +522,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = objectUrl;
-            a.download = pdfResult.filename || `見積書_${quoteData.quoteNumber}.pdf`;
+            a.download = pdfResult.filename || buildQuoteFilename(user?.companyName, quoteData.issueDate);
             document.body.appendChild(a);
 
             // 클릭으로 다운로드 트리거

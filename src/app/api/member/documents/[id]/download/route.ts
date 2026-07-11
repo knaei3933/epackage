@@ -8,6 +8,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { buildQuoteFilename } from '@/lib/quote-filename';
 import { createServerClient } from '@supabase/ssr';
 
 export async function GET(
@@ -80,7 +81,7 @@ export async function GET(
         tableName = 'quotations';
         const { data: quotation } = await supabase
           .from('quotations')
-          .select('pdf_url, quotation_number, user_id')
+          .select('pdf_url, quotation_number, user_id, created_at')
           .eq('id', documentId)
           .single();
 
@@ -94,7 +95,7 @@ export async function GET(
         // Check access permission
         const { data: quoteProfile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, company_name')
           .eq('id', userId)
           .single();
 
@@ -107,7 +108,7 @@ export async function GET(
         }
 
         pdfUrl = quotation.pdf_url;
-        filename = `見積書_${quotation.quotation_number}.pdf`;
+        filename = buildQuoteFilename(quoteProfile?.company_name, (quotation as any)?.created_at?.split("T")[0]);
         break;
 
       case 'work_order':
@@ -134,7 +135,7 @@ export async function GET(
         // Check access permission
         const { data: woProfile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, company_name')
           .eq('id', userId)
           .single();
 
@@ -175,7 +176,7 @@ export async function GET(
         // Check access permission
         const { data: contractProfile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, company_name')
           .eq('id', userId)
           .single();
 
