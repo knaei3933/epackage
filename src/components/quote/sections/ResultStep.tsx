@@ -312,8 +312,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       state,
       result,
       hasValidSKUData,
+      hasMultiQuantityResults,
       multiQuantityQuotes,
       overrideQuoteNumber,
+      user,
     });
   };
 
