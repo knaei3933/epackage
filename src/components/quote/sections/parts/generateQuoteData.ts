@@ -127,23 +127,19 @@ export function buildMultiPatternPdfInputs({
   state,
   multiQuantityQuotes,
 }: BuildMultiPatternPdfInputsParams): MultiQuantityQuoteInput[] {
-    return multiQuantityQuotes.map((quote) => ({
-      patternLabel: `パターン ${multiQuantityQuotes.indexOf(quote) + 1}`,
-      quantity: quote.patternTotalQuantity ?? quote.quantity,
-      unitPrice: quote.unitPrice,
-      totalPrice: quote.totalPrice,
-      bagType: state.bagTypeId,
-      material: state.materialId,
-      width: state.width,
-      height: state.height,
-      depth: state.depth,
-      thickness: state.thicknessSelection,
-      printingType: state.printingType,
-      printingColors: state.printingColors,
-      doubleSided: state.doubleSided,
-      postProcessingOptions: state.postProcessingOptions,
-      deliveryLocation: state.deliveryLocation,
-      urgency: state.urgency,
-      leadTimeDays: 0, // Will be filled from result
-    } as unknown as MultiQuantityQuoteInput));
+    return multiQuantityQuotes.map((quote) => {
+      const costPerSKU = quote.skuCostDetails?.costPerSKU;
+      return {
+        quantity: quote.patternTotalQuantity ?? 0,
+        unitPrice: quote.unitPrice,
+        totalPrice: quote.totalPrice,
+        recommendation: {
+          method: quote.recommendedMethod === 'gravure' ? 'gravure' : 'digital',
+        },
+        // SKU数≥2の時のみSKU別明細を付加（金額は按分で generateMultiQuantityHTML 側が算出）
+        skuDetails: costPerSKU && costPerSKU.length >= 2
+          ? costPerSKU.map((s, i) => ({ label: `SKU ${i + 1}`, quantity: s.quantity }))
+          : undefined,
+      } as unknown as MultiQuantityQuoteInput;
+    });
 }
