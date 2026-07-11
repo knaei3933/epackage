@@ -81,6 +81,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const state = useQuoteState();
   const { setSelectedQuantity } = useQuote();
   const { user } = useAuth();
+
   const [isSaving, setIsSaving] = useState(false);
   const [quotationId, setQuotationId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -95,40 +96,19 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const [showOptimizationSuggestions, setShowOptimizationSuggestions] = useState(false);
   const [parallelProductionOptions, setParallelProductionOptions] = useState<ParallelProductionOption[]>([]);
 
-  // TEST: Simple console.log to verify code changes are reflected
-  console.log('[ResultStep] TEST - Component rendering!');
-
-  // Debug: Log state.bagTypeId value on mount and when it changes
-  useEffect(() => {
-    console.log('[ResultStep] useEffect - state.bagTypeId:', state.bagTypeId);
-    console.log('[ResultStep] useEffect - is roll_film?:', state.bagTypeId === 'roll_film');
-    console.log('[ResultStep] useEffect - state keys:', Object.keys(state));
-  }, [state.bagTypeId]);
-
   const hasAutoSaved = useRef(false);
   // Phase 1 fix: track WHICH result was saved so a fresh quote run re-saves.
   // The previous ref-only guard stayed true across a new calculation, silently skipping the save.
   const lastSavedResultSignature = useRef<string | null>(null);
 
   useEffect(() => {
-    console.log('[ResultStep] Auto-save useEffect triggered', { result: !!result, hasAutoSaved: hasAutoSaved.current });
-
-    // 見積結果ページ表示時に自動でPDF生成・DB保存
-    // Phase 1 fix: skip only if THIS exact result was already saved; a new calc triggers a new save.
     const signature = result && result.totalPrice > 0
       ? `${result.totalPrice}|${result.unitPrice}|${result.quantity ?? 0}`
       : null;
 
-    if (!signature) {
-      console.log('[ResultStep] Result not ready or invalid:', result);
-      return;
-    }
-    if (lastSavedResultSignature.current === signature) {
-      console.log('[ResultStep] Already auto-saved this exact result, skipping');
-      return;
-    }
+    if (!signature) return;
+    if (lastSavedResultSignature.current === signature) return;
 
-    console.log('[ResultStep] Starting auto-save with result:', result);
     lastSavedResultSignature.current = signature;
     hasAutoSaved.current = true;
     autoGenerateAndSave();
@@ -136,11 +116,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
   // ブラウザの戻るボタンを無効化（強化版）
   useEffect(() => {
-    console.log('[ResultStep] Setting up back button prevention');
-
-    // 履歴を操作して戻るボタンを無効化
     const preventBack = (event: PopStateEvent) => {
-      console.log('[ResultStep] Back button attempted, blocking navigation');
       event.preventDefault();
       event.stopPropagation();
       // 同じURLにプッシュして戻るを無効化
@@ -160,7 +136,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     const preventKeyboardNavigation = (event: KeyboardEvent) => {
       // Alt + Left Arrow (戻る)
       if (event.altKey && event.key === 'ArrowLeft') {
-        console.log('[ResultStep] Blocking Alt+Left Arrow');
         event.preventDefault();
         event.stopPropagation();
         return false;
@@ -168,7 +143,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       // Backspace (入力フィールド以外)
       if (event.key === 'Backspace' &&
           !['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement).tagName)) {
-        console.log('[ResultStep] Blocking Backspace outside input fields');
         event.preventDefault();
         event.stopPropagation();
         return false;
@@ -179,7 +153,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
     // クリーンアップ
     return () => {
-      console.log('[ResultStep] Cleaning up back button prevention');
       window.removeEventListener('popstate', preventBack, { capture: true } as any);
       window.removeEventListener('keydown', preventKeyboardNavigation, { capture: true } as any);
     };
@@ -225,26 +198,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     state.skuQuantities.length === state.skuCount &&
     state.skuQuantities.every(qty => qty && qty >= 100)
   );
-
-  // Debug logging for SKU mode detection
-  console.log('[ResultStep] SKU Mode Detection Debug:');
-  console.log('[ResultStep] - result?.hasValidSKUData:', result?.hasValidSKUData);
-  console.log('[ResultStep] - result?.skuCount:', result?.skuCount);
-  console.log('[ResultStep] - result?.skuQuantities:', result?.skuQuantities);
-  console.log('[ResultStep] - state.skuCount:', state.skuCount);
-  console.log('[ResultStep] - state.skuQuantities:', state.skuQuantities);
-  console.log('[ResultStep] - state.skuQuantities.length:', state.skuQuantities?.length);
-  console.log('[ResultStep] - Length check (=== skuCount):', state.skuQuantities?.length === state.skuCount);
-  console.log('[ResultStep] - Every check (all >= 100):', state.skuQuantities?.every(qty => qty && qty >= 100));
-  console.log('[ResultStep] - calculated hasValidSKUData:', hasValidSKUData);
-  console.log('[ResultStep] - willShowSKU:', hasValidSKUData);
-  console.log('[ResultStep] - result.skuCostDetails:', result.skuCostDetails);
-  console.log('[ResultStep] ===== STATE DEBUG =====');
-  console.log('[ResultStep] - state.bagTypeId:', state.bagTypeId);
-  console.log('[ResultStep] - state.bagTypeId type:', typeof state.bagTypeId);
-  console.log('[ResultStep] - isRollFilm (===):', state.bagTypeId === 'roll_film');
-  console.log('[ResultStep] - Full state keys:', Object.keys(state));
-  console.log('[ResultStep] ===== END STATE DEBUG =====');
 
   // Build quotes array from multi-quantity results
   // C4: ユーザー入力パターン駆動。Mapキー=パターンindex(0-4)。
@@ -309,25 +262,24 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // Helper to generate PDF quote data
   const generateQuoteData = (overrideQuoteNumber?: string): QuoteData => {
     return generateQuoteDataFn({
-      state,
+      state: state,
       result,
       hasValidSKUData,
       hasMultiQuantityResults,
       multiQuantityQuotes,
       overrideQuoteNumber,
-      user,
+      user: user,
     });
   };
 
   const buildMultiPatternPdfInputs = (): MultiQuantityQuoteInput[] => {
     return buildMultiPatternPdfInputsFn({
-      state,
+      state: state,
       multiQuantityQuotes,
     });
   };
 
   const generateAndDownloadMultiPatternPdf = async (overrideQuoteNumber?: string, quotationId?: string): Promise<void> => {
-    console.log('[MultiPatternPDF] 全パターンPDF生成開始');
     const inputs = buildMultiPatternPdfInputs();
     // 従来見積書と同一メタデータを使用（generateQuoteData を流用）
     const quoteData = generateQuoteData(overrideQuoteNumber);
@@ -376,20 +328,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         });
         if (!saveResponse.ok) {
           console.warn('[MultiPatternPDF] Failed to save PDF to Storage:', await saveResponse.text());
-        } else {
-          console.log('[MultiPatternPDF] PDF saved to Storage');
         }
       } catch (saveError) {
         console.warn('[MultiPatternPDF] Error saving PDF to Storage:', saveError);
       }
     }
-
-    console.log('[MultiPatternPDF] 全パターンPDF生成完了:', inputs.length, 'パターン');
   };
 
   const autoGenerateAndSave = async () => {
-    console.log('[autoGenerateAndSave] 自動PDF生成・DB保存開始');
-
     try {
       // C5/AC-9: パターンモード（SKU<=5）時は全パターンPDF生成、それ以外は従来単一PDF
       if (showPatternComparison && multiQuantityQuotes.length > 0) {
@@ -447,22 +393,14 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         }
 
         setPdfStatus('success');
-        console.log('[autoGenerateAndSave] 完了');
       }
     } catch (error) {
-      console.error('[autoGenerateAndSave] エラー:', error);
-      // エラーでもユーザー体験を妨げない
+      console.error('[autoGenerateAndSave] error:', error);
     }
   };
 
   const handleDownloadPdf = async () => {
-    console.log('[handleDownloadPdf] ========== START ==========');
-    console.log('[handleDownloadPdf] state.postProcessingOptions:', state.postProcessingOptions);
-    console.log('[handleDownloadPdf] state.bagTypeId:', state.bagTypeId);
-    console.log('[handleDownloadPdf] Includes matte?', state.postProcessingOptions?.includes('matte'));
-    console.log('[handleDownloadPdf] Includes glossy?', state.postProcessingOptions?.includes('glossy'));
-
-    // 製品タイプ別必須フィールドバリデーション
+    // 製品タイプ別必須フィールドバリデーション（最新stateを参照）
     const validation = validateProductTypeSpecificFields(state);
     if (!validation.valid) {
       const errorMessage = `以下の必須項目が入力されていません:\n${validation.missingFields.join('\n')}`;
@@ -495,25 +433,16 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
 
     try {
       // DB保存を先に行い、正しい見積番号を取得してからPDF生成（番号整合性担保）
-      console.log('[handleDownloadPdf] DB保存開始（PDF生成前）...');
       const savedResult = await saveQuotationToDatabase();
       if (savedResult.id) setQuotationId(savedResult.id);
       const dbQuoteNumber = savedResult.quotationNumber;
 
-      console.log('[handleDownloadPdf] Calling generateQuoteData...');
       const quoteData = generateQuoteData(dbQuoteNumber || undefined);
-      console.log('[handleDownloadPdf] quoteData.optionalProcessing:', quoteData.optionalProcessing);
-      console.log('[handleDownloadPdf] quoteData.optionalProcessing.surfaceFinish:', quoteData.optionalProcessing.surfaceFinish);
-      console.log('[handleDownloadPdf] Calling generateQuotePDF...');
       const pdfResult = await generateQuotePDF(quoteData, {
         filename: buildQuoteFilename(user?.companyName, quoteData.issueDate)
       });
-      console.log('[handleDownloadPdf] pdfResult:', pdfResult);
 
       if (pdfResult.success) {
-        // PDF 다운로드 실행 - 브라우저 네이티브 다운로드 UI 회피
-        console.log('[handleDownloadPdf] Initiating PDF download...');
-
         if (pdfResult.pdfBuffer) {
           const blob = new Blob([pdfResult.pdfBuffer as BlobPart], { type: 'application/pdf' });
 
@@ -539,14 +468,12 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
           }
 
-          console.log('[handleDownloadPdf] PDF downloaded:', pdfResult.filename);
         }
 
         // 2. Storage保存（ユーザー認証済みの場合）
         //    DB保存はPDF生成前に行い済み（savedResult.id 使用）
         if (savedResult.id && user?.id && pdfResult.pdfBuffer) {
           try {
-            console.log('[handleDownloadPdf] Saving PDF to Storage...');
             const pdfBase64 = arrayBufferToBase64(pdfResult.pdfBuffer as unknown as ArrayBuffer);
 
             const saveResponse = await fetch(`/api/member/quotations/${savedResult.id}/save-pdf`, {
@@ -559,8 +486,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
             });
 
             if (saveResponse.ok) {
-              const saveResult = await saveResponse.json();
-              console.log('[handleDownloadPdf] PDF saved to Storage:', saveResult.pdf_url);
+              await saveResponse.json();
             } else {
               console.warn('[handleDownloadPdf] Failed to save PDF to Storage:', await saveResponse.text());
             }
@@ -594,14 +520,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       }
     } catch (error) {
       console.error('[handleDownloadPdf] ERROR:', error);
-      console.error('[handleDownloadPdf] ERROR name:', error instanceof Error ? error.name : 'unknown');
-      console.error('[handleDownloadPdf] ERROR message:', error instanceof Error ? error.message : String(error));
-      console.error('[handleDownloadPdf] ERROR stack:', error instanceof Error ? error.stack : 'no stack');
       setPdfStatus('error');
       setTimeout(() => setPdfStatus('idle'), 3000);
       alert(`PDF生成中にエラーが発生しました。\n${error instanceof Error ? error.message : String(error)}`);
     } finally {
-      console.log('[handleDownloadPdf] ========== END ==========');
       setIsGeneratingPdf(false);
     }
   };
@@ -610,9 +532,9 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   // 戻り値: 保存成功時は見積もりID、失敗時はnull
   const saveQuotationToDatabase = async (): Promise<{ id: string | null; quotationNumber: string | null }> => {
     return saveQuotationToDatabaseFn({
-      user,
+      user: user,
       result,
-      state,
+      state: state,
       hasValidSKUData,
       multiQuantityQuotes,
       hasMultiQuantityResults,
@@ -762,7 +684,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       const totalAmountFromItems = (itemsToSave as Array<{ totalPrice?: number; unitPrice: number; quantity: number }>).reduce((sum, item) => sum + (item.totalPrice ?? item.unitPrice * item.quantity), 0);
 
       const quotationData = {
-        userId: user.id,
+        userId: user?.id,
         quotationNumber: `QT-${Date.now()}`,
         status: 'draft' as const,
         totalAmount: totalAmountFromItems,
@@ -778,11 +700,11 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         },
         credentials: 'include',
         body: JSON.stringify({
-          customer_name: (user as any)?.user_metadata?.kanji_last_name && (user as any)?.user_metadata?.kanji_first_name
-            ? `${(user as any).user_metadata.kanji_last_name} ${(user as any).user_metadata.kanji_first_name}`
+          customer_name: user?.kanjiLastName && user?.kanjiFirstName
+            ? `${user.kanjiLastName} ${user.kanjiFirstName}`
             : user?.email?.split('@')[0] || 'Guest',
           customer_email: user?.email || 'guest@example.com',
-          customer_phone: (user as any)?.user_metadata?.phone || null,
+          customer_phone: null,
           status: 'DRAFT',
           validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           notes: null,
@@ -821,7 +743,6 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       }
 
       const savedQuotation = await response.json();
-      console.log('Quotation saved successfully:', savedQuotation);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
 
