@@ -140,6 +140,6 @@ export function buildMultiPatternPdfInputs({
         skuDetails: costPerSKU && costPerSKU.length >= 2
           ? costPerSKU.map((s, i) => ({ label: `SKU ${i + 1}`, quantity: s.quantity }))
           : undefined,
-      } as unknown as MultiQuantityQuoteInput;
+      } as MultiQuantityQuoteInput;
     });
 }
