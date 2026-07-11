@@ -32,7 +32,7 @@ export async function createQuotationRequest(
   }
 
   const result = await response.json();
-  return result.data;
+  return result.quotation;
 }
 
 /**
@@ -42,7 +42,7 @@ export async function fetchQuotations(params?: {
   status?: string;
   limit?: number;
   offset?: number;
-}): Promise<{ data: Quotation[]; pagination: { total: number } }> {
+}): Promise<{ success: boolean; quotations: Quotation[]; pagination: { limit: number; offset: number; total: number } }> {
   const queryParams = new URLSearchParams();
   if (params?.status) queryParams.set('status', params.status);
   if (params?.limit) queryParams.set('limit', String(params.limit));
@@ -74,7 +74,7 @@ export async function fetchQuotation(id: string): Promise<Quotation> {
   }
 
   const result = await response.json();
-  return result.data;
+  return result.quotation;
 }
 
 

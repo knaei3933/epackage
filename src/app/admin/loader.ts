@@ -79,11 +79,16 @@ async function getUserName(userId: string): Promise<string> {
 
   const { data } = await supabase
     .from('profiles')
-    .select('kanji_last_name, name_kanji, email')
+    .select('kanji_last_name, kanji_first_name, email')
     .eq('id', userId)
     .single();
 
-  return data?.kanji_last_name || data?.name_kanji || data?.email || '管理者';
+  // kanji_first_name は profiles 実カラム（name_kanji は存在しない派生値）
+  // 誤って name_kanji を select すると Supabase は列エラーを返すため実カラムのみ使用
+  const lastName = data?.kanji_last_name || '';
+  const firstName = data?.kanji_first_name || '';
+  const fullName = (lastName || firstName) ? `${lastName} ${firstName}`.trim() : '';
+  return fullName || data?.email || '管理者';
 }
 
 // =====================================================

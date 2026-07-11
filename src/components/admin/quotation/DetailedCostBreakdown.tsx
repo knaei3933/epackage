@@ -46,8 +46,9 @@ export interface DetailedCostBreakdownProps {
     surfaceTreatmentCost: number;
     // パウチ加工費
     pouchProcessingCost: number;
-    // 印刷費
-    printing: number;
+    // 印刷費 (DB/API では printingCost として保存されるため optional)
+    printing?: number;
+    printingCost?: number;
     // 製造者マージン
     manufacturingMargin: number;
     // 関税
