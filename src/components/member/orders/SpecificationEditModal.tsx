@@ -206,39 +206,26 @@ export function SpecificationEditModal({
             </select>
           </div>
 
-          {/* 印刷 */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">印刷</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">印刷方式</label>
-                <select
-                  data-testid="spec-printing-type-select"
-                  value="auto"
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                >
-                 <option value="auto">自動（システム推奨）</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">色数</label>
-                <select
-                  data-testid="spec-printing-colors-select"
-                  value={specifications.printingColors || 1}
-                  onChange={(e) => handleSpecificationChange('printingColors', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                    <option key={num} value={num}>{num}色</option>
-                  ))}
-                </select>
-              </div>
+         {/* 印刷 */}
+         <div>
+           <h3 className="text-sm font-semibold text-gray-900 mb-3">印刷</h3>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">色数</label>
+              <select
+                data-testid="spec-printing-colors-select"
+                value={specifications.printingColors || 1}
+                onChange={(e) => handleSpecificationChange('printingColors', parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                  <option key={num} value={num}>{num}色</option>
+                ))}
+              </select>
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              印刷方式は色数と数量に基づいてシステムが自動的に最適な方式（デジタル/グラビア）を選択します。
-            </p>
-          </div>
+           <p className="mt-2 text-xs text-gray-500">
+              印刷方式は色数と数量に基づいて最適な方式（デジタル印刷またはグラビア印刷）が適用されます。
+           </p>
+         </div>
 
           {/* 後加工オプション */}
           <div>
