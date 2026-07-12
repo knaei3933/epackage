@@ -12,6 +12,7 @@ import { AdminQuotationItemDetail } from './AdminQuotationItemDetail';
 import { normalizeStatus, STATUS_LABELS, BAG_TYPE_IMAGES, convertToPreviewOptions } from './quotation-utils';
 import type { Quotation } from '@/types/quotation';
 import { formatPrice } from '@/utils/formatters';
+import { extractCostData } from '@/lib/cost-extraction';
 
 interface AdminQuotationDetailPanelProps {
   quotation: Quotation;
@@ -30,29 +31,8 @@ function CostSummaryTable({ items, showFormula }: { items: any[]; showFormula: b
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   const extractCost = (item: any): { unitCost: number; totalCost: number; hasData: boolean } => {
-    const specs = item.specifications || {};
-    // API処理済みbreakdown（baseCost付き）を優先、なければ生DB列
-    const cb = item.breakdown?.breakdown || specs.cost_breakdown || item.cost_breakdown;
-    if (cb) {
-      // cost_breakdown の値は該当数量の「総原価」(単価ではない)
-      // totalCost>0 の場合はそれを総原価として使用、totalCost=0 の場合はコンポーネントから合成
-      const hasComponents = (cb.materialCost || 0) > 0 || (cb.printingCost || 0) > 0 || (cb.laminationCost || 0) > 0;
-      const synthesized = (cb.totalCost && cb.totalCost > 0)
-        ? cb.totalCost
-        : (cb.materialCost || 0) + (cb.printingCost || 0) + (cb.laminationCost || 0)
-          + (cb.slitterCost || 0) + (cb.surfaceTreatmentCost || 0) + (cb.pouchProcessingCost || 0)
-          + (cb.manufacturingMargin || 0) + (cb.duty || 0) + (cb.delivery || 0) + (cb.salesMargin || 0);
-      if (synthesized > 0) {
-        // unitCost = 総原価 / 数量 (1個あたりの原価)
-        const qty = item.quantity > 0 ? item.quantity : 1;
-        return { unitCost: Math.round(synthesized / qty), totalCost: synthesized, hasData: true };
-      }
-      if (hasComponents) {
-        const qty = item.quantity > 0 ? item.quantity : 1;
-        return { unitCost: Math.round(synthesized / qty), totalCost: synthesized, hasData: true };
-      }
-    }
-    return { unitCost: 0, totalCost: 0, hasData: false };
+    const data = extractCostData(item as Parameters<typeof extractCostData>[0]);
+    return { unitCost: data.unitCost, totalCost: data.manufacturerCost, hasData: data.hasData };
   };
 
   const allCosts = items.map(extractCost);

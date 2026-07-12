@@ -163,11 +163,12 @@ export function PriceComparisonSection({
 
       {/* Admin-only cost breakdown */}
       {isAdmin && result.skuCostDetails && (
-        <CostBreakdownPanel
-          costBreakdown={result.skuCostDetails as unknown as React.ComponentProps<typeof CostBreakdownPanel>['costBreakdown']}
-          markedUpPrice={result.totalPrice}
+       <CostBreakdownPanel
+         costBreakdown={result.skuCostDetails as unknown as React.ComponentProps<typeof CostBreakdownPanel>['costBreakdown']}
+         markedUpPrice={result.totalPrice}
           marginRate={0.5}
-        />
+          exchangeRate={result.skuCostDetails?.costPerSKU?.[0]?.costBreakdown?.exchangeRate}
+       />
       )}
 
       {/* Multi-Quantity Comparison Results */}

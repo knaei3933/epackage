@@ -62,6 +62,7 @@ interface CostBreakdownPanelProps {
   costBreakdown: KoreaCostResult;
   markedUpPrice: number;
   marginRate?: number; // Default 0.5 (50%)
+  exchangeRate?: number; // KRW→JPY rate, default 0.12
 }
 
 /**
@@ -80,8 +81,11 @@ interface CostBreakdownPanelProps {
 export function CostBreakdownPanel({
   costBreakdown,
   markedUpPrice,
-  marginRate = 0.5
+  marginRate = 0.5,
+  exchangeRate = 0.12
 }: CostBreakdownPanelProps) {
+  // KRW→JPY換算にDB連動値を使用
+  const KRW_TO_JPY = exchangeRate;
   // Calculate base cost (including delivery)
   const baseCost = costBreakdown.totalCost.totalJPY + costBreakdown.delivery.costJPY;
   const margin = markedUpPrice - baseCost;
@@ -117,19 +121,19 @@ export function CostBreakdownPanel({
               <div className="text-xs space-y-1 text-gray-700">
                 <div className="flex justify-between">
                   <span>材料費:</span>
-                  <span>¥{Math.round(sku.materialCost * 0.12).toLocaleString()}</span>
+                  <span>¥{Math.round(sku.materialCost * KRW_TO_JPY).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>印刷費:</span>
-                  <span>¥{Math.round(sku.printingCost * 0.12).toLocaleString()}</span>
+                  <span>¥{Math.round(sku.printingCost * KRW_TO_JPY).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>加工費:</span>
-                  <span>¥{Math.round((sku.laminationCost + sku.slitterCost + sku.pouchProcessCost) * 0.12).toLocaleString()}</span>
+                  <span>¥{Math.round((sku.laminationCost + sku.slitterCost + sku.pouchProcessCost) * KRW_TO_JPY).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
                   <span>関税5%:</span>
-                  <span>¥{Math.round((sku.withDuty - sku.subtotal) * 0.12).toLocaleString()}</span>
+                  <span>¥{Math.round((sku.withDuty - sku.subtotal) * KRW_TO_JPY).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between font-medium border-t pt-1 mt-1">
                   <span>原価小計:</span>
@@ -148,19 +152,19 @@ export function CostBreakdownPanel({
         <div className="space-y-2 text-sm">
           <div className="flex justify-between text-gray-700">
             <span>材料費合計:</span>
-            <span>¥{Math.round(costBreakdown.totalCost.materials * 0.12).toLocaleString()}</span>
+            <span>¥{Math.round(costBreakdown.totalCost.materials * KRW_TO_JPY).toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-gray-700">
             <span>加工費合計:</span>
-            <span>¥{Math.round(costBreakdown.totalCost.processing * 0.12).toLocaleString()}</span>
+            <span>¥{Math.round(costBreakdown.totalCost.processing * KRW_TO_JPY).toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-gray-700">
             <span>印刷費合計:</span>
-            <span>¥{Math.round(costBreakdown.totalCost.printing * 0.12).toLocaleString()}</span>
+            <span>¥{Math.round(costBreakdown.totalCost.printing * KRW_TO_JPY).toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-gray-700">
             <span>関税:</span>
-            <span>¥{Math.round(costBreakdown.totalCost.duty * 0.12).toLocaleString()}</span>
+            <span>¥{Math.round(costBreakdown.totalCost.duty * KRW_TO_JPY).toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-gray-700">
             <span>配送料:</span>

@@ -57,9 +57,12 @@ export async function saveQuotationToDatabase({
       let costBreakdown: Record<string, number> | null = null;
 
       if (result.skuCostDetails?.costPerSKU && result.skuCostDetails.costPerSKU.length > 0) {
-        // 複数SKUモード: 各SKUの原価を合計
-        // totalCost = 各SKUの最終販売価格合計（costBreakdown.totalCost は per-SKU final price in JPY）
-        const totalFinalPrice = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.totalCost || 0), 0);
+      // 複数SKUモード: 各SKUの原価を合計
+      // totalCost = 各SKUの最終販売価格合計（costBreakdown.totalCost は per-SKU final price in JPY）
+      // cost_breakdown.totalCost = 仕入原価（component sum）, sellPrice = 最終販売価格
+      const totalFinalPrice = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.totalCost || 0), 0);
+      const manufacturerCostSum = result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { materialCost?: number; printingCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; manufacturingMargin?: number } }) =>
+        sum + (sku.costBreakdown?.materialCost || 0) + (sku.costBreakdown?.printingCost || 0) + (sku.costBreakdown?.laminationCost || 0) + (sku.costBreakdown?.slitterCost || 0) + (sku.costBreakdown?.surfaceTreatmentCost || 0) + (sku.costBreakdown?.pouchProcessingCost || 0) + (sku.costBreakdown?.manufacturingMargin || 0), 0);
 
         costBreakdown = {
           materialCost: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.materialCost || 0), 0)),
@@ -72,7 +75,8 @@ export async function saveQuotationToDatabase({
           duty: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.duty || 0), 0)),
           delivery: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.delivery || 0), 0)),
           salesMargin: Math.round(result.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
-          totalCost: Math.round(totalFinalPrice),
+          totalCost: Math.round(manufacturerCostSum),
+          sellPrice: Math.round(totalFinalPrice),
           intlShippingJPY: result.skuCostDetails?.summary?.intlShippingJPY ?? 0,
           domesticShippingJPY: result.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
           deliveryBoxes: result.skuCostDetails?.summary?.deliveryBoxes ?? 0
@@ -87,19 +91,27 @@ export async function saveQuotationToDatabase({
         //   manufacturingMargin = 原価 × 0.4
         // （旧実装の duty = 原価 × 0.05 は製造者価格ではなく原価に5%を適用しており、
         //   base-strategy.ts:227 / pouch-cost-calculator.ts:1287 の正確仕様と約40%乖離していた）
-        const manufacturingMargin = breakdown.manufacturingMargin ?? calcManufacturingMargin(baseCost);
-        costBreakdown = {
-          materialCost: Math.round(breakdown.filmCost || baseCost * 0.4),
-          laminationCost: Math.round(breakdown.laminationCost || baseCost * 0.06),
-          slitterCost: Math.round(breakdown.slitterCost || baseCost * 0.03),
-          surfaceTreatmentCost: 0,
-          pouchProcessingCost: Math.round(breakdown.pouchProcessingCost || baseCost * 0.15),
-          printingCost: Math.round(breakdown.printing || baseCost * 0.1),
-          manufacturingMargin: Math.round(manufacturingMargin),
-          duty: Math.round(breakdown.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
-          delivery: Math.round(breakdown.delivery || baseCost * 0.08),
-          salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.25),
-          totalCost: Math.round(baseCost),
+       const manufacturingMargin = breakdown.manufacturingMargin ?? calcManufacturingMargin(baseCost);
+        const materialCost = Math.round(breakdown.filmCost || baseCost * 0.4);
+        const laminationCost = Math.round(breakdown.laminationCost || baseCost * 0.06);
+        const slitterCost = Math.round(breakdown.slitterCost || baseCost * 0.03);
+        const surfaceTreatmentCost = 0;
+        const pouchProcessingCost = Math.round(breakdown.pouchProcessingCost || baseCost * 0.15);
+        const printingCost = Math.round(breakdown.printing || baseCost * 0.1);
+        const manufacturingMarginRounded = Math.round(manufacturingMargin);
+       costBreakdown = {
+          materialCost,
+          laminationCost,
+          slitterCost,
+          surfaceTreatmentCost,
+          pouchProcessingCost,
+          printingCost,
+          manufacturingMargin: manufacturingMarginRounded,
+         duty: Math.round(breakdown.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
+         delivery: Math.round(breakdown.delivery || baseCost * 0.08),
+        salesMargin: Math.round(breakdown.salesMargin || baseCost * 0.25),
+          totalCost: Math.round(materialCost + laminationCost + slitterCost + surfaceTreatmentCost + pouchProcessingCost + printingCost + manufacturingMarginRounded),
+         sellPrice: Math.round(result.totalPrice || 0),
           // フォールバック: 国際/国内分離不明のため delivery 全額を国際として扱う
           intlShippingJPY: Math.round(breakdown.delivery || baseCost * 0.08),
           domesticShippingJPY: 0,
@@ -110,21 +122,29 @@ export async function saveQuotationToDatabase({
         // 【重要】baseCost は原価ベースに統一。売価(totalPrice / unitPrice*qty)を含むと
         //   duty が売価×5%に跳ね上がり約40%乖離するため、result.breakdown.baseCost のみを使用。
         //   breakdown.baseCost が無い場合は計算不能としてスキップ（duty=0）。
-        const baseCost = result.breakdown?.baseCost || 0;
-        const manufacturingMargin = result.breakdown?.manufacturingMargin ?? calcManufacturingMargin(baseCost);
+       const baseCost = result.breakdown?.baseCost || 0;
+       const manufacturingMargin = result.breakdown?.manufacturingMargin ?? calcManufacturingMargin(baseCost);
+        const materialCost2 = Math.round(baseCost * 0.4); // 約40%
+        const laminationCost2 = Math.round(baseCost * 0.06); // 約6%
+        const slitterCost2 = Math.round(baseCost * 0.03); // 約3%
+        const surfaceTreatmentCost2 = 0;
+        const pouchProcessingCost2 = Math.round(baseCost * 0.15); // 約15%
+        const printingCost2 = Math.round(baseCost * 0.1); // 約10%
+        const manufacturingMarginRounded2 = Math.round(manufacturingMargin);
         costBreakdown = {
-          materialCost: Math.round(baseCost * 0.4), // 約40%
-          laminationCost: Math.round(baseCost * 0.06), // 約6%
-          slitterCost: Math.round(baseCost * 0.03), // 約3%
-          surfaceTreatmentCost: 0,
-          pouchProcessingCost: Math.round(baseCost * 0.15), // 約15%
-          printingCost: Math.round(baseCost * 0.1), // 約10%
-          manufacturingMargin: Math.round(manufacturingMargin),
-          duty: Math.round(result.breakdown?.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
-          delivery: Math.round(result.breakdown?.delivery || baseCost * 0.08), // 約8%
-          salesMargin: Math.round(result.breakdown?.salesMargin || baseCost * 0.25), // 約25%
-          totalCost: Math.round(baseCost),
-          // フォールバック: 国際/国内分離不明のため delivery 全額を国際として扱う
+          materialCost: materialCost2,
+          laminationCost: laminationCost2,
+          slitterCost: slitterCost2,
+          surfaceTreatmentCost: surfaceTreatmentCost2,
+          pouchProcessingCost: pouchProcessingCost2,
+          printingCost: printingCost2,
+          manufacturingMargin: manufacturingMarginRounded2,
+         duty: Math.round(result.breakdown?.duty ?? calcDuty(baseCost, manufacturingMargin)), // 製造者価格×0.05
+         delivery: Math.round(result.breakdown?.delivery || baseCost * 0.08), // 約8%
+         salesMargin: Math.round(result.breakdown?.salesMargin || baseCost * 0.25), // 約25%
+          totalCost: Math.round(materialCost2 + laminationCost2 + slitterCost2 + surfaceTreatmentCost2 + pouchProcessingCost2 + printingCost2 + manufacturingMarginRounded2),
+          sellPrice: Math.round(result.totalPrice || 0),
+         // フォールバック: 国際/国内分離不明のため delivery 全額を国際として扱う
           intlShippingJPY: Math.round(result.breakdown?.delivery || baseCost * 0.08),
           domesticShippingJPY: 0,
           deliveryBoxes: 0
@@ -243,8 +263,12 @@ export async function saveQuotationToDatabase({
                 duty: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.duty || 0), 0)),
                 delivery: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.delivery || 0), 0)),
                 salesMargin: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.salesMargin || 0), 0)),
-                totalCost: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number; materialCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; printingCost?: number; manufacturingMargin?: number; duty?: number; delivery?: number; salesMargin?: number } }) => sum + (sku.costBreakdown?.totalCost || 0), 0)),
-                intlShippingJPY: quote.skuCostDetails?.summary?.intlShippingJPY ?? 0,
+                totalCost: Math.round(
+                  quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { materialCost?: number; printingCost?: number; laminationCost?: number; slitterCost?: number; surfaceTreatmentCost?: number; pouchProcessingCost?: number; manufacturingMargin?: number } }) =>
+                    sum + (sku.costBreakdown?.materialCost || 0) + (sku.costBreakdown?.printingCost || 0) + (sku.costBreakdown?.laminationCost || 0) + (sku.costBreakdown?.slitterCost || 0) + (sku.costBreakdown?.surfaceTreatmentCost || 0) + (sku.costBreakdown?.pouchProcessingCost || 0) + (sku.costBreakdown?.manufacturingMargin || 0), 0)
+                ),
+                sellPrice: Math.round(quote.skuCostDetails.costPerSKU.reduce((sum: number, sku: { costBreakdown?: { totalCost?: number } }) => sum + (sku.costBreakdown?.totalCost || 0), 0)),
+               intlShippingJPY: quote.skuCostDetails?.summary?.intlShippingJPY ?? 0,
                 domesticShippingJPY: quote.skuCostDetails?.summary?.domesticShippingJPY ?? 0,
                 deliveryBoxes: quote.skuCostDetails?.summary?.deliveryBoxes ?? 0,
                 exchangeRate: quote.skuCostDetails?.costPerSKU?.[0]?.costBreakdown?.exchangeRate,

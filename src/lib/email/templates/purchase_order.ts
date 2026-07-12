@@ -128,7 +128,7 @@ ${skuLine}【製品仕様】
   表面処理費: ${fmt(cb.surfaceTreatmentCost)}
   製袋加工費: ${fmt(cb.pouchProcessingCost)}
   ---- 原価合計: ${fmt(cb.totalCost)} JPY
-  製造者マージン(×0.4): ${fmt(item.manufacturingMarginJPY ?? cb.manufacturingMargin)}
+  製造者マージン(×0.3): ${fmt(item.manufacturingMarginJPY ?? cb.manufacturingMargin)}
   → 製造者価格: ${fmt(item.manufacturerPriceJPY)} JPY
 
 【フィルム原価詳細】
@@ -165,7 +165,7 @@ ${data.company_name || data.customer_name} 様（製造依頼）
 
 【製造社請求額 合計】
   原価合計: ${fmt(data.base_cost_jpy)} JPY
-  製造者マージン(×0.4): ${fmt(data.manufacturing_margin_jpy)} JPY
+  製造者マージン(×0.3): ${fmt(data.manufacturing_margin_jpy)} JPY
   → 製造者価格: ${fmt(data.base_cost_jpy + data.manufacturing_margin_jpy)} JPY
   + 国際配送費: ${fmt(data.intl_shipping_jpy)} JPY
   → 製造社請求額 合計: ${fmt(data.manufacturer_amount_jpy)} JPY
@@ -232,7 +232,7 @@ export const html = (data: PurchaseOrderData): string => {
           <tr><td style="padding:3px 8px;color:#6b7280;">表面処理費</td><td style="padding:3px 8px;text-align:right;">${fmt(cb.surfaceTreatmentCost)}</td>
               <td style="padding:3px 8px;color:#6b7280;">製袋加工費</td><td style="padding:3px 8px;text-align:right;">${fmt(cb.pouchProcessingCost)}</td></tr>
           <tr style="background:#f9fafb;"><td style="padding:4px 8px;font-weight:bold;" colspan="3">原価合計</td><td style="padding:4px 8px;text-align:right;font-weight:bold;">${fmt(cb.totalCost)} JPY</td></tr>
-          <tr><td style="padding:3px 8px;color:#6b7280;">製造者マージン(×0.4)</td><td style="padding:3px 8px;text-align:right;" colspan="3">${fmt(item.manufacturingMarginJPY ?? cb.manufacturingMargin)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#6b7280;">製造者マージン(×0.3)</td><td style="padding:3px 8px;text-align:right;" colspan="3">${fmt(item.manufacturingMarginJPY ?? cb.manufacturingMargin)}</td></tr>
           <tr style="background:#eff6ff;"><td style="padding:4px 8px;font-weight:bold;color:#1e40af;" colspan="3">製造者価格 (原価×1.4)</td><td style="padding:4px 8px;text-align:right;font-weight:bold;color:#1e40af;">${fmt(item.manufacturerPriceJPY)} JPY</td></tr>
         </table>
 
@@ -286,7 +286,7 @@ export const html = (data: PurchaseOrderData): string => {
         <div style="font-size:14px;color:#065f46;margin-bottom:8px;">製造社請求額 合計</div>
         <table style="width:100%;font-size:13px;">
           <tr><td style="color:#374151;">原価合計</td><td style="text-align:right;">${fmt(data.base_cost_jpy)} JPY</td></tr>
-          <tr><td style="color:#374151;">製造者マージン (×0.4)</td><td style="text-align:right;">${fmt(data.manufacturing_margin_jpy)} JPY</td></tr>
+          <tr><td style="color:#374151;">製造者マージン (×0.3)</td><td style="text-align:right;">${fmt(data.manufacturing_margin_jpy)} JPY</td></tr>
           <tr><td style="color:#374151;">→ 製造者価格</td><td style="text-align:right;">${fmt(data.base_cost_jpy + data.manufacturing_margin_jpy)} JPY</td></tr>
           <tr><td style="color:#374151;">+ 国際配送費</td><td style="text-align:right;">${fmt(data.intl_shipping_jpy)} JPY</td></tr>
           <tr style="border-top:1px solid #10b981;"><td style="padding-top:8px;font-weight:bold;font-size:16px;">合計</td><td style="padding-top:8px;text-align:right;" class="total">${fmt(data.manufacturer_amount_jpy)} JPY</td></tr>

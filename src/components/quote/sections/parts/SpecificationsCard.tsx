@@ -142,7 +142,7 @@ export function SpecificationsCard({ state, result, showPatternComparison, multi
                     ))}
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
                       <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
-                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
+                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType === 'auto' ? (result.recommendation?.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷') : state.printingType === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}</dd>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
                       <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>
@@ -163,7 +163,7 @@ export function SpecificationsCard({ state, result, showPatternComparison, multi
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
                       <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">印刷</dt>
-                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType}</dd>
+                      <dd className="text-gray-900 font-medium">{state.isUVPrinting ? 'UVデジタル印刷' : state.printingType === 'auto' ? (result.recommendation?.method === 'gravure' ? 'グラビア印刷' : 'デジタル印刷') : state.printingType === 'gravure' ? 'グラビア印刷' : 'デジタル印刷'}</dd>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
                       <dt className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0 uppercase tracking-wide">色数</dt>

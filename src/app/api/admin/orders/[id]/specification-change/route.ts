@@ -107,7 +107,7 @@ export async function POST(
       depth: newSpecs.depth,
       quantity: orderItems.quantity,
       thicknessSelection: newSpecs.thicknessSelection || specs.thicknessSelection || 'standard',
-      printingType: newSpecs.printingType || specs.printing_type || specs.printingType || 'gravure',
+      printingType: newSpecs.printingType || specs.printing_type || specs.printingType || 'auto',
       printingColors: newSpecs.printingColors || specs.printing_colors || specs.printingColors || 1,
       postProcessingOptions: newSpecs.postProcessingOptions || specs.post_processing || specs.postProcessingOptions || [],
       skuQuantities: specs.sku_quantities || [orderItems.quantity],
@@ -275,6 +275,7 @@ export async function POST(
       priceDifference,
       differencePercentage,
       newQuotationId,
+      needsCustomerApproval: true,
       message: priceDifference > 0
         ? `金額が¥${priceDifference.toLocaleString()}増加します`
         : priceDifference < 0

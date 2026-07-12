@@ -11,6 +11,7 @@ import { MemberSpecificationDisplay } from '@/components/member/quotations/Membe
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { convertToPreviewOptions } from '@/constants/product-type-config';
 import { normalizeStatus, STATUS_LABELS } from './quotation-utils';
+import { extractCostDataForQuotation } from '@/lib/cost-extraction';
 
 interface AdminQuotationListProps {
   quotations: Quotation[];
@@ -34,17 +35,9 @@ export function AdminQuotationList({
 
   const calcCost = (quotation: Quotation): { totalCost: number; margin: number } => {
     const items = quotation.items || [];
-    let totalCost = 0;
-    for (const item of items) {
-      const specs = item.specifications || {};
-      const cb = specs.cost_breakdown || item.cost_breakdown;
-      if (cb && cb.totalCost) {
-        totalCost += cb.totalCost * item.quantity;
-      }
-    }
     const subtotal = quotation.subtotal_amount || (quotation.total_amount ? quotation.total_amount / 1.1 : 0);
-    const margin = subtotal > 0 ? ((subtotal - totalCost) / subtotal) * 100 : 0;
-    return { totalCost, margin };
+    const { totalManufacturerCost, totalMargin } = extractCostDataForQuotation(items, subtotal);
+    return { totalCost: totalManufacturerCost, margin: totalMargin };
   };
 
   if (quotations.length === 0) {

@@ -19,7 +19,7 @@ import MultiQuantityStep from '../steps/MultiQuantityStep';
 
 export function SpecsStep() {
   const state = useQuoteState();
-  const { updateBasicSpecs, updateField } = useQuote();
+  const { updateBasicSpecs, updateField, updateQuantityOptions } = useQuote();
 
   // Helper functions using the exported utilities
   const isStepComplete = (step: string) => checkStepComplete(state, step);
@@ -781,6 +781,35 @@ export function SpecsStep() {
             </div>
           );
         })()}
+
+        {/* Printing Color Selection */}
+        <div className="mb-6">
+          <label className="block text-base font-medium text-gray-700 mb-3 flex items-center">
+            印刷色数
+            <span className="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full font-medium">
+              必須
+            </span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+              <button
+                key={num}
+                data-testid={`color-btn-${num}`}
+                onClick={() => updateQuantityOptions({ printingColors: num })}
+                className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                  state.printingColors === num
+                    ? 'border-navy-500 bg-navy-50 text-navy-700 shadow-sm'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
+                }`}
+              >
+                {num}色
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            印刷する色数を選択してください。グラビア印刷の場合、色数に応じて銅版費用が加算されます。
+          </p>
+        </div>
 
       </div>
     </div>

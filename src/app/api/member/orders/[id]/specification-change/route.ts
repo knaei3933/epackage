@@ -117,7 +117,7 @@ export async function POST(
       depth: newSpecs.depth,
       quantity: orderItems.quantity,
       thicknessSelection: newSpecs.thicknessSelection || specs.thicknessSelection || 'standard',
-      printingType: newSpecs.printingType || specs.printing_type || 'gravure',
+      printingType: newSpecs.printingType || specs.printing_type || 'auto',
       printingColors: newSpecs.printingColors || specs.printing_colors || 1,
       postProcessingOptions: newSpecs.postProcessingOptions || specs.post_processing || [],
       skuQuantities: specs.sku_quantities || [orderItems.quantity],

@@ -83,7 +83,7 @@ export interface GravureCostBreakdown {
   // ========================================
   // グループ2: マージン・関税フィールド（円）
   // ========================================
-  /** 製造者マージン（円）= baseCostJPY × manufacturerMargin(0.4) */
+  /** 製造者マージン（円）= baseCostJPY × manufacturerMargin(0.3) */
   manufacturingMargin?: number
   /** 関税（円）= manufacturerPriceJPY × dutyRate(0.05) */
   duty?: number

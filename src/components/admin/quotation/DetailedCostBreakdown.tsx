@@ -193,9 +193,10 @@ export function DetailedCostBreakdown({
   quotationSubtotal,  // 実際の見積価格（小計）
   showFormula = true  // デフォルトで計算式を表示
 }: DetailedCostBreakdownProps) {
-  const [exchangeRateKRWToJPY, setExchangeRateKRWToJPY] = useState<number>(0.14); // デフォルト: 1ウォン = 0.14円
 
-  // 為替レートを取得
+  const [exchangeRateKRWToJPY, setExchangeRateKRWToJPY] = useState<number>(0.12); // DB값(0.12)과 일치하는 폴백
+
+  // 為替レートをDBから取得
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
@@ -205,7 +206,7 @@ export function DetailedCostBreakdown({
           // 為替レートを検索 (KRW to JPY)
           const krwRate = data.data?.exchange_rate?.find((s: any) => s.key === 'krw_to_jpy');
           if (krwRate) {
-            setExchangeRateKRWToJPY(parseFloat(krwRate.value) || 0.14);
+            setExchangeRateKRWToJPY(parseFloat(krwRate.value) || 0.12);
           }
         }
       } catch (error) {

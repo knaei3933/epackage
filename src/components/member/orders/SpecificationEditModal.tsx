@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { Button } from '@/components/ui';
 
@@ -148,37 +149,44 @@ export function SpecificationEditModal({
               <div>
                 <label className="block text-xs text-gray-500 mb-1">幅 (mm)</label>
                 <input
-                  type="number"
-                  data-testid="spec-width-input"
-                  value={specifications.width}
-                  onChange={(e) => handleSpecificationChange('width', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="幅"
-                />
+                 type="number"
+                 data-testid="spec-width-input"
+                 value={specifications.width}
+                 readOnly
+                 disabled
+                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                 placeholder="幅"
+               />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">高さ (mm)</label>
                 <input
-                  type="number"
-                  data-testid="spec-height-input"
-                  value={specifications.height}
-                  onChange={(e) => handleSpecificationChange('height', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="高さ"
-                />
+                 type="number"
+                 data-testid="spec-height-input"
+                 value={specifications.height}
+                 readOnly
+                 disabled
+                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                 placeholder="高さ"
+               />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">マチ (mm)</label>
                 <input
-                  type="number"
-                  data-testid="spec-depth-input"
-                  value={specifications.depth || ''}
-                  onChange={(e) => handleSpecificationChange('depth', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="マチ"
-                />
+                 type="number"
+                 data-testid="spec-depth-input"
+                 value={specifications.depth || ''}
+                 readOnly
+                 disabled
+                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                 placeholder="マチ"
+               />
               </div>
             </div>
+            <p className="mt-2 text-xs text-amber-600 flex items-center">
+              <AlertCircle className="w-3 h-3 mr-1 inline" />
+              サイズ変更は再見積もりが必要です。お問い合わせください。
+            </p>
           </div>
 
           {/* 素材 */}
@@ -206,21 +214,30 @@ export function SpecificationEditModal({
                 <label className="block text-xs text-gray-500 mb-1">印刷方式</label>
                 <select
                   data-testid="spec-printing-type-select"
-                  value={specifications.printingType || 'gravure'}
-                  onChange={(e) => handleSpecificationChange('printingType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  value="auto"
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                 >
-                  <option value="gravure">グラビア印刷</option>
-                  <option value="digital">デジタル印刷</option>
+                 <option value="auto">自動（システム推奨）</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">色数</label>
-                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
-                  フルカラー
-                </div>
+                <select
+                  data-testid="spec-printing-colors-select"
+                  value={specifications.printingColors || 1}
+                  onChange={(e) => handleSpecificationChange('printingColors', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                    <option key={num} value={num}>{num}色</option>
+                  ))}
+                </select>
               </div>
             </div>
+            <p className="mt-2 text-xs text-gray-500">
+              印刷方式は色数と数量に基づいてシステムが自動的に最適な方式（デジタル/グラビア）を選択します。
+            </p>
           </div>
 
           {/* 後加工オプション */}

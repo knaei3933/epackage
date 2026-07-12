@@ -1198,7 +1198,7 @@ export class PouchCostCalculator {
     });
 
     // 2. 製造者価格 (KRW) - DB設定から製造者マージン率を取得
-    // AC-Q6/S1.2: フォールバックは PRICING_CONSTANTS.MANUFACTURER_MARGIN(0.4 ガイド準拠)
+    // AC-Q6/S1.2: フォールバックは PRICING_CONSTANTS.MANUFACTURER_MARGIN(0.3 DB値準拠)
     const MANUFACTURER_MARGIN = await this.getSetting('pricing', 'manufacturer_margin', PRICING_CONSTANTS.MANUFACTURER_MARGIN);
     console.log('[PouchCostCalculator] manufacturerMargin:', MANUFACTURER_MARGIN);
     const manufacturerPriceKRW = baseCostKRW * (1 + MANUFACTURER_MARGIN);

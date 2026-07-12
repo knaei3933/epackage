@@ -229,6 +229,44 @@ export async function PATCH(
       },
     }).catch(err => console.error('[Audit Log] Failed to log success:', err));
 
+    // =====================================================
+    // Spec change revert on rejection: restore original specs + price
+    // =====================================================
+    if (status === 'rejected') {
+      try {
+        const { data: approvalFull } = await (supabase as any)
+          .from('customer_approval_requests')
+          .select('approval_type, metadata')
+          .eq('id', requestId)
+          .single();
+
+        if (approvalFull?.approval_type === 'spec_change' && approvalFull.metadata?.audit_log_id) {
+          const { data: auditLog } = await (supabase as any)
+            .from('order_audit_log')
+            .select('record_id, old_data')
+            .eq('id', approvalFull.metadata.audit_log_id)
+            .single();
+
+          if (auditLog?.old_data) {
+            const oldSpecs = auditLog.old_data.specifications;
+            const oldPrice = auditLog.old_data.price;
+            await (supabase as any)
+              .from('order_items')
+              .update({
+                specifications: oldSpecs,
+                total_price: oldPrice,
+                unit_price: oldPrice / (await (supabase as any).from('order_items').select('quantity').eq('id', auditLog.record_id).single()).data?.quantity || 1,
+              })
+              .eq('id', auditLog.record_id);
+
+            console.log('[Member Approval Response] Spec change rejected - original specs+price restored for item:', auditLog.record_id);
+          }
+        }
+      } catch (revertError) {
+        console.error('[Member Approval Response] Failed to revert spec change on rejection:', revertError);
+      }
+    }
+
     const response: UpdateApprovalResponse = {
       success: true,
       data: updatedApproval as { id: string; status: string; response_notes: string | null; responded_at: string },

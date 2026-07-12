@@ -199,7 +199,7 @@ const CONSTANTS = {
   // 필름 원가 계산 설정 (새로운 기능)
   // ガイド準拠値（AC-Q6/S1.1）: pricing/core/constants.ts の PRICING_CONSTANTS を正とする
   // 製造者マージン40%・販売マージン25%（2026-06-27 改定: 販売マージン 20%→25%）
-  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.4（製造社原価に40%）
+  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.3（製造社原価に30%）
   SALES_MARGIN: PRICING_CONSTANTS.SALES_MARGIN, // 0.25（小計に25%）
   DEFAULT_MARKUP_RATE: PRICING_CONSTANTS.SALES_MARGIN, // 0.25（販売マージン）
   // 총 마진율 = (1 + 0.4) × (1 + 0.25) - 1 = 0.75 (75%)
@@ -1507,7 +1507,7 @@ export class UnifiedPricingEngine {
 
     // ========================================
     // 3. マージン・関税・配送（デジタルと共通の集約パターン・AC-22）
-    //    Step1: 基礎原価 × (1 + 製造者マージン[0.4]) = 製造者価格
+    //    Step1: 基礎原価 × (1 + 製造者マージン[0.3]) = 製造者価格
     //    Step2: 製造者価格 × 1.05（関税5%）= 輸入原価
     //    Step3: (輸入原価 + 配送料) × (1 + 販売マージン[0.25]) = 最終価格（判断2）
     // ========================================
@@ -2149,7 +2149,7 @@ export class UnifiedPricingEngine {
   /**
    * 印刷費計算
    * ドキュメント仕様: 印刷費は常に1mで計算（フィルム幅と無関係）
-   * 印刷費用(ウォン) = 1m × 使用メートル数 × 475ウォン/m²
+   * 印刷費用(ウォン) = 1m × 使用メートル数 × 単価(ウォン/m²)
    */
   private async calculatePrintingCost(
     printingType: 'digital' | 'gravure',
@@ -2183,7 +2183,7 @@ export class UnifiedPricingEngine {
     const colorMultiplier = doubleSided ? 2 : 1
 
     // ロールフィルムの場合：メートル数とフィルム幅を使用
-    // 修正：印刷費は幅無関係、常に475元/mで計算（ドキュメント基準）
+    // 印刷費は幅無関係、DB設定 roll_film_cost_per_m で計算（ドキュメント基準）
     // docs/reports/calcultae/04-미터수_및_원가_계산.md 参照
     if (rollFilmParams?.lengthInMeters && rollFilmParams?.filmWidthM) {
       // 材料別ロス量計算（ロールフィルム印刷）
@@ -2198,13 +2198,13 @@ export class UnifiedPricingEngine {
       const lossMeters = getLossMeters((rollFilmParams as any).filmLayers);
       const totalMeters = rollFilmParams.lengthInMeters + lossMeters;
 
-      // ロールフィルム印刷費は幅無関係、常に475元/mで計算
+      // ロールフィルム印刷費は幅無関係、DB設定 roll_film_cost_per_m で計算
       // ドキュメント基準：docs/reports/calcultae/04-미터수_및_원가_계산.md
       // パウチ製品の印刷費計算（1777-1794行目）には影響なし（分岐が分かれているため）
       // DB設定からロールフィルム印刷費を取得
       const rollFilmPrintingCostPerM = await this.getSetting(
-        'printing',
-        'roll_film_cost_per_m',
+        'production',
+        'roll_film_printing_cost_per_m',
         CONSTANTS.ROLL_FILM_PRINTING_COST_PER_M
       )
       const printingCostKRW = totalMeters * rollFilmPrintingCostPerM;
@@ -2219,7 +2219,7 @@ export class UnifiedPricingEngine {
         totalMeters,
         lossMeters,
         perColorPerMeter: rollFilmPrintingCostPerM, // DB設定から取得
-        note: 'ロールフィルム印刷費は幅無関係、常に475元/m',
+        note: 'ロールフィルム印刷費は幅無関係、DB設定 roll_film_cost_per_m',
         printingCostKRW,
         totalCostKRW,
         totalCostJPY
@@ -2229,7 +2229,7 @@ export class UnifiedPricingEngine {
     }
 
     // パウチの場合：メートル数を使用（ドキュメント仕様準拠）
-    // 印刷費用(ウォン) = 1m × 使用メートル数 × 475ウォン/m²
+    // 印刷費用(ウォン) = 1m × 使用メートル数 × perColorPerMeter(ウォン/m²)
     const totalMeters = pouchMeters || 0;
     if (totalMeters > 0) {
       const printingCostKRW = totalMeters * printingConfig.perColorPerMeter;

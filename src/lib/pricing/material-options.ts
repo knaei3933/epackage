@@ -390,7 +390,7 @@ const CONSTANTS = {
   // 필름 원가 계산 설정 (새로운 기능)
   // ガイド準拠値（AC-Q6/S1.1）: pricing/core/constants.ts の PRICING_CONSTANTS を正とする
   // 製造者マージン40%・販売マージン25%（2026-06-27 改定: 販売マージン 20%→25%）
-  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.4（製造社原価に40%）
+  MANUFACTURER_MARGIN: PRICING_CONSTANTS.MANUFACTURER_MARGIN, // 0.3（製造社原価に30%）
   SALES_MARGIN: PRICING_CONSTANTS.SALES_MARGIN, // 0.25（小計に25%）
   DEFAULT_MARKUP_RATE: PRICING_CONSTANTS.SALES_MARGIN, // 0.25（販売マージン）
   // 총 마진율 = (1 + 0.4) × (1 + 0.25) - 1 = 0.75 (75%)

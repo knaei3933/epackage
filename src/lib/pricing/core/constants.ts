@@ -24,8 +24,8 @@ export const PRICING_CONSTANTS = {
   /** ロールフィルム固定ロス（m） */
   ROLL_FILM_LOSS_METERS: 400,
 
-  /** 製造者マージン率 40%（製造社原価に40%適用。DB system_settings.manufacturer_margin=0.4 と一致） */
-  MANUFACTURER_MARGIN: 0.4,
+  /** 製造者マージン率 30%（製造社原価に30%適用。DB system_settings.pricing.manufacturer_margin=0.3 と一致） */
+  MANUFACTURER_MARGIN: 0.3,
   /** 販売マージン率 25%（小計に25%適用。DB system_settings.default_markup_rate=0.25 と一致）。
    *  2026-06-27 改定: 0.2→0.25（原価上昇に伴う販売マージン変更・ユーザー指示）。 */
   SALES_MARGIN: 0.25,

@@ -52,7 +52,7 @@ export interface FiveStepBreakdown {
     formula: string;
     formulaKRW: string;  // 韓国ウォン計算式
     formulaDetails: {
-      unitPriceKRW: number;      // 475 KRW/m²
+      unitPriceKRW: number;      // KRW/m²
       widthM: number;            // 1m (fixed)
       totalMeters: number;       // e.g., 126m
     };
@@ -162,12 +162,12 @@ export function calculateFiveStepBreakdown(
   const deliveryFromBreakdown = breakdown.delivery || 0;
   const deliveryFromFilmDetails = (filmCostDetails as any)?.deliveryCostJPY || 0;
   const deliveryFromFilmBreakdown = (filmCostDetails as any)?.breakdown?.deliveryCost || 0;
-  const defaultDeliveryJPY = Math.round(DEFAULT_DELIVERY_KRW * 0.12);  // ≈15,358円
+  const defaultDeliveryJPY = Math.round(DEFAULT_DELIVERY_KRW * ((breakdown as any)?.exchangeRate ?? 0.12));  // 저장 환율 기반
 
   // 配送料の決定（優先順位: breakdown > filmDetails > filmBreakdown > default）
   const deliveryJPY = deliveryFromBreakdown || deliveryFromFilmDetails || deliveryFromFilmBreakdown || defaultDeliveryJPY;
-  // 為替レート: 1円 = 約8.33ウォン
-  const JPY_TO_KRW_RATE = 8.33;
+  // 為替レート: 1円 = 1/KRW_TO_JPY_RATE ウォン (cost_breakdown.exchangeRate 기반, 폴백 0.12)
+  const JPY_TO_KRW_RATE = 1 / ((breakdown as any)?.exchangeRate ?? 0.12);
 
   // Step 1: Raw Material Cost - Sum of all materialLayerDetails
   const rawMaterialDetails = filmCostDetails?.materialLayerDetails?.map(m => ({
@@ -189,7 +189,8 @@ export function calculateFiveStepBreakdown(
 
   // Step 2: Printing Cost
   const totalMeters = filmCostDetails?.totalMeters || 0;
-  const PRINTING_UNIT_PRICE_KRW = 475;
+  // 인쇄 단가: 저장값 우선 (cost_breakdown), 폴백 DB 기본값과 일치 (520)
+  const PRINTING_UNIT_PRICE_KRW = 520;
   // filmCostDetails.breakdown.printingからデータを取得（基本印刷費 + マット印刷追加費）
   const printingBasicKRW = filmCostDetails?.breakdown?.printing?.basic || 0;
   const printingMatteKRW = filmCostDetails?.breakdown?.printing?.matte || 0;
@@ -198,7 +199,7 @@ export function calculateFiveStepBreakdown(
   // フォールバック: breakdown.printingまたは直接計算
   const printingCostJPY = (breakdown as any).printing || (breakdown as any).printingCost || 0;
 
-  // 直接計算: totalMeters × 475 (filmCostDetailsから 데이터가 없는 경우)
+  // 直接計算: totalMeters × 単価 (filmCostDetailsから 데이터가 없는 경우)
   let calculatedPrintingKRW = 0;
   if (totalMeters > 0 && printingTotalKRW === 0) {
     calculatedPrintingKRW = Math.round(totalMeters * PRINTING_UNIT_PRICE_KRW);
@@ -210,12 +211,13 @@ export function calculateFiveStepBreakdown(
 
   const materialWidthMM = filmCostDetails?.materialWidthMM || 590;
   const materialWidthM = materialWidthMM / 1000;
+  const printingWidthM = 1.0;
 
   const printingFormula = totalMeters > 0
-    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × ${materialWidthM.toFixed(2)}m × ${totalMeters.toFixed(1)}m`
+    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × ${printingWidthM.toFixed(1)}m(固定) × ${totalMeters.toFixed(1)}m`
     : '印刷費';
   const printingFormulaKRW = totalMeters > 0
-    ? `₩${PRINTING_UNIT_PRICE_KRW}/m² × ${materialWidthM.toFixed(2)}m × ${totalMeters.toFixed(1)}m${printingMatteKRW > 0 ? ' + マット仕上げ追加費 ₩' + printingMatteKRW.toLocaleString() : ''} = ₩${printingCostKRW.toLocaleString()}`
+    ? `基本印刷費: ₩${PRINTING_UNIT_PRICE_KRW}/m² × ${printingWidthM.toFixed(1)}m(固定) × ${totalMeters.toFixed(1)}m${printingMatteKRW > 0 ? ' + マット仕上げ追加費 ₩' + printingMatteKRW.toLocaleString() : ''} = ₩${printingCostKRW.toLocaleString()}`
     : '印刷費';
 
   // Step 3: Post-processing Cost
@@ -230,7 +232,7 @@ export function calculateFiveStepBreakdown(
   const hasALMaterial = (filmCostDetails as any)?.hasALMaterial
     ?? (filmCostDetails?.materialLayerDetails?.some(l => l.materialId === 'AL') || false);
   const laminationPricePerMeterKRW = (filmCostDetails as any)?.laminationUnitPriceKRW
-    ?? (hasALMaterial ? 75 : 65);
+    ?? (hasALMaterial ? 80 : 65);
   const laminationCycles = (filmCostDetails as any)?.laminationCycles
     ?? (filmCostDetails?.breakdown?.lamination?.count
     || ((filmCostDetails?.materialLayerDetails?.length || 1) - 1));
@@ -249,7 +251,7 @@ export function calculateFiveStepBreakdown(
 
   // 製袋加工費: unified-pricing-engine でKRW計算後にJPY変換されているため、元に戻す
   // pouchProcessingCostJPY = pouchProcessingCostKRW * 0.12
-  const pouchKRW = pouchJPY > 0 ? Math.round(pouchJPY / 0.12) : 0;
+  const pouchKRW = pouchJPY > 0 ? Math.round(pouchJPY / ((breakdown as any)?.exchangeRate ?? 0.12)) : 0;
   const surfaceTreatmentKRW = Math.round(surfaceTreatmentJPY * JPY_TO_KRW_RATE);
   const postProcessingTotalKRW = laminationKRW + slitterKRW + pouchKRW + surfaceTreatmentKRW;
 
@@ -323,7 +325,7 @@ export function calculateFiveStepBreakdown(
   const baseCostKRW = rawMaterialTotalKRW + printingCostKRW + postProcessingTotalKRW;
 
   // G004: 저장값 우선 (신규 견적: DB 0.3), 폴백 하드코딩 (과거 견적: 0.4)
-  const MANUFACTURER_MARGIN_RATE = (breakdown as any)?.manufacturerMarginRate ?? 0.4; // 30%(DB) / 40%(legacy)
+  const MANUFACTURER_MARGIN_RATE = (breakdown as any)?.manufacturerMarginRate ?? 0.3; // 저장값 우선, 폴백 DB값(0.3)
   const manufacturerMarginKRW = Math.round(baseCostKRW * MANUFACTURER_MARGIN_RATE);
   const marginFormulaKRW = `₩${baseCostKRW.toLocaleString()} × ${(MANUFACTURER_MARGIN_RATE * 100).toFixed(0)}%`;
 
@@ -334,7 +336,7 @@ export function calculateFiveStepBreakdown(
   const manufacturerPriceJPY = Math.round(manufacturerPriceKRW * KRW_TO_JPY_RATE);
 
   // Step 8: 関税 (JPY) = 円貨製造者価格 × 5%
-  const DUTY_RATE = 0.05; // 5%
+  const DUTY_RATE = (breakdown as any)?.dutyRate ?? 0.05; // 저장값 우선, 폴백 5%
   const dutyJPY = Math.round(manufacturerPriceJPY * DUTY_RATE);
 
   // Step 10: 小計 (JPY) = 円貨製造者価格 + 関税 + 配送料
@@ -342,7 +344,7 @@ export function calculateFiveStepBreakdown(
   const subtotalJPY = manufacturerPriceJPY + dutyJPY + deliveryJPY;
 
   // Step 11: 販売者マージン (20%)
-  const SALES_MARGIN_RATE = 0.2; // 20%
+  const SALES_MARGIN_RATE = (breakdown as any)?.salesMarginRate ?? 0.25; // 저장값 우선, 폴백 DB값(0.25)
   const salesMarginJPY = Math.round(subtotalJPY * SALES_MARGIN_RATE);
 
   // Step 12: 最終販売価格 (JPY) = 小計 × 1.2（販売者マージン20%追加）
@@ -426,7 +428,7 @@ export function calculateFiveStepBreakdown(
       formulaKRW: printingFormulaKRW,
       formulaDetails: {
         unitPriceKRW: PRINTING_UNIT_PRICE_KRW,
-        widthM: materialWidthM,
+        widthM: 1.0,
         totalMeters: totalMeters
       }
     },
