@@ -65,8 +65,8 @@ export function AdminQuotationFilters({
         className="px-4 py-2 border border-gray-300 rounded-lg"
       >
         <option value="all">すべてのステータス</option>
-        <option value="DRAFT">ドラフト</option>
-        <option value="SENT">送信済み</option>
+        <option value="DRAFT">見積依頼中</option>
+        <option value="SENT">見積依頼済み</option>
         <option value="CONVERTED">注文済み</option>
         <option value="EXPIRED">期限切れ</option>
       </select>

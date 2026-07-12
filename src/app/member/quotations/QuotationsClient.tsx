@@ -446,7 +446,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                           注文する
                         </Button>
 
-                        {['draft', 'quotation_pending'].includes(quotation.status.toLowerCase()) && (
+                        {['draft', 'quotation_pending', 'sent'].includes(quotation.status.toLowerCase()) && (
                           <Button
                             variant="destructive"
                             size="sm"

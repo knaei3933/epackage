@@ -39,10 +39,10 @@ export const BAG_TYPE_IMAGES: Record<string, { name: string; image: string }> = 
  * 管理者画面で使用する詳細なステータス表示
  */
 export const ADMIN_STATUS_LABELS: Record<string, { label: string; variant: 'success' | 'warning' | 'error' | 'default' }> = {
-  'DRAFT': { label: 'ドラフト', variant: 'default' },
-  'draft': { label: 'ドラフト', variant: 'default' },
-  'SENT': { label: '送信済み', variant: 'warning' },
-  'sent': { label: '送信済み', variant: 'warning' },
+  'DRAFT': { label: '見積依頼中', variant: 'warning' },
+  'draft': { label: '見積依頼中', variant: 'warning' },
+  'SENT': { label: '見積依頼済み', variant: 'warning' },
+  'sent': { label: '見積依頼済み', variant: 'warning' },
   'APPROVED': { label: '承認済み', variant: 'success' },
   'approved': { label: '承認済み', variant: 'success' },
   'REJECTED': { label: '拒否', variant: 'error' },
@@ -70,10 +70,10 @@ export const ADMIN_STATUS_LABELS: Record<string, { label: string; variant: 'succ
  * 会員画面で使用するシンプルなステータス表示
  */
 export const MEMBER_STATUS_LABELS: Record<string, string> = {
-  'DRAFT': '審査中',
-  'draft': '審査中',
-  'SENT': '送信済み',
-  'sent': '送信済み',
+  'DRAFT': '見積依頼中',
+  'draft': '見積依頼中',
+  'SENT': '見積依頼済み',
+  'sent': '見積依頼済み',
   'APPROVED': '承認済み',
   'approved': '承認済み',
   'REJECTED': '拒否',
@@ -101,10 +101,10 @@ export const MEMBER_STATUS_LABELS: Record<string, string> = {
  * Badgeコンポーネントのvariantプロパティ用
  */
 export const MEMBER_STATUS_VARIANTS: Record<string, 'secondary' | 'info' | 'success' | 'error' | 'warning'> = {
-  'DRAFT': 'secondary',
-  'draft': 'secondary',
-  'SENT': 'info',
-  'sent': 'info',
+  'DRAFT': 'warning',
+  'draft': 'warning',
+  'SENT': 'success',
+  'sent': 'success',
   'APPROVED': 'success',
   'approved': 'success',
   'REJECTED': 'error',

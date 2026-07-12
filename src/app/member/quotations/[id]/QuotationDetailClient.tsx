@@ -60,10 +60,10 @@ interface QuotationDetailPageProps {
 // =====================================================
 
 const quotationStatusLabels: Record<string, string> = {
-  DRAFT: 'ドラフト',
+  DRAFT: '見積依頼中',
   QUOTATION_PENDING: '見積承認待ち',
   QUOTATION_APPROVED: '見積承認済み',
-  SENT: '送信済み',
+  SENT: '見積依頼済み',
   APPROVED: '承認済み',
   REJECTED: '却下',
   EXPIRED: '期限切れ',
@@ -71,10 +71,10 @@ const quotationStatusLabels: Record<string, string> = {
 };
 
 const quotationStatusVariants: Record<string, 'success' | 'secondary' | 'error' | 'warning' | 'info' | 'default'> = {
-  DRAFT: 'secondary',
+  DRAFT: 'warning',
   QUOTATION_PENDING: 'warning',
   QUOTATION_APPROVED: 'success',
-  SENT: 'info',
+  SENT: 'success',
   APPROVED: 'success',
   REJECTED: 'error',
   EXPIRED: 'warning',

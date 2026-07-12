@@ -90,7 +90,7 @@ export async function POST(
     }
 
     // Check current status
-    if (quotation.status !== 'SENT' && quotation.status !== 'DRAFT') {
+    if (quotation.status !== 'SENT' && quotation.status !== 'DRAFT' && quotation.status !== 'QUOTATION_PENDING') {
       return NextResponse.json(
         { success: false, error: '承認できない見積ステータスです。' },
         { status: 400 }

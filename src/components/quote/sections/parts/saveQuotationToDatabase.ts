@@ -441,7 +441,7 @@ export async function saveQuotationToDatabase({
             : user?.email?.split('@')[0] || 'Guest',
           customer_email: user?.email || 'guest@example.com',
           customer_phone: user?.corporatePhone || null,
-          status: 'DRAFT',
+          status: 'SENT',
           validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           notes: null,
           // 【追加】見積全体の原価内訳（合計）

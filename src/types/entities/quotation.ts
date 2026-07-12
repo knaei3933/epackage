@@ -35,7 +35,7 @@ export type QuotationStatus =
  * 見積ステータスラベル
  */
 export const QUOTATION_STATUS_LABELS: Record<QuotationStatus, string> = {
-  DRAFT: '審査中',
+  DRAFT: '見積依頼中',
   SENT: '送信済み',
   APPROVED: '承認済み',
   REJECTED: '却下',

@@ -28,8 +28,8 @@ export interface QuotationFiltersProps {
  */
 const defaultFilterOptions = [
   { value: 'all', label: 'すべて' },
-  { value: 'DRAFT', label: 'ドラフト' },
-  { value: 'SENT', label: '送信済み' },
+  { value: 'DRAFT', label: '見積依頼中' },
+  { value: 'SENT', label: '見積依頼済み' },
   { value: 'APPROVED', label: '承認済み' },
   { value: 'REJECTED', label: '却下' },
   { value: 'EXPIRED', label: '期限切れ' },

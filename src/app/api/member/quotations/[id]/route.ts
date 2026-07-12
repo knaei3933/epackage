@@ -182,9 +182,10 @@ export async function DELETE(
       );
     }
 
-    if (quotation.status !== 'DRAFT') {
+    const statusUpper = (quotation.status || '').toUpperCase();
+    if (!['DRAFT', 'SENT', 'QUOTATION_PENDING'].includes(statusUpper)) {
       return NextResponse.json(
-        { error: 'ドラフト状態の見積のみ削除できます。' },
+        { error: '見積依頼中の見積のみ削除できます。' },
         { status: 400 }
       );
     }
@@ -273,9 +274,10 @@ export async function PUT(
     }
 
     // Only allow updating DRAFT status quotations
-    if (existingQuotation.status !== 'DRAFT') {
+    const existingStatusUpper = (existingQuotation.status || '').toUpperCase();
+    if (!['DRAFT', 'SENT', 'QUOTATION_PENDING'].includes(existingStatusUpper)) {
       return NextResponse.json(
-        { error: 'ドラフト状態の見積のみ更新できます。', errorEn: 'Only draft quotations can be updated' },
+        { error: '見積依頼中の見積のみ更新できます。', errorEn: 'Only pending quotations can be updated' },
         { status: 400 }
       );
     }

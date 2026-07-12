@@ -162,9 +162,15 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
 
   const stats = {
     total: total,
-    draft: quotations.filter(q => q.status === 'DRAFT' || q.status === 'QUOTATION_PENDING').length,
-    sent: quotations.filter(q => q.status === 'SENT').length,
-    approved: quotations.filter(q => q.status === 'CONVERTED' || q.status === 'QUOTATION_APPROVED').length,
+    draft: quotations.filter(q => {
+      const s = (q.status || '').toUpperCase();
+      return s === 'DRAFT' || s === 'QUOTATION_PENDING' || s === 'SENT';
+    }).length,
+    sent: quotations.filter(q => (q.status || '').toUpperCase() === 'SENT').length,
+    approved: quotations.filter(q => {
+      const s = (q.status || '').toUpperCase();
+      return s === 'CONVERTED' || s === 'QUOTATION_APPROVED' || s === 'APPROVED';
+    }).length,
     rejected: 0,
   };
 

@@ -117,8 +117,8 @@ export function normalizeStatus(status: string): Quotation['status'] {
  * ステータスラベルの定義
  */
 export const STATUS_LABELS: Record<string, { label: string; variant: 'success' | 'warning' | 'error' | 'default' }> = {
-  'DRAFT': { label: 'ドラフト', variant: 'default' },
-  'SENT': { label: '送信済み', variant: 'warning' },
+  'DRAFT': { label: '見積依頼中', variant: 'warning' },
+  'SENT': { label: '見積依頼済み', variant: 'warning' },
   'APPROVED': { label: '承認済み', variant: 'success' },
   'QUOTATION_PENDING': { label: '見積承認待ち', variant: 'warning' },
   'QUOTATION_APPROVED': { label: '見積承認済み', variant: 'success' },
