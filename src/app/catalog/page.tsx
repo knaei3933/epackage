@@ -30,12 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/images/og-catalog.jpg']
     },
     alternates: {
-      canonical: '/catalog',
-      languages: {
-        'ja': '/ja/catalog',
-        'en': '/en/catalog',
-        'ko': '/ko/catalog'
-      }
+      canonical: '/catalog'
     }
   }
 }

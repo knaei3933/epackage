@@ -30,11 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/images/industry/pharmaceutical-og.jpg']
     },
     alternates: {
-      canonical: '/industry/pharmaceutical',
-      languages: {
-        'ja': '/ja/industry/pharmaceutical',
-        'en': '/en/industry/pharmaceutical'
-      }
+      canonical: '/industry/pharmaceutical'
     },
     other: {
       'pharma-industry-target': 'pharmaceutical-companies',

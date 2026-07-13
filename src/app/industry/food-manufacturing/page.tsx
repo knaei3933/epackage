@@ -30,11 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/images/industry/food-manufacturing-og.jpg']
     },
     alternates: {
-      canonical: '/industry/food-manufacturing',
-      languages: {
-        'ja': '/ja/industry/food-manufacturing',
-        'en': '/en/industry/food-manufacturing'
-      }
+      canonical: '/industry/food-manufacturing'
     },
     other: {
       'food-industry-target': 'manufacturers',

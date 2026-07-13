@@ -27,10 +27,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/guide/size',
-    languages: {
-      ja: '/guide/size',
-      en: '/en/guide/size',
-    },
   },
 }
 

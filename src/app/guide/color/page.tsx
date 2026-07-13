@@ -27,10 +27,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/guide/color',
-    languages: {
-      ja: '/guide/color',
-      en: '/en/guide/color',
-    },
   },
 }
 

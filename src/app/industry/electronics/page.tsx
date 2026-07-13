@@ -30,11 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/images/industry/electronics-og.jpg']
     },
     alternates: {
-      canonical: '/industry/electronics',
-      languages: {
-        'ja': '/ja/industry/electronics',
-        'en': '/en/industry/electronics'
-      }
+      canonical: '/industry/electronics'
     },
     other: {
       'electronics-industry-target': 'electronic-components',

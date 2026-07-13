@@ -27,10 +27,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/guide/shirohan',
-    languages: {
-      ja: '/guide/shirohan',
-      en: '/en/guide/shirohan',
-    },
   },
 }
 

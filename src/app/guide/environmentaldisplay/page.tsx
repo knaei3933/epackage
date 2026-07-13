@@ -27,10 +27,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/guide/environmentaldisplay',
-    languages: {
-      ja: '/guide/environmentaldisplay',
-      en: '/en/guide/environmentaldisplay',
-    },
   },
 }
 

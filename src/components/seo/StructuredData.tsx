@@ -217,7 +217,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             '@type': 'SearchAction',
             target: {
               '@type': 'EntryPoint',
-              urlTemplate: 'https://www.package-lab.com/products?q={search_term_string}',
+              urlTemplate: 'https://www.package-lab.com/catalog?q={search_term_string}',
               actionPlatform: [
                 'https://schema.org/DesktopWebPlatform',
                 'https://schema.org/MobileWebPlatform'

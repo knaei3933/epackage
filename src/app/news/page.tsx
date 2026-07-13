@@ -27,12 +27,7 @@ export const metadata: Metadata = {
     images: ['/images/og-pouch-news.jpg']
   },
   alternates: {
-    canonical: '/news',
-    languages: {
-      'ja': '/ja/news',
-      'en': '/en/news',
-      'ko': '/ko/news'
-    }
+    canonical: '/news'
   }
 }
 

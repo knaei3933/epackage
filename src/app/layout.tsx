@@ -64,9 +64,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.package-lab.com',
     languages: {
-      'ja': 'https://www.package-lab.com',
-      'en': 'https://www.package-lab.com/en',
-      'ko': 'https://www.package-lab.com/ko',
       'x-default': 'https://www.package-lab.com',
     },
   },
@@ -157,7 +154,7 @@ export default function RootLayout({
         {/* Performance optimization: preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="dns-prefetch" href="//api.supabase.io" />
+        <link rel="dns-prefetch" href="//api.supabase.co" />
 
         {/* Security headers */}
         <meta name="referrer" content="strict-origin-when-cross-origin" />
