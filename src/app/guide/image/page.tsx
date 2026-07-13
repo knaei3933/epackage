@@ -4,10 +4,10 @@ import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
+  title: '画像ガイド - パッケージ印刷画像仕様',
   description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモード、制作時の注意点について詳しく説明します。',
   openGraph: {
-    title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
+    title: '画像ガイド - パッケージ印刷画像仕様',
     description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモードについて詳しく説明します。',
     type: 'website',
     images: [
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
+    title: '画像ガイド - パッケージ印刷画像仕様',
     description: 'パッケージ印刷における画像データの仕様、解像度、ファイル形式、カラーモードについて詳しく説明します。',
     images: ['/images/guide/image-og.jpg'],
   },

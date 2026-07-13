@@ -6,11 +6,17 @@ import Link from 'next/link'
 import { ArrowLeft, Palette, Ruler, Image, FileText, Leaf } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'デザインガイド - パッケージデザイン制作ガイド | Epackage Lab',
+  title: {
+    default: 'デザインガイド - パッケージデザイン制作ガイド',
+    template: '%s | Epackage Lab',
+  },
   description: 'パッケージデザイン制作のための包括的なガイド。色、サイズ、画像、白版、環境表示の基準と仕様について詳しく説明します。',
   openGraph: {
     title: 'デザインガイド - Epackage Lab',
     description: 'プロフェッショナルなパッケージデザイン制作ガイド',
+  },
+  alternates: {
+    canonical: '/guide',
   },
 }
 

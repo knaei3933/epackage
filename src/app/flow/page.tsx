@@ -21,13 +21,13 @@ import {
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: '製造工程 | Epackage Lab - デジタル印刷・環境配慮型包装材製造',
+  title: '製造工程 - デジタル印刷・環境配慮型包装材製造',
   description: 'Epackage Labの先進製造工程。HP Indigoデジタル印刷、NON-VOC対応製造、KARLVILLE高精度加工、一貫生産システムで30日間納品。',
   alternates: {
     canonical: 'https://www.package-lab.com/flow',
   },
   openGraph: {
-    title: '製造工程 | Epackage Lab',
+    title: '製造工程',
     description: '最新技術による包装材製造工程。デジタル印刷から精密加工まで完全内製化。',
     type: 'website',
   },

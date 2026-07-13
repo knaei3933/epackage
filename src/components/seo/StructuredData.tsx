@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 interface StructuredDataProps {
@@ -82,7 +80,8 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             availability: 'https://schema.org/InStock',
             price: data.price || '0',
             priceCurrency: 'JPY',
-            priceValidUntil: data.priceValidUntil || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            // 固定値（'use client' 削除に伴う SSR 化で Date.now() を排除）。doc で定期メンテ運用。
+            priceValidUntil: data.priceValidUntil || '2027-12-31',
             priceSpecification: {
               '@type': 'PriceSpecification',
               price: data.price || '0',

@@ -5,13 +5,10 @@ import { CosmeticsContent } from '@/components/industry/CosmeticsContent'
 // SEO Metadata for Cosmetics
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: {
-      default: '化粧品業界向け高級パッケージングソリューション | Epackage Lab',
-      template: '%s | Epackage Lab'
-    },
+    title: '化粧品業界向け高級パッケージングソリューション',
     description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上、欧州・日本認証対応、持続可能性を考慮した包装で実際の売上増を実現。今すぐ無料見積もりでラグジュアリー包装を体験。',
     openGraph: {
-      title: '化粧品業界向け高級パッケージングソリューション | Epackage Lab',
+      title: '化粧品業界向け高級パッケージングソリューション',
       description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上と実際の売上増を実現。',
       type: 'website',
       images: [
@@ -25,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: '化粧品業界向け高級パッケージングソリューション | Epackage Lab',
+      title: '化粧品業界向け高級パッケージングソリューション',
       description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上と実際の売上増を実現。',
       images: ['/images/industry/cosmetics-og.jpg']
     },

@@ -7,11 +7,14 @@ import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import DetailedInquiryForm from '@/components/inquiry/DetailedInquiryForm'
 
 export const metadata = {
-  title: '詳細お問い合わせ | Epackage Lab',
+  title: '詳細お問い合わせ',
   description: '5ステップで最適なパウチソリューションをご提案。リードスコアに基づいた優先対応で、最短導入を支援します。',
   openGraph: {
-    title: '詳細お問い合わせ | Epackage Lab',
+    title: '詳細お問い合わせ',
     description: '専門家が最適なパウチソリューションをご提案します',
+  },
+  alternates: {
+    canonical: '/inquiry/detailed',
   },
 }
 

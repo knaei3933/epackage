@@ -9,11 +9,14 @@ import PremiumContentSection from '@/components/premium-content/PremiumContentSe
 import { premiumContents } from '@/types/premium-content'
 
 export const metadata = {
-  title: 'プレミアムコンテンツ | Epackage Lab',
+  title: 'プレミアムコンテンツ',
   description: '日本パウチ包装市場レポート、ROI計算テンプレート、技術資料などの専門コンテンツを無料ダウンロード。業界の最新トレンドと導入効果を即把握。',
   openGraph: {
-    title: 'プレミアムコンテンツ | Epackage Lab',
+    title: 'プレミアムコンテンツ',
     description: 'パウチ包装の専門コンテンツを無料ダウンロード',
+  },
+  alternates: {
+    canonical: '/premium-content',
   },
 }
 

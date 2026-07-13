@@ -5,12 +5,15 @@ import CartPageClient from './CartPageClient'
 
 // SEO Metadata
 export const metadata: Metadata = {
-  title: 'ショッピングカート | Epackage Lab',
+  title: 'ショッピングカート',
   description: '包装材料の見積・注文カート。製品仕様を確認し、詳細な見積計算や正式な見積依頼が可能です。',
   openGraph: {
-    title: 'ショッピングカート | Epackage Lab',
+    title: 'ショッピングカート',
     description: '包装材料の見積・注文カート。製品仕様を確認し、詳細な見積計算や正式な見積依頼が可能です。',
-  }
+  },
+  alternates: {
+    canonical: '/cart',
+  },
 }
 
 export default function CartPage() {

@@ -5,13 +5,10 @@ import { ElectronicsContent } from '@/components/industry/ElectronicsContent'
 // SEO Metadata for Electronics
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: {
-      default: '電子部品業界向けESD対応パッケージングソリューション | Epackage Lab',
-      template: '%s | Epackage Lab'
-    },
+    title: '電子部品業界向けESD対応パッケージングソリューション',
     description: '電子部品業界向けの専門パッケージングソリューション。静電気防止、衝撃吸収、部品保護機能で供給網の安定性を確保。実際の電子企業取引実績豊富。今すぐ無料見積もりでESD対応包装を依頼。',
     openGraph: {
-      title: '電子部品業界向けESD対応パッケージングソリューション | Epackage Lab',
+      title: '電子部品業界向けESD対応パッケージングソリューション',
       description: '電子部品業界向けの専門パッケージングソリューション。ESD防止と供給網の安定性を実現。',
       type: 'website',
       images: [
@@ -25,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: '電子部品業界向けESD対応パッケージングソリューション | Epackage Lab',
+      title: '電子部品業界向けESD対応パッケージングソリューション',
       description: '電子部品業界向けの専門パッケージングソリューション。ESD防止と供給網の安定性を実現。',
       images: ['/images/industry/electronics-og.jpg']
     },

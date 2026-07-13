@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!product) {
     return {
-      title: '製品が見つかりません | Epackage Lab',
+      title: '製品が見つかりません',
     }
   }
 
@@ -122,10 +122,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   return {
-    title: `${product.name_ja} | Epackage Lab`,
+    title: `${product.name_ja}`,
     description: product.description_ja,
     openGraph: {
-      title: `${product.name_ja} | Epackage Lab`,
+      title: `${product.name_ja}`,
       description: product.description_ja,
       images: [
         {
@@ -135,7 +135,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           alt: product.name_ja,
         }
       ]
-    }
+    },
+    alternates: {
+      canonical: `/catalog/${slug}`,
+    },
   }
 }
 

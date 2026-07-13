@@ -2,13 +2,13 @@ import { Metadata } from 'next'
 import SampleRequestFormWrapper from './SampleRequestFormWrapper'
 
 export const metadata: Metadata = {
-  title: 'パウチサンプルご依頼 | Epackage Lab',
+  title: 'パウチサンプルご依頼',
   description: 'Epackage Labのパウチ製品サンプルを無料でお送りします。パウチセットサンプルでお手元でお試しいただけます。全国送料無料。',
   alternates: {
     canonical: 'https://www.package-lab.com/samples',
   },
   openGraph: {
-    title: 'パウチサンプルご依頼 | Epackage Lab',
+    title: 'パウチサンプルご依頼',
     description: 'Epackage Labのパッキージ製品サンプルを無料でお送りします',
   },
 }

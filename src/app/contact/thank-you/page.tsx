@@ -4,8 +4,11 @@ import { ArrowLeft, Mail, Phone, Clock } from 'lucide-react'
 import { GoogleAdsConversion } from '@/components/analytics/GoogleAdsConversion'
 
 export const metadata: Metadata = {
-  title: 'お問い合わせありがとうございます | Epackage Lab',
+  title: 'お問い合わせありがとうございます',
   description: 'お問い合わせありがとうございます。担当者よりご連絡いたします。',
+  alternates: {
+    canonical: '/contact/thank-you',
+  },
 }
 
 export default function ContactThankYouPage() {

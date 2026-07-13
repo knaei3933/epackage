@@ -12,6 +12,7 @@ import { CatalogProvider } from "@/contexts/CatalogContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { Suspense } from 'react';
 import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
+import { OrganizationSchema, LocalBusinessSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
@@ -190,6 +191,9 @@ export default function RootLayout({
                 <LanguageProvider>
                   <ModalWrapper />
                   <HeaderWrapper />
+                  <OrganizationSchema />
+                  <LocalBusinessSchema />
+                  <WebSiteSchema />
                   <BreadcrumbList />
                   <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
                   <Footer />

@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Shared Comparison | Epackage Lab",
+  title: "Shared Comparison",
   description: "View shared product comparisons from Epackage Lab"
 }
 

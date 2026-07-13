@@ -4,8 +4,11 @@ import { ArrowLeft, Package, Truck, Clock, Phone, Mail } from 'lucide-react'
 import { GoogleAdsConversion } from '@/components/analytics/GoogleAdsConversion'
 
 export const metadata: Metadata = {
-  title: 'サンプルリクエストありがとうございます | Epackage Lab',
+  title: 'サンプルリクエストありがとうございます',
   description: 'サンプルリクエストありがとうございます。在庫確認後、発送のご連絡をいたします。',
+  alternates: {
+    canonical: '/samples/thank-you',
+  },
 }
 
 export default function SamplesThankYouPage() {

@@ -6,12 +6,12 @@ import { CartProvider } from '@/contexts/CartContext'
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: {
-      default: 'パウチ製品カタログ | Epackage Lab',
+      default: 'パウチ製品カタログ',
       template: '%s | Epackage Lab'
     },
     description: 'Epackage Labのパウチ製品カタログ。6種類のパウチ製品をご覧ください。ソフトパウチ、スタンドパウチ、ガゼットパウチ、ピローパウチ、三角パウチ、スパウトパウチなど、あらゆる軟包裝材ニーズにお応えします。小ロット500枚から大ロット大量生産まで対応。化粧品・食品・医薬品業界向け最適な包装ソリューション。今すぐ無料見積もりでコスト削減を実現。',
     openGraph: {
-      title: 'パウチ製品カタログ | Epackage Lab',
+      title: 'パウチ製品カタログ',
       description: 'Epackage Labのパウチ製品カタログ。6種類のパウチ製品をご覧ください。',
       type: 'website',
       images: [
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'パウチ製品カタログ | Epackage Lab',
+      title: 'パウチ製品カタログ',
       description: 'Epackage Labのパウチ製品カタログ。6種類のパウチ製品をご覧ください。',
       images: ['/images/og-catalog.jpg']
     },
