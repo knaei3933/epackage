@@ -141,7 +141,7 @@ export default function RootLayout({
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-T4PL5XMC');
+    })(window,document,'script','dataLayer','${process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T4PL5XMC'}');
     gtag('js', new Date());
     gtag('config', 'G-VBCB77P21T');
     gtag('config', 'AW-17981675917');
@@ -205,7 +205,7 @@ export default function RootLayout({
         {/* GTM Noscript */}
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-T4PL5XMC"
+            src={`https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T4PL5XMC'}`}
             height="0"
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}

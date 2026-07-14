@@ -47,13 +47,13 @@ export const trackLineAdd = () => {
 };
 
 // Google Adsコンバージョン追跡
-// Google Ads ID: AW-17981675917
-// コンバージョンラベル: iBi-CJv-44EcEI2zqv5C
-
+// ※ trackGoogleAdsConversion / trackGoogleAdsPageView は現在 0 import（参考実装）。
+//   PR2 (Step 2 Case A) で GoogleAdsConversion.tsx を dataLayer push 化する際の参考。
+//   PR2 完了後に使用されなければ削除（原則: デッドコード即時削除）。
 export const trackGoogleAdsConversion = (value: number = 1.0, currency: string = 'JPY') => {
   if (typeof window !== 'undefined' && (window as any).gtag) {
     (window as any).gtag('event', 'conversion', {
-      'send_to': 'AW-17981675917/iBi-CJv-44EcEI2zqv5C',
+      'send_to': `${GOOGLE_ADS_ID}/${GOOGLE_ADS_CONVERSION_LABEL}`,
       'value': value,
       'currency': currency
     });
@@ -63,19 +63,21 @@ export const trackGoogleAdsConversion = (value: number = 1.0, currency: string =
 export const trackGoogleAdsPageView = () => {
   if (typeof window !== 'undefined' && (window as any).gtag) {
     (window as any).gtag('event', 'page_view', {
-      'send_to': 'AW-17981675917'
+      'send_to': GOOGLE_ADS_ID
     });
   }
 };
 
-// ===== GTM & Analytics 設定定数 =====
+// ===== GTM & Analytics 設定定数（env 変数参照・SSOT）=====
+// Phase 3 (SEO Phase 3 PR1): ハードコードを env 変数参照に変更。
+// フォールバック値は既存ハードコード値（後方互換性）。
 
 // GTMコンテナID
-export const GTM_ID = 'GTM-T4PL5XMC';
+export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T4PL5XMC';
 
-// GA4測定ID（既存のanalytics.tsと整合性）
-export const GA4_MEASUREMENT_ID = 'G-VBCB77P21T';
+// GA4測定ID
+export const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-VBCB77P21T';
 
-// Google Ads ID（既存のコードと整合性）
-export const GOOGLE_ADS_ID = 'AW-17981675917';
-export const GOOGLE_ADS_CONVERSION_LABEL = 'iBi-CJv-44EcEI2zqv5C';
+// Google Ads ID
+export const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-17981675917';
+export const GOOGLE_ADS_CONVERSION_LABEL = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || 'iBi-CJv-44EcEI2zqv5C';

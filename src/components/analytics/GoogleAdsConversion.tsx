@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, type JSX } from 'react';
+import { GOOGLE_ADS_ID, GOOGLE_ADS_CONVERSION_LABEL } from '@/lib/analytics/dataLayer';
 
 interface GoogleAdsConversionProps {
   sendTo?: string;
@@ -12,10 +13,12 @@ interface GoogleAdsConversionProps {
  * Google Ads Conversion Tracking Component
  *
  * Tracks conversion events for Google Ads.
- * Default conversion: AW-17981675917/iBi-CJv-44EcEI2zqv5C (Page View)
+ * Phase 3 (SEO Phase 3 PR1): sendTo デフォルト値を env 変数参照の定数に変更（SSOT）。
+ * ※ 直接 window.gtag 呼び出しは PR2 (Step 2) で処理
+ *   （Case A: dataLayer push 化 / Case B: 維持）。
  */
 export function GoogleAdsConversion({
-  sendTo = 'AW-17981675917/iBi-CJv-44EcEI2zqv5C',
+  sendTo = `${GOOGLE_ADS_ID}/${GOOGLE_ADS_CONVERSION_LABEL}`,
   value = 1.0,
   currency = 'JPY',
 }: GoogleAdsConversionProps): JSX.Element | null {
