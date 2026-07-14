@@ -64,9 +64,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://www.package-lab.com',
-    languages: {
-      'x-default': 'https://www.package-lab.com',
-    },
   },
   other: {
     'rss': '/rss.xml',
