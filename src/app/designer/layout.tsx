@@ -10,6 +10,7 @@
  */
 
 import { ReactNode } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
@@ -17,6 +18,11 @@ import { cookies } from 'next/headers';
 import { LayoutDashboard, LogOut, User, Mail } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+// 認証後ページ（デザイナーポータル）は検索エンジンにインデックスさせない
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 // =====================================================
 // Types

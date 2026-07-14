@@ -9,9 +9,15 @@
  */
 
 import { ReactNode } from 'react'
+import type { Metadata } from 'next'
 import { AdminNotificationCenter } from '@/components/admin/Notifications'
 import { AdminNavigation } from '@/components/admin/AdminNavigation'
 import { ErrorBoundaryWrapper } from '@/components/error/ErrorBoundary'
+
+// 認証後ページ（管理画面）は検索エンジンにインデックスさせない
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default function AdminLayout({
   children,
