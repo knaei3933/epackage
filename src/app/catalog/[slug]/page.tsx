@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ProductDetailClient } from './ProductDetailClient'
 import { PRODUCT_CATEGORIES, getAllProducts } from '@/lib/product-data'
 import React, { Fragment } from 'react'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // Get products from centralized data source
 const mockProducts = getAllProducts(null, 'ja')
@@ -248,6 +249,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <>
+      <BreadcrumbJsonLd pathname={`/catalog/${slug}`} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

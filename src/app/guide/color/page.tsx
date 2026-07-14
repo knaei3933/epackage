@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { Palette, Droplets, Eye, CheckCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'カラーガイド - パッケージ印刷色指定',
@@ -68,6 +69,7 @@ export default function ColorGuide() {
 
   return (
     <>
+      <BreadcrumbJsonLd pathname="/guide/color" />
       <HowToSchema {...colorHowToData} />
       <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">

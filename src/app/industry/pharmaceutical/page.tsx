@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
 import { PharmaceuticalContent } from '@/components/industry/PharmaceuticalContent'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata for Pharmaceuticals
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,11 +40,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function PharmaceuticalPage() {
   return (
-    <IndustrySolutionTemplate
-      industry="pharmaceutical"
-      title="医薬品業界向けGMP対応パッケージングソリューション"
-      subtitle="薬機法準拠・小児安全包装・保護機能強化を実現"
-      content={<PharmaceuticalContent />}
-    />
+    <>
+      <BreadcrumbJsonLd pathname="/industry/pharmaceutical" />
+      <IndustrySolutionTemplate
+        industry="pharmaceutical"
+        title="医薬品業界向けGMP対応パッケージングソリューション"
+        subtitle="薬機法準拠・小児安全包装・保護機能強化を実現"
+        content={<PharmaceuticalContent />}
+      />
+    </>
   )
 }

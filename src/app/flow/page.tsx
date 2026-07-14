@@ -19,6 +19,7 @@ import {
   Zap
 } from 'lucide-react'
 import Link from 'next/link'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: '製造工程 - デジタル印刷・環境配慮型包装材製造',
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
 export default function FlowPage() {
   return (
     <Layout showFooter={false}>
+      <BreadcrumbJsonLd pathname="/flow" />
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-brixa-50 via-white to-brixa-secondary-50">
         <Container size="6xl">

@@ -2,6 +2,7 @@ import ContactForm from '@/components/contact/ContactForm'
 import { Metadata } from 'next'
 import { TrustSignals } from '@/components/lp/TrustSignals'
 import { StrongCTA } from '@/components/lp/StrongCTA'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'パウチお問い合わせ',
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <BreadcrumbJsonLd pathname="/contact" />
       {/* Hero Section with Trust Signals */}
       <section className="bg-gradient-to-br from-brixa-700 via-brixa-800 to-navy-900 py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">

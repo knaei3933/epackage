@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { FileText, Layers, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: '白版ガイド - 白版（しろはん）制作と用途',
@@ -67,6 +68,7 @@ export default function ShirohanGuide() {
 
   return (
     <>
+      <BreadcrumbJsonLd pathname="/guide/shirohan" />
       <HowToSchema {...shirohanHowToData} />
       <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">

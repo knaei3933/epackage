@@ -11,7 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CatalogProvider } from "@/contexts/CatalogContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { Suspense } from 'react';
-import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
+import { BreadcrumbNav } from "@/components/seo/BreadcrumbNav";
 import { OrganizationSchema, LocalBusinessSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
@@ -194,7 +194,7 @@ export default function RootLayout({
                   <OrganizationSchema />
                   <LocalBusinessSchema />
                   <WebSiteSchema />
-                  <BreadcrumbList />
+                  <BreadcrumbNav />
                   <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
                   <Footer />
                   <ChatWidget />

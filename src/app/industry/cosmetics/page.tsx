@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
 import { CosmeticsContent } from '@/components/industry/CosmeticsContent'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata for Cosmetics
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,11 +40,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function CosmeticsPage() {
   return (
-    <IndustrySolutionTemplate
-      industry="cosmetics"
-      title="化粧品業界向け高級パッケージングソリューション"
-      subtitle="ブランド価値向上・欧日認証対応・持続可能性を実現"
-      content={<CosmeticsContent />}
-    />
+    <>
+      <BreadcrumbJsonLd pathname="/industry/cosmetics" />
+      <IndustrySolutionTemplate
+        industry="cosmetics"
+        title="化粧品業界向け高級パッケージングソリューション"
+        subtitle="ブランド価値向上・欧日認証対応・持続可能性を実現"
+        content={<CosmeticsContent />}
+      />
+    </>
   )
 }

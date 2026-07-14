@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { ServicePageContent } from "@/components/service/ServicePage";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
   title: "サービス内容",
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
 export default function ServicePage() {
   return (
     <PageTransition>
+      <BreadcrumbJsonLd pathname="/service" />
       <ServicePageContent />
     </PageTransition>
   );

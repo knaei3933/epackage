@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { DataTemplateGuide } from '@/components/quote/shared/DataTemplateGuide'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'デザインテンプレート - プロ仕様の包装材デザイン',
@@ -33,6 +34,7 @@ export const metadata: Metadata = {
 export default function DataTemplatesPage() {
   return (
     <Layout>
+      <BreadcrumbJsonLd pathname="/data-templates" />
       <div className="min-h-screen">
         {/* Breadcrumb */}
         <section className="py-8 bg-white border-b">

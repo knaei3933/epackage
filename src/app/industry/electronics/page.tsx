@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
 import { ElectronicsContent } from '@/components/industry/ElectronicsContent'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata for Electronics
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,11 +40,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function ElectronicsPage() {
   return (
-    <IndustrySolutionTemplate
-      industry="electronics"
-      title="電子部品業界向けESD対応パッケージングソリューション"
-      subtitle="静電気防止・衝撃吸収・部品保護機能で供給網安定化"
-      content={<ElectronicsContent />}
-    />
+    <>
+      <BreadcrumbJsonLd pathname="/industry/electronics" />
+      <IndustrySolutionTemplate
+        industry="electronics"
+        title="電子部品業界向けESD対応パッケージングソリューション"
+        subtitle="静電気防止・衝撃吸収・部品保護機能で供給網安定化"
+        content={<ElectronicsContent />}
+      />
+    </>
   )
 }

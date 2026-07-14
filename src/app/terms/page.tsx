@@ -2,6 +2,7 @@ import React from 'react'
 import { Metadata } from 'next'
 import { FileText, Users, CreditCard, AlertTriangle, Scale, Clock, Mail, CheckCircle } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export async function generateMetadata({ params }: { params: {} }): Promise<Metadata> {
   return {
@@ -27,6 +28,7 @@ export default function TermsOfService() {
 
   return (
     <div className="min-h-screen bg-bg-primary">
+      <BreadcrumbJsonLd pathname="/terms" />
       <Container size="4xl" className="py-16">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

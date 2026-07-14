@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { Leaf, Recycle, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: '環境表示ガイド - サステナビリティ表示',
@@ -67,6 +68,7 @@ export default function EnvironmentalDisplayGuide() {
 
   return (
     <>
+      <BreadcrumbJsonLd pathname="/guide/environmentaldisplay" />
       <HowToSchema {...environmentalHowToData} />
       <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">

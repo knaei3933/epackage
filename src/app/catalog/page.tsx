@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { CatalogClient } from './CatalogClient'
 import { CartProvider } from '@/contexts/CartContext'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata
 export async function generateMetadata(): Promise<Metadata> {
@@ -38,6 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function CatalogPage() {
   return (
     <CartProvider>
+      <BreadcrumbJsonLd pathname="/catalog" />
       <CatalogClient />
     </CartProvider>
   )

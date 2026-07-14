@@ -2,6 +2,7 @@ import React from 'react'
 import { Metadata } from 'next'
 import { CartProvider } from '@/contexts/CartContext'
 import CartPageClient from './CartPageClient'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 export default function CartPage() {
   return (
     <CartProvider>
+      <BreadcrumbJsonLd pathname="/cart" />
       <CartPageClient />
     </CartProvider>
   )

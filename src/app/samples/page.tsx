@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import SampleRequestFormWrapper from './SampleRequestFormWrapper'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'パウチサンプルご依頼',
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 export default function SamplesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <BreadcrumbJsonLd pathname="/samples" />
       {/* Hero */}
       <section className="bg-gradient-to-br from-brixa-600 via-brixa-700 to-navy-800 py-12">
         <div className="max-w-4xl mx-auto px-4 text-center">

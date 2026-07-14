@@ -2,6 +2,7 @@ import React from 'react'
 import { Metadata } from 'next'
 import { Shield, Lock, Mail, Database, Eye, Trash2, Globe, Clock, FileText } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: '個人情報保護方針',
@@ -20,6 +21,7 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="min-h-screen bg-bg-primary">
+      <BreadcrumbJsonLd pathname="/privacy" />
       <Container size="4xl" className="py-16">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

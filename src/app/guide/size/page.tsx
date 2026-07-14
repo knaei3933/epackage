@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { Ruler, Package, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'サイズガイド - パッケージ寸法仕様',
@@ -68,6 +69,7 @@ export default function SizeGuide() {
 
   return (
     <>
+      <BreadcrumbJsonLd pathname="/guide/size" />
       <HowToSchema {...sizeHowToData} />
       <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">

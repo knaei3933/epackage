@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { ComparisonProvider } from '@/contexts/ComparisonContext'
 import { ComparisonClient } from './ComparisonClient'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 export default function ComparePage() {
   return (
     <ComparisonProvider>
+      <BreadcrumbJsonLd pathname="/compare" />
       <ComparisonClient />
     </ComparisonProvider>
   )
