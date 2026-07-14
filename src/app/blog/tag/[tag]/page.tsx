@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { getPublishedPosts, getTagsWithCounts } from '@/lib/blog/queries';
 import { BlogGrid } from '@/components/blog/BlogCard';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 
 // =====================================================
 // Generate Metadata
@@ -66,6 +67,7 @@ export default async function BlogTagPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <BreadcrumbJsonLd pathname={`/blog/tag/${params.tag}`} />
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

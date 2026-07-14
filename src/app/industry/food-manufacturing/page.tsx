@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { IndustrySolutionTemplate } from '@/components/industry/IndustrySolutionTemplate'
 import { FoodManufacturingContent } from '@/components/industry/FoodManufacturingContent'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata for Food Manufacturing
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,11 +47,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function FoodManufacturingPage() {
   return (
-    <IndustrySolutionTemplate
-      industry="food-manufacturing"
-      title="食品製造業向けパッケージングソリューション"
-      subtitle="厳格な品質管理・鮮度保持技術・30%コスト削減を実現"
-      content={<FoodManufacturingContent />}
-    />
+    <>
+      <BreadcrumbJsonLd pathname="/industry/food-manufacturing" />
+      <IndustrySolutionTemplate
+        industry="food-manufacturing"
+        title="食品製造業向けパッケージングソリューション"
+        subtitle="厳格な品質管理・鮮度保持技術・30%コスト削減を実現"
+        content={<FoodManufacturingContent />}
+      />
+    </>
   )
 }

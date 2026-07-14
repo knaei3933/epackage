@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import ArchivePage from "@/components/archives/ArchivePage";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 // Disable static generation for this page due to client-side interactivity
 export const dynamic = 'force-dynamic';
@@ -33,5 +34,10 @@ export const metadata: Metadata = {
 };
 
 export default function ArchivesPage() {
-  return <ArchivePage />;
+  return (
+    <>
+      <BreadcrumbJsonLd pathname="/archives" />
+      <ArchivePage />
+    </>
+  );
 }

@@ -20,6 +20,7 @@ import {
   Settings
 } from 'lucide-react'
 import Link from 'next/link'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: '印刷技術 | Epackage Lab - 最新設備と技術',
@@ -245,6 +246,7 @@ export default function PrintPage() {
 
   return (
     <Layout>
+      <BreadcrumbJsonLd pathname="/print" />
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-navy-50 via-white to-brixa-50">
         <Container size="6xl">

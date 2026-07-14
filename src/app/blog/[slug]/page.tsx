@@ -18,6 +18,7 @@ import { getCategoryLabel } from '@/lib/types/blog';
 import { seoUtils } from '@/lib/blog/seo';
 import { Calendar, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 
 // =====================================================
 // Generate Metadata
@@ -144,6 +145,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
+      <BreadcrumbJsonLd pathname={`/blog/${slug}`} />
       <ScrollToAnchor />
       {/* Structured Data */}
       <script

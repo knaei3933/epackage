@@ -10,6 +10,7 @@ import { getPublishedPosts, getCategoriesWithCounts } from '@/lib/blog/queries';
 import { BlogGrid } from '@/components/blog/BlogCard';
 import { BlogListParams } from '@/lib/types/blog';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 
 // =====================================================
 // Metadata
@@ -81,6 +82,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <div className="min-h-screen bg-[#F7F7FF]">
+      <BreadcrumbJsonLd pathname="/blog" />
       {/* Header - Brixa style */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

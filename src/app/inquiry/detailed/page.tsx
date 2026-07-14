@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import DetailedInquiryForm from '@/components/inquiry/DetailedInquiryForm'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata = {
   title: '詳細お問い合わせ | Epackage Lab',
@@ -18,6 +19,7 @@ export const metadata = {
 export default function DetailedInquiryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-brixa-50">
+      <BreadcrumbJsonLd pathname="/inquiry/detailed" />
       {/* Header */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/30 via-transparent to-purple-100/30"></div>

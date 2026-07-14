@@ -9,6 +9,7 @@
 
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 
 export const metadata: Metadata = {
   title: '会社概要 | Epackage Lab',
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-bg-primary">
+      <BreadcrumbJsonLd pathname="/about" />
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary-dark text-white py-20">
         <div className="container mx-auto px-4">

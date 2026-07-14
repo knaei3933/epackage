@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import PremiumContentSection from '@/components/premium-content/PremiumContentSection'
 import { premiumContents } from '@/types/premium-content'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata = {
   title: 'プレミアムコンテンツ | Epackage Lab',
@@ -23,6 +24,7 @@ export default function PremiumContentPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy-50 via-white to-green-50">
+      <BreadcrumbJsonLd pathname="/premium-content" />
       {/* Header */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-navy-600/30 via-transparent to-green-100/30"></div>

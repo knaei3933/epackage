@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, Clock } from 'lucide-react'
 import { GoogleAdsConversion } from '@/components/analytics/GoogleAdsConversion'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'お問い合わせありがとうございます | Epackage Lab',
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function ContactThankYouPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
+      <BreadcrumbJsonLd pathname="/contact/thank-you" />
       <GoogleAdsConversion />
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

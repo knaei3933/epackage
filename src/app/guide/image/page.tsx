@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { Image, FileText, Download, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: '画像ガイド - パッケージ印刷画像仕様 | Epackage Lab',
@@ -71,6 +72,7 @@ export default function ImageGuide() {
 
   return (
     <>
+      <BreadcrumbJsonLd pathname="/guide/image" />
       <HowToSchema {...imageHowToData} />
       <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">

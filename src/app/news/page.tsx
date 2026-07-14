@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { NewsClient } from './NewsClient'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // Disable static generation for this page due to client-side interactivity
 export const dynamic = 'force-dynamic';
@@ -37,5 +38,10 @@ export const metadata: Metadata = {
 }
 
 export default function NewsPage() {
-  return <NewsClient />
+  return (
+    <>
+      <BreadcrumbJsonLd pathname="/news" />
+      <NewsClient />
+    </>
+  )
 }
