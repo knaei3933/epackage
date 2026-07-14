@@ -18,6 +18,7 @@ import { ModalWrapper } from "./components/ModalWrapper";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
 import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal";
+import { WebVitals } from "@/components/analytics/WebVitals";
 import { SWRConfig } from "swr";
 
 const geistSans = Geist({
@@ -180,6 +181,8 @@ export default function RootLayout({
           enableSystem={true}
           attribute="class"
         >
+          {/* WebVitals 計測（CWV改善: next/web-vitals useReportWebVitals → dataLayer push） */}
+          <WebVitals />
           {/* CustomCursor only for interactive pages */}
           {/* <CustomCursor /> */}
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
