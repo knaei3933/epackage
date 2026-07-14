@@ -4,10 +4,10 @@ import { TrustSignals } from '@/components/lp/TrustSignals'
 import { StrongCTA } from '@/components/lp/StrongCTA'
 
 export const metadata: Metadata = {
-  title: 'パウチお問い合わせ | Epackage Lab',
+  title: 'パウチお問い合わせ',
   description: 'パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチ、ガゼットパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。小ロット500枚から大ロット大量生産まで対応。最短28日納品。化粧品・食品・医薬品業界向け最適な包装ソリューションのご提案。24時間以内にご回答、無料サンプル対応可能。',
   openGraph: {
-    title: 'パウチお問い合わせ | Epackage Lab',
+    title: 'パウチお問い合わせ',
     description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム。24時間以内にご回答、無料サンプル対応可能。',
     type: 'website',
     url: 'https://www.package-lab.com/contact',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'パウチお問い合わせ | Epackage Lab',
+    title: 'パウチお問い合わせ',
     description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム。24時間以内にご回答。',
     images: ['https://www.package-lab.com/images/og-image.jpg'],
   },

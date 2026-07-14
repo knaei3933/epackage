@@ -18,12 +18,15 @@ import Link from 'next/link'
 import { DataTemplateGuide } from '@/components/quote/shared/DataTemplateGuide'
 
 export const metadata: Metadata = {
-  title: 'デザインテンプレート | Epackage Lab - プロ仕様の包装材デザイン',
+  title: 'デザインテンプレート - プロ仕様の包装材デザイン',
   description: 'Epackage Labのプロ仕様デザインテンプレートをダウンロード。Adobe Illustrator形式で、正確な製造仕様に対応します。',
   openGraph: {
-    title: 'デザインテンプレート | Epackage Lab',
+    title: 'デザインテンプレート',
     description: 'プロ仕様の包装材デザインテンプレートを無料ダウンロード',
     type: 'website',
+  },
+  alternates: {
+    canonical: '/data-templates',
   },
 }
 

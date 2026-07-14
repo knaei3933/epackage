@@ -29,20 +29,22 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { category } = await params;
   const categoryName = getCategoryLabel(category, 'ja');
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
 
   // Check if category is valid
   if (!BLOG_CATEGORIES.find(c => c.id === category)) {
     return {
-      title: 'カテゴリが見つかりません | Epackage Lab',
+      // title 本体のみ（blog/layout.tsx の template が適用される）
+      title: 'カテゴリが見つかりません',
     };
   }
 
   return {
-    title: `${categoryName} | Epackage Lab ブログ`,
+    // title 本体のみ（blog/layout.tsx の template "%s | Epackage Lab ブログ" が適用される）
+    title: `${categoryName}`,
     description: `${categoryName}に関する記事一覧です。包装資材・印刷の最新情報をお届けします。`,
     openGraph: {
-      title: `${categoryName} | Epackage Lab ブログ`,
+      // openGraph.title は省略（resolved title "${categoryName} | Epackage Lab ブログ" がフォールバック）
       description: `${categoryName}に関する記事一覧です。`,
       url: `${baseUrl}/blog/category/${category}`,
       type: 'website',

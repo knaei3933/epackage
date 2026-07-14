@@ -11,13 +11,13 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: '会社概要 | Epackage Lab',
+  title: '会社概要',
   description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。小ロット500枚から大ロット大量生産まで対応するパッケージ製造のリーディングカンパニー。最短28日納品。化粧品・食品・医薬品業界向け最適な包装資材をご提供。',
   alternates: {
     canonical: 'https://www.package-lab.com/about',
   },
   openGraph: {
-    title: '会社概要 | Epackage Lab',
+    title: '会社概要',
     description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。',
     type: 'website',
     url: 'https://www.package-lab.com/about',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '会社概要 | Epackage Lab',
+    title: '会社概要',
     description: 'Epackage Labの会社情報、ビジョン、ミッションをご紹介します。',
     images: ['https://www.package-lab.com/images/og-image.jpg'],
   },

@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         // 명시적으로 허용할 경로 (다국어 지원)
-        allow: ['/en/', '/ko/', '/ja/', '/zh/', '/zh-CN/', '/zh-TW/', '/'],
+        allow: ['/'],
         disallow: [
           // Admin and authenticated areas
           '/api/',
@@ -40,13 +40,30 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         // Googlebot에 명시적으로 허용
-        allow: ['/en/', '/ko/', '/ja/', '/zh/', '/zh-CN/', '/zh-TW/', '/'],
+        allow: ['/'],
         disallow: [
           '/api/',
           '/admin/',
           '/auth/',
           '/member/',
         ],
+      },
+      // 特定ボットの個別制御（旧 public/robots.txt から統合）
+      {
+        userAgent: 'Bingbot',
+        allow: ['/'],
+      },
+      {
+        userAgent: 'Slurp',
+        allow: ['/'],
+      },
+      {
+        userAgent: 'AhrefsBot',
+        disallow: ['/'],
+      },
+      {
+        userAgent: 'SemrushBot',
+        disallow: ['/'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

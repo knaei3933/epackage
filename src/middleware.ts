@@ -236,6 +236,33 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================================================
+  // Multilingual URL → Japanese 301 Permanent Redirect (SEO i18n正規化)
+  // =====================================================
+  // /en/* /ko/* /zh/* /zh-CN/* /zh-TW/* は実ページが存在しないため
+  // 日本語版（プレフィックス除去）へ301恒久リダイレクト。
+  // リンクエクイティ継承 + GSC hreflangエラー解消。
+  // 注意: /api/* は301対象外（POST メソッドの301追従問題を回避）。
+  const normalizedPath = pathname.toLowerCase();
+  const MULTILANG_PREFIXES = ['/en', '/ko', '/zh', '/zh-cn', '/zh-tw'];
+  const matchedPrefix = MULTILANG_PREFIXES.find(p => normalizedPath === p || normalizedPath.startsWith(p + '/'));
+  if (matchedPrefix) {
+    const newPath = pathname.slice(matchedPrefix.length) || '/';
+    // /api/ guard: 多言語プレフィックス除去後の newPath が /api/* の場合は301しない（POST メソッドの301追従問題を回避）
+    // ※元パス（/en/api/contact）で /api/ 判定するとガードが効かないため、newPath 計算後に判定する（Critic v2 MAJOR-1 修正）
+    if (newPath.toLowerCase().startsWith('/api/')) {
+      // 301せず既存の認証/CSRF フローへ進む
+    } else {
+      const url = new URL(newPath, request.url);
+      url.search = request.nextUrl.search;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Middleware] 301 Redirect (i18n):', pathname, '→', newPath);
+      }
+      const response = NextResponse.redirect(url, 301);
+      return addSecurityHeaders(response);
+    }
+  }
+
+  // =====================================================
   // CRITICAL: API Route Exemptions - MUST BE FIRST CHECK
   // =====================================================
   // NOTE: /api/auth/* is handled above (S2.0) — it authenticates and sets

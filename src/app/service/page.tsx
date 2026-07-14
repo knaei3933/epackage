@@ -3,7 +3,7 @@ import { ServicePageContent } from "@/components/service/ServicePage";
 import { PageTransition } from "@/components/ui/PageTransition";
 
 export const metadata: Metadata = {
-  title: "サービス内容 | Epackage Lab",
+  title: "サービス内容",
   description: "Epackage Labのパウチ包装サービス。6種類のパウチ製品製造、カスタマイズ、品質管理、短期納期対応など、お客様のニーズに最適な包装ソリューションを提供します。",
   alternates: {
     canonical: 'https://www.package-lab.com/service',

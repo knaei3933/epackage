@@ -5,10 +5,10 @@ import { NewsClient } from './NewsClient'
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'パウチ包装ニュース | Epackage Lab',
+  title: 'パウチ包装ニュース',
   description: 'Epackage Labのパウチ包装に関する最新ニュース、製品情報、導入事例などをお届けします。連包裝材業界の最新動向をご確認ください。',
   openGraph: {
-    title: 'パウチ包装ニュース | Epackage Lab',
+    title: 'パウチ包装ニュース',
     description: 'Epackage Labのパウチ包装専門ニュースと製品情報',
     type: 'website',
     images: [
@@ -22,17 +22,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'パウチ包装ニュース | Epackage Lab',
+    title: 'パウチ包装ニュース',
     description: 'Epackage Labのパウチ包装専門ニュースと製品情報',
     images: ['/images/og-pouch-news.jpg']
   },
   alternates: {
-    canonical: '/news',
-    languages: {
-      'ja': '/ja/news',
-      'en': '/en/news',
-      'ko': '/ko/news'
-    }
+    canonical: '/news'
   }
 }
 

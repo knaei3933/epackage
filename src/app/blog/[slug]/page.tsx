@@ -37,7 +37,8 @@ export async function generateMetadata(
 
   if (!post) {
     return {
-      title: '記事が見つかりません | Epackage Lab',
+      // title 本体のみ（blog/layout.tsx の template が適用される）
+      title: '記事が見つかりません',
     };
   }
 
@@ -48,7 +49,8 @@ export async function generateMetadata(
     : `${baseUrl}/images/og-image.jpg`;
 
   return {
-    title: `${post.meta_title || post.title} | Epackage Lab ブログ`,
+    // title 本体のみ（blog/layout.tsx の template "%s | Epackage Lab ブログ" が適用される）
+    title: post.meta_title || post.title,
     description: post.meta_description || post.excerpt || '',
     authors: post.author ? [{ name: (post.author as any).name }] : undefined,
     openGraph: {

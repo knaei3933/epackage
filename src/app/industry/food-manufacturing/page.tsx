@@ -5,13 +5,10 @@ import { FoodManufacturingContent } from '@/components/industry/FoodManufacturin
 // SEO Metadata for Food Manufacturing
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: {
-      default: '食品製造業向けパッケージングソリューション | Epackage Lab',
-      template: '%s | Epackage Lab'
-    },
+    title: '食品製造業向けパッケージングソリューション',
     description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術、30%のコスト削減を実現。実際の導入事例とROIデータを公開。今すぐ無料見積もりで鮮度保持包装を依頼。',
     openGraph: {
-      title: '食品製造業向けパッケージングソリューション | Epackage Lab',
+      title: '食品製造業向けパッケージングソリューション',
       description: '食品製造業向けの専門パッケージングソリューション。厳格な品質管理、鮮度保持技術で30%のコスト削減を実現。',
       type: 'website',
       images: [
@@ -25,16 +22,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: '食品製造業向けパッケージングソリューション | Epackage Lab',
+      title: '食品製造業向けパッケージングソリューション',
       description: '食品製造業向けの専門パッケージングソリューション。食品衛生法対応、鮮度保持技術で30%のコスト削減。',
       images: ['/images/industry/food-manufacturing-og.jpg']
     },
     alternates: {
-      canonical: '/industry/food-manufacturing',
-      languages: {
-        'ja': '/ja/industry/food-manufacturing',
-        'en': '/en/industry/food-manufacturing'
-      }
+      canonical: '/industry/food-manufacturing'
     },
     other: {
       'food-industry-target': 'manufacturers',

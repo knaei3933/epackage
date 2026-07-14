@@ -26,13 +26,14 @@ export async function generateMetadata(
   { params }: BlogTagPageProps
 ): Promise<Metadata> {
   const tag = decodeURIComponent(params.tag);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
 
   return {
-    title: `#${tag} | Epackage Lab ブログ`,
+    // title 本体のみ（blog/layout.tsx の template "%s | Epackage Lab ブログ" が適用される）
+    title: `#${tag}`,
     description: `#${tag}タグ付きの記事一覧です。包装資材・印刷の最新情報をお届けします。`,
     openGraph: {
-      title: `#${tag} | Epackage Lab ブログ`,
+      // openGraph.title は省略（resolved title "#${tag} | Epackage Lab ブログ" がフォールバック）
       description: `#${tag}タグ付きの記事一覧です。`,
       url: `${baseUrl}/blog/tag/${params.tag}`,
       type: 'website',

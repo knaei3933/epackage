@@ -4,7 +4,7 @@ import { Shield, Lock, Mail, Database, Eye, Trash2, Globe, Clock, FileText } fro
 import { Container } from '@/components/ui/Container'
 
 export const metadata: Metadata = {
-  title: '個人情報保護方針 | Epackage Lab',
+  title: '個人情報保護方針',
   description: 'Epackage Labの個人情報保護方針。お客様の個人情報を適切に取得、利用、管理し、安全かつ公正に取り扱うことをお約束します。',
   alternates: {
     canonical: 'https://www.package-lab.com/privacy',

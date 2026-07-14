@@ -12,6 +12,7 @@ import { CatalogProvider } from "@/contexts/CatalogContext";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { Suspense } from 'react';
 import { BreadcrumbList } from "@/components/seo/BreadcrumbList";
+import { OrganizationSchema, LocalBusinessSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
@@ -64,9 +65,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.package-lab.com',
     languages: {
-      'ja': 'https://www.package-lab.com',
-      'en': 'https://www.package-lab.com/en',
-      'ko': 'https://www.package-lab.com/ko',
       'x-default': 'https://www.package-lab.com',
     },
   },
@@ -157,7 +155,7 @@ export default function RootLayout({
         {/* Performance optimization: preload critical resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="dns-prefetch" href="//api.supabase.io" />
+        <link rel="dns-prefetch" href="//api.supabase.co" />
 
         {/* Security headers */}
         <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -193,6 +191,9 @@ export default function RootLayout({
                 <LanguageProvider>
                   <ModalWrapper />
                   <HeaderWrapper />
+                  <OrganizationSchema />
+                  <LocalBusinessSchema />
+                  <WebSiteSchema />
                   <BreadcrumbList />
                   <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
                   <Footer />

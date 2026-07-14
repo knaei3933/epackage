@@ -49,9 +49,9 @@ catalog/
 
 ### [slug]/ProductDetailClient.tsx
 - **Type**: Client Component
-- **Purpose**: Product detail page with tabs and structured data
+- **Purpose**: Product detail page with tabs
 - **Tabs**: Overview, Specifications, Applications, Pricing, FAQ, Downloads, Cases, Certifications
-- **SEO**: Structured data (ProductSchema) for rich snippets
+- **SEO**: ProductSchema 等の構造化データは未使用（実測）。catalog/[slug] の JSON-LD は今後追加予定の場合のみ。
 
 ## Product Data Structure
 
@@ -173,9 +173,13 @@ Each tab needs:
 - Language alternates (ja, en, ko)
 
 **ProductDetailClient.tsx**:
-- Structured data with `ProductSchema` component
 - Breadcrumb navigation
 - Product-related internal linking
+- **注意**: `ProductSchema` は未使用（実測・2026-07-14 確認）。本コンポーネントは `'use client'` のため、仮に使用しても SEO 用 JSON-LD は SSR されない。catalog/[slug] の ProductSchema 追加は page.tsx（サーバー）側で行うこと。
+
+**catalog/[slug] とメタデータ競合**:
+- `ProductSchema` は現在ホーム（`src/app/page.tsx`）でのみ使用。catalog/[slug] には ProductSchema なし。
+- したがって Phase 2 Step2（layout.tsx への基本 Schema 集約）・Step5（canonical 追加）で catalog/[slug] のメタデータと競合しない。
 
 ### Localization
 

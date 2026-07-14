@@ -5,13 +5,13 @@ import { Container } from '@/components/ui/Container'
 
 export async function generateMetadata({ params }: { params: {} }): Promise<Metadata> {
   return {
-    title: '利用規約 | Epackage Lab',
+    title: '利用規約',
     description: 'Epackage Labサービスの利用規約。本サービスの利用条件、利用者の責任、知的財産権、禁止行為等について定めています。',
     alternates: {
       canonical: 'https://www.package-lab.com/terms',
     },
     openGraph: {
-      title: '利用規約 | Epackage Lab',
+      title: '利用規約',
       description: 'Epackage Labサービスの利用規約。',
       url: 'https://www.package-lab.com/terms',
     },

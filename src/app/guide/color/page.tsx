@@ -4,10 +4,10 @@ import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
+  title: 'カラーガイド - パッケージ印刷色指定',
   description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチング、CMYKと特色の違いについて詳しく説明します。',
   openGraph: {
-    title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
+    title: 'カラーガイド - パッケージ印刷色指定',
     description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチングについて詳しく説明します。',
     type: 'website',
     images: [
@@ -21,16 +21,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'カラーガイド - パッケージ印刷色指定 | Epackage Lab',
+    title: 'カラーガイド - パッケージ印刷色指定',
     description: 'パッケージ印刷における色指定の方法、特色印刷、カラーマッチングについて詳しく説明します。',
     images: ['/images/guide/color-og.jpg'],
   },
   alternates: {
     canonical: '/guide/color',
-    languages: {
-      ja: '/guide/color',
-      en: '/en/guide/color',
-    },
   },
 }
 

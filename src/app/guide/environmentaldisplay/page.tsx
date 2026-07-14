@@ -4,10 +4,10 @@ import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
+  title: '環境表示ガイド - サステナビリティ表示',
   description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
   openGraph: {
-    title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
+    title: '環境表示ガイド - サステナビリティ表示',
     description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
     type: 'website',
     images: [
@@ -21,16 +21,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '環境表示ガイド - サステナビリティ表示 | Epackage Lab',
+    title: '環境表示ガイド - サステナビリティ表示',
     description: 'パッケージにおける環境表示の方法、リサイクルマーク、素材表示、サステナビリティ対応について詳しく説明します。',
     images: ['/images/guide/environmentaldisplay-og.jpg'],
   },
   alternates: {
     canonical: '/guide/environmentaldisplay',
-    languages: {
-      ja: '/guide/environmentaldisplay',
-      en: '/en/guide/environmentaldisplay',
-    },
   },
 }
 

@@ -52,7 +52,6 @@ export function generateDefaultMetadata(options: {
           canonical: canonical,
           languages: {
             ja: canonical,
-            en: `/en${canonical}`,
           },
         }
       : undefined,
@@ -91,7 +90,6 @@ export function generateProductMetadata(product: {
       canonical,
       languages: {
         ja: canonical,
-        en: `/en${canonical}`,
       },
     },
   }
@@ -175,7 +173,10 @@ export function generateLocalBusinessSchema() {
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'JP',
-      addressRegion: 'Tokyo',
+      addressRegion: '兵庫県',
+      addressLocality: '稲美町',
+      postalCode: '675-1112',
+      streetAddress: '六分一486',
     },
   }
 }

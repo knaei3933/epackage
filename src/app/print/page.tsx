@@ -22,13 +22,13 @@ import {
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: '印刷技術 | Epackage Lab - 最新設備と技術',
+  title: '印刷技術 - 最新設備と技術',
   description: 'Epackage Labの最先端印刷設備と技術力を紹介します。高品質なパッケージ印刷と製造技術で、お客様のニーズにお応えします。',
   alternates: {
     canonical: 'https://www.package-lab.com/print',
   },
   openGraph: {
-    title: '印刷技術 | Epackage Lab',
+    title: '印刷技術',
     description: '最新設備と技術で高品質なパッケージ印刷を提供するEpackage Labを紹介します。',
     type: 'website',
   },

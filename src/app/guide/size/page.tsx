@@ -4,10 +4,10 @@ import { Card } from '@/components/ui/Card'
 import { HowToSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
+  title: 'サイズガイド - パッケージ寸法仕様',
   description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定、一般的なパッケージサイズについて詳しく説明します。',
   openGraph: {
-    title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
+    title: 'サイズガイド - パッケージ寸法仕様',
     description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定について詳しく説明します。',
     type: 'website',
     images: [
@@ -21,16 +21,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'サイズガイド - パッケージ寸法仕様 | Epackage Lab',
+    title: 'サイズガイド - パッケージ寸法仕様',
     description: 'パッケージサイズの指定方法、展開図の作成、製造工程を考慮した寸法設定について詳しく説明します。',
     images: ['/images/guide/size-og.jpg'],
   },
   alternates: {
     canonical: '/guide/size',
-    languages: {
-      ja: '/guide/size',
-      en: '/en/guide/size',
-    },
   },
 }
 
