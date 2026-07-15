@@ -505,7 +505,6 @@ NODE_ENV=production
 
 # Analytics (optional)
 NEXT_PUBLIC_GA_ID=your-google-analytics-id
-NEXT_PUBLIC_GTM_ID=your-google-tag-manager-id
 `
 
     fs.writeFileSync(path.join(deployDir, '.env.example'), envTemplate)

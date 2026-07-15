@@ -19,6 +19,7 @@ import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
 import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal";
 import { WebVitals } from "@/components/analytics/WebVitals";
+import { GA4_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/analytics/dataLayer";
 import { SWRConfig } from "swr";
 
 const geistSans = Geist({
@@ -130,22 +131,21 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* GTM Head - lazyOnload to prioritize LCP over analytics */}
+        {/* Google Analytics 4 + Google Ads (gtag.js) — Phase 3 PR2 Case B: GTM 非使用・直接ロード */}
         <Script
-          id="gtm-head"
-          strategy="lazyOnload"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','${process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T4PL5XMC'}');
     gtag('js', new Date());
-    gtag('config', 'G-VBCB77P21T');
-    gtag('config', 'AW-17981675917');
+    gtag('config', '${GA4_MEASUREMENT_ID}');
+    gtag('config', '${GOOGLE_ADS_ID}');
   `
           }}
         />
@@ -205,15 +205,6 @@ export default function RootLayout({
             </AuthProvider>
           </Suspense>
         </ThemeProvider>
-        {/* GTM Noscript */}
-        <noscript>
-          <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T4PL5XMC'}`}
-            height="0"
-            width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
-          />
-        </noscript>
       </body>
     </html>
   );

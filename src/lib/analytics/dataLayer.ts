@@ -68,12 +68,10 @@ export const trackGoogleAdsPageView = () => {
   }
 };
 
-// ===== GTM & Analytics 設定定数（env 変数参照・SSOT）=====
+// ===== Analytics 設定定数（env 変数参照・SSOT）=====
 // Phase 3 (SEO Phase 3 PR1): ハードコードを env 変数参照に変更。
+// Phase 3 PR2 (Case B): GTM 完全削除に伴い GTM_ID 定数を削除（gtag.js 直接ロード）。
 // フォールバック値は既存ハードコード値（後方互換性）。
-
-// GTMコンテナID
-export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T4PL5XMC';
 
 // GA4測定ID
 export const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-VBCB77P21T';
