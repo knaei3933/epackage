@@ -1347,7 +1347,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         .from('quotations')
         .select('*, quotation_items (*)')
         .eq('user_id', userId)
-        .in('status', ['draft', 'sent'])
+        .in('status', ['DRAFT', 'SENT'])
         .order('created_at', { ascending: false })
         .limit(5),
       serviceClient
@@ -1567,7 +1567,7 @@ export async function getNotificationBadge(): Promise<NotificationBadge> {
     .from('quotations')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .in('status', ['draft', 'sent']);
+    .in('status', ['DRAFT', 'SENT']);
 
   // Count pending sample requests
   const { count: samples } = await serviceClient
@@ -2105,7 +2105,7 @@ async function fetchMemberDashboardStats(
       .from('quotations')
       .select('*, quotation_items (*)')
       .eq('user_id', userId)
-      .in('status', ['draft', 'sent'])
+      .in('status', ['DRAFT', 'SENT'])
       .order('created_at', { ascending: false })
       .limit(5),
     // sample_requests top-5（received/processing・sample_items 含む・降順）
@@ -2152,7 +2152,7 @@ async function fetchMemberDashboardStats(
       .from('quotations')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .in('status', ['draft', 'sent'])
+      .in('status', ['DRAFT', 'SENT'])
       .gte('created_at', startDate.toISOString()),
   ]);
 
@@ -2195,12 +2195,27 @@ async function fetchMemberDashboardStats(
   // これを怠ると page.tsx の sample.samples 参照が undefined になり silent fail。
   const transformedQuotations = (recentQuotationsResult.data as any[])?.map(quotation => ({
     ...quotation,
+    // snake_case(DB生) → camelCase 変換（page.tsx / buildNextActions が camelCase 参照）
+    createdAt: quotation.created_at,
+    quotationNumber: quotation.quotation_number,
+    totalAmount: quotation.total_amount,
     items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
   })) || [];
 
   const transformedSamples = (recentSamplesResult.data as any[])?.map(request => ({
     ...request,
+    // snake_case(DB生) → camelCase 変換（page.tsx / buildNextActions が camelCase 参照）
+    createdAt: request.created_at,
+    requestNumber: request.request_number,
     samples: Array.isArray(request.sample_items) ? request.sample_items : [],
+  })) || [];
+
+  // recentOrders も snake_case(DB生) → camelCase 変換（page.tsx / buildNextActions が camelCase 参照）
+  const transformedOrders = (recentOrdersResult.data as any[])?.map(order => ({
+    ...order,
+    createdAt: order.created_at,
+    orderNumber: order.order_number,
+    totalAmount: order.total_amount,
   })) || [];
 
   // contracts 行データは contracts.pending 計算でも再利用するため変数化
@@ -2230,7 +2245,7 @@ async function fetchMemberDashboardStats(
       responded: respondedInquiriesResult.count || 0,
     },
     // --- 新規: 行データ（recent セクション・nextActions 用）---
-    recentOrders: (recentOrdersResult.data as Order[]) || [],
+    recentOrders: (transformedOrders as Order[]) || [],
     recentQuotations: (transformedQuotations as Quotation[]) || [],
     recentSamples: (transformedSamples as DashboardSampleRequest[]) || [],
     notifications: (notificationsResult.data as NotificationStats[]) || [],
