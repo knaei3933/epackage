@@ -9,8 +9,8 @@
 
 import React from 'react';
 import { redirect } from 'next/navigation';
-import { revalidatePath, revalidateTag } from 'next/cache';
 import { ProfileCancelButton } from '@/components/shared/ProfileCancelButton';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { createServiceClient } from '@/lib/supabase';
 import { getRBACContext } from '@/lib/rbac/rbac-helpers';
 
@@ -106,8 +106,7 @@ async function updateProfile(data: any) {
   // C2: ダッシュボードキャッシュ無効化（安全側の過剰無効化）
   // updates は status を含まない（連絡先・住所のみ）ため activeUsers KPI は不変だが、
   // profiles 更新でダッシュボード表示との一貫性を確保
-  revalidatePath('/admin/dashboard');
-  revalidateTag('admin-dashboard', 'max');
+  invalidateAdminDashboardCache();
 
   return { success: true };
 }

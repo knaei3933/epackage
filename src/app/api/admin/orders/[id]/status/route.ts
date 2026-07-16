@@ -20,7 +20,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { OrderStatus } from '@/types/order-status';
 import { mapStatusToCurrentStage, isValidStatusTransition } from '@/types/order-status';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
 // Types
@@ -124,8 +124,7 @@ export async function PUT(
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       order: updatedOrder,

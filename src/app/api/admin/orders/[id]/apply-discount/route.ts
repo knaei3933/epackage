@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
 // Types
@@ -182,8 +182,7 @@ export async function POST(
     });
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.total_amount 更新 → monthlyRevenue 直結）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,
@@ -271,8 +270,7 @@ export async function DELETE(
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.total_amount 更新 → monthlyRevenue 直結）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

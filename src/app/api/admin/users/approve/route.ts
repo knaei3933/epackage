@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { getServerClient } from '@/lib/supabase';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
 // Types
@@ -169,8 +169,7 @@ export async function POST(request: NextRequest) {
     await sendApprovalEmail(targetUser.email, targetUser.company_name || 'お客様');
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status を ACTIVE 化・activeUsers 影響）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

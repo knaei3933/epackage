@@ -1328,8 +1328,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、
     // 個別に fulfilled 判定し rejected は空 result でフォールバック（グループ2の
     // .catch() パターンと同等のエラー耐性）。
-    const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
-    const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+    const EMPTY_LIST_RESULT: { data: unknown[]; count: number | null; error: unknown } = { data: [], count: null, error: null };
+    const EMPTY_COUNT_RESULT: { data: unknown; count: number | null; error: unknown } = { data: null, count: 0, error: null };
     const g1Results = await Promise.allSettled([
       serviceClient
         .from('orders')
@@ -1421,7 +1421,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       ...quotation,
       // More defensive: explicitly check if quotation_items is an array
       items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
-    })) || [];
+    })) ?? [];
 
     // Transform sample_items to samples for type compatibility
     // Defensive: Ensure samples is always an array, even if nested query fails
@@ -1429,7 +1429,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       ...request,
       // More defensive: explicitly check if sample_items is an array
       samples: Array.isArray(request.sample_items) ? request.sample_items : [],
-    })) || [];
+    })) ?? [];
 
     // グループ2: announcements（独立・既存の try-catch で安全対策維持）+
     // contracts（内部で Promise.all 済み・外部 try-catch 維持）+ notifications を並列実行
@@ -1851,8 +1851,8 @@ async function fetchAdminDashboardStats(
   // 並列クエリ - すべての統計データを取得
   // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、rejected は
   // 空 result（カウント系=0、一覧系=空配列）でフォールバック。
-  const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
-  const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+  const EMPTY_LIST_RESULT: { data: unknown[]; count: number | null; error: unknown } = { data: [], count: null, error: null };
+  const EMPTY_COUNT_RESULT: { data: unknown; count: number | null; error: unknown } = { data: null, count: 0, error: null };
   const adminResults = await Promise.allSettled([
     serviceClient.from('orders').select('*', { count: 'exact', head: true }),
     serviceClient.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
@@ -2068,8 +2068,8 @@ async function fetchMemberDashboardStats(
   // 並列クエリ（既存 count-only 7本 + 新規 行データ/count 7本 = 計14本）
   // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、
   // rejected は空 result（行データ=空配列、カウント=0）でフォールバック（getDashboardStats パターン踏襲）。
-  const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
-  const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
+  const EMPTY_LIST_RESULT: { data: unknown[]; count: number | null; error: unknown } = { data: [], count: null, error: null };
+  const EMPTY_COUNT_RESULT: { data: unknown; count: number | null; error: unknown } = { data: null, count: 0, error: null };
   const unifiedResults = await Promise.allSettled([
     // --- 既存: 統計カード用 count-only クエリ（7本）---
     serviceClient
@@ -2175,6 +2175,16 @@ async function fetchMemberDashboardStats(
       .eq('user_id', userId)
       .in('status', ['DRAFT', 'SENT'])
       .gte('created_at', startDate.toISOString()),
+    // --- 新規: quotations approved count（MINOR-3・member 側 conversionRate 用）---
+    // admin getDashboardStats と同じ条件（status='APPROVED'・期間内）。
+    // 従来 quotations.approved / conversionRate がハードコード 0 で、UnifiedDashboard.tsx の
+    // 「N / total 承認・conversionRate%」が常に 0 だったのを正確化（contracts.pending と同枠）。
+    serviceClient
+      .from('quotations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'APPROVED')
+      .gte('created_at', startDate.toISOString()),
   ]);
 
   // rejected クエリは空 result でフォールバック（行データ=空配列、カウント=0）
@@ -2194,6 +2204,7 @@ async function fetchMemberDashboardStats(
     contractsTotalResult,
     contractsSignedResult,
     pendingQuotationsCountResult,
+    approvedQuotationsResult,
   ] = [
     unifiedResults[0].status === 'fulfilled' ? unifiedResults[0].value : EMPTY_COUNT_RESULT,
     unifiedResults[1].status === 'fulfilled' ? unifiedResults[1].value : EMPTY_COUNT_RESULT,
@@ -2210,6 +2221,7 @@ async function fetchMemberDashboardStats(
     unifiedResults[12].status === 'fulfilled' ? unifiedResults[12].value : EMPTY_COUNT_RESULT,
     unifiedResults[13].status === 'fulfilled' ? unifiedResults[13].value : EMPTY_COUNT_RESULT,
     unifiedResults[14].status === 'fulfilled' ? unifiedResults[14].value : EMPTY_COUNT_RESULT,
+    unifiedResults[15].status === 'fulfilled' ? unifiedResults[15].value : EMPTY_COUNT_RESULT,
   ];
 
   // Transform リネーム（Critic MINOR-1）: quotation_items → items / sample_items → samples
@@ -2221,7 +2233,7 @@ async function fetchMemberDashboardStats(
     quotationNumber: quotation.quotation_number,
     totalAmount: quotation.total_amount,
     items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
-  })) || [];
+  })) ?? [];
 
   const transformedSamples = (recentSamplesResult.data as any[])?.map(request => ({
     ...request,
@@ -2229,7 +2241,7 @@ async function fetchMemberDashboardStats(
     createdAt: request.created_at,
     requestNumber: request.request_number,
     samples: Array.isArray(request.sample_items) ? request.sample_items : [],
-  })) || [];
+  })) ?? [];
 
   // recentOrders も snake_case(DB生) → camelCase 変換（page.tsx / buildNextActions が camelCase 参照）
   const transformedOrders = (recentOrdersResult.data as any[])?.map(order => ({
@@ -2237,10 +2249,10 @@ async function fetchMemberDashboardStats(
     createdAt: order.created_at,
     orderNumber: order.order_number,
     totalAmount: order.total_amount,
-  })) || [];
+  })) ?? [];
 
   // contracts 行データは contracts.pending 計算でも再利用するため変数化
-  const recentContractsData = (recentContractsResult.data as ContractStats[]) || [];
+  const recentContractsData = (recentContractsResult.data as ContractStats[]) ?? [];
 
   // お知らせは Promise.allSettled と並行実行していたものをここで待機
   const announcements = await announcementsPromise;
@@ -2248,7 +2260,7 @@ async function fetchMemberDashboardStats(
   // 問題1修正: pendingQuotations は「承認待ち」（draft/sent）の件数を使う。
   // 従来は totalQuotationsResult（期間内・全ステータス）を誤用しており、
   // subTitle「N件の承認待ちを確認」と整合していなかった。
-  const pendingQuotationsCount = pendingQuotationsCountResult.count || 0;
+  const pendingQuotationsCount = pendingQuotationsCountResult.count ?? 0;
 
   return {
     // --- 既存: 統計カード用 ---
@@ -2274,16 +2286,21 @@ async function fetchMemberDashboardStats(
     announcements,
     // --- 新規: quotations/contracts オブジェクト（統計カード用・Critic M4/MAJOR-2）---
     quotations: {
-      total: totalQuotationsResult.count || 0,
-      approved: 0,
-      conversionRate: 0,
+      // MINOR-3: approved / conversionRate を正しく計算（admin getDashboardStats と同じ計算）。
+      // 従来ハードコード 0 で、UnifiedDashboard.tsx のコンバージョン率表示が常に 0% だった。
+      total: totalQuotationsResult.count ?? 0,
+      approved: approvedQuotationsResult.count ?? 0,
+      conversionRate:
+        (totalQuotationsResult.count ?? 0) > 0
+          ? Math.round(((approvedQuotationsResult.count ?? 0) / (totalQuotationsResult.count ?? 0)) * 100)
+          : 0,
     },
     contracts: {
       // MAJOR-1: recentContractsData（.limit(5)）の length は5件超で頭打ちになる不正確な値。
       // 未署名 = total - signed で正確に算出（admin UnifiedDashboardClient と同じ計算）
-      pending: Math.max(0, (contractsTotalResult.count || 0) - (contractsSignedResult.count || 0)),
-      signed: contractsSignedResult.count || 0,
-      total: contractsTotalResult.count || 0,
+      pending: Math.max(0, (contractsTotalResult.count ?? 0) - (contractsSignedResult.count ?? 0)),
+      signed: contractsSignedResult.count ?? 0,
+      total: contractsTotalResult.count ?? 0,
     },
     period,
   };

@@ -4,7 +4,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { unifiedPricingEngine, type UnifiedQuoteParams } from '@/lib/unified-pricing-engine';
 import { getDefaultFilmLayers } from '@/lib/film-structure';
 import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 export async function POST(
   request: NextRequest,
@@ -180,8 +180,7 @@ export async function POST(
   }
 
   // ダッシュボード統計の即時反映（C2・Phase 4-3・quotations 金額更新 → recentQuotations/quotation KPI 直結）
-  revalidatePath('/admin/dashboard');
-  revalidateTag('admin-dashboard', 'max');
+  invalidateAdminDashboardCache();
 
   return NextResponse.json({
     success: true,

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { getServerClient } from '@/lib/supabase';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
 // Types
@@ -166,8 +166,7 @@ export async function POST(request: NextRequest) {
     await sendRejectionEmail(targetUser.email, body.reason);
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status を REJECTED 化）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

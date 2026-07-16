@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 /**
  * POST /api/admin/production/update-status
@@ -71,8 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・production_orders 更新）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

@@ -25,7 +25,7 @@ import { Database } from '@/types/database';
 import { headers } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
 // Types
@@ -470,8 +470,7 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
       );
 
       // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status=ACTIVE → activeUsers 直結）
-      revalidatePath('/admin/dashboard');
-      revalidateTag('admin-dashboard', 'max');
+      invalidateAdminDashboardCache();
 
       return NextResponse.json({
         success: true,
@@ -525,8 +524,7 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
       );
 
       // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status=DELETED → pendingUsers 直結）
-      revalidatePath('/admin/dashboard');
-      revalidateTag('admin-dashboard', 'max');
+      invalidateAdminDashboardCache();
 
       return NextResponse.json({
         success: true,
@@ -725,8 +723,7 @@ export const DELETE = withAdminAuth(async (request: NextRequest, auth) => {
     );
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status=DELETED → pendingUsers 直結）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

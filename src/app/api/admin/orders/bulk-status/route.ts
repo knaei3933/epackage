@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 export const runtime = 'nodejs';
@@ -82,8 +82,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・orders 一括ステータス更新）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

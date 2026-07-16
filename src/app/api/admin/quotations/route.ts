@@ -14,7 +14,7 @@ import { Database } from '@/types/database';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
 import { notifyQuoteApproved } from '@/lib/email/order-status-emails';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
 // Types
@@ -333,8 +333,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・quotations 更新）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,
@@ -401,8 +400,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・quotations 削除）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json({
       success: true,

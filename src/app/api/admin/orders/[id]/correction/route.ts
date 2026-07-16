@@ -19,7 +19,7 @@ import {
   uploadFileToDrive,
   getCorrectionFolderId
 } from '@/lib/google-drive';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -492,8 +492,7 @@ export async function POST(
     console.log('[Correction POST] Upload successful:', revision.id);
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.status 遷移 → ordersByStatus 直結）
-    revalidatePath('/admin/dashboard');
-    revalidateTag('admin-dashboard', 'max');
+    invalidateAdminDashboardCache();
 
     return NextResponse.json(response, { status: 200 });
 
