@@ -30,14 +30,36 @@ export async function fetchOrderStats(period: number = 30) {
 
   // 大文字小文字を区別せずステータスを集計（DB値は大文字・小文字混在の可能性あり）
   const upper = (s?: string) => (s || '').toUpperCase();
+  const rows = (data || []) as Array<{ status?: string; total_amount?: number | null; created_at?: string }>;
+
+  // ステータス別集計（A5 正規化: 常に空配列だった ordersByStatus を実データで返す・any[] 解消）
+  const statusCounts: Record<string, number> = {};
+  rows.forEach((o) => {
+    const status = upper(o.status) || 'UNKNOWN';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+  const ordersByStatus = Object.entries(statusCounts).map(([status, count]) => ({ status, count }));
+
+  // 月別売上集計（A5 正規化: 常に空配列だった monthlyRevenue を実データで返す・{ month, revenue } 形式・any[] 解消）
+  const monthlyRevenueMap: Record<string, number> = {};
+  rows.forEach((o) => {
+    if (!o.created_at) return;
+    const date = new Date(o.created_at);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthlyRevenueMap[monthKey] = (monthlyRevenueMap[monthKey] || 0) + (o.total_amount || 0);
+  });
+  const monthlyRevenue = Object.entries(monthlyRevenueMap)
+    .map(([month, revenue]) => ({ month, revenue }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
   const stats = {
-    total: data?.length || 0,
-    pending: data?.filter((o: { status: string }) => upper(o.status) === 'PENDING' || upper(o.status) === 'QUOTATION_PENDING').length || 0,
-    processing: data?.filter((o: { status: string }) => upper(o.status) === 'PROCESSING' || upper(o.status).includes('CORRECTION') || upper(o.status).includes('MODIFICATION')).length || 0,
-    completed: data?.filter((o: { status: string }) => upper(o.status) === 'COMPLETED' || upper(o.status) === 'SHIPPED').length || 0,
-    totalRevenue: data?.reduce((sum: number, o: { total_amount: number | null }) => sum + (o.total_amount || 0), 0) || 0,
-    ordersByStatus: [] as any[],
-    monthlyRevenue: [] as any[],
+    total: rows.length,
+    pending: rows.filter((o) => upper(o.status) === 'PENDING' || upper(o.status) === 'QUOTATION_PENDING').length,
+    processing: rows.filter((o) => upper(o.status) === 'PROCESSING' || upper(o.status).includes('CORRECTION') || upper(o.status).includes('MODIFICATION')).length,
+    completed: rows.filter((o) => upper(o.status) === 'COMPLETED' || upper(o.status) === 'SHIPPED').length,
+    totalRevenue: rows.reduce((sum, o) => sum + (o.total_amount || 0), 0),
+    ordersByStatus,
+    monthlyRevenue,
   };
 
   return stats;
@@ -46,13 +68,22 @@ export async function fetchOrderStats(period: number = 30) {
 /**
  * 見積統計取得
  */
-export async function fetchQuotationStats() {
+export async function fetchQuotationStats(period?: number) {
   const supabase = createServiceClient();
 
-  const { data, error } = await supabase
+  // C3: period フィルタを dashboard.ts の quotations クエリと統一（period 未指定時は全件で従来互換）
+  let query = supabase
     .from('quotations')
     .select('status, total_amount')
     .order('created_at', { ascending: false });
+
+  if (period !== undefined) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - period);
+    query = query.gte('created_at', startDate.toISOString());
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('[Dashboard] Quotation stats fetch error:', error);

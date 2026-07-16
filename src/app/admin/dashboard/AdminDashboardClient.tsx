@@ -5,8 +5,9 @@ import useSWR from 'swr';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase-browser';
-import { OrderStatus } from '@/types/database';
-import type { DashboardStatistics } from '@/types/admin';
+import { OrderStatus, OrderStatusLabels } from '@/types/database';
+import { cn } from '@/lib/utils';
+import type { AdminDashboardStats, RecentActivity } from '@/types/admin';
 import {
   OrderStatisticsWidget,
   RecentActivityWidget,
@@ -20,28 +21,17 @@ import { Card } from '@/components/ui';
 // データフェッチャー - エラーハンドリング強化
 // fetcher imported from use-optimized-fetch
 
-// デフォルト統計データ（フォールバック用）
-const defaultStats = {
-  ordersByStatus: [] as never[],
-  monthlyRevenue: [] as never[],
+// デフォルト統計データ（フォールバック用・AdminDashboardStats に完全適合）
+const defaultStats: AdminDashboardStats = {
+  totalOrders: 0,
+  pendingOrders: 0,
+  totalRevenue: 0,
+  activeUsers: 0,
+  ordersByStatus: [],
   pendingQuotations: 0,
   todayShipments: 0,
-  totalOrders: 0,
-  totalRevenue: 0,
-  recentQuotations: [] as never[],
-  samples: { total: 0, processing: 0, completed: 0 },
-  production: { avgDays: 0, completed: 0, inProgress: 0 },
-  shipments: { today: 0, inTransit: 0 },
+  monthlyRevenue: [],
   activeCustomers: 0,
-  quotations: {
-    total: 0,
-    draft: 0,
-    sent: 0,
-    pending: 0,
-    approved: 0,
-    conversionRate: 0,
-    recent: [] as never[]
-  },
 };
 
 import type { AdminAuthContext } from '@/types/admin';
@@ -49,8 +39,8 @@ import { fetcher } from '@/hooks/use-optimized-fetch';
 
 interface AdminDashboardClientProps {
   authContext: AdminAuthContext;
-  initialOrderStats: any;
-  initialQuotationStats: any;
+  initialOrderStats: unknown; // C6: any → unknown（未使用・page.tsx から渡される初期データ）
+  initialQuotationStats: unknown; // C6: any → unknown（未使用・page.tsx から渡される初期データ）
   initialPeriod: number;
 }
 
@@ -60,20 +50,24 @@ export default function AdminDashboardClient({
   initialQuotationStats,
   initialPeriod,
 }: AdminDashboardClientProps) {
-  const [realtimeOrders, setRealtimeOrders] = useState<any[]>([]);
+  const [realtimeOrders, setRealtimeOrders] = useState<RecentActivity[]>([]); // C6: any[] → RecentActivity[]
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const [period, setPeriod] = useState(initialPeriod); // 期間フィルター (日)
+  // B2: ステータス軸セグメントコントロールの選択状態（初期値 'ALL' = 全件表示・既存挙動維持）
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
 
   // SWRによるデータフェッチ - 統合APIを使用
-  const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR<DashboardStatistics & { recentQuotations?: any[]; activeCustomers?: number; quotations?: any; samples?: any; production?: any; shipments?: any }>(
+  // fetcher はジェネリック関数（fetcher<T>(url): Promise<T>）なので as any 不要・型安全
+  const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR<AdminDashboardStats>(
     `/api/admin/dashboard/unified-stats?period=${period}`,
-    fetcher as any,
+    fetcher,
    {
      refreshInterval: 60000, // 60秒ごとに更新（リアルタイム性よりメインスレッド負荷低減）
      revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止
      shouldRetryOnError: false, // 自動再試行無効化 (手動再試行ボタン提供)
       errorRetryCount: 3,
+      fallbackData: defaultStats, // C1: 初回レンダー前に空状態を提供しローディングちらつき防止
       onError: (err) => {
         // エラーはUIで表示するため、コンソールには出力しない
       }
@@ -93,8 +87,9 @@ export default function AdminDashboardClient({
           schema: 'public',
           table: 'orders'
         },
-        (payload: any) => {
-          setRealtimeOrders((prev) => [...prev, payload.new]);
+        (payload: { new: RecentActivity }) => {
+          // C1: 最新50件のみ保持（無限増大防止）・C6: payload 型解消（runtime 挙動維持）
+          setRealtimeOrders((prev) => [...prev, payload.new].slice(-50));
         }
       )
       .subscribe();
@@ -290,6 +285,27 @@ export default function AdminDashboardClient({
     );
   }
 
+  // === B2: ステータス軸セグメントコントロール用 派生データ・ヘルパー ===
+  // セグメント候補は ordersByStatus の実データから動的生成（API が返す実在ステータスのみ表示）
+  const statusSegments = orderStats?.ordersByStatus ?? [];
+  const totalFilteredOrders = statusSegments.reduce((sum, s) => sum + (s.count || 0), 0);
+
+  // 日本語ラベル取得（OrderStatusLabels を利用・未知ステータスはコード値をそのまま返すフォールバック付き）
+  const statusLabel = (status: string): string => {
+    const map = OrderStatusLabels as unknown as Record<string, { ja?: string }>;
+    return map[status]?.ja ?? status;
+  };
+
+  // 選択ステータスに応じた KPI カードのトーン（連動ハイライト）
+  // - 'ALL' のときは装飾なし（既存挙動を維持）
+  // - 特定ステータス選択時は該当カードを ring で強調、非該当は薄化（グレースケール化）
+  const cardToneClass = (statuses: string[]): string => {
+    if (selectedStatus === 'ALL') return '';
+    return statuses.includes(selectedStatus)
+      ? 'ring-2 ring-brixa-500 shadow-brixa-500/20 scale-[1.02]'
+      : 'opacity-40 grayscale';
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -331,7 +347,7 @@ export default function AdminDashboardClient({
           }}
         />
         <motion.div
-          className="absolute bottom-0 left-0 w-96 h-96 bg-brixa-secondary-400/5 rounded-full blur-3xl"
+          className="absolute bottom-0 left-0 w-96 h-96 bg-navy-400/5 rounded-full blur-3xl"
           animate={{
             scale: [1, 1.1, 1],
             opacity: [0.2, 0.4, 0.2],
@@ -418,7 +434,72 @@ export default function AdminDashboardClient({
           {/* KPI Cards - Premium Design (Status-based) */}
           <motion.div variants={itemVariants}>
             {orderStats && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div className="space-y-4">
+                {/* セクション見出し: ステータス別 KPI */}
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-gradient-to-b from-brixa-500 to-brixa-700 rounded-full" />
+                  <div>
+                    <h2 className="text-lg font-bold text-text-primary leading-tight">ステータス別 KPI</h2>
+                    <p className="text-xs text-text-tertiary">対応が必要な注文の現状サマリー</p>
+                  </div>
+                </div>
+                {/* B2: ステータス軸セグメントコントロール（選択ステータスで KPI を連動） */}
+                <div
+                  role="group"
+                  aria-label="注文ステータスで絞り込み"
+                  className="flex flex-wrap items-center gap-1.5 p-1.5 bg-white/70 dark:bg-bg-accent/60 border border-border-medium rounded-xl backdrop-blur-sm"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={selectedStatus === 'ALL'}
+                    onClick={() => setSelectedStatus('ALL')}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brixa-500',
+                      selectedStatus === 'ALL'
+                        ? 'bg-brixa-600 text-white shadow-sm dark:bg-brixa-500'
+                        : 'text-text-secondary hover:bg-brixa-50 dark:hover:bg-bg-secondary dark:hover:text-text-primary'
+                    )}
+                  >
+                    すべて
+                    <span className={cn(
+                      'inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-bold',
+                      selectedStatus === 'ALL'
+                        ? 'bg-white/25 text-white'
+                        : 'bg-bg-secondary dark:bg-bg-tertiary text-text-tertiary'
+                    )}>
+                      {totalFilteredOrders}
+                    </span>
+                  </button>
+                  {statusSegments.map((seg) => {
+                    const active = selectedStatus === seg.status;
+                    return (
+                      <button
+                        key={seg.status}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => setSelectedStatus(seg.status)}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brixa-500',
+                          active
+                            ? 'bg-brixa-600 text-white shadow-sm dark:bg-brixa-500'
+                            : 'text-text-secondary hover:bg-brixa-50 dark:hover:bg-bg-secondary dark:hover:text-text-primary'
+                        )}
+                      >
+                        {statusLabel(seg.status)}
+                        <span className={cn(
+                          'inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-bold',
+                          active
+                            ? 'bg-white/25 text-white'
+                            : 'bg-bg-secondary dark:bg-bg-tertiary text-text-tertiary'
+                        )}>
+                          {seg.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* KPI grid: xl で6列→3列（2行×3列）に削減し情報密集を解消。列数削減より見出し階層化が主効き（縦長化を抑える） */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* 承認待ち (QUOTATION_PENDING + MODIFICATION_REQUESTED) */}
                 <motion.div
                   variants={itemVariants}
@@ -428,7 +509,7 @@ export default function AdminDashboardClient({
                 >
                   <Link href="/admin/orders?status=QUOTATION_PENDING,MODIFICATION_REQUESTED" className="block">
                     <div className="absolute inset-0 bg-gradient-to-br from-warning-500 to-warning-700 rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-warning-100">
+                    <div className={cn("relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-warning-100", cardToneClass(['QUOTATION_PENDING', 'MODIFICATION_REQUESTED']))}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-warning-50 to-warning-100 rounded-xl flex items-center justify-center">
                           <FileText className="h-5 w-5 text-warning-600" />
@@ -440,8 +521,8 @@ export default function AdminDashboardClient({
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-text-secondary">承認待ち</p>
                         <p className="text-2xl font-extrabold text-text-primary">
-                          {(orderStats.ordersByStatus?.find((s: any) => s.status === 'QUOTATION_PENDING')?.count || 0) +
-                           (orderStats.ordersByStatus?.find((s: any) => s.status === 'MODIFICATION_REQUESTED')?.count || 0)}
+                          {(orderStats.ordersByStatus?.find((s: { status: string; count: number }) => s.status === 'QUOTATION_PENDING')?.count || 0) +
+                           (orderStats.ordersByStatus?.find((s: { status: string; count: number }) => s.status === 'MODIFICATION_REQUESTED')?.count || 0)}
                         </p>
                         <p className="text-xs text-text-tertiary">アクションが必要</p>
                       </div>
@@ -458,7 +539,7 @@ export default function AdminDashboardClient({
                 >
                   <Link href="/admin/orders?status=DATA_UPLOAD_PENDING" className="block">
                     <div className="absolute inset-0 bg-gradient-to-br from-info-500 to-info-700 rounded-2xl transform -rotate-1 group-hover:-rotate-2 transition-transform duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-info-100">
+                    <div className={cn("relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-info-100", cardToneClass(['DATA_UPLOAD_PENDING']))}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-info-50 to-info-100 rounded-xl flex items-center justify-center">
                           <Upload className="h-5 w-5 text-info-600" />
@@ -470,7 +551,7 @@ export default function AdminDashboardClient({
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-text-secondary">データ入稿待ち</p>
                         <p className="text-2xl font-extrabold text-text-primary">
-                          {orderStats.ordersByStatus?.find((s: any) => s.status === 'DATA_UPLOAD_PENDING')?.count || 0}
+                          {orderStats.ordersByStatus?.find((s: { status: string; count: number }) => s.status === 'DATA_UPLOAD_PENDING')?.count || 0}
                         </p>
                         <p className="text-xs text-text-tertiary">顧客の対応待ち</p>
                       </div>
@@ -487,7 +568,7 @@ export default function AdminDashboardClient({
                 >
                   <Link href="/admin/orders?status=CORRECTION_IN_PROGRESS" className="block">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-purple-100">
+                    <div className={cn("relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-100", cardToneClass(['CORRECTION_IN_PROGRESS']))}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl flex items-center justify-center">
                           <Edit className="h-5 w-5 text-purple-600" />
@@ -499,7 +580,7 @@ export default function AdminDashboardClient({
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-text-secondary">校正作業中</p>
                         <p className="text-2xl font-extrabold text-text-primary">
-                          {orderStats.ordersByStatus?.find((s: any) => s.status === 'CORRECTION_IN_PROGRESS')?.count || 0}
+                          {orderStats.ordersByStatus?.find((s: { status: string; count: number }) => s.status === 'CORRECTION_IN_PROGRESS')?.count || 0}
                         </p>
                         <p className="text-xs text-text-tertiary">デザイナー作業中</p>
                       </div>
@@ -516,7 +597,7 @@ export default function AdminDashboardClient({
                 >
                   <Link href="/admin/orders?status=CUSTOMER_APPROVAL_PENDING" className="block">
                     <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl transform -rotate-1 group-hover:-rotate-2 transition-transform duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-yellow-100">
+                    <div className={cn("relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-yellow-100", cardToneClass(['CUSTOMER_APPROVAL_PENDING']))}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl flex items-center justify-center">
                           <UserCheck className="h-5 w-5 text-yellow-600" />
@@ -528,7 +609,7 @@ export default function AdminDashboardClient({
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-text-secondary">顧客承認待ち</p>
                         <p className="text-2xl font-extrabold text-text-primary">
-                          {orderStats.ordersByStatus?.find((s: any) => s.status === 'CUSTOMER_APPROVAL_PENDING')?.count || 0}
+                          {orderStats.ordersByStatus?.find((s: { status: string; count: number }) => s.status === 'CUSTOMER_APPROVAL_PENDING')?.count || 0}
                         </p>
                         <p className="text-xs text-text-tertiary">顧客の確認待ち</p>
                       </div>
@@ -545,7 +626,7 @@ export default function AdminDashboardClient({
                 >
                   <Link href="/admin/orders?status=PRODUCTION" className="block">
                     <div className="absolute inset-0 bg-gradient-to-br from-brixa-500 to-brixa-700 rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-brixa-100">
+                    <div className={cn("relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-brixa-100", cardToneClass(['PRODUCTION']))}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-brixa-50 to-brixa-100 rounded-xl flex items-center justify-center">
                           <Settings className="h-5 w-5 text-brixa-600" />
@@ -557,7 +638,7 @@ export default function AdminDashboardClient({
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-text-secondary">製造中</p>
                         <p className="text-2xl font-extrabold text-text-primary">
-                          {orderStats.ordersByStatus?.find((s: any) => s.status === 'PRODUCTION')?.count || 0}
+                          {orderStats.ordersByStatus?.find((s: { status: string; count: number }) => s.status === 'PRODUCTION')?.count || 0}
                         </p>
                         <p className="text-xs text-text-tertiary">製造工程中</p>
                       </div>
@@ -565,7 +646,10 @@ export default function AdminDashboardClient({
                   </Link>
                 </motion.div>
 
-                {/* 本日出荷 (SHIPPED - 今日分) */}
+                {/* 本日出荷 (todayShipments)
+                    ※ shipments.today と同一データソース（lib/dashboard.ts:1975 の同一変数 todayShipments を
+                       トップレベルと shipments.today の両方へ代入）。二重カウントではなく同一値の重複表示のため、
+                       詳細統計側では重複を避け shipments.inTransit（輸送中・別集計）を表示する。 */}
                 <motion.div
                   variants={itemVariants}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
@@ -574,7 +658,7 @@ export default function AdminDashboardClient({
                 >
                   <Link href="/admin/orders?status=SHIPPED" className="block">
                     <div className="absolute inset-0 bg-gradient-to-br from-success-500 to-success-700 rounded-2xl transform -rotate-1 group-hover:-rotate-2 transition-transform duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-success-100">
+                    <div className={cn("relative bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-success-100", cardToneClass(['SHIPPED']))}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-success-50 to-success-100 rounded-xl flex items-center justify-center">
                           <Truck className="h-5 w-5 text-success-600" />
@@ -593,6 +677,7 @@ export default function AdminDashboardClient({
                     </div>
                   </Link>
                 </motion.div>
+                </div>
               </div>
             )}
           </motion.div>
@@ -609,12 +694,21 @@ export default function AdminDashboardClient({
 
         {/* Detailed Statistics Cards - Modern Grid */}
         {orderStats && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
-          >
+          <div className="space-y-4 mb-6">
+            {/* セクション見出し: 詳細統計 */}
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-gradient-to-b from-navy-500 to-navy-700 rounded-full" />
+              <div>
+                <h2 className="text-lg font-bold text-text-primary leading-tight">詳細統計</h2>
+                <p className="text-xs text-text-tertiary">見積・サンプル・生産・配送の補助指標</p>
+              </div>
+            </div>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            >
             {/* Quotation Approved */}
             <motion.div
               variants={itemVariants}
@@ -710,7 +804,11 @@ export default function AdminDashboardClient({
               </div>
             </motion.div>
 
-            {/* Today Shipments */}
+            {/* 輸送中注文（inTransit）
+                ※ 「本日出荷」(todayShipments) と shipments.today は同一データソース
+                  （lib/dashboard.ts:1975 の同一変数 todayShipments をトップレベルと
+                  shipments.today の両方へ代入）。二重カウントではなく同一値の重複表示のため、
+                  詳細統計では重複を避け shipments.inTransit（輸送中・別集計）を主値として表示。 */}
             <motion.div
               variants={itemVariants}
               whileHover={{ y: -4 }}
@@ -722,14 +820,12 @@ export default function AdminDashboardClient({
                     <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
                       <Package className="h-4 w-4 text-orange-600" />
                     </div>
-                    <span className="text-sm font-semibold text-text-secondary">本日配送</span>
+                    <span className="text-sm font-semibold text-text-secondary">輸送中</span>
                   </div>
                   <p className="text-3xl font-extrabold text-orange-600 mb-1">
-                    {orderStats.shipments?.today || 0}
+                    {orderStats.shipments?.inTransit || 0}
                   </p>
-                  <p className="text-xs text-text-tertiary">
-                    {orderStats.shipments?.inTransit || 0} 配送中
-                  </p>
+                  <p className="text-xs text-text-tertiary">現在配送中の荷物</p>
                 </div>
               </div>
             </motion.div>
@@ -743,12 +839,12 @@ export default function AdminDashboardClient({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-brixa-secondary-100 rounded-lg flex items-center justify-center">
-                      <Users className="h-4 w-4 text-brixa-secondary-600" />
+                    <div className="w-8 h-8 bg-navy-100 rounded-lg flex items-center justify-center">
+                      <Users className="h-4 w-4 text-navy-600" />
                     </div>
                     <span className="text-sm font-semibold text-text-secondary">アクティブ顧客</span>
                   </div>
-                  <p className="text-3xl font-extrabold text-brixa-secondary-600 mb-1">
+                  <p className="text-3xl font-extrabold text-navy-600 mb-1">
                     {orderStats.activeCustomers || 0}
                   </p>
                   <p className="text-xs text-text-tertiary">過去30日間</p>
@@ -756,6 +852,7 @@ export default function AdminDashboardClient({
               </div>
             </motion.div>
           </motion.div>
+          </div>
         )}
 
         {/* Main Content Grid */}

@@ -182,7 +182,7 @@ function calculateStatistics(data: {
   });
 
   const monthlyRevenue = Array.from(monthlyRevenueMap.entries())
-    .map(([month, amount]) => ({ month, amount }))
+    .map(([month, revenue]) => ({ month, revenue }))
     .sort((a, b) => a.month.localeCompare(b.month))
     .slice(-6); // 最近6ヶ月
 

@@ -11,6 +11,7 @@ import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unif
 import type { FilmCostResult } from '@/lib/film-cost-calculator';
 import { POST_PROCESSING_JA } from '@/constants/enToJa';
 import { calcDuty } from '@/lib/duty-calculator';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 interface QuotationItem {
   id: string;
@@ -148,6 +149,10 @@ export async function PATCH(
       }
       await recalculateTotals(supabase, quotationId);
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・quotations/quotation_items 更新）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({ success: true, message: '更新しました。' });
   } catch (error) {

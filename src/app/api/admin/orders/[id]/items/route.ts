@@ -17,6 +17,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { notifyModificationRequested } from '@/lib/customer-notifications';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // ============================================================
 // Types
@@ -291,6 +292,10 @@ export async function PUT(
       updatedItemsCount: updatedItems.length,
       priceDifference: newTotalAmount - order.total_amount,
     });
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders 金額再計算 → monthlyRevenue 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

@@ -1,34 +1,30 @@
 import { Card } from '@/components/ui';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { DashboardStatistics } from '@/types/admin';
+import type { AdminDashboardStats } from '@/types/admin';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 import { ORDER_STATUS_LABELS } from '@/types/order-status';
 
 interface OrderStatisticsWidgetProps {
-  statistics?: DashboardStatistics & {
-    recentQuotations?: Array<{
-      quotation_number: string;
-      customer_name: string;
-      customer_email: string;
-      status: string;
-      total_amount: number;
-      created_at: string;
-    }>;
-  };
+  // 型統合（ADR synthesis）: DashboardStatistics から AdminDashboardStats へ寄せ。
+  // recentQuotations は UnifiedDashboardStats 由来の Quotation[] を引き継ぐ。
+  statistics?: AdminDashboardStats;
   error?: string;
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidgetProps) {
-  const defaultStats: DashboardStatistics = {
+  const defaultStats: AdminDashboardStats = {
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalRevenue: 0,
+    activeUsers: 0,
     ordersByStatus: [],
-    monthlyRevenue: [],
     pendingQuotations: 0,
     todayShipments: 0,
-    totalOrders: 0,
-    totalRevenue: 0
+    monthlyRevenue: [],
+    activeCustomers: 0,
   };
 
   const stats = statistics || defaultStats;
@@ -54,9 +50,10 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
   })) || [];
 
   // 月別売上データのフォーマット
+  // UnifiedDashboardStats.monthlyRevenue は { month, revenue }（A3 で amount→revenue 統一）
   const revenueChartData = stats.monthlyRevenue?.map(item => ({
     name: item.month,
-    売上: item.amount
+    売上: item.revenue
   })) || [];
 
   function getStatusLabel(status: string): string {
@@ -120,13 +117,16 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
         </Card>
       )}
 
-      {/* 本日出荷 */}
-      {error ? <ErrorCard title="本日出荷" /> : (
+      {/* 総見積数
+          （「本日出荷」は KPI「本日出荷」と同一データソース: lib/dashboard.ts:1975 の
+            同一変数 todayShipments をトップレベルと shipments.today の両方へ代入。
+            重複表示を避けるため、ここでは KPI に無い「総見積数」に差し替え） */}
+      {error ? <ErrorCard title="総見積数" /> : (
         <Card className="p-6">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-600">本日出荷</span>
-            <span className="text-3xl font-bold text-green-600 mt-2">{stats.todayShipments}</span>
-            <span className="text-xs text-gray-500 mt-1">完了した注文</span>
+            <span className="text-sm font-medium text-gray-600">総見積数</span>
+            <span className="text-3xl font-bold text-green-600 mt-2">{stats.quotations?.total ?? 0}</span>
+            <span className="text-xs text-gray-500 mt-1">過去30日間</span>
           </div>
         </Card>
       )}
@@ -144,7 +144,7 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ label, percent }: any) => `${label} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  label={({ label, percent }: { label?: string; percent?: number }) => `${label} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -233,7 +233,10 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {stats.recentQuotations.map((quote) => (
+                {stats.recentQuotations.map((quote) => {
+                  // QuotationStatus（大文字ユニオン）と実データ（大小混在）の両方に対応するため小文字化して比較
+                  const statusKey = String(quote.status ?? '').toLowerCase();
+                  return (
                   <tr key={quote.quotation_number} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{quote.quotation_number}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">
@@ -242,14 +245,14 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        quote.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                        quote.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                        quote.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        statusKey === 'draft' ? 'bg-gray-100 text-gray-800' :
+                        statusKey === 'sent' ? 'bg-blue-100 text-blue-800' :
+                        statusKey === 'approved' ? 'bg-green-100 text-green-800' :
                         'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {quote.status === 'draft' ? '下書き' :
-                         quote.status === 'sent' ? '送付済み' :
-                         quote.status === 'approved' ? '承認済み' : quote.status}
+                        {statusKey === 'draft' ? '下書き' :
+                         statusKey === 'sent' ? '送付済み' :
+                         statusKey === 'approved' ? '承認済み' : quote.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
@@ -259,7 +262,8 @@ export function OrderStatisticsWidget({ statistics, error }: OrderStatisticsWidg
                       {new Date(quote.created_at).toLocaleDateString('ja-JP')}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

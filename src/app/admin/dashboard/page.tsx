@@ -7,11 +7,9 @@
  * - Client Componentにデータを渡す
  */
 
-import { Suspense } from 'react';
 import { getAdminAuth } from '../loader';
 import { fetchOrderStats, fetchQuotationStats } from './data';
 import AdminDashboardClient from './AdminDashboardClient';
-import { FullPageSpinner } from '@/components/ui';
 
 interface PageProps {
   searchParams: Promise<{ period?: string }>;
@@ -24,7 +22,7 @@ async function DashboardContent({ period }: { period?: string }) {
   // 並列データフェッチ
   const [orderStats, quotationStats] = await Promise.all([
     fetchOrderStats(parseInt(period) || 30),
-    fetchQuotationStats(),
+    fetchQuotationStats(parseInt(period) || 30),
   ]);
 
   return (
@@ -42,9 +40,9 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const period = params.period;
 
   return (
-    <Suspense fallback={<FullPageSpinner label="ダッシュボードを読み込み中..." />}>
-      <DashboardContent period={period} />
-    </Suspense>
+    // Next.js 16 では loading.tsx（DashboardLoading）が同セグメントの自動 Suspense boundary として機能するため、
+    // ここでは手動 Suspense ではなく DashboardContent を直接レンダリング（Suspense 境界の二重化を回避）
+    <DashboardContent period={period} />
   );
 }
 

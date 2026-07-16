@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createApiRateLimiter, checkRateLimit, createRateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limiter';
 import { memoryCache } from '@/lib/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 /**
  * Customer Markup Rate API
@@ -217,6 +218,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       memoryCache.delete(`customer-markup:${i}:20:`);
       memoryCache.delete(`customer-markup:${i}:20:`);
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles UPDATE → activeCustomers KPI 即時反映）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

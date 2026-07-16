@@ -3,7 +3,7 @@ import { RecentActivity } from '@/types/admin';
 import { ORDER_STATUS_LABELS } from '@/types/order-status';
 
 interface RecentActivityWidgetProps {
-  orders: any[];
+  orders: RecentActivity[]; // C6: any[] → RecentActivity[]
 }
 
 /**
@@ -122,7 +122,7 @@ export function RecentActivityWidget({ orders = [] }: RecentActivityWidgetProps)
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">最新アクティビティ</h4>
                 <div className="space-y-3">
-                  {activities.slice(0, 6).map((activity: any) => (
+                  {activities.slice(0, 6).map((activity: RecentActivity) => (
                     <div key={activity.id} className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export function RecentActivityWidget({ orders = [] }: RecentActivityWidgetProps)
                   <p className="text-xs text-gray-500">生産中</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-gray-900">{activities.filter(a => a.status === 'PENDING').length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{activities.filter(a => a.status.includes('PENDING')).length}</p>
                   <p className="text-xs text-gray-500">保留中</p>
                 </div>
               </div>

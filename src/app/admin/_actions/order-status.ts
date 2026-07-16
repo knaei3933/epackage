@@ -11,7 +11,7 @@
 
 import { createServiceClient } from '@/lib/supabase';
 import type { OrderStatus } from '@/types/order-status';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 interface UpdateStatusParams {
   orderId: string;
@@ -139,6 +139,10 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
     // キャッシュを再検証
     revalidatePath('/admin/orders');
     revalidatePath(`/admin/orders/${orderId}`);
+    // ダッシュボード統計の即時反映（C2・Phase 4-3）
+    // 60秒 SWR ポーリングに頼らず、unstable_cache tags:['dashboard'] を即時破棄
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max'); // Next.js 16: 第2引数 profile 必須・'max'=全キャッシュ無効化（非推奨警告回避）
 
     console.log('[Server Action] ========================================');
     console.log('[Server Action] Order status updated successfully:', {

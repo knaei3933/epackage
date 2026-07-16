@@ -13,6 +13,7 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { sendWorkOrderEmails, WorkOrderData } from '@/lib/email';
 import { Database } from '@/types/database';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // =====================================================
 // Types
@@ -590,6 +591,10 @@ export async function POST(request: NextRequest) {
     // ===================================================
     // Response
     // ===================================================
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.status='production_start' UPDATE → ordersByStatus/orders KPI 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

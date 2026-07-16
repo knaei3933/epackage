@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 interface ShippingInfoResponse {
   success: boolean;
@@ -118,6 +119,10 @@ export async function POST(
       success: true,
       message: '配送情報を更新しました。',
     };
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・shipments INSERT + orders.status=SHIPPED → todayShipments/ordersByStatus 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json(response, { status: 200 });
 

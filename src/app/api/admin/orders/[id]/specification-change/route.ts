@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { UnifiedNotificationService } from '@/lib/unified-notifications';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -267,6 +268,10 @@ export async function POST(
         console.error('[Admin Spec Change] Failed to send notification:', notificationError);
       }
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・quotations INSERT → recentQuotations/quotation KPI 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

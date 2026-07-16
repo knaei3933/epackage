@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -71,6 +72,10 @@ export async function PUT(request: NextRequest) {
       console.error('[BulkStatusUpdate] DB Error:', error);
       throw error;
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders 一括ステータス更新）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

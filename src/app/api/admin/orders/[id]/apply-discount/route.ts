@@ -17,6 +17,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // ============================================================
 // Types
@@ -180,6 +181,10 @@ export async function POST(
       totalDifference: newTotalAmount - orderData.total_amount,
     });
 
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.total_amount 更新 → monthlyRevenue 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
+
     return NextResponse.json({
       success: true,
       message: `割引${discountPercentage}%を適用しました`,
@@ -264,6 +269,10 @@ export async function DELETE(
         { status: 500 }
       );
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.total_amount 更新 → monthlyRevenue 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

@@ -1743,7 +1743,10 @@ export async function getUnifiedDashboardStats(
           : fetchMemberDashboardStats(userId, period);
       },
       [cacheKey],
-      { revalidate: 30 } // 30秒キャッシュ
+      // 30秒キャッシュ + tag による即時無効化（C2・Phase 4-3）
+      // 書き込み系 API ルート/Server Action が revalidateTag('admin-dashboard') を呼ぶと
+      // unstable_cache のキャッシュが即時破棄され、60秒 SWR ポーリングに頼らず反映される。
+      { revalidate: 30, tags: ['admin-dashboard'] }
     );
 
     // キャッシュされた関数を実行して結果を取得
@@ -1806,6 +1809,10 @@ export function withDashboardErrorHandling<T>(
  * 空の統合統計データを返す
  */
 function getEmptyUnifiedStats(): UnifiedDashboardStats {
+  // 空状態（認証なし・エラー時フォールバック）でも管理者ダッシュボードの主要 KPI が
+  // 安全に参照できるよう、optional フィールドを 0 / 空配列 で明示的に補完する。
+  // ADR synthesis・SWR の糊塗解消。UnifiedDashboardStats は optional のままで維持し、
+  // 会員側（getUnifiedDashboardStats の MEMBER ロール）への影響はゼロ。
   return {
     totalOrders: 0,
     pendingOrders: 0,
@@ -1813,6 +1820,10 @@ function getEmptyUnifiedStats(): UnifiedDashboardStats {
     activeUsers: 0,
     pendingQuotations: 0,
     ordersByStatus: [],
+    todayShipments: 0,
+    monthlyRevenue: [],
+    activeCustomers: 0,
+    recentQuotations: [],
   };
 }
 
@@ -1844,12 +1855,12 @@ async function fetchAdminDashboardStats(
     serviceClient.from('orders').select('total_amount').gte('created_at', startDate.toISOString()),
     serviceClient.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
     serviceClient.from('orders').select('status').gte('created_at', startDate.toISOString()),
-    // 見積統計
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('status', 'APPROVED'),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('status', ['DRAFT', 'SUBMITTED', 'PENDING']),
-    // 最新見積もり
-    serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).limit(5),
+    // 見積統計（C3: period フィルタを orders 系クエリと統一・期間切替で quotations KPI も反映）
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).gte('created_at', startDate.toISOString()),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('status', 'APPROVED').gte('created_at', startDate.toISOString()),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('status', ['DRAFT', 'SUBMITTED', 'PENDING']).gte('created_at', startDate.toISOString()),
+    // 最新見積もり（C3: period 内の最新5件に絞り込み）
+    serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).gte('created_at', startDate.toISOString()).limit(5),
     // 月別売上 (過去12ヶ月)
     serviceClient
       .from('orders')
@@ -2003,7 +2014,13 @@ async function fetchAdminDashboardStats(
     recentQuotations: recentQuotationsResult.data || [],
     // 月別売上
     monthlyRevenue,
-    // 配送統計
+    // 配送統計（FU3: 同一データ参照の明確化）
+    // todayShipments（トップレベル）と shipments.today（ネスト）は同一変数
+    // todayShipmentsResult.count を参照する同一値。2系統の UI がそれぞれ参照するため両方保持:
+    //   - admin 側: AdminDashboardClient KPI「本日出荷」が todayShipments を参照
+    //   - member 側: UnifiedDashboard が shipments.today を参照（UnifiedDashboardStats.shipments.today）
+    // 同一変数の二重保持だが値は同一（二重カウントではない）。B1-c で UI 層の3重表示
+    // （OrderStatisticsWidget の本日出荷）は総見積数に差し替え済みで UI 重複は解消済み。
     todayShipments,
     shipments: {
       today: todayShipments,

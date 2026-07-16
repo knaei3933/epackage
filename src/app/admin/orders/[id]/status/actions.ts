@@ -21,7 +21,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { authenticateAdminAction } from '@/lib/auth-helpers';
 import type { OrderStatus } from '@/types/order-status';
 import { mapStatusToCurrentStage, isValidStatusTransition } from '@/types/order-status';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 interface UpdateStatusParams {
   orderId: string;
@@ -129,6 +129,10 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
     // キャッシュを再検証
     revalidatePath('/admin/orders');
     revalidatePath(`/admin/orders/${orderId}`);
+    // C2: ダッシュボードの unstable_cache（tags: admin-dashboard）無効化
+    // orders.status UPDATE が ordersByStatus KPI に直結するため即時反映が必要
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return {
       success: true,

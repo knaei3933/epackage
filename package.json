@@ -8,6 +8,7 @@
     "build:webpack": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "analyze": "ANALYZE=true npm run build",
     "build:production": "NODE_ENV=production next build",
     "lighthouse": "node scripts/performance-audit.js",

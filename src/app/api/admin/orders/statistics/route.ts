@@ -47,7 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const totalRevenue = recentOrders?.reduce((sum: number, order: Pick<Database["public"]["Tables"]["orders"]["Row"], "status" | "total_amount" | "created_at">) => sum + (order.total_amount || 0), 0) || 0;
 
     // 3. 月別売上の集計（過去6ヶ月）
-    const monthlyRevenueData: Array<{ month: string; amount: number }> = [];
+    const monthlyRevenueData: Array<{ month: string; revenue: number }> = [];
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const monthAmount = monthOrders?.reduce((sum: number, order: Pick<Database["public"]["Tables"]["orders"]["Row"], "status" | "total_amount" | "created_at">) => sum + (order.total_amount || 0), 0) || 0;
       monthlyRevenueData.push({
         month: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
-        amount: monthAmount
+        revenue: monthAmount
       });
     }
 

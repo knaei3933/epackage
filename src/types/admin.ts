@@ -1,5 +1,6 @@
 import { OrderStatus } from './database';
 import type { Permission } from '@/lib/rbac/rbac-helpers';
+import type { UnifiedDashboardStats } from '@/lib/dashboard';
 
 // =====================================================
 // Admin Auth Types (Canonical)
@@ -47,7 +48,7 @@ export interface DashboardStatistics {
   }>;
   monthlyRevenue: Array<{
     month: string;
-    amount: number;
+    revenue: number;
   }>;
   pendingQuotations: number;
   todayShipments: number;
@@ -110,6 +111,33 @@ export interface DashboardStatistics {
   period?: number;
   generatedAt?: string;
 }
+
+/**
+ * 管理者ダッシュボード用統計型（型統合・ADR synthesis・解釈B）
+ *
+ * UnifiedDashboardStats（会員・管理者共通の正規型・src/lib/dashboard.ts）を
+ * ベースに、管理者ダッシュボードが KPI カードやウィジェットで必須参照する
+ * 項目を required 上書きした交差型（intersection）の type alias。
+ *
+ * 設計方針:
+ * - UnifiedDashboardStats は現状維持（会員側 src/lib/dashboard.ts への影響ゼロ）。
+ * - 第3の interface は新設せず、type alias の intersection のみ（Principle 3 準拠）。
+ *
+ * これにより:
+ * - /api/admin/dashboard/unified-stats（getUnifiedDashboardStats の戻り値）と
+ * - AdminDashboardClient の useSWR<AdminDashboardStats>
+ * が同じ UnifiedDashboardStats 由来の構造で型安全に結合する。
+ * recentQuotations は UnifiedDashboardStats の Quotation[] を引き継ぐ。
+ */
+export type AdminDashboardStats = UnifiedDashboardStats & {
+  // UnifiedDashboardStats では optional の、管理者ダッシュボード必須項目を required 化
+  ordersByStatus: NonNullable<UnifiedDashboardStats['ordersByStatus']>;
+  pendingQuotations: number;
+  todayShipments: number;
+  monthlyRevenue: NonNullable<UnifiedDashboardStats['monthlyRevenue']>;
+  // activeUsers のエイリアス・管理ダッシュボードではアクティブ顧客数として表示
+  activeCustomers: number;
+};
 
 export interface DashboardAlert {
   id: string;

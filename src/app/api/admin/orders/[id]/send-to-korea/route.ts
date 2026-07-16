@@ -20,6 +20,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { sendKoreaDataTransferWithAttachments } from '@/lib/email';
 import type { OrderStatus } from '@/types/order-status';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { mapStatusToCurrentStage } from '@/types/order-status';
 
 export const dynamic = 'force-dynamic';
@@ -237,6 +238,10 @@ export async function POST(
     if (result.previewUrl) {
       response.previewUrl = result.previewUrl;
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.status/current_stage 更新 → ordersByStatus 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json(response, { status: 200 });
 

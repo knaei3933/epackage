@@ -13,6 +13,7 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Database } from '@/types/database';
 import { z } from 'zod';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // ============================================================
 // Types
@@ -285,6 +286,10 @@ const { client: supabase } = await createSupabaseSSRClient(request);
         role: updatedUser.role,
       },
     };
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status を ACTIVE 化・activeUsers 影響）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json(response);
 

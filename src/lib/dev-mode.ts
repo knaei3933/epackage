@@ -365,46 +365,6 @@ export interface Notification {
 }
 
 /**
- * 統合ダッシュボード統計型定義
- */
-export interface UnifiedDashboardStats {
-  totalOrders: number;
-  pendingOrders: number;
-  totalRevenue: number;
-  activeUsers: number;
-  period?: number;
-  ordersByStatus?: Array<{ status: string; count: number }>;
-  recentOrders?: any[];
-  pendingQuotations?: number;
-  quotations?: {
-    total: number;
-    approved: number;
-    conversionRate: number;
-  };
-  samples?: {
-    total: number;
-    processing: number;
-  };
-  activeProduction?: number;
-  production?: {
-    avgDays: number;
-    completed: number;
-  };
-  todayShipments?: number;
-  shipments?: {
-    today: number;
-    inTransit: number;
-  };
-  contracts?: {
-    pending: number;
-    signed: number;
-    total: number;
-  };
-  announcements?: any[];
-  notifications?: Notification[];
-}
-
-/**
  * DEV_MODE用統合通知モックデータ生成
  */
 export function createMockUnifiedNotification(type: string): Notification {
@@ -420,64 +380,4 @@ export function createMockUnifiedNotification(type: string): Notification {
     is_read: false,
     created_at: new Date().toISOString(),
   };
-}
-
-/**
- * DEV_MODE用統合ダッシュボード統計データ生成
- */
-export function createMockDashboardStats(
-  userRole: 'ADMIN' | 'MEMBER',
-  period: number
-): UnifiedDashboardStats {
-  if (userRole === 'ADMIN') {
-    return {
-      totalOrders: Math.floor(Math.random() * 100) + 50,
-      pendingOrders: Math.floor(Math.random() * 20) + 5,
-      totalRevenue: Math.floor(Math.random() * 1000000) + 500000,
-      activeUsers: Math.floor(Math.random() * 50) + 10,
-      period,
-      ordersByStatus: [
-        { status: 'PENDING', count: Math.floor(Math.random() * 10) + 1 },
-        { status: 'PRODUCTION', count: Math.floor(Math.random() * 20) + 5 },
-        { status: 'SHIPPED', count: Math.floor(Math.random() * 15) + 3 },
-      ],
-      quotations: {
-        total: Math.floor(Math.random() * 50) + 20,
-        approved: Math.floor(Math.random() * 30) + 10,
-        conversionRate: Math.floor(Math.random() * 30) + 50,
-      },
-      samples: {
-        total: Math.floor(Math.random() * 30) + 10,
-        processing: Math.floor(Math.random() * 10) + 2,
-      },
-      production: {
-        avgDays: Math.floor(Math.random() * 10) + 5,
-        completed: Math.floor(Math.random() * 100) + 50,
-      },
-      shipments: {
-        today: Math.floor(Math.random() * 20) + 5,
-        inTransit: Math.floor(Math.random() * 30) + 10,
-      },
-      activeProduction: Math.floor(Math.random() * 15) + 3,
-      todayShipments: Math.floor(Math.random() * 10) + 2,
-    };
-  } else {
-    return {
-      totalOrders: Math.floor(Math.random() * 10) + 1,
-      pendingOrders: Math.floor(Math.random() * 5) + 1,
-      totalRevenue: 0,
-      activeUsers: 0,
-      period,
-      pendingQuotations: Math.floor(Math.random() * 5) + 1,
-      samples: {
-        total: Math.floor(Math.random() * 20) + 5,
-        processing: Math.floor(Math.random() * 5) + 1,
-      },
-      contracts: {
-        pending: Math.floor(Math.random() * 3) + 1,
-        signed: Math.floor(Math.random() * 5) + 1,
-        total: Math.floor(Math.random() * 10) + 2,
-      },
-    };
-  }
 }

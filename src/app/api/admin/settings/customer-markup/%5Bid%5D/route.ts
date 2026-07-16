@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 /**
  * Individual Customer Markup Rate API
@@ -71,6 +72,10 @@ export async function PUT(
         { status: 500 }
       );
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles UPDATE → activeCustomers KPI 即時反映）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

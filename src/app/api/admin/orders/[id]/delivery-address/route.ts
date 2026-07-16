@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function PUT(
   request: NextRequest,
@@ -113,6 +114,10 @@ export async function PUT(
         { status: 500 }
       );
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders 配送先 UPDATE → orders KPI 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

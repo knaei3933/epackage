@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
 import { withAdminAuth } from '@/lib/api-auth';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // ============================================================
 // Constants
@@ -123,6 +124,11 @@ export const POST = (withAdminAuth as any)(async (
         updated_at: new Date().toISOString(),
       })
       .eq('id', cancellationNote.id);
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・orders.status を CANCELLED に更新したため）
+    // reject の場合は orders 更新なしのため対象外
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,

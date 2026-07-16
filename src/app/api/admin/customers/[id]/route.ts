@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -242,6 +243,10 @@ export async function PATCH(
       );
     }
 
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles UPDATE → activeUsers KPI 即時反映）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
+
     return NextResponse.json({
       success: true,
       data: updatedCustomer,
@@ -299,6 +304,10 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    // ダッシュボード統計の即時反映（C2・Phase 4-3・profiles.status=DELETED → activeUsers/pendingUsers 直結）
+    revalidatePath('/admin/dashboard');
+    revalidateTag('admin-dashboard', 'max');
 
     return NextResponse.json({
       success: true,
