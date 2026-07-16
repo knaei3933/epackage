@@ -215,7 +215,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
   };
 
   const handleViewDetails = (quotation: Quotation) => {
-    window.location.href = `/member/quotations/${quotation.id}`;
+    router.push(`/member/quotations/${quotation.id}`);
   };
 
   if (error) {
@@ -379,7 +379,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                                           href={`/member/orders/${item.orderId}`}
                                           onClick={(e) => {
                                             e.preventDefault();
-                                            window.location.href = `/member/orders/${item.orderId}`;
+                                            router.push(`/member/orders/${item.orderId}`);
                                           }}
                                           className="text-xs text-primary hover:underline cursor-pointer"
                                         >
@@ -494,9 +494,9 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
 
                     if (result.success) {
                       if (result.data?.id) {
-                        window.location.href = `/member/orders/${result.data.id}`;
+                        router.push(`/member/orders/${result.data.id}`);
                       } else if (result.alreadyExists && result.data?.id) {
-                        window.location.href = `/member/orders/${result.data.id}`;
+                        router.push(`/member/orders/${result.data.id}`);
                       } else {
                         showError('注文が生成されましたが、注文詳細ページに遷移できませんでした。');
                       }

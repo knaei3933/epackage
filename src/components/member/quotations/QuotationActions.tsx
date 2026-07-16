@@ -51,7 +51,7 @@ export function QuotationActions({
     if (onCreateNew) {
       onCreateNew();
     } else {
-      window.location.href = '/quote-simulator';
+      router.push('/quote-simulator');
     }
   };
 

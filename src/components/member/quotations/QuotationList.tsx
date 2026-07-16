@@ -11,6 +11,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, Button, Badge } from '@/components/ui';
 import { Eye, Download, Trash2, FileText, Calendar, Clock, Package, AlertCircle, FileQuestion, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -72,6 +73,7 @@ export function QuotationList({
   statusFilterOptions = [],
   emptyMessage
 }: QuotationListProps) {
+  const router = useRouter();
   // 空状態
   if (quotations.length === 0) {
     return (
@@ -98,7 +100,7 @@ export function QuotationList({
             </Button>
             <Button
               variant="primary"
-              onClick={() => (window.location.href = '/quote-simulator')}
+              onClick={() => router.push('/quote-simulator')}
               className="gap-2 shadow-lg hover:shadow-xl"
             >
               <FileText className="w-4 h-4" />
@@ -464,7 +466,7 @@ export function QuotationList({
                                   href={`/member/orders/${item.orderId}`}
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    window.location.href = `/member/orders/${item.orderId}`;
+                                    router.push(`/member/orders/${item.orderId}`);
                                   }}
                                   className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium"
                                 >
@@ -496,7 +498,7 @@ export function QuotationList({
                       href={`/member/quotations/${quotation.id}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        window.location.href = `/member/quotations/${quotation.id}`;
+                        router.push(`/member/quotations/${quotation.id}`);
                       }}
                       className="block"
                     >

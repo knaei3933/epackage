@@ -10,6 +10,7 @@
  */
 
 import { Card } from '@/components/ui';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Order, Quotation, DashboardSampleRequest, Inquiry, Announcement } from '@/types/dashboard';
@@ -63,6 +64,7 @@ export function DashboardStatsCard({
   icon,
   color,
 }: DashboardStatsCardProps) {
+  const router = useRouter();
   const classes = colorClasses[color];
 
   return (
@@ -70,7 +72,7 @@ export function DashboardStatsCard({
       href={href}
       onClick={(e) => {
         e.preventDefault();
-        window.location.href = href;
+        router.push(href);
       }}
       className="block cursor-pointer"
     >
@@ -114,6 +116,7 @@ const priorityColors = {
 };
 
 export function AnnouncementCard({ announcements }: AnnouncementCardProps) {
+  const router = useRouter();
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -122,7 +125,7 @@ export function AnnouncementCard({ announcements }: AnnouncementCardProps) {
           href="/member/announcements"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = '/member/announcements';
+            router.push('/member/announcements');
           }}
           className="text-sm text-primary hover:underline cursor-pointer"
         >
@@ -204,6 +207,7 @@ const orderStatusColors = {
 };
 
 export function RecentOrdersCard({ orders }: RecentOrdersCardProps) {
+  const router = useRouter();
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -212,7 +216,7 @@ export function RecentOrdersCard({ orders }: RecentOrdersCardProps) {
           href="/member/orders/new"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = '/member/orders/new';
+            router.push('/member/orders/new');
           }}
           className="text-sm text-primary hover:underline cursor-pointer"
         >
@@ -278,6 +282,7 @@ const quotationStatusColors = {
 };
 
 export function RecentQuotationsCard({ quotations }: RecentQuotationsCardProps) {
+  const router = useRouter();
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -286,7 +291,7 @@ export function RecentQuotationsCard({ quotations }: RecentQuotationsCardProps) 
           href="/member/quotations"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = '/member/quotations';
+            router.push('/member/quotations');
           }}
           className="text-sm text-primary hover:underline cursor-pointer"
         >
@@ -352,6 +357,7 @@ const sampleStatusColors = {
 };
 
 export function RecentSamplesCard({ samples }: RecentSamplesCardProps) {
+  const router = useRouter();
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -360,7 +366,7 @@ export function RecentSamplesCard({ samples }: RecentSamplesCardProps) {
           href="/member/samples"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = '/member/samples';
+            router.push('/member/samples');
           }}
           className="text-sm text-primary hover:underline cursor-pointer"
         >

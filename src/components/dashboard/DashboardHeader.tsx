@@ -93,7 +93,7 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
           href="/member/dashboard"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = '/member/dashboard';
+            router.push('/member/dashboard');
           }}
           className="flex items-center gap-2 cursor-pointer"
         >
@@ -114,7 +114,7 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
             href="/quote-simulator"
             onClick={(e) => {
               e.preventDefault();
-              window.location.href = '/quote-simulator';
+              router.push('/quote-simulator');
             }}
           >
             <Button variant="primary" size="sm">
@@ -125,7 +125,7 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
             href="/contact"
             onClick={(e) => {
               e.preventDefault();
-              window.location.href = '/contact';
+              router.push('/contact');
             }}
           >
             <Button variant="secondary" size="sm">
@@ -201,7 +201,7 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
                   onClick={(e) => {
                     e.preventDefault();
                     setIsDropdownOpen(false);
-                    window.location.href = '/member/edit';
+                    router.push('/member/edit');
                   }}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
                 >
@@ -213,7 +213,7 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
                   onClick={(e) => {
                     e.preventDefault();
                     setIsDropdownOpen(false);
-                    window.location.href = '/member/settings';
+                    router.push('/member/settings');
                   }}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
                 >

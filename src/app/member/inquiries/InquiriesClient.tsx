@@ -241,7 +241,7 @@ function InquiriesPageContent() {
           <h1 className="text-2xl font-bold text-text-primary">お問い合わせ履歴</h1>
           <p className="text-text-muted mt-1">お問い合わせの一覧と返信確認</p>
         </div>
-        <Button variant="primary" onClick={() => (window.location.href = '/contact')}>
+        <Button variant="primary" onClick={() => router.push('/contact')}>
           <span className="mr-2">+</span>新規問い合わせ
         </Button>
       </div>
@@ -379,7 +379,7 @@ function InquiriesPageContent() {
             <Button
               variant="primary"
               className="mt-4"
-              onClick={() => (window.location.href = '/contact')}
+              onClick={() => router.push('/contact')}
             >
               お問い合わせをする
             </Button>

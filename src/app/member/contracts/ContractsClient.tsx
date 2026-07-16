@@ -295,7 +295,7 @@ function MemberContractsPageWrapper({ userId }: ContractsClientProps) {
               href="/member/dashboard"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = '/member/dashboard';
+                router.push('/member/dashboard');
               }}
             >
               <Button variant="outline" size="sm">

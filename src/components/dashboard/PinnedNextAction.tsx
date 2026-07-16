@@ -11,6 +11,7 @@
  */
 
 import { Card } from '@/components/ui';
+import { useRouter } from 'next/navigation';
 import type { NextAction } from '@/lib/dashboard';
 
 // =====================================================
@@ -38,6 +39,7 @@ const TYPE_META: Record<NextAction['type'], { icon: string; label: string }> = {
 // =====================================================
 
 export function PinnedNextAction({ action }: PinnedNextActionProps) {
+  const router = useRouter();
   const meta = TYPE_META[action.type];
 
   return (
@@ -63,7 +65,7 @@ export function PinnedNextAction({ action }: PinnedNextActionProps) {
           href={action.href}
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = action.href;
+            router.push(action.href);
           }}
           className="shrink-0 inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
         >

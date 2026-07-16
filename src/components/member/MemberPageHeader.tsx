@@ -7,7 +7,10 @@
  * - ダッシュボードへ戻るボタン
  */
 
+'use client';
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
 
 export interface MemberPageHeaderProps {
@@ -25,6 +28,7 @@ export function MemberPageHeader({
   backHref = '/member/dashboard',
   actions,
 }: MemberPageHeaderProps) {
+  const router = useRouter();
   return (
     <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-border-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -45,7 +49,7 @@ export function MemberPageHeader({
                 href={backHref}
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = backHref;
+                  router.push(backHref);
                 }}
               >
                 <Button variant="outline" size="sm">

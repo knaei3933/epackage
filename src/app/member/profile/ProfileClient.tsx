@@ -130,7 +130,7 @@ export function ProfileClient({
             href="/member/edit"
             onClick={(e) => {
               e.preventDefault();
-              window.location.href = '/member/edit';
+              router.push('/member/edit');
             }}
           >
             <Button
@@ -239,7 +239,7 @@ export function ProfileClient({
                 href="/contact"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = '/contact';
+                  router.push('/contact');
                 }}
                 className="text-brixa-500 hover:underline ml-1 cursor-pointer"
               >
@@ -262,7 +262,7 @@ export function ProfileClient({
               href="/member/edit"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = '/member/edit';
+                router.push('/member/edit');
               }}
             >
               <Button variant="outline" size="sm">
@@ -386,7 +386,7 @@ export function ProfileClient({
                 href="/contact"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = '/contact';
+                  router.push('/contact');
                 }}
                 className="text-primary hover:underline ml-1 cursor-pointer"
               >

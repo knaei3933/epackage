@@ -442,7 +442,7 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
           <p className="text-text-muted mt-1">{pageDescription}</p>
         </div>
         {activeTab !== 'reorder' && (
-          <Button variant="primary" onClick={() => (window.location.href = '/quote-simulator')} data-testid="new-quotation-button">
+          <Button variant="primary" onClick={() => router.push('/quote-simulator')} data-testid="new-quotation-button">
             <span className="mr-2">+</span>新規見積
           </Button>
         )}

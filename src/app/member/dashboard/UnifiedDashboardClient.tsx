@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
@@ -26,6 +27,7 @@ export function UnifiedDashboardClient({
   userId,
   userName,
 }: UnifiedDashboardClientProps) {
+  const router = useRouter();
   const [period, setPeriod] = useState(30);
 
   // SWRで統計データを自動更新
@@ -177,7 +179,7 @@ export function UnifiedDashboardClient({
           icon={<span className="text-4xl" aria-hidden="true">✅</span>}
           action={{
             label: '見積依頼を作成',
-            onClick: () => { window.location.href = '/member/quotations/request'; }
+            onClick: () => { router.push('/member/quotations/request'); }
           }}
         />
       ) : (

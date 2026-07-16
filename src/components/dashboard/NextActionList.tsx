@@ -10,6 +10,7 @@
  */
 
 import { Card } from '@/components/ui';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { NextAction } from '@/lib/dashboard';
@@ -45,6 +46,7 @@ const TYPE_META: Record<NextAction['type'], { icon: string; label: string; accen
  * 本体でも最大10件に制限（二重防御）。
  */
 export function NextActionList({ actions, title = '次の行動' }: NextActionListProps) {
+  const router = useRouter();
   const list = actions.slice(0, 10);
 
   if (list.length === 0) {
@@ -70,7 +72,7 @@ export function NextActionList({ actions, title = '次の行動' }: NextActionLi
               href={action.href}
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = action.href;
+                router.push(action.href);
               }}
               className="block p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary hover:border-primary transition-colors cursor-pointer"
             >

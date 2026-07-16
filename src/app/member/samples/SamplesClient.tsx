@@ -161,7 +161,7 @@ function SamplesPageContent({ initialStatus }: SamplesClientProps) {
                 <h1 className="text-2xl font-bold text-text-primary">サンプル依頼</h1>
                 <p className="text-text-muted mt-1">サンプル依頼の一覧とステータス確認</p>
               </div>
-              <Button variant="primary" onClick={() => (window.location.href = '/samples')}>
+              <Button variant="primary" onClick={() => router.push('/samples')}>
                 <span className="mr-2">+</span>新規依頼
               </Button>
             </div>
@@ -181,7 +181,7 @@ function SamplesPageContent({ initialStatus }: SamplesClientProps) {
               <h1 className="text-2xl font-bold text-text-primary">サンプル依頼</h1>
               <p className="text-text-muted mt-1">サンプル依頼の一覧とステータス確認</p>
             </div>
-            <Button variant="primary" onClick={() => (window.location.href = '/samples')}>
+            <Button variant="primary" onClick={() => router.push('/samples')}>
               <span className="mr-2">+</span>新規依頼
             </Button>
           </div>

@@ -11,6 +11,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, Button } from '@/components/ui';
 import { MapPin, CreditCard, Check } from 'lucide-react';
 
@@ -72,6 +73,7 @@ export function AddressSelectModal({
   userId,
   preloadedAddresses,
 }: AddressSelectModalProps) {
+  const router = useRouter();
   const [addresses, setAddresses] = useState<(DeliveryAddress | BillingAddress)[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -215,7 +217,7 @@ export function AddressSelectModal({
                 variant="primary"
                 onClick={() => {
                   onClose();
-                  window.location.href = type === 'delivery' ? '/member/deliveries' : '/member/billing-addresses';
+                  router.push(type === 'delivery' ? '/member/deliveries' : '/member/billing-addresses');
                 }}
               >
                 {type === 'delivery' ? '納品先を登録' : '請求先を登録'}
