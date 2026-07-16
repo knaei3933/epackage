@@ -6,6 +6,14 @@ interface RecentActivityWidgetProps {
   orders: RecentActivity[]; // C6: any[] → RecentActivity[]
 }
 
+// 新ワークフロー体系の「対応待ち」ステータス（MAJOR-2）
+// 純粋 PENDING は存在せず、*_PENDING 形式の3種を集計する
+const PENDING_ACTIVITY_STATUSES = [
+  'QUOTATION_PENDING',
+  'DATA_UPLOAD_PENDING',
+  'CUSTOMER_APPROVAL_PENDING',
+] as const;
+
 /**
  * RecentActivityWidget - 최근 활동 위젯
  *
@@ -157,8 +165,8 @@ export function RecentActivityWidget({ orders = [] }: RecentActivityWidgetProps)
                   <p className="text-xs text-gray-500">生産中</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-gray-900">{activities.filter(a => a.status.includes('PENDING')).length}</p>
-                  <p className="text-xs text-gray-500">保留中</p>
+                  <p className="text-2xl font-bold text-gray-900">{activities.filter(a => (PENDING_ACTIVITY_STATUSES as readonly string[]).includes(a.status)).length}</p>
+                  <p className="text-xs text-gray-500">対応待ち</p>
                 </div>
               </div>
             </>

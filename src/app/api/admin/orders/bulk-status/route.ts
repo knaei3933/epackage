@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,6 +31,13 @@ function createServiceRoleClient() {
 }
 
 export async function PUT(request: NextRequest) {
+  // SECURITY: ADMIN厳格認可（MAJOR-3・他 admin API route と統一・verifyAdminAuth は ADMIN+ACTIVE のみ許可）
+  // 呼び出し元（AdminOrdersClient）は adminFetch で Bearer token を送信済み
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
+    return unauthorizedResponse();
+  }
+
   try {
     const body = await request.json();
     const { order_ids, status } = body;
