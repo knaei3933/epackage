@@ -2279,7 +2279,9 @@ async function fetchMemberDashboardStats(
       conversionRate: 0,
     },
     contracts: {
-      pending: recentContractsData.length,
+      // MAJOR-1: recentContractsData（.limit(5)）の length は5件超で頭打ちになる不正確な値。
+      // 未署名 = total - signed で正確に算出（admin UnifiedDashboardClient と同じ計算）
+      pending: Math.max(0, (contractsTotalResult.count || 0) - (contractsSignedResult.count || 0)),
       signed: contractsSignedResult.count || 0,
       total: contractsTotalResult.count || 0,
     },
