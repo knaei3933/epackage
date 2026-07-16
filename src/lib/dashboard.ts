@@ -1624,8 +1624,8 @@ const NEXT_ACTION_MAX_COUNT = 10;
  * 統合統計データから「次の行動」リストを生成する純粋関数。
  * - 各 recent 配列（recentQuotations/recentOrders/recentContracts/notifications/recentSamples）から
  *   NextAction を生成し、優先度順（同優先度内は createdAt 昇順=古い順）に連結
- * - 上限 N=10 件で打ち切り
- * - pinnedNextAction = nextActions[0]（0件時は undefined）
+ * - 上限 N=10 件で打ち切り後、先頭を pinnedNextAction として抜き出し、残りを nextActions とする
+ *   （PinnedNextAction との先頭重複を防ぐ・0件時は pinnedNextAction=undefined）
  *
  * 各配列は ?? [] で防御（キャッシュミスで getEmptyUnifiedStats() が返っても安全）。
  */
@@ -1707,9 +1707,13 @@ function buildNextActions(stats: UnifiedDashboardStats): {
     ...sampleActions.sort(sortByCreatedAtAsc),
   ];
 
-  // 上限 N=10 件で打ち切り
-  const nextActions = sorted.slice(0, NEXT_ACTION_MAX_COUNT);
-  const pinnedNextAction = nextActions[0];
+  // 上限 N=10 件で打ち切り（pinned 含む）。先頭を pinnedNextAction として抜き出し、
+  // 残りを nextActions とする（PinnedNextAction との先頭重複を解消）
+  const allActions = sorted.slice(0, NEXT_ACTION_MAX_COUNT);
+  const pinnedNextAction = allActions[0];
+  const nextActions = pinnedNextAction
+    ? allActions.filter((a) => a.id !== pinnedNextAction.id)
+    : allActions;
 
   return { nextActions, pinnedNextAction };
 }
