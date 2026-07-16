@@ -41,6 +41,24 @@ import type {
 // =====================================================
 
 /**
+ * 次の行動（NextAction）型
+ * ダッシュボードで「次にやるべきこと」として提示する1項目。
+ * - type: アクション種別（優先度マップ NEXT_ACTION_PRIORITY_MAP のキーと対応・spec Ontology 4種に sample を拡張）
+ * - priority: 小さいほど高優先（quotation=1 → sample=5）
+ * - href: 実在パス（/member/quotations 等）
+ */
+export interface NextAction {
+  id: string;
+  type: 'quotation' | 'order' | 'notification' | 'contract' | 'sample';
+  title: string;
+  description?: string;
+  priority: number;
+  href: string;
+  createdAt: string;
+  statusLabel?: string;
+}
+
+/**
  * 統合ダッシュボード統計型
  * 会員・管理者共通の統計データ構造
  */
@@ -75,6 +93,8 @@ export interface UnifiedDashboardStats {
     total: number;
     processing: number;
   };
+  // サンプル行データ（nextActions/recent セクション用・top-5）
+  recentSamples?: DashboardSampleRequest[];
 
   // 配送関連
   todayShipments?: number;
@@ -95,6 +115,8 @@ export interface UnifiedDashboardStats {
     signed: number;
     total: number;
   };
+  // 契約行データ（nextActions/recent セクション用・top-5・B2B）
+  recentContracts?: ContractStats[];
 
   // 問い合わせ関連
   inquiries?: {
@@ -107,6 +129,11 @@ export interface UnifiedDashboardStats {
 
   // 通知
   notifications?: NotificationStats[];
+
+  // 次の行動（優先度順・最大10件）と固定表示（最優先1件）
+  // getUnifiedDashboardStats のキャッシュ境界外で毎回生成される（result には含まれない）
+  nextActions?: NextAction[];
+  pinnedNextAction?: NextAction;
 
   // 期間
   period?: number;
@@ -1579,6 +1606,115 @@ export async function getNotificationBadge(): Promise<NotificationBadge> {
 // =====================================================
 
 /**
+ * NextAction 優先度マップ（小さいほど高優先）
+ * quotation(1) → order(2) → contract(3) → notification(4) → sample(5)
+ */
+const NEXT_ACTION_PRIORITY_MAP: Record<NextAction['type'], number> = {
+  quotation: 1,
+  order: 2,
+  contract: 3,
+  notification: 4,
+  sample: 5,
+};
+
+/** NextAction の最大表示件数（AC2: 上限 N=10 件で打ち切り） */
+const NEXT_ACTION_MAX_COUNT = 10;
+
+/**
+ * 統合統計データから「次の行動」リストを生成する純粋関数。
+ * - 各 recent 配列（recentQuotations/recentOrders/recentContracts/notifications/recentSamples）から
+ *   NextAction を生成し、優先度順（同優先度内は createdAt 昇順=古い順）に連結
+ * - 上限 N=10 件で打ち切り
+ * - pinnedNextAction = nextActions[0]（0件時は undefined）
+ *
+ * 各配列は ?? [] で防御（キャッシュミスで getEmptyUnifiedStats() が返っても安全）。
+ */
+function buildNextActions(stats: UnifiedDashboardStats): {
+  nextActions: NextAction[];
+  pinnedNextAction: NextAction | undefined;
+} {
+  // 各配列を ?? [] で防御
+  const recentQuotations = stats.recentQuotations ?? [];
+  const recentOrders = stats.recentOrders ?? [];
+  const recentContracts = stats.recentContracts ?? [];
+  const notifications = stats.notifications ?? [];
+  const recentSamples = stats.recentSamples ?? [];
+
+  // 優先度ごとに NextAction を生成
+  const quotationActions: NextAction[] = recentQuotations.map((q): NextAction => ({
+    id: `quotation-${q.id}`,
+    type: 'quotation',
+    title: q.quotationNumber ? `見積もりの確認: ${q.quotationNumber}` : '見積もりの確認',
+    description: q.totalAmount != null ? `${q.totalAmount.toLocaleString()}円` : undefined,
+    priority: NEXT_ACTION_PRIORITY_MAP.quotation,
+    href: '/member/quotations',
+    createdAt: q.createdAt,
+    statusLabel: q.status,
+  }));
+
+  const orderActions: NextAction[] = recentOrders.map((o): NextAction => ({
+    id: `order-${o.id}`,
+    type: 'order',
+    title: o.orderNumber ? `注文の確認: ${o.orderNumber}` : '注文の確認',
+    description: o.totalAmount != null ? `${o.totalAmount.toLocaleString()}円` : undefined,
+    priority: NEXT_ACTION_PRIORITY_MAP.order,
+    href: '/member/orders',
+    createdAt: o.createdAt,
+    statusLabel: o.status,
+  }));
+
+  const contractActions: NextAction[] = recentContracts.map((c): NextAction => ({
+    id: `contract-${c.id}`,
+    type: 'contract',
+    title: c.contract_number ? `契約の確認: ${c.contract_number}` : '契約の確認',
+    description: c.total_amount != null ? `${c.total_amount.toLocaleString()}円` : undefined,
+    priority: NEXT_ACTION_PRIORITY_MAP.contract,
+    href: '/member/contracts',
+    createdAt: c.created_at,
+    statusLabel: c.status,
+  }));
+
+  const notificationActions: NextAction[] = notifications.map((n): NextAction => ({
+    id: `notification-${n.id}`,
+    type: 'notification',
+    title: n.title || '未読通知の確認',
+    description: n.message,
+    priority: NEXT_ACTION_PRIORITY_MAP.notification,
+    href: '/member/notifications',
+    createdAt: n.created_at,
+  }));
+
+  const sampleActions: NextAction[] = recentSamples.map((s): NextAction => ({
+    id: `sample-${s.id}`,
+    type: 'sample',
+    title: s.requestNumber ? `サンプル依頼の確認: ${s.requestNumber}` : 'サンプル依頼の確認',
+    priority: NEXT_ACTION_PRIORITY_MAP.sample,
+    href: '/member/samples',
+    createdAt: s.createdAt,
+    statusLabel: s.status,
+  }));
+
+  // 同優先度内は createdAt 昇順（古い順）にソート（AC2・Critic M-2）
+  const sortByCreatedAtAsc = (a: NextAction, b: NextAction) =>
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+
+  // 優先度順に連結（各グループ内は createdAt 昇順）
+  const sorted = [
+    ...quotationActions.sort(sortByCreatedAtAsc),
+    ...orderActions.sort(sortByCreatedAtAsc),
+    ...contractActions.sort(sortByCreatedAtAsc),
+    ...notificationActions.sort(sortByCreatedAtAsc),
+    ...sampleActions.sort(sortByCreatedAtAsc),
+  ];
+
+  // 上限 N=10 件で打ち切り
+  const nextActions = sorted.slice(0, NEXT_ACTION_MAX_COUNT);
+  const pinnedNextAction = nextActions[0];
+
+  return { nextActions, pinnedNextAction };
+}
+
+/**
  * 統合ダッシュボード統計取得
  * SSR/CSR両対応
  *
@@ -1610,8 +1746,16 @@ export async function getUnifiedDashboardStats(
       { revalidate: 30 } // 30秒キャッシュ
     );
 
-    // キャッシュされた関数を実行して結果を返す
-    return await cachedFetch();
+    // キャッシュされた関数を実行して結果を取得
+    const result = await cachedFetch();
+    // NextAction はキャッシュ境界外で毎回生成（キャッシュエントリの肥大化を抑制・常に最新）。
+    // page.tsx / unified-stats/route.ts は 'MEMBER' 固定で渡すため、Admin ロールで
+    // /member/dashboard にアクセスしても userRole='MEMBER' となり buildNextActions は実行される（AC1 違反なし）。
+    if (userRole === 'MEMBER') {
+      const next = buildNextActions(result);
+      return { ...result, nextActions: next.nextActions, pinnedNextAction: next.pinnedNextAction };
+    }
+    return result;
   } catch (error) {
     console.error('[getUnifiedDashboardStats] Error:', error);
     return getEmptyUnifiedStats();
@@ -1891,11 +2035,22 @@ async function fetchMemberDashboardStats(
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - period);
 
-  // 並列クエリ
-  // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、rejected は
-  // count:0 の空 result でフォールバック（すべてカウント取得クエリのため）。
+  // お知らせ取得（Critic MAJOR-1）: getAnnouncements(3) を先行宣言し、下記
+  // Promise.allSettled（14本）と並行で実行する（直列 await を避ける）。
+  const announcementsPromise = getAnnouncements(3)
+    .then((data): Announcement[] => data)
+    .catch((annError: unknown): Announcement[] => {
+      console.warn('[fetchMemberDashboardStats] Failed to fetch announcements:', annError);
+      return [];
+    });
+
+  // 並列クエリ（既存 count-only 7本 + 新規 行データ/count 7本 = 計14本）
+  // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、
+  // rejected は空 result（行データ=空配列、カウント=0）でフォールバック（getDashboardStats パターン踏襲）。
+  const EMPTY_LIST_RESULT: { data: any[]; count: number | null; error: any } = { data: [], count: null, error: null };
   const EMPTY_COUNT_RESULT: { data: any; count: number | null; error: any } = { data: null, count: 0, error: null };
   const unifiedResults = await Promise.allSettled([
+    // --- 既存: 統計カード用 count-only クエリ（7本）---
     serviceClient
       .from('orders')
       .select('*', { count: 'exact', head: true })
@@ -1936,10 +2091,72 @@ async function fetchMemberDashboardStats(
       .eq('user_id', userId)
       // 回答済みの問い合わせをカウント
       .in('status', ['responded', 'resolved', 'closed']),
+    // --- 新規: nextActions/recent セクション用 行データクエリ（5本・top-5）---
+    // orders top-5（Critic M-1: PRODUCTION を含む・降順）
+    serviceClient
+      .from('orders')
+      .select('*')
+      .eq('user_id', userId)
+      .in('status', ['PENDING', 'QUOTATION', 'PRODUCTION'])
+      .order('created_at', { ascending: false })
+      .limit(5),
+    // quotations top-5（draft/sent・quotation_items 含む・降順）
+    serviceClient
+      .from('quotations')
+      .select('*, quotation_items (*)')
+      .eq('user_id', userId)
+      .in('status', ['draft', 'sent'])
+      .order('created_at', { ascending: false })
+      .limit(5),
+    // sample_requests top-5（received/processing・sample_items 含む・降順）
+    serviceClient
+      .from('sample_requests')
+      .select('*, sample_items (*)')
+      .eq('user_id', userId)
+      .in('status', ['received', 'processing'])
+      .order('created_at', { ascending: false })
+      .limit(5),
+    // admin_notifications 未読 top-5（Critic m-2: is_read=false で厳格化・降順）
+    serviceClient
+      .from('admin_notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_read', false)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    // contracts pending top-5（Critic m-3: top-5 制限を新規付与・降順・B2B）
+    serviceClient
+      .from('contracts')
+      .select('*')
+      .eq('user_id', userId)
+      .in('status', ['DRAFT', 'SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'])
+      .order('created_at', { ascending: false })
+      .limit(5),
+    // --- 新規: contracts count クエリ（2本）---
+    // contracts total count（Critic M-4: contracts.total 用）
+    serviceClient
+      .from('contracts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    // contracts signed count（Critic MAJOR-2: contracts.signed 用）
+    serviceClient
+      .from('contracts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['SIGNED', 'ADMIN_SIGNED', 'ACTIVE']),
+    // --- 新規: pendingQuotations 用 count-only クエリ（draft/sent・期間内）---
+    // 問題1修正: totalQuotationsResult（期間内・全ステータス）ではなく、承認待ち
+    // （draft/sent）の件数を pendingQuotations に代入するための専用クエリ。
+    // recentQuotationsResult は top-5 制限があるため .length は不正確（5件超で頭打ち）。
+    serviceClient
+      .from('quotations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['draft', 'sent'])
+      .gte('created_at', startDate.toISOString()),
   ]);
 
-  const settled = <T>(r: PromiseSettledResult<T>, fallback: T) =>
-    r.status === 'fulfilled' ? r.value : fallback;
+  // rejected クエリは空 result でフォールバック（行データ=空配列、カウント=0）
   const [
     totalOrdersResult,
     pendingOrdersResult,
@@ -1948,14 +2165,62 @@ async function fetchMemberDashboardStats(
     pendingSamplesResult,
     totalInquiriesResult,
     respondedInquiriesResult,
-  ] = unifiedResults.map((r) => settled(r, EMPTY_COUNT_RESULT));
+    recentOrdersResult,
+    recentQuotationsResult,
+    recentSamplesResult,
+    notificationsResult,
+    recentContractsResult,
+    contractsTotalResult,
+    contractsSignedResult,
+    pendingQuotationsCountResult,
+  ] = [
+    unifiedResults[0].status === 'fulfilled' ? unifiedResults[0].value : EMPTY_COUNT_RESULT,
+    unifiedResults[1].status === 'fulfilled' ? unifiedResults[1].value : EMPTY_COUNT_RESULT,
+    unifiedResults[2].status === 'fulfilled' ? unifiedResults[2].value : EMPTY_COUNT_RESULT,
+    unifiedResults[3].status === 'fulfilled' ? unifiedResults[3].value : EMPTY_COUNT_RESULT,
+    unifiedResults[4].status === 'fulfilled' ? unifiedResults[4].value : EMPTY_COUNT_RESULT,
+    unifiedResults[5].status === 'fulfilled' ? unifiedResults[5].value : EMPTY_COUNT_RESULT,
+    unifiedResults[6].status === 'fulfilled' ? unifiedResults[6].value : EMPTY_COUNT_RESULT,
+    unifiedResults[7].status === 'fulfilled' ? unifiedResults[7].value : EMPTY_LIST_RESULT,
+    unifiedResults[8].status === 'fulfilled' ? unifiedResults[8].value : EMPTY_LIST_RESULT,
+    unifiedResults[9].status === 'fulfilled' ? unifiedResults[9].value : EMPTY_LIST_RESULT,
+    unifiedResults[10].status === 'fulfilled' ? unifiedResults[10].value : EMPTY_LIST_RESULT,
+    unifiedResults[11].status === 'fulfilled' ? unifiedResults[11].value : EMPTY_LIST_RESULT,
+    unifiedResults[12].status === 'fulfilled' ? unifiedResults[12].value : EMPTY_COUNT_RESULT,
+    unifiedResults[13].status === 'fulfilled' ? unifiedResults[13].value : EMPTY_COUNT_RESULT,
+    unifiedResults[14].status === 'fulfilled' ? unifiedResults[14].value : EMPTY_COUNT_RESULT,
+  ];
+
+  // Transform リネーム（Critic MINOR-1）: quotation_items → items / sample_items → samples
+  // これを怠ると page.tsx の sample.samples 参照が undefined になり silent fail。
+  const transformedQuotations = (recentQuotationsResult.data as any[])?.map(quotation => ({
+    ...quotation,
+    items: Array.isArray(quotation.quotation_items) ? quotation.quotation_items : [],
+  })) || [];
+
+  const transformedSamples = (recentSamplesResult.data as any[])?.map(request => ({
+    ...request,
+    samples: Array.isArray(request.sample_items) ? request.sample_items : [],
+  })) || [];
+
+  // contracts 行データは contracts.pending 計算でも再利用するため変数化
+  const recentContractsData = (recentContractsResult.data as ContractStats[]) || [];
+
+  // お知らせは Promise.allSettled と並行実行していたものをここで待機
+  const announcements = await announcementsPromise;
+
+  // 問題1修正: pendingQuotations は「承認待ち」（draft/sent）の件数を使う。
+  // 従来は totalQuotationsResult（期間内・全ステータス）を誤用しており、
+  // subTitle「N件の承認待ちを確認」と整合していなかった。
+  const pendingQuotationsCount = pendingQuotationsCountResult.count || 0;
 
   return {
+    // --- 既存: 統計カード用 ---
     totalOrders: totalOrdersResult.count || 0,
     pendingOrders: pendingOrdersResult.count || 0,
     totalRevenue: 0,
     activeUsers: 0,
-    pendingQuotations: totalQuotationsResult.count || 0,
+    pendingQuotations: pendingQuotationsCount,
     samples: {
       total: totalSamplesResult.count || 0,
       processing: pendingSamplesResult.count || 0,
@@ -1963,6 +2228,24 @@ async function fetchMemberDashboardStats(
     inquiries: {
       total: totalInquiriesResult.count || 0,
       responded: respondedInquiriesResult.count || 0,
+    },
+    // --- 新規: 行データ（recent セクション・nextActions 用）---
+    recentOrders: (recentOrdersResult.data as Order[]) || [],
+    recentQuotations: (transformedQuotations as Quotation[]) || [],
+    recentSamples: (transformedSamples as DashboardSampleRequest[]) || [],
+    notifications: (notificationsResult.data as NotificationStats[]) || [],
+    recentContracts: recentContractsData,
+    announcements,
+    // --- 新規: quotations/contracts オブジェクト（統計カード用・Critic M4/MAJOR-2）---
+    quotations: {
+      total: totalQuotationsResult.count || 0,
+      approved: 0,
+      conversionRate: 0,
+    },
+    contracts: {
+      pending: recentContractsData.length,
+      signed: contractsSignedResult.count || 0,
+      total: contractsTotalResult.count || 0,
     },
     period,
   };

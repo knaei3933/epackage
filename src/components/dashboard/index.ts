@@ -28,6 +28,12 @@ export type {
 export { OrderList } from './OrderList';
 export type { OrderListProps } from './OrderList';
 
+export { NextActionList } from './NextActionList';
+export type { NextActionListProps } from './NextActionList';
+
+export { PinnedNextAction } from './PinnedNextAction';
+export type { PinnedNextActionProps } from './PinnedNextAction';
+
 export { DeliveryAddressForm } from './DeliveryAddressForm';
 export type { DeliveryAddressFormProps } from './DeliveryAddressForm';
 

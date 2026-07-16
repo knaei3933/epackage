@@ -10,7 +10,7 @@
  */
 
 import { redirect } from 'next/navigation';
-import { requireAuth, AuthRequiredError, getDashboardStats, getUnifiedDashboardStats } from '@/lib/dashboard';
+import { requireAuth, AuthRequiredError, getUnifiedDashboardStats, type UnifiedDashboardStats } from '@/lib/dashboard';
 import {
   DashboardStatsCard,
   AnnouncementCard,
@@ -44,23 +44,12 @@ function formatAmount(amount: number | null | undefined): string {
 }
 
 // =====================================================
-// Safe Stats Access Helpers
-// =====================================================
-
-/**
- * 安全にstatsプロパティにアクセスするヘルパー関数
- */
-function safeGet<T>(value: T | undefined | null, defaultValue: T): T {
-  return value ?? defaultValue;
-}
-
-// =====================================================
 // Components
 // =====================================================
 
 async function DashboardContent() {
-  // ⚡ OPTIMIZATION: 並列実行でFCP改善
-  // requireAuth, getUnifiedDashboardStats, getDashboardStats を同時実行
+  // ⚡ OPTIMIZATION: 認証と統計取得を並行実行でFCP改善
+  // 従来の詳細統計の併用は廃止 — unified 側で行データ含め一本化済み（AC6）
 
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
@@ -74,48 +63,32 @@ async function DashboardContent() {
     throw error;
   }
 
-  // ⚡ OPTIMIZATION: Promise.all()で並列実行
-  const [initialStats, stats] = await Promise.all([
-    // 統合統計情報を取得（SSR用初期データ）
-    getUnifiedDashboardStats(user.id, 'MEMBER', 30).catch((error) => {
-      console.error('[Dashboard] Failed to fetch unified stats:', error);
-      return {
-        totalOrders: 0,
-        pendingOrders: 0,
-        totalRevenue: 0,
-        activeUsers: 0,
-        pendingQuotations: 0,
-        ordersByStatus: [] as never[],
-      };
-    }),
-    // 既存の統計情報も取得（詳細表示用）
-    getDashboardStats().catch((error) => {
-      console.error('[Dashboard] Failed to fetch stats:', error);
-      return {
-        orders: { new: [] as never[], processing: [] as never[], total: 0 },
-        quotations: { pending: [] as never[], total: 0 },
-        samples: { pending: [] as never[], total: 0 },
-        inquiries: { unread: [] as never[], total: 0 },
-        announcements: [] as never[],
-        contracts: { pending: [] as never[], signed: 0, total: 0 },
-        notifications: [] as never[],
-      };
-    }),
-  ]);
+  // ⚡ 統合統計情報を取得（SSR用初期データ）
+  // 従来の詳細統計の呼び出しは廃止 — 行データも unified 側で一本化済み（AC6）
+  const initialStats = await getUnifiedDashboardStats(user.id, 'MEMBER', 30).catch((error): UnifiedDashboardStats => {
+    console.error('[Dashboard] Failed to fetch unified stats:', error);
+    return {
+      totalOrders: 0,
+      pendingOrders: 0,
+      totalRevenue: 0,
+      activeUsers: 0,
+      pendingQuotations: 0,
+      ordersByStatus: [],
+    };
+  });
 
   // ユーザー名の取得
   const userName = user.user_metadata?.kanji_last_name ||
                    user.user_metadata?.name_kanji ||
                    'テスト';
 
-  // 安全に各属性を抽出
-  const orders = safeGet(stats.orders, { new: [], processing: [], total: 0 });
-  const quotations = safeGet(stats.quotations, { pending: [], total: 0 });
-  const samples = safeGet(stats.samples, { pending: [], total: 0 });
-  const inquiries = safeGet(stats.inquiries, { unread: [], total: 0 });
-  const announcements = safeGet(stats.announcements, []);
-  const contracts = safeGet(stats.contracts, { pending: [], signed: 0, total: 0 });
-  const notifications = safeGet(stats.notifications, []);
+  // recent セクション・お知らせは unified データを参照（詳細統計の廃止に伴う一本化・AC6）
+  // safeGet によるラップは廃止 — unified の optional フィールドを ?? [] で受ける
+  const recentOrders = initialStats.recentOrders ?? [];
+  const recentQuotations = initialStats.recentQuotations ?? [];
+  const recentSamples = initialStats.recentSamples ?? [];
+  const notifications = initialStats.notifications ?? [];
+  const announcements = initialStats.announcements ?? [];
 
   return (
     <div className="space-y-6">
@@ -126,15 +99,15 @@ async function DashboardContent() {
         userName={userName}
       />
 
-      {/* お知らせセクション */}
-      {safeGet(announcements, []).length > 0 && (
+      {/* お知らせセクション（unified の announcements を参照・Critic MAJOR-1） */}
+      {announcements.length > 0 && (
         <AnnouncementCard announcements={announcements} />
       )}
 
       {/* セクショングリッド */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 新規注文 */}
-        {safeGet(orders.new, []).length > 0 ? (
+        {recentOrders.length > 0 ? (
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-text-primary">新規注文</h2>
@@ -143,7 +116,7 @@ async function DashboardContent() {
               </a>
             </div>
             <div className="space-y-3">
-              {safeGet(orders.new, []).slice(0, 5).map((order) => (
+              {recentOrders.slice(0, 5).map((order) => (
                 <div
                   key={order.id}
                   className="p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary transition-colors"
@@ -168,7 +141,7 @@ async function DashboardContent() {
         ) : null}
 
         {/* 見積依頼 */}
-        {safeGet(quotations.pending, []).length > 0 ? (
+        {recentQuotations.length > 0 ? (
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-text-primary">見積依頼</h2>
@@ -177,7 +150,7 @@ async function DashboardContent() {
               </a>
             </div>
             <div className="space-y-3">
-              {safeGet(quotations.pending, []).slice(0, 5).map((quotation) => (
+              {recentQuotations.slice(0, 5).map((quotation) => (
                 <div
                   key={quotation.id}
                   className="p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary transition-colors"
@@ -203,7 +176,7 @@ async function DashboardContent() {
       </div>
 
       {/* サンプル依頼セクション */}
-      {safeGet(samples.pending, []).length > 0 && (
+      {recentSamples.length > 0 && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-text-primary">サンプル依頼</h2>
@@ -212,7 +185,7 @@ async function DashboardContent() {
             </a>
           </div>
           <div className="space-y-3">
-            {safeGet(samples.pending, []).slice(0, 5).map((sample) => (
+            {recentSamples.slice(0, 5).map((sample) => (
               <div
                 key={sample.id}
                 className="p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary transition-colors"
@@ -223,7 +196,7 @@ async function DashboardContent() {
                       {sample.requestNumber}
                     </p>
                     <p className="text-sm text-text-muted">
-                      {safeGet(sample.samples, []).length}点
+                      {(sample.samples ?? []).length}点
                     </p>
                   </div>
                   <span className="text-xs text-text-muted whitespace-nowrap">
@@ -237,7 +210,7 @@ async function DashboardContent() {
       )}
 
       {/* 通知セクション */}
-      {safeGet(notifications, []).length > 0 && (
+      {notifications.length > 0 && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -246,7 +219,7 @@ async function DashboardContent() {
             </div>
           </div>
           <div className="space-y-3">
-            {safeGet(notifications, []).slice(0, 5).map((notification) => (
+            {notifications.slice(0, 5).map((notification) => (
               <div
                 key={notification.id}
                 className={`p-3 rounded-lg border transition-colors ${

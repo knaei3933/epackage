@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
+import { PinnedNextAction, NextActionList, EmptyState } from '@/components/dashboard';
 import { fetcher } from '@/hooks/use-optimized-fetch';
 
 // =====================================================
@@ -42,12 +43,14 @@ export function UnifiedDashboardClient({
   );
 
   // 表示用統計データの変換
+  //見積の total も実データ（quotations.total）から供給・L109 のモック計算は廃止
   const displayStats = useMemo(() => {
     const s = stats || initialStats;
     return {
       totalOrders: s.totalOrders,
       pendingOrders: s.pendingOrders,
       pendingQuotations: s.pendingQuotations || 0,
+      totalQuotations: s.quotations?.total || 0,
       totalSamples: s.samples?.total || 0,
       processingSamples: s.samples?.processing || 0,
       totalInquiries: s.inquiries?.total || 0,
@@ -57,6 +60,9 @@ export function UnifiedDashboardClient({
       pendingContracts: s.contracts?.pending || 0,
     };
   }, [stats, initialStats]);
+
+  // 次の行動の有無（空状態切り替え用）
+  const nextActions = stats?.nextActions ?? [];
 
   return (
     <div className="space-y-6">
@@ -93,7 +99,12 @@ export function UnifiedDashboardClient({
         </div>
       </div>
 
-      {/* 統計カード */}
+      {/* 最優先の次の行動（ヘッダー直下・ピン留め） */}
+      {stats?.pinnedNextAction && (
+        <PinnedNextAction action={stats.pinnedNextAction} />
+      )}
+
+      {/* 統計カード（数字 ＋ 次のステップ導線） */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <DashboardStatsCard
           title="新規注文"
@@ -102,14 +113,24 @@ export function UnifiedDashboardClient({
           href="/member/orders"
           icon="📦"
           color="blue"
+          subTitle={
+            displayStats.pendingOrders > 0
+              ? `${displayStats.pendingOrders}件の未処理を確認`
+              : '注文一覧を見る'
+          }
         />
         <DashboardStatsCard
           title="見積依頼"
           count={displayStats.pendingQuotations}
-          total={displayStats.pendingQuotations + Math.floor(displayStats.totalOrders * 0.3)}
+          total={displayStats.totalQuotations}
           href="/member/quotations"
           icon="📁"
           color="green"
+          subTitle={
+            displayStats.pendingQuotations > 0
+              ? `${displayStats.pendingQuotations}件の承認待ちを確認`
+              : '見積一覧を見る'
+          }
         />
         <DashboardStatsCard
           title="サンプル依頼"
@@ -118,6 +139,11 @@ export function UnifiedDashboardClient({
           href="/member/samples"
           icon="📝"
           color="orange"
+          subTitle={
+            displayStats.processingSamples > 0
+              ? `${displayStats.processingSamples}件の処理中を確認`
+              : 'サンプル一覧を見る'
+          }
         />
         <DashboardStatsCard
           title="お問い合わせ"
@@ -126,6 +152,7 @@ export function UnifiedDashboardClient({
           href="/member/inquiries"
           icon="💬"
           color="purple"
+          subTitle="問い合わせを確認"
         />
         <DashboardStatsCard
           title="契約"
@@ -134,25 +161,45 @@ export function UnifiedDashboardClient({
           href="/member/contracts"
           icon="📋"
           color="indigo"
+          subTitle={
+            displayStats.totalContracts - displayStats.signedContracts > 0
+              ? `${displayStats.totalContracts - displayStats.signedContracts}件の未署名を確認`
+              : '契約一覧を見る'
+          }
         />
       </div>
 
-      {/* クイックアクション */}
+      {/* 次の行動リスト（統計カード下・空状態は開始案内） */}
+      {nextActions.length === 0 ? (
+        <EmptyState
+          title="次の行動はありません"
+          description="未処理の見積・注文・通知はありません。新しい見積依頼やサンプル申請から始めましょう。"
+          icon={<span className="text-4xl" aria-hidden="true">✅</span>}
+          action={{
+            label: '見積依頼を作成',
+            onClick: () => { window.location.href = '/member/quotations/request'; }
+          }}
+        />
+      ) : (
+        <NextActionList actions={nextActions} />
+      )}
+
+      {/* クイックアクション（新規作成系に特化・一覧の重複を整理） */}
       <div>
         <h2 className="text-lg font-semibold text-text-primary mb-4">クイックアクション</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <QuickActionCard
-            title="見積作成"
-            description="新しい見積書"
+            title="見積依頼"
+            description="新しい見積もり"
             icon="📁"
-            href="/member/quotations"
+            href="/member/quotations/request"
             color="green"
           />
           <QuickActionCard
-            title="注文一覧"
-            description="すべての注文"
+            title="注文作成"
+            description="新しい注文"
             icon="📦"
-            href="/member/orders"
+            href="/member/orders/new"
             color="blue"
           />
           <QuickActionCard
@@ -163,10 +210,10 @@ export function UnifiedDashboardClient({
             color="purple"
           />
           <QuickActionCard
-            title="契約書"
-            description="契約管理"
-            icon="📋"
-            href="/member/contracts"
+            title="お問い合わせ"
+            description="質問・相談"
+            icon="💬"
+            href="/member/inquiries"
             color="indigo"
           />
         </div>
@@ -195,6 +242,7 @@ interface DashboardStatsCardProps {
   href: string;
   icon: string;
   color: string;
+  subTitle?: string;
 }
 
 function DashboardStatsCard({
@@ -204,6 +252,7 @@ function DashboardStatsCard({
   href,
   icon,
   color,
+  subTitle,
 }: DashboardStatsCardProps) {
   const colorClasses = {
     blue: 'bg-blue-100 dark:bg-blue-900/20',
@@ -225,6 +274,11 @@ function DashboardStatsCard({
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               合計: {total}
             </p>
+            {subTitle && (
+              <p className="text-xs text-primary mt-1 font-medium">
+                {subTitle}
+              </p>
+            )}
           </div>
           <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
             <span className="text-2xl">{icon}</span>
