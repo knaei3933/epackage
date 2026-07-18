@@ -64,8 +64,10 @@ export function NextActionList({ actions, title = '次の行動' }: NextActionLi
         </div>
       </div>
       <div className="space-y-3">
-        {list.map((action) => {
+        {list.map((action, idx) => {
           const meta = TYPE_META[action.type];
+          // 先頭（最優先）を強調表示・PinnedNextAction 廃止に伴いリスト内に集約
+          const isPinned = idx === 0;
           return (
             <a
               key={action.id}
@@ -74,34 +76,50 @@ export function NextActionList({ actions, title = '次の行動' }: NextActionLi
                 e.preventDefault();
                 router.push(action.href);
               }}
-              className="block p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary hover:border-primary transition-colors cursor-pointer"
+              className={
+                isPinned
+                  ? 'block p-4 rounded-lg border border-primary bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors cursor-pointer'
+                  : 'block p-3 rounded-lg border border-border-secondary hover:bg-bg-secondary hover:border-primary transition-colors cursor-pointer'
+              }
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-base" aria-hidden="true">{meta.icon}</span>
-                    <span className="text-xs text-text-muted">{meta.label}</span>
+                    <span className={isPinned ? 'text-lg' : 'text-base'} aria-hidden="true">{meta.icon}</span>
+                    {isPinned ? (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-primary text-white">
+                        最優先・{meta.label}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-text-muted">{meta.label}</span>
+                    )}
                     {action.statusLabel && (
                       <span className="text-xs px-2 py-0.5 rounded bg-bg-secondary text-text-muted">
                         {action.statusLabel}
                       </span>
                     )}
                   </div>
-                  <p className={`text-sm font-medium truncate ${meta.accent}`}>
+                  <p className={`font-medium truncate ${isPinned ? 'text-base' : 'text-sm'} ${meta.accent}`}>
                     {action.title}
                   </p>
                   {action.description && (
-                    <p className="text-sm text-text-muted mt-0.5 line-clamp-1">
+                    <p className={`text-sm text-text-muted mt-0.5 ${isPinned ? 'line-clamp-2' : 'line-clamp-1'}`}>
                       {action.description}
                     </p>
                   )}
                 </div>
-                <span className="text-xs text-text-muted whitespace-nowrap shrink-0">
-                  {formatDistanceToNow(new Date(action.createdAt), {
-                    addSuffix: true,
-                    locale: ja,
-                  })}
-                </span>
+                {isPinned ? (
+                  <span className="shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium">
+                    確認する
+                  </span>
+                ) : (
+                  <span className="text-xs text-text-muted whitespace-nowrap shrink-0">
+                    {formatDistanceToNow(new Date(action.createdAt), {
+                      addSuffix: true,
+                      locale: ja,
+                    })}
+                  </span>
+                )}
               </div>
             </a>
           );
