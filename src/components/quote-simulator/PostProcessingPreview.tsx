@@ -53,7 +53,7 @@ const postProcessingOptions: PostProcessingOption[] = [
 
   // Corner options -> shape-structure
   { id: 'corner-round', name: 'Round Corner', nameJa: '丸い角', imageName: '5.角丸.png', category: 'shape-structure' },
-  { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.角直角.png', category: 'shape-structure' },
+  { id: 'corner-square', name: 'Square Corner', nameJa: '四角い角', imageName: '5.角直.png', category: 'shape-structure' },
 
   // Opening options -> opening-sealing
   { id: 'opening-top', name: 'Top Opening', nameJa: '上開口', imageName: '6.上端オープン.png', category: 'opening-sealing' },
