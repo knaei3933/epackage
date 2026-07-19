@@ -126,7 +126,7 @@ const POST_PROCESSING_OPTIONS: PostProcessingOption[] = [
     multiplier: 1.0,
     description: '伝統的な直角デザイン',
     detailedDescription: '伝統的な直角デザインで最大スペースを確保できます。',
-    previewImage: '/images/post-processing/5.角直角.png',
+    previewImage: '/images/post-processing/5.角直.png',
     features: ['伝統外観', '最大スペース', 'クラシックデザイン']
   },
   {
