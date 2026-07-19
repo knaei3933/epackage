@@ -152,8 +152,9 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaul
                   src={`/images/post-processing/${option.imageName}`}
                   alt={option.nameJa}
                   fill
+                  quality={90}
                   className="object-contain p-0.5 group-hover:drop-shadow-lg"
-                  sizes="32px"
+                  sizes="(hover: hover) 280px, 32px"
                 />
               </div>
               <span className="text-xs text-text-primary whitespace-nowrap transition-colors duration-200 group-hover:text-primary group-hover:font-medium">{option.nameJa}</span>
@@ -193,6 +194,7 @@ export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaul
                     src={`/images/post-processing/${option.imageName}`}
                     alt={option.nameJa}
                     fill
+                    quality={90}
                     className="object-contain p-2"
                     sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 120px"
                   />
