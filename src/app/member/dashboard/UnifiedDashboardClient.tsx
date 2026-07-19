@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
-import { PinnedNextAction, NextActionList, EmptyState } from '@/components/dashboard';
+import { NextActionList, EmptyState } from '@/components/dashboard';
 import { fetcher } from '@/hooks/use-optimized-fetch';
 
 // =====================================================
@@ -101,11 +101,6 @@ export function UnifiedDashboardClient({
         </div>
       </div>
 
-      {/* 最優先の次の行動（ヘッダー直下・ピン留め） */}
-      {stats?.pinnedNextAction && (
-        <PinnedNextAction action={stats.pinnedNextAction} />
-      )}
-
       {/* 統計カード（数字 ＋ 次のステップ導線） */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <DashboardStatsCard
@@ -117,7 +112,7 @@ export function UnifiedDashboardClient({
           color="blue"
           subTitle={
             displayStats.pendingOrders > 0
-              ? `${displayStats.pendingOrders}件の未処理を確認`
+              ? '未処理を確認'
               : '注文一覧を見る'
           }
         />
@@ -130,7 +125,7 @@ export function UnifiedDashboardClient({
           color="green"
           subTitle={
             displayStats.pendingQuotations > 0
-              ? `${displayStats.pendingQuotations}件の承認待ちを確認`
+              ? '承認待ちを確認'
               : '見積一覧を見る'
           }
         />
@@ -143,7 +138,7 @@ export function UnifiedDashboardClient({
           color="orange"
           subTitle={
             displayStats.processingSamples > 0
-              ? `${displayStats.processingSamples}件の処理中を確認`
+              ? '処理中を確認'
               : 'サンプル一覧を見る'
           }
         />
@@ -165,7 +160,7 @@ export function UnifiedDashboardClient({
           color="indigo"
           subTitle={
             displayStats.totalContracts - displayStats.signedContracts > 0
-              ? `${displayStats.totalContracts - displayStats.signedContracts}件の未署名を確認`
+              ? '未署名を確認'
               : '契約一覧を見る'
           }
         />
