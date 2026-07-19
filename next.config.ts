@@ -184,6 +184,9 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 1080, 1920],
     imageSizes: [16, 64, 256],
+    // quality={90}（後加工画像）・quality={80}（ヒーロー画像）を有効化するため許可リストに追加
+    // 未設定だと q=75 のみ許可され、指定値は75にフォールバックされる
+    qualities: [75, 80, 90],
     minimumCacheTTL: 86400,
     dangerouslyAllowSVG: true,
     remotePatterns: [
