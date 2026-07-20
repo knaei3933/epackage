@@ -329,18 +329,23 @@ initializeTransporter();
 
 /**
  * メール送信（環境別自動分岐）
+ *
+ * @param replyTo - 返信先メールアドレス（optional・未指定時は FROM_EMAIL への返信になる）
+ *                  お問い合わせ通知で管理者が「返信」ボタンを押した時に会員へ直接返信できるよう設定。
  */
 export async function sendEmail(
   to: string,
   subject: string,
   text: string,
-  html: string
+  html: string,
+  replyTo?: string
 ): Promise<{ success: boolean; error?: string; messageId?: string; previewUrl?: string }> {
   // Consoleモード（Fallback）
   if (transportType === 'console' || !transporter) {
     console.log('[Email] Console mode - Email content:');
     console.log('='.repeat(60));
     console.log(`To: ${to}`);
+    if (replyTo) console.log(`Reply-To: ${replyTo}`);
     console.log(`Subject: ${subject}`);
     console.log('Text:', text);
     console.log('HTML:', html);
@@ -359,6 +364,8 @@ export async function sendEmail(
     const mailOptions = {
       from: FROM_EMAIL,
       to,
+      // 返信先が指定されていれば設定（お問い合わせ通知で会員へ直接返信できるよう）
+      ...(replyTo ? { replyTo } : {}),
       subject,
       // Send both text and HTML parts for proper Japanese email support
       text,

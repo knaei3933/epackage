@@ -25,6 +25,7 @@ import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { OrderActions } from './OrderActions';
 import { OrderCommentsSectionWrapper, CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
 import { OrderInfoAccordion, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection, RevisionHistoryTimeline } from '@/components/member';
+import { OrderInquirySection } from '@/components/orders/OrderInquirySection';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
@@ -260,6 +261,13 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
           デザインワークフロー（2列レイアウト）
           ===================================================== */}
       <DesignWorkflowSection order={order} />
+
+      {/* =====================================================
+          注文へのお問い合わせチャット（1注文=1スレッド・order-inquiry-link）
+          - 既存スレッドがあれば折りたたみ表示・無ければ作成フォーム
+          - 注文番号 {orderNumber} が件名に自動付与される（API 側で生成）
+          ===================================================== */}
+      <OrderInquirySection orderId={order.id} orderNumber={order.orderNumber} />
 
       {/* =====================================================
           リビジョン履歴タイムライン

@@ -220,16 +220,16 @@ export const createPublicRateLimiter = () =>
  * Supports both Request (Pages Router) and NextRequest (App Router)
  */
 export function withRateLimit(
-  handler: (req: Request | NextRequest) => Promise<Response | NextResponse>,
+  handler: (req: Request | NextRequest, context?: any) => Promise<Response | NextResponse>,
   rateLimiter: RateLimiter
 ) {
-  return async (req: Request | NextRequest) => {
+  return async (req: Request | NextRequest, context?: any) => {
     // DEV MODE: Bypass rate limiting for testing
     const disableRateLimit = process.env.NODE_ENV === 'development' &&
                               process.env.DISABLE_RATE_LIMIT === 'true';
 
     if (disableRateLimit) {
-      return handler(req);
+      return handler(req, context);
     }
 
     const identifier = getClientIdentifier(req);
@@ -258,7 +258,7 @@ export function withRateLimit(
     }
 
     // Call the original handler
-    return handler(req);
+    return handler(req, context);
   };
 }
 

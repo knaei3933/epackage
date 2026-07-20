@@ -50,3 +50,7 @@ export {
   sendDeliveryCompletionEmail,
 } from './send-shipping';
 export { sendManufacturerOrderEmail } from './send-manufacturer';
+export {
+  sendInquiryReceivedEmail,
+  sendInquiryRepliedEmail,
+} from './send-inquiry-notification';

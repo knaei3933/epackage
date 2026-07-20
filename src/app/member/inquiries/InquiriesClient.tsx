@@ -11,15 +11,17 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import Link from 'next/link';
 import { Card, Badge, Button, Input } from '@/components/ui';
 import { PageLoadingState } from '@/components/ui';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Search, Filter, ChevronDown, MessageSquare, Clock, CheckCircle, AlertCircle, FileText, Package, DollarSign, Calendar } from 'lucide-react';
+import { Search, Filter, ChevronDown, MessageSquare, Clock, CheckCircle, AlertCircle, FileText, Package, DollarSign, Calendar, Hourglass, ExternalLink } from 'lucide-react';
 import type { Inquiry, InquiryStatus, InquiryType } from '@/types/dashboard';
 import { fetchInquiries as fetchInquiriesAPI } from '@/lib/api/member/inquiries';
+import { InquiryCreateModal, type MemberProfileSummary } from '@/components/inquiries/InquiryCreateModal';
+import { InquiryThread } from '@/components/inquiries/InquiryThread';
 
 // =====================================================
 // Types
@@ -52,14 +54,18 @@ const inquiryTypeLabels: Record<InquiryType, string> = {
 };
 
 const inquiryStatusLabels: Record<InquiryStatus, string> = {
+  pending: '保留中',
   open: '未対応',
+  in_progress: '対応中',
   responded: '返信済',
   resolved: '完了',
   closed: 'クローズ',
 };
 
 const inquiryStatusConfig: Record<InquiryStatus, { label: string; color: string; icon: any }> = {
+  pending: { label: '保留中', color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200', icon: Hourglass },
   open: { label: '未対応', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
+  in_progress: { label: '対応中', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400', icon: MessageSquare },
   responded: { label: '返信済', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400', icon: MessageSquare },
   resolved: { label: '完了', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
   closed: { label: 'クローズ', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200', icon: FileText },
@@ -80,7 +86,9 @@ const inquiryTypeIcons: Record<InquiryType, any> = {
 
 const STATUS_FILTERS = [
   { value: 'all', label: 'すべて' },
+  { value: 'pending', label: '保留中' },
   { value: 'open', label: '未対応' },
+  { value: 'in_progress', label: '対応中' },
   { value: 'responded', label: '返信済' },
   { value: 'resolved', label: '完了' },
   { value: 'closed', label: 'クローズ' },
@@ -140,14 +148,30 @@ function TypeBadge({ type }: { type: InquiryType }) {
 // Page Component
 // =====================================================
 
-function InquiriesPageContent() {
-  const router = useRouter();
-
+function InquiriesPageContent({ profile }: { profile?: MemberProfileSummary }) {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [filteredInquiries, setFilteredInquiries] = useState<Inquiry[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // 新規作成成功時: 一覧の先頭へ挿入（新しいお問い合わせを即時反映）
+  const handleCreated = useCallback((created: Inquiry) => {
+    setInquiries((prev) => [created, ...prev]);
+  }, []);
+
+  // ステータス変更反映（InquiryThread の close/reopen から通知）
+  const handleStatusChange = useCallback(
+    (inquiryId: string, nextStatus: InquiryStatus) => {
+      setInquiries((prev) =>
+        prev.map((inq) =>
+          inq.id === inquiryId ? { ...inq, status: nextStatus } : inq
+        )
+      );
+    },
+    []
+  );
 
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
@@ -241,7 +265,7 @@ function InquiriesPageContent() {
           <h1 className="text-2xl font-bold text-text-primary">お問い合わせ履歴</h1>
           <p className="text-text-muted mt-1">お問い合わせの一覧と返信確認</p>
         </div>
-        <Button variant="primary" onClick={() => router.push('/contact')}>
+        <Button variant="primary" onClick={() => setIsCreateModalOpen(true)}>
           <span className="mr-2">+</span>新規問い合わせ
         </Button>
       </div>
@@ -379,7 +403,7 @@ function InquiriesPageContent() {
             <Button
               variant="primary"
               className="mt-4"
-              onClick={() => router.push('/contact')}
+              onClick={() => setIsCreateModalOpen(true)}
             >
               お問い合わせをする
             </Button>
@@ -402,6 +426,18 @@ function InquiriesPageContent() {
                       </span>
                       <StatusBadge status={inquiry.status} />
                       <TypeBadge type={inquiry.type} />
+                      {/* 注文チャットラベル（orderId/orderNumber がある場合のみ）・AC-UI-M-4 */}
+                      {inquiry.orderId && inquiry.orderNumber && (
+                        <Link
+                          href={`/member/orders/${inquiry.orderId}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800 transition-colors"
+                          title={`注文 ${inquiry.orderNumber} のページへ`}
+                        >
+                          <Package className="w-3 h-3" />
+                          注文: {inquiry.orderNumber}
+                        </Link>
+                      )}
                     </div>
 
                     {/* Subject and message */}
@@ -441,41 +477,45 @@ function InquiriesPageContent() {
                 </div>
               </div>
 
-              {/* Response (expanded) */}
+              {/* Thread (expanded) - inquiry_messages スレッド表示・legacy response 列は非表示 */}
               {expandedId === inquiry.id && (
-                <div className="border-t border-border-secondary p-6 bg-bg-secondary space-y-4">
-                  {/* Original message */}
-                  <div>
-                    <h4 className="font-medium text-text-primary mb-2">お問い合わせ内容</h4>
-                    <p className="text-sm text-text-muted whitespace-pre-wrap">
-                      {inquiry.message}
-                    </p>
-                  </div>
-
-                  {/* Response */}
-                  {inquiry.response ? (
-                    <div>
-                      <h4 className="font-medium text-text-primary mb-2">返信内容</h4>
-                      <p className="text-sm text-text-muted whitespace-pre-wrap">
-                        {inquiry.response}
-                      </p>
-                      {inquiry.respondedAt && (
-                        <p className="text-xs text-text-muted mt-3">
-                          返信日時: {format(new Date(inquiry.respondedAt), 'yyyy年MM月dd日 HH:mm', { locale: ja })}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-text-muted italic">
-                      まだ返信がありません
+                <div className="border-t border-border-secondary p-4 bg-bg-primary">
+                  {/* 注文チャットの案内・注文ページへの戻るリンク（AC-UI-M-4 双方向ジャンプ） */}
+                  {inquiry.orderId && inquiry.orderNumber && (
+                    <div className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-900/20 p-2.5">
+                      <span className="text-xs text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5 min-w-0">
+                        <Package className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">
+                          このスレッドは注文 {inquiry.orderNumber} に関するものです
+                        </span>
+                      </span>
+                      <Link
+                        href={`/member/orders/${inquiry.orderId}`}
+                        className="inline-flex items-center gap-1 text-xs text-indigo-700 dark:text-indigo-300 font-medium hover:text-indigo-900 dark:hover:text-indigo-200 shrink-0"
+                      >
+                        注文ページへ戻る
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
                     </div>
                   )}
+                  <InquiryThread
+                    inquiry={inquiry}
+                    onStatusChange={handleStatusChange}
+                  />
                 </div>
               )}
             </Card>
           ))}
         </div>
       )}
+
+      {/* 新規お問い合わせ作成モーダル */}
+      <InquiryCreateModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        profile={profile}
+        onCreated={handleCreated}
+      />
       </div>
     </PageLoadingState>
   );
@@ -484,12 +524,14 @@ function InquiriesPageContent() {
 // Wrap with Suspense boundary for useSearchParams
 interface InquiriesClientProps {
   userId: string;
+  /** プロフィール（新規作成モーダルの自動補完用・page.tsx で取得） */
+  profile?: MemberProfileSummary;
 }
 
-export function InquiriesClient({ userId }: InquiriesClientProps) {
+export function InquiriesClient({ userId, profile }: InquiriesClientProps) {
   return (
     <Suspense fallback={<PageLoadingState isLoading={true} message="読み込み中..." />}>
-      <InquiriesPageContent />
+      <InquiriesPageContent profile={profile} />
     </Suspense>
   );
 }

@@ -256,7 +256,9 @@ export type InquiryType =
   | 'support';    // サポート
 
 export type InquiryStatus =
+  | 'pending'     // 保留中（新設・Phase 3）
   | 'open'        // 未対応
+  | 'in_progress' // 対応中（新設・Phase 3・reopen 遷移先）
   | 'responded'   // 返信済
   | 'resolved'    // 完了
   | 'closed';     // クローズ
@@ -270,9 +272,126 @@ export interface Inquiry {
   subject: string;
   message: string;
   response?: string;
+  /**
+   * 注文 ID（注文のお問い合わせ場合のみ・任意）
+   * Phase 2 で inquiries.order_id 列と紐付け（AC-API-5）
+   */
+  orderId?: string;
+  /**
+   * 注文番号（注文のお問い合わせ場合のみ・任意）
+   * orders テーブルと JOIN して補完（AC-API-5・AC-ROB-4）
+   */
+  orderNumber?: string;
   createdAt: string;
   updatedAt: string;
   respondedAt?: string;
+}
+
+/**
+ * お問い合わせ添付ファイル（inquiry_messages.attachments JSONB の1要素）
+ *
+ * NOTE: API レスポンス（GET/POST .../messages）の実装が snake_case で返すため、
+ * クライアント型も snake_case で定義（マッピング変換を避けてコードを簡素化）。
+ * - url: GET 時は signed URL（期限付き）・DB 内部では Storage path
+ * - validation_status: 'valid' 等（file-validation の検証結果）
+ */
+export interface InquiryAttachment {
+  url: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+  validation_status: string;
+}
+
+/**
+ * お問い合わせスレッドの個別メッセージ（inquiry_messages テーブル対応）
+ *
+ * senderType:
+ * - 'member': 会員側の発言（右側・primary 系の吹き出し）
+ * - 'admin': 管理者側の回答（左側・muted 系の吹き出し）
+ *
+ * senderName は GET .../messages で profiles 結合済み。POST 直後の楽観表示では null の場合あり。
+ */
+export interface InquiryMessage {
+  id: string;
+  inquiryId: string;
+  senderType: 'member' | 'admin';
+  senderId: string | null;
+  senderName?: string | null;
+  body: string;
+  attachments: InquiryAttachment[];
+  createdAt: string;
+}
+
+/**
+ * 管理者向けお問い合わせメッセージ（GET /api/admin/inquiries/[id] の messages 要素）
+ *
+ * InquiryMessage に senderRole（profiles.role・admin/operator/sales/accounting 等）
+ * が追加された形状。管理者側スレッド表示で送信者の役職を併記するために使用。
+ */
+export interface AdminInquiryMessage extends InquiryMessage {
+  senderRole?: string | null;
+}
+
+/**
+ * 管理者向けお問い合わせ（一覧・GET /api/admin/inquiries）
+ *
+ * Inquiry 型に対し、顧客情報（customerName / companyName / email / phone 等）・
+ * urgency・preferredContact など管理者画面で必要な全項目を保持。
+ * inquiries テーブルの管理者 API 変換後 shape（camelCase）に対応。
+ */
+export interface AdminInquiry {
+  id: string;
+  inquiryNumber: string | null;
+  type: InquiryType;
+  status: InquiryStatus;
+  subject: string;
+  message: string;
+  customerName: string | null;
+  customerNameKana: string | null;
+  companyName: string | null;
+  email: string | null;
+  phone: string | null;
+  urgency: string | null;
+  preferredContact: string | null;
+  userId: string | null;
+  /**
+   * 注文 ID（注文のお問い合わせ場合のみ・任意）
+   * inquiries.order_id 列に対応。管理者一覧で注文ラベル表示の判定に使用（AC-API-5）
+   */
+  orderId: string | null;
+  /**
+   * 注文番号（注文のお問い合わせ場合のみ・任意）
+   * orders テーブルと 別途 JOIN して補完（AC-API-5・AC-ROB-4）
+   * 注文削除（order_id SET NULL）後は null になるため nullable
+   */
+  orderNumber: string | null;
+  createdAt: string;
+  updatedAt: string;
+  respondedAt: string | null;
+}
+
+/**
+ * 管理者向けお問い合わせ詳細（GET /api/admin/inquiries/[id]）
+ *
+ * inquiry 本体 + 時系列順のメッセージ一覧。
+ * attachments の url は signed URL（1 時間有効）。
+ */
+export interface AdminInquiryDetail {
+  inquiry: AdminInquiry;
+  messages: AdminInquiryMessage[];
+}
+
+/**
+ * 管理者回答の送信結果（POST /api/admin/inquiries/[id]/messages）
+ *
+ * statusTransitioned: status が open/in_progress から responded へ自動遷移したか
+ * emailSent: 会員への回答通知メールが送信されたか（失敗時 false・DB は commit 済み）
+ */
+export interface AdminReplyResult extends AdminInquiryMessage {
+  statusTransitioned: boolean;
+  emailSent: boolean;
 }
 
 // =====================================================

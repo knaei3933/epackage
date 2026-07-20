@@ -20,8 +20,12 @@ const DEFAULT_HEADERS = {
 
 /**
  * Core fetch wrapper with shared error handling and credential management
+ *
+ * NOTE: multipart/form-data 送信など JSON 以外の body を扱う場合に公開。
+ * skipDefaultHeaders: true で Content-Type の自動付与を回避できる
+ * （FormData のときはブラウザが boundary 付き multipart を自動設定するため）。
  */
-async function apiFetch(
+export async function apiFetch(
   url: string,
   options: ApiFetchOptions = {}
 ): Promise<Response> {
