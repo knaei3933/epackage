@@ -5,7 +5,7 @@
 'use client';
 
 import { Card, Button, Badge } from '@/components/ui';
-import { Package, Truck, Eye, RefreshCw, ChevronRight } from 'lucide-react';
+import { Package, Truck, RefreshCw, ChevronRight } from 'lucide-react';
 import { formatPrice, formatDate } from '@/utils/formatters';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -194,7 +194,21 @@ export function OrderListSection({ filteredOrders, orders, activeTab, onNavigate
         // Standard Order List
         <div className="space-y-4" data-testid="member-orders-list">
           {filteredOrders.map((order) => (
-            <Card key={order.id} className="p-6 hover:shadow-sm transition-shadow" data-testid="member-order-row">
+            <Card
+              key={order.id}
+              className="p-6 cursor-pointer hover:shadow-md hover:border-primary/50 transition-all"
+              data-testid="member-order-row"
+              role="button"
+              tabIndex={0}
+              aria-label={`注文 ${order.order_number || order.orderNumber} の詳細を表示`}
+              onClick={() => router.push(`/member/orders/${order.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  router.push(`/member/orders/${order.id}`);
+                }
+              }}
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -289,8 +303,8 @@ export function OrderListSection({ filteredOrders, orders, activeTab, onNavigate
                   )}
                 </div>
 
-                <div className="text-right shrink-0">
-                  <div className="text-xs text-text-muted mb-2">
+                <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                  <div className="text-xs text-text-muted">
                     {order.created_at || order.createdAt ? (
                       formatDistanceToNow(new Date(order.created_at || order.createdAt), {
                         addSuffix: true,
@@ -300,14 +314,7 @@ export function OrderListSection({ filteredOrders, orders, activeTab, onNavigate
                       '作成日不明'
                     )}
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => router.push(`/member/orders/${order.id}`)}
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    詳細を見る
-                  </Button>
+                  <ChevronRight className="w-5 h-5 text-text-muted" aria-hidden="true" />
                 </div>
               </div>
             </Card>
