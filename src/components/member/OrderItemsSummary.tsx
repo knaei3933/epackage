@@ -598,20 +598,29 @@ export function OrderItemsSummary({ order, quotationId, onCouponApplied }: Order
         </div>
       )}
 
-      {/* 振込先銀行口座 */}
-      {bankInfo && (
-        <div className="mt-4 pt-4 border-t border-border-secondary">
-          <div className="flex items-center gap-2 mb-2">
-            <Building2 className="w-4 h-4 text-text-muted" />
-            <h3 className="text-sm font-semibold text-text-primary">振込先銀行口座</h3>
-          </div>
-          <div className="text-xs text-text-muted leading-relaxed">
-            {bankInfo.bankName}
-            {bankInfo.branchName && <span> {bankInfo.branchName}</span>}
-            {bankInfo.accountType && <span> {bankInfo.accountType}</span>}
-            <span> 口座：{bankInfo.accountNumber}</span>
-            <span> 名義：{bankInfo.accountHolder}</span>
-          </div>
+      {/* 振込先銀行口座（quotationId がある場合は領域を予約して fetch 完了時の高さ跳ねを防止） */}
+      {quotationId && (
+        <div className="mt-4 pt-4 border-t border-border-secondary min-h-[80px]">
+          {bankInfo ? (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="w-4 h-4 text-text-muted" />
+                <h3 className="text-sm font-semibold text-text-primary">振込先銀行口座</h3>
+              </div>
+              <div className="text-xs text-text-muted leading-relaxed">
+                {bankInfo.bankName}
+                {bankInfo.branchName && <span> {bankInfo.branchName}</span>}
+                {bankInfo.accountType && <span> {bankInfo.accountType}</span>}
+                <span> 口座：{bankInfo.accountNumber}</span>
+                <span> 名義：{bankInfo.accountHolder}</span>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
+              <div className="h-3 w-3/4 bg-gray-200 animate-pulse rounded" />
+            </div>
+          )}
         </div>
       )}
     </Card>

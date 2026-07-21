@@ -184,7 +184,7 @@ export function OrderInfoAccordion({ order, statusHistory }: OrderInfoAccordionP
             body: JSON.stringify({ deliveryAddressId: address.id }),
           });
           if (response.ok) {
-            window.location.reload();
+            router.refresh();
           }
         }}
         orderId={order.id}
@@ -203,7 +203,7 @@ export function OrderInfoAccordion({ order, statusHistory }: OrderInfoAccordionP
             body: JSON.stringify({ billingAddressId: address.id }),
           });
           if (response.ok) {
-            window.location.reload();
+            router.refresh();
           }
         }}
         orderId={order.id}

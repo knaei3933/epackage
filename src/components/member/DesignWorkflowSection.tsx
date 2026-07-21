@@ -232,13 +232,54 @@ export function DesignWorkflowSection({ order }: DesignWorkflowSectionProps) {
   };
 
   if (loading) {
+    // スケルトンで完成形と同じ骨格（ヘッダー + 進捗バー + ステップ2つ）を予約し、
+    // fetch 完了時の Card 全体差し替えによる高さ跳ねを防ぐ
     return (
       <Card className="p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">読み込み中...</p>
+        {/* ヘッダー */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            デザインワークフロー
+          </h2>
+          <p className="text-gray-600">
+            ファイル入稿から校正承認までの進捗を確認できます
+          </p>
+        </div>
+
+        {/* 進捗バー skeleton */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="h-4 w-12 bg-gray-200 animate-pulse rounded" />
+            <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
           </div>
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full w-1/3 bg-gray-200 animate-pulse rounded-full" />
+          </div>
+        </div>
+
+        {/* ステップ枠 skeleton × 2（Step 1 ファイル入稿 / Step 2 校正確認） */}
+        <div className="space-y-4">
+          {[1, 2].map((step) => (
+            <div
+              key={step}
+              className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+            >
+              <div className="p-4 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 w-1/4 bg-gray-200 animate-pulse rounded" />
+                  <div className="h-4 w-1/2 bg-gray-200 animate-pulse rounded" />
+                </div>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="border-t border-gray-200 pt-4 space-y-3">
+                  <div className="h-4 w-full bg-gray-200 animate-pulse rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 animate-pulse rounded" />
+                  <div className="h-10 w-32 bg-gray-200 animate-pulse rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
     );

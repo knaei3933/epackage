@@ -240,7 +240,9 @@ export function AdminOrderInquirySection({
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [isExpanded, setIsExpanded] = useState(false);
+  // ※ デフォルト=展開: 既存スレッドがある場合は会話（最新メッセージ含む）をすぐ見せるため
+  //   （ユーザー主訴「やり取りが見えない」= 折りたたみで隠れていた の解消）
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // 返信フォーム
   const [replyBody, setReplyBody] = useState('');

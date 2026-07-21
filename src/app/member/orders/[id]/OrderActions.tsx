@@ -26,7 +26,7 @@ export function OrderActions({ order, excludeModifyButton = false }: OrderAction
   };
 
   const handleOrderModified = () => {
-    window.location.reload();
+    router.refresh();
   };
 
   const handleReordered = (newOrderId: string) => {

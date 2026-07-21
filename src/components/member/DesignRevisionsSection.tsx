@@ -700,7 +700,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                             <img
                               src={getPreviewUrl(revision)}
                               alt="プレビュー"
-                              className="w-full h-auto transition-transform duration-200 group-hover:scale-105"
+                              className="w-full h-auto bg-gray-100 aspect-[4/3] object-cover transition-transform duration-200 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
                               <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white bg-black/60 px-4 py-2 rounded-lg text-sm font-medium">

@@ -234,7 +234,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
 
       {/* Loading state */}
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">
+        <div className="text-center py-8 text-muted-foreground min-h-[200px] flex items-center justify-center">
           データを読み込み中...
         </div>
       ) : history.length === 0 ? (

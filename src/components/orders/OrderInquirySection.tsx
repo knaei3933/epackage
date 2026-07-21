@@ -74,8 +74,10 @@ export function OrderInquirySection({ orderId, orderNumber }: OrderInquirySectio
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // スレッド折りたたみ状態（スレッド存在時のみ意味を持つ・デフォルト=折りたたみ）
-  const [isExpanded, setIsExpanded] = useState(false);
+  // スレッド折りたたみ状態（スレッド存在時のみ意味を持つ）
+  // ※ デフォルト=展開: 既存スレッドがある場合は会話（最新メッセージ含む）をすぐ見せるため
+  //   （ユーザー主訴「メッセージが見えない」= 折りたたみで隠れていた の解消）
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // -------------------------------------------------
   // 初回マウント: この注文の既存スレッドを検索
