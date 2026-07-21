@@ -92,7 +92,8 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const { showError, showSuccess } = useToastContext();
   const [currentPage, setCurrentPage] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStep, setUploadStep] = useState<'idle' | 'uploading' | 'processing'>('idle');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [description, setDescription] = useState('');
   const [productName, setProductName] = useState('');
@@ -177,6 +178,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
   // Load uploaded files
   const loadUploadedFiles = async (): Promise<UploadedFile[]> => {
+    setIsRefreshing(true);
     try {
       const response = await fetchFn(`/api/member/orders/${order.id}/data-receipt`, {
         credentials: 'include',
@@ -192,6 +194,8 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
     } catch (err) {
       console.error('Failed to load uploaded files:', err);
       return [];
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -254,9 +258,9 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    // Validate product name is required (Issue 3: popup on failure)
+    // 製品名は必須（無条件で入力し、ファイル名に反映）
     if (!productName.trim()) {
-      const msg = '製品类を入力してください。入力しないとアップロードできません。';
+      const msg = '製品名を入力してください。入力しないとアップロードできません。';
       setError(msg);
       showError(msg);
       return;
@@ -264,7 +268,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
 
     setIsUploading(true);
     setError(null);
-    setUploadProgress(0);
+    setUploadStep('uploading');
 
     try {
       const formData = new FormData();
@@ -280,27 +284,15 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
         formData.append('order_item_id', selectedOrderItemId);
       }
 
-      // Upload with progress simulation
+      // Step 1: ファイル送信 → Step 2: サーバー処理（Drive保存・AI確認・メール送信）
       const uploadPromise = fetchFn(`/api/member/orders/${order.id}/data-receipt`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
       });
 
-      // Simulate progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 100);
-
       const response = await uploadPromise;
-      clearInterval(progressInterval);
-      setUploadProgress(100);
+      setUploadStep('processing');
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -331,7 +323,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
       showError(`アップロードに失敗しました:\n${errMsg}`);
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
+      setUploadStep('idle');
     }
   };
 
@@ -423,7 +415,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   return (
     <>
       <Card className="p-6">
-      <div className="space-y-6">
+      <div className="space-y-6 relative">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -561,7 +553,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
               required
             />
             <p className="text-xs text-text-muted mt-1">
-              ※ ファイル名に使用されます（例: 製品名_入稿データ_注文番号_日付）
+              ※ ファイル名に使用されます。必ず入力してください。
             </p>
           </div>
 
@@ -619,18 +611,10 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
             />
 
             {isUploading ? (
-              <div className="space-y-3">
-                <div className="mx-auto w-12 h-12 border-4 border-border-tertiary border-t-primary rounded-full animate-spin"></div>
-                <div>
-                  <p className="text-sm font-medium text-text-primary">アップロード中...</p>
-                  <p className="text-sm text-text-muted mt-1">{uploadProgress}%</p>
-                </div>
-                <div className="w-full bg-bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
+              <div className="space-y-2">
+                <div className="mx-auto w-10 h-10 border-4 border-border-tertiary border-t-primary rounded-full animate-spin"></div>
+                <p className="text-sm font-medium text-text-primary">アップロード処理中です...</p>
+                <p className="text-xs text-text-muted">しばらくお待ちください</p>
               </div>
             ) : selectedFile ? (
               <div>
@@ -734,6 +718,67 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
           setCurrentPage={setCurrentPage}
           hasAIFile={hasAIFile}
         />
+
+        {/* アップロード中オーバーレイ（ステップ表示でお客様の不安を解消） */}
+        {isUploading && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/75 backdrop-blur-sm rounded-xl p-4">
+            <div className="bg-white rounded-2xl shadow-xl border border-border-secondary p-6 w-full max-w-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 border-4 border-border-tertiary border-t-primary rounded-full animate-spin flex-shrink-0"></div>
+                <div>
+                  <p className="font-semibold text-text-primary">
+                    {uploadStep === 'processing' ? 'サーバーで処理中です' : 'ファイルを送信しています'}
+                  </p>
+                  <p className="text-sm text-text-muted">しばらくお待ちください</p>
+                </div>
+              </div>
+
+              <ol className="space-y-3">
+                <li className="flex items-center gap-3">
+                  {uploadStep === 'uploading' ? (
+                    <span className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin flex-shrink-0"></span>
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  )}
+                  <span className={`text-sm ${uploadStep === 'uploading' ? 'font-medium text-text-primary' : 'text-text-muted'}`}>
+                    1. ファイルを送信
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  {uploadStep === 'processing' ? (
+                    <span className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin flex-shrink-0 mt-0.5"></span>
+                  ) : (
+                    <span className="w-5 h-5 rounded-full border-2 border-border-tertiary flex-shrink-0 mt-0.5"></span>
+                  )}
+                  <div>
+                    <span className={`text-sm ${uploadStep === 'processing' ? 'font-medium text-text-primary' : 'text-text-muted'}`}>
+                      2. サーバーで処理
+                    </span>
+                    {uploadStep === 'processing' && (
+                      <p className="text-xs text-text-muted">Drive保存・AI確認・メール送信中</p>
+                    )}
+                  </div>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-5 h-5 rounded-full border-2 border-border-tertiary flex-shrink-0"></span>
+                  <span className="text-sm text-text-muted">3. 完了</span>
+                </li>
+              </ol>
+
+              <p className="text-xs text-text-muted mt-5 text-center">
+                ※ ファイルサイズによっては数十秒かかることがあります。画面はそのままお待ちください。
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ファイル一覧の更新中表示 */}
+        {isRefreshing && !isUploading && (
+          <div className="absolute top-3 right-3 z-30 flex items-center gap-2 bg-white/90 rounded-full px-3 py-1.5 shadow-sm border border-border-secondary">
+            <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+            <span className="text-xs text-text-muted">更新中...</span>
+          </div>
+        )}
       </div>
     </Card>
 

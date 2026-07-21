@@ -16,6 +16,7 @@ import {
   DollarSign,
   Tag,
   Bell,
+  MessageSquare,
 } from 'lucide-react';
 
 const navigation = [
@@ -26,6 +27,7 @@ const navigation = [
   { name: '配送管理', href: '/admin/shipments', icon: Truck },
   { name: 'ブログ管理', href: '/admin/blog', icon: FileText },
   { name: '顧客管理', href: '/admin/customers/management', icon: Users },
+  { name: 'お問い合わせ', href: '/admin/inquiries', icon: MessageSquare },
   { name: '契約管理', href: '/admin/contracts', icon: FileText },
   { name: 'お知らせ管理', href: '/admin/notifications', icon: Bell },
   { name: '配送設定', href: '/admin/shipping', icon: Settings },

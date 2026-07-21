@@ -271,23 +271,57 @@ export function withAdminAuth<T = any>(
 /**
  * 会員専用ハンドラーラッパー（ショートカット）
  *
+ * Next.js 16対応：動的ルートパラメータを含むルートコンテキストをサポート
+ * （withAdminAuth と対称・第3引数 context は optional で後方互換）
+ *
  * @param handler - APIハンドラー関数
  * @returns ラップされたハンドラー関数
  *
  * @example
  * ```typescript
+ * // 動的ルートなし（従来形式・後方互換）
  * export const GET = withMemberAuth(async (request, auth) => {
  *   return NextResponse.json({ memberId: auth.userId });
+ * });
+ *
+ * // 動的ルートあり (Next.js 16)
+ * export const GET = withMemberAuth(async (request, auth, context) => {
+ *   const { id } = await context.params;
+ *   return NextResponse.json({ inquiryId: id });
  * });
  * ```
  */
 export function withMemberAuth<T = any>(
-  handler: (request: NextRequest, auth: AdminAuthResult) => Promise<NextResponse<T>>
-): (request: NextRequest) => Promise<NextResponse> {
-  return withAuth(handler, {
-    useMemberAuth: true,
-    requireActive: true,
-  });
+  handler: (
+    request: NextRequest,
+    auth: AdminAuthResult,
+    context?: { params: Promise<Record<string, string | string[]>> }
+  ) => Promise<NextResponse<T>>
+): (request: NextRequest, context?: { params: Promise<Record<string, string | string[]>> }) => Promise<NextResponse> {
+  return async (request: NextRequest, context?: { params: Promise<Record<string, string | string[]>> }): Promise<NextResponse> => {
+    const middleware = createAuthMiddleware({
+      useMemberAuth: true,
+      requireActive: true,
+    });
+    const result = await middleware(request);
+
+    // 認証失敗の場合、エラー応答を返す
+    if (result instanceof NextResponse) {
+      return result;
+    }
+
+    // 認証成功の場合、ハンドラーを実行
+    try {
+      return await handler(request, result as AdminAuthResult, context);
+    } catch (error) {
+      console.error('[Auth] Handler error:', error);
+
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+  };
 }
 
 // =====================================================

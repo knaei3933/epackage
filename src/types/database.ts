@@ -612,6 +612,7 @@ export type Database = {
                 Row: {
                     id: string
                     user_id: string | null
+                    order_id: string | null  // FK to orders - 注文チャット連携（1注文=1スレッド・null 時は一般 inquiry）
                     inquiry_number: string  // Original inquiry number
                     request_number: string | null  // Human-readable request number (REQ-YYYY-XXX)
                     type: 'product' | 'quotation' | 'sample' | 'order' | 'billing' | 'other' | 'general' | 'technical' | 'sales' | 'support'
@@ -637,7 +638,10 @@ export type Database = {
                     updated_at: string
                     responded_at: string | null
                 }
-                Insert: Omit<Database['public']['Tables']['inquiries']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Insert: Omit<Database['public']['Tables']['inquiries']['Row'], 'id' | 'created_at' | 'updated_at' | 'order_id'> & {
+                    // 注文チャット連携（order-inquiry-link）: 省略可・未設定時は一般 inquiry
+                    order_id?: string | null
+                }
                 Update: Partial<Omit<Database['public']['Tables']['inquiries']['Row'], 'id' | 'created_at' | 'updated_at'>>
                 Relationships: []
             }

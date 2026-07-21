@@ -270,11 +270,14 @@ export function handleApiError(error: unknown): NextResponse {
  * ```
  */
 export function withApiHandler<T = any>(
-  handler: (request: Request) => Promise<NextResponse<T>>
-): (request: Request) => Promise<NextResponse> {
-  return async (request: Request): Promise<NextResponse> => {
+  handler: (request: Request, context?: any) => Promise<NextResponse<T>>
+): (request: Request, context?: any) => Promise<NextResponse> {
+  // Next.js 16 は動的ルートハンドラに第2引数 context（params を含む）を渡す。
+  // これを破棄すると [id] 系ルートが params を読めなくなるため、そのまま転送する。
+  // context は optional なので、既存の context なし handler とも後方互換。
+  return async (request: Request, context?: any): Promise<NextResponse> => {
     try {
-      return await handler(request);
+      return await handler(request, context);
     } catch (error) {
       return handleApiError(error);
     }

@@ -15,6 +15,7 @@
 
 import { useState, useEffect } from 'react';
 import { AdminOrderWorkflowTabs } from '@/components/admin/AdminOrderWorkflowTabs';
+import { AdminOrderInquirySection } from '@/components/admin/AdminOrderInquirySection';
 import { OrderStatusBadge, OrderStatusTimeline } from '@/components/orders';
 import { OrderInfoAccordion, OrderItemsSummary, OrderAddressInfo } from '@/components/member';
 import { AdminOrderItemsEditor } from '@/components/admin/AdminOrderItemsEditor';
@@ -446,6 +447,12 @@ export default function AdminOrderDetailClient({
           onSendToKorea={handleSendToKorea}
           sendingToKorea={sendingToKorea}
           koreaMessage={koreaMessage}
+        />
+
+        {/* 注文のお問い合わせチャット（会員 ↔ 管理者・折りたたみ） */}
+        <AdminOrderInquirySection
+          orderId={orderId}
+          orderNumber={order.order_number}
         />
 
         {/* Email Composer Modal */}

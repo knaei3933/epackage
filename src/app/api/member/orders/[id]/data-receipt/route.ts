@@ -250,7 +250,7 @@ export async function POST(
       );
     }
 
-    // Validate product name is required
+    // 製品名は必須（無条件で入力し、ファイル名に反映）
     if (!productName || !productName.trim()) {
       return NextResponse.json(
         {
@@ -315,12 +315,17 @@ export async function POST(
       // 製品名 (productName form input) が未入力でも order_items.specifications から自動生成。
       let driveOrderItem: { id: string; product_name: string | null; quantity: number; specifications: unknown } | null = null;
       try {
-        const orderItemResult = await adminClient
+        // 選択SKU（order_item_id）があればそれを使い、なければ最初の1件
+        let orderItemQuery = adminClient
           .from('order_items')
           .select('id, product_name, quantity, specifications')
-          .eq('order_id', orderId)
-          .limit(1)
-          .single();
+          .eq('order_id', orderId);
+        if (orderItemId) {
+          orderItemQuery = orderItemQuery.eq('id', orderItemId);
+        } else {
+          orderItemQuery = orderItemQuery.limit(1);
+        }
+        const orderItemResult = await orderItemQuery.single();
         // .single() はエラー時に throw せず { data: null, error } を返す
         if (!orderItemResult.error) {
           driveOrderItem = orderItemResult.data;
@@ -343,8 +348,9 @@ export async function POST(
         'lap_seal': '合掌袋',
       };
       const oiBagTypeId = oiSpecs.bagTypeId;
-      const oiProductLabel = (oiBagTypeId && oiBagTypeJa[oiBagTypeId])
-        || (productName || '').trim()
+      // 優先順位: 手動入力の製品名 → 袋タイプ名 → DB の製品名
+      const oiProductLabel = (productName || '').trim()
+        || (oiBagTypeId && oiBagTypeJa[oiBagTypeId])
         || (driveOrderItem?.product_name || '製品').split(/\s+-|\s+[(（]SKU/i)[0].trim();
       const oiQty = driveOrderItem?.quantity ?? 0;
       const oiWidth = oiSpecs.width ?? '';
