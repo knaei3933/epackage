@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { getAllProducts } from '@/lib/product-data'
 import { createServiceClient } from '@/lib/supabase'
+import { SITE_URL } from '@/lib/seo/canonical'
 
 // Revalidate sitemap every hour to reduce CPU usage while keeping data fresh
 // This prevents RSC 404 errors and reduces database queries
@@ -9,9 +10,6 @@ export const revalidate = 3600; // 1 hour
 // IMPORTANT: 静的ページの lastmod は固定値。コンテンツ更新時は手動で更新すること。
 // 自動化（git commit date 連携等）は Phase 2 で検討。
 const STATIC_PAGES_LASTMOD = new Date('2026-07-13');
-
-// サイト設定 (www付きで統一)
-const SITE_URL = 'https://www.package-lab.com'
 
 // 製品データを取得
 const allProducts = getAllProducts(null, 'ja')
@@ -114,6 +112,39 @@ const staticPages = [
     changefreq: 'monthly' as const,
     priority: 0.7,
     lastmod: STATIC_PAGES_LASTMOD
+  },
+  // コンテンツページ（旧 Disallow 解除・sitemap でクロール可能性を確保）
+  {
+    url: '/flow',
+    changefreq: 'monthly' as const,
+    priority: 0.7,
+    lastmod: STATIC_PAGES_LASTMOD
+  },
+  {
+    url: '/print',
+    changefreq: 'monthly' as const,
+    priority: 0.7,
+    lastmod: STATIC_PAGES_LASTMOD
+  },
+  {
+    url: '/compare',
+    changefreq: 'monthly' as const,
+    priority: 0.6,
+    lastmod: STATIC_PAGES_LASTMOD
+  },
+  {
+    url: '/premium-content',
+    changefreq: 'monthly' as const,
+    priority: 0.6,
+    lastmod: STATIC_PAGES_LASTMOD
+  },
+  // /inquiry は実在しない（実在するのは /inquiry/detailed のみ）。
+  // sitemap 収録すると 404 → Soft 404 の温床になるため除外。
+  {
+    url: '/data-templates',
+    changefreq: 'monthly' as const,
+    priority: 0.6,
+    lastmod: STATIC_PAGES_LASTMOD
   }
 ]
 
@@ -158,7 +189,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const productUrl = `/catalog/${product.id}`
     urls.push({
       url: `${SITE_URL}${productUrl}`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LASTMOD,
       changeFrequency: 'weekly',
       priority: 0.8,
       alternates: {
@@ -175,7 +206,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const guideUrl = `/guide/${guide}`
     urls.push({
       url: `${SITE_URL}${guideUrl}`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LASTMOD,
       changeFrequency: 'monthly',
       priority: 0.6,
       alternates: {
@@ -220,7 +251,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const categoryUrl = `/blog/category/${category.id}`
       urls.push({
         url: `${SITE_URL}${categoryUrl}`,
-        lastModified: new Date(),
+        lastModified: STATIC_PAGES_LASTMOD,
         changeFrequency: 'weekly',
         priority: 0.6,
         alternates: {

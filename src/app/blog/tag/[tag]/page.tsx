@@ -9,6 +9,7 @@ import { getPublishedPosts, getTagsWithCounts } from '@/lib/blog/queries';
 import { BlogGrid } from '@/components/blog/BlogCard';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
+import { SITE_URL } from '@/lib/seo/canonical';
 
 // =====================================================
 // Generate Metadata
@@ -27,7 +28,7 @@ export async function generateMetadata(
   { params }: BlogTagPageProps
 ): Promise<Metadata> {
   const tag = decodeURIComponent(params.tag);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
+  const baseUrl = SITE_URL;
 
   return {
     // title 本体のみ（blog/layout.tsx の template "%s | Epackage Lab ブログ" が適用される）

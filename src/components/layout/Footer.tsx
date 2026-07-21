@@ -39,6 +39,11 @@ interface PrivacyLink {
   href: string
 }
 
+interface ServiceLink {
+  label: string
+  href: string
+}
+
 export function Footer() {
   const [email, setEmail] = useState('')
   const [isSubscribing, setIsSubscribing] = useState(false)
@@ -110,6 +115,15 @@ export function Footer() {
       description: '環境配慮と社会的責任に関する当社の取り組みについて',
       href: '/csr'
     }
+  ]
+
+  // Internal service/content links（孤島ページ回避・クローラー発見経路）
+  const serviceLinks: ServiceLink[] = [
+    { label: '製造工程', href: '/flow' },
+    { label: '印刷技術', href: '/print' },
+    { label: '製品比較', href: '/compare' },
+    { label: 'プレミアムコンテンツ', href: '/premium-content' },
+    { label: 'デザインテンプレート', href: '/data-templates' },
   ]
 
   // Animation on mount
@@ -335,6 +349,27 @@ export function Footer() {
 
               </div>
 
+            </div>
+
+            {/* Service & Content Links - 内部リンク強化（孤島ページ回避） */}
+            <div className={cn(
+              "mt-12 pt-8 border-t border-slate-200 dark:border-slate-700",
+              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            )} style={{ transition: 'all 0.6s ease-out 0.35s' }}>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 text-center">
+                サービス・コンテンツ
+              </h3>
+              <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2" aria-label="サービス・コンテンツへのリンク">
+                {serviceLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-brixa-600 dark:hover:text-brixa-400 transition-colors duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
             </div>
 
             {/* Social Media Section */}

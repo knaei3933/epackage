@@ -4,6 +4,7 @@
  */
 
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { getPublishedPosts, getCategoriesWithCounts } from '@/lib/blog/queries';
@@ -11,19 +12,29 @@ import { BlogGrid } from '@/components/blog/BlogCard';
 import { BlogListParams } from '@/lib/types/blog';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
+import { SITE_URL } from '@/lib/seo/canonical';
 
 // =====================================================
 // Metadata
 // =====================================================
 
-export async function generateMetadata(): Promise<Metadata> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
+export async function generateMetadata(
+  { searchParams }: { searchParams: Promise<{ q?: string; category?: string; tag?: string; page?: string }> }
+): Promise<Metadata> {
+  const baseUrl = SITE_URL;
+  const params = await searchParams;
+  // 検索・カテゴリ・タグのクエリ付きURLは Soft 404 判定を避けるため noindex。
+  // page のみは index を維持（ページネーション自体は許容）。
+  // カテゴリ独立ページ /blog/category/x は index（別ページで正規化済み）。
+  const hasNoindexQuery = Boolean(params.q || params.category || params.tag);
 
   return {
     // /blog（index）は blog/layout.tsx と同階層のため同 layout の template が適用されず、
     // ルート template（"%s | Epackage Lab"）になる。absolute でブランド「| Epackage Lab ブログ」を明示。
     title: { absolute: 'ブログ | Epackage Lab ブログ' },
     description: '包装資材・印刷の最新情報、技術情報、業界動向をお届けします。パッケージングの専門家による信頼できる情報発信。ソフトパウチ、スタンドパウチ、ガゼットパウチなどの軟包裝材に関するノウハウ、選び方、導入事例を詳しくご紹介。小ロットから大ロットまで、最適な包装ソリューションを見つけるための実践的な情報を提供。',
+    // クエリパラメータ付きは noindex（?q / ?category / ?tag）
+    ...(hasNoindexQuery ? { robots: { index: false } } : {}),
     openGraph: {
       // openGraph.title は省略（resolved title "ブログ | Epackage Lab ブログ" がフォールバック）
       description: '包装資材・印刷の最新情報、技術情報、業界動向をお届けします。',
@@ -78,6 +89,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     tag,
     search,
   });
+
+  // ページネーション範囲外は Soft 404 回避のため真の404を返す。
+  // page < 1（0・負数）と page > totalPages の両端をカバー。
+  // ※ totalPages=0（記事ゼロ）のとき page=1 は notFound にしない（空の BlogGrid を表示）。
+  if (page < 1 || (postsData.totalPages > 0 && page > postsData.totalPages)) {
+    notFound();
+  }
 
   // Fetch categories with counts
   const categories = await getCategoriesWithCounts();

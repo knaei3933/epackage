@@ -5,14 +5,20 @@
  * - 存在しないルートへのアクセス時のカスタムUI
  * - 日本語のユーザーフレンドリーなメッセージ
  * - ナビゲーションオプションを提供
+ * - Server Component（metadata で noindex・nofollow を出力）
  *
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/not-found
  */
 
-'use client';
-
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { NotFoundBackButton } from './components/NotFoundBackButton';
+
+// 404 ページはインデックスさせない（Soft 404 回避）
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (
@@ -95,13 +101,7 @@ export default function NotFound() {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => window.history.back()}
-              variant="outline"
-              className="w-full sm:w-auto"
-            >
-              前のページに戻る
-            </Button>
+            <NotFoundBackButton />
 
             <Link href="/" className="w-full sm:w-auto">
               <Button variant="primary" className="w-full">

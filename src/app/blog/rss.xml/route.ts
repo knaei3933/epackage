@@ -7,12 +7,11 @@
 
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { SITE_URL } from '@/lib/seo/canonical'
 
 // Revalidate every hour
 export const revalidate = 3600
 
-// Site configuration
-const SITE_URL = 'https://www.package-lab.com'
 const BLOG_TITLE = 'EPackage Lab ブログ'
 const BLOG_DESCRIPTION = '包装資材・印刷の最新情報と技術情報をお届けします'
 

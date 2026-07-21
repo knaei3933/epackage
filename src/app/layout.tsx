@@ -21,6 +21,7 @@ import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal
 import { WebVitals } from "@/components/analytics/WebVitals";
 import { GA4_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/analytics/dataLayer";
 import { SWRConfig } from "swr";
+import { SITE_URL } from "@/lib/seo/canonical";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +51,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.package-lab.com'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Epackage Lab - 小ロットから大ロットまで経済的 | 最小500枚・最短28日納品のパッケージ製造",
     template: "%s | Epackage Lab"
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: 'https://www.package-lab.com',
+    canonical: SITE_URL,
   },
   other: {
     'rss': '/rss.xml',
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
-    url: 'https://www.package-lab.com',
+    url: SITE_URL,
     siteName: 'Epackage Lab',
     title: 'Epackage Lab | 小ロット500枚〜大ロット対応のパッケージ製造',
     description: '小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。',

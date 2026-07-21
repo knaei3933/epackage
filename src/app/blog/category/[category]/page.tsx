@@ -11,6 +11,7 @@ import { BlogGrid } from '@/components/blog/BlogCard';
 import { getCategoryLabel, BLOG_CATEGORIES } from '@/lib/types/blog';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
+import { SITE_URL } from '@/lib/seo/canonical';
 
 // =====================================================
 // Generate Metadata
@@ -30,13 +31,15 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { category } = await params;
   const categoryName = getCategoryLabel(category, 'ja');
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
+  const baseUrl = SITE_URL;
 
   // Check if category is valid
   if (!BLOG_CATEGORIES.find(c => c.id === category)) {
+    // Soft 404 シグナル回避: 不正カテゴリは noindex
     return {
       // title 本体のみ（blog/layout.tsx の template が適用される）
       title: 'カテゴリが見つかりません',
+      robots: { index: false },
     };
   }
 

@@ -79,6 +79,22 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================================================
+  // www正規化: non-www → www（301恒久リダイレクト・兜底）
+  // Vercel が www Primary で正常動作すれば発火しない（二重防御の兜底側）。
+  // /api/ と _next/ は301対象外（POST downcast 防止・認証基盤保護）。
+  // localhost / *.vercel.app は host 厳密一致で除外される。
+  // =====================================================
+  if (hostname === 'package-lab.com') {
+    if (!pathname.startsWith('/api/') && !pathname.startsWith('/_next/')) {
+      // Vercel 設定漏れ検知（Vercel が正常ならここに到達しない）
+      console.warn('[www] non-www request reached middleware — verify Vercel Domains config', hostname);
+      const url = request.nextUrl.clone();
+      url.hostname = 'www.package-lab.com';
+      return NextResponse.redirect(url, 301);
+    }
+  }
+
+  // =====================================================
   // SECURITY (S2.0): Auth API routes — authenticate + set x-user-* headers
   // =====================================================
   // Previously /api/auth/* bypassed middleware entirely, which meant
@@ -142,19 +158,6 @@ export async function middleware(request: NextRequest) {
       return addSecurityHeaders(NextResponse.next());
     }
   }
-
-  // =====================================================
-  // Domain Redirect: www → non-www (一時無効化)
-  // =====================================================
-  // TODO: Vercel側のドメイン設定が修正されたら有効化する
-  /*
-  if (hostname === 'www.package-lab.com') {
-    const url = new URL(request.url);
-    url.protocol = 'https:';
-    url.hostname = 'package-lab.com';
-    return NextResponse.redirect(url, 308);
-  }
-  */
 
   // Debug: Always log middleware execution
   if (process.env.NODE_ENV === 'development') {

@@ -19,6 +19,7 @@ import { seoUtils } from '@/lib/blog/seo';
 import { Calendar, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
+import { SITE_URL } from '@/lib/seo/canonical';
 
 // =====================================================
 // Generate Metadata
@@ -37,14 +38,24 @@ export async function generateMetadata(
   const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
+    // Soft 404 シグナル回避: 存在しない slug は noindex・nofollow
     return {
       // title 本体のみ（blog/layout.tsx の template が適用される）
       title: '記事が見つかりません',
+      robots: { index: false, follow: false },
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
+  const baseUrl = SITE_URL;
   const url = `${baseUrl}/blog/${post.slug}`;
+  // canonical_url が package-lab 自社ドメイン(.net/.com)の場合は旧ドメイン残渣のため無視。
+  // 外部ドメイン（真の外部転載元）の場合のみ尊重する。
+  // ※DB確認(2026-07-21): canonical_url あり16件は全件 package-lab.net（www無し・旧ドメイン）。
+  //    外部ドメイン0件。そのまま使うと canonical が別ドメイン(.net)を指し、
+  //    GSC「適切な canonical 無し」の直接原因になる。
+  const isExternalCanonical = Boolean(
+    post.canonical_url && !post.canonical_url.includes('package-lab.')
+  );
   const imageUrl = post.og_image_path
     ? (post.og_image_path.startsWith('http') ? post.og_image_path : `${baseUrl}${post.og_image_path}`)
     : `${baseUrl}/images/og-image.jpg`;
@@ -83,7 +94,7 @@ export async function generateMetadata(
       creator: '@epackage_lab',
     },
     alternates: {
-      canonical: post.canonical_url || url,
+      canonical: isExternalCanonical ? post.canonical_url : url,
     },
   };
 }
@@ -99,6 +110,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) {
     notFound();
   }
+
+  // canonical と OGP の URL（generateMetadata と同一ロジック）
+  const baseUrl = SITE_URL;
+  const url = `${baseUrl}/blog/${post.slug}`;
+  // canonical_url が package-lab 自社ドメイン(.net/.com)の場合は旧ドメイン残渣のため無視。
+  // 外部ドメイン（真の外部転載元）の場合のみ尊重する。
+  const isExternalCanonical = Boolean(
+    post.canonical_url && !post.canonical_url.includes('package-lab.')
+  );
 
   // Increment view count (non-blocking)
   incrementViewCount(post.id).catch(console.error);
@@ -132,7 +152,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     ogImagePath: post.og_image_path || null,
     metaTitle: post.meta_title || null,
     metaDescription: post.meta_description || null,
-    canonicalUrl: post.canonical_url || null,
+    canonicalUrl: isExternalCanonical ? (post.canonical_url || null) : url,
     readingTime,
     wordCount,
   });
@@ -142,8 +162,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     { name: 'ブログ', url: '/blog' },
     { name: post.title, url: `/blog/${post.slug}` },
   ]);
-
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
 
   return (
     <>

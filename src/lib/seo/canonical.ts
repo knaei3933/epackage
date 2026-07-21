@@ -5,7 +5,25 @@
  * Canonical URLs help prevent duplicate content issues and consolidate SEO signals.
  */
 
-const SITE_URL = 'https://www.package-lab.com';
+// Phase 0 発見（2026-07-21）: 本番の NEXT_PUBLIC_SITE_URL が www 無しの場合、
+// blog 系（process.env.NEXT_PUBLIC_SITE_URL || ... を使うページ）の canonical が
+// www 無しになり GSC「適切な canonical 無し」の原因になった。
+// env 値が www 無しでも www 付きに正規化する（localhost 等の開発環境は除外）。
+const RAW_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com';
+
+/**
+ * www 無しの本番URLを www 付きに正規化する。
+ * 開発環境（localhost / 127.0.0.1）や既に www 付きのURLはそのまま返す。
+ * app-url.ts（email/OAuth リンク）からも import して一元化する。
+ */
+export function ensureWww(url: string): string {
+  if (url.includes('localhost') || url.includes('127.0.0.1')) return url;
+  if (/^https?:\/\/www\./.test(url)) return url;
+  return url.replace(/^(https?:\/\/)/, '$1www.');
+}
+
+// 正系ソース: 全ページ・sitemap・robots・rss・email リンクはこの SITE_URL を使う
+export const SITE_URL = ensureWww(RAW_SITE_URL);
 
 /**
  * Generates a canonical URL for a given path

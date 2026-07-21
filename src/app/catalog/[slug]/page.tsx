@@ -21,8 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const product = mockProducts.find(p => p.id === slug)
 
   if (!product) {
+    // Soft 404 シグナル回避: 存在しない slug は noindex・nofollow
     return {
       title: '製品が見つかりません',
+      robots: { index: false, follow: false },
     }
   }
 

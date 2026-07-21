@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
+import { SITE_URL } from '@/lib/seo/canonical'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://www.package-lab.com'
+  const baseUrl = SITE_URL
 
   return {
     rules: [
@@ -27,12 +28,6 @@ export default function robots(): MetadataRoute.Robots {
           '/quote-simulator',
 
           // Internal pages
-          '/compare',
-          '/data-templates',
-          '/print',
-          '/premium-content',
-          '/inquiry',
-          '/flow',
           '/profile',
           '/members',
         ],

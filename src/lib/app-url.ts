@@ -1,3 +1,5 @@
+import { ensureWww } from '@/lib/seo/canonical';
+
 /**
  * Dynamic URL Generator for Email & OAuth Links
  *
@@ -35,19 +37,17 @@ export function getAppUrl(request?: Request): string {
   // 管理者がローカルからAPIを呼び出す場合でも正しい本番URLを返す
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (siteUrl) {
-    return siteUrl;
+    // Phase 0 対応: env が www 無しでも www 付きに正規化
+    return ensureWww(siteUrl);
   }
 
-  // リクエストがある場合は動的に取得
+  // リクエストがある場合は動的に取得（localhost 等はそのまま）
   if (request) {
     return getAppUrlFromRequest(request);
   }
 
-  // フォールバック
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    'https://package-lab.com'
-  );
+  // フォールバック（www付きに正規化）
+  return ensureWww(process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com');
 }
 
 /**

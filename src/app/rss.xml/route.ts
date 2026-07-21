@@ -1,8 +1,8 @@
 import { createServiceClient } from '@/lib/supabase'
+import { SITE_URL } from '@/lib/seo/canonical'
 
 export const revalidate = 3600 // 1 hour
 
-const SITE_URL = 'https://www.package-lab.com'
 const SITE_TITLE = 'Epackage Lab - パッケージ専門メディア'
 const SITE_DESCRIPTION = 'パッケージに関する最新情報、技術解説、業界トレンドをお届けする専門メディア'
 
