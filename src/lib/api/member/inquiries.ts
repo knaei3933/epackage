@@ -90,7 +90,11 @@ export async function fetchInquiry(id: string): Promise<Inquiry> {
  */
 export async function createInquiry(data: {
   type: InquiryType;
-  subject: string;
+  /**
+   * 件名。注文チャット（orderId あり）では省略可能（サーバー側で
+   * 「注文 {orderNumber} のお問い合わせ」を自動生成）。一般 inquiry では必須。
+   */
+  subject?: string;
   message: string;
   orderId?: string;
   quotationId?: string;
@@ -98,7 +102,10 @@ export async function createInquiry(data: {
 }): Promise<Inquiry> {
   const formData = new FormData();
   formData.append('type', data.type);
-  formData.append('subject', data.subject);
+  // 件名は任意（注文チャット時は省略可・サーバー側で自動生成）
+  if (data.subject !== undefined) {
+    formData.append('subject', data.subject);
+  }
   formData.append('message', data.message);
   if (data.orderId) {
     formData.append('orderId', data.orderId);

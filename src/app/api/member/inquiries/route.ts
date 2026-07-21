@@ -277,16 +277,30 @@ async function cleanupStorageFiles(
  * 新規お問い合わせ作成の入力スキーマ
  * （クライアント src/lib/api/member/inquiries.ts createInquiry の shape に整合）
  */
-const createInquirySchema = z.object({
-  type: z.enum([
-    'product', 'quotation', 'sample', 'order', 'billing',
-    'other', 'general', 'technical', 'sales', 'support',
-  ]),
-  subject: z.string().min(1, '件名を入力してください').max(200, '件名は200文字以内で入力してください'),
-  message: z.string().min(1, 'お問い合わせ内容を入力してください').max(5000, 'お問い合わせ内容は5000文字以内で入力してください'),
-  orderId: z.string().optional(),
-  quotationId: z.string().optional(),
-});
+const createInquirySchema = z
+  .object({
+    type: z.enum([
+      'product', 'quotation', 'sample', 'order', 'billing',
+      'other', 'general', 'technical', 'sales', 'support',
+    ]),
+    // 注文チャット（orderId あり）では件名は不要（サーバー側で「注文 {orderNumber} のお問い合わせ」を自動生成）。
+    // 一般 inquiry では件名必須（下記 refine で orderId なし時を検証）。
+    subject: z
+      .string()
+      .min(1, '件名を入力してください')
+      .max(200, '件名は200文字以内で入力してください')
+      .optional(),
+    message: z.string().min(1, 'お問い合わせ内容を入力してください').max(5000, 'お問い合わせ内容は5000文字以内で入力してください'),
+    orderId: z.string().optional(),
+    quotationId: z.string().optional(),
+  })
+  // 一般 inquiry（orderId 無し）では件名必須・注文チャット（orderId あり）では件名省略可
+  .refine(
+    (data) =>
+      Boolean(data.orderId) ||
+      (typeof data.subject === 'string' && data.subject.trim().length > 0),
+    { message: '件名を入力してください', path: ['subject'] }
+  );
 
 /**
  * 新規お問い合わせ作成の実処理
@@ -346,7 +360,8 @@ async function handleCreateInquiry(
 
     parsed = createInquirySchema.parse({
       type: typeValue?.toString() ?? '',
-      subject: subjectValue?.toString() ?? '',
+      // 注文チャット（orderId あり）では件名未送信を許容（undefined → optional でパス）
+      subject: subjectValue?.toString() || undefined,
       message: messageValue?.toString() ?? '',
       orderId: orderIdValue?.toString() || undefined,
       quotationId: quotationIdValue?.toString() || undefined,
@@ -479,9 +494,11 @@ async function handleCreateInquiry(
   const inquiryType: Database['public']['Tables']['inquiries']['Insert']['type'] = orderContext
     ? 'order'
     : parsed.type;
+  // 一般 inquiry では refine で subject 必須を保証済み（parsed.subject は string）。
+  // ?? '' は型安全のためのフォールバック（到達しないパス）。
   const inquirySubject = orderContext
     ? `注文 ${orderContext.orderNumber} のお問い合わせ`
-    : parsed.subject;
+    : (parsed.subject ?? '');
 
   const inquiryRecord: Database['public']['Tables']['inquiries']['Insert'] = {
     user_id: userId,

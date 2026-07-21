@@ -147,9 +147,9 @@ export function InquiryCreateForm({
     try {
       const created = await createInquiry({
         type: isOrderMode ? 'order' : type,
-        // 注文チャットモードでは件名はサーバー側で自動生成されるが、Zod min(1) を満たすためダミーを送信
-        // （サーバー側で orderContext により上書きされる・AC-API-1）
-        subject: isOrderMode ? '（注文チャット・自動生成）' : trimmedSubject,
+        // 注文チャットモードでは件名を送信しない（サーバー側で「注文 {orderNumber} のお問い合わせ」を自動生成・AC-API-1）
+        // 一般モードでは会員入力の件名を送信
+        subject: isOrderMode ? undefined : trimmedSubject,
         message: trimmedMessage,
         orderId: prefillOrderId,
         attachments: attachments.length > 0 ? attachments : undefined,
