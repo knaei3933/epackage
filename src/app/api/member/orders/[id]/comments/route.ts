@@ -434,16 +434,18 @@ export async function POST(
       .insert({
         order_id: orderId,
         content: content.trim(),
-        content_translated: contentTranslated,
-        original_language: 'ja',
-        translation_status: translationStatus,
         comment_type,
         author_id: userId,
         author_role: authorRole,
         is_internal: shouldMarkInternal,
         attachments,
         parent_comment_id: parent_comment_id || null,
-        metadata: {},
+        // 翻訳情報は実カラムでなく metadata（jsonb）に保存（upload/[token] route と同一パターン）
+        metadata: {
+          original_language: 'ja',
+          content_translated: contentTranslated,
+          translation_status: translationStatus,
+        },
       })
       .select('*')
       .single();

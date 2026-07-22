@@ -206,9 +206,38 @@ export function FileResubmissionSection({
 
       if (result.success) {
         setSuccessMessage(`ファイルを再提出しました（提出番号: ${result.submission.submission_number}）`);
+
+        // 楽観追加: response.submission は partial（id/original_filename/file_url/submission_number のみ）。
+        // 不足フィールド（uploaded_at, is_current, file_type, file_size_bytes, order_id）は手元の selectedFile・orderId で補完。
+        const newSubmission: CustomerFileSubmission = {
+          id: result.submission.id,
+          order_id: orderId,
+          original_filename: result.submission.original_filename,
+          file_url: result.submission.file_url,
+          file_type: selectedFile.type,
+          file_size_bytes: selectedFile.size,
+          submission_number: result.submission.submission_number,
+          is_current: true,
+          uploaded_at: new Date().toISOString(),
+          replaced_at: null,
+        };
+
+        // 既存 current を非 current 化 + 新 submission を先頭に楽観追加
+        setSubmissionHistory(prev => {
+          const updated = prev.map(item => ({ ...item, is_current: false }));
+          const newItem: SubmissionHistoryItem = {
+            submission_number: newSubmission.submission_number,
+            filename: newSubmission.original_filename,
+            file_url: newSubmission.file_url,
+            uploaded_at: newSubmission.uploaded_at,
+            is_current: true,
+          };
+          return [newItem, ...updated];
+        });
+        setCurrentSubmission(newSubmission);
+
         setSelectedFile(null);
         setReason('');
-        loadSubmissionHistory();
 
         // Callback to notify parent component
         onFileResubmitted?.();
@@ -218,6 +247,8 @@ export function FileResubmissionSection({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
+      // 失敗時はサーバー状態で正系化
+      await loadSubmissionHistory();
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

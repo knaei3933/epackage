@@ -18,6 +18,7 @@ import { Plus, FileImage, FileText, X, AlertCircle, User } from 'lucide-react';
 import { RevisionCard } from './RevisionCard';
 import { BilingualCommentDisplay } from '@/components/shared/BilingualCommentDisplay';
 import { TranslationStatusBadge } from '@/components/shared/TranslationStatusBadge';
+import { adminFetch } from '@/lib/auth-client';
 import type { DesignRevision, OrderItem } from './types';
 
 interface CorrectionRevisionsManagerProps {
@@ -59,7 +60,13 @@ export function CorrectionRevisionsManager({ order, orderId, fetchFn = fetch }: 
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
 
+  // Track which revision is being deleted (for RevisionCard button feedback)
+  const [deletingRevisionId, setDeletingRevisionId] = useState<string | null>(null);
+
   // Initialize order items from order prop
+  // AC-9: 商品明細編集後に選択中 SKU が不適切にリセット/stale になる問題を修正
+  // - 選択中 SKU が新リストに存在すれば維持
+  // - 削除/未選択時: 1件のみなら自動選択（既存動作）、複数なら null（要明示選択）
   useEffect(() => {
     if (order.items && order.items.length > 0) {
       const items: OrderItem[] = order.items.map(item => ({
@@ -69,10 +76,12 @@ export function CorrectionRevisionsManager({ order, orderId, fetchFn = fetch }: 
         specifications: item.specifications || null,
       }));
       setOrderItems(items);
-      // Auto-select first item if only one item exists
-      if (items.length === 1) {
-        setSelectedOrderItemId(items[0].id);
-      }
+      setSelectedOrderItemId(prev => {
+        // 選択中 SKU が新リストに存在すれば維持
+        if (prev && items.some(i => i.id === prev)) return prev;
+        // 削除/未選択時: 1件のみなら自動選択（既存動作）、複数なら null
+        return items.length === 1 ? items[0].id : null;
+      });
     }
   }, [order.items]);
 
@@ -223,8 +232,31 @@ export function CorrectionRevisionsManager({ order, orderId, fetchFn = fetch }: 
     }
   };
 
+  // AC-4: 既存 DELETE API を呼び、成功後に楽観削除。失敗時は正系化（再フェッチ）。
+  // R7: adminFetch を直接使用し admin セッション cookie を確実に付与（fetchFn 既定 fallback の bare fetch を回避）
   const handleDeleteRevision = async (revisionId: string) => {
-    setRevisions(prev => prev.filter(r => r.id !== revisionId));
+    // confirm ダイアログで revision 番号を表示するため、楽観的にリストから検索
+    const target = revisions.find(r => r.id === revisionId);
+    const label = target ? `${target.revision_number}次校正` : 'この校正データ';
+    if (!confirm(`${label}を削除してもよろしいですか？`)) return;
+
+    setDeletingRevisionId(revisionId);
+    setError(null);
+    try {
+      const res = await adminFetch(`/api/admin/orders/${orderId}/correction/${revisionId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('削除に失敗しました');
+      // 成功時: 楽観削除（ローカル state から即時除外）
+      setRevisions(prev => prev.filter(r => r.id !== revisionId));
+    } catch (e) {
+      console.error('Failed to delete revision:', e);
+      // 失敗時: エラー表示 + 正系化（サーバーの最新状態で再フェッチ）
+      setError('削除に失敗しました。リストを再取得しました。');
+      await loadRevisions();
+    } finally {
+      setDeletingRevisionId(null);
+    }
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -494,7 +526,7 @@ export function CorrectionRevisionsManager({ order, orderId, fetchFn = fetch }: 
                 key={revision.id}
                 revision={revision}
                 onDelete={handleDeleteRevision}
-                fetchFn={fetchFn}
+                isDeleting={deletingRevisionId === revision.id}
               />
             ))}
         </div>

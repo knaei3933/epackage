@@ -6,13 +6,14 @@
  * - design_revisionsテーブルにレコード作成
  * - 顧客に承認依頼メール送信
  *
+ * 認可: withAdminAuth (@/lib/api-auth) でラップ - ADMIN ロール必須
+ * 参考: src/app/api/admin/orders/[id]/comments/route.ts と同一パターン
+ *
  * @route /api/admin/orders/[id]/correction
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { sendTemplatedEmail } from '@/lib/email';
 import {
   getAdminAccessTokenForUpload,
@@ -20,9 +21,9 @@ import {
   getCorrectionFolderId
 } from '@/lib/google-drive';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import { withAdminAuth } from '@/lib/api-auth';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
@@ -93,16 +94,26 @@ async function getNextRevisionNumber(supabase: any, orderId: string): Promise<nu
 // GET Handler - List Revisions
 // =====================================================
 
-export async function GET(
+export const GET = withAdminAuth<any>(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+  auth,
+  context
+) => {
   try {
     const supabase = getServiceClient();
 
     console.log('[Correction GET] Fetching revisions...');
 
-    const { id: orderId } = await params;
+    // context.params は Promise<Record<string, string | string[]>> で提供される
+    // 動的ルート [id] は単一文字列だが型上 string | string[] になるため正規化（defense-in-depth）
+    const { id } = await context!.params;
+    if (Array.isArray(id)) {
+      return NextResponse.json(
+        { success: false, error: '無効なパラメータです。' },
+        { status: 400 }
+      );
+    }
+    const orderId = id;
 
     // Get revisions AND order items in parallel
     const [revisionsResult, orderItemsResult] = await Promise.all([
@@ -169,47 +180,33 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
 // =====================================================
 // POST Handler - Upload Correction Data
 // =====================================================
 
-export async function POST(
+export const POST = withAdminAuth<any>(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+  auth,
+  context
+) => {
   try {
-    // SSR Client for authentication
-    const cookieStore = await cookies();
-    const supabaseAuth = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    );
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-
-    if (authError || !user) {
-      console.error('[Correction POST] Auth error:', authError);
-      return NextResponse.json(
-        { success: false, error: '認証されていません' },
-        { status: 401 }
-      );
-    }
-
     // Service client for database and storage operations
+    // 認可は withAdminAuth で検証済み（auth.userId, auth.role が利用可能）
     const supabase = getServiceClient();
     console.log('[Correction POST] Starting upload...');
 
-    const { id: orderId } = await params;
+    // context.params は Promise<Record<string, string | string[]>> で提供される
+    // 動的ルート [id] は単一文字列だが型上 string | string[] になるため正規化（defense-in-depth）
+    const { id } = await context!.params;
+    if (Array.isArray(id)) {
+      return NextResponse.json(
+        { success: false, error: '無効なパラメータです。' },
+        { status: 400 }
+      );
+    }
+    const orderId = id;
 
     // Verify order exists
     const { data: order, error: orderError } = await supabase
@@ -507,7 +504,7 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+});
 
 // =====================================================
 // OPTIONS Handler for CORS

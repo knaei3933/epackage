@@ -242,6 +242,23 @@ export default function AdminOrderDetailClient({
     }
   };
 
+  // キャンセルリクエスト承認/拒否後の注文データ再取得ハンドラー
+  // window.location.reload() を廃止し、ページ全体再マウントなしで state 更新。
+  // チャット入力中テキスト・スクロール・展開状態を保持したままサーバー最新データを反映。
+  const handleCancellationProcessed = async () => {
+    try {
+      const response = await adminFetch(`/api/admin/orders/${orderId}`);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.order) {
+          setCurrentOrder(result.order);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh order data:', error);
+    }
+  };
+
   const handleUpdateNotes = async () => {
     try {
       setSendingToKorea(true);
@@ -406,7 +423,7 @@ export default function AdminOrderDetailClient({
         {/* キャンセルリクエスト承認UI */}
         <CancellationRequestBanner
           orderId={orderId}
-          onRequestProcessed={() => window.location.reload()}
+          onRequestProcessed={handleCancellationProcessed}
         />
 
         {/* 注文基本情報 - 統合UI */}
@@ -522,6 +539,8 @@ function CancellationRequestBanner({
       const result = await response.json();
       if (result.success) {
         showError('キャンセルを承認しました');
+        // 承認後にバナーを即時非表示（useEffect([orderId]) は orderId 不変のため再 fetch されず、手動 null 化が必須）
+        setRequestDetails(null);
         onRequestProcessed();
       } else {
         showError(result.error || '承認に失敗しました');
@@ -549,6 +568,8 @@ function CancellationRequestBanner({
       const result = await response.json();
       if (result.success) {
         showError('キャンセルリクエストを拒否しました');
+        // 拒否後にバナーを即時非表示
+        setRequestDetails(null);
         onRequestProcessed();
       } else {
         showError(result.error || '拒否に失敗しました');
