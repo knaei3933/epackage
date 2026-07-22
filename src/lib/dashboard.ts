@@ -569,6 +569,11 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 
   const serviceClient = createServiceClient();
 
+  // 注文番号（ORD-...）でも UUID でも検索できるよう判定
+  // ※ 従来は UUID のみ対応で、注文字 URL（/member/orders/ORD-XXX）で 22P02 エラーになっていた
+  //    admin 側 fetchAdminOrderDetail（src/lib/admin-orders.ts:94）と同パターン
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+
   // 注文情報を取得（order_items、delivery_addresses、billing_addressesを含める）
   const { data: orderData, error: orderError } = await serviceClient
     .from('orders')
@@ -599,7 +604,7 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
         phone
       )
     `)
-    .eq('id', orderId)
+    .eq(isUuid ? 'id' : 'order_number', orderId)
     .eq('user_id', userId)
     .single();
 
