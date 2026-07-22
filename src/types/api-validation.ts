@@ -74,6 +74,13 @@ export const createCommentSchema = z.object({
   )
     .max(10, { message: '添付ファイルは最大10個までです。' })
     .optional(),
+
+  // 顧客へのメール通知要否フラグ（admin comments route でのみ使用）
+  // 注: admin route は notify_customer を取り出して通知制御に使用する。
+  //     member route は顧客自身のコメントのため使用しないが、スキーマ共有上ここで定義。
+  notify_customer: z.boolean({
+    invalid_type_error: '通知フラグは真偽値である必要があります。',
+  }).optional().default(true),
 });
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
