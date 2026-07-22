@@ -98,8 +98,8 @@ async function syncBlog(options: BlogSyncOptions = {}): Promise<BlogSyncStats> {
       return stats;
     }
 
-    // Step 3: Process images if enabled
-    if (options.processImages !== false) {
+    // Step 3: Process images if enabled (skip: images served from /public)
+    if (false && options.processImages !== false) {
       if (options.verbose) {
         console.log('🖼️  Processing images...');
       }
@@ -150,15 +150,30 @@ async function syncBlog(options: BlogSyncOptions = {}): Promise<BlogSyncStats> {
       try {
         const post = contentToBlogPost(content);
 
-        // Add image URLs if images were uploaded
-        if (post.featured_image && options.processImages !== false) {
-          // TODO: Map local image path to Supabase URL
-          post.featured_image_url = `${SUPABASE_URL}/storage/v1/object/public/blog-images/${post.featured_image}`;
-        }
+        // Map to actual DB columns: id, title, slug, content, excerpt, category, tags,
+        // meta_title, meta_description, og_image_path, canonical_url, author_id, status,
+        // published_at, created_at, updated_at, view_count, reading_time_minutes,
+        // content_type, template_data, featured
+        const dbPost: Record<string, unknown> = {
+          title: post.title,
+          slug: post.slug,
+          content: post.content_html || post.content_markdown || '',
+          excerpt: post.excerpt,
+          category: post.category,
+          tags: post.tags,
+          meta_title: post.meta_title,
+          meta_description: post.meta_description,
+          status: post.status,
+          published_at: post.published_at,
+          reading_time_minutes: post.reading_time_minutes,
+          featured: false,
+          og_image_path: post.og_image,
+          canonical_url: post.canonical_url,
+        };
 
         const { error } = await supabase
           .from('blog_posts')
-          .upsert(post, {
+          .upsert(dbPost, {
             onConflict: 'slug',
             ignoreDuplicates: false,
           });

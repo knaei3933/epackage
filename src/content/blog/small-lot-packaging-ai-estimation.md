@@ -1,14 +1,8 @@
-# 小ロットパッケージ製造の可能性 - AI見積もりで変わる包装資材調達
-
 ---
-
-## メタ情報
-
-```yaml
 title: "小ロットパッケージ製造の可能性 - AI見積もりで変わる包装資材調達"
 slug: "small-lot-packaging-ai-estimation"
 excerpt: "従来、大量生産が前提だった包装資材の世界で、小ロット製造が急速に普及しています。AIによる即時見積もりシステムが、包装資材調達のあり方を根本から変えています。"
-category: "technical"
+category: "practical-tips"
 tags:
   - 小ロット製造
   - AI見積もり
@@ -18,13 +12,15 @@ tags:
 meta_title: "小ロットパッケージ製造の可能性｜AI見積もりで変わる包装資材調達｜Epackage Lab"
 meta_description: "従来の大量生産モデルから小ロット製造へ。AI即時見積もりシステムが包装資材調達を革命。コスト削減、在庫リスク低減、市場テストの容易さを実現する新しい調達スタイルを解説します。"
 reading_time_minutes: 8
-status: "draft"
-published_at: "2026-02-19T10:00:00+09:00"
-```
-
+status: "published"
+published_at: "2026-07-22T10:00:00+09:00"
+featured_image: "/images/blog/17-ai-estimation/hero-image.png"
+og_image: "/images/blog/17-ai-estimation/hero-image.png"
 ---
 
-## 記事本文
+# 小ロットパッケージ製造の可能性 - AI見積もりで変わる包装資材調達
+
+![小ロットパッケージ製造の可能性](/images/blog/17-ai-estimation/hero-image.png)
 
 ## はじめに：包装資材調達のパラダイムシフト
 
@@ -90,6 +86,8 @@ published_at: "2026-02-19T10:00:00+09:00"
 
 ### AI即時見積もりの仕組み
 
+![AI即時見積もりシステム](/images/blog/17-ai-estimation/ai-estimation-system.png)
+
 Epackage LabのAI即時見積もりシステムは、以下のフローで動作します。
 
 ```
@@ -118,6 +116,8 @@ Epackage LabのAI即時見積もりシステムは、以下のフローで動作
 ## 3. 小ロット製造の活用シーン
 
 ### シーン1: 新商品の市場テスト
+
+![新商品の市場テスト](/images/blog/17-ai-estimation/market-test-scenario.png)
 
 **状況**: 新商品を発売するが、市場の反応が不透明
 
@@ -165,6 +165,8 @@ Epackage LabのAI即時見積もりシステムは、以下のフローで動作
 
 ### コスト構造の違い
 
+![コスト構造の比較](/images/blog/17-ai-estimation/cost-comparison.png)
+
 **大量生産モデル**:
 ```
 初期コスト（版代・段取り替え）：高
@@ -196,6 +198,8 @@ Epackage LabのAI即時見積もりシステムは、以下のフローで動作
 ## 5. 導入ガイド：まずは何から始めるべきか
 
 ### ステップ1: 現状の課題整理
+
+![導入ガイド](/images/blog/17-ai-estimation/getting-started-guide.png)
 
 まず、現在の包装資材調達でどのような課題があるか整理します。
 
