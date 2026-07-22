@@ -23,7 +23,7 @@ import { ja } from 'date-fns/locale';
 import type { Order } from '@/types/dashboard';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { OrderActions } from './OrderActions';
-import { OrderCommentsSectionWrapper, CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
+import { CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
 import { OrderInfoAccordion, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection, RevisionHistoryTimeline } from '@/components/member';
 import { OrderInquirySection } from '@/components/orders/OrderInquirySection';
 
