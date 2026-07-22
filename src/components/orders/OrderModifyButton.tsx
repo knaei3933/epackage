@@ -133,11 +133,11 @@ export function OrderModifyButton({
       // ダイアログを閉じる
       setIsOpen(false)
 
-      // コールバック実行またはページリロード
+      // コールバック実行（未渡し時は App Router の再検証でフォールバック）
       if (onOrderModified) {
         onOrderModified()
       } else {
-        window.location.reload()
+        router.refresh()
       }
 
     } catch (error: unknown) {

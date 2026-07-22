@@ -82,12 +82,19 @@ export function AdminCustomerApprovalTab({ orderId, order }: AdminCustomerApprov
       const data = await res.json();
       if (res.ok && data.success) {
         setMessage({ type: 'success', text: '承認リクエストを送信しました。' });
-        loadData();
+        // 楽観追加: result.data は full entity（DB insert .select().single()）
+        if (data.data) {
+          setApprovals(prev => [data.data, ...prev]);
+        } else {
+          // response に data が無い異常時のみ全件再フェッチで正系化
+          await loadData();
+        }
       } else {
         setMessage({ type: 'error', text: data.error || '送信に失敗しました。' });
       }
     } catch {
       setMessage({ type: 'error', text: '通信エラーが発生しました。' });
+      // 通信失敗時は状態不変のため正系化不要
     } finally {
       setSending(false);
     }

@@ -60,6 +60,9 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  // AC-5: ref mirror to keep polling effect stable (avoid re-running on every uploadedFiles change).
+  // Sync at every setUploadedFiles call site to prevent stale ref (R3 mitigation).
+  const uploadedFilesRef = useRef<UploadedFile[]>([]);
   const [dataType, setDataType] = useState<'production_data' | 'design_file' | 'specification' | 'other'>('production_data');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -92,23 +95,18 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   }, [hasMultipleItems, order.items, selectedOrderItemId]);
 
   // Poll for AI extraction results
+  // AC-5: Stabilized — depends on [isPolling, pollingRetries, order.id] only.
+  // uploadedFiles state changes no longer re-trigger this effect (preventing interval reset on every fetch).
+  // Polling is kicked explicitly from loadUploadedFiles when pending extractions are detected.
+  // The interval reads uploadedFilesRef.current (mirror) to preserve AI-extraction completion detection (R3).
   useEffect(() => {
-    // Check if any file has pending or processing status
-    const hasPendingExtractions = uploadedFiles.some(
-      file => file.aiExtractionStatus === 'pending' || file.aiExtractionStatus === 'processing'
-    );
+    if (!isPolling) return;
 
-    if (!hasPendingExtractions || pollingRetries >= MAX_POLL_RETRIES) {
-      if (isPolling) {
-        setIsPolling(false);
-        setPollingRetries(0);
-      }
+    // Stop after max retries
+    if (pollingRetries >= MAX_POLL_RETRIES) {
+      setIsPolling(false);
+      setPollingRetries(0);
       return;
-    }
-
-    // Start polling if not already active
-    if (!isPolling) {
-      setIsPolling(true);
     }
 
     // Set up polling interval
@@ -117,11 +115,11 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
         const response = await fetch(`/api/member/orders/${order.id}/data-receipt`);
         if (response.ok) {
           const data = await response.json();
-          const updatedFiles = data.data.files || [];
+          const updatedFiles = (data.data.files || []) as UploadedFile[];
 
-          // Check for newly completed extractions
+          // Check for newly completed extractions using ref (not state) to avoid stale closure
           updatedFiles.forEach((file: UploadedFile) => {
-            const previousFile = uploadedFiles.find(f => f.id === file.id);
+            const previousFile = uploadedFilesRef.current.find(f => f.id === file.id);
 
             // If status changed to completed, fetch extraction details
             if (previousFile &&
@@ -131,7 +129,20 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
             }
           });
 
+          // Update both state and ref atomically
           setUploadedFiles(updatedFiles);
+          uploadedFilesRef.current = updatedFiles;
+
+          // Stop polling when no more pending extractions remain
+          const stillPending = updatedFiles.some(
+            file => file.aiExtractionStatus === 'pending' || file.aiExtractionStatus === 'processing'
+          );
+          if (!stillPending) {
+            setIsPolling(false);
+            setPollingRetries(0);
+            return;
+          }
+
           setPollingRetries(prev => prev + 1);
         }
       } catch (err) {
@@ -141,7 +152,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
 
     // Cleanup interval when component unmounts or polling stops
     return () => clearInterval(intervalId);
-  }, [uploadedFiles, isPolling, pollingRetries, order.id]);
+  }, [isPolling, pollingRetries, order.id]);
 
   // Load uploaded files
   const loadUploadedFiles = async () => {
@@ -164,6 +175,17 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
           skuLabel: (f.sku_name as string | null) ?? null,
         }));
         setUploadedFiles(mapped);
+        // AC-5: keep ref in sync (R3 stale-ref mitigation)
+        uploadedFilesRef.current = mapped;
+        // Kick polling explicitly since the stabilized polling effect no longer
+        // re-runs on uploadedFiles changes. Reset retry counter when pending work appears.
+        const hasPendingExtractions = mapped.some(
+          f => f.aiExtractionStatus === 'pending' || f.aiExtractionStatus === 'processing'
+        );
+        if (hasPendingExtractions) {
+          setIsPolling(true);
+          setPollingRetries(0);
+        }
       }
     } catch (err) {
       console.error('Failed to load uploaded files:', err);

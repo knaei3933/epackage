@@ -82,11 +82,11 @@ export function OrderCancelButton({
       // 成功アラート表示
       alert('キャンセルリクエストを送信しました。\n管理者の承認をお待ちください。')
 
-      // 画面を更新
+      // 画面を更新（callback 未渡し時は App Router の再検証でフォールバック）
       if (onOrderCancelled) {
         onOrderCancelled()
       } else {
-        window.location.reload()
+        router.refresh()
       }
 
     } catch (error: unknown) {

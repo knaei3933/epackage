@@ -13,7 +13,6 @@
 
 'use client';
 
-import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { FileText, Download, Trash2, MessageSquare, CheckCircle, Clock, XCircle, User } from 'lucide-react';
@@ -23,38 +22,17 @@ import type { DesignRevision } from './types';
 
 interface RevisionCardProps {
   revision: DesignRevision;
-  onDelete: (revisionId: string) => void;
-  fetchFn?: typeof fetch;
+  /**
+   * 削除ハンドラ - 親コンポーネント (CorrectionRevisionsManager) が
+   * confirm ダイアログ + DELETE API 呼び出し + 楽観削除/正系化を一元管理する。
+   * 子は削除ボタンクリック時に revision.id を渡して呼び出すだけ。
+   */
+  onDelete: (revisionId: string) => void | Promise<void>;
+  /** 親側で削除処理中のとき true（ボタン無効化・"削除中..." 表示用） */
+  isDeleting?: boolean;
 }
 
-export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCardProps) {
-  const [deleting, setDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    if (!confirm(`この校正データ（${revision.revision_number}次校正）を削除してもよろしいですか？`)) {
-      return;
-    }
-
-    try {
-      setDeleting(true);
-      const response = await fetchFn(`/api/admin/orders/${revision.order_id}/correction/${revision.id}`, {
-        method: 'DELETE',
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        onDelete(revision.id);
-      } else {
-        alert(result.error || '削除に失敗しました');
-      }
-    } catch (err) {
-      console.error('Failed to delete revision:', err);
-      alert('削除に失敗しました');
-    } finally {
-      setDeleting(false);
-    }
-  };
-
+export function RevisionCard({ revision, onDelete, isDeleting = false }: RevisionCardProps) {
   const handleDownload = async () => {
     if (revision.original_file_url) {
       window.open(revision.original_file_url, '_blank');
@@ -216,12 +194,12 @@ export function RevisionCard({ revision, onDelete, fetchFn = fetch }: RevisionCa
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={() => onDelete(revision.id)}
+            disabled={isDeleting}
             className="flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
-            {deleting ? '削除中...' : '削除'}
+            {isDeleting ? '削除中...' : '削除'}
           </Button>
         </div>
       </div>

@@ -135,7 +135,13 @@ function OrderCommentsSectionBase({ orderId, currentUserId, fetchFn = fetch, com
 
       if (result.success) {
         setNewComment('');
-        await loadComments(); // Reload comments
+        // 楽観追加: result.data は full entity（.select('*').single() + author 付与済み）
+        if (result.data) {
+          setComments(prev => [result.data, ...prev]);
+        } else {
+          // response に data が無い異常時のみ正系化
+          await loadComments();
+        }
 
         // 管理者モードでメール通知が送信された場合、通知を表示
         if (isAdmin && result.emailSent) {
@@ -144,6 +150,8 @@ function OrderCommentsSectionBase({ orderId, currentUserId, fetchFn = fetch, com
         }
       } else {
         setError(result.error || 'コメントの投稿に失敗しました。');
+        // 失敗時は正系化
+        await loadComments();
       }
     } catch (err) {
       console.error('[OrderCommentsSection] Submit error:', err);
@@ -170,9 +178,12 @@ function OrderCommentsSectionBase({ orderId, currentUserId, fetchFn = fetch, com
       const result = await response.json();
 
       if (result.success) {
-        await loadComments(); // Reload comments
+        // 楽観削除
+        setComments(prev => prev.filter(c => c.id !== commentId));
       } else {
         setError(result.error || 'コメントの削除に失敗しました。');
+        // 失敗時は正系化
+        await loadComments();
       }
     } catch (err) {
       console.error('[OrderCommentsSection] Delete error:', err);
