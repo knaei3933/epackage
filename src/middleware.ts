@@ -271,8 +271,14 @@ export async function middleware(request: NextRequest) {
   // NOTE: /api/auth/* is handled above (S2.0) — it authenticates and sets
   // x-user-* headers; it is NOT exempted. Removing the old early-exemption was
   // the S2.0 fix that lets session/route.ts trust the headers.
-  // /api/debug routes for debugging (no auth required)
+  // /api/debug routes for debugging (development only)
+  // SECURITY: production 環境では debug route を封印し 404 を返す（情報漏洩防止）
+  //   - token-status: refresh_token 先頭30字を公開
+  //   - google-status: files テーブルの file_url / file_path / order_id を公開
   if (pathname.startsWith('/api/debug')) {
+    if (process.env.NODE_ENV === 'production') {
+      return addSecurityHeaders(new NextResponse('Not Found', { status: 404 }));
+    }
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] EARLY EXEMPTION for /api/debug route:', pathname);
     }
