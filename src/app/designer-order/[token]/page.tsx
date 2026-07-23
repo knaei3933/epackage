@@ -131,17 +131,29 @@ async function getDesignerOrderData(token: string) {
     return { expired: true };
   }
 
-  // Update last_accessed_at
-  await supabase
-    .from('designer_task_assignments')
-    .update({ last_accessed_at: new Date().toISOString() })
-    .eq('id', assignmentData.id);
+  // Check if assignment is cancelled
+  if (assignmentData.status === 'cancelled') {
+    console.error('[DesignerOrderPage] Assignment cancelled');
+    return { cancelled: true };
+  }
 
   const order = assignmentData.orders as any;
   if (!order) {
     console.error('[DesignerOrderPage] Order not found');
     return null;
   }
+
+  // Check if order is cancelled
+  if (order.status === 'CANCELLED') {
+    console.error('[DesignerOrderPage] Order cancelled');
+    return { cancelled: true };
+  }
+
+  // Update last_accessed_at（全チェック通過後のみ更新・cancelled token で監査ログを汚さない）
+  await supabase
+    .from('designer_task_assignments')
+    .update({ last_accessed_at: new Date().toISOString() })
+    .eq('id', assignmentData.id);
 
   // Get order items
   const { data: items, error: itemsError } = await supabase
@@ -206,8 +218,9 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
 
   // Handle invalid/expired tokens by rendering inline instead of redirect
   // This avoids RSC streaming issues with redirect()
-  if (!data || 'expired' in data) {
+  if (!data || 'expired' in data || 'cancelled' in data) {
     const isExpired = data && 'expired' in data;
+    const isCancelled = data && 'cancelled' in data;
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center p-8">
@@ -217,9 +230,11 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
           <p className="text-slate-600">
             {isExpired
               ? '링크가 만료되었습니다. 새 링크를 요청해 주세요.'
-              : tokenFormatValid
-                ? '올바른 링크인지 확인해 주세요.'
-                : '잘못된 토큰 형식입니다.'}
+              : isCancelled
+                ? '이 주문은 취소되었습니다.'
+                : tokenFormatValid
+                  ? '올바른 링크인지 확인해 주세요.'
+                  : '잘못된 토큰 형식입니다.'}
           </p>
         </div>
       </div>
