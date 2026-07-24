@@ -27,6 +27,12 @@ export const CSRF_PROTECTED_API_PATHS = [
   '/api/samples',
   '/api/b2b',
   '/api/quotation',
+  // 認証 cookie ベースの state-changing API に Origin 検証を適用。
+  // GET リクエストは validateCSRFRequest で自動 skip される（csrf.ts L52 の
+  // `method === 'GET'` 判定で valid:true を返す）ため、GET への影響はなし。
+  // POST/PUT/DELETE/PATCH のみ Origin/Referer 検証の対象となる。
+  '/api/admin',
+  '/api/member',
 ];
 
 // CSRF検証から除外するAPIパス (公開API)
@@ -38,7 +44,6 @@ export const CSRF_EXEMPT_API_PATHS = [
   '/api/config', // Public config API for maintenance mode and settings
   '/api/products', // Public catalog API
   '/api/categories', // Public categories API
-  '/api/member', // Member API - handles its own auth via SSR
   '/api/comparison', // Comparison API - handles client-side data
   '/api/upload', // Phase 4: Token-based designer upload API (public, token-based auth)
   '/api/chat', // Chatbot API - public customer support chat (LM Studio via Cloudflare Tunnel)

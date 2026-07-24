@@ -1,16 +1,37 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
-  // Verify CRON_SECRET authorization
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+export const dynamic = 'force-dynamic';
 
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+export async function GET(request: Request) {
+  // =====================================================
+  // Cron Secret Verification
+  // archive-orders/route.ts と同一パターン。
+  // 従来は `Bearer ${cronSecret}` の直接比較だったため、CRON_SECRET が
+  // 未設定 (undefined) のとき `Bearer undefined` との比較になり、攻撃者が
+  // `Bearer undefined` ヘッダーを送れば認証を通過できた。
+  // 未設定なら production は 500（設定エラー）・dev は警告して通す。
+  // =====================================================
+  const CRON_SECRET = process.env.CRON_SECRET;
+  const authHeader = request.headers.get('authorization');
+  const expectedAuth = CRON_SECRET ? `Bearer ${CRON_SECRET}` : null;
+
+  if (CRON_SECRET) {
+    if (!authHeader || authHeader !== expectedAuth) {
+      console.warn('[Cron publish-scheduled-posts] ⚠️ Unauthorized access attempt - Invalid or missing auth header');
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Valid CRON_SECRET authorization header required' },
+        { status: 401 }
+      );
+    }
+  } else if (process.env.NODE_ENV === 'production') {
+    console.warn('[Cron publish-scheduled-posts] ⚠️ CRON_SECRET not set in production');
     return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
+      { error: 'Server configuration error', message: 'CRON_SECRET environment variable is required' },
+      { status: 500 }
     );
+  } else {
+    console.log('[Cron publish-scheduled-posts] ⚠️ Running in dev mode without CRON_SECRET (for testing only)');
   }
 
   // Create Supabase client with service role key
