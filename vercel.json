@@ -91,5 +91,15 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "crons": [
+    {
+      "path": "/api/cron/archive-orders",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/publish-scheduled-posts",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
