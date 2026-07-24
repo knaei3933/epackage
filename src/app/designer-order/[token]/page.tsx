@@ -14,7 +14,6 @@ import { notFound, redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase';
 import { hashToken, isTokenExpired } from '@/lib/designer-tokens';
 import { DesignerOrderTokenClient } from './DesignerOrderTokenClient';
-import * as crypto from 'crypto';
 
 // ============================================================
 // Types
@@ -95,9 +94,7 @@ async function getDesignerOrderData(token: string) {
   const supabase = createServiceClient();
 
   // Hash the token to compare with stored hash
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-  console.log('[DesignerOrderPage] Looking up token hash:', tokenHash);
+  const tokenHash = hashToken(token);
 
   // Get the designer task assignment record
   const { data: assignmentData, error: assignmentError } = await supabase
@@ -116,9 +113,6 @@ async function getDesignerOrderData(token: string) {
     `)
     .eq('access_token_hash', tokenHash)
     .maybeSingle();
-
-  console.log('[DesignerOrderPage] Assignment data:', assignmentData);
-  console.log('[DesignerOrderPage] Assignment error:', assignmentError);
 
   if (assignmentError || !assignmentData) {
     console.error('[DesignerOrderPage] Token not found or invalid:', assignmentError);

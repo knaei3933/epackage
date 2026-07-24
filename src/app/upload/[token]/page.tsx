@@ -15,7 +15,6 @@ import { notFound, redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase';
 import { hashToken, isTokenExpired } from '@/lib/designer-tokens';
 import { TokenUploadClient } from './TokenUploadClient';
-import * as crypto from 'crypto';
 
 // ============================================================
 // Types
@@ -85,9 +84,7 @@ async function getTokenUploadData(token: string) {
   const supabase = createServiceClient();
 
   // Hash the token to compare with stored hash
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-  console.log('[TokenUploadPage] Looking up token hash:', tokenHash);
+  const tokenHash = hashToken(token);
 
   // Get the designer upload token record
   const { data: tokenData, error: tokenError } = await supabase
@@ -106,9 +103,6 @@ async function getTokenUploadData(token: string) {
     `)
     .eq('token_hash', tokenHash)
     .maybeSingle();
-
-  console.log('[TokenUploadPage] Token data:', tokenData);
-  console.log('[TokenUploadPage] Token error:', tokenError);
 
   if (tokenError || !tokenData) {
     console.error('[TokenUploadPage] Token not found or invalid:', tokenError);

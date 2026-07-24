@@ -11,6 +11,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { generateUploadToken, hashToken } from '@/lib/designer-tokens';
+import { logger } from '@/lib/logger';
 
 /**
  * Generate and store access token for designer task assignment
@@ -165,49 +166,6 @@ export function getDesignerOrderAccessUrl(
 }
 
 /**
- * Revoke access token for an assignment
- *
- * Invalidates an existing access token by clearing the token hash.
- * Useful when reassigning orders or when designer access should be revoked.
- *
- * @param assignmentId - The designer_task_assignments record ID
- * @returns true if revoked successfully, false otherwise
- *
- * @example
- * ```ts
- * const revoked = await revokeTaskAccessToken('assignment-123');
- * if (revoked) {
- *   console.log('Token revoked successfully');
- * }
- * ```
- */
-export async function revokeTaskAccessToken(
-  assignmentId: string
-): Promise<boolean> {
-  try {
-    const supabase = await createClient();
-
-    const { error } = await supabase
-      .from('designer_task_assignments')
-      .update({
-        access_token_hash: null,
-        access_token_expires_at: null,
-      })
-      .eq('id', assignmentId);
-
-    if (error) {
-      console.error('[revokeTaskAccessToken] Failed:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('[revokeTaskAccessToken] Error:', error);
-    return false;
-  }
-}
-
-/**
  * Check if token exists and is valid for an assignment
  *
  * Utility function to check if an assignment has an active access token.
@@ -249,5 +207,60 @@ export async function checkTaskAccessToken(
   } catch (error) {
     console.error('[checkTaskAccessToken] Error:', error);
     return { hasToken: false, expiresAt: null };
+  }
+}
+
+/**
+ * Cancel a designer task assignment
+ *
+ * 単一クライアントで連続 UPDATE を行い、タスク割当をキャンセルし、
+ * 同時にアクセストークンを無効化（hash/expires_at を null 化）する。
+ * これによりキャンセル済み割当のトークン再利用を防止する。
+ *
+ * AC-2: `.select('id')` で影響行数を検証する。
+ * PostgREST は該当行が 0 件でも error=null を返すため、
+ * error チェックだけでは「該当行なし」を検知できない。
+ *
+ * @param assignmentId - The designer_task_assignments record ID
+ * @param actor - キャンセルを実行した主体（監査ログ用）
+ * @returns success=true で更新成功、affectedRows に影響を受けた行数
+ */
+export async function cancelDesignerTask(
+  assignmentId: string,
+  actor: { source: string; adminUserId?: string }
+): Promise<{ success: boolean; affectedRows: number }> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('designer_task_assignments')
+      .update({
+        status: 'cancelled',
+        access_token_hash: null,
+        access_token_expires_at: null,
+      })
+      .eq('id', assignmentId)
+      .select('id');
+
+    if (error) {
+      logger.error('designer_task.cancel_failed', { assignmentId, actor, error });
+      return { success: false, affectedRows: 0 };
+    }
+
+    const affected = Array.isArray(data) ? data.length : 0;
+    if (affected === 0) {
+      return { success: false, affectedRows: 0 };
+    }
+
+    logger.info('designer_task.cancelled', {
+      assignmentId,
+      actor,
+      timestamp: new Date().toISOString(),
+    });
+
+    return { success: true, affectedRows: affected };
+  } catch (error) {
+    logger.error('designer_task.cancel_error', { assignmentId, actor, error });
+    return { success: false, affectedRows: 0 };
   }
 }
