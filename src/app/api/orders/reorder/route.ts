@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase'
+import { logger, maskEmail } from '@/lib/logger'
 import {
   getOrderDetails,
   duplicateOrder,
@@ -173,14 +174,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log reorder
-    console.log('[Reorder] Order reordered:', {
+    // Log reorder（security-reviewer M-1: customerEmail は maskEmail で難読化・PII 保護）
+    logger.info('order_reorder.success', {
       originalOrderId,
       originalOrderNumber: originalOrder.order_number,
       newOrderId,
       newOrderNumber: newOrder.order_number,
       userId: userIdForDb,
-      customerEmail: user.email,
+      customerEmail: maskEmail(user.email),
     })
 
     return NextResponse.json({

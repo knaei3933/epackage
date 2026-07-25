@@ -41,6 +41,24 @@ function InvalidTokenContent() {
           messageJa: 'このリンクの有効期限が切れました。新しいリンクをリクエストしてください。',
           code: 'ERROR_TOKEN_EXPIRED',
         };
+      case 'revoked':
+        return {
+          icon: XCircle,
+          titleKo: '비활성화된 링크입니다',
+          titleJa: 'このリンクは無効化されています',
+          messageKo: '보안상 이 링크가 비활성화되었습니다. 새로운 링크를 요청해 주세요.',
+          messageJa: 'セキュリティ上、このリンクは無効化されました。新しいリンクをリクエストしてください。',
+          code: 'ERROR_TOKEN_REVOKED',
+        };
+      case 'used':
+        return {
+          icon: AlertCircle,
+          titleKo: '이미 사용된 링크입니다',
+          titleJa: 'このリンクは既に使用済みです',
+          messageKo: '이 링크는 이미 사용되었습니다. 추가 업로드가 필요한 경우 새로운 링크를 요청해 주세요.',
+          messageJa: 'このリンクは既に使用されました。追加アップロードが必要な場合は新しいリンクをリクエストしてください。',
+          code: 'ERROR_TOKEN_USED',
+        };
       case 'cancelled':
         return {
           icon: XCircle,

@@ -14,6 +14,7 @@ import { Database } from '@/types/database';
 import { z } from 'zod';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import { logger, maskEmail } from '@/lib/logger';
 
 // ============================================================
 // Types
@@ -114,7 +115,7 @@ async function sendApprovalEmail(
         }
       );
 
-      console.log('[User Approval] Approval email sent to:', email);
+      logger.info('[User Approval] Approval email sent', { to: maskEmail(email) });
     } else {
       // Rejection email
       const subject = '[EPackage Lab] 会員登録につきまして';
@@ -183,7 +184,7 @@ ${reason ? `理由: ${reason}` : ''}
         { html, text }
       );
 
-      console.log('[User Approval] Rejection email sent to:', email);
+      logger.info('[User Approval] Rejection email sent', { to: maskEmail(email) });
     }
   } catch (error) {
     console.error('[User Approval] Email send error:', error);

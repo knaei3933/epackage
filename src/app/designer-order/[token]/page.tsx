@@ -119,16 +119,20 @@ async function getDesignerOrderData(token: string) {
     return null;
   }
 
-  // Check if token is expired
-  if (assignmentData.access_token_expires_at && isTokenExpired(new Date(assignmentData.access_token_expires_at))) {
-    console.error('[DesignerOrderPage] Token expired');
-    return { expired: true };
-  }
-
-  // Check if assignment is cancelled
+  // Check if assignment is cancelled（期限切れより優先・キャンセル意図を明示）
+  // AC-6: cancelDesignerTask は status='cancelled' と同時に
+  //   access_token_expires_at = NOW()（即時期限切れ）を設定して無効化する。
+  // そのため expired 判定を先に行うと、キャンセル済み token が「期限切れ」として
+  // 先に弾かれてしまう。キャンセル意図を正しく表示するため status 判定を先に行う。
   if (assignmentData.status === 'cancelled') {
     console.error('[DesignerOrderPage] Assignment cancelled');
     return { cancelled: true };
+  }
+
+  // Check if token is expired（キャンセル以外で access_token_expires_at を過ぎた場合）
+  if (assignmentData.access_token_expires_at && isTokenExpired(new Date(assignmentData.access_token_expires_at))) {
+    console.error('[DesignerOrderPage] Token expired');
+    return { expired: true };
   }
 
   const order = assignmentData.orders as any;

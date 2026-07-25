@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { cancelDesignerTasksForOrder } from '@/lib/order-cancellation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -79,6 +80,38 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('[BulkStatusUpdate] DB Error:', error);
       throw error;
+    }
+
+    // [連動] CANCELLED に一括更新された場合、各注文の designer_task_assignments をキャンセル（Option A）
+    // designer 側失敗は警告ログのみで一括更新は維持（緩い整合性）
+    if (String(status).toUpperCase() === 'CANCELLED') {
+      for (const oid of order_ids) {
+        try {
+          // verifier Gap-1 対応: 第3引数に service role client（L68 生成済み）を注入。
+          // verifyAdminAuth は Bearer token 優先（auth-helpers L86-112）で cookie に依存しないが、
+          // cancelDesignerTasksForOrder のデフォルト client（cookie SSR）は cookie 有無で RLS が変わる。
+          // service role を注入し cookie 依存を排除して確実に UPDATE させる（member 経路 L139 と対称）。
+          const designerResult = await cancelDesignerTasksForOrder(
+            String(oid),
+            {
+              source: 'order_bulk_status',
+              adminUserId: auth.userId,
+            },
+            supabase
+          );
+          if (designerResult.errors.length > 0) {
+            console.warn('[BulkStatusUpdate] designer task cancel partial failure:', {
+              orderId: oid,
+              errors: designerResult.errors,
+            });
+          }
+        } catch (designerCancelError) {
+          console.warn('[BulkStatusUpdate] designer task cancel error:', {
+            orderId: oid,
+            error: designerCancelError,
+          });
+        }
+      }
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3・orders 一括ステータス更新）

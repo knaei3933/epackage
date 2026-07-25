@@ -124,7 +124,6 @@ export async function POST(
       if (!updateError) {
         accessToken = rawToken;
         needsTokenUpdate = true;
-        console.log('[Designer Notify] Generated new access token for order:', orderId);
       } else {
         console.error('[Designer Notify] Failed to update access token:', updateError);
       }
@@ -153,7 +152,6 @@ export async function POST(
       }
 
       accessToken = rawToken;
-      console.log('[Designer Notify] Generated fresh access token for notification');
     }
 
     // Get uploaded files

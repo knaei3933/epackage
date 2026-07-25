@@ -109,16 +109,34 @@ async function getTokenUploadData(token: string) {
     return null;
   }
 
-  // Check if token is expired
-  if (isTokenExpired(new Date(tokenData.expires_at))) {
-    console.error('[TokenUploadPage] Token expired');
-    return { expired: true };
-  }
-
-  // Check if token is active
+  // Check token status semantics (revoked / used / expired / cancelled)
+  // Phase2 ② で revokeUploadToken 経路が整備されたため、status ごとに
+  // 適切な表示へ振り分ける（従来は全て「キャンセル」扱いで誤解を招いていた）
+  // ※ DB status を正とし、isTokenExpired(expires_at) は status='active' の
+  //    実期限切れを拾うフォールバックとして後段に置く（revoke 後に expires_at を
+  //    過ぎても revoked 表示が優先されるよう、status 判定を先に行う）
   if (tokenData.status !== 'active') {
+    if (tokenData.status === 'revoked') {
+      console.error('[TokenUploadPage] Token revoked');
+      return { revoked: true };
+    }
+    if (tokenData.status === 'used') {
+      console.error('[TokenUploadPage] Token already used');
+      return { used: true };
+    }
+    if (tokenData.status === 'expired') {
+      console.error('[TokenUploadPage] Token expired (status flag)');
+      return { expired: true };
+    }
+    // 未知の status 値は既存挙動（cancelled 扱い）を維持
     console.error('[TokenUploadPage] Token not active:', tokenData.status);
     return { cancelled: true };
+  }
+
+  // status='active' でも実期限切れの場合のフォールバック判定
+  if (isTokenExpired(new Date(tokenData.expires_at))) {
+    console.error('[TokenUploadPage] Token expired (expires_at)');
+    return { expired: true };
   }
 
   const order = tokenData.orders as any;
@@ -183,7 +201,17 @@ export default async function TokenUploadPage({ params }: TokenUploadPageProps) 
     redirect('/upload/invalid?reason=expired');
   }
 
-  // Handle cancelled correction
+  // Handle revoked token（トークン無効化）
+  if ('revoked' in data) {
+    redirect('/upload/invalid?reason=revoked');
+  }
+
+  // Handle used token（使用済み）
+  if ('used' in data) {
+    redirect('/upload/invalid?reason=used');
+  }
+
+  // Handle cancelled correction（注文キャンセル連動・Phase3-1 で order 側から設定される場合あり）
   if ('cancelled' in data) {
     redirect('/upload/invalid?reason=cancelled');
   }

@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email-order';
+import { logger, maskEmail } from '@/lib/logger';
 
 // ============================================================
 // Types
@@ -239,14 +240,14 @@ export async function POST(request: NextRequest) {
       console.warn('[Order Creation] Order created but quotation item order_id not updated');
     }
 
-    // Log order creation
-    console.log('[Order Creation] Order created from quotation item:', {
+    // Log order creation（security-reviewer M-1: customerEmail は maskEmail で難読化・PII 保護）
+    logger.info('order_create.success', {
       orderId: order.id,
       orderNumber: order.order_number,
       quotationId,
       quotationItemId,
       userId: userIdForDb,
-      customerEmail: user.email,
+      customerEmail: maskEmail(user.email),
     });
 
     // Send confirmation email to customer (non-blocking)

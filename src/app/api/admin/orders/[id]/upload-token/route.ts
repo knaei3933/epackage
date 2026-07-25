@@ -20,6 +20,7 @@ import { verifyAdminAuth } from '@/lib/auth-helpers';
 import { generateUploadToken } from '@/lib/designer-tokens';
 import { sendTemplatedEmail, createRecipient } from '@/lib/email';
 import type { DesignerTokenUploadEmailData } from '@/lib/email-templates';
+import { logger, maskEmail } from '@/lib/logger';
 
 // ============================================================
 // Types
@@ -68,7 +69,6 @@ export async function POST(
     console.log('[Admin Upload Token] ========================================');
     console.log('[Admin Upload Token] POST request received');
     console.log('[Admin Upload Token] Order ID:', orderId);
-    console.log('[Admin Upload Token] Admin User ID:', auth.userId);
 
     // Parse request body
     const body = await request.json() as CreateTokenRequest;
@@ -141,12 +141,6 @@ export async function POST(
     // Generate token using utility function
     const { rawToken, tokenHash, tokenPrefix, expiresAt } = generateUploadToken(expires_in_days);
 
-    console.log('[Admin Upload Token] Token generated:', {
-      prefix: tokenPrefix,
-      expiresAt: expiresAt.toISOString(),
-      expiresInDays: expires_in_days
-    });
-
     // Build upload URL
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://package-lab.com';
     const uploadUrl = `${siteUrl}/upload/${rawToken}`;
@@ -182,11 +176,6 @@ export async function POST(
       return NextResponse.json(errorResponse, { status: 500 });
     }
 
-    console.log('[Admin Upload Token] Token saved:', {
-      id: insertedToken.id,
-      prefix: insertedToken.token_prefix
-    });
-
     // Send email if requested
     let emailSent = false;
     if (send_email && designer_email) {
@@ -210,8 +199,8 @@ export async function POST(
 
         if (emailResult.success) {
           emailSent = true;
-          console.log('[Admin Upload Token] Email sent successfully:', {
-            to: designer_email,
+          logger.info('[Admin Upload Token] Email sent successfully', {
+            to: maskEmail(designer_email),
             messageId: emailResult.messageId
           });
         } else {
@@ -234,12 +223,6 @@ export async function POST(
       },
       email_sent: emailSent,
     };
-
-    console.log('[Admin Upload Token] Token created successfully:', {
-      tokenId: insertedToken.id,
-      tokenPrefix: insertedToken.token_prefix,
-      emailSent
-    });
 
     return NextResponse.json(response);
   } catch (error: unknown) {
