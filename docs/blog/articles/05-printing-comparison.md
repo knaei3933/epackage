@@ -11,6 +11,8 @@
 ## リード文
 
 「パッケージを製造したいけれど、どの印刷方式を選べばいいかわからない」
+![比較](/images/blog/05-printing-comparison/05-comparison-table-01.png)
+
 
 グラビア印刷とデジタル印刷。どちらもパッケージ印刷で一般的ですが、それぞれに特徴があり、適したシーンが異なります。「大量生産ならグラビア？」「小ロットならデジタル？」といった疑問は、パッケージ製造を検討する多くの事業者が抱えるものです。
 
@@ -44,6 +46,8 @@
 ### Package-Labで対応している方式
 
 Package-Labでは、以下の2つの印刷方式を提供しています。
+![比較](/images/blog/05-printing-comparison/05-comparison-table-01.png)
+
 
 - **デジタル印刷**: 300Mから製造可能な小ロット向け
 - **グラビア印刷**: 6,000M以上の大量生産向け（提携工場）
@@ -53,6 +57,8 @@ Package-Labでは、以下の2つの印刷方式を提供しています。
 ## 2. グラビア印刷の特徴
 
 グラビア印刷（Gravure Printing）は、凹版を使用する代表的な印刷方式です。
+![コスト](/images/blog/05-printing-comparison/05-cost-crossover-01.png)
+
 
 ### 仕組み
 
@@ -90,6 +96,8 @@ Package-Labでは、以下の2つの印刷方式を提供しています。
 ## 3. デジタル印刷の特徴
 
 デジタル印刷（Digital Printing）は、データから直接印刷する方式です。
+![品質比較](/images/blog/05-printing-comparison/05-selection-guide-01.png)
+
 
 ### 仕組み
 

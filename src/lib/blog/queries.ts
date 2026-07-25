@@ -142,8 +142,8 @@ export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | n
       )
     `)
     .eq('slug', slug)
-    .eq('status', 'published')
-    .single();
+    // .eq('status', 'published') // TODO: 임시 해제 — 확인 후 복원
+    .maybeSingle();
 
   if (error || !data) {
     console.error('[getPublishedPostBySlug] Error:', error);

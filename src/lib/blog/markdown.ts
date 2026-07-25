@@ -104,10 +104,7 @@ const customRenderer = {
     const altText = (text || title || '').replace(/"/g, '&quot;');
     const titleAttr = title ? ` title="${title.replace(/"/g, '&quot;')}"` : '';
 
-    return `<picture>
-  <source srcset="${webpSrc}" type="image/webp">
-  <img src="${href}" alt="${altText}"${titleAttr} loading="lazy" width="${dims.width}" height="${dims.height}" style="max-width: 100%; height: auto;">
-</picture>`;
+    return `<img src="${href}" alt="${altText}"${titleAttr} loading="lazy" width="${dims.width}" height="${dims.height}" style="max-width: 100%; height: auto;">`
   },
 };
 

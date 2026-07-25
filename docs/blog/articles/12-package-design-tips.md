@@ -7,6 +7,8 @@
 ## リード文
 
 「デザインは苦手...」「どうすれば売れるパッケージが作れるかわからない」そんなお悩みを抱えていませんか？
+![チェックリスト](/images/blog/12-package-design-basics/12-three-principles-01.png)
+
 
 パッケージデザインは、商品の顔であり、消費者の目に留まる最初の触点です。しかし、デザイン経験がない方にとっては、どこから手をつけていいか分からずに迷ってしまうことも多いでしょう。「美しい」だけでなく「売れる」デザインを作るには、特定のルールやコツがあります。
 
@@ -94,7 +96,7 @@
 - 分かりやすい表記方法
 - 消費者に響くコピー
 
-![3原則の図解](/images/blog/12-package-design-basics/12-section-01.png)
+![3原則の図解](/images/blog/12-package-design-basics/12-layout-zones-01.png)
 
 ---
 
@@ -170,7 +172,7 @@
 - **階層化**: 重要な情報を上段に配置
 - **余白**: 読みやすさのための余白を確保
 
-![レイアウト構造図](/images/blog/12-package-design-basics/12-layout-01.png)
+![レイアウト構造図](/images/blog/12-package-design-basics/12-layout-zones-01.png)
 
 ---
 
@@ -263,7 +265,7 @@
 - **遠くから見えるか**: 陳列された状態を想定
 - **暗い場所でも読めるか**: 照明を想定
 
-![色彩心理図](/images/blog/12-package-design-basics/12-colors-01.png)
+![色彩心理図](/images/blog/12-package-design-basics/12-color-font-guide-01.png)
 
 ---
 

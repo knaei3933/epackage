@@ -11,6 +11,8 @@
 ## リード文
 
 「オリジナルパッケージを作りたいけれど、どこから始めればいいかわからない」
+![メリット](/images/blog/03-small-lot-guide/03-comparison-01.png)
+
 
 そんな声を多く耳にします。初めてのOEMパッケージ発注では、見積もりの取り方から発注フローまで、分からないことが多いものです。「数千個単位で発注しないとダメなの？」「デザインはどうすればいいの？」といった悩みは非常に一般的です。
 
@@ -34,6 +36,8 @@
 ## 1. 小ロットOEMパッケージとは
 
 OEM（Original Equipment Manufacturing）パッケージは、自社ブランドのオリジナルパッケージを製造することを指します。
+![比較](/images/blog/03-small-lot-guide/03-comparison-01.png)
+
 
 **小ロットの定義:**
 
@@ -59,6 +63,8 @@ OEM（Original Equipment Manufacturing）パッケージは、自社ブランド
 ### メリット1: 在庫リスクの最小化
 
 大量発注では売れ残りのリスクがありますが、小ロットではその心配がありません。
+![発注フロー](/images/blog/03-small-lot-guide/03-ordering-flow-01.png)
+
 
 - テスト販売に最適
 - トレンドの変化に迅速対応
@@ -94,6 +100,8 @@ OEM（Original Equipment Manufacturing）パッケージは、自社ブランド
 ## 3. スマート見積りの使い方
 
 Package-Labの「スマート見積り」は、会員登録なしで即座に価格を確認できるツールです。
+![工程フロー](/images/blog/03-small-lot-guide/03-ordering-flow-01.png)
+
 
 ### アクセス方法
 
