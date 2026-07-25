@@ -4,6 +4,7 @@
  */
 
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getPublishedPosts, getTagsWithCounts } from '@/lib/blog/queries';
 import { BlogGrid } from '@/components/blog/BlogCard';
@@ -63,6 +64,12 @@ export default async function BlogTagPage({
     limit: 12,
     tag,
   });
+
+  // Soft 404 対策: 該当タグの記事が0件、またはページ範囲外の場合は 404 を返す
+  // （total=0 なら totalPages=0 となり page(>=1) > 0 で notFound 発火）
+  if (page > postsData.totalPages) {
+    notFound();
+  }
 
   // Get all tags for sidebar
   const allTags = await getTagsWithCounts();

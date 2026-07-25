@@ -68,9 +68,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
-  },
-  other: {
-    'rss': '/rss.xml',
+    types: {
+      // RSS auto-discovery: RSS リーダーが自動検出するための <link rel="alternate">
+      'application/rss+xml': [{ url: '/rss.xml', title: 'Epackage Lab ブログ RSS' }],
+    },
   },
   openGraph: {
     type: 'website',

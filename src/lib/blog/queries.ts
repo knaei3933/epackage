@@ -18,6 +18,7 @@ export async function getPublishedPosts(params: BlogListParams = {}): Promise<Bl
     page = 1,
     limit = 12,
     category,
+    tag,
     search,
     sortBy = 'published_at',
     sortOrder = 'desc',
@@ -33,6 +34,11 @@ export async function getPublishedPosts(params: BlogListParams = {}): Promise<Bl
 
   if (category) {
     query = query.eq('category', category);
+  }
+
+  if (tag) {
+    // タグフィルタ: tags 配列（text[]）に tag を含む記事
+    query = query.contains('tags', [tag]);
   }
 
   if (search) {
@@ -57,8 +63,8 @@ export async function getPublishedPosts(params: BlogListParams = {}): Promise<Bl
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  // Fetch posts with author data
-  const { data: posts, error } = await supabase
+  // Fetch posts with author data（count query と同じフィルタを適用）
+  let dataQuery = supabase
     .from('blog_posts')
     .select(`
       id,
@@ -80,7 +86,22 @@ export async function getPublishedPosts(params: BlogListParams = {}): Promise<Bl
         kanji_first_name
       )
     `)
-    .eq('status', 'published')
+    .eq('status', 'published');
+
+  if (category) {
+    dataQuery = dataQuery.eq('category', category);
+  }
+
+  if (tag) {
+    // タグフィルタ: tags 配列（text[]）に tag を含む記事
+    dataQuery = dataQuery.contains('tags', [tag]);
+  }
+
+  if (search) {
+    dataQuery = dataQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
+  }
+
+  const { data: posts, error } = await dataQuery
     .order(sortBy, { ascending: sortOrder === 'asc' })
     .range(from, to);
 

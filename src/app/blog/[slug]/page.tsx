@@ -14,6 +14,7 @@ import { ShareButtons } from '@/components/blog/ShareButtons';
 import { RelatedPosts } from '@/components/blog/RelatedPosts';
 import { ArticleCTA } from '@/components/blog/ArticleCTA';
 import { ScrollToAnchor } from '@/components/blog/ScrollToAnchor';
+import { ScrollDepthTracker } from '@/components/blog/ScrollDepthTracker';
 import { getCategoryLabel } from '@/lib/types/blog';
 import { seoUtils } from '@/lib/blog/seo';
 import { Calendar, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -56,9 +57,10 @@ export async function generateMetadata(
   const isExternalCanonical = Boolean(
     post.canonical_url && !post.canonical_url.includes('package-lab.')
   );
+  // og_image_path がある記事は専用OG画像、ない記事は動的OGP（opengraph-image.tsx）に委譲
   const imageUrl = post.og_image_path
     ? (post.og_image_path.startsWith('http') ? post.og_image_path : `${baseUrl}${post.og_image_path}`)
-    : `${baseUrl}/images/og-image.jpg`;
+    : undefined;
 
   return {
     // title 本体のみ（blog/layout.tsx の template "%s | Epackage Lab ブログ" が適用される）
@@ -72,14 +74,9 @@ export async function generateMetadata(
       title: post.meta_title || post.title,
       description: post.meta_description || post.excerpt || '',
       siteName: 'Epackage Lab',
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        },
-      ],
+      images: imageUrl
+        ? [{ url: imageUrl, width: 1200, height: 630, alt: post.title }]
+        : undefined, // 動的 OGP（opengraph-image.tsx）へ委譲
       publishedTime: post.published_at || undefined,
       modifiedTime: post.updated_at,
       authors: post.author ? [(post.author as any).name] : undefined,
@@ -90,7 +87,7 @@ export async function generateMetadata(
       card: 'summary_large_image',
       title: post.meta_title || post.title,
       description: post.meta_description || post.excerpt || '',
-      images: [imageUrl],
+      images: imageUrl ? [imageUrl] : undefined, // 動的 OGP（opengraph-image.tsx）へ委譲
       creator: '@epackage_lab',
     },
     alternates: {
@@ -167,6 +164,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     <>
       <BreadcrumbJsonLd pathname={`/blog/${slug}`} />
       <ScrollToAnchor />
+      {/* スクロール深度計測（25/50/75/100% 到達で GA4 イベント発火） */}
+      <ScrollDepthTracker articleId={post.id} />
       {/* Structured Data */}
       <script
         type="application/ld+json"

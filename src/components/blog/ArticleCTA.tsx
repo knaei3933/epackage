@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { MessageSquare, FileText } from 'lucide-react';
+import { pushToDataLayer } from '@/lib/analytics/dataLayer';
 
 interface ArticleCTAProps {
   variant?: 'mid-article' | 'end-article';
@@ -47,6 +48,7 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
           href="/contact"
+          onClick={() => pushToDataLayer('cta_click', { cta_type: 'contact', location: variant })}
           className="
             inline-flex items-center justify-center gap-2
             min-h-[44px] min-w-[44px]
@@ -64,6 +66,7 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
 
         <Link
           href="/quote-simulator"
+          onClick={() => pushToDataLayer('cta_click', { cta_type: 'quote', location: variant })}
           className="
             inline-flex items-center justify-center gap-2
             min-h-[44px] min-w-[44px]
