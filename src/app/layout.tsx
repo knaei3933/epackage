@@ -19,6 +19,7 @@ import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
 import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal";
 import { WebVitals } from "@/components/analytics/WebVitals";
+import { CookieConsentBanner } from "@/components/analytics/CookieConsentBanner";
 import { GA4_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/analytics/dataLayer";
 import { SWRConfig } from "swr";
 import { SITE_URL } from "@/lib/seo/canonical";
@@ -144,6 +145,14 @@ export default function RootLayout({
             __html: `
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+    // Consent Mode v2: 同意取得前は全 denied（法令対応・2025年4月個人情報保護法改正）
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage': 'denied',
+      'wait_for_update': 500
+    });
     gtag('js', new Date());
     gtag('config', '${GA4_MEASUREMENT_ID}');
     gtag('config', '${GOOGLE_ADS_ID}');
@@ -199,6 +208,7 @@ export default function RootLayout({
                   <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
                   <Footer />
                   <ChatWidget />
+                  <CookieConsentBanner />
                   {/* InactivityWarningModal only for logged-in users */}
                   {/* <InactivityWarningModal /> */}
                 </LanguageProvider>
