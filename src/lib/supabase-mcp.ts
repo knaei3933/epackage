@@ -365,33 +365,6 @@ export async function createNotification(
 }
 
 /**
- * 複数の注文取得（PDFエクスポート用）
- * @param orderIds 注文ID配列
- */
-export async function getOrdersForExport(orderIds: string[]): Promise<SqlResult<any>> {
-  return executeSql(
-    `
-    SELECT
-      o.*,
-      json_agg(
-        json_build_object(
-          'product_name', oi.product_name,
-          'quantity', oi.quantity,
-          'unit_price', oi.unit_price,
-          'total_price', oi.total_price
-        )
-      ) as items
-    FROM orders o
-    LEFT JOIN order_items oi ON o.id = oi.order_id
-    WHERE o.id = ANY($1)
-    GROUP BY o.id
-    ORDER BY o.created_at DESC
-    `,
-    [orderIds] as any
-  )
-}
-
-/**
  * デバッグ用: クエリログ出力
  */
 export function logQuery(query: string, params: unknown[]): void {

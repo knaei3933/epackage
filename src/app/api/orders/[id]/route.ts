@@ -188,10 +188,24 @@ interface UpdateOrderRequest {
   deliveryNotes?: string | null;
 }
 
+// 生産前のすべて（CANCELLABLE_STATUSES と対称・バグA フォローアップ）
 const MODIFIABLE_STATUSES = [
   'PENDING',
   'QUOTATION',
   'DATA_RECEIVED',
+  'WORK_ORDER',
+  'CONTRACT_SENT',
+  'CONTRACT_SIGNED',
+  'QUOTATION_PENDING',
+  'QUOTATION_APPROVED',
+  'DATA_UPLOAD_PENDING',
+  'DATA_UPLOADED',
+  'CORRECTION_IN_PROGRESS',
+  'CORRECTION_COMPLETED',
+  'CUSTOMER_APPROVAL_PENDING',
+  'MODIFICATION_REQUESTED',
+  'MODIFICATION_APPROVED',
+  'MODIFICATION_REJECTED',
 ] as unknown as OrderStatus[];
 
 export async function PUT(
