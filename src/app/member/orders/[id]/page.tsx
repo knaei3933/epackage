@@ -45,8 +45,8 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
     notFound();
   }
 
-  // ステータス履歴を取得
-  const statusHistory = await getOrderStatusHistory(orderId);
+  // ステータス履歴を取得（WS-3: order.id の UUID を渡す・orderId は URL param で order_number の可能性があるため）
+  const statusHistory = await getOrderStatusHistory(order.id);
 
   return (
     <div className="space-y-6">

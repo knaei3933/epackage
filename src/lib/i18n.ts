@@ -243,7 +243,6 @@ export interface TranslationKeys {
     }
     success: {
       correctionUploaded: string
-      notificationSent: string
     }
     nav: {
       dashboard: string

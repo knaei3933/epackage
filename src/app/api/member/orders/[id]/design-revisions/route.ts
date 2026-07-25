@@ -342,10 +342,11 @@ export async function PATCH(
       }
     }
 
+    // Notification infrastructure intentionally not implemented. Response is explicit about this.
     return NextResponse.json({
       success: true,
       revision: updatedRevision,
-      notificationSent: true, // TODO: Implement actual email notification
+      notificationSent: false,
     });
 
   } catch (error) {

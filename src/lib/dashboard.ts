@@ -774,13 +774,30 @@ export async function getOrderStatusHistory(orderId: string): Promise<OrderStatu
   const userId = await getCurrentUserId();
   if (!userId) throw new Error('Not authenticated');
 
-  
   const serviceClient = createServiceClient();
+
+  // WS-3: 22P02 予防 + BOLA 予防
+  // orderId が UUID 形式でない場合は order_number とみなす。いずれの場合も
+  // orders テーブルを user_id filter 付きで検索し、正しい order id に解決する
+  // （getOrderById と同じパターン・他ユーザーの注文は解決させない）。
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+
+  const { data: orderRow, error: resolveError } = await serviceClient
+    .from('orders')
+    .select('id')
+    .eq(isUuid ? 'id' : 'order_number', orderId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  // 解決失敗（他ユーザーの注文・存在しない・形式不正）は空配列を返す（throw しない）
+  if (resolveError || !orderRow) {
+    return [];
+  }
 
   const { data, error } = await serviceClient
     .from('order_status_history')
     .select('*')
-    .eq('order_id', orderId)
+    .eq('order_id', orderRow.id)
     .order('changed_at', { ascending: true });
 
   if (error) throw error;
