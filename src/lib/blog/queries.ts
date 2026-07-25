@@ -142,7 +142,7 @@ export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | n
       )
     `)
     .eq('slug', slug)
-    // .eq('status', 'published') // TODO: 임시 해제 — 확인 후 복원
+    .eq('status', 'published') // 復元: draft/archived を公開ページから除外（view_count の不正インクリメント防止）
     .maybeSingle();
 
   if (error || !data) {

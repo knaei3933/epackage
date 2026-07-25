@@ -21,7 +21,7 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
   const categoryLabel = getCategoryLabel(post.category, 'ja');
 
   // Get OG image or use default
-  const imageUrl = post.og_image_path || '/images/blog-placeholder.jpg';
+  const imageUrl = post.og_image_path || '/images/og-image.jpg';
 
   return (
     <article className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8380FF]/30 transition-all duration-300">

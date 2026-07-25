@@ -9,7 +9,7 @@
 const SITE_CONFIG = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.package-lab.com',
   siteName: 'Epackage Lab',
-  defaultOgImage: '/og-image.png',
+  defaultOgImage: '/images/og-image.jpg',
 };
 
 /**
@@ -58,7 +58,7 @@ export function generateBlogPostingSchema(params: {
   const url = `${baseUrl}/blog/${slug}`;
   const imageUrl = ogImagePath && ogImagePath.startsWith('http')
     ? ogImagePath
-    : (ogImagePath ? `${baseUrl}${ogImagePath}` : `${baseUrl}/og-image.png`);
+    : (ogImagePath ? `${baseUrl}${ogImagePath}` : `${baseUrl}/images/og-image.jpg`);
 
   return {
     '@context': 'https://schema.org',
@@ -79,7 +79,7 @@ export function generateBlogPostingSchema(params: {
       name: SITE_CONFIG.siteName,
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/logo.png`,
+        url: `${baseUrl}/epackage-logo.png`,
       },
     },
     datePublished: publishedAt,

@@ -1,7 +1,6 @@
 'use client';
 
 import { useReportWebVitals } from 'next/web-vitals';
-import { pushToDataLayer } from '@/lib/analytics/dataLayer';
 
 /**
  * WebVitals 計測コンポーネント（Phase 3 Step 3 — CWV改善・1系統化）
@@ -16,7 +15,7 @@ import { pushToDataLayer } from '@/lib/analytics/dataLayer';
  * CWV 改善根拠:
  * - CLS: return null で視覚的影響なし（旧 WebVitalsMonitor のトグル UI 廃止）
  * - LCP/INP: next/web-vitals は Next.js ランタイム最適化済み・追加スクリプト注入なし
- * - 計測ID は dataLayer push のみ（GTM 経由で GA4 へ送信・二重計測なし）
+ * - 計測は gtag.js 直接送信（Phase 3 PR2 で GTM 削除済み・dataLayer 経由ではなく gtag event で GA4 へ）
  *
  * 報告対象メトリック: CLS, INP, FCP, LCP, TTFB（FID は非推奨・INP に置換済み）
  */
@@ -30,7 +29,10 @@ export function WebVitals(): null {
       metric_delta: metric.delta?.toFixed(2),
       metric_navigation_type: metric.navigationType,
     };
-    pushToDataLayer('web_vital', payload);
+    // GTM 削除済みのため dataLayer push ではなく gtag event で直接 GA4 へ送信
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'web_vital', payload);
+    }
     if (process.env.NODE_ENV === 'development') {
       console.log(`[Web Vitals] ${metric.name}:`, metric.value, metric.rating);
     }

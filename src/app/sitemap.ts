@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { getAllProducts } from '@/lib/product-data'
 import { createServiceClient } from '@/lib/supabase'
 import { SITE_URL } from '@/lib/seo/canonical'
+import { BLOG_CATEGORIES } from '@/lib/types/blog'
 
 // Revalidate sitemap every hour to reduce CPU usage while keeping data fresh
 // This prevents RSC 404 errors and reduces database queries
@@ -157,14 +158,6 @@ const guidePages = [
   'image'
 ]
 
-// ブログカテゴリ
-const blogCategories = [
-  { id: 'news', name: 'news' },
-  { id: 'technical', name: 'technical' },
-  { id: 'industry', name: 'industry' },
-  { id: 'company', name: 'company' }
-]
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = []
 
@@ -246,8 +239,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    // ブログカテゴリページを追加
-    for (const category of blogCategories) {
+    // ブログカテゴリページを追加（BLOG_CATEGORIES 8件と同期）
+    for (const category of BLOG_CATEGORIES) {
       const categoryUrl = `/blog/category/${category.id}`
       urls.push({
         url: `${SITE_URL}${categoryUrl}`,

@@ -58,7 +58,7 @@ interface RelatedPostCardProps {
 }
 
 function RelatedPostCard({ post }: RelatedPostCardProps) {
-  const imageUrl = post.og_image_path || '/images/blog-placeholder.jpg';
+  const imageUrl = post.og_image_path || '/images/og-image.jpg';
 
   return (
     <Link

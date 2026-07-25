@@ -15,7 +15,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           name: 'Epackage Lab',
           alternateName: 'イーパッケージラボ',
           url: 'https://www.package-lab.com',
-          logo: 'https://www.package-lab.com/logo.png',
+          logo: 'https://www.package-lab.com/epackage-logo.png',
           description: '韓国品質の包装材料で日本のものづくりを支援するパッケージング専門会社',
           foundingDate: '2010',
           areaServed: [
