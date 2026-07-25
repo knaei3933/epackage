@@ -55,7 +55,6 @@ async function loadDOMPurify(): Promise<DOMPurifyFn> {
 }
 
 import { Button } from '@/components/ui/Button'
-import { getOrdersForExport } from '@/lib/supabase-mcp'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -366,18 +365,25 @@ export function OrderHistoryPDFButton({
     setIsGenerating(true)
 
     try {
-      // 注文データ取得
-      const result = await getOrdersForExport(orderIds)
+      // 注文データ取得（/api/orders/export 経由・service client で所有権チェック付き）
+      const response = await fetch('/api/orders/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds }),
+      })
 
-      if (result.error) {
-        throw new Error(`注文データの取得に失敗しました: ${result.error.message}`)
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}))
+        throw new Error(`注文データの取得に失敗しました: ${errBody.error || response.status}`)
       }
 
-      if (!result.data || result.data.length === 0) {
+      const result = await response.json()
+
+      if (!result.success || !result.orders || result.orders.length === 0) {
         throw new Error('注文データが見つかりません')
       }
 
-      const orders = result.data as Order[]
+      const orders = result.orders as Order[]
 
       // HTML生成
       const html = generateOrderHistoryHTML(orders)
