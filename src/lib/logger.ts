@@ -121,10 +121,15 @@ export class Logger {
    * 구조화된 로그 출력 (프로덕션용)
    */
   private outputStructured(entry: LogEntry): void {
-    // 프로덕션에서는 서비스로 전송하거나 파일에 저장
-    // 여기서는 console.error만 사용 (에러만 서버로 전송)
+    // プロダクション環境でも info/warn/error すべて構造化して出力する。
+    // (OQ-6 / AC-5): 従来は error のみ stderr 出力だったため info/warn が欠落していた。
+    // level によるフィルタは shouldLog() で既に行っているため、ここでは出力先の振り分けのみ。
+    const output = JSON.stringify(entry);
     if (entry.level === 'error') {
-      console.error(JSON.stringify(entry));
+      console.error(output);
+    } else {
+      // info / warn は stdout へ（warn も JSON 1 行として扱い一貫性を保つ）
+      console.log(output);
     }
   }
 
@@ -206,6 +211,41 @@ export const logError = (context: string, error: Error | unknown, message?: stri
 // =====================================================
 
 export const logger = loggers.app();
+
+// =====================================================
+// PII マスキングヘルパ（個人情報保護準拠）
+// ログに email / 電話番号 / トークン等の生値を出さないためのユーティリティ。
+// admin route 群の PII 平文ログ解消（AC-6）で使用。
+// =====================================================
+
+/**
+ * メールアドレスのマスキング
+ * ローカルパートの先頭2文字のみ残し、ドメインは保持する。
+ */
+export function maskEmail(email: string | null | undefined): string {
+  if (!email) return '***';
+  const [local, domain] = email.split('@');
+  if (!domain) return '***';
+  return `${local.slice(0, 2)}***@${domain}`;
+}
+
+/**
+ * トークン / ID 文字列のマスキング
+ * 先頭4文字 + ... + 末尾4文字。短すぎる場合は完全隠蔽。
+ */
+export function maskToken(token: string | null | undefined): string {
+  if (!token || token.length < 8) return '***';
+  return `${token.slice(0, 4)}...${token.slice(-4)}`;
+}
+
+/**
+ * 電話番号のマスキング
+ * 先頭3文字 + *** + 末尾2文字。短すぎる場合は完全隠蔽。
+ */
+export function maskPhone(phone: string | null | undefined): string {
+  if (!phone || phone.length < 4) return '***';
+  return `${phone.slice(0, 3)}***${phone.slice(-2)}`;
+}
 
 // 개발 환경에서 console.*를 대체하려면 아래 주석 해제
 // if (process.env.NODE_ENV === 'development') {

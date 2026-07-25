@@ -43,11 +43,13 @@ export async function executeSql<T = unknown>(
   params: (string | number | boolean | null)[] = []
 ): Promise<SqlResult<T>> {
   try {
-    // サーバーサイドの場合: Supabase MCP toolを直接使用
+    // サーバーサイドの場合: supabase-sql.ts（service client 直接・execute_sql RPC）に委譲
+    // 従来は相対 URL fetch（/api/supabase-mcp/execute）で Node.js が URL を parse できず
+    // server-side で常に失敗していた（Phase3 実機検証で発見・cancelOrder 等が 500 となる既存バグ）。
+    // 動的 import により client-side バンドルへの service role key 混入を防止。
     if (typeof window === 'undefined') {
-      // Server-side: MCP tool is available directly
-      // We'll use the mcp__supabase-epackage__execute_sql tool
-      // For now, fall through to the client implementation
+      const { executeSql: executeSqlServer } = await import('@/lib/supabase-sql')
+      return executeSqlServer<T>(query, params)
     }
 
     // クライアントサイド: API経由で実行
@@ -86,17 +88,36 @@ export async function executeSql<T = unknown>(
  * @param orderId 注文ID
  */
 export async function cancelOrder(orderId: string): Promise<SqlResult> {
-  return executeSql(
-    `
-    UPDATE orders
-    SET
-      status = 'CANCELLED',
-      cancelled_at = NOW(),
-      updated_at = NOW()
-    WHERE id = $1
-    `,
-    [orderId]
-  )
+  // execute_sql RPC 非依存: service client で直接 UPDATE
+  // （execute_sql RPC が本番 DB に不在のため・Phase3 実機検証で発見）
+  // 動的 import で client-side バンドルへの service role key 混入を防止
+  try {
+    const { createServiceClient } = await import('@/lib/supabase')
+    const supabase = createServiceClient()
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        status: 'CANCELLED',
+        cancelled_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+
+    if (error) {
+      console.error('[cancelOrder] Failed to cancel order:', error)
+      return { error: { message: error.message, code: error.code } }
+    }
+
+    return { data: [{ id: orderId }], rowsAffected: 1 }
+  } catch (error) {
+    console.error('[cancelOrder] Unexpected error:', error)
+    return {
+      error: {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: 'EXECUTE_ERROR',
+      },
+    }
+  }
 }
 
 /**

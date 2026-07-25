@@ -12,6 +12,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { generateUploadToken, hashToken } from '@/lib/designer-tokens';
 import { logger } from '@/lib/logger';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
 /**
  * Generate and store access token for designer task assignment
@@ -213,33 +215,56 @@ export async function checkTaskAccessToken(
 /**
  * Cancel a designer task assignment
  *
- * 単一クライアントで連続 UPDATE を行い、タスク割当をキャンセルし、
- * 同時にアクセストークンを無効化（hash/expires_at を null 化）する。
- * これによりキャンセル済み割当のトークン再利用を防止する。
+ * タスク割当をキャンセルし、アクセストークンを即時期限切れで無効化する。
+ *
+ * トークン無効化の方針（AC-6 到達不能分岐の解消）:
+ * - `access_token_hash` は保持する（null 化しない）。
+ * - 代わりに `access_token_expires_at` を NOW() に設定し、即時期限切れにする。
+ * - 理由: hash を null 化すると designer-order page.tsx 側の
+ *   `.eq('access_token_hash', tokenHash)` が該当行を返さなくなり、
+ *   status='cancelled' の分岐（AC-6）に到達できなくなる。
+ *   hash を保持しつつ expires で無効化すれば、期限切れ判定は
+ *   validateTaskAccessToken 側で行われ、cancelled 分岐は到達可能となる。
+ *
+ * 冪等性（OQ-3）:
+ * - `.in('status', ['pending', 'in_progress'])` でプレフィルタし、
+ *   既に cancelled/completed の行は affected=0 となる。
+ *   これにより二重キャンセルでも状態が変化せず、呼び出し元が
+ *   status を SELECT して「既に cancelled」を 200 で返せるようになる。
  *
  * AC-2: `.select('id')` で影響行数を検証する。
  * PostgREST は該当行が 0 件でも error=null を返すため、
  * error チェックだけでは「該当行なし」を検知できない。
  *
  * @param assignmentId - The designer_task_assignments record ID
- * @param actor - キャンセルを実行した主体（監査ログ用）
- * @returns success=true で更新成功、affectedRows に影響を受けた行数
+ * @param actor - キャンセルを実行した主体（監査ログ用）。memberUserId は member 直接キャンセル経路用
+ * @param supabaseClient - 任意の Supabase クライアント（DI）。member 経路では service role を注入して RLS bypass。
+ *                         未指定時は cookie ベースの createClient（admin/cancel route は既存通り）
+ * @returns success=true で更新成功（新規キャンセル）、affectedRows に影響を受けた行数。
+ *          success=false は「該当行なし」または「既に cancelled/completed」を示す。
  */
 export async function cancelDesignerTask(
   assignmentId: string,
-  actor: { source: string; adminUserId?: string }
+  actor: { source: string; adminUserId?: string; memberUserId?: string },
+  supabaseClient?: SupabaseClient<Database>
 ): Promise<{ success: boolean; affectedRows: number }> {
   try {
-    const supabase = await createClient();
+    // DI: 外部から supabase クライアントを注入可能。
+    // member 直接キャンセル経路では createServiceClient（service role・RLS bypass）を注入し、
+    // designer_task_assignments の UPDATE が staff ポリシーのみで弾かれるのを回避する。
+    // 未指定時は cookie ベースの createClient（admin/cancel route は既存通り staff ポリシーで検証）。
+    const supabase = supabaseClient ?? await createClient();
 
     const { data, error } = await supabase
       .from('designer_task_assignments')
       .update({
         status: 'cancelled',
-        access_token_hash: null,
-        access_token_expires_at: null,
+        // AC-6: hash は保持し、expires で即時無効化する（null 化しない）
+        access_token_expires_at: new Date().toISOString(),
       })
       .eq('id', assignmentId)
+      // OQ-3: pending/in_progress のみ更新。既に cancelled/completed は affected=0。
+      .in('status', ['pending', 'in_progress'])
       .select('id');
 
     if (error) {

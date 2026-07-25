@@ -14,6 +14,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
 import { withAdminAuth } from '@/lib/api-auth';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import { cancelDesignerTasksForOrder } from '@/lib/order-cancellation';
 
 // ============================================================
 // Constants
@@ -114,6 +115,30 @@ export const POST = (withAdminAuth as any)(async (
         { error: 'キャンセル承認に失敗しました', code: 'UPDATE_ERROR' },
         { status: 500 }
       );
+    }
+
+    // [連動] 注文キャンセルに伴い designer_task_assignments をキャンセル（Option A）
+    // designer 側失敗は警告ログのみで注文キャンセルは維持（緩い整合性）
+    try {
+      const adminUserId = (auth as { userId?: string } | null)?.userId;
+      // verifier Gap-1 対応: 第3引数に createServiceClient（L58 生成済み・service role）を注入。
+      // withAdminAuth 配下でも cookie 依存を排除し確実に UPDATE（member 経路 orders/cancel L139 と対称）。
+      const designerResult = await cancelDesignerTasksForOrder(
+        orderId,
+        {
+          source: 'order_cancel_admin',
+          adminUserId,
+        },
+        supabase
+      );
+      if (designerResult.errors.length > 0) {
+        console.warn('[Cancellation] designer task cancel partial failure:', {
+          orderId,
+          errors: designerResult.errors,
+        });
+      }
+    } catch (designerCancelError) {
+      console.error('[Cancellation] designer task cancel error:', designerCancelError);
     }
 
     // Update note to mark as approved

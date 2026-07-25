@@ -48,7 +48,6 @@ export const GET = withAdminAuth<any>(async (
   }
 
   console.log('[Admin Order Detail GET] Order ID:', orderId);
-  console.log('[Admin Order Detail GET] Authenticated user:', auth?.userId);
 
   // service_role クライアントで RLS バイパス
   // 認可は withAdminAuth で検証済み（auth.userId, auth.role が利用可能）

@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase'
+import { logger, maskEmail } from '@/lib/logger'
 import {
   getOrderStatus,
   updateOrderItemQuantity,
@@ -199,12 +200,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log order update
-    console.log('[Order Update] Order updated:', {
+    // Log order update（security-reviewer M-1: customerEmail は maskEmail で難読化・PII 保護）
+    logger.info('order_update.success', {
       orderId,
       orderNumber: order.order_number,
       userId: userIdForDb,
-      customerEmail: user.email,
+      customerEmail: maskEmail(user.email),
       itemsUpdated: items?.length || 0,
       addressUpdated: !!deliveryAddress,
     })

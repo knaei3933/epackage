@@ -52,8 +52,6 @@ export async function GET(
       );
     }
 
-    console.log('[File Download] File info:', { id: file.id, path: file.file_path, url: file.file_url });
-
     // Check if file is from Google Drive (file_url contains drive.google.com)
     const isGoogleDriveFile = file.file_url?.includes('drive.google.com');
 
@@ -184,8 +182,6 @@ async function downloadFromSupabaseStorage(file: any): Promise<NextResponse> {
   if (filePath.startsWith('production-files/')) {
     storagePath = filePath.replace('production-files/', '');
   }
-
-  console.log('[File Download] Bucket:', bucket, 'Path:', storagePath);
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {

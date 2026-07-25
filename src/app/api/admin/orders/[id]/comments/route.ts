@@ -18,6 +18,7 @@ import { getAuditLogger } from '@/lib/audit-logger';
 import { withAdminAuth } from '@/lib/api-auth';
 import { generateOrderCommentEmailHtml } from '@/lib/email-templates/order-comment-notification';
 import { translateJapaneseToKorean } from '@/lib/translation';
+import { logger, maskEmail } from '@/lib/logger';
 
 // ============================================================
 // Constants
@@ -100,9 +101,6 @@ export const GET = withAdminAuth<any>(async (
       { status: 400 }
     );
   }
-
-  console.log('[Admin Order Comments GET] Order ID:', orderId);
-  console.log('[Admin Order Comments GET] Authenticated user:', auth?.userId);
 
   // Use service client to bypass RLS
   const supabase = createServiceClient();
@@ -392,7 +390,7 @@ Copyright (c) ${new Date().getFullYear()} EPackage Lab. All rights reserved.
       emailSent = emailResult.success;
 
       if (emailResult.success) {
-        console.log('[Admin Order Comments POST] Email notification sent successfully to:', order.customer_email);
+        logger.info('[Admin Order Comments POST] Email notification sent', { to: maskEmail(order.customer_email) });
       } else {
         console.error('[Admin Order Comments POST] Failed to send email notification:', emailResult.error);
       }

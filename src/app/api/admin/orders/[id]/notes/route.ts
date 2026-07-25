@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { logger, maskEmail } from '@/lib/logger';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -292,7 +293,7 @@ Epackage Lab - Package Lab
           text: emailText,
         });
 
-        console.log('[Notes PUT] Email sent successfully to', KOREA_EMAIL);
+        logger.info('[Notes PUT] Email sent successfully', { to: maskEmail(KOREA_EMAIL) });
       } else {
         console.warn('[Notes PUT] XSERVER_SMTP not configured, skipping email send');
       }

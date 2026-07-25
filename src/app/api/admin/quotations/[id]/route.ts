@@ -62,24 +62,13 @@ export async function GET(
       .eq('id', quotation.user_id)
       .single();
 
-    console.log('[Quotation Detail API] quotation keys:', Object.keys(quotation));
-    console.log('[Quotation Detail API] has specifications?', !!quotation.specifications);
-    console.log('[Quotation Detail API] has saved_specifications?', !!quotation.saved_specifications);
-    console.log('[Quotation Detail API] has items_data?', !!quotation.items_data);
-    console.log('[Quotation Detail API] specifications:', quotation.specifications);
-    console.log('[Quotation Detail API] userProfile:', userProfile);
-
-    console.log('[Quotation Detail API] Fetching items for quotation_id:', quotationId);
-
     const { data: items, error: itemsError } = await supabase
       .from('quotation_items')
       .select('*')
       .eq('quotation_id', quotationId)
       .order('created_at', { ascending: true });
 
-    console.log('[Quotation Detail API] itemsError:', itemsError);
-    console.log('[Quotation Detail API] quotation_items found:', items?.length || 0);
-    console.log('[Quotation Detail API] items raw data:', items);
+    // security-reviewer M-2: 開発用 debug log（specifications/items raw dump・準 PII 含む可能性）は削除
 
     const itemsWithBreakdown = (items || []).map((item: QuotationItem) => ({
       ...item,
@@ -96,11 +85,6 @@ export async function GET(
       corporate_phone: userProfile?.corporate_phone || null,
       personal_phone: userProfile?.personal_phone || null,
     };
-
-    console.log('[Quotation Detail API] quotationWithProfile keys:', Object.keys(quotationWithProfile));
-    console.log('[Quotation Detail API] corporate_phone:', quotationWithProfile.corporate_phone);
-    console.log('[Quotation Detail API] personal_phone:', quotationWithProfile.personal_phone);
-    console.log('[Quotation Detail API] userProfile keys:', userProfile ? Object.keys(userProfile) : 'null');
 
     return NextResponse.json({
       success: true,
@@ -298,14 +282,8 @@ function getPrintingTypeName(printingType: string): string {
 // =====================================================
 
 function calculateBreakdown(item: QuotationItem, headerPrintingType?: string) {
-  console.log('[calculateBreakdown] item.id:', item.id);
-  console.log('[calculateBreakdown] item.specifications type:', typeof item.specifications);
-  console.log('[calculateBreakdown] item.specifications keys:', item.specifications ? Object.keys(item.specifications) : 'undefined');
   const specs = (item.specifications || {}) as Record<string, any>;
-  console.log('[calculateBreakdown] film_cost_details in specs:', 'film_cost_details' in specs);
-  console.log('[calculateBreakdown] specs.film_cost_details type:', typeof specs.film_cost_details);
-  console.log('[calculateBreakdown] specs.film_cost_details:', specs.film_cost_details);
-  console.log('[calculateBreakdown] specs keys:', Object.keys(specs));
+  // security-reviewer M-2: 開発用 debug log（specifications/film_cost_details raw dump・価格内部データ）は削除
   const width = specs.width || 0;
   const height = specs.height || 0;
   const depth = specs.depth || 0;
