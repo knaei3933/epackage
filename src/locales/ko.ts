@@ -236,7 +236,6 @@ export const koTranslations: TranslationKeys = {
     },
     success: {
       correctionUploaded: '수정 파일이 업로드되었습니다',
-      notificationSent: '알림이 발송되었습니다',
     },
     nav: {
       dashboard: '대시보드',

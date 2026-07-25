@@ -236,7 +236,6 @@ export const jaTranslations: TranslationKeys = {
     },
     success: {
       correctionUploaded: '修正ファイルがアップロードされました',
-      notificationSent: '通知を送信しました',
     },
     nav: {
       dashboard: 'ダッシュボード',

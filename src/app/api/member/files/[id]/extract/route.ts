@@ -13,6 +13,8 @@ import { Database } from '@/types/database';
 import { z } from 'zod';
 import { AIExtractionEngine } from '@/lib/ai-parser/core';
 import type { ExtractionResult, ExtractedProductData } from '@/lib/ai-parser/types';
+import { DEV_MODE_USER_ID } from '@/lib/dev-mode';
+import { createServiceClient } from '@/lib/supabase';
 
 // ============================================================
 // Types
@@ -137,6 +139,34 @@ async function saveExtractionResults(
   return { id: data.id };
 }
 
+/**
+ * Check file ownership for authorization (IDOR prevention).
+ *
+ * 所有権判定:
+ * - order_id があれば orders.user_id 経由で判定（service client で RLS を bypass し確実に user_id を取得）
+ * - order_id が null（quotation 紐付けのみ）のときは uploaded_by と直接比較
+ *   ※ files.uploaded_by FK は profiles(id)。userId は auth.uid と profiles.id が一致する前提で直接比較。
+ *
+ * @param file - files 行の一部（order_id, uploaded_by）
+ * @param userIdForDb - 所有権比較に使う user id（dev mode は DEV_MODE_USER_ID・通常は auth.uid）
+ */
+async function checkFileOwnership(
+  file: { order_id: string | null; uploaded_by: string | null },
+  userIdForDb: string
+): Promise<boolean> {
+  if (file.order_id) {
+    const serviceClient = createServiceClient();
+    const { data: order } = await serviceClient
+      .from('orders')
+      .select('user_id')
+      .eq('id', file.order_id)
+      .single();
+    return order?.user_id === userIdForDb;
+  }
+  // order_id が無い（quotation 紐付けのみ）場合はアップロード者で判定
+  return file.uploaded_by === userIdForDb;
+}
+
 // ============================================================
 // POST Handler - Extract Product Specifications
 // ============================================================
@@ -221,11 +251,18 @@ export async function POST(
 
     const isAdmin = profile?.role === 'ADMIN';
     if (!isAdmin) {
-      // TODO: Add order ownership check
-      return NextResponse.json(
-        { error: 'Forbidden', code: 'FORBIDDEN' },
-        { status: 403 }
-      );
+      // 所有権判定（機能解放: 自分ファイルは許可 / IDOR 予防: 他人ファイルは 403）
+      const isDevMode =
+        process.env.NODE_ENV === 'development' &&
+        process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+      const userIdForDb = isDevMode ? DEV_MODE_USER_ID : userId;
+      const isOwner = await checkFileOwnership(file, userIdForDb);
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
     }
 
     // Check if already extracted (unless force=true)
@@ -413,6 +450,42 @@ export async function GET(
       }
       userId = user.id;
       console.log('[Files Extract GET] Authenticated user:', userId);
+    }
+
+    // Get file record for ownership check
+    const { data: file, error: fileError } = await supabase
+      .from('files')
+      .select('order_id, uploaded_by')
+      .eq('id', fileId)
+      .single();
+
+    if (fileError || !file) {
+      return NextResponse.json(
+        { error: 'File not found', code: 'FILE_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    // Check ownership (or admin) — IDOR prevention
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    const isAdmin = profile?.role === 'ADMIN';
+    if (!isAdmin) {
+      const isDevMode =
+        process.env.NODE_ENV === 'development' &&
+        process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+      const userIdForDb = isDevMode ? DEV_MODE_USER_ID : userId;
+      const isOwner = await checkFileOwnership(file, userIdForDb);
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
     }
 
     // Get extraction results

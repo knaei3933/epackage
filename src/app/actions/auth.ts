@@ -21,6 +21,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
 import { SESSION_MAX_AGE, COOKIE_DOMAIN } from '@/lib/auth-constants';
+import { maskEmail } from '@/lib/logger';
 
 // =====================================================
 // Schema
@@ -59,8 +60,7 @@ export async function signInAction(formData: FormData): Promise<SigninResult> {
       remember: formData.get('remember') === 'true',
     });
 
-    console.log('[signInAction] Attempt 26: Direct cookie setting');
-    console.log('[signInAction] Login attempt for:', validatedData.email);
+    console.log('[signInAction] Login attempt for:', maskEmail(validatedData.email));
 
     // =====================================================
     // CRITICAL FIX for Attempt 26: Create Supabase client WITHOUT cookies

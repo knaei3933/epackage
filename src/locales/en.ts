@@ -236,7 +236,6 @@ export const enTranslations: TranslationKeys = {
     },
     success: {
       correctionUploaded: 'Correction file uploaded',
-      notificationSent: 'Notification sent',
     },
     nav: {
       dashboard: 'Dashboard',
