@@ -396,10 +396,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get public URL
+    // Get public URL（DB の file_url は publicUrl を維持・保存方法の抜本的修正は別 Issue）
     const { data: urlData } = serviceClient.storage
       .from('production-files')
       .getPublicUrl(storagePath);
+
+    // production-files は private bucket。response 表示用に signed URL（24h 有効）を生成。
+    // getPublicUrl の結果は private bucket では実際アクセス不可のため、即時ダウンロード用に
+    // signed URL を発行する。production-logs / hanko route と同一パターン。
+    const { data: signedData, error: signedError } = await serviceClient.storage
+      .from('production-files')
+      .createSignedUrl(storagePath, 86400);
+    if (signedError) {
+      console.error('[Files Upload] Signed URL error:', signedError);
+    }
+    const downloadSignedUrl = signedData?.signedUrl ?? urlData.publicUrl;
 
     // Create file record in database
     // files INSERT も service client: cookie client は PostgREST が anon になり
@@ -445,7 +456,9 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         fileType: metadata.file_type,
         storagePath,
-        downloadUrl: urlData.publicUrl,
+        // response の downloadUrl は private bucket でアクセス可能な signed URL（24h 有効）。
+        // DB の file_url は publicUrl のままだが実アクセス不可のため signed URL で上書きして返す。
+        downloadUrl: downloadSignedUrl,
         uploadedAt: fileRecord.created_at,
       },
     };
