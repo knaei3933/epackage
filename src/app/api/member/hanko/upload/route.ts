@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
-import { validateHankoImage, fileToBase64 } from '@/lib/signature/hanko-validator';
+import { validateHankoImage } from '@/lib/signature/hanko-validator';
 import { UploadHankoResponse } from '@/types/signature';
 
 // ============================================================
