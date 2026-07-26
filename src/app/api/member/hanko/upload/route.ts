@@ -17,7 +17,6 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { validateHankoImage, fileToBase64 } from '@/lib/signature/hanko-validator';
 import { UploadHankoResponse } from '@/types/signature';
-import type { FileObject } from '@supabase/storage-js';
 
 // ============================================================
 // Types
@@ -30,6 +29,15 @@ interface HankoUploadRequestBody {
 }
 
 interface HankoUploadResponseBody extends UploadHankoResponse {}
+
+// storage.list の戻り値要素の最小型。
+// @supabase/storage-js を直接依存に持たないため FileObject は import せず局所定義。
+interface HankoStorageFile {
+  id: string;
+  name: string;
+  created_at: string;
+  metadata?: { size?: number };
+}
 
 // ============================================================
 // Helper: Get authenticated user ID
@@ -212,7 +220,7 @@ export async function GET(request: NextRequest) {
     // service client は RLS bypass なので list 結果をアプリ層で所有者フィルタ。
     // POST の命名規則 hanko-${userId}-${timestamp}.png に基づく厳密プレフィックス一致。
     const ownerPrefix = `hanko-${userId}-`;
-    const filteredFiles = (files || []).filter((f: FileObject) => f.name.startsWith(ownerPrefix));
+    const filteredFiles = ((files || []) as HankoStorageFile[]).filter((f) => f.name.startsWith(ownerPrefix));
 
     if (error) {
       console.error('Hanko list error:', error);
@@ -226,7 +234,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get public URLs for each file
-    const hankoImages = filteredFiles.map((file: FileObject) => {
+    const hankoImages = filteredFiles.map((file) => {
       const { data: urlData } = serviceClient.storage
         .from('hanko-images')
         .getPublicUrl(`hanko/${file.name}`);
