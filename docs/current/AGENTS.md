@@ -107,8 +107,6 @@ Active development documentation for Epackage Lab B2B e-commerce platform v5.0. 
 
 **Subdirectory: `deployment/`**
 - `README-DEPLOYMENT.md` - Deployment overview
-- `README-SUPABASE.md` - Supabase setup guide
-- `SUPABASE_SETUP.md` - Supabase configuration
 
 ---
 
@@ -138,6 +136,8 @@ Active development documentation for Epackage Lab B2B e-commerce platform v5.0. 
 - `prd5-2026-01-04.md` - PRD v5
 - `LLD.md` - Original low-level design
 - `SUPABASE_MCP_INTEGRATION_REVIEW.md` - Supabase MCP integration review
+- `README-SUPABASE.md` - Supabase bootstrap guide (Korean, STALE - 8 tables vs actual 69, lib/supabase.ts と lib/api-test.ts は削除済みで参照先不存在, archived 2026-07-27, 参照非推奨)
+- `SUPABASE_SETUP.md` - Supabase config guide (Korean, STALE - 5 tables設計で contacts/quotation_requests 等は削除済み, archived 2026-07-27, 参照非推奨)
 
 ## For AI Agents
 
