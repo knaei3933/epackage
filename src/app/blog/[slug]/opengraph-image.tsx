@@ -1,41 +1,50 @@
 import { ImageResponse } from 'next/og';
 import { getPublishedPostBySlug } from '@/lib/blog/queries';
 import { getCategoryLabel } from '@/lib/types/blog';
+import fs from 'fs';
+import path from 'path';
 
 export const alt = 'Epackage Lab ブログ記事';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-// nodejs runtime（service client / fetch を使うため edge ではなく nodejs）
+// nodejs runtime（fs / service client を使うため edge ではなく nodejs）。
 export const runtime = 'nodejs';
 
-/**
- * Noto Sans JP Bold を Google Fonts から取得（日本語文字化け対策）。
- * CSS API 経由で woff2 URL を抽出して fetch する。
- * 失敗時は null を返し、sans-serif にフォールバック（文字化け上等よりマシ）。
- */
-async function loadNotoSansJPBold(): Promise<ArrayBuffer | null> {
+// ローカルの Noto Sans JP (variable TTF) を読み込む。
+//
+// 背景: satori (next/og のレンダリングエンジン) は WOFF2 をデコードできず
+//       "Unsupported OpenType signature wOF2" でクラッシュする。
+//       Google Fonts CSS API は Noto Sans JP を woff2 のみ・124分割で返すため、
+//       どの User-Agent でも CSS API 経由では TTF を取得できない。
+// 解決策: variable TTF をリポジトリに同梱し fs で読む。
+//       → 外部ネットワーク依存ゼロ・初回レイテンシなし・Vercel/standalone で確実動作。
+//       9.2MB だがサーバーサイド専用（クライアント転送サイズには影響しない）。
+let cachedFont: ArrayBuffer | null | undefined;
+
+function loadNotoSansJPBold(): ArrayBuffer | null {
+  if (cachedFont !== undefined) return cachedFont;
   try {
-    const cssRes = await fetch(
-      'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap',
-      {
-        // woff2 を受け取るための User-Agent（古い UA だと ttf が返る）
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
-        },
-        // Next.js のキャッシュでビルド毎の再 fetch を抑制
-        next: { revalidate: 86400 },
-      }
+    const fontPath = path.join(
+      process.cwd(),
+      'src',
+      'app',
+      'blog',
+      '[slug]',
+      'fonts',
+      'NotoSansJP.otf'
     );
-    if (!cssRes.ok) return null;
-    const css = await cssRes.text();
-    const match = css.match(/src:\s*url\(([^)]+)\)\s*format\('woff2'\)/);
-    if (!match) return null;
-    const fontRes = await fetch(match[1], { next: { revalidate: 86400 } });
-    if (!fontRes.ok) return null;
-    return await fontRes.arrayBuffer();
+    const buffer = fs.readFileSync(fontPath);
+    // Node の Buffer を ArrayBuffer に変換（satori が要求する形式）。
+    // slice で共有メモリを避け、独立した ArrayBuffer を作る。
+    cachedFont = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength
+    ) as ArrayBuffer;
+    return cachedFont;
   } catch {
+    // フォント読み込み失敗時は null → sans-serif にフォールバック（文字化け上等よりマシ）。
+    cachedFont = null;
     return null;
   }
 }
@@ -56,7 +65,7 @@ export default async function OpengraphImage({
   const title = post?.meta_title || post?.title || 'Epackage Lab ブログ';
   const category = post ? getCategoryLabel(post.category, 'ja') : '';
 
-  const font = await loadNotoSansJPBold();
+  const font = loadNotoSansJPBold();
 
   return new ImageResponse(
     (

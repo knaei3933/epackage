@@ -68,10 +68,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
-    types: {
-      // RSS auto-discovery: RSS リーダーが自動検出するための <link rel="alternate">
-      'application/rss+xml': [{ url: '/rss.xml', title: 'Epackage Lab ブログ RSS' }],
-    },
+    // RSS auto-discovery は <head> 内の <link> で直接出力（下記 apple-touch-icon 付近）。
+    // 補足: metadata.alternates.types 経由だと Next.js 16 (Turbopack) で
+    // <link rel="alternate" type="application/rss+xml"> が出力されないことを実機確認済み。
   },
   openGraph: {
     type: 'website',
@@ -176,6 +175,9 @@ export default function RootLayout({
         {/* Theme color */}
         <meta name="theme-color" content="#1A365D" />
         <meta name="msapplication-TileColor" content="#1A365D" />
+
+        {/* RSS auto-discovery: RSS リーダーが自動検出するための <link rel="alternate"> */}
+        <link rel="alternate" type="application/rss+xml" title="Epackage Lab ブログ RSS" href="/rss.xml" />
 
         {/* Apple touch icon */}
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />

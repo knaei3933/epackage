@@ -36,14 +36,30 @@ export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
     currentHref += `/${segment}`
     const isLast = index === pathSegments.length - 1
 
+    // /blog/tag, /blog/category は実在しない中間ページ（404）。タグ名/カテゴリ名自体が
+    // 分類を示すため冗長でもある → パンくずから除外（中間リンクの 404 回避 + item URL 重複回避）。
+    // h1 が「タグ: X / カテゴリ名」で分類は明白。
+    if (currentHref === '/blog/tag' || currentHref === '/blog/category') {
+      return
+    }
+
+    // URL エンコードされたセグメント（日本語タグ等）をデコードして表示名に使う。
+    // href はエンコード済みのまま保持（URL として正しい）。
+    let decodedSegment = segment
+    try {
+      decodedSegment = decodeURIComponent(segment)
+    } catch {
+      decodedSegment = segment
+    }
+
     // Convert segment to readable name
-    let name = segment
+    let name = decodedSegment
       .replace(/-/g, ' ')
       .replace(/_/g, ' ')
       .replace(/\b\w/g, l => l.toUpperCase())
 
-    // Special cases for Japanese
-    if (pathname.startsWith('/ja')) {
+    // 日本語サイト（デフォルト + /ja）は日本語名にマップ。/en のみ英語名のまま。
+    if (!pathname.startsWith('/en')) {
       const segmentMap: Record<string, string> = {
         'about': '会社概要',
         'catalog': '製品カタログ',
@@ -61,8 +77,12 @@ export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
         'electronics': '電子機器',
         'quote-simulator': '見積りシミュレーター',
         'samples': 'サンプル',
+        // ブログカテゴリ（category id → 日本語名）
+        'printing-tech': '印刷技術',
+        'product-intro': '製品紹介',
+        'practical-tips': '実践的ノウハウ',
       }
-      name = segmentMap[segment] || name
+      name = segmentMap[decodedSegment] || name
     }
 
     items.push({

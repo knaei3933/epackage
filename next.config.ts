@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone', // Force server mode, disable static export
+  // 動的 OGP 用ローカルフォントを standalone バンドルに明示含める。
+  // next/og (satori) は WOFF2 をデコードできず、variable font でもグリフ解決エラーが出るため、
+  // Noto Sans JP の static Bold OTF を fs.readFile で読む。
+  // Vercel は @vercel/nft で自動トレースするが、self-hosted standalone では明示 glob が必要
+  // （値側の [slug] ブラケットが文字クラス扱いされるのを避け * を使用）。
+  outputFileTracingIncludes: {
+    '/blog/[slug]': ['./src/app/blog/*/fonts/*.{ttf,otf}'],
+  },
   // =====================================================
   // Turbopack configuration
   // =====================================================

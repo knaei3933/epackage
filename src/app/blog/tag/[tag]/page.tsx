@@ -17,18 +17,20 @@ import { SITE_URL } from '@/lib/seo/canonical';
 // =====================================================
 
 interface BlogTagPageProps {
-  params: {
+  // Next.js 16: params / searchParams は Promise
+  params: Promise<{
     tag: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(
   { params }: BlogTagPageProps
 ): Promise<Metadata> {
-  const tag = decodeURIComponent(params.tag);
+  const { tag: tagParam } = await params;
+  const tag = decodeURIComponent(tagParam);
   const baseUrl = SITE_URL;
 
   return {
@@ -38,11 +40,11 @@ export async function generateMetadata(
     openGraph: {
       // openGraph.title は省略（resolved title "#${tag} | Epackage Lab ブログ" がフォールバック）
       description: `#${tag}タグ付きの記事一覧です。`,
-      url: `${baseUrl}/blog/tag/${params.tag}`,
+      url: `${baseUrl}/blog/tag/${tagParam}`,
       type: 'website',
     },
     alternates: {
-      canonical: `${baseUrl}/blog/tag/${params.tag}`,
+      canonical: `${baseUrl}/blog/tag/${tagParam}`,
     },
   };
 }
@@ -55,8 +57,10 @@ export default async function BlogTagPage({
   params,
   searchParams,
 }: BlogTagPageProps) {
-  const tag = decodeURIComponent(params.tag);
-  const page = parseInt(searchParams.page || '1', 10);
+  const { tag: tagParam } = await params;
+  const tag = decodeURIComponent(tagParam);
+  const { page: pageParam } = await searchParams;
+  const page = parseInt(pageParam || '1', 10);
 
   // Fetch posts with this tag
   const postsData = await getPublishedPosts({
@@ -76,7 +80,7 @@ export default async function BlogTagPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BreadcrumbJsonLd pathname={`/blog/tag/${params.tag}`} />
+      <BreadcrumbJsonLd pathname={`/blog/tag/${tagParam}`} />
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -109,7 +113,7 @@ export default async function BlogTagPage({
             {postsData.totalPages > 1 && (
               <nav className="flex items-center justify-between" aria-label="Pagination">
                 <Link
-                  href={page > 1 ? `/blog/tag/${params.tag}?page=${page - 1}` : '#'}
+                  href={page > 1 ? `/blog/tag/${tagParam}?page=${page - 1}` : '#'}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
                     page > 1
                       ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
@@ -126,7 +130,7 @@ export default async function BlogTagPage({
                 </div>
 
                 <Link
-                  href={page < postsData.totalPages ? `/blog/tag/${params.tag}?page=${page + 1}` : '#'}
+                  href={page < postsData.totalPages ? `/blog/tag/${tagParam}?page=${page + 1}` : '#'}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
                     page < postsData.totalPages
                       ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
