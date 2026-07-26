@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
 
 export async function DELETE(
   request: NextRequest,
@@ -117,8 +118,12 @@ export async function DELETE(
     }
 
     // Delete from storage if needed
+    // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
+    // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
+    // DB 操作（files / orders）は cookie client のまま（多層防御を維持）。
     if (fileRecord.file_path) {
-      const { error: storageError } = await supabase.storage
+      const serviceClient = createServiceClient();
+      const { error: storageError } = await serviceClient.storage
         .from('production-files')
         .remove([fileRecord.file_path]);
 

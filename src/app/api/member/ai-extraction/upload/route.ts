@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createServiceClient } from '@/lib/supabase';
 import { getPerformanceMonitor } from '@/lib/performance-monitor'
 
 // Initialize performance monitor
@@ -202,9 +203,15 @@ export async function POST(request: NextRequest) {
     // Generate file ID
     const fileId = `file-${Date.now()}-${Math.random().toString(36).substring(7)}`
 
+    // storage 操作（upload / getPublicUrl / remove）は service client で RLS を bypass。
+    // 理由: cookie client で storage を操作すると storage.objects の RLS 評価過程で
+    // auth.users を参照し、GRANT 不足（permission denied for table users）で失敗するため。
+    // DB 操作（user_profiles / orders / files / production_data）は cookie client のまま（多層防御を維持）。
+    const serviceClient = createServiceClient();
+
     // Upload file to Supabase Storage (use buffer)
     const fileName = `${orderId}/${fileId}-${file.name}`
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await serviceClient.storage
       .from('design-files')
       .upload(fileName, buffer, {
         contentType: file.type,
@@ -220,7 +227,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = serviceClient.storage
       .from('design-files')
       .getPublicUrl(fileName)
 
@@ -250,7 +257,7 @@ export async function POST(request: NextRequest) {
     if (fileError || !fileRecord) {
       console.error('File record creation error:', fileError)
       // Clean up uploaded file
-      await supabase.storage.from('design-files').remove([fileName])
+      await serviceClient.storage.from('design-files').remove([fileName])
       return NextResponse.json(
         { error: { code: 'DB_ERROR', message: 'ファイル記録の作成に失敗しました' } },
         { status: 500 }

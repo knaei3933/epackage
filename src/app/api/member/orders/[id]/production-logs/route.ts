@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
+import { createServiceClient } from '@/lib/supabase';
 
 /**
  * Helper: Get authenticated user
@@ -90,8 +91,12 @@ export async function POST(
     if (photo) {
       try {
         // Upload to Supabase Storage
+        // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
+        // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
+        // production_logs INSERT / orders UPDATE 等の DB 操作は cookie client のまま（多層防御を維持）。
+        const serviceClient = createServiceClient();
         const fileName = `${orderId}-${Date.now()}-${photo.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await serviceClient.storage
           .from('production-photos')
           .upload(fileName, photo);
 
@@ -100,7 +105,7 @@ export async function POST(
           // Continue without photo
         } else {
           // Get public URL
-          const { data: { publicUrl } } = supabase.storage
+          const { data: { publicUrl } } = serviceClient.storage
             .from('production-photos')
             .getPublicUrl(fileName);
 

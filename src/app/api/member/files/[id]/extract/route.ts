@@ -15,6 +15,7 @@ import { AIExtractionEngine } from '@/lib/ai-parser/core';
 import type { ExtractionResult, ExtractedProductData } from '@/lib/ai-parser/types';
 import { DEV_MODE_USER_ID } from '@/lib/dev-mode';
 import { createServiceClient } from '@/lib/supabase';
+import { extractPathFromUrl } from '@/lib/storage-path';
 
 // ============================================================
 // Types
@@ -280,9 +281,17 @@ export async function POST(
     }
 
     // Download file from Supabase Storage
-    const { data: fileData, error: downloadError } = await supabase.storage
+    // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
+    // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
+    // DB 操作（files / production_data / orders）は引き続き cookie client（多層防御を維持）。
+    const serviceClient = createServiceClient();
+    // storage path は file_path を優先（upload 時に保存）・無ければ public URL から抽出。
+    // file.file_url.split('/').pop() は最終セグメントのみで path プレフィックス
+    // (production_data/{userId}/{orderId}/) が欠落し download に失敗するため使わない。
+    const downloadPath = file.file_path || extractPathFromUrl(file.file_url) || '';
+    const { data: fileData, error: downloadError } = await serviceClient.storage
       .from('production-files')
-      .download(file.file_url.split('/').pop() || '');
+      .download(downloadPath);
 
     if (downloadError || !fileData) {
       return NextResponse.json(

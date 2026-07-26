@@ -14,9 +14,10 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
+import { createServiceClient } from '@/lib/supabase';
 import { validateHankoImage, fileToBase64 } from '@/lib/signature/hanko-validator';
 import { UploadHankoResponse } from '@/types/signature';
+import type { FileObject } from '@supabase/storage-js';
 
 // ============================================================
 // Types
@@ -74,25 +75,6 @@ async function getAuthenticatedUserId(request: NextRequest): Promise<string | nu
 }
 
 // ============================================================
-// Helper: Create Supabase client for database operations
-// ============================================================
-
-function createSupabaseClient(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set() {},
-      remove() {},
-    },
-  });
-}
-
-// ============================================================
 // POST Handler - Upload Hanko
 // ============================================================
 
@@ -109,8 +91,6 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-
-    const supabase = createSupabaseClient(request);
 
     // Parse request body
     const body: HankoUploadRequestBody = await request.json();
@@ -150,10 +130,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload to Supabase Storage
+    // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
+    // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
+    const serviceClient = createServiceClient();
+
     const fileName = `hanko-${userId}-${Date.now()}.png`;
     const filePath = `hanko/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await serviceClient.storage
       .from('hanko-images')
       .upload(filePath, file, {
         contentType: 'image/png',
@@ -172,7 +156,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = serviceClient.storage
       .from('hanko-images')
       .getPublicUrl(filePath);
 
@@ -213,14 +197,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = createSupabaseClient(request);
+    // service client で RLS を bypass（cookie client だと auth.users GRANT 不足で失敗）。
+    // service client は RLS を素通りするため、search: userId の部分一致（情報漏洩リスク）に頼らず、
+    // アプリ層で厳密にプレフィックスフィルタ（hanko-{userId}-）して自ユーザー分のみ返す。
+    const serviceClient = createServiceClient();
 
     // List user's hanko images
-    const { data: files, error } = await supabase.storage
+    const { data: files, error } = await serviceClient.storage
       .from('hanko-images')
       .list(`hanko`, {
         search: userId,
       });
+
+    // service client は RLS bypass なので list 結果をアプリ層で所有者フィルタ。
+    // POST の命名規則 hanko-${userId}-${timestamp}.png に基づく厳密プレフィックス一致。
+    const ownerPrefix = `hanko-${userId}-`;
+    const filteredFiles = (files || []).filter((f: FileObject) => f.name.startsWith(ownerPrefix));
 
     if (error) {
       console.error('Hanko list error:', error);
@@ -234,8 +226,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get public URLs for each file
-    const hankoImages = (files || []).map(file => {
-      const { data: urlData } = supabase.storage
+    const hankoImages = filteredFiles.map((file: FileObject) => {
+      const { data: urlData } = serviceClient.storage
         .from('hanko-images')
         .getPublicUrl(`hanko/${file.name}`);
       return {

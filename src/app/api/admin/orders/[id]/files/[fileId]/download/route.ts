@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAdminAccessTokenForUpload } from '@/lib/google-drive';
+import { extractPathFromUrl } from '@/lib/storage-path';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -84,22 +85,7 @@ export async function GET(
 // Helper Functions
 // =====================================================
 
-/**
- * Extract storage path from Supabase Storage URL
- */
-function extractPathFromUrl(url: string): string | null {
-  if (!url) return null;
-
-  // Handle Supabase Storage public URL format
-  // https://[project].supabase.co/storage/v1/object/public/[bucket]/[path]
-  const publicUrlPattern = /\/storage\/v1\/object\/public\/[^\/]+\/(.+)$/;
-  const match = url.match(publicUrlPattern);
-  if (match) {
-    return match[1];
-  }
-
-  return null;
-}
+// extractPathFromUrl は @/lib/storage-path に共通化（member/admin の download route で利用）
 
 /**
  * Download file from Google Drive

@@ -231,6 +231,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // storage 操作（upload / getPublicUrl / remove）は service client で RLS を bypass。
+    // 理由: cookie client で storage を操作すると storage.objects の RLS 評価過程で
+    // auth.users を参照し、GRANT 不足（permission denied for table users）で失敗するため。
+    // DB 操作（auth.getUser / profiles / files / orders）は cookie client のまま（多層防御を維持）。
+    const serviceClient = createServiceClient();
+
     // Try to get user from middleware header first (more reliable)
     const userIdFromMiddleware = request.headers.get('x-user-id');
     const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
@@ -282,8 +288,7 @@ export async function POST(request: NextRequest) {
         process.env.ENABLE_DEV_MOCK_AUTH === 'true';
       const userIdForDb = isDevMode ? DEV_MODE_USER_ID : userId;
 
-      // service client で RLS を bypass し、確実に orders.user_id を取得して比較
-      const serviceClient = createServiceClient();
+      // service client（引き上げ済み）で RLS を bypass し、確実に orders.user_id を取得して比較
       const { data: order } = await serviceClient
         .from('orders')
         .select('user_id')
@@ -323,7 +328,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await serviceClient.storage
       .from('production-files')
       .upload(storagePath, buffer, {
         contentType: file.type,
@@ -339,7 +344,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = serviceClient.storage
       .from('production-files')
       .getPublicUrl(storagePath);
 
@@ -350,12 +355,16 @@ export async function POST(request: NextRequest) {
         order_id: metadata.order_id || null,
         uploaded_by: userId,
         file_type: metadata.file_type === 'ai' ? 'AI' : 'PDF',
-        file_name: file.name,
+        original_filename: file.name,
         file_url: urlData.publicUrl,
+        // file_path: storage object path（実DB NOT NULL・service 化で storage 成功後に
+        // files.insert が到達するようになったため必須）。file_size_bytes は実DBカラム。
+        // created_at は実DBに不存在（uploaded_at が default now()）のため渡さない。
+        file_path: storagePath,
+        file_size_bytes: file.size,
         version: 1,
         is_latest: true,
         validation_status: 'PENDING',
-        created_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -363,7 +372,7 @@ export async function POST(request: NextRequest) {
     if (dbError) {
       console.error('File record creation error:', dbError);
       // Cleanup uploaded file
-      await supabase.storage.from('production-files').remove([storagePath]);
+      await serviceClient.storage.from('production-files').remove([storagePath]);
 
       return NextResponse.json(
         { error: 'Failed to create file record', code: 'DB_ERROR' },

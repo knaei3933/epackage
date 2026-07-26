@@ -885,7 +885,9 @@ export type Database = {
                     file_name: string  // 元のファイル名 (also used as original_filename for compatibility)
                     original_filename: string | null  // Google Drive file name
                     file_url: string  // Storage URL
-                    file_size: number  // ファイルサイズ (bytes)
+                    file_path: string  // Storage object path (production_data/{userId}/{orderId}/{file}・NOT NULL・実DB)
+                    file_size_bytes: number | null  // ファイルサイズ bytes (実DBカラム・nullable)
+                    file_size: number  // ファイルサイズ (bytes) [legacy・実DBに不存在・全面照合(Follow-ups #3)で整理予定]
                     version: number  // バージョン番号
                     is_latest: boolean  // 最新バージョンフラグ
                     validation_status: 'PENDING' | 'VALID' | 'INVALID'  // 検証ステータス
