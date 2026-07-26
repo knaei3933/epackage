@@ -11,6 +11,7 @@ import {
   MAX_HANKO_SIZE,
   RECOMMENDED_HANKO_SIZE,
 } from '@/types/signature';
+import sharp from 'sharp';
 
 // ============================================================
 // Main Validation Function
@@ -107,14 +108,10 @@ export async function validateHankoImage(
     }
 
     // Check circular shape (optional, for round hanko)
-    const circularScore = await detectCircularShape(imageInfo);
-    if (circularScore > 0.7) {
-      checks.circularShape = true;
-      confidence += circularScore * 0.1;
-    } else {
-      checks.circularShape = true; // Not required, just informational
-      confidence += 0.05;
-    }
+    // 円形検出は既存デッドロジック（img.src 未設定で常に resolve(0.5)）を定数化。
+    // confidence 計算上、常に else 側に落ちるため 0.5 定数と等価（差分ゼロ）。
+    checks.circularShape = true; // Not required, just informational
+    confidence += 0.05;
   } catch (error) {
     errors.push(`画像の解析に失敗しました: ${error}`);
     valid = false;
@@ -134,7 +131,11 @@ export async function validateHankoImage(
 // ============================================================
 
 /**
- * Load basic image information
+ * Load basic image information (server-side via sharp)
+ *
+ * 旧ブラウザ実装（Image/canvas 経由の pixel 取得）を sharp で置換。既存の判定基準を維持:
+ * - hasTransparency: alpha < 255 のピクセルが1つでもあれば true
+ * - colorCount: sampleRate=10（10ピクセルに1個）で a > 128 の RGB を Set 化
  */
 async function loadImageInfo(file: File): Promise<{
   width: number;
@@ -142,48 +143,28 @@ async function loadImageInfo(file: File): Promise<{
   hasTransparency: boolean;
   colorCount: number;
 }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const metadata = await sharp(buffer).metadata();
 
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+  // ensureAlpha で 4ch RGBA を保証し raw pixel を取得（旧 canvas 実装と等価な RGBA 配列）
+  const { data } = await sharp(buffer)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
 
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-
-        // Check for transparency
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const hasTransparency = checkTransparency(imageData.data);
-
-        // Count unique colors (quality indicator)
-        const colorCount = countUniqueColors(imageData.data);
-
-        resolve({
-          width: img.width,
-          height: img.height,
-          hasTransparency,
-          colorCount,
-        });
-      } else {
-        reject(new Error('Canvas context not available'));
-      }
-    };
-
-    img.onerror = () => {
-      reject(new Error('Failed to load image'));
-    };
-
-    img.src = URL.createObjectURL(file);
-  });
+  return {
+    width: metadata.width ?? 0,
+    height: metadata.height ?? 0,
+    hasTransparency: checkTransparency(data),
+    colorCount: countUniqueColors(data),
+  };
 }
 
 /**
  * Check if image has transparent pixels
+ * alpha < 255 のピクセルが1つでもあれば true（既存の判定基準を維持）
  */
-function checkTransparency(data: Uint8ClampedArray): boolean {
+function checkTransparency(data: Uint8Array): boolean {
   for (let i = 3; i < data.length; i += 4) {
     if (data[i] < 255) {
       return true;
@@ -194,8 +175,9 @@ function checkTransparency(data: Uint8ClampedArray): boolean {
 
 /**
  * Count unique colors in image
+ * sampleRate=10（10ピクセルに1個）で a > 128 の RGB を Set 化（既存の判定基準を維持）
  */
-function countUniqueColors(data: Uint8ClampedArray): number {
+function countUniqueColors(data: Uint8Array): number {
   const colors = new Set<string>();
   const sampleRate = 10; // Sample every 10th pixel for performance
 
@@ -214,78 +196,6 @@ function countUniqueColors(data: Uint8ClampedArray): number {
   return colors.size;
 }
 
-/**
- * Detect if image has circular shape (for round hanko)
- * Returns confidence score (0-1)
- */
-async function detectCircularShape(imageInfo: {
-  width: number;
-  height: number;
-  hasTransparency: boolean;
-}): Promise<number> {
-  // This is a simplified detection
-  // In production, you might want to use OpenCV or similar
-
-  const { width, height, hasTransparency } = imageInfo;
-  const centerX = width / 2;
-  const centerY = height / 2;
-  const maxRadius = Math.min(width, height) / 2;
-
-  // For images with transparency, check if transparent area forms a circle
-  if (hasTransparency) {
-    // Load image again for pixel analysis
-    return new Promise((resolve) => {
-      const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      img.onload = () => {
-        canvas.width = width;
-        canvas.height = height;
-
-        if (ctx) {
-          ctx.drawImage(img, 0, 0);
-          const imageData = ctx.getImageData(0, 0, width, height);
-
-          // Sample points at different radii
-          const samples = 20;
-          let circularPoints = 0;
-
-          for (let i = 0; i < samples; i++) {
-            const angle = (i / samples) * Math.PI * 2;
-            const x = Math.round(centerX + Math.cos(angle) * maxRadius * 0.8);
-            const y = Math.round(centerY + Math.sin(angle) * maxRadius * 0.8);
-
-            if (x >= 0 && x < width && y >= 0 && y < height) {
-              const idx = (y * width + x) * 4;
-              const alpha = imageData.data[idx + 3];
-
-              // Check if point is on edge (transition from transparent to opaque)
-              if (alpha > 128) {
-                circularPoints++;
-              }
-            }
-          }
-
-          const score = circularPoints / samples;
-          resolve(score);
-        } else {
-                          resolve(0);
-        }
-      };
-
-      img.onerror = () => resolve(0);
-      // This would need the actual image source
-      // For now, return a default score
-      resolve(0.5);
-    });
-  }
-
-  // For images without transparency, check aspect ratio (should be ~1:1 for circle)
-  const aspectRatio = Math.min(width, height) / Math.max(width, height);
-  return aspectRatio > 0.8 ? 0.7 : 0.3;
-}
-
 // ============================================================
 // Utility Functions
 // ============================================================
@@ -299,56 +209,6 @@ export function fileToBase64(file: File): Promise<string> {
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(file);
-  });
-}
-
-/**
- * Compress image if too large
- */
-export async function compressImage(
-  file: File,
-  maxSize: number = RECOMMENDED_HANKO_SIZE.max
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    img.onload = () => {
-      let { width, height } = img;
-
-      // Scale down if necessary
-      if (width > maxSize || height > maxSize) {
-        const scale = Math.min(maxSize / width, maxSize / height);
-        width *= scale;
-        height *= scale;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert to blob
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('Failed to compress image'));
-            }
-          },
-          'image/png',
-          0.9
-        );
-      } else {
-        reject(new Error('Canvas context not available'));
-      }
-    };
-
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(file);
   });
 }
 
