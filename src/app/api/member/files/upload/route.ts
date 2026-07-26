@@ -12,6 +12,8 @@ import { createServerClient } from '@supabase/ssr';
 import { Database } from '@/types/database';
 import { z } from 'zod';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
+import { DEV_MODE_USER_ID } from '@/lib/dev-mode';
+import { createServiceClient } from '@/lib/supabase';
 
 // Initialize performance monitor
 const perfMonitor = getPerformanceMonitor({
@@ -255,6 +257,47 @@ export async function POST(request: NextRequest) {
       console.log('[Files Upload] Authenticated user:', userId);
     }
 
+    // IDOR prevention: order_id が指定された場合、所有権を検証（admin 以外）
+    // WS-2 checkFileOwnership と対称。他人の order_id への file 紐付けを拒否する。
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    const isAdmin = profile?.role === 'ADMIN';
+
+    if (!isAdmin && metadata.order_id) {
+      // UUID 形式チェック（WS-3 対称・22P02 予防）
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!UUID_RE.test(metadata.order_id)) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+
+      const isDevMode =
+        process.env.NODE_ENV === 'development' &&
+        process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+      const userIdForDb = isDevMode ? DEV_MODE_USER_ID : userId;
+
+      // service client で RLS を bypass し、確実に orders.user_id を取得して比較
+      const serviceClient = createServiceClient();
+      const { data: order } = await serviceClient
+        .from('orders')
+        .select('user_id')
+        .eq('id', metadata.order_id)
+        .single();
+
+      if (!order || order.user_id !== userIdForDb) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+    }
+
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -305,6 +348,7 @@ export async function POST(request: NextRequest) {
       .from('files')
       .insert({
         order_id: metadata.order_id || null,
+        uploaded_by: userId,
         file_type: metadata.file_type === 'ai' ? 'AI' : 'PDF',
         file_name: file.name,
         file_url: urlData.publicUrl,
