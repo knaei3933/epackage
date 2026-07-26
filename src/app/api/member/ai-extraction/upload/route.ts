@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const orderId = formData.get('order_id') as string
-    const dataType = formData.get('data_type') as string || 'design_file'
 
     // Validate inputs
     if (!file) {
@@ -147,7 +146,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // DB 操作（profiles / orders / files / production_data）+ storage 操作は service client。
+    // DB 操作（profiles / orders / files）+ storage 操作は service client。
     // cookie client は @supabase/ssr server context で PostgREST(DB) に session が伝播せず
     // anon 扱いになり RLS で 0 rows / INSERT 拒否されるため（inquiries パターン）。
     // IDOR 予防は orders.user_id 所有権検証 + uploaded_by: userId のアプリ層強制で担保。
@@ -269,35 +268,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create production_data record
-    const { data: productionData, error: prodError } = await serviceClient
-      .from('production_data')
-      .insert({
-        order_id: orderId,
-        file_id: fileId,
-        data_type: dataType,
-        title: `デザインファイル: ${file.name}`,
-        version: '1.0',
-        validation_status: 'PENDING',
-        received_at: new Date().toISOString(),
-        submitted_by_customer: true,
-        // AI extraction fields - will be populated by extraction service
-        extracted_data: null,
-        confidence_score: null,
-        extraction_metadata: null,
-      })
-      .select()
-      .single()
-
-    if (prodError || !productionData) {
-      console.error('Production data creation error:', prodError)
-    }
-
-    // Trigger AI extraction (non-blocking)
-    triggerAIExtraction(fileId, orderId, fileName).catch((err) => {
-      console.error('AI extraction trigger error:', err)
-    })
-
     // Return success response
     return NextResponse.json(
       {
@@ -305,7 +275,6 @@ export async function POST(request: NextRequest) {
         data: {
           // file_id は files.id（UUID）。storage path 用の fileId 文字列と区別。
           file_id: fileRecord.id,
-          production_data_id: productionData?.id,
           status: 'processing' as const,
           uploaded_at: new Date().toISOString(),
           file_url: urlData.publicUrl,
@@ -325,35 +294,4 @@ export async function POST(request: NextRequest) {
     const duration = Date.now() - startTime
     perfMonitor.trackQuery(`POST /api/member/ai-extraction/upload`, duration)
   }
-}
-
-// ============================================================
-// AI Extraction Trigger
-// ============================================================
-
-/**
- * Trigger AI extraction for uploaded file
- * This would typically call a background job or queue system
- */
-async function triggerAIExtraction(
-  fileId: string,
-  orderId: string,
-  fileName: string
-): Promise<void> {
-  // TODO: Implement actual AI extraction integration
-  // This could be:
-  // 1. A background job queue (e.g., Bull, Agenda)
-  // 2. A serverless function
-  // 3. A separate microservice
-
-  console.log(`[AI Extraction] Triggered for file ${fileName} (ID: ${fileId})`)
-
-  // Mock extraction for now - in production, this would:
-  // 1. Convert .ai to PDF/PNG
-  // 2. Call AI vision API (e.g., GPT-4 Vision, Claude Vision, Google Cloud Vision)
-  // 3. Parse extracted data
-  // 4. Validate and store results
-
-  // Simulate async processing
-  await new Promise((resolve) => setTimeout(resolve, 3000))
 }

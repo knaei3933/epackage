@@ -163,14 +163,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get public URL
-    const { data: urlData } = serviceClient.storage
+    // hanko-images は private bucket。response 表示用に signed URL（24h 有効）を生成。
+    // hanko は DB 保存なし・GET で都度 signed URL を発行する設計なので期限切れ問題なし。
+    const { data: signedData, error: signedError } = await serviceClient.storage
       .from('hanko-images')
-      .getPublicUrl(filePath);
+      .createSignedUrl(filePath, 86400);
+
+    if (signedError) {
+      console.error('Hanko signed URL error:', signedError);
+    }
 
     return NextResponse.json({
       success: true,
-      hankoImageUrl: urlData.publicUrl,
+      hankoImageUrl: signedData?.signedUrl ?? '',
       hankoImageId: uploadData.path,
       validation,
     } as HankoUploadResponseBody);
@@ -233,19 +238,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get public URLs for each file
-    const hankoImages = filteredFiles.map((file) => {
-      const { data: urlData } = serviceClient.storage
-        .from('hanko-images')
-        .getPublicUrl(`hanko/${file.name}`);
-      return {
-        id: file.id,
-        name: file.name,
-        url: urlData.publicUrl,
-        createdAt: file.created_at,
-        size: file.metadata?.size || 0,
-      };
-    });
+    // Get signed URLs for each file（private bucket・24h 有効・都度発行）
+    const hankoImages = await Promise.all(
+      filteredFiles.map(async (file) => {
+        const { data: signedData } = await serviceClient.storage
+          .from('hanko-images')
+          .createSignedUrl(`hanko/${file.name}`, 86400);
+        return {
+          id: file.id,
+          name: file.name,
+          url: signedData?.signedUrl ?? '',
+          createdAt: file.created_at,
+          size: file.metadata?.size || 0,
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,

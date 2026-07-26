@@ -2,7 +2,7 @@
  * Send Design Data to Korea Partner API
  *
  * デザインデータ韓国送付API
- * - AI抽出データを取得してメール本文に記載
+ * - 注文仕様（specs）からメールデータを構築
  * - 原本デザインファイルを添付
  * - design@epackage-lab.com → info@package-lab.com
  *
@@ -92,8 +92,7 @@ export async function POST(
           file_type,
           original_filename,
           file_url,
-          file_path,
-          ai_extraction_data
+          file_path
         )
       `)
       .eq('id', orderId)
@@ -106,7 +105,7 @@ export async function POST(
       );
     }
 
-    // AI抽出データをファイルから集約
+    // デザインファイルを添付用に選別
     const files = order.files || [];
     const designFiles = files.filter((f: any) =>
       ['AI', 'PDF', 'PSD'].includes(f.file_type)
@@ -122,20 +121,6 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    const aiExtractedData = {
-      specifications: {} as Record<string, any>,
-      printing: {} as Record<string, any>,
-      design: {} as Record<string, any>,
-    };
-
-    designFiles.forEach((file: any) => {
-      if (file.ai_extraction_data) {
-        Object.assign(aiExtractedData.specifications, file.ai_extraction_data.specifications);
-        Object.assign(aiExtractedData.printing, file.ai_extraction_data.printing);
-        Object.assign(aiExtractedData.design, file.ai_extraction_data.design);
-      }
-    });
 
     // 注文アイテムから製品詳細を解析
     const items = order.items || [];

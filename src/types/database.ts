@@ -870,40 +870,29 @@ export type Database = {
                 Relationships: []
             }
 
-            // Files table - ファイル管理
+            // Files table - ファイル管理 (実DB 17カラムに完全一致・2026-07-26 information_schema 照合)
             files: {
                 Row: {
                     id: string
                     order_id: string | null  // FK to orders
                     quotation_id: string | null  // FK to quotations
-                    work_order_id: string | null  // FK to work_orders
-                    production_log_id: string | null  // FK to production_logs
-                    order_item_id: string | null  // FK to order_items
-                    sku_name: string | null  // SKU name snapshot (denormalized for performance)
-                    uploaded_by: string  // アップロード者 (user_id)
                     file_type: 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER'
-                    file_name: string  // 元のファイル名 (also used as original_filename for compatibility)
-                    original_filename: string | null  // Google Drive file name
+                    original_filename: string  // 元のファイル名
                     file_url: string  // Storage URL
                     file_path: string  // Storage object path (production_data/{userId}/{orderId}/{file}・NOT NULL・実DB)
-                    file_size_bytes: number | null  // ファイルサイズ bytes (実DBカラム・nullable)
-                    file_size: number  // ファイルサイズ (bytes) [legacy・実DBに不存在・全面照合(Follow-ups #3)で整理予定]
-                    version: number  // バージョン番号
-                    is_latest: boolean  // 最新バージョンフラグ
-                    validation_status: 'PENDING' | 'VALID' | 'INVALID'  // 検証ステータス
-                    validation_errors: Json | null  // 検証エラー
-                    metadata: Json | null  // 追加メタデータ
-                    // AI Extraction fields
-                    ai_extraction_status: 'pending' | 'processing' | 'completed' | 'failed' | 'needs_revision' | null
-                    ai_extraction_data: Json | null  // 抽出されたデータ
-                    ai_confidence_score: number | null  // 信頼度スコア (0-1)
-                    ai_extraction_method: 'ai_parser' | 'manual' | 'hybrid' | 'adobe_api' | 'pattern_matching' | 'manual_entry' | 'ai_vision' | 'ocr' | null
-                    ai_extracted_at: string | null  // 抽出日時
-                    ai_validation_errors: Json | null  // AI抽出エラー
-                    created_at: string
+                    file_size_bytes: number | null  // ファイルサイズ bytes (nullable)
+                    version: number  // バージョン番号 (default 1)
+                    is_latest: boolean  // 最新バージョンフラグ (default true)
+                    validation_status: 'PENDING' | 'VALID' | 'INVALID'  // 検証ステータス (default 'PENDING')
+                    validation_results: Json | null  // 検証結果 (jsonb)
+                    uploaded_by: string  // アップロード者 (user_id)
+                    uploaded_at: string  // アップロード日時 (default now())
+                    validated_at: string | null  // 検証日時
+                    source_file_id: string | null  // FK to files (元ファイル・バージョン管理用)
+                    order_item_id: string | null  // FK to order_items
                 }
-                Insert: Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>
-                Update: Partial<Omit<Database['public']['Tables']['files']['Row'], 'id' | 'created_at'>>
+                Insert: Omit<Database['public']['Tables']['files']['Row'], 'id' | 'version' | 'is_latest' | 'validation_status' | 'uploaded_at'>
+                Update: Partial<Omit<Database['public']['Tables']['files']['Row'], 'id'>>
                 Relationships: []
             }
 
@@ -1153,40 +1142,6 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['production_jobs']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['production_jobs']['Row'], 'id' | 'created_at' | 'updated_at'>>
-                Relationships: []
-            }
-
-            // Production data table - データ入稿 (Data Received)
-            production_data: {
-                Row: {
-                    id: string
-                    order_id: string  // FK to orders
-                    data_type: 'design_file' | 'specification' | 'approval' | 'material_data' | 'layout_data' | 'color_data' | 'other'
-                    title: string  // Data title
-                    description: string | null
-                    version: string  // e.g., "1.0"
-                    file_id: string | null  // FK to files
-                    file_url: string | null
-                    validation_status: 'pending' | 'valid' | 'invalid' | 'needs_revision'
-                    validated_by: string | null  // FK to profiles
-                    validated_at: string | null
-                    validation_notes: string | null
-                    validation_errors: Json | null
-                    approved_for_production: boolean
-                    approved_by: string | null  // FK to profiles
-                    approved_at: string | null
-                    submitted_by_customer: boolean
-                    customer_contact_info: Json | null
-                    received_at: string
-                    // AI Extraction fields
-                    extracted_data: Json | null  // AI抽出された製品仕様データ
-                    confidence_score: number | null  // 抽出信頼度 (0-1)
-                    extraction_metadata: Json | null  // 抽出メタデータ (provider, model, processingTime, etc.)
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['production_data']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['production_data']['Row'], 'id' | 'created_at' | 'updated_at'>>
                 Relationships: []
             }
 
@@ -1708,12 +1663,6 @@ export type Database = {
 
             // Production job status
             production_job_status: 'pending' | 'scheduled' | 'in_progress' | 'paused' | 'completed' | 'failed' | 'cancelled'
-
-            // Production data types
-            production_data_type: 'design_file' | 'specification' | 'approval' | 'material_data' | 'layout_data' | 'color_data' | 'other'
-
-            // Production data validation status
-            production_data_validation_status: 'pending' | 'valid' | 'invalid' | 'needs_revision'
 
             // Spec sheet status
             spec_sheet_status: 'draft' | 'pending_review' | 'active' | 'deprecated' | 'archived'

@@ -28,7 +28,7 @@ src/types/
 - **Supabase-generated types**: Complete table definitions for `public` schema
 - **Core tables**: `profiles`, `orders`, `quotations`, `order_items`, `delivery_addresses`, `billing_addresses`
 - **B2B workflow tables**: `companies`, `contracts`, `work_orders`, `production_logs`, `files`
-- **Production system**: `production_jobs`, `production_data`, `spec_sheets`, `inventory`
+- **Production system**: `production_jobs`, `spec_sheets`, `inventory`
 - **Signature system**: `signatures`, `signature_events`, `hanko_images`
 - **Enums**: 30+ enums for status types, categories, and workflow states
 

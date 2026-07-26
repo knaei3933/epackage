@@ -105,10 +105,10 @@ export async function GET(request: NextRequest) {
         const orderIds = userOrders.map((o: any) => o.id);
         let q = supabase
           .from('files')
-          .select('id, file_name, file_url, file_size, created_at, order_id')
+          .select('id, original_filename, file_url, file_size_bytes, uploaded_at, order_id')
           .in('order_id', orderIds)
           .eq('file_type', 'AI')
-          .order('created_at', { ascending: false });
+          .order('uploaded_at', { ascending: false });
         if (orderId) q = q.eq('order_id', orderId);
         const { data } = await q.range(offset, offset + limit - 1);
         return data || [];
@@ -151,11 +151,11 @@ export async function GET(request: NextRequest) {
       documents.push({
         id: `design-${file.id}`,
         type: 'design',
-        name: `デザインデータ: ${file.file_name}`,
-        name_ja: `デザインデータ: ${file.file_name}`,
+        name: `デザインデータ: ${file.original_filename}`,
+        name_ja: `デザインデータ: ${file.original_filename}`,
         file_url: file.file_url,
-        file_size: file.file_size,
-        created_at: file.created_at,
+        file_size: file.file_size_bytes,
+        created_at: file.uploaded_at,
         order_id: file.order_id || undefined,
         is_available: true,
       });

@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
+import { extractPathFromUrl } from '@/lib/storage-path';
 
 /**
  * Helper: Get authenticated user
@@ -93,6 +94,7 @@ export async function POST(
 
     // Handle photo upload if provided（service client で RLS bypass）
     let photoUrl: string | null = null;
+    let signedPhotoUrl: string | null = null;
     if (photo) {
       try {
         const fileName = `${orderId}-${Date.now()}-${photo.name}`;
@@ -104,12 +106,21 @@ export async function POST(
           console.error('Photo upload error:', uploadError);
           // Continue without photo
         } else {
-          // Get public URL
+          // production-photos は private bucket。response 表示用に signed URL（24h 有効）を生成。
+          // DB の photo_url は従来通り getPublicUrl の結果を維持（保存方法の変更は別 Issue）。
           const { data: { publicUrl } } = serviceClient.storage
             .from('production-photos')
             .getPublicUrl(fileName);
-
           photoUrl = publicUrl;
+
+          const { data: signedData, error: signedError } = await serviceClient.storage
+            .from('production-photos')
+            .createSignedUrl(fileName, 86400);
+          if (signedError) {
+            console.error('Photo signed URL error:', signedError);
+          } else {
+            signedPhotoUrl = signedData.signedUrl;
+          }
         }
       } catch (error) {
         console.error('Photo upload error:', error);
@@ -161,7 +172,10 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      data: log,
+      // response の photo_url は signed URL（24h 有効）で上書き。
+      // DB の photo_url は publicUrl のままだが private bucket で実質アクセス不可のため、
+      // 即時表示用に signed URL を返す。DB 保存方法の抜本的修正は別 Issue。
+      data: { ...log, photo_url: signedPhotoUrl ?? log.photo_url },
       message: '生産ログが保存されました。'
     });
 
@@ -247,9 +261,24 @@ export async function GET(
       );
     }
 
+    // production-photos は private bucket。各 log の photo_url（DB には publicUrl 保存）を
+    // extractPathFromUrl → createSignedUrl で署名付き URL（24h 有効）に変換して返す。
+    // POST 直後だけでなくリロード（GET 再取得）時も写真が表示されるように。
+    const logsWithSignedUrls = await Promise.all(
+      (logs || []).map(async (log: any) => {
+        if (!log.photo_url) return log;
+        const path = extractPathFromUrl(log.photo_url);
+        if (!path) return log;
+        const { data: signedData } = await serviceClient.storage
+          .from('production-photos')
+          .createSignedUrl(path, 86400);
+        return { ...log, photo_url: signedData?.signedUrl ?? log.photo_url };
+      })
+    );
+
     return NextResponse.json({
       success: true,
-      data: logs
+      data: logsWithSignedUrls
     });
 
   } catch (error) {
