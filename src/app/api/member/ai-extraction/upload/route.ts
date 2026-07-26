@@ -130,17 +130,28 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: false })
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        // getAll/setAll（@supabase/ssr 推奨）: PostgREST(DB) への session 伝播問題により
+        // DB 操作は service client に統一。cookie client は getUser()（認証）のみ。
+        getAll() {
+          return request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }))
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options })
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set({ name, value, ...options })
+            )
+          } catch {
+            // read-only コンテキストでは無視
+          }
         },
       },
     })
+
+    // DB 操作（profiles / orders / files / production_data）+ storage 操作は service client。
+    // cookie client は @supabase/ssr server context で PostgREST(DB) に session が伝播せず
+    // anon 扱いになり RLS で 0 rows / INSERT 拒否されるため（inquiries パターン）。
+    // IDOR 予防は orders.user_id 所有権検証 + uploaded_by: userId のアプリ層強制で担保。
+    const serviceClient = createServiceClient()
 
     // Try to get user from middleware header first (more reliable)
     const userIdFromMiddleware = request.headers.get('x-user-id')
@@ -165,8 +176,8 @@ export async function POST(request: NextRequest) {
       console.log('[AI Extraction Upload] Authenticated user:', userId)
     }
 
-    // Get user profile
-    const { data: profile } = await supabase
+    // Get user profile（service client: cookie client は anon で 0 rows になるため）
+    const { data: profile } = await serviceClient
       .from('profiles')
       .select('id')
       .eq('id', userId)
@@ -179,8 +190,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify order ownership
-    const { data: order } = await supabase
+    // Verify order ownership（service client・IDOR 予防）
+    const { data: order } = await serviceClient
       .from('orders')
       .select('id, user_id, company_id, status')
       .eq('id', orderId)
@@ -202,12 +213,6 @@ export async function POST(request: NextRequest) {
 
     // Generate file ID
     const fileId = `file-${Date.now()}-${Math.random().toString(36).substring(7)}`
-
-    // storage 操作（upload / getPublicUrl / remove）は service client で RLS を bypass。
-    // 理由: cookie client で storage を操作すると storage.objects の RLS 評価過程で
-    // auth.users を参照し、GRANT 不足（permission denied for table users）で失敗するため。
-    // DB 操作（profiles / orders / files / production_data）は cookie client のまま（多層防御を維持）。
-    const serviceClient = createServiceClient();
 
     // Upload file to Supabase Storage (use buffer)
     const fileName = `${orderId}/${fileId}-${file.name}`
@@ -237,7 +242,7 @@ export async function POST(request: NextRequest) {
     //   - file_name/file_size/metadata は実DBに不存在の legacy → original_filename/file_size_bytes へ統一
     //   - file_path は実DB NOT NULL・storagePath（fileName）と同じ値を設定
     //   - metadata(originalName/mimeType/uploadedAt) は original_filename/file_type/uploaded_at(default) で重複するため省略
-    const { data: fileRecord, error: fileError } = await supabase
+    const { data: fileRecord, error: fileError } = await serviceClient
       .from('files')
       .insert({
         order_id: orderId,
@@ -265,7 +270,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create production_data record
-    const { data: productionData, error: prodError } = await supabase
+    const { data: productionData, error: prodError } = await serviceClient
       .from('production_data')
       .insert({
         order_id: orderId,

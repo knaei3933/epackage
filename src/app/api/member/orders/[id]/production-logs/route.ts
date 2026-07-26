@@ -55,10 +55,15 @@ export async function POST(
     }
 
     const { userId } = authResult;
-    const { client: supabase } = await createSupabaseSSRClient(request);
 
-    // Check if user is admin or operator
-    const { data: profile } = await supabase
+    // DB 操作（profiles / production_logs / orders / order_status_history）+ storage 操作は
+    // service client。createSupabaseSSRClient は getAll/setAll 推奨パターンだが、@supabase/ssr
+    // server context で PostgREST(DB) に session が伝播せず anon 扱いになり RLS で 0 rows /
+    // INSERT 拒否されるため。cookie client（getAuthenticatedUser 内）は getUser()（認証）のみ。
+    const serviceClient = createServiceClient();
+
+    // Check if user is admin or operator（service client）
+    const { data: profile } = await serviceClient
       .from('profiles')
       .select('role')
       .eq('id', userId)
@@ -86,15 +91,10 @@ export async function POST(
       );
     }
 
-    // Handle photo upload if provided
+    // Handle photo upload if provided（service client で RLS bypass）
     let photoUrl: string | null = null;
     if (photo) {
       try {
-        // Upload to Supabase Storage
-        // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
-        // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
-        // production_logs INSERT / orders UPDATE 等の DB 操作は cookie client のまま（多層防御を維持）。
-        const serviceClient = createServiceClient();
         const fileName = `${orderId}-${Date.now()}-${photo.name}`;
         const { data: uploadData, error: uploadError } = await serviceClient.storage
           .from('production-photos')
@@ -117,8 +117,8 @@ export async function POST(
       }
     }
 
-    // Create production log
-    const { data: log, error: logError } = await supabase
+    // Create production log（service client）
+    const { data: log, error: logError } = await serviceClient
       .from('production_logs')
       .insert({
         order_id: orderId,
@@ -139,18 +139,18 @@ export async function POST(
       );
     }
 
-    // Update order status
+    // Update order status（service client）
     // 判断4: current_state は orders テーブル実列に非存在のため削除。
     // subStatus（製造サブステータス）は production_logs.sub_status に保存済み。
-    await supabase
+    await serviceClient
       .from('orders')
       .update({
         status: 'PRODUCTION'
       })
       .eq('id', orderId);
 
-    // Log status change
-    await supabase
+    // Log status change（service client）
+    await serviceClient
       .from('order_status_history')
       .insert({
         order_id: orderId,
@@ -190,12 +190,14 @@ export async function GET(
     }
 
     const { userId } = authResult;
-    const { client: supabase } = await createSupabaseSSRClient(request);
+
+    // DB 操作は service client（POST と同方針・cookie client は anon で 0 rows になるため）
+    const serviceClient = createServiceClient();
 
     const { id: orderId } = await context.params;
 
-    // Check access permission
-    const { data: order } = await supabase
+    // Check access permission（service client）
+    const { data: order } = await serviceClient
       .from('orders')
       .select('user_id')
       .eq('id', orderId)
@@ -208,7 +210,7 @@ export async function GET(
       );
     }
 
-    const { data: profile } = await supabase
+    const { data: profile } = await serviceClient
       .from('profiles')
       .select('role')
       .eq('id', userId)
@@ -224,8 +226,8 @@ export async function GET(
       );
     }
 
-    // Get production logs for this order
-    const { data: logs, error } = await supabase
+    // Get production logs for this order（service client）
+    const { data: logs, error } = await serviceClient
       .from('production_logs')
       .select(`
         *,

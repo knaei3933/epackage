@@ -219,14 +219,20 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: false });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        // getAll/setAll（@supabase/ssr 推奨）: chunked session 対応。
+        // 従来の get/set/remove は PostgREST(DB) に session が伝播せず anon 扱いになり
+        // files INSERT が RLS 拒否(42501)されるため変更。
+        getAll() {
+          return request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set({ name, value, ...options })
+            );
+          } catch {
+            // read-only コンテキスト（Server Component）では無視
+          }
         },
       },
     });
@@ -263,9 +269,26 @@ export async function POST(request: NextRequest) {
       console.log('[Files Upload] Authenticated user:', userId);
     }
 
+    // files テーブルの exactly_one_reference 制約: order_id か quotation_id の
+    // ちょうど1つが必須。両方 null / 両方指定は 400（DB 側でも拒否されるが早期応答）。
+    if (!metadata.order_id && !metadata.quotation_id) {
+      return NextResponse.json(
+        { error: 'Either order_id or quotation_id is required', code: 'MISSING_REFERENCE' },
+        { status: 400 }
+      );
+    }
+    if (metadata.order_id && metadata.quotation_id) {
+      return NextResponse.json(
+        { error: 'Cannot specify both order_id and quotation_id', code: 'CONFLICT_REFERENCE' },
+        { status: 400 }
+      );
+    }
+
     // IDOR prevention: order_id が指定された場合、所有権を検証（admin 以外）
     // WS-2 checkFileOwnership と対称。他人の order_id への file 紐付けを拒否する。
-    const { data: profile } = await supabase
+    // profiles SELECT も service client: cookie client は @supabase/ssr server context で
+    // PostgREST(DB) に session が伝播せず anon 扱いになり RLS で 0 rows になるため。
+    const { data: profile } = await serviceClient
       .from('profiles')
       .select('role')
       .eq('id', userId)
@@ -296,6 +319,36 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (!order || order.user_id !== userIdForDb) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // IDOR prevention: quotation_id が指定された場合、所有権を検証（admin 以外）
+    // order_id 検証と対称。他人の quotation への file 紐付けを拒否。
+    if (!isAdmin && metadata.quotation_id) {
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!UUID_RE.test(metadata.quotation_id)) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+
+      const isDevMode =
+        process.env.NODE_ENV === 'development' &&
+        process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+      const userIdForDb = isDevMode ? DEV_MODE_USER_ID : userId;
+
+      const { data: quotation } = await serviceClient
+        .from('quotations')
+        .select('user_id')
+        .eq('id', metadata.quotation_id)
+        .single();
+
+      if (!quotation || quotation.user_id !== userIdForDb) {
         return NextResponse.json(
           { error: 'Forbidden', code: 'FORBIDDEN' },
           { status: 403 }
@@ -349,10 +402,14 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(storagePath);
 
     // Create file record in database
-    const { data: fileRecord, error: dbError } = await supabase
+    // files INSERT も service client: cookie client は PostgREST が anon になり
+    // files INSERT policy(WITH CHECK auth.uid() IS NOT NULL) で RLS 拒否(42501)されるため。
+    // IDOR 予防は order_id 所有権検証(L295) + uploaded_by: userId のアプリ層強制で担保。
+    const { data: fileRecord, error: dbError } = await serviceClient
       .from('files')
       .insert({
         order_id: metadata.order_id || null,
+        quotation_id: metadata.quotation_id || null,
         uploaded_by: userId,
         file_type: metadata.file_type === 'ai' ? 'AI' : 'PDF',
         original_filename: file.name,
@@ -430,14 +487,18 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json({ success: false });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        // getAll/setAll（@supabase/ssr 推奨）: POST handler と同様。
+        getAll() {
+          return request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set({ name, value, ...options })
+            );
+          } catch {
+            // read-only コンテキストでは無視
+          }
         },
       },
     });
@@ -468,11 +529,55 @@ export async function GET(request: NextRequest) {
       console.log('[Files List] Authenticated user:', userId);
     }
 
-    // Build query
-    let query = supabase
+    // files SELECT は service client: cookie client は PostgREST(DB) に session が
+    // 伝播せず anon 扱いになり RLS で 0 rows になるため。service client は RLS bypass
+    // なので全件見える → アプリ層で所有権フィルタ（uploaded_by / order_id 所有権）。
+    const serviceClient = createServiceClient();
+
+    // profiles SELECT も service client（role 取得）
+    const { data: profile } = await serviceClient
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    const isAdmin = profile?.role === 'ADMIN';
+
+    // order_id 指定時は所有権検証（非 admin・IDOR 予防・POST の order_id 検証と対称）
+    if (orderId && !isAdmin) {
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!UUID_RE.test(orderId)) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+      const isDevMode =
+        process.env.NODE_ENV === 'development' &&
+        process.env.ENABLE_DEV_MOCK_AUTH === 'true';
+      const userIdForDb = isDevMode ? DEV_MODE_USER_ID : userId;
+      const { data: order } = await serviceClient
+        .from('orders')
+        .select('user_id')
+        .eq('id', orderId)
+        .single();
+      if (!order || order.user_id !== userIdForDb) {
+        return NextResponse.json(
+          { error: 'Forbidden', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Build query（service client・所有権フィルタ付き）
+    let query = serviceClient
       .from('files')
       .select('*')
       .order('created_at', { ascending: false });
+
+    // 非 admin は自分がアップロードしたファイルのみ（IDOR 予防）
+    if (!isAdmin) {
+      query = query.eq('uploaded_by', userId);
+    }
 
     if (orderId) {
       query = query.eq('order_id', orderId);

@@ -30,17 +30,28 @@ export async function DELETE(
     const response = NextResponse.json({ success: false });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        // getAll/setAll（@supabase/ssr 推奨）: PostgREST(DB) への session 伝播問題により
+        // DB 操作は service client に統一。cookie client は getUser()（認証）のみ。
+        getAll() {
+          return request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set({ name, value, ...options })
+            );
+          } catch {
+            // read-only コンテキストでは無視
+          }
         },
       },
     });
+
+    // DB 操作（files / orders）+ storage 操作は service client。
+    // cookie client は @supabase/ssr server context で PostgREST(DB) に session が伝播せず
+    // anon 扱いになり RLS で 0 rows / DELETE 拒否されるため（inquiries パターン）。
+    // IDOR 予防は order 所有権検証（先）+ file_id/order_id 突合せで担保。
+    const serviceClient = createServiceClient();
 
     // Get user ID from middleware header or authenticate
     const userIdFromMiddleware = request.headers.get('x-user-id');
@@ -60,8 +71,23 @@ export async function DELETE(
       userId = user.id;
     }
 
-    // Verify the file belongs to this order (from files table)
-    const { data: fileRecord, error: fileError } = await supabase
+    // Verify the order belongs to the user（先に order 所有権・IDOR 予防。
+    // file の有無を漏らさないよう、他人 order は一律 403）
+    const { data: order, error: orderError } = await serviceClient
+      .from('orders')
+      .select('user_id')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order || order.user_id !== userId) {
+      return NextResponse.json(
+        { error: '権限がありません' },
+        { status: 403 }
+      );
+    }
+
+    // Verify the file belongs to this order（service client・file_id + order_id 突合せ）
+    const { data: fileRecord, error: fileError } = await serviceClient
       .from('files')
       .select('*')
       .eq('id', fileId)
@@ -75,22 +101,8 @@ export async function DELETE(
       );
     }
 
-    // Verify the order belongs to the user
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('user_id')
-      .eq('id', orderId)
-      .single();
-
-    if (orderError || !order || order.user_id !== userId) {
-      return NextResponse.json(
-        { error: '権限がありません' },
-        { status: 403 }
-      );
-    }
-
     // Check if this is the only AI file - prevent deletion
-    const { data: aiFiles } = await supabase
+    const { data: aiFiles } = await serviceClient
       .from('files')
       .select('id')
       .eq('order_id', orderId)
@@ -103,8 +115,8 @@ export async function DELETE(
       );
     }
 
-    // Delete the file from database
-    const { error: deleteError } = await supabase
+    // Delete the file from database（service client）
+    const { error: deleteError } = await serviceClient
       .from('files')
       .delete()
       .eq('id', fileId);
@@ -117,12 +129,8 @@ export async function DELETE(
       );
     }
 
-    // Delete from storage if needed
-    // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
-    // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
-    // DB 操作（files / orders）は cookie client のまま（多層防御を維持）。
+    // Delete from storage（service client・RLS bypass）
     if (fileRecord.file_path) {
-      const serviceClient = createServiceClient();
       const { error: storageError } = await serviceClient.storage
         .from('production-files')
         .remove([fileRecord.file_path]);

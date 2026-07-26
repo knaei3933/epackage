@@ -64,7 +64,7 @@ const extractSchema = z.object({
  * Check if file was already extracted
  */
 async function checkExistingExtraction(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: ReturnType<typeof createServiceClient>,
   fileId: string
 ): Promise<boolean> {
   const { data } = await supabase
@@ -81,7 +81,7 @@ async function checkExistingExtraction(
  * Save extraction results to production_data table
  */
 async function saveExtractionResults(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: ReturnType<typeof createServiceClient>,
   orderId: string,
   fileId: string,
   result: ExtractionResult,
@@ -190,17 +190,28 @@ export async function POST(
     const response = NextResponse.json({ success: false });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        // getAll/setAll（@supabase/ssr 推奨）: PostgREST(DB) への session 伝播問題により
+        // DB 操作は service client に統一。cookie client は getUser()（認証）のみ。
+        getAll() {
+          return request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set({ name, value, ...options })
+            );
+          } catch {
+            // read-only コンテキストでは無視
+          }
         },
       },
     });
+
+    // DB 操作（files / production_data / orders / profiles）は service client。
+    // cookie client は @supabase/ssr server context で PostgREST(DB) に session が
+    // 伝播せず anon 扱いになり RLS で 0 rows / INSERT 拒否されるため（inquiries パターン）。
+    // IDOR 予防は checkFileOwnership（order_id 所有権）+ uploaded_by 比較で担保。
+    const serviceClient = createServiceClient();
 
     // Get authenticated user ID
     let userId: string;
@@ -229,8 +240,8 @@ export async function POST(
       console.log('[Files Extract] Authenticated user:', userId);
     }
 
-    // Get file record
-    const { data: file, error: fileError } = await supabase
+    // Get file record（service client: cookie client は anon で 0 rows になるため）
+    const { data: file, error: fileError } = await serviceClient
       .from('files')
       .select('*')
       .eq('id', fileId)
@@ -244,7 +255,7 @@ export async function POST(
     }
 
     // Check if file belongs to user's order (or user is admin)
-    const { data: profile } = await supabase
+    const { data: profile } = await serviceClient
       .from('profiles')
       .select('role')
       .eq('id', userId)
@@ -268,7 +279,7 @@ export async function POST(
 
     // Check if already extracted (unless force=true)
     if (!validatedData.force) {
-      const existing = await checkExistingExtraction(supabase, fileId);
+      const existing = await checkExistingExtraction(serviceClient, fileId);
       if (existing) {
         return NextResponse.json(
           {
@@ -283,8 +294,6 @@ export async function POST(
     // Download file from Supabase Storage
     // service client で RLS を bypass（cookie client だと storage.objects の RLS 評価で
     // auth.users を参照し、GRANT 不足で permission denied for table users になるため）。
-    // DB 操作（files / production_data / orders）は引き続き cookie client（多層防御を維持）。
-    const serviceClient = createServiceClient();
     // storage path は file_path を優先（upload 時に保存）・無ければ public URL から抽出。
     // file.file_url.split('/').pop() は最終セグメントのみで path プレフィックス
     // (production_data/{userId}/{orderId}/) が欠落し download に失敗するため使わない。
@@ -343,7 +352,7 @@ export async function POST(
 
     // Save extraction results to database
     const saveResult = await saveExtractionResults(
-      supabase,
+      serviceClient,
       orderId,
       fileId,
       extractionResult,
@@ -422,17 +431,24 @@ export async function GET(
     const response = NextResponse.json({ success: false });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        // getAll/setAll（@supabase/ssr 推奨）: cookie client は getUser()（認証）のみ。
+        getAll() {
+          return request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.delete({ name, ...options });
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set({ name, value, ...options })
+            );
+          } catch {
+            // read-only コンテキストでは無視
+          }
         },
       },
     });
+
+    // DB 操作は service client（POST と同方針・cookie client は anon で 0 rows になるため）
+    const serviceClient = createServiceClient();
 
     // Get authenticated user ID
     let userId: string;
@@ -461,8 +477,8 @@ export async function GET(
       console.log('[Files Extract GET] Authenticated user:', userId);
     }
 
-    // Get file record for ownership check
-    const { data: file, error: fileError } = await supabase
+    // Get file record for ownership check（service client）
+    const { data: file, error: fileError } = await serviceClient
       .from('files')
       .select('order_id, uploaded_by')
       .eq('id', fileId)
@@ -476,7 +492,7 @@ export async function GET(
     }
 
     // Check ownership (or admin) — IDOR prevention
-    const { data: profile } = await supabase
+    const { data: profile } = await serviceClient
       .from('profiles')
       .select('role')
       .eq('id', userId)
@@ -497,8 +513,8 @@ export async function GET(
       }
     }
 
-    // Get extraction results
-    const { data: extraction, error } = await supabase
+    // Get extraction results（service client）
+    const { data: extraction, error } = await serviceClient
       .from('production_data')
       .select('*')
       .eq('file_id', fileId)
