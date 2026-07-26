@@ -664,100 +664,6 @@ export type Database = {
                 Relationships: []
             }
 
-            // Legacy table (kept for compatibility - not in Supabase)
-            contacts: {
-                Row: {
-                    id: string
-                    created_at: string
-                    updated_at: string
-                    name: string
-                    company: string | null
-                    email: string
-                    phone: string | null
-                    position: string | null
-                    industry: string | null
-                }
-                Insert: {
-                    id?: string
-                    created_at?: string
-                    updated_at?: string
-                    name: string
-                    company?: string | null
-                    email: string
-                    phone?: string | null
-                    position?: string | null
-                    industry?: string | null
-                }
-                Update: {
-                    id?: string
-                    created_at?: string
-                    updated_at?: string
-                    name?: string
-                    company?: string | null
-                    email?: string
-                    phone?: string | null
-                    position?: string | null
-                    industry?: string | null
-                }
-                Relationships: []
-            }
-
-            // Additional table for quotation requests (not in Supabase yet)
-            quotation_requests: {
-                Row: {
-                    id: string
-                    contact_id: string | null
-                    company: string | null
-                    contact_person: string
-                    email: string
-                    phone: string | null
-                    project_description: string
-                    requirements: Json | null
-                    budget_range: string | null
-                    timeline: string | null
-                    status: string
-                    priority: string
-                    estimated_delivery_date: string | null
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: {
-                    id?: string
-                    contact_id?: string | null
-                    company?: string | null
-                    contact_person: string
-                    email: string
-                    phone?: string | null
-                    project_description: string
-                    requirements?: Json | null
-                    budget_range?: string | null
-                    timeline?: string | null
-                    status?: string
-                    priority?: string
-                    estimated_delivery_date?: string | null
-                    created_at?: string
-                    updated_at?: string
-                }
-                Update: {
-                    id?: string
-                    contact_id?: string | null
-                    company?: string | null
-                    contact_person?: string
-                    email?: string
-                    phone?: string | null
-                    project_description?: string
-                    requirements?: Json | null
-                    budget_range?: string | null
-                    timeline?: string | null
-                    status?: string
-                    priority?: string
-                    estimated_delivery_date?: string | null
-                    created_at?: string
-                    updated_at?: string
-                }
-                Relationships: []
-            }
-
             // ============================================================
             // B2B SYSTEM NEW TABLES (Phase 1)
             // ============================================================
@@ -820,33 +726,6 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['contracts']['Row'], 'id' | 'created_at' | 'updated_at'>
                 Update: Partial<Omit<Database['public']['Tables']['contracts']['Row'], 'id' | 'created_at' | 'updated_at'>>
-                Relationships: []
-            }
-
-            // Work Orders table - 作業標準書
-            work_orders: {
-                Row: {
-                    id: string
-                    work_order_number: string  // WO-YYYY-NNNN
-                    order_id: string  // FK to orders
-                    quotation_id: string | null  // FK to quotations
-                    title: string  // 作業標準書タイトル
-                    version: string  // バージョン (v1.0, v1.1, ...)
-                    status: 'DRAFT' | 'GENERATED' | 'APPROVED' | 'IN_PRODUCTION' | 'COMPLETED'
-                    specifications: Json  // 製品仕様書
-                    production_flow: Json  // 製造工程フロー
-                    quality_standards: Json  // 品質基準
-                    packaging_specs: Json  // 包装仕様
-                    estimated_completion: string | null  // 納期管理工程表
-                    pdf_url: string | null  // PDF URL
-                    generated_by: string | null  // 作成者 (user_id)
-                    approved_by: string | null  // 承認者 (user_id)
-                    approved_at: string | null
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['work_orders']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['work_orders']['Row'], 'id' | 'created_at' | 'updated_at'>>
                 Relationships: []
             }
 
@@ -1099,100 +978,6 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['inventory_transactions']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['inventory_transactions']['Row']>
-                Relationships: []
-            }
-
-            // Production jobs table - 生産ジョブ (Production Jobs)
-            production_jobs: {
-                Row: {
-                    id: string
-                    order_id: string  // FK to orders
-                    work_order_id: string | null  // FK to work_orders
-                    production_log_id: string | null  // FK to production_logs
-                    job_number: string  // JOB-YYYYMMDD-NNNN
-                    job_name: string  // Job name
-                    job_type: 'design_setup' | 'material_prep' | 'printing' | 'lamination' | 'slitting' | 'pouch_making' | 'quality_check' | 'packaging' | 'other'
-                    description: string | null
-                    specifications: Json  // Job specifications
-                    status: 'pending' | 'scheduled' | 'in_progress' | 'paused' | 'completed' | 'failed' | 'cancelled'
-                    priority: number  // 1-10 (1 = highest)
-                    assigned_to: string | null  // FK to profiles
-                    assigned_at: string | null
-                    scheduled_start_at: string | null
-                    scheduled_end_at: string | null
-                    estimated_duration_minutes: number | null
-                    actual_start_at: string | null
-                    actual_end_at: string | null
-                    actual_duration_minutes: number | null
-                    progress_percentage: number  // 0-100
-                    current_step: string | null
-                    steps_total: number
-                    steps_completed: number
-                    output_quantity: number  // Output quantity
-                    output_uom: string  // Unit of measure
-                    rejected_quantity: number  // Rejected quantity
-                    rejection_reason: string | null
-                    depends_on: Json  // Array of job IDs
-                    failure_reason: string | null
-                    retry_count: number
-                    max_retries: number
-                    parent_job_id: string | null  // For retries
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['production_jobs']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['production_jobs']['Row'], 'id' | 'created_at' | 'updated_at'>>
-                Relationships: []
-            }
-
-            // Spec sheets table - 仕様書 (Specification Sheets)
-            spec_sheets: {
-                Row: {
-                    id: string
-                    product_id: string | null  // FK to products
-                    work_order_id: string | null  // FK to work_orders
-                    spec_number: string  // SPEC-YYYYMMDD-NNNN
-                    version: string  // e.g., "1.0"
-                    title: string  // Spec title
-                    description: string | null
-                    category: string | null  // Spec category
-                    specifications: Json  // Spec data in JSON
-                    pdf_url: string | null  // PDF document URL
-                    status: 'draft' | 'pending_review' | 'active' | 'deprecated' | 'archived'
-                    effective_at: string | null  // When spec becomes active
-                    expires_at: string | null  // Optional expiration
-                    created_by: string | null  // FK to profiles
-                    approved_by: string | null  // FK to profiles
-                    approved_at: string | null
-                    approval_notes: string | null
-                    parent_spec_id: string | null  // For versioning
-                    is_latest_version: boolean
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['spec_sheets']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['spec_sheets']['Row'], 'id' | 'created_at' | 'updated_at'>>
-                Relationships: []
-            }
-
-            // Spec sections table - 仕様書セクション (Spec Sections)
-            spec_sections: {
-                Row: {
-                    id: string
-                    spec_sheet_id: string  // FK to spec_sheets
-                    section_number: string  // e.g., "1.0", "2.1"
-                    section_title: string  // Section title
-                    section_type: 'general' | 'materials' | 'dimensions' | 'printing' | 'barrier' | 'mechanical' | 'visual' | 'packaging' | 'testing' | 'other'
-                    section_content: string  // Detailed content
-                    section_data: Json  // Structured data
-                    display_order: number  // Display order
-                    parent_section_id: string | null  // For subsections
-                    level: number  // Hierarchy level
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['spec_sections']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['spec_sections']['Row'], 'id' | 'created_at' | 'updated_at'>>
                 Relationships: []
             }
 
@@ -1627,9 +1412,6 @@ export type Database = {
             // Contract status
             contract_status: 'DRAFT' | 'SENT' | 'CUSTOMER_SIGNED' | 'ADMIN_SIGNED' | 'ACTIVE' | 'CANCELLED'
 
-            // Work order status
-            work_order_status: 'DRAFT' | 'GENERATED' | 'APPROVED' | 'IN_PRODUCTION' | 'COMPLETED'
-
             // Production sub-status (9 stages)
             production_sub_status: 'design_received' | 'work_order_created' | 'material_prepared' | 'printing' | 'lamination' | 'slitting' | 'pouch_making' | 'qc_passed' | 'packaged'
 
@@ -1663,12 +1445,6 @@ export type Database = {
 
             // Production job status
             production_job_status: 'pending' | 'scheduled' | 'in_progress' | 'paused' | 'completed' | 'failed' | 'cancelled'
-
-            // Spec sheet status
-            spec_sheet_status: 'draft' | 'pending_review' | 'active' | 'deprecated' | 'archived'
-
-            // Spec section types
-            spec_section_type: 'general' | 'materials' | 'dimensions' | 'printing' | 'barrier' | 'mechanical' | 'visual' | 'packaging' | 'testing' | 'other'
 
             // Shipment status
             shipment_status: 'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'failed' | 'returned' | 'cancelled'

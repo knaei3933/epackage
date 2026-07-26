@@ -117,7 +117,6 @@ const apiEndpoints: Omit<ApiTest, 'status'>[] = [
   { endpoint: '/api/admin/convert-to-order', method: 'POST', category: 'admin-orders', authRequired: true, adminRequired: true },
   { endpoint: '/api/admin/orders/statistics', method: 'GET', category: 'admin-orders', authRequired: true, adminRequired: true },
   { endpoint: '/api/admin/delivery/tracking/[orderId]', method: 'GET', category: 'admin-orders', authRequired: true, adminRequired: true },
-  { endpoint: '/api/admin/generate-work-order', method: 'POST', category: 'admin-orders', authRequired: true, adminRequired: true },
 
   // AI Parser APIs
   { endpoint: '/api/ai-parser/upload', method: 'POST', category: 'ai-parser', authRequired: true, adminRequired: false },

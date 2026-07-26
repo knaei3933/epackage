@@ -62,9 +62,9 @@ export async function GET(
 
     // Get document type from query params
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // 'quotation', 'work_order', 'contract'
+    const type = searchParams.get('type'); // 'quotation', 'contract'
 
-    if (!type || !['quotation', 'work_order', 'contract'].includes(type)) {
+    if (!type || !['quotation', 'contract'].includes(type)) {
       return NextResponse.json(
         { error: '無効なドキュメントタイプです。' },
         { status: 400 }
@@ -109,47 +109,6 @@ export async function GET(
 
         pdfUrl = quotation.pdf_url;
         filename = buildQuoteFilename(quoteProfile?.company_name, (quotation as any)?.created_at?.split("T")[0]);
-        break;
-
-      case 'work_order':
-        tableName = 'work_orders';
-        const { data: workOrder } = await supabase
-          .from('work_orders')
-          .select(`
-            pdf_url,
-            work_order_number,
-            orders!inner (
-              customer_id
-            )
-          `)
-          .eq('id', documentId)
-          .single();
-
-        if (!workOrder) {
-          return NextResponse.json(
-            { error: '作業標準書が見つかりません。' },
-            { status: 404 }
-          );
-        }
-
-        // Check access permission
-        const { data: woProfile } = await supabase
-          .from('profiles')
-          .select('role, company_name')
-          .eq('id', userId)
-          .single();
-
-        const isWoAdmin = woProfile && ['ADMIN', 'OPERATOR'].includes(woProfile.role);
-        const workOrderTyped = workOrder as any;
-        if (!isWoAdmin && workOrderTyped.orders?.[0]?.customer_id !== userId) {
-          return NextResponse.json(
-            { error: '権限がありません。' },
-            { status: 403 }
-          );
-        }
-
-        pdfUrl = workOrder.pdf_url;
-        filename = `作業標準書_${workOrder.work_order_number}.pdf`;
         break;
 
       case 'contract':

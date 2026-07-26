@@ -313,7 +313,6 @@ echo ""
 echo "=== Admin Order APIs ==="
 test_endpoint "/api/admin/convert-to-order" "POST" "admin-orders" "admin"
 test_endpoint "/api/admin/orders/statistics" "GET" "admin-orders" "admin"
-test_endpoint "/api/admin/generate-work-order" "POST" "admin-orders" "admin"
 
 # AI Parser APIs
 echo ""
