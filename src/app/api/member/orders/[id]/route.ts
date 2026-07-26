@@ -21,6 +21,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
+import { extractPathFromUrl } from '@/lib/storage-path';
 import { getStatusProgress, isOrderStatus } from '@/types/order-status';
 import type { PortalOrder } from '@/types/portal';
 
@@ -113,19 +114,37 @@ export async function GET(
       'packaged',
     ];
 
-    const productionStages = stageKeys.map((key, index) => {
-      const log = productionLogs?.find((l: any) => l.sub_status === key);
-      return {
-        id: `${orderId}-${key}`,
-        key,
-        name: key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        name_ja: key,
-        status: log ? 'completed' : index === 0 ? 'in_progress' : 'pending',
-        completed_at: log?.logged_at || null,
-        notes: log?.notes || null,
-        photo_url: log?.photo_url || null,
-      };
-    });
+    // production-photos は private bucket。各 stage の photo_url（DB には publicUrl 保存）を
+    // extractPathFromUrl → createSignedUrl で署名付き URL（24h 有効）に変換。
+    // service client（L45・RLS bypass）を再利用。photo_url が null の場合はそのまま。
+    const productionStages = await Promise.all(
+      stageKeys.map(async (key, index) => {
+        const log = productionLogs?.find((l: any) => l.sub_status === key);
+        const rawPhotoUrl = log?.photo_url || null;
+        let photoUrl = rawPhotoUrl;
+        if (rawPhotoUrl) {
+          const path = extractPathFromUrl(rawPhotoUrl);
+          if (path) {
+            const { data: signedData } = await supabase.storage
+              .from('production-photos')
+              .createSignedUrl(path, 86400);
+            if (signedData?.signedUrl) {
+              photoUrl = signedData.signedUrl;
+            }
+          }
+        }
+        return {
+          id: `${orderId}-${key}`,
+          key,
+          name: key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+          name_ja: key,
+          status: log ? 'completed' : index === 0 ? 'in_progress' : 'pending',
+          completed_at: log?.logged_at || null,
+          notes: log?.notes || null,
+          photo_url: photoUrl,
+        };
+      })
+    );
 
     // Fetch shipment information
     const { data: shipment } = await supabase

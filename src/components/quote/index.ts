@@ -43,7 +43,7 @@ export { OrderSummarySection, CurrentStateSummary, StatusIndicator } from './sha
 
 // Shared - UI Components
 export { ResponsiveStepIndicators, KeyboardShortcutsHint, ErrorToast } from './shared'
-export { OrderConfirmationModal, DetailedOptionModal, BankInfoCard, InvoiceDownloadButton, DataImportStatusPanel } from './shared'
+export { OrderConfirmationModal, DetailedOptionModal, BankInfoCard, InvoiceDownloadButton } from './shared'
 export { DataTemplateGuide } from './shared'
 
 // Shared - Analytics & Recommendations

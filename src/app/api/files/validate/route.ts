@@ -7,7 +7,7 @@
  *
  * Request:
  * - multipart/form-data with file field
- * - Optional: orderId, quotationId, workOrderId, generatePreviews, validateOnly
+ * - Optional: orderId, quotationId, generatePreviews, validateOnly
  *
  * Response:
  * - JSON with validation results, file metadata, and URLs
@@ -36,7 +36,6 @@ interface ValidationRequest {
   fileId?: string;
   orderId?: string;
   quotationId?: string;
-  workOrderId?: string;
   generatePreviews?: boolean;
   validateOnly?: boolean;
 }
@@ -110,7 +109,6 @@ const { client: supabase } = await createSupabaseSSRClient(request);
     const fileId = formData.get('fileId') as string | null;
     const orderId = formData.get('orderId') as string | null;
     const quotationId = formData.get('quotationId') as string | null;
-    const workOrderId = formData.get('workOrderId') as string | null;
     const generatePreviews = formData.get('generatePreviews') === 'true';
     const validateOnly = formData.get('validateOnly') === 'true';
 
@@ -160,7 +158,6 @@ const { client: supabase } = await createSupabaseSSRClient(request);
       userId: user.id,
       orderId: orderId || undefined,
       quotationId: quotationId || undefined,
-      workOrderId: workOrderId || undefined,
       generatePreviews,
       validateOnly,
     });
@@ -222,7 +219,6 @@ const { client: supabase } = await createSupabaseSSRClient(request);
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('orderId') || undefined;
     const quotationId = searchParams.get('quotationId') || undefined;
-    const workOrderId = searchParams.get('workOrderId') || undefined;
     const fileType = searchParams.get('fileType') as 'AI' | 'PDF' | 'PSD' | null;
 
     // List files
@@ -230,7 +226,6 @@ const { client: supabase } = await createSupabaseSSRClient(request);
       userId: user.id,
       orderId,
       quotationId,
-      workOrderId,
       fileType: fileType || undefined,
     });
 
@@ -238,11 +233,11 @@ const { client: supabase } = await createSupabaseSSRClient(request);
       success: true,
       files: files.map((f: any) => ({
         id: f.id,
-        fileName: f.file_name,
+        fileName: f.original_filename,
         fileType: f.file_type,
-        fileSize: f.file_size,
+        fileSize: f.file_size_bytes,
         validationStatus: f.validation_status,
-        uploadedAt: f.created_at,
+        uploadedAt: f.uploaded_at,
         fileUrl: f.file_url,
       })),
     });

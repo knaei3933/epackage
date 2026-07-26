@@ -117,7 +117,6 @@ export { default as B2BRegistrationForm } from './B2BRegistrationForm';
 export { default as B2BQuotationRequestForm } from './B2BQuotationRequestForm';
 export { QuotationConfirmClient } from './QuotationConfirmClient';
 export { OrderConfirmSuccessClient } from './OrderConfirmSuccessClient';
-export { DataReceiptClient } from './DataReceiptClient';
 export { EnhancedFileUpload } from './EnhancedFileUpload';
 export { default as CustomerDashboard } from './CustomerDashboard';
 

@@ -499,7 +499,6 @@ export interface AIExtractionApprovalRequest {
 export interface ApprovalResponse {
   success: boolean;
   data?: {
-    production_data_id: string;
     work_order_id?: string;
     status: string;
     approved_at: string;
@@ -585,54 +584,6 @@ export interface ExtractionPipelineConfig {
     max_attempts: number;
     backoff_ms: number;
   };
-}
-
-// ============================================================================
-// Database Integration Types
-// ============================================================================
-
-/**
- * File record with AI extraction data
- */
-export interface FileWithExtraction {
-  id: string;
-  order_id: string | null;
-  file_type: string;
-  file_name: string;
-  file_url: string;
-  file_size: number;
-  version: number;
-
-  // AI extraction fields
-  ai_extraction_status: ExtractionStatus;
-  ai_extraction_data: ExtractedProductData | null;
-  ai_confidence_score: number;
-  ai_extraction_method: ExtractionMethod | null;
-  ai_extracted_at: string | null;
-  ai_validation_errors: AIExtractionValidationError[] | null;
-
-  created_at: string;
-}
-
-/**
- * Production data with extraction reference
- */
-export interface ProductionDataWithExtraction {
-  id: string;
-  order_id: string;
-  data_type: ProductionDataType;
-  title: string;
-  version: string;
-  file_id: string | null;
-  file_url: string | null;
-  validation_status: ValidationStatus;
-  specifications: Record<string, unknown>;
-
-  // AI extraction reference
-  ai_extraction_id?: string;
-
-  approved_for_production: boolean;
-  created_at: string;
 }
 
 // ============================================================================

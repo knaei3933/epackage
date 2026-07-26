@@ -84,27 +84,30 @@ export interface IngestionOptions {
   userId: string;
   orderId?: string;
   quotationId?: string;
-  workOrderId?: string;
 }
 
 /**
- * Stored file record
+ * Stored file record（実DB files テーブル 17カラムに準拠）
+ * phantom カラム（work_order_id/file_name/file_size/validation_errors/metadata）は削除。
  */
 export interface StoredFileRecord {
   id: string;
   order_id: string | null;
   quotation_id: string | null;
-  work_order_id: string | null;
   uploaded_by: string;
   file_type: 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER';
-  file_name: string;
+  original_filename: string;
   file_url: string;
-  file_size: number;
+  file_path: string;
+  file_size_bytes: number;
   version: number;
   is_latest: boolean;
   validation_status: 'PENDING' | 'VALID' | 'INVALID';
-  validation_errors: any;
-  metadata: any;
+  validation_results: any;
+  uploaded_at: string;
+  validated_at: string | null;
+  source_file_id: string | null;
+  order_item_id: string | null;
 }
 
 // ============================================================
@@ -217,22 +220,17 @@ function getMimeType(fileName: string): string {
  * Save file record to database
  */
 async function saveFileRecord(
-  record: Omit<StoredFileRecord, 'id' | 'created_at'>
+  record: Omit<StoredFileRecord, 'id' | 'uploaded_at' | 'validated_at' | 'source_file_id' | 'order_item_id'>
 ): Promise<StoredFileRecord> {
   const supabase = getSupabaseClient();
 
   const { data, error } = await insertFile(supabase, {
     id: uuidv4(),
     ...record,
-    created_at: new Date().toISOString(),
-    // Required fields missing from StoredFileRecord
-    production_log_id: null,
-    ai_extraction_status: null,
-    ai_extraction_data: null,
-    ai_confidence_score: null,
-    ai_extraction_method: null,
-    ai_extracted_at: null,
-    ai_validation_errors: null,
+    // uploaded_at は実DB default(now())・validated_at は null・source_file_id/order_item_id は null
+    validated_at: null,
+    source_file_id: null,
+    order_item_id: null,
   } as unknown as Database['public']['Tables']['files']['Insert']);
 
   if (error) {
@@ -256,7 +254,8 @@ async function updateValidationStatus(
     .from('files')
     .update({
       validation_status: status,
-      validation_errors: validationErrors,
+      validation_results: validationErrors,
+      validated_at: new Date().toISOString(),
     } as never)
     .eq('id', fileId);
 
@@ -323,7 +322,6 @@ export async function ingestDesignFile(
     userId,
     orderId,
     quotationId,
-    workOrderId,
   } = options;
 
   try {
@@ -372,20 +370,19 @@ export async function ingestDesignFile(
     await saveFileRecord({
       order_id: orderId || null,
       quotation_id: quotationId || null,
-      work_order_id: workOrderId || null,
       uploaded_by: userId,
       file_type: validationResults.fileType,
-      file_name: fileName,
+      original_filename: fileName,
       file_url: fileUrl,
-      file_size: buffer.length,
+      file_path: storagePath,
+      file_size_bytes: buffer.length,
       version: 1,
       is_latest: true,
       validation_status: validationResults.valid ? 'VALID' : 'INVALID',
-      validation_errors: {
+      validation_results: {
         issues: validationResults.issues,
         warnings: validationResults.warnings,
       },
-      metadata: validationResults.metadata,
     });
 
     return {
@@ -472,7 +469,7 @@ export async function revalidateFile(
   const { validateFileServer } = await import('./server-validator');
   const validationResults = await validateFileServer(
     buffer,
-    fileRecord.file_name as string
+    fileRecord.original_filename as string
   );
 
   // Update validation status
@@ -516,7 +513,6 @@ export async function getFile(
 export async function listFiles(filters: {
   orderId?: string;
   quotationId?: string;
-  workOrderId?: string;
   userId?: string;
   fileType?: 'AI' | 'PDF' | 'PSD' | 'PNG' | 'JPG' | 'EXCEL' | 'OTHER';
 }): Promise<StoredFileRecord[]> {
@@ -526,16 +522,13 @@ export async function listFiles(filters: {
     .from('files')
     .select('*')
     .eq('is_latest', true)
-    .order('created_at', { ascending: false });
+    .order('uploaded_at', { ascending: false });
 
   if (filters.orderId) {
     query = query.eq('order_id', filters.orderId);
   }
   if (filters.quotationId) {
     query = query.eq('quotation_id', filters.quotationId);
-  }
-  if (filters.workOrderId) {
-    query = query.eq('work_order_id', filters.workOrderId);
   }
   if (filters.userId) {
     query = query.eq('uploaded_by', filters.userId);

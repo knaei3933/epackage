@@ -178,34 +178,6 @@ export function AIExtractionPreview({ fileId, orderId, onComplete }: AIExtractio
     }
   };
 
-  // Handle re-extraction
-  const handleReextract = async () => {
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/ai-parser/reprocess', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          file_id: fileId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('再抽出に失敗しました');
-      }
-
-      // Reload extraction results
-      await loadExtractionResults();
-    } catch (err) {
-      console.error('Re-extraction error:', err);
-      setError(err instanceof Error ? err.message : '再抽出に失敗しました');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   // Get confidence level
   const getConfidenceLevel = (score: number): { label: string; color: string } => {
     if (score >= 0.9) return { label: '高', color: 'text-green-600 bg-green-50' };
@@ -426,13 +398,6 @@ export function AIExtractionPreview({ fileId, orderId, onComplete }: AIExtractio
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-end">
         <Button
-          variant="secondary"
-          onClick={handleReextract}
-          disabled={isProcessing || isLoading}
-        >
-          {isProcessing ? '処理中...' : '再抽出'}
-        </Button>
-        <Button
           variant={"danger" as any}
           onClick={() => {
             const reason = prompt('拒否理由を入力してください:');
@@ -458,7 +423,6 @@ export function AIExtractionPreview({ fileId, orderId, onComplete }: AIExtractio
         <ul className="text-sm text-blue-800 space-y-1">
           <li>• <strong>承認:</strong> 抽出された仕様を確認し、作業指示書を作成します</li>
           <li>• <strong>拒否:</strong> 抽出結果を拒否し、手動入力が必要です</li>
-          <li>• <strong>再抽出:</strong> AIを使用してファイルから再度仕様を抽出します</li>
         </ul>
       </Card>
     </div>

@@ -145,17 +145,17 @@ Contract management.
 - **`/api/contract/timestamp`** - Contract timestamping
 - **`/api/contract/timestamp/validate`** - Validate timestamp
 
-### `/api/ai/*` & `/api/ai-parser/*`
+### `/api/ai/*`
 
 AI-powered features.
 
 - **`/api/ai/parse`** - AI document parsing
 - **`/api/ai/specs`** - Spec sheet generation
 - **`/api/ai/review`** - Document review
-- **`/api/ai-parser/upload`** - Upload for AI extraction
-- **`/api/ai-parser/extract`** - Extract data from document
-- **`/api/ai-parser/approve`** - Approve extracted data
-- **`/api/ai-parser/reprocess`** - Re-process document
+
+> Note: `/api/ai-parser/*` routes (extract/approve/reprocess/upload) were removed —
+> the `files` table has no `ai_extraction_*` columns, so those routes were non-functional
+> dead code. AI extraction flows through `/api/member/ai-extraction/upload` instead.
 
 ### `/api/files/*`
 

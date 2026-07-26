@@ -462,9 +462,9 @@ export function normalizePhoneNumber(phoneNumber: string): string {
  */
 export async function createDefaultPreferencesForExistingUsers(): Promise<number> {
   try {
-    // user_profilesテーブルからすべてのユーザーを取得
+    // profilesテーブルからすべてのユーザーを取得
     const { data: users, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('id')
 
     if (error) throw error
