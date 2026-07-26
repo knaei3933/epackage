@@ -136,9 +136,9 @@ export async function POST(request: NextRequest) {
 
     // Get user profile
     const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('id, role, company_id')
-      .eq('user_id', userId)
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
       .single()
 
     if (!profile) {

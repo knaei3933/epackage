@@ -167,9 +167,9 @@ export async function POST(request: NextRequest) {
 
     // Get user profile
     const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('id, role, company_id')
-      .eq('user_id', userId)
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
       .single()
 
     if (!profile) {
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     // storage 操作（upload / getPublicUrl / remove）は service client で RLS を bypass。
     // 理由: cookie client で storage を操作すると storage.objects の RLS 評価過程で
     // auth.users を参照し、GRANT 不足（permission denied for table users）で失敗するため。
-    // DB 操作（user_profiles / orders / files / production_data）は cookie client のまま（多層防御を維持）。
+    // DB 操作（profiles / orders / files / production_data）は cookie client のまま（多層防御を維持）。
     const serviceClient = createServiceClient();
 
     // Upload file to Supabase Storage (use buffer)
@@ -232,24 +232,24 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(fileName)
 
     // Create file record in database
+    // files.insert は実DBスキーマに合わせて files.upload route と同構成に統一:
+    //   - id は default gen_random_uuid() に任せる（fileId 文字列は uuid 型に不合致）
+    //   - file_name/file_size/metadata は実DBに不存在の legacy → original_filename/file_size_bytes へ統一
+    //   - file_path は実DB NOT NULL・storagePath（fileName）と同じ値を設定
+    //   - metadata(originalName/mimeType/uploadedAt) は original_filename/file_type/uploaded_at(default) で重複するため省略
     const { data: fileRecord, error: fileError } = await supabase
       .from('files')
       .insert({
-        id: fileId,
         order_id: orderId,
         uploaded_by: profile.id,
         file_type: 'AI',
-        file_name: file.name,
+        original_filename: file.name,
         file_url: urlData.publicUrl,
-        file_size: file.size,
+        file_path: fileName,
+        file_size_bytes: file.size,
         version: 1,
         is_latest: true,
         validation_status: 'PENDING',
-        metadata: {
-          originalName: file.name,
-          mimeType: file.type,
-          uploadedAt: new Date().toISOString(),
-        },
       })
       .select()
       .single()
@@ -298,7 +298,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         data: {
-          file_id: fileId,
+          // file_id は files.id（UUID）。storage path 用の fileId 文字列と区別。
+          file_id: fileRecord.id,
           production_data_id: productionData?.id,
           status: 'processing' as const,
           uploaded_at: new Date().toISOString(),
