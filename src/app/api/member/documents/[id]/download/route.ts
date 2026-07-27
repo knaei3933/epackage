@@ -160,20 +160,6 @@ export async function GET(
       );
     }
 
-    // Log download
-    await supabase
-      .from('order_audit_log')
-      .insert({
-        table_name: tableName,
-        record_id: documentId,
-        action: 'DOWNLOAD',
-        new_data: {
-          downloaded_by: userId,
-          downloaded_at: new Date().toISOString()
-        },
-        changed_by: userId
-      });
-
     // Redirect to PDF URL
     return NextResponse.redirect(pdfUrl);
 

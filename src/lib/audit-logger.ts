@@ -75,7 +75,7 @@ export interface AuditLogEntry {
   /**
    * リソースタイプ
    */
-  resource_type: 'timestamp_token' | 'signature' | 'contract' | 'user' | 'system' | 'ip_validation' | 'other';
+  resource_type: 'timestamp_token' | 'signature' | 'contract' | 'user' | 'system' | 'ip_validation' | 'order' | 'order_item' | 'other';
 
   /**
    * リソースID (外部キー)

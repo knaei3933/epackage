@@ -96,27 +96,13 @@ export async function GET(request: NextRequest) {
     const recentTrackingMap = new Map();
 
     if (shipmentIds.length > 0) {
-      // Try shipment_tracking_events first, then fall back to shipment_tracking
-      let tracking: any[] | null = null;
-
       const { data: trackingEvents } = await supabase
         .from('shipment_tracking_events')
         .select('*')
         .in('shipment_id', shipmentIds)
         .order('event_time', { ascending: false });
 
-      if (trackingEvents && trackingEvents.length > 0) {
-        tracking = trackingEvents;
-      } else {
-        // Fallback to shipment_tracking table
-        const { data: trackingBackup } = await supabase
-          .from('shipment_tracking')
-          .select('*')
-          .in('shipment_id', shipmentIds)
-          .order('event_at', { ascending: false });
-
-        tracking = trackingBackup;
-      }
+      const tracking = trackingEvents;
 
       // Group by shipment_id and take the most recent
       tracking?.forEach((t: any) => {

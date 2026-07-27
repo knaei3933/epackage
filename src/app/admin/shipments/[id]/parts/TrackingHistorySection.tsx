@@ -33,9 +33,9 @@ export function TrackingHistorySection({ shipment }: TrackingHistorySectionProps
                   </div>
                   <div className="flex-1 pb-4">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-gray-900">{event.status_description}</p>
+                      <p className="font-medium text-gray-900">{event.description}</p>
                       <p className="text-sm text-gray-500">
-                        {new Date(event.event_at).toLocaleString('ja-JP')}
+                        {new Date(event.event_time).toLocaleString('ja-JP')}
                       </p>
                     </div>
                     {(event.location || event.facility_name) && (

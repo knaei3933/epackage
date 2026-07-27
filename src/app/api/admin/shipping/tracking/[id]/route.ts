@@ -23,10 +23,10 @@ export async function GET(
     const supabase = createSupabaseClient();
 
     const { data: tracking, error } = await supabase
-      .from('shipment_tracking')
+      .from('shipment_tracking_events')
       .select('*')
       .eq('shipment_id', shipmentId)
-      .order('event_at', { ascending: false })
+      .order('event_time', { ascending: false })
       .limit(20);
 
     if (error) {

@@ -93,15 +93,16 @@ export async function GET(request: NextRequest) {
       let unreadCount = 0;
       try {
         const { data: notifications } = await queryClient
-          .from('customer_notifications')
+          .from('unified_notifications')
           .select('id')
-          .eq('user_id', userId)
+          .eq('recipient_id', userId)
+          .eq('recipient_type', 'member')
           .eq('is_read', false)
           .is('expires_at', null); // or where expires_at > NOW()
 
         unreadCount = notifications?.length || 0;
       } catch (e) {
-        console.warn('customer_notifications table not available for count:', e);
+        console.warn('unified_notifications table not available for count:', e);
         unreadCount = 0;
       }
 
@@ -220,15 +221,16 @@ export async function GET(request: NextRequest) {
     let notifications: unknown[] | null = null;
     try {
       const result = await queryClient
-        .from('customer_notifications')
+        .from('unified_notifications')
         .select('*')
-        .eq('user_id', userId)
+        .eq('recipient_id', userId)
+        .eq('recipient_type', 'member')
         .is('expires_at', null) // or where expires_at > NOW()
         .order('created_at', { ascending: false })
         .limit(10);
       notifications = result.data as unknown[] | null;
     } catch (e) {
-      console.warn('customer_notifications table not available:', e);
+      console.warn('unified_notifications table not available:', e);
       notifications = [];
     }
 

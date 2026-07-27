@@ -172,18 +172,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create audit log
+    // 監査ログ（系Bスキーマ: event_type/resource_type/details）
     try {
       await supabase
         .from('audit_logs')
         .insert({
-          table_name: 'contracts',
-          record_id: newContract.id,
-          action: 'CREATE',
-          old_value: null,
-          new_value: newContract,
-          changed_by: 'ADMIN',
-          reason: 'Contract created',
+          timestamp: new Date().toISOString(),
+          event_type: 'contract_created',
+          resource_type: 'contract',
+          resource_id: newContract.id,
+          user_id: auth.userId,
+          outcome: 'success',
+          details: {
+            before: null,
+            after: newContract,
+            reason: 'Contract created',
+            actor_role: 'admin',
+          },
         });
     } catch (auditError) {
       console.warn('[Admin Contracts API] Failed to create audit log:', auditError);

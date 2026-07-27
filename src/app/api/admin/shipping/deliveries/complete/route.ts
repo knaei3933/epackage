@@ -145,13 +145,13 @@ export async function POST(request: NextRequest) {
 
     // Add tracking entry
     await supabaseAdmin
-      .from('shipment_tracking')
+      .from('shipment_tracking_events')
       .insert({
         shipment_id: shipment.id,
         status: 'delivered',
         location: deliveredTo || '配送先',
         description: '商品が配送完了しました',
-        timestamp: new Date().toISOString(),
+        event_time: new Date().toISOString(),
       });
 
     // Get order info for email notification

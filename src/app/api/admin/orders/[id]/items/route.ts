@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { notifyModificationRequested } from '@/lib/customer-notifications';
+import { notifyModificationRequested } from '@/lib/unified-notifications';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
 // ============================================================
@@ -246,26 +246,31 @@ export async function PUT(
       .update(orderUpdateData)
       .eq('id', orderId);
 
-    // 監査ログ
+    // 監査ログ（系Bスキーマ: event_type/resource_type/details）
     try {
       await supabase
         .from('audit_logs')
         .insert({
-          table_name: 'order_items',
-          record_id: orderId,
-          action: 'UPDATE',
-          old_value: {
-            subtotal: order.subtotal,
-            tax_amount: order.tax_amount,
-            total_amount: order.total_amount,
+          timestamp: new Date().toISOString(),
+          event_type: 'data_modification',
+          resource_type: 'order_item',
+          resource_id: orderId,
+          user_id: null,
+          outcome: 'success',
+          details: {
+            before: {
+              subtotal: order.subtotal,
+              tax_amount: order.tax_amount,
+              total_amount: order.total_amount,
+            },
+            after: {
+              subtotal: newSubtotal,
+              tax_amount: newTaxAmount,
+              total_amount: newTotalAmount,
+            },
+            reason: `Updated ${updatedItems.length} items`,
+            actor_role: 'admin',
           },
-          new_value: {
-            subtotal: newSubtotal,
-            tax_amount: newTaxAmount,
-            total_amount: newTotalAmount,
-          },
-          changed_by: 'ADMIN',
-          reason: `Updated ${updatedItems.length} items`,
         });
     } catch (auditError) {
       console.warn('[Order Items API] Failed to create audit log:', auditError);

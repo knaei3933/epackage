@@ -5,8 +5,6 @@
  * Japan Electronic Signature Law Compliance Types
  */
 
-import { Database } from './database'
-
 // ============================================================
 // Webhook Types
 // ============================================================
@@ -90,35 +88,6 @@ export function isSignatureSigner(value: unknown): value is SignatureSigner {
     typeof value.email === 'string'
   )
 }
-
-// ============================================================
-// Database Type Helpers
-// ============================================================
-
-/**
- * Get signatures table row type
- */
-export type SignaturesRow = Database['public']['Tables']['signatures']['Row']
-
-/**
- * Get signatures table insert type
- */
-export type SignaturesInsert = Database['public']['Tables']['signatures']['Insert']
-
-/**
- * Get signatures table update type
- */
-export type SignaturesUpdate = Database['public']['Tables']['signatures']['Update']
-
-/**
- * Get signature_events table row type
- */
-export type SignatureEventsRow = Database['public']['Tables']['signature_events']['Row']
-
-/**
- * Get signature_events table insert type
- */
-export type SignatureEventsInsert = Database['public']['Tables']['signature_events']['Insert']
 
 // ============================================================
 // Signature Types

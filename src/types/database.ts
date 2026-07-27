@@ -879,30 +879,6 @@ export type Database = {
                 Relationships: []
             }
 
-            // Order Audit Log table - 監査ログ
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('order_audit_log') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            order_audit_log: {
-                Row: {
-                    id: string
-                    table_name: string  // テーブル名 (orders, quotations, etc.)
-                    record_id: string  // レコードID
-                    action: 'INSERT' | 'UPDATE' | 'DELETE'  // アクション
-                    old_data: Json | null  // 変更前データ
-                    new_data: Json | null  // 変更後データ
-                    changed_fields: string[] | null  // 変更されたフィールド
-                    changed_by: string  // 変更者 (user_id)
-                    changed_at: string  // 変更日時
-                    ip_address: string | null  // IPアドレス
-                    user_agent: string | null  // User Agent
-                }
-                Insert: Omit<Database['public']['Tables']['order_audit_log']['Row'], 'id' | 'changed_at'>
-                Update: Partial<Database['public']['Tables']['order_audit_log']['Row']>
-                Relationships: []
-            }
-
             // ============================================================
             // B2B WORKFLOW SYSTEM NEW TABLES (Phase 2-6)
             // ============================================================
@@ -1019,171 +995,13 @@ export type Database = {
                 Relationships: []
             }
 
-            // Shipment tracking table - 配送追跡 (Shipment Tracking)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('shipment_tracking') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            shipment_tracking: {
-                Row: {
-                    id: string
-                    shipment_id: string  // FK to shipments
-                    status_code: string  // Carrier status code
-                    status_description: string  // Human-readable description
-                    location: string | null  // Current location
-                    facility_name: string | null  // Facility name
-                    event_data: Json  // Additional event data
-                    event_at: string  // Event timestamp
-                    received_at: string  // When received by system
-                    source: string  // 'api', 'manual', 'webhook'
-                }
-                Insert: Omit<Database['public']['Tables']['shipment_tracking']['Row'], 'id' | 'received_at'>
-                Update: Partial<Database['public']['Tables']['shipment_tracking']['Row']>
-                Relationships: []
-            }
-
-            // Company invitations table - 会社招待管理 (Company Invitations)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('company_invitations') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            company_invitations: {
-                Row: {
-                    id: string
-                    email: string  // 招待先メールアドレス
-                    company_id: string  // 会社名 or company ID
-                    invited_by: string  // FK to profiles (招待者)
-                    role: 'ADMIN' | 'MEMBER'  // 招待された役割
-                    token: string  // 招待トークン (一意識別子)
-                    status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'  // 招待ステータス
-                    message: string | null  // 招待メッセージ
-                    expires_at: string  // 有効期限
-                    accepted_by: string | null  // FK to profiles (承諾者)
-                    accepted_at: string | null  // 承諾日時
-                    created_at: string
-                    updated_at: string | null
-                }
-                Insert: Omit<Database['public']['Tables']['company_invitations']['Row'], 'id' | 'created_at'>
-                Update: Partial<Omit<Database['public']['Tables']['company_invitations']['Row'], 'id' | 'created_at'>>
-                Relationships: []
-            }
-
-            // ============================================================
-            // ELECTRONIC SIGNATURE SYSTEM TABLES (Phase 5)
-            // ============================================================
-
-            // Signatures table - 電子署名レコード (Signature Records)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('signatures') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            signatures: {
-                Row: {
-                    id: string
-                    document_id: string
-                    order_id: string | null
-                    contract_id: string | null
-                    provider: 'docusign' | 'hellosign' | 'local'
-                    envelope_id: string | null
-                    status: 'pending' | 'viewed' | 'signed' | 'delivered' | 'cancelled' | 'expired' | 'declined'
-                    signature_type: 'handwritten' | 'hanko' | 'mixed' | null
-                    signers: Json
-                    signature_data: Json | null
-                    subject: string | null
-                    message: string | null
-                    sent_at: string | null
-                    viewed_at: string | null
-                    signed_at: string | null
-                    expires_at: string | null
-                    cancelled_at: string | null
-                    cancel_reason: string | null
-                    created_by: string | null
-                    created_at: string
-                    updated_at: string
-                    metadata: Json
-                }
-                Insert: Omit<Database['public']['Tables']['signatures']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['signatures']['Row'], 'id' | 'created_at' | 'updated_at'>>
-                Relationships: []
-            }
-
-            // Signature Events table - 署名イベント監査ログ (Signature Audit Trail)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('signature_events') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            signature_events: {
-                Row: {
-                    id: string
-                    envelope_id: string
-                    provider: string
-                    event: string
-                    metadata: Json
-                    created_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['signature_events']['Row'], 'id' | 'created_at'>
-                Update: Partial<Database['public']['Tables']['signature_events']['Row']>
-                Relationships: []
-            }
-
-            // Hanko Images table - はんこ画像 (Japanese Seal Images)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('hanko_images') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            hanko_images: {
-                Row: {
-                    id: string
-                    user_id: string
-                    hanko_name: string
-                    image_url: string
-                    original_filename: string | null
-                    file_size: number | null
-                    mime_type: string | null
-                    is_default: boolean
-                    validation_data: Json | null
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['hanko_images']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['hanko_images']['Row'], 'id' | 'created_at' | 'updated_at'>>
-                Relationships: []
-            }
-
-            // Web Vitals table - Webパフォーマンス指標
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('web_vitals') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            web_vitals: {
-                Row: {
-                    id: string
-                    metric_name: string  // 'LCP', 'FID', 'CLS', 'FCP', 'TTFB'
-                    value: number
-                    rating: 'good' | 'needs-improvement' | 'poor'
-                    page: string | null  // URL path
-                    user_id: string | null
-                    metadata: Json | null
-                    device_type: string | null
-                    connection_type: string | null
-                    created_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['web_vitals']['Row'], 'id' | 'created_at'>
-                Update: Partial<Database['public']['Tables']['web_vitals']['Row']>
-                Relationships: []
-            }
-
             // Audit Logs table - 監査ログ (Audit Logs for Electronic Signature System)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('audit_logs') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
             audit_logs: {
                 Row: {
                     id: string
                     timestamp: string
                     event_type: 'system_start' | 'system_shutdown' | 'user_login' | 'user_logout' | 'timestamp_created' | 'timestamp_verified' | 'signature_created' | 'signature_verified' | 'contract_created' | 'contract_signed' | 'contract_status_changed' | 'ip_validation' | 'security_alert' | 'data_access' | 'data_modification' | 'data_deletion' | 'admin_action' | 'error_occurred'
-                    resource_type: 'timestamp_token' | 'signature' | 'contract' | 'user' | 'system' | 'ip_validation' | 'other'
+                    resource_type: 'timestamp_token' | 'signature' | 'contract' | 'user' | 'system' | 'ip_validation' | 'order' | 'order_item' | 'other'
                     resource_id: string | null
                     user_id: string | null
                     user_email: string | null
@@ -1202,38 +1020,6 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['audit_logs']['Row']>
-                Relationships: []
-            }
-
-            // Customer Notifications table - カスタマー通知 (Customer Notifications)
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('customer_notifications') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            customer_notifications: {
-                Row: {
-                    id: string
-                    user_id: string  // FK to profiles
-                    notification_type: 'order_update' | 'shipment_update' | 'contract_ready' | 'quote_ready' | 'production_update' | 'document_ready' | 'delivery_scheduled'
-                    title: string
-                    title_ja: string
-                    message: string
-                    message_ja: string
-                    order_id: string | null  // FK to orders
-                    quotation_id: string | null  // FK to quotations
-                    shipment_id: string | null  // FK to shipments
-                    action_url: string | null
-                    action_label: string | null
-                    action_label_ja: string | null
-                    read: boolean  // Read status
-                    sent_via_email: boolean  // Email delivery status
-                    sent_via_sms: boolean  // SMS delivery status
-                    expires_at: string | null  // Notification expiry date
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['customer_notifications']['Row'], 'id' | 'created_at' | 'updated_at'>
-                Update: Partial<Omit<Database['public']['Tables']['customer_notifications']['Row'], 'id' | 'created_at' | 'updated_at'>>
                 Relationships: []
             }
 
@@ -1334,28 +1120,6 @@ export type Database = {
             // ============================================================
             // KOREAN DESIGNER WORKFLOW TABLES
             // ============================================================
-
-            // Translation Cache table - 翻訳キャッシュ
-            /**
-             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
-             * 参照コード .from('translation_cache') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
-             */
-            translation_cache: {
-                Row: {
-                    id: string
-                    source_text: string  // Original text to translate
-                    source_language: 'ko' | 'ja' | 'en'  // Source language
-                    target_language: 'ko' | 'ja' | 'en'  // Target language
-                    translated_text: string  // Translated text
-                    translation_provider: 'google' | 'manual'  // Translation provider
-                    quality_score: number | null  // Translation quality score
-                    created_at: string  // TIMESTAMPTZ
-                    expires_at: string  // TIMESTAMPTZ (default 30 days)
-                }
-                Insert: Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>
-                Update: Partial<Omit<Database['public']['Tables']['translation_cache']['Row'], 'id' | 'created_at'>>
-                Relationships: []
-            }
 
             // Designer Task Assignments table - デザイナータスク割り当て
             designer_task_assignments: {

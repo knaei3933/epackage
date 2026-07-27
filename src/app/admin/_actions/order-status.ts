@@ -115,19 +115,25 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
       };
     }
 
-    // 監査ログ記録
+    // 監査ログ記録（系Bスキーマ: event_type/resource_type/details）
     try {
       await supabase
         .from('audit_logs')
         .insert({
-          table_name: 'orders',
-          record_id: orderId,
-          action: 'UPDATE',
-          old_value: { status: order.status },
-          new_value: { status },
-          changed_by: 'ADMIN',
-          reason: reason || 'Admin status update via Server Action',
-        } as never);
+          timestamp: new Date().toISOString(),
+          event_type: 'admin_action',
+          resource_type: 'order',
+          resource_id: orderId,
+          user_id: null,
+          outcome: 'success',
+          details: {
+            before: { status: order.status },
+            after: { status },
+            reason: reason || 'Admin status update via Server Action',
+            target_user_id: order.user_id,
+            actor_role: 'admin',
+          },
+        });
     } catch (auditError) {
       console.warn('[Server Action] Failed to create audit log:', auditError);
     }
