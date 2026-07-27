@@ -880,6 +880,10 @@ export type Database = {
             }
 
             // Order Audit Log table - 監査ログ
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('order_audit_log') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             order_audit_log: {
                 Row: {
                     id: string
@@ -1016,6 +1020,10 @@ export type Database = {
             }
 
             // Shipment tracking table - 配送追跡 (Shipment Tracking)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('shipment_tracking') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             shipment_tracking: {
                 Row: {
                     id: string
@@ -1035,6 +1043,10 @@ export type Database = {
             }
 
             // Company invitations table - 会社招待管理 (Company Invitations)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('company_invitations') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             company_invitations: {
                 Row: {
                     id: string
@@ -1061,6 +1073,10 @@ export type Database = {
             // ============================================================
 
             // Signatures table - 電子署名レコード (Signature Records)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('signatures') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             signatures: {
                 Row: {
                     id: string
@@ -1092,6 +1108,10 @@ export type Database = {
             }
 
             // Signature Events table - 署名イベント監査ログ (Signature Audit Trail)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('signature_events') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             signature_events: {
                 Row: {
                     id: string
@@ -1107,6 +1127,10 @@ export type Database = {
             }
 
             // Hanko Images table - はんこ画像 (Japanese Seal Images)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('hanko_images') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             hanko_images: {
                 Row: {
                     id: string
@@ -1127,6 +1151,10 @@ export type Database = {
             }
 
             // Web Vitals table - Webパフォーマンス指標
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('web_vitals') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             web_vitals: {
                 Row: {
                     id: string
@@ -1146,6 +1174,10 @@ export type Database = {
             }
 
             // Audit Logs table - 監査ログ (Audit Logs for Electronic Signature System)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('audit_logs') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             audit_logs: {
                 Row: {
                     id: string
@@ -1174,6 +1206,10 @@ export type Database = {
             }
 
             // Customer Notifications table - カスタマー通知 (Customer Notifications)
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('customer_notifications') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             customer_notifications: {
                 Row: {
                     id: string
@@ -1300,6 +1336,10 @@ export type Database = {
             // ============================================================
 
             // Translation Cache table - 翻訳キャッシュ
+            /**
+             * @deprecated 実DBにテーブル不在（list_tables で不存在確認・task #117 B-3）。
+             * 参照コード .from('translation_cache') が残存するため定義を保持。実DB移行または参照コード削除後に除去予定。
+             */
             translation_cache: {
                 Row: {
                     id: string
@@ -1337,6 +1377,656 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>
                 Update: Partial<Omit<Database['public']['Tables']['designer_task_assignments']['Row'], 'id' | 'assigned_at'>>
+                Relationships: []
+            }
+
+        // ============================================================
+        // 追加テーブル定義（実DB存在・database.ts 未定義・task #117 B-3）
+        // list_tables(verbose=true) の実DBスキーマから生成。手書き資産とは別物。
+        // ============================================================
+
+            admin_notifications: {
+                Row: {
+                    id: string
+                    type: string  // Notification type: order, quotation, sample, registration, production, shipment,
+                    title: string
+                    message: string
+                    related_id: string | null  // ID of related entity (order, quotation, etc.)
+                    related_type: string | null  // Type of related entity (orders, quotations, etc.)
+                    priority: string | null  // Notification priority: low, normal, high, urgent
+                    user_id: string | null  // FK -> profiles.id
+                    is_read: boolean | null
+                    read_at: string | null
+                    action_url: string | null
+                    action_label: string | null
+                    metadata: Json | null
+                    created_at: string | null
+                    expires_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['admin_notifications']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['admin_notifications']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            admin_order_notes: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    admin_id: string
+                    notes: string
+                    sent_to_korea_at: string | null
+                    korea_email_address: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['admin_order_notes']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['admin_order_notes']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            approval_request_comments: {
+                Row: {
+                    id: string
+                    approval_request_id: string  // FK -> customer_approval_requests.id
+                    content: string
+                    author_id: string  // FK -> profiles.id
+                    author_role: string
+                    parent_comment_id: string | null  // FK -> approval_request_comments.id
+                    created_at: string | null
+                    updated_at: string | null
+                    metadata: Json | null
+                }
+                Insert: Omit<Database['public']['Tables']['approval_request_comments']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['approval_request_comments']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            approval_request_files: {
+                Row: {
+                    id: string
+                    approval_request_id: string  // FK -> customer_approval_requests.id
+                    file_name: string
+                    file_type: string
+                    file_url: string
+                    file_size_bytes: number | null
+                    file_category: string | null
+                    uploaded_by: string | null  // FK -> profiles.id
+                    uploaded_at: string | null
+                    created_at: string | null
+                    metadata: Json | null
+                }
+                Insert: Omit<Database['public']['Tables']['approval_request_files']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['approval_request_files']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            blog_categories: {
+                Row: {
+                    id: string
+                    name_ja: string
+                    name_en: string
+                    description: string | null
+                    sort_order: number | null
+                }
+                Insert: Omit<Database['public']['Tables']['blog_categories']['Row'], 'id'>
+                Update: Partial<Omit<Database['public']['Tables']['blog_categories']['Row'], 'id'>>
+                Relationships: []
+            }
+
+            blog_images: {
+                Row: {
+                    id: string
+                    post_id: string | null  // FK -> blog_posts.id
+                    storage_path: string
+                    original_filename: string
+                    mime_type: string
+                    file_size: number
+                    width: number | null
+                    height: number | null
+                    alt_text: string | null
+                    created_at: string
+                    created_by: string | null  // FK -> profiles.id
+                }
+                Insert: Omit<Database['public']['Tables']['blog_images']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['blog_images']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            blog_posts: {
+                Row: {
+                    id: string
+                    title: string
+                    slug: string
+                    content: string
+                    excerpt: string | null
+                    category: string  // FK -> blog_categories.id
+                    tags: string[] | null
+                    meta_title: string | null
+                    meta_description: string | null
+                    og_image_path: string | null
+                    canonical_url: string | null
+                    author_id: string | null  // FK -> profiles.id
+                    status: string
+                    published_at: string | null
+                    created_at: string
+                    updated_at: string
+                    view_count: number | null
+                    reading_time_minutes: number | null
+                    content_type: string | null
+                    template_data: Json | null
+                    featured: boolean | null
+                }
+                Insert: Omit<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            chatbot_failover_logs: {
+                Row: {
+                    id: string
+                    event_type: string
+                    from_provider: string | null
+                    to_provider: string | null
+                    reason: string | null
+                    metadata: Json | null
+                    created_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['chatbot_failover_logs']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['chatbot_failover_logs']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            contract_reminders: {
+                Row: {
+                    id: string
+                    contract_id: string  // FK -> contracts.id
+                    reminder_type: string
+                    scheduled_for: string
+                    sent_at: string | null
+                    status: string
+                    subject: string | null
+                    message: string | null
+                    sent_by: string | null  // FK -> profiles.id
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['contract_reminders']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['contract_reminders']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            customer_approval_requests: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    korea_correction_id: string | null  // FK -> korea_corrections.id
+                    title: string
+                    description: string
+                    approval_type: string
+                    status: string
+                    response_notes: string | null
+                    responded_at: string | null
+                    responded_by: string | null  // FK -> profiles.id
+                    expires_at: string | null
+                    requested_by: string  // FK -> profiles.id
+                    requested_at: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                    metadata: Json | null
+                    version: number
+                }
+                Insert: Omit<Database['public']['Tables']['customer_approval_requests']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['customer_approval_requests']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            design_postprocessing_positions: {
+                Row: {
+                    id: string
+                    revision_id: string  // FK -> design_revisions.id
+                    sku_name: string  // SKU名（スナップショット）
+                    notch_top: string | null  // ノッチ位置（上から）。例: "上から20mm"
+                    notch_bottom: string | null  // ノッチ位置（下から）。例: "下から15mm"
+                    hang_hole_diameter: string | null  // 吊り下げ穴径。例: "6mm", "8mm"
+                    hang_hole_position: string | null  // 吊り下げ位置。例: "上から15mm"
+                    zipper_position: string | null  // チャック位置。例: "上から30mm"
+                    print_position: string | null  // 印刷位置情報
+                    special_processing: string | null  // 特殊加工に関するメモ
+                    input_by_type: string | null  // 入力者タイプ: ADMINまたはKOREA_DESIGNER
+                    input_by_name: string | null  // 入力者名
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['design_postprocessing_positions']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['design_postprocessing_positions']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            designer_upload_tokens: {
+                Row: {
+                    id: string
+                    token_hash: string
+                    token_prefix: string
+                    order_id: string  // FK -> orders.id
+                    designer_id: string | null  // FK -> profiles.id
+                    status: string
+                    expires_at: string
+                    created_at: string
+                    last_accessed_at: string | null
+                    access_count: number
+                    upload_count: number
+                    created_by: string  // FK -> profiles.id
+                    designer_name: string | null
+                    designer_email: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['designer_upload_tokens']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['designer_upload_tokens']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            document_access_log: {
+                Row: {
+                    id: string
+                    user_id: string  // FK -> profiles.id
+                    quotation_id: string | null  // FK -> quotations.id
+                    order_id: string | null  // FK -> orders.id
+                    document_type: string
+                    action: string
+                    accessed_at: string
+                    ip_address: string | null
+                    user_agent: string | null
+                    metadata: Json | null
+                }
+                Insert: Omit<Database['public']['Tables']['document_access_log']['Row'], 'id'>
+                Update: Partial<Omit<Database['public']['Tables']['document_access_log']['Row'], 'id'>>
+                Relationships: []
+            }
+
+            inquiry_messages: {
+                Row: {
+                    id: string
+                    inquiry_id: string  // FK -> inquiries.id
+                    sender_type: string
+                    sender_id: string | null  // FK -> profiles.id
+                    body: string
+                    attachments: Json
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['inquiry_messages']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['inquiry_messages']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            invoice_items: {
+                Row: {
+                    id: string
+                    invoice_id: string  // FK -> invoices.id
+                    product_id: string | null
+                    product_name: string
+                    product_code: string | null
+                    description: string | null
+                    quantity: number
+                    unit: string
+                    unit_price: number
+                    total_price: number
+                    tax_rate: number
+                    tax_amount: number | null
+                    notes: string | null
+                    display_order: number
+                }
+                Insert: Omit<Database['public']['Tables']['invoice_items']['Row'], 'id'>
+                Update: Partial<Omit<Database['public']['Tables']['invoice_items']['Row'], 'id'>>
+                Relationships: []
+            }
+
+            invoices: {
+                Row: {
+                    id: string
+                    invoice_number: string
+                    user_id: string  // FK -> profiles.id
+                    company_id: string | null  // FK -> companies.id
+                    order_id: string | null  // FK -> orders.id
+                    customer_name: string
+                    customer_email: string
+                    customer_phone: string | null
+                    company_name: string | null
+                    company_address: string | null
+                    status: string
+                    subtotal_amount: number
+                    tax_amount: number
+                    discount_amount: number
+                    total_amount: number
+                    paid_amount: number
+                    issue_date: string
+                    due_date: string
+                    paid_at: string | null
+                    payment_method: string | null
+                    payment_terms: string | null
+                    bank_account: Json | null
+                    notes: string | null
+                    customer_notes: string | null
+                    pdf_url: string | null
+                    admin_notes: string | null
+                    created_at: string
+                    updated_at: string
+                    sent_at: string | null
+                    viewed_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['invoices']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['invoices']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            korea_corrections: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    quotation_id: string | null  // FK -> quotations.id
+                    correction_source: string
+                    correction_reference: string | null
+                    correction_date: string
+                    issue_description: string | null
+                    issue_category: string | null
+                    urgency: string | null
+                    corrected_data: Json | null
+                    correction_notes: string | null
+                    assigned_to: string | null  // FK -> auth.users.id
+                    status: string
+                    admin_notes: string | null
+                    corrected_files: string[] | null
+                    customer_notified: boolean
+                    customer_notification_date: string | null
+                    created_at: string
+                    updated_at: string
+                    completed_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['korea_corrections']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['korea_corrections']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            korea_transfer_log: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    sent_by: string  // FK -> auth.users.id
+                    sent_to: string
+                    files_count: number
+                    urgency: string
+                    message_id: string | null
+                    status: string
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['korea_transfer_log']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['korea_transfer_log']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            notification_settings: {
+                Row: {
+                    id: string
+                    key: string
+                    value: Json
+                    description: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['notification_settings']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['notification_settings']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            notifications: {
+                Row: {
+                    id: string
+                    type: string  // Notification type (e.g., order_cancelled, order_modified)
+                    title: string  // Notification title
+                    message: string  // Notification message
+                    related_id: string | null  // Related entity ID (e.g., order_id)
+                    created_for: string  // Recipient user ID or "admin"
+                    is_read: boolean | null  // Whether the notification has been read
+                    created_at: string
+                    read_at: string | null  // When the notification was read
+                }
+                Insert: Omit<Database['public']['Tables']['notifications']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['notifications']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            order_comments: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    content: string
+                    comment_type: string
+                    author_id: string  // FK -> profiles.id
+                    author_role: string
+                    is_internal: boolean | null
+                    attachments: string[] | null
+                    parent_comment_id: string | null  // FK -> order_comments.id
+                    created_at: string | null
+                    updated_at: string | null
+                    deleted_at: string | null
+                    metadata: Json | null
+                }
+                Insert: Omit<Database['public']['Tables']['order_comments']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['order_comments']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            order_file_uploads: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    file_name: string
+                    file_type: string
+                    drive_file_id: string
+                    drive_view_link: string | null
+                    drive_content_link: string | null
+                    uploaded_at: string
+                    uploaded_by: string | null  // FK -> profiles.id
+                    drive_file_name: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['order_file_uploads']['Row'], 'id'>
+                Update: Partial<Omit<Database['public']['Tables']['order_file_uploads']['Row'], 'id'>>
+                Relationships: []
+            }
+
+            password_reset_tokens: {
+                Row: {
+                    id: string
+                    user_id: string  // FK -> auth.users.id
+                    token: string
+                    token_hash: string
+                    expires_at: string
+                    used_at: string | null
+                    ip_address: string | null
+                    user_agent: string | null
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['password_reset_tokens']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['password_reset_tokens']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            permissions: {
+                Row: {
+                    id: string
+                    name: string
+                    description: string | null
+                    category: string
+                    created_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['permissions']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['permissions']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            production_data: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    data_type: string
+                    title: string
+                    description: string | null
+                    version: string
+                    file_id: string | null  // FK -> files.id
+                    file_url: string | null
+                    validation_status: string
+                    validated_by: string | null  // FK -> profiles.id
+                    validated_at: string | null
+                    validation_notes: string | null
+                    validation_errors: Json | null
+                    approved_for_production: boolean
+                    approved_by: string | null  // FK -> profiles.id
+                    approved_at: string | null
+                    submitted_by_customer: boolean
+                    customer_contact_info: Json | null
+                    received_at: string
+                    extracted_data: Json | null
+                    confidence_score: number | null
+                    extraction_metadata: Json | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['production_data']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['production_data']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            production_orders: {
+                Row: {
+                    id: string
+                    order_id: string  // FK -> orders.id
+                    current_stage: string
+                    stage_data: Json  // JSONB object containing data for all 9 production stages
+                    started_at: string | null
+                    estimated_completion_date: string | null
+                    actual_completion_date: string | null
+                    progress_percentage: number | null  // Auto-calculated progress based on completed stages
+                    priority: string | null  // Priority level: low, normal, high, urgent
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['production_orders']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['production_orders']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            remote_config: {
+                Row: {
+                    id: number
+                    key: string
+                    value: Json
+                    updated_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['remote_config']['Row'], 'id' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['remote_config']['Row'], 'id' | 'updated_at'>>
+                Relationships: []
+            }
+
+            role_permissions: {
+                Row: {
+                    id: string
+                    role: string
+                    permission_id: string  // FK -> permissions.id
+                    created_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['role_permissions']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['role_permissions']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            shipment_tracking_events: {
+                Row: {
+                    id: string
+                    shipment_id: string | null
+                    status: string
+                    event_time: string | null
+                    location: string | null
+                    description: string | null
+                    raw_data: Json | null
+                    created_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['shipment_tracking_events']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['shipment_tracking_events']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            sku_quotes: {
+                Row: {
+                    id: string
+                    quote_id: string  // FK -> quotations.id
+                    sku_index: number
+                    sku_code: string  // Unique SKU identifier (e.g., SKU-001)
+                    quantity: number
+                    theoretical_meters: number | null
+                    secured_meters: number | null
+                    loss_meters: number | null
+                    total_meters: number | null
+                    cost_breakdown: Json
+                    specifications: Json  // SKU specifications (dimensions, material, thickness, etc.)
+                    created_at: string | null
+                    updated_at: string | null
+                    printing_type: string  // 印刷方式: digital(既定) / gravure。Phase 4b
+                }
+                Insert: Omit<Database['public']['Tables']['sku_quotes']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['sku_quotes']['Row'], 'id' | 'created_at' | 'updated_at'>>
+                Relationships: []
+            }
+
+            stage_action_history: {
+                Row: {
+                    id: string
+                    production_order_id: string  // FK -> production_orders.id
+                    stage: string
+                    action: string
+                    performed_by: string  // FK -> profiles.id
+                    performed_at: string | null
+                    notes: string | null
+                    metadata: Json | null
+                    created_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['stage_action_history']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['stage_action_history']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            unified_notifications: {
+                Row: {
+                    id: string
+                    recipient_id: string  // FK -> profiles.id
+                    recipient_type: string
+                    type: string
+                    title: string
+                    message: string
+                    related_id: string | null
+                    related_type: string | null
+                    priority: string | null
+                    metadata: Json | null
+                    channels: Json | null
+                    is_read: boolean | null
+                    read_at: string | null
+                    action_url: string | null
+                    action_label: string | null
+                    expires_at: string | null
+                    created_at: string | null
+                }
+                Insert: Omit<Database['public']['Tables']['unified_notifications']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['unified_notifications']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
+            user_google_tokens: {
+                Row: {
+                    id: string
+                    user_id: string  // FK -> profiles.id
+                    refresh_token: string
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['user_google_tokens']['Row'], 'id' | 'created_at' | 'updated_at'>
+                Update: Partial<Omit<Database['public']['Tables']['user_google_tokens']['Row'], 'id' | 'created_at' | 'updated_at'>>
                 Relationships: []
             }
         }
