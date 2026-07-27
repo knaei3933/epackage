@@ -201,18 +201,6 @@ function countUniqueColors(data: Uint8Array): number {
 // ============================================================
 
 /**
- * Convert file to base64
- */
-export function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-/**
  * Generate preview URL
  */
 export function generatePreviewUrl(file: File): string {

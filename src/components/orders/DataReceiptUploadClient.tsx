@@ -14,7 +14,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { AIExtractionPreview } from './AIExtractionPreview';
 import type { Order } from '@/types/dashboard';
 
 // =====================================================
@@ -68,8 +67,6 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showAIPreview, setShowAIPreview] = useState(false);
-  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const [pollingRetries, setPollingRetries] = useState(0);
   const [extractionResults, setExtractionResults] = useState<Record<string, any>>({});
@@ -686,15 +683,6 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                     <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="text-sm font-medium text-purple-900">抽出された仕様</h4>
-                        <button
-                          onClick={() => {
-                            setSelectedFileId(file.id);
-                            setShowAIPreview(true);
-                          }}
-                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
-                        >
-                          詳細を表示
-                        </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {extractionResults[file.id]?.specifications?.dimensions && (
@@ -734,17 +722,6 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  {(file.dataType === 'design_file' || file.dataType === 'production_data') && file.aiExtractionStatus === 'completed' && (
-                    <button
-                      onClick={() => {
-                        setSelectedFileId(file.id);
-                        setShowAIPreview(true);
-                      }}
-                      className="text-purple-600 hover:text-purple-800 text-sm font-medium"
-                    >
-                      AI抽出結果
-                    </button>
-                  )}
                   <a
                     href={file.downloadUrl}
                     target="_blank"
@@ -758,41 +735,6 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
             ))}
           </div>
         </Card>
-      )}
-
-      {/* AI Extraction Preview Modal */}
-      {showAIPreview && selectedFileId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">
-                AI抽出プレビュー
-              </h2>
-              <button
-                onClick={() => {
-                  setShowAIPreview(false);
-                  setSelectedFileId(null);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <AIExtractionPreview
-                fileId={selectedFileId}
-                orderId={order.id}
-                onComplete={() => {
-                  setShowAIPreview(false);
-                  setSelectedFileId(null);
-                  loadUploadedFiles();
-                }}
-              />
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Actions */}

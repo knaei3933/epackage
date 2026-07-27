@@ -142,31 +142,35 @@ export async function POST(
       );
     }
 
-    // 監査ログ
+    // 監査ログ（系Bスキーマ: event_type/resource_type/details）
     try {
-      // @ts-ignore - audit_logs type may not match exactly
       await supabase
         .from('audit_logs')
         .insert({
-          table_name: 'orders',
-          record_id: orderId,
-          action: 'UPDATE',
-          old_value: {
-            manual_discount_percentage: orderData.manual_discount_percentage,
-            manual_discount_amount: orderData.manual_discount_amount,
-            subtotal: orderData.subtotal,
-            tax_amount: orderData.tax_amount,
-            total_amount: orderData.total_amount,
+          timestamp: new Date().toISOString(),
+          event_type: 'data_modification',
+          resource_type: 'order',
+          resource_id: orderId,
+          user_id: null,
+          outcome: 'success',
+          details: {
+            before: {
+              manual_discount_percentage: orderData.manual_discount_percentage,
+              manual_discount_amount: orderData.manual_discount_amount,
+              subtotal: orderData.subtotal,
+              tax_amount: orderData.tax_amount,
+              total_amount: orderData.total_amount,
+            },
+            after: {
+              manual_discount_percentage: discountPercentage,
+              manual_discount_amount: manualDiscountAmount,
+              subtotal: discountedSubtotal,
+              tax_amount: newTaxAmount,
+              total_amount: newTotalAmount,
+            },
+            reason: `Manual discount ${discountPercentage}% applied`,
+            actor_role: 'admin',
           },
-          new_value: {
-            manual_discount_percentage: discountPercentage,
-            manual_discount_amount: manualDiscountAmount,
-            subtotal: discountedSubtotal,
-            tax_amount: newTaxAmount,
-            total_amount: newTotalAmount,
-          },
-          changed_by: 'ADMIN',
-          reason: `Manual discount ${discountPercentage}% applied`,
         });
     } catch (auditError) {
       console.warn('[Admin Manual Discount API] Failed to create audit log:', auditError);

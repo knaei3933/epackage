@@ -127,18 +127,23 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Create audit log
+    // 監査ログ（系Bスキーマ: event_type/resource_type/details）
     try {
       await supabase
         .from('audit_logs')
         .insert({
-          table_name: 'profiles',
-          record_id: userId,
-          action: 'UPDATE',
-          old_value: { status: 'PENDING' },
-          new_value: { status: newStatus, reason },
-          changed_by: 'ADMIN',
-          reason: `Member ${action}`,
+          timestamp: new Date().toISOString(),
+          event_type: 'admin_action',
+          resource_type: 'user',
+          resource_id: userId,
+          user_id: auth.userId,
+          outcome: 'success',
+          details: {
+            before: { status: 'PENDING' },
+            after: { status: newStatus, reason },
+            reason: `Member ${action}`,
+            actor_role: 'admin',
+          },
         });
     } catch (auditError) {
       console.warn('[Admin Approvals API] Failed to create audit log:', auditError);

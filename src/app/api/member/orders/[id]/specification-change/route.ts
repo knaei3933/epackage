@@ -193,30 +193,6 @@ export async function POST(
             display_order: 0
           });
 
-        // 仕様変更履歴を記録（既存テーブルがある場合は使用、なければ注文履歴で管理）
-        await supabase
-          .from('order_audit_log')
-          .insert({
-            table_name: 'specification_changes',
-            record_id: orderItems.id,
-            action: 'UPDATE',
-            old_data: {
-              specifications: specs,
-              price: originalPrice
-            },
-            new_data: {
-              specifications: newSpecs,
-              price: newPrice
-            },
-            changed_fields: ['specifications', 'unit_price', 'total_price'],
-            changed_by: user.id,
-            metadata: {
-              change_reason: body.changeReason,
-              original_quotation_id: originalQuotation.id,
-              new_quotation_id: newQuotation.id,
-              order_id: orderId
-            }
-          });
       }
     }
 

@@ -238,14 +238,13 @@ export async function POST(request: NextRequest) {
     // Step 4: Create initial tracking event
     // =====================================================
 
-    await (supabase as any).from('shipment_tracking').insert({
+    await (supabase as any).from('shipment_tracking_events').insert({
       shipment_id: shipment.id,
-      status_code: 'CREATED',
-      status_description: '配送を作成しました',
+      status: 'CREATED',
+      description: '配送を作成しました',
       location: DEFAULT_SENDER_ADDRESS.city + ', ' + DEFAULT_SENDER_ADDRESS.prefecture,
-      event_at: new Date().toISOString(),
-      event_data: carrierResponse,
-      source: 'api',
+      event_time: new Date().toISOString(),
+      raw_data: { ...(carrierResponse || {}), source: 'api' },
     });
 
     // =====================================================

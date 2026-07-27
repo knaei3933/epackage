@@ -68,7 +68,6 @@ interface DataReceiptUploadResponse {
     file_url: string;
     uploaded_at: string;
     validation_status: string;
-    extraction_job_id?: string;
   };
   error?: string;
   errorEn?: string;
@@ -458,42 +457,6 @@ export async function POST(
     } catch (logError) {
       console.error('[Data Receipt Upload] Failed to log file upload:', logError);
       // Don't fail the upload if logging fails
-    }
-
-    // ============================================================
-    // 9. Trigger AI extraction for eligible file types
-    // ============================================================
-    let extractionJobId: string | null = null;
-    const eligibleFileTypes = ['AI', 'PDF', 'PSD'];
-
-    if (eligibleFileTypes.includes(fileType)) {
-      try {
-        console.log('[Data Receipt Upload] Triggering AI extraction for file:', fileRecord.id);
-
-        const dataType = fileType === 'AI' ? 'design_file' : 'production_data';
-
-        // Call AI extraction API internally
-        const extractionApiUrl = new URL('/api/ai-parser/extract', request.url);
-        const extractionFormData = new FormData();
-        extractionFormData.append('file', file);
-        extractionFormData.append('order_id', orderId);
-        extractionFormData.append('data_type', dataType);
-
-        const extractionResponse = await fetch(extractionApiUrl.toString(), {
-          method: 'POST',
-          body: extractionFormData,
-        });
-
-        if (extractionResponse.ok) {
-          const extractionResult = await extractionResponse.json();
-          extractionJobId = extractionResult.data?.file_id || fileRecord.id;
-          console.log('[Data Receipt Upload] AI extraction started successfully:', extractionJobId);
-        } else {
-          console.error('[Data Receipt Upload] AI extraction API returned error:', extractionResponse.status);
-        }
-      } catch (extractionError) {
-        console.error('[Data Receipt Upload] Failed to trigger AI extraction:', extractionError);
-      }
     }
 
     // ============================================================
@@ -905,10 +868,6 @@ export async function POST(
         validation_status: fileRecord.validation_status,
       },
     };
-
-    if (extractionJobId) {
-      response.data.extraction_job_id = extractionJobId;
-    }
 
     return NextResponse.json(response, { status: 200 });
 

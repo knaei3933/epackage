@@ -253,3 +253,46 @@ export async function createNotificationService(): Promise<UnifiedNotificationSe
   await service.initialize();
   return service;
 }
+
+// =====================================================
+// 管理者操作由来の通知（service client・RLS 回避）
+// =====================================================
+
+/**
+ * 管理者が会員へ修正承認依頼を通知する
+ *
+ * 管理者操作由来のため UnifiedNotificationService（cookie client）ではなく
+ * service client で直接 INSERT する（cookie client では RLS で書き込めないリスクがある）。
+ */
+export async function notifyModificationRequested(
+  userId: string,
+  orderId: string,
+  orderNumber: string,
+  reason: string
+): Promise<void> {
+  const { createServiceClient } = await import('./supabase');
+  const supabase = createServiceClient();
+
+  const { data, error } = await supabase
+    .from('unified_notifications')
+    .insert({
+      recipient_id: userId,
+      recipient_type: 'member',
+      type: 'modification_requested',
+      title: '修正承認依頼',
+      message: `管理者が注文 ${orderNumber} の修正を依頼しました。理由: ${reason}`,
+      related_id: orderId,
+      related_type: 'orders',
+      priority: 'high',
+      action_url: `/member/orders/${orderId}`,
+      action_label: '修正内容を確認',
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('[notifyModificationRequested] Failed:', error);
+  } else {
+    console.log('[notifyModificationRequested] Created notification:', data?.id);
+  }
+}

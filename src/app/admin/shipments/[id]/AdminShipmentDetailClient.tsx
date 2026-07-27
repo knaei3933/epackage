@@ -20,11 +20,11 @@ import { useToastContext } from '@/components/ui/Toast';
 
 interface TrackingEvent {
   id: string;
-  status_code: string;
-  status_description: string;
+  status: string;
+  description: string;
   location?: string;
   facility_name?: string;
-  event_at: string;
+  event_time: string;
 }
 
 interface Shipment {
@@ -112,10 +112,10 @@ export default function AdminShipmentDetailClient() {
 
       // Fetch tracking events
       const { data: trackingData } = await supabase
-        .from('shipment_tracking')
+        .from('shipment_tracking_events')
         .select('*')
         .eq('shipment_id', shipmentId)
-        .order('event_at', { ascending: false });
+        .order('event_time', { ascending: false });
 
       setTrackingEvents(trackingData || []);
     } catch (error) {

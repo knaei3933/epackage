@@ -196,32 +196,6 @@ export async function POST(
       }
     }
 
-    // 仕様変更履歴を記録
-    await supabase
-      .from('order_audit_log')
-      .insert({
-        table_name: 'order_items',
-        record_id: orderItems.id,
-        action: 'UPDATE',
-        old_data: {
-          specifications: specs,
-          price: originalPrice
-        },
-        new_data: {
-          specifications: newSpecs,
-          price: newPrice
-        },
-        changed_fields: ['specifications', 'unit_price', 'total_price'],
-        changed_by: auth.userId,
-        metadata: {
-          change_reason: body.changeReason,
-          original_quotation_id: originalQuotation?.id,
-          new_quotation_id: newQuotationId,
-          order_id: orderId,
-          changed_by_admin: true
-        }
-      });
-
     // 顧客への通知送信（オプション）
     if (body.notifyCustomer && originalQuotation) {
       try {
