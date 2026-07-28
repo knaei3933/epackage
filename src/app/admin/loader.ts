@@ -37,8 +37,8 @@ export async function requireAdminAuth(
     redirect('/auth/signin?redirect=/admin/dashboard');
   }
 
-  // admin/operator/sales/accountingのみアクセス可能 (RBAC contextは小文字を返す)
-  const adminRoles = ['admin', 'operator', 'sales', 'accounting'] as const;
+  // admin/operator/salesのみアクセス可能 (RBAC contextは小文字を返す)
+  const adminRoles = ['admin', 'operator', 'sales'] as const;
   if (!adminRoles.includes(context.role as any)) {
     // 権限なし → 会員ダッシュボードへ
     redirect('/member/dashboard?error=admin_required');
@@ -64,7 +64,7 @@ export async function requireAdminAuth(
 
   return {
     userId: context.userId,
-    role: context.role as 'admin' | 'operator' | 'sales' | 'accounting',
+    role: context.role as 'admin' | 'operator' | 'sales',
     userName,
     permissions: context.permissions,
     isDevMode: context.isDevMode,

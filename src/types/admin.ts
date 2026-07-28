@@ -15,7 +15,7 @@ import type { UnifiedDashboardStats } from '@/lib/dashboard';
  */
 export interface AdminAuthContext {
   userId: string;
-  role: 'admin' | 'operator' | 'sales' | 'accounting';
+  role: 'admin' | 'operator' | 'sales';
   userName: string;
   permissions: Permission[];
   isDevMode: boolean;
