@@ -40,19 +40,14 @@ export interface SoftDeleteFields extends TimestampFields {
 // =====================================================
 
 /**
- * ユーザーロール
+ * ユーザーロール・ビジネスタイプ（enums.ts の真正値を re-export）
  */
-export type UserRole = 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES';
+export type { UserRole, BusinessType } from '../enums';
 
 /**
  * ユーザーステータス
  */
 export type UserStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
-
-/**
- * ビジネスタイプ
- */
-export type BusinessType = 'INDIVIDUAL' | 'CORPORATION';
 
 /**
  * ユーザータイプ
