@@ -31,6 +31,9 @@ export enum ProductCategory {
 export enum UserRole {
   ADMIN = 'ADMIN',
   MEMBER = 'MEMBER',
+  KOREA_DESIGNER = 'KOREA_DESIGNER',
+  OPERATOR = 'OPERATOR',
+  SALES = 'SALES',
 }
 
 export enum UserStatus {

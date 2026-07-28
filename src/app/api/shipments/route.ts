@@ -3,148 +3,168 @@
  * GET /api/shipments
  *
  * Lists all shipments with filtering and pagination
+ *
+ * SECURITY: withMemberAuth で管理系ロール（ADMIN/OPERATOR/SALES）に制限。
+ * createSupabaseClient は service role client（RLS bypass）のため、
+ * 認可制限でアクセスを管理系ロールに絞る（未認証 401・member/KOREA_DESIGNER 403）。
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
+import { withMemberAuth } from '@/lib/api-auth';
+import { UserRole } from '@/types/auth';
 import { ShipmentFilters, ShipmentStatus, CarrierType } from '@/types/shipment';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Shipments API は管理系ロール（ADMIN/OPERATOR/SALES）のみアクセス可能。
+const SHIPMENTS_ALLOWED_ROLES: UserRole[] = [
+  UserRole.ADMIN,
+  UserRole.OPERATOR,
+  UserRole.SALES,
+];
+
 /**
  * GET handler - List shipments with filters
  */
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = createSupabaseClient();
+export const GET = withMemberAuth<any>(
+  async (request) => {
+    try {
+      const supabase = createSupabaseClient();
 
-    // Parse query parameters
-    const { searchParams } = new URL(request.url);
-    const filters: ShipmentFilters = {
-      status: searchParams.get('status') as ShipmentStatus || undefined,
-      carrier: searchParams.get('carrier') as CarrierType || undefined,
-      tracking_number: searchParams.get('tracking_number') || undefined,
-      order_id: searchParams.get('order_id') || undefined,
-      date_from: searchParams.get('date_from') || undefined,
-      date_to: searchParams.get('date_to') || undefined,
-      search: searchParams.get('search') || undefined,
-    };
+      // Parse query parameters
+      const { searchParams } = new URL(request.url);
+      const filters: ShipmentFilters = {
+        status: searchParams.get('status') as ShipmentStatus || undefined,
+        carrier: searchParams.get('carrier') as CarrierType || undefined,
+        tracking_number: searchParams.get('tracking_number') || undefined,
+        order_id: searchParams.get('order_id') || undefined,
+        date_from: searchParams.get('date_from') || undefined,
+        date_to: searchParams.get('date_to') || undefined,
+        search: searchParams.get('search') || undefined,
+      };
 
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = parseInt(searchParams.get('page_size') || '50');
-    const offset = (page - 1) * pageSize;
+      const page = parseInt(searchParams.get('page') || '1');
+      const pageSize = parseInt(searchParams.get('page_size') || '50');
+      const offset = (page - 1) * pageSize;
 
-    // Build query - join with orders table to get order info
-    let query = supabase
-      .from('shipments')
-      .select(`
-        *,
-        orders (
-          order_number,
-          customer_name,
-          customer_email,
-          customer_phone,
-          delivery_address,
-          status
-        )
-      `, { count: 'exact' });
+      // Build query - join with orders table to get order info
+      let query = supabase
+        .from('shipments')
+        .select(`
+          *,
+          orders (
+            order_number,
+            customer_name,
+            customer_email,
+            customer_phone,
+            delivery_address,
+            status
+          )
+        `, { count: 'exact' });
 
-    // Apply filters
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
+      // Apply filters
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
 
-    if (filters.carrier) {
-      query = query.eq('carrier_name', filters.carrier);
-    }
+      if (filters.carrier) {
+        query = query.eq('carrier_name', filters.carrier);
+      }
 
-    if (filters.tracking_number) {
-      query = query.like('tracking_number', `%${filters.tracking_number}%`);
-    }
+      if (filters.tracking_number) {
+        query = query.like('tracking_number', `%${filters.tracking_number}%`);
+      }
 
-    if (filters.order_id) {
-      query = query.eq('order_id', filters.order_id);
-    }
+      if (filters.order_id) {
+        query = query.eq('order_id', filters.order_id);
+      }
 
-    if (filters.date_from) {
-      query = query.gte('created_at', filters.date_from);
-    }
+      if (filters.date_from) {
+        query = query.gte('created_at', filters.date_from);
+      }
 
-    if (filters.date_to) {
-      query = query.lte('created_at', filters.date_to);
-    }
+      if (filters.date_to) {
+        query = query.lte('created_at', filters.date_to);
+      }
 
-    if (filters.search) {
-      // Search in shipment_number or order_number
-      query = query.or(`shipment_number.ilike.%${filters.search}%,tracking_number.ilike.%${filters.search}%`);
-    }
+      if (filters.search) {
+        // PostgREST の or フィルタで value をダブルクォートで囲み、
+        // search に含まれる , や .（合法追跡番号の国際フォーマット含む）が
+        // フィルタ区切り / 演算子区切りとして誤認されるのを防ぐ。
+        // 合法追跡番号の . を破壊しない（strip ではなくクォートで保護）。
+        const sanitizedSearch = filters.search.replace(/"/g, '\\"');
+        query = query.or(`shipment_number.ilike."%${sanitizedSearch}%",tracking_number.ilike."%${sanitizedSearch}%"`);
+      }
 
-    // Apply pagination and sorting
-    query = query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + pageSize - 1);
+      // Apply pagination and sorting
+      query = query
+        .order('created_at', { ascending: false })
+        .range(offset, offset + pageSize - 1);
 
-    const { data: shipments, error, count } = await query;
+      const { data: shipments, error, count } = await query;
 
-    if (error) {
-      throw error;
-    }
+      if (error) {
+        throw error;
+      }
 
-    // Get recent tracking for each shipment
-    const shipmentIds = shipments?.map((s: any) => s.id) || [];
-    const recentTrackingMap = new Map();
+      // Get recent tracking for each shipment
+      const shipmentIds = shipments?.map((s: any) => s.id) || [];
+      const recentTrackingMap = new Map();
 
-    if (shipmentIds.length > 0) {
-      const { data: trackingEvents } = await supabase
-        .from('shipment_tracking_events')
-        .select('*')
-        .in('shipment_id', shipmentIds)
-        .order('event_time', { ascending: false });
+      if (shipmentIds.length > 0) {
+        const { data: trackingEvents } = await supabase
+          .from('shipment_tracking_events')
+          .select('*')
+          .in('shipment_id', shipmentIds)
+          .order('event_time', { ascending: false });
 
-      const tracking = trackingEvents;
+        const tracking = trackingEvents;
 
-      // Group by shipment_id and take the most recent
-      tracking?.forEach((t: any) => {
-        if (!recentTrackingMap.has(t.shipment_id)) {
-          recentTrackingMap.set(t.shipment_id, t);
-        }
+        // Group by shipment_id and take the most recent
+        tracking?.forEach((t: any) => {
+          if (!recentTrackingMap.has(t.shipment_id)) {
+            recentTrackingMap.set(t.shipment_id, t);
+          }
+        });
+      }
+
+      // Format shipments with order data and tracking
+      const shipmentsWithTracking = (shipments || []).map((shipment: any) => ({
+        ...shipment,
+        order_number: shipment.orders?.[0]?.order_number || null,
+        customer_name: shipment.orders?.[0]?.customer_name || null,
+        customer_email: shipment.orders?.[0]?.customer_email || null,
+        customer_phone: shipment.orders?.[0]?.customer_phone || null,
+        delivery_address: shipment.orders?.[0]?.delivery_address || null,
+        order_status: shipment.orders?.[0]?.status || null,
+        recent_tracking: recentTrackingMap.get(shipment.id) || null,
+      }));
+
+      return NextResponse.json({
+        success: true,
+        shipments: shipmentsWithTracking,
+        pagination: {
+          total: count || 0,
+          page,
+          page_size: pageSize,
+          total_pages: Math.ceil((count || 0) / pageSize),
+        },
       });
+
+    } catch (error) {
+      console.error('List shipments error:', error);
+
+      return NextResponse.json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch shipments',
+          details: error instanceof Error ? error.message : String(error),
+        },
+      }, { status: 500 });
     }
-
-    // Format shipments with order data and tracking
-    const shipmentsWithTracking = (shipments || []).map((shipment: any) => ({
-      ...shipment,
-      order_number: shipment.orders?.[0]?.order_number || null,
-      customer_name: shipment.orders?.[0]?.customer_name || null,
-      customer_email: shipment.orders?.[0]?.customer_email || null,
-      customer_phone: shipment.orders?.[0]?.customer_phone || null,
-      delivery_address: shipment.orders?.[0]?.delivery_address || null,
-      order_status: shipment.orders?.[0]?.status || null,
-      recent_tracking: recentTrackingMap.get(shipment.id) || null,
-    }));
-
-    return NextResponse.json({
-      success: true,
-      shipments: shipmentsWithTracking,
-      pagination: {
-        total: count || 0,
-        page,
-        page_size: pageSize,
-        total_pages: Math.ceil((count || 0) / pageSize),
-      },
-    });
-
-  } catch (error) {
-    console.error('List shipments error:', error);
-
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to fetch shipments',
-        details: error instanceof Error ? error.message : String(error),
-      },
-    }, { status: 500 });
-  }
-}
+  },
+  { allowedRoles: SHIPMENTS_ALLOWED_ROLES },
+);

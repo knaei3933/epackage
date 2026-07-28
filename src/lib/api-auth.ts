@@ -296,12 +296,14 @@ export function withMemberAuth<T = any>(
     request: NextRequest,
     auth: AdminAuthResult,
     context?: { params: Promise<Record<string, string | string[]>> }
-  ) => Promise<NextResponse<T>>
+  ) => Promise<NextResponse<T>>,
+  options?: { allowedRoles?: UserRole[] },
 ): (request: NextRequest, context?: { params: Promise<Record<string, string | string[]>> }) => Promise<NextResponse> {
   return async (request: NextRequest, context?: { params: Promise<Record<string, string | string[]>> }): Promise<NextResponse> => {
     const middleware = createAuthMiddleware({
       useMemberAuth: true,
       requireActive: true,
+      ...(options?.allowedRoles ? { allowedRoles: options.allowedRoles } : {}),
     });
     const result = await middleware(request);
 
