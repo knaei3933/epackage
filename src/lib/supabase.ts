@@ -9,6 +9,7 @@
  */
 
 import { Database } from '@/types/database'
+import type { UserRole, BusinessType } from '@/types/enums'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -210,7 +211,7 @@ export interface Profile {
     kana_first_name: string;
     corporate_phone?: string | null;
     personal_phone?: string | null;
-    business_type: 'INDIVIDUAL' | 'CORPORATION';
+    business_type: BusinessType;
     company_name?: string | null;
     legal_entity_number?: string | null;
     position?: string | null;
@@ -222,7 +223,7 @@ export interface Profile {
     prefecture?: string | null;
     city?: string | null;
     street?: string | null;
-    role: 'ADMIN' | 'MEMBER';
+    role: UserRole;
     status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
     user_type?: 'B2B' | 'B2C' | null;
     founded_year?: string | null;

@@ -12,6 +12,9 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { extractPathFromUrl } from '@/lib/storage-path';
 
+// 管理者系ロール（実DB 5値のうち ADMIN/OPERATOR/SALES）。isAdmin 判定は includes 形式へ統一。
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
+
 /**
  * Helper: Get authenticated user
  */
@@ -230,7 +233,7 @@ export async function GET(
       .eq('id', userId)
       .single();
 
-    const isAdmin = profile?.role === 'ADMIN' || (profile?.role as string) === 'OPERATOR';
+    const isAdmin = profile?.role && ADMIN_ROLES.includes(profile.role as string);
     const isOwner = order.user_id === userId;
 
     if (!isAdmin && !isOwner) {

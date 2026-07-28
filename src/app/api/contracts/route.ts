@@ -9,6 +9,9 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 
+// 管理者系ロール（実DB 5値のうち ADMIN/OPERATOR/SALES）。isAdmin 判定は includes 形式へ統一。
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
+
 // POST /api/contracts - Create contract from order
 export async function POST(request: NextRequest) {
   try {
@@ -183,9 +186,9 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    // 注: profiles.role 型は 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' だが、実行時は
-    // 'OPERATOR' 等の追加値も入り得るため string キャストで比較（実行時ロジック不変）。
-    const isAdmin = (profile?.role as string) === 'ADMIN' || (profile?.role as string) === 'OPERATOR';
+    // 注: profiles.role 型は実DB 5値（ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）へ合致済。
+    // ADMIN/OPERATOR/SALES を管理者系とし includes で判定（実行時ロジック不変）。
+    const isAdmin = profile?.role && ADMIN_ROLES.includes(profile.role as string);
 
     // Get query parameters
     const { searchParams } = new URL(request.url);

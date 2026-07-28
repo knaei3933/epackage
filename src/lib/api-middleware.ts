@@ -48,7 +48,7 @@ export interface Session {
 
 export interface UserProfile {
   id: string;
-  role: 'ADMIN' | 'MEMBER' | 'STAFF';
+  role: 'ADMIN' | 'MEMBER';
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'DELETED';
   company_name?: string;
   email: string;
@@ -59,7 +59,7 @@ export interface WithAuthOptions {
    * 必要な役割 (例: 'ADMIN', 'MEMBER')
    * 指定しない場合は、すべての認証済みユーザーを許可
    */
-  requireRole?: 'ADMIN' | 'MEMBER' | 'STAFF';
+  requireRole?: 'ADMIN' | 'MEMBER';
 
   /**
    * 必要なステータス (例: 'ACTIVE')

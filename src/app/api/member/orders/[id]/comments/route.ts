@@ -23,12 +23,17 @@ import { translateJapaneseToKorean } from '@/lib/translation';
 // ============================================================
 
 // Admin roles that can access any order
-const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+// ※ACCOUNTING は実DB user_role enum に存在しない値（実DB 5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
 
-// Korean member and production roles
-const INTERNAL_ROLES = ['KOREAN_MEMBER', 'PRODUCTION'];
+// Internal staff roles（admin 以外・実DB 値へ是正）
+// 【意図的変更・AC-F3a.2a】旧 KOREAN_MEMBER/PRODUCTION は実DB に存在しないバグ値（常に false）で
+// KOREA_DESIGNER ユーザーが INTERNAL 扱いされない不具合だった。KOREA_DESIGNER が本来の意図（韓国デザイナー）。
+// OPERATOR/SALES は ADMIN_ROLES と重複し isAdmin 先勝ちで到達不能（デッドロジック継続）だが
+// 実DB 存在値へ合致させるため是正（Principle 1 徹底 + 将来 ADMIN_ROLES 変更時の予防）。
+const INTERNAL_ROLES = ['KOREA_DESIGNER', 'OPERATOR', 'SALES'];
 
-// All internal roles (admin + korean_member + production)
+// All internal roles (admin + internal staff・ADMIN_ROLES と重複値あり・includes 判定のため実害なし)
 const ALL_INTERNAL_ROLES = [...ADMIN_ROLES, ...INTERNAL_ROLES];
 
 // ============================================================
@@ -140,11 +145,11 @@ export async function GET(
     const isAdmin = profile && profile.role && ADMIN_ROLES.includes(profile.role);
 
     // Check if user is Korean member or production staff
-    const isKoreanMember = profile && profile.role === 'KOREAN_MEMBER';
-    const isProduction = profile && profile.role === 'PRODUCTION';
+    const isKoreaDesigner = profile && profile.role === 'KOREA_DESIGNER';
+    const isOperator = profile && profile.role === 'OPERATOR';
 
     // For admins and internal staff, use service role client to bypass RLS
-    const dataClient = (isAdmin || isKoreanMember || isProduction) ? createServiceClient() : (supabase as any);
+    const dataClient = (isAdmin || isKoreaDesigner || isOperator) ? createServiceClient() : (supabase as any);
 
     // Verify user has access to this order
     const { data: order, error: orderError } = await dataClient
@@ -161,7 +166,7 @@ export async function GET(
     }
 
     // Check access: admin/internal staff or order owner
-    if (!isAdmin && !isKoreanMember && !isProduction && order.user_id !== userId) {
+    if (!isAdmin && !isKoreaDesigner && !isOperator && order.user_id !== userId) {
       return NextResponse.json(
         { success: false, error: 'アクセス権限がありません。', errorEn: 'Access denied' },
         { status: 403 }
@@ -179,7 +184,7 @@ export async function GET(
     // Role-based filtering
     if (isAdmin) {
       // Admin: See all comments (no filtering)
-    } else if (isKoreanMember || isProduction) {
+    } else if (isKoreaDesigner || isOperator) {
       // Korean members and production: Only see admin/korean_member/production comments
       query = query.in('author_role', ['admin', 'korean_member', 'production']);
     } else {
@@ -329,11 +334,11 @@ export async function POST(
     const isAdmin = profile && profile.role && ADMIN_ROLES.includes(profile.role);
 
     // Check if user is Korean member or production staff
-    const isKoreanMember = profile && profile.role === 'KOREAN_MEMBER';
-    const isProduction = profile && profile.role === 'PRODUCTION';
+    const isKoreaDesigner = profile && profile.role === 'KOREA_DESIGNER';
+    const isOperator = profile && profile.role === 'OPERATOR';
 
     // For admins and internal staff, use service role client to bypass RLS
-    const dataClient = (isAdmin || isKoreanMember || isProduction) ? createServiceClient() : (supabase as any);
+    const dataClient = (isAdmin || isKoreaDesigner || isOperator) ? createServiceClient() : (supabase as any);
 
     // Verify user has access to this order
     const { data: order, error: orderError } = await dataClient
@@ -350,7 +355,7 @@ export async function POST(
     }
 
     // Check access: admin/internal staff or order owner
-    if (!isAdmin && !isKoreanMember && !isProduction && order.user_id !== userId) {
+    if (!isAdmin && !isKoreaDesigner && !isOperator && order.user_id !== userId) {
       return NextResponse.json(
         { success: false, error: 'アクセス権限がありません。', errorEn: 'Access denied' },
         { status: 403 }
@@ -371,9 +376,9 @@ export async function POST(
     let authorRole: 'customer' | 'admin' | 'korean_member' | 'production';
     if (isAdmin) {
       authorRole = 'admin';
-    } else if (isKoreanMember) {
+    } else if (isKoreaDesigner) {
       authorRole = 'korean_member';
-    } else if (isProduction) {
+    } else if (isOperator) {
       authorRole = 'production';
     } else {
       authorRole = 'customer';
@@ -381,7 +386,7 @@ export async function POST(
 
     // For customer users, prevent creating internal comments
     const isInternal = comment_type === 'internal';
-    if (!isAdmin && !isKoreanMember && !isProduction && isInternal) {
+    if (!isAdmin && !isKoreaDesigner && !isOperator && isInternal) {
       return NextResponse.json(
         { success: false, error: '内部コメントを作成する権限がありません。', errorEn: 'Cannot create internal comments' },
         { status: 403 }
@@ -389,7 +394,7 @@ export async function POST(
     }
 
     // Korean member and production comments are always internal
-    const shouldMarkInternal = isInternal || isKoreanMember || isProduction;
+    const shouldMarkInternal = isInternal || isKoreaDesigner || isOperator;
 
     // Verify parent comment exists if provided
     if (parent_comment_id) {

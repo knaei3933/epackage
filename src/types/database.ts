@@ -354,7 +354,7 @@ export type Database = {
                     kana_first_name: string
                     corporate_phone: string | null
                     personal_phone: string | null
-                    business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR'
+                    business_type: 'INDIVIDUAL' | 'CORPORATION'
                     user_type: 'B2C' | 'B2B' | null  // B2C: 一般消費者, B2B: 企業顧客
                     company_name: string | null
                     legal_entity_number: string | null
@@ -369,7 +369,7 @@ export type Database = {
                     city: string | null
                     street: string | null
                     building: string | null  // 建物名
-                    role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER'
+                    role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES'
                     status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
                     // Designer-specific fields
                     designer_name_ko: string | null  // Korean name
@@ -1839,7 +1839,7 @@ export type Database = {
             // Product categories
             product_category: 'COSMETICS' | 'CLOTHING' | 'ELECTRONICS' | 'KITCHEN' | 'FURNITURE' | 'OTHER'
             // User roles
-            user_role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER'
+            user_role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES'
             // User status
             user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
             // Order status

@@ -25,7 +25,8 @@ import { logger, maskEmail } from '@/lib/logger';
 // ============================================================
 
 // Admin roles that can access this endpoint
-const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+// ※ACCOUNTING は実DB user_role enum に存在しない値（実DB 5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
 
 // Email configuration
 const FROM_EMAIL = process.env.FROM_EMAIL || 'info@package-lab.com';

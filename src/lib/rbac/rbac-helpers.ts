@@ -20,7 +20,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Role Type (소문자 통합 - DB와 일치)
  * DB profiles.role 컬럼 값과 정확히 일치해야 합니다
  */
-export type Role = 'admin' | 'operator' | 'sales' | 'accounting' | 'member' | 'guest';
+export type Role = 'admin' | 'operator' | 'sales' | 'member' | 'korea_designer';
 
 /**
  * Role Type Alias (레거시 호환성)
@@ -64,6 +64,9 @@ export interface RBACContext {
 export interface RBACCheckOptions {
   permissions?: Permission[];
   requireActive?: boolean;
+  /**
+   * @deprecated allowGuest は到達不能（Role 型から 'guest' を削除したため authResult.role === 'guest' となる経路なし）
+   */
   allowGuest?: boolean;
 }
 
@@ -193,14 +196,6 @@ export function withRBAC<T = any>(
       );
     }
 
-    // ゲストチェック
-    if (!options.allowGuest && authResult.role === 'guest') {
-      return NextResponse.json(
-        { error: 'Forbidden', message: 'Guest access not allowed' },
-        { status: 403 }
-      );
-    }
-
     // ハンドラー実行
     return handler(request, authResult);
   };
@@ -286,7 +281,6 @@ function getDefaultPermissionsForRole(role: string): Permission[] {
     case 'admin':
     case 'operator':
     case 'sales':
-    case 'accounting':
       return adminPermissions;
     case 'member':
       return memberPermissions;

@@ -13,7 +13,7 @@ export interface Profile {
   kana_first_name: string;
   corporate_phone: string | null;
   personal_phone: string | null;
-  business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR';
+  business_type: 'INDIVIDUAL' | 'CORPORATION';
   company_name: string | null;
   legal_entity_number: string | null;
   position: string | null;

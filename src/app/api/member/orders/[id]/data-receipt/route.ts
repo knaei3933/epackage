@@ -81,7 +81,8 @@ interface DataReceiptUploadResponse {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Admin roles that can access any order
-const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+// ※ACCOUNTING は実DB user_role enum に存在しない値（実DB 5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
 
 // =====================================================
 // Helper Functions

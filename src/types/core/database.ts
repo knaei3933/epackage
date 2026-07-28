@@ -42,7 +42,7 @@ export interface SoftDeleteFields extends TimestampFields {
 /**
  * ユーザーロール
  */
-export type UserRole = 'ADMIN' | 'MEMBER';
+export type UserRole = 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES';
 
 /**
  * ユーザーステータス
@@ -52,7 +52,7 @@ export type UserStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
 /**
  * ビジネスタイプ
  */
-export type BusinessType = 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR';
+export type BusinessType = 'INDIVIDUAL' | 'CORPORATION';
 
 /**
  * ユーザータイプ

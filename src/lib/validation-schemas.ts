@@ -142,7 +142,7 @@ export function createPaginationMeta(params: PaginationParams, total: number) {
 /**
  * ユーザーロールスキーマ
  */
-export const userRoleSchema = z.enum(['ADMIN', 'MEMBER']);
+export const userRoleSchema = z.enum(['ADMIN', 'MEMBER', 'KOREA_DESIGNER', 'OPERATOR', 'SALES']);
 
 /**
  * ユーザーステータススキーマ
@@ -152,7 +152,7 @@ export const userStatusSchema = z.enum(['PENDING', 'ACTIVE', 'SUSPENDED', 'DELET
 /**
  * ビジネスタイプスキーマ
  */
-export const businessTypeSchema = z.enum(['CORPORATION', 'SOLE_PROPRIETOR']);
+export const businessTypeSchema = z.enum(['INDIVIDUAL', 'CORPORATION']);
 
 /**
  * 都道府県スキーマ
