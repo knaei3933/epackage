@@ -503,7 +503,8 @@ export interface CreateUnifiedNotificationRequest {
 // RBAC Types (Role-Based Access Control)
 // ============================================================
 
-export type RBACRole = 'ADMIN' | 'OPERATOR' | 'SALES' | 'ACCOUNTING' | 'MEMBER' | 'GUEST'
+// 実DB user_role enum 5値へ合致（※ルート直下 types/database.ts はデッドコード・import 元 0件・実行時影響ゼロ）
+export type RBACRole = 'ADMIN' | 'OPERATOR' | 'SALES' | 'MEMBER' | 'KOREA_DESIGNER'
 
 export type RBACPermission =
   // User management

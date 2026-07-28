@@ -19,7 +19,7 @@ import { getRBACContext, hasPermission, type Permission, type RBACContext } from
  */
 export interface AdminAuthResult {
   userId: string;
-  role: 'ADMIN' | 'MEMBER' | 'KOREAN_MEMBER' | 'PRODUCTION' | 'OPERATOR' | 'SALES' | 'ACCOUNTING';
+  role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES';
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
 }
 
@@ -201,7 +201,7 @@ export function forbiddenResponse() {
  * クライアントへ結果を返す必要があるため、redirect する loader.ts の
  * requireAdminAuth は使えず、このヘルパーを使う。
  *
- * 許可ロール: admin / operator / sales / accounting（requireAdminAuth と同一）
+ * 許可ロール: admin / operator / sales（requireAdminAuth と同一）
  * 必須条件: status === 'ACTIVE'（退職者・停止アカウントを排除）
  *
  * @param requiredPermissions 要求する権限（省略時はロール + ACTIVE のみ検査）
@@ -214,7 +214,7 @@ export async function authenticateAdminAction(
   if (!context) return null;
 
   // 管理者ロールのみ許可（requireAdminAuth と同一ラインアップ）
-  const adminRoles: RBACContext['role'][] = ['admin', 'operator', 'sales', 'accounting'];
+  const adminRoles: RBACContext['role'][] = ['admin', 'operator', 'sales'];
   if (!adminRoles.includes(context.role)) return null;
 
   // ACTIVE ステータス必須（SUSPENDED/PENDING を排除）
@@ -354,8 +354,8 @@ export async function verifyMemberAuth(request: NextRequest): Promise<AdminAuthR
 
     const typedProfile = profile as Database['public']['Tables']['profiles']['Row'];
 
-    // MEMBER, ADMIN, KOREAN_MEMBER, PRODUCTION すべて許可（会員向けAPI）
-    const allowedRoles = ['MEMBER', 'ADMIN', 'KOREAN_MEMBER', 'PRODUCTION', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+    // 会員向けAPI・実DB 5値（ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）すべて許可
+    const allowedRoles = ['MEMBER', 'ADMIN', 'KOREA_DESIGNER', 'OPERATOR', 'SALES'];
     if (!allowedRoles.includes(typedProfile.role) || typedProfile.status !== 'ACTIVE') {
       console.log('[verifyMemberAuth] User not allowed or not active:', {
         userId,

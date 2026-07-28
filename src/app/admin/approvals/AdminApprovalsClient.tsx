@@ -31,7 +31,7 @@ interface PendingMember {
   id: string;
   email: string;
   user_type: 'B2C' | 'B2B' | null;
-  business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR' | null;
+  business_type: 'INDIVIDUAL' | 'CORPORATION' | null;
   company_name: string | null;
   legal_entity_number: string | null;
   kanji_last_name: string;
@@ -93,7 +93,6 @@ const USER_TYPE_LABELS: Record<string, string> = {
 const BUSINESS_TYPE_LABELS: Record<string, string> = {
   CORPORATION: '株式会社',
   INDIVIDUAL: '個人',
-  SOLE_PROPRIETOR: '個人事業主',
 };
 
 const PRODUCT_CATEGORY_LABELS: Record<string, string> = {

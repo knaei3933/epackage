@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
         部署: customer.department || '',
         会社電話: customer.corporate_phone || '',
         携帯電話: customer.personal_phone || '',
-        種別: customer.business_type === 'CORPORATION' ? '法人' : customer.business_type === 'SOLE_PROPRIETOR' ? '個人事業主' : '個人',
+        種別: customer.business_type === 'CORPORATION' ? '法人' : '個人',
         製品カテゴリー: customer.product_category || '',
         流入経路: customer.acquisition_channel || '',
         郵便番号: customer.postal_code || '',

@@ -77,8 +77,7 @@ export function CustomerDetailModal(props: CustomerDetailModalProps) {
                         <div className="flex justify-between">
                           <dt className="text-sm text-gray-600">種別</dt>
                           <dd className="text-sm text-gray-900">
-                            {selectedCustomer.business_type === 'CORPORATION' ? '法人' :
-                             (selectedCustomer.business_type as string) === 'SOLE_PROPRIETOR' ? '個人事業主' : '個人'}
+                            {selectedCustomer.business_type === 'CORPORATION' ? '法人' : '個人'}
                           </dd>
                         </div>
                         <div className="flex justify-between">

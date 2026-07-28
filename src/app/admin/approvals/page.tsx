@@ -20,7 +20,7 @@ interface PendingMember {
   id: string;
   email: string;
   user_type: 'B2C' | 'B2B' | null;
-  business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR' | null;
+  business_type: 'INDIVIDUAL' | 'CORPORATION' | null;
   company_name: string | null;
   legal_entity_number: string | null;
   kanji_last_name: string;

@@ -21,7 +21,8 @@ import { cancelDesignerTasksForOrder } from '@/lib/order-cancellation';
 // ============================================================
 
 // Admin roles that can access this endpoint
-const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
+// ※ACCOUNTING は実DB user_role enum に存在しない値（実DB 5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
 
 // ============================================================
 // Validation Schema

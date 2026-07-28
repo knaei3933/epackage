@@ -275,7 +275,7 @@ export interface ProfileData {
     kana_first_name: string;
     corporate_phone: string | null;
     personal_phone: string | null;
-    business_type: 'INDIVIDUAL' | 'CORPORATION' | 'SOLE_PROPRIETOR';
+    business_type: 'INDIVIDUAL' | 'CORPORATION';
     user_type: 'B2C' | 'B2B' | null;
     company_name: string | null;
     position: string | null;

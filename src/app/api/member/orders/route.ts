@@ -18,6 +18,9 @@ import type { Database } from '@/types/database';
 import { getStatusProgress, isOrderStatus } from '@/types/order-status';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 
+// 管理者系ロール（実DB 5値のうち ADMIN/OPERATOR/SALES）。isAdmin 判定は includes 形式へ統一。
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
+
 // Initialize performance monitor
 const perfMonitor = getPerformanceMonitor({
   slowQueryThreshold: 1000,
@@ -53,8 +56,9 @@ export async function GET(request: NextRequest) {
 
     const { id: userId, supabase, role } = authUser;
 
-    // 注: role は実行時 'OPERATOR' 等の追加値も入り得るため string キャストで比較（実行時ロジック不変）。
-    const isAdmin = (role as string) === 'ADMIN' || (role as string) === 'OPERATOR';
+    // 注: role は実DB 5値（ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）へ合致済。
+    // ADMIN/OPERATOR/SALES を管理者系とし includes で判定（実行時ロジック不変）。
+    const isAdmin = role && ADMIN_ROLES.includes(role as string);
 
     // Get query parameters
     const { searchParams } = new URL(request.url);

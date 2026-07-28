@@ -188,7 +188,7 @@ export default async function CustomerProfilePage() {
                   種別
                 </label>
                 <p className="text-slate-900 dark:text-white">
-                  {user.business_type === 'CORPORATION' ? '法人' : user.business_type === 'SOLE_PROPRIETOR' ? '個人事業主' : '個人'}
+                  {user.business_type === 'CORPORATION' ? '法人' : '個人'}
                 </p>
               </div>
             </div>

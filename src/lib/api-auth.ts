@@ -29,7 +29,7 @@ export interface AuthMiddlewareOptions {
   allowedRoles?: UserRole[];
   /** カスタムステータスチェック */
   allowedStatuses?: UserStatus[];
-  /** 会員向け認証を使用するか（MEMBER/ADMIN/KOREAN_MEMBER/PRODUCTIONを許可） */
+  /** 会員向け認証を使用するか（MEMBER/ADMIN/KOREA_DESIGNER/OPERATORを許可・実DB 5値） */
   useMemberAuth?: boolean;
 }
 
