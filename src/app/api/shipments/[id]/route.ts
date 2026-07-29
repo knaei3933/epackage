@@ -13,17 +13,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { withMemberAuth } from '@/lib/api-auth';
-import { UserRole } from '@/types/auth';
+import { SHIPMENTS_ALLOWED_ROLES } from '@/lib/shipments-constants';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Shipments API は管理系ロール（ADMIN/OPERATOR/SALES）のみアクセス可能。
-const SHIPMENTS_ALLOWED_ROLES: UserRole[] = [
-  UserRole.ADMIN,
-  UserRole.OPERATOR,
-  UserRole.SALES,
-];
 
 // Helper function to create service role client
 function createServiceRoleClient() {
@@ -56,7 +49,13 @@ interface UpdateShipmentRequest {
 export const PUT = withMemberAuth<any>(
   async (request, _auth, context) => {
     try {
-      const { id: shipmentId } = (await context!.params) as { id: string };
+      if (!context?.params) {
+        return NextResponse.json(
+          { success: false, error: { code: 'BAD_REQUEST', message: 'Missing route context' } },
+          { status: 400 }
+        );
+      }
+      const { id: shipmentId } = (await context.params) as { id: string };
 
       // Parse request body
       const body: UpdateShipmentRequest = await request.json();
@@ -135,7 +134,13 @@ export const PUT = withMemberAuth<any>(
 export const GET = withMemberAuth<any>(
   async (_request, _auth, context) => {
     try {
-      const { id: shipmentId } = (await context!.params) as { id: string };
+      if (!context?.params) {
+        return NextResponse.json(
+          { success: false, error: { code: 'BAD_REQUEST', message: 'Missing route context' } },
+          { status: 400 }
+        );
+      }
+      const { id: shipmentId } = (await context.params) as { id: string };
       const supabase = createServiceRoleClient();
 
       // まず shipments データを取得

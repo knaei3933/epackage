@@ -6,6 +6,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createApiRateLimiter, checkRateLimit, createRateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limiter';
 import { memoryCache } from '@/lib/cache';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 /**
  * Customer Markup Rate API
@@ -66,7 +67,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select('*', { count: 'exact', head: true });
 
     if (search) {
-      countQuery = countQuery.or(`email.ilike.%${search}%,company_name.ilike.%${search}%`);
+      // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+      const markupPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      countQuery = countQuery.or(`email.ilike.${markupPattern},company_name.ilike.${markupPattern}`);
     }
 
     const { count } = await countQuery;
@@ -83,7 +86,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .range(from, to);
 
     if (search) {
-      dataQuery = dataQuery.or(`email.ilike.%${search}%,company_name.ilike.%${search}%`);
+      // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+      const markupPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      dataQuery = dataQuery.or(`email.ilike.${markupPattern},company_name.ilike.${markupPattern}`);
     }
 
     const { data, error } = await dataQuery;

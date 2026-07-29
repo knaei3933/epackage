@@ -20,6 +20,7 @@ import type {
   BlogCategoryId,
 } from '@/lib/types/blog';
 import { generateSlug, calculateReadingTime } from '@/lib/types/blog';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 // ============================================================
 // Types
@@ -80,7 +81,9 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category);
     }
     if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
+      // searchQuery は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+      const blogPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(searchQuery)}%`);
+      query = query.or(`title.ilike.${blogPattern},content.ilike.${blogPattern}`);
     }
 
     // Apply sorting and pagination

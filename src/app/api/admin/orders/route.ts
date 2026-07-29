@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,10 +54,14 @@ export async function GET(request: NextRequest) {
 
       // Handle multiple statuses (comma-separated)
       if (statusParam && statusParam !== 'all') {
-        const statuses = statusParam.split(',').map(s => s.trim());
+        // PostgREST インジェクション防止: status 値は英字/数字/アンダースコア/ハイフンのみ許可
+        const statuses = statusParam
+          .split(',')
+          .map(s => s.trim())
+          .filter(s => s.length > 0 && /^[a-zA-Z0-9_-]+$/.test(s));
         if (statuses.length === 1) {
           query = query.eq('status', statuses[0]);
-        } else {
+        } else if (statuses.length > 1) {
           query = query.in('status', statuses);
         }
       }
@@ -69,7 +74,9 @@ export async function GET(request: NextRequest) {
       // Issue 4: search by order_number or customer name/email (supports tail-7 lookup)
       if (search && search.trim()) {
         const s = search.trim();
-        query = query.or(`order_number.ilike.%${s}%,customer_name.ilike.%${s}%,customer_email.ilike.%${s}%`);
+        // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+        const orderPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(s)}%`);
+        query = query.or(`order_number.ilike.${orderPattern},customer_name.ilike.${orderPattern},customer_email.ilike.${orderPattern}`);
       }
 
       const { data, error, count } = await query;
@@ -138,10 +145,14 @@ export async function GET(request: NextRequest) {
 
     // Handle multiple statuses (comma-separated)
     if (statusParam && statusParam !== 'all') {
-      const statuses = statusParam.split(',').map(s => s.trim());
+      // PostgREST インジェクション防止: status 値は英字/数字/アンダースコア/ハイフンのみ許可
+      const statuses = statusParam
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0 && /^[a-zA-Z0-9_-]+$/.test(s));
       if (statuses.length === 1) {
         query = query.eq('status', statuses[0]);
-      } else {
+      } else if (statuses.length > 1) {
         query = query.in('status', statuses);
       }
     }
@@ -154,7 +165,9 @@ export async function GET(request: NextRequest) {
     // Issue 4: search by order_number or customer name/email
     if (search && search.trim()) {
       const s = search.trim();
-      query = query.or(`order_number.ilike.%${s}%,customer_name.ilike.%${s}%,customer_email.ilike.%${s}%`);
+      // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+      const orderPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(s)}%`);
+      query = query.or(`order_number.ilike.${orderPattern},customer_name.ilike.${orderPattern},customer_email.ilike.${orderPattern}`);
     }
 
     const { data, error, count } = await query;
