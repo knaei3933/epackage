@@ -15,6 +15,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -86,17 +87,21 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply search filter
+    // エスケープ: ilike ワイルドカード %/_（escapeIlikePattern）と PostgREST 区切り文字
+    // ,/./"（escapePostgrestFilterValue で値全体をダブルクォート保護）をリテラル化。
+    // admin 専用 route のため user_id 制約不要（admin blog route Task 3 と同一パターン）。
     if (search) {
-      query = query.or(`
-        email.ilike.%${search}%,
-        kanji_last_name.ilike.%${search}%,
-        kanji_first_name.ilike.%${search}%,
-        kana_last_name.ilike.%${search}%,
-        kana_first_name.ilike.%${search}%,
-        company_name.ilike.%${search}%,
-        corporate_phone.ilike.%${search}%,
-        personal_phone.ilike.%${search}%
-      `);
+      const escaped = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      query = query.or(
+        `email.ilike.${escaped},` +
+          `kanji_last_name.ilike.${escaped},` +
+          `kanji_first_name.ilike.${escaped},` +
+          `kana_last_name.ilike.${escaped},` +
+          `kana_first_name.ilike.${escaped},` +
+          `company_name.ilike.${escaped},` +
+          `corporate_phone.ilike.${escaped},` +
+          `personal_phone.ilike.${escaped}`
+      );
     }
 
     // Apply date period filter

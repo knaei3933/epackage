@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     // 注: role は実DB 5値（ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）へ合致済。
     // ADMIN/OPERATOR/SALES を管理者系とし includes で判定（実行時ロジック不変）。
-    const isAdmin = role && ADMIN_ROLES.includes(role as string);
+    const isAdmin = Boolean(role && ADMIN_ROLES.includes(role as string));
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -116,11 +116,14 @@ export async function GET(request: NextRequest) {
     // ,/./"（escapePostgrestFilterValue で値全体をダブルクォート保護）をリテラル化。
     if (search) {
       const escaped = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      // userId も防御的観点でエスケープ（UUID 固定形式で実害ゼロだが、PostgREST 区切り文字
+      // ,/./" が万が一含まれた場合の短絡評価を防ぐ・LOW-1）。admin は user_id 制約なし。
+      const userIdEscaped = escapePostgrestFilterValue(userId);
       if (!isAdmin) {
         // 解A: 各 OR 条件に user_id を and() で内包（外側の .eq('user_id') に依存しない二重防御）
         query = query.or(
-          `and(user_id.eq.${userId},order_number.ilike.${escaped}),` +
-          `and(user_id.eq.${userId},customer_name.ilike.${escaped})`
+          `and(user_id.eq.${userIdEscaped},order_number.ilike.${escaped}),` +
+          `and(user_id.eq.${userIdEscaped},customer_name.ilike.${escaped})`
         );
       } else {
         // admin: user_id 制約なし（全件参照）

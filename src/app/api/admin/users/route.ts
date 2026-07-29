@@ -14,6 +14,7 @@ import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { Database } from '@/types/database';
 import { z } from 'zod';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 // ============================================================
 // Types
@@ -115,9 +116,13 @@ function buildQuery(
   }
 
   // Search (email, name, company)
+  // エスケープ: ilike ワイルドカード %/_（escapeIlikePattern）と PostgREST 区切り文字
+  // ,/./"（escapePostgrestFilterValue で値全体をダブルクォート保護）をリテラル化。
+  // admin 専用 route のため user_id 制約不要（admin blog route Task 3 と同一パターン）。
   if (query.search) {
+    const escaped = escapePostgrestFilterValue(`%${escapeIlikePattern(query.search)}%`);
     dbQuery = dbQuery.or(
-      `email.ilike.%${query.search}%,kanji_last_name.ilike.%${query.search}%,kanji_first_name.ilike.%${query.search}%,company_name.ilike.%${query.search}%`
+      `email.ilike.${escaped},kanji_last_name.ilike.${escaped},kanji_first_name.ilike.${escaped},company_name.ilike.${escaped}`
     );
   }
 
