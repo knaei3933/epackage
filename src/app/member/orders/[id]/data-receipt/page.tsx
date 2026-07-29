@@ -47,8 +47,9 @@ async function DataReceiptPageContent({ orderId }: { orderId: string }) {
   }
 
   // Check if order is in correct status for data receipt
-  // Allow data upload for pending, processing, and manufacturing orders
-  const canUploadData = ['pending', 'processing', 'manufacturing'].includes(order.status);
+  // データ入稿は DATA_UPLOAD_PENDING 状態でのみ許可
+  // （data-receipt API の状態遷移前提 L840 と整合。DB enum は大文字）
+  const canUploadData = order.status === 'DATA_UPLOAD_PENDING';
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

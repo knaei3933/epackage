@@ -11,6 +11,7 @@ export function getStatusBadge(status: UserStatus) {
     PENDING: { variant: 'warning' as const, label: '承認待ち' },
     SUSPENDED: { variant: 'error' as const, label: '停止中' },
     DELETED: { variant: 'secondary' as const, label: '削除済み' },
+    INVITED: { variant: 'info' as const, label: '招待中' },
   };
 
   const config = variants[status];
@@ -27,7 +28,7 @@ export function getQuotationStatusBadge(status: string) {
     'approved': { variant: 'success', label: '承認済み' },
     'REJECTED': { variant: 'error', label: '拒否' },
     'rejected': { variant: 'error', label: '拒否' },
-    'EXPIRED': { variant: 'secondary', label: '期限切きれ' },
+    'EXPIRED': { variant: 'secondary', label: '期限切れ' },
     'expired': { variant: 'secondary', label: '期限切れ' },
     'CONVERTED': { variant: 'info', label: '注文化済み' },
     'converted': { variant: 'info', label: '注文化済み' },

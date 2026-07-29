@@ -73,6 +73,8 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   // Phase 4: per-SKU design intake. When the order has multiple items (SKUs),
   // each upload is tagged with an order_item_id so approval can happen per-SKU.
   const [selectedOrderItemId, setSelectedOrderItemId] = useState<string>('');
+  // 商品名（データ入稿時に入力。order_items.product_name に保存され、注文明細に表示される）
+  const [productName, setProductName] = useState('');
 
   // Polling configuration
   const POLLING_INTERVAL = 5000; // 5 seconds
@@ -83,13 +85,15 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
     loadUploadedFiles();
   }, [order.id]);
 
-  // Phase 4: auto-select first SKU when the order has multiple items.
+  // Phase 4: auto-select first SKU. 単一/複数 SKU 両方で先頭 item を選択し、
+  // 常に order_item_id を送信できるようにする（商品名 UPDATE の対象特定に使用）。
   const hasMultipleItems = Array.isArray(order.items) && order.items.length > 1;
   useEffect(() => {
-    if (hasMultipleItems && order.items.length > 0 && !selectedOrderItemId) {
+    const hasItems = Array.isArray(order.items) && order.items.length > 0;
+    if (hasItems && !selectedOrderItemId) {
       setSelectedOrderItemId(order.items[0].id);
     }
-  }, [hasMultipleItems, order.items, selectedOrderItemId]);
+  }, [order.items, selectedOrderItemId]);
 
   // Poll for AI extraction results
   // AC-5: Stabilized — depends on [isPolling, pollingRetries, order.id] only.
@@ -247,6 +251,13 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
   // Upload file
   const handleUpload = async () => {
     if (!selectedFile || !canUploadData) return;
+    // 商品名は必須（order_items.product_name に保存される）
+    if (!productName.trim()) {
+      const msg = '商品名を入力してください。';
+      setError(msg);
+      window.alert(msg);
+      return;
+    }
     // Phase 4: require SKU selection when the order has multiple items
     if (hasMultipleItems && !selectedOrderItemId) {
       const msg = '入稿対象のSKUを選択してください。';
@@ -264,11 +275,13 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('data_type', dataType);
+      // 商品名は常に送信（order_items.product_name 更新に使用）
+      formData.append('product_name', productName.trim());
       if (description) {
         formData.append('description', description);
       }
-      // Phase 4: tag the upload with the selected order_item_id when the order has multiple SKUs.
-      if (hasMultipleItems && selectedOrderItemId) {
+      // Phase 4: order_item_id は単一/複数 SKU 両方で送信（商品名 UPDATE 対象の特定）。
+      if (selectedOrderItemId) {
         formData.append('order_item_id', selectedOrderItemId);
       }
 
@@ -311,6 +324,7 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
         setSuccessMessage('ファイルをアップロードしました');
         setSelectedFile(null);
         setDescription('');
+        setProductName('');
         loadUploadedFiles();
 
         // Clear success message after 3 seconds
@@ -440,7 +454,10 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setSelectedOrderItemId(item.id)}
+                      onClick={() => {
+                        setSelectedOrderItemId(item.id);
+                        setProductName('');
+                      }}
                       className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                         isSel
                           ? 'border-amber-500 bg-amber-500 text-white shadow-md'
@@ -460,6 +477,25 @@ export function DataReceiptUploadClient({ order, canUploadData }: DataReceiptUpl
               </p>
             </div>
           )}
+
+          {/* 商品名入力（管理画面の注文明細に表示されます） */}
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <label className="block text-sm font-medium text-blue-900 mb-2">
+              商品名 <span className="text-red-500">*</span>
+            </label>
+            <p className="text-xs text-blue-700 mb-2">
+              このデータの商品名を入力してください。管理画面の注文明細に表示されます。
+            </p>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="例: オリジナルコーヒーパッケージ"
+              maxLength={100}
+              disabled={isUploading}
+              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            />
+          </div>
 
           {/* Data Type Selection */}
           <div className="mb-4">

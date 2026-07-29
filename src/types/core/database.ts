@@ -40,30 +40,25 @@ export interface SoftDeleteFields extends TimestampFields {
 // =====================================================
 
 /**
- * ユーザーロール・ビジネスタイプ（enums.ts の真正値を re-export）
+ * ユーザー区分値（enums.ts の真正値を re-export）
+ *
+ * 真正値（source of truth）は enums.ts（as const 配列）。実DB profiles と整合:
+ *   - role（5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
+ *   - business_type（2値: INDIVIDUAL/CORPORATION）
+ *   - status（5値: PENDING/ACTIVE/SUSPENDED/DELETED/INVITED）
+ *   - product_category（6値: COSMETICS/CLOTHING/ELECTRONICS/KITCHEN/FURNITURE/OTHER）
  */
-export type { UserRole, BusinessType } from '../enums';
+export type {
+  UserRole,
+  BusinessType,
+  UserStatus,
+  ProductCategory,
+} from '../enums';
 
 /**
- * ユーザーステータス
- */
-export type UserStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
-
-/**
- * ユーザータイプ
+ * ユーザータイプ（B2C/B2B）
  */
 export type UserType = 'B2C' | 'B2B';
-
-/**
- * 業種カテゴリ
- */
-export type ProductCategory =
-  | 'COSMETICS'
-  | 'CLOTHING'
-  | 'ELECTRONICS'
-  | 'KITCHEN'
-  | 'FURNITURE'
-  | 'OTHER';
 
 // =====================================================
 // Order Status Types (Core)

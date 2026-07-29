@@ -41,3 +41,42 @@ export type UserRole = (typeof USER_ROLES)[number];
 export const BUSINESS_TYPES = ['INDIVIDUAL', 'CORPORATION'] as const;
 
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
+
+/**
+ * ユーザーステータス（実DB profiles.status の真正値・source of truth）
+ *
+ * 実DB status 型の全 5 値:
+ *   PENDING（承認待ち）/ ACTIVE（アクティブ）/ SUSPENDED（停止）
+ *   / DELETED（削除）/ INVITED（招待中・管理者招待）
+ *
+ * ※ INVITED は型には含めるが、管理者編集UI（adminEditProfileSchema）の
+ *   選択肢からは除外する（招待中は管理者が直接 ACTIVE 等に切替不可）。
+ *   除外は UI 側の責務（タスク#3）。型自体は 5 値すべて含める。
+ */
+export const USER_STATUSES = [
+  'PENDING',
+  'ACTIVE',
+  'SUSPENDED',
+  'DELETED',
+  'INVITED',
+] as const;
+
+export type UserStatus = (typeof USER_STATUSES)[number];
+
+/**
+ * 業種カテゴリ（実DB profiles.product_category の真正値・source of truth）
+ *
+ * 実DB product_category 型の全 6 値:
+ *   COSMETICS（化粧品）/ CLOTHING（衣類）/ ELECTRONICS（家電製品）
+ *   / KITCHEN（台所用品）/ FURNITURE（家具）/ OTHER（その他）
+ */
+export const PRODUCT_CATEGORIES = [
+  'COSMETICS',
+  'CLOTHING',
+  'ELECTRONICS',
+  'KITCHEN',
+  'FURNITURE',
+  'OTHER',
+] as const;
+
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];

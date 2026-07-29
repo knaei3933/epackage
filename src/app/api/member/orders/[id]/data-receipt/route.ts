@@ -291,6 +291,8 @@ export async function POST(
     // Declare variables outside try block for proper scope
     let driveFileName: string;
     let googleDriveFile: { id: string; webViewLink: string; webContentLink: string; name: string };
+    // order_items.product_name 更新対象の order_item.id（try 内の driveOrderItem から受け渡し）
+    let driveOrderItemId: string | null = null;
 
     try {
       // Get admin's access token for Google Drive
@@ -329,6 +331,7 @@ export async function POST(
         // .single() はエラー時に throw せず { data: null, error } を返す
         if (!orderItemResult.error) {
           driveOrderItem = orderItemResult.data;
+          driveOrderItemId = driveOrderItem?.id ?? null;
         }
       } catch {
         // ネットワークエラー等の例外的失敗時も null にフォールバック
@@ -395,6 +398,29 @@ export async function POST(
         },
         { status: 500 }
       );
+    }
+
+    // ============================================================
+    // 6.5 order_items.product_name を顧客入力値で更新
+    // （service_role で実行。unit_price / quantity / specifications は触らない。
+    //   失敗時はログ出力のみでアップロードは継続＝ファイル入稿を止めない）
+    // ============================================================
+    if (driveOrderItemId && productName) {
+      const trimmedName = (productName as string).trim();
+      try {
+        const { error: itemNameError } = await adminClient
+          .from('order_items')
+          .update({ product_name: trimmedName })
+          .eq('id', driveOrderItemId)
+          .eq('order_id', orderId); // 二重防御: 別注文の item は絶対に更新しない
+        if (itemNameError) {
+          console.error('[Data Receipt Upload] order_items.product_name update error:', itemNameError);
+        } else {
+          console.log('[Data Receipt Upload] order_items.product_name updated:', { itemId: driveOrderItemId, name: trimmedName });
+        }
+      } catch (e) {
+        console.error('[Data Receipt Upload] product_name update exception:', e);
+      }
     }
 
     // ============================================================

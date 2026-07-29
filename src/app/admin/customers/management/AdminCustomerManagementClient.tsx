@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
 import type { UserStatus } from '@/types/auth';
 import type { Recipient } from '@/components/admin/EmailComposer';
-import { fetchCustomers as fetchCustomersAPI, fetchCustomerById as fetchCustomerByIdAPI, exportCustomers as exportCustomersAPI } from '@/lib/api/admin/customers';
-import type { Profile, CustomerListResponse, CustomerDetailResponse } from './parts/types';
-import { getStatusBadge, getQuotationStatusBadge } from './parts/badges';
+import { fetchCustomers as fetchCustomersAPI, exportCustomers as exportCustomersAPI } from '@/lib/api/admin/customers';
+import type { Profile, CustomerListResponse } from './parts/types';
 import { Header } from './parts/Header';
 import { StatsCards } from './parts/StatsCards';
 import { SearchAndFilters } from './parts/SearchAndFilters';
@@ -15,7 +15,6 @@ import { BulkActionsBar } from './parts/BulkActionsBar';
 import { DesktopCustomerTable } from './parts/DesktopCustomerTable';
 import { MobileCustomerList } from './parts/MobileCustomerList';
 import { MobilePagination } from './parts/Pagination';
-import { CustomerDetailModal } from './parts/CustomerDetailModal';
 import { ExportModal } from './parts/ExportModal';
 import { AddCustomerModal } from './parts/AddCustomerModal';
 
@@ -25,6 +24,7 @@ const EmailComposer = nextDynamic(() =>
 );
 
 export default function AdminCustomerManagementClient() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,16 +41,17 @@ export default function AdminCustomerManagementClient() {
   const [totalPages, setTotalPages] = useState(1);
 
   // Modal states
-  const [selectedCustomer, setSelectedCustomer] = useState<Profile | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
-  const [loadingCustomerDetail, setLoadingCustomerDetail] = useState(false);
-  const [customerDetail, setCustomerDetail] = useState<CustomerDetailResponse['data'] | null>(null);
 
   // Email Composer states
   const [emailComposerOpen, setEmailComposerOpen] = useState(false);
   const [selectedCustomersForEmail, setSelectedCustomersForEmail] = useState<Recipient[]>([]);
+
+  // 顧客詳細ページへ遷移（モーダル廃止・Step 2）
+  const handleOpenDetail = useCallback((customer: Profile) => {
+    router.push(`/admin/customers/management/${customer.id}`);
+  }, [router]);
 
   // Load customers
   const loadCustomers = useCallback(async () => {
@@ -78,25 +79,6 @@ export default function AdminCustomerManagementClient() {
       setLoading(false);
     }
   }, [currentPage, itemsPerPage, searchQuery, selectedStatus, selectedPeriod]);
-
-  // Load customer detail
-  const loadCustomerDetail = async (customerId: string) => {
-    setLoadingCustomerDetail(true);
-    try {
-      const result: CustomerDetailResponse = await fetchCustomerByIdAPI(customerId) as CustomerDetailResponse;
-
-      if (result.success && result.data) {
-        setCustomerDetail(result.data);
-      } else {
-        showMessage('error', result.error || '顧客詳細の読進みに失敗しました');
-      }
-    } catch (error) {
-      console.error('Failed to load customer detail:', error);
-      showMessage('error', '顧客詳細の読み込みに失敗しました');
-    } finally {
-      setLoadingCustomerDetail(false);
-    }
-  };
 
   // Initial load and refresh on filter changes
   useEffect(() => {
@@ -191,16 +173,9 @@ export default function AdminCustomerManagementClient() {
     }
   };
 
-  // Open customer detail modal
-  const openCustomerDetail = async (customer: Profile) => {
-    setSelectedCustomer(customer);
-    setShowDetailModal(true);
-    await loadCustomerDetail(customer.id);
-  };
-
   // Calculate stats
   const stats = useMemo(() => ({
-    total: customers.length + totalItems - customers.length,
+    total: totalItems,
     active: customers.filter(c => c.status === 'ACTIVE').length,
     pending: customers.filter(c => c.status === 'PENDING').length,
     newThisMonth: customers.filter(c => {
@@ -260,7 +235,7 @@ export default function AdminCustomerManagementClient() {
               toggleCustomerSelection={toggleCustomerSelection}
               toggleAllSelection={toggleAllSelection}
               handleSendEmail={handleSendEmail}
-              openCustomerDetail={openCustomerDetail}
+              onOpenCustomerDetail={handleOpenDetail}
               currentPage={currentPage}
               totalPages={totalPages}
               totalItems={totalItems}
@@ -273,7 +248,7 @@ export default function AdminCustomerManagementClient() {
               selectedCustomers={selectedCustomers}
               toggleCustomerSelection={toggleCustomerSelection}
               handleSendEmail={handleSendEmail}
-              openCustomerDetail={openCustomerDetail}
+              onOpenCustomerDetail={handleOpenDetail}
             />
 
             <MobilePagination
@@ -286,21 +261,6 @@ export default function AdminCustomerManagementClient() {
           </>
         )}
       </div>
-
-      {/* Customer Detail Modal */}
-      <CustomerDetailModal
-        showDetailModal={showDetailModal}
-        selectedCustomer={selectedCustomer}
-        customerDetail={customerDetail}
-        loadingCustomerDetail={loadingCustomerDetail}
-        setShowDetailModal={setShowDetailModal}
-        setCustomerDetail={setCustomerDetail}
-        setSelectedCustomer={setSelectedCustomer}
-        getStatusBadge={getStatusBadge}
-        getQuotationStatusBadge={getQuotationStatusBadge}
-        handleSendEmail={handleSendEmail}
-        setShowExportModal={setShowExportModal}
-      />
 
       {/* Export Modal */}
       <ExportModal showExportModal={showExportModal} setShowExportModal={setShowExportModal} handleExport={handleExport} />

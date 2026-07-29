@@ -37,6 +37,7 @@ const EDITABLE_STATUSES = [
 // ============================================================
 
 interface ItemUpdate {
+  productName?: string;
   specifications?: any;
   quantity?: number;
   unitPrice?: number;
@@ -142,6 +143,10 @@ export async function PUT(
 
       // 更新データの構築
       const updatePayload: any = {};
+
+      if (updateData.productName !== undefined) {
+        updatePayload.product_name = updateData.productName;
+      }
 
       if (updateData.specifications !== undefined) {
         updatePayload.specifications = updateData.specifications;
