@@ -20,6 +20,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { escapePostgrestFilterValue } from '@/lib/sql-helpers';
 import { z } from 'zod';
 
 // =====================================================
@@ -103,7 +104,8 @@ export async function GET(request: NextRequest) {
 
     // Non-admin users can only see non-private notes or their own
     if (!isAdmin) {
-      query = query.or(`is_private.eq.false,and(user_id.eq.${user.id})`);
+      // user.id は認証済 UUID（攻撃者直接制御ではない）だが文字列結合のためエスケープ必須
+      query = query.or(`is_private.eq.false,and(user_id.eq.${escapePostgrestFilterValue(user.id)})`);
     }
 
     const { data: notes, error } = await query;

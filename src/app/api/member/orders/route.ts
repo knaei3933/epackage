@@ -17,6 +17,7 @@ import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import type { Database } from '@/types/database';
 import { getStatusProgress, isOrderStatus } from '@/types/order-status';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 // 管理者系ロール（実DB 5値のうち ADMIN/OPERATOR/SALES）。isAdmin 判定は includes 形式へ統一。
 const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
@@ -106,8 +107,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply search filter (order_number, customer_name)
+    // IDOR-safe: non-admin は各 OR 条件に user_id を and() で内包（解A・二重防御）。
+    // PostgREST の or は外側フィルタと AND 結合されるが、or 文字列内で user_id を完結
+    // させることで、search 値に区切り文字（, . ( ) が含まれても他人の order がヒット
+    // しない（upload route IDOR commit 3fb98c27 と同種の防御）。admin は全件参照可能の
+    // ため user_id 制約なし（admin blog route Task 3 パターンと同一）。
+    // エスケープ: ilike ワイルドカード %/_（escapeIlikePattern）と PostgREST 区切り文字
+    // ,/./"（escapePostgrestFilterValue で値全体をダブルクォート保護）をリテラル化。
     if (search) {
-      query = query.or(`order_number.ilike.%${search}%,customer_name.ilike.%${search}%`);
+      const escaped = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      if (!isAdmin) {
+        // 解A: 各 OR 条件に user_id を and() で内包（外側の .eq('user_id') に依存しない二重防御）
+        query = query.or(
+          `and(user_id.eq.${userId},order_number.ilike.${escaped}),` +
+          `and(user_id.eq.${userId},customer_name.ilike.${escaped})`
+        );
+      } else {
+        // admin: user_id 制約なし（全件参照）
+        query = query.or(`order_number.ilike.${escaped},customer_name.ilike.${escaped}`);
+      }
     }
 
     // Apply date range filter

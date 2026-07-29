@@ -12,18 +12,11 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import { withMemberAuth } from '@/lib/api-auth';
-import { UserRole } from '@/types/auth';
+import { SHIPMENTS_ALLOWED_ROLES } from '@/lib/shipments-constants';
 import { ShipmentFilters, ShipmentStatus, CarrierType } from '@/types/shipment';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Shipments API は管理系ロール（ADMIN/OPERATOR/SALES）のみアクセス可能。
-const SHIPMENTS_ALLOWED_ROLES: UserRole[] = [
-  UserRole.ADMIN,
-  UserRole.OPERATOR,
-  UserRole.SALES,
-];
 
 /**
  * GET handler - List shipments with filters

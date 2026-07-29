@@ -114,7 +114,8 @@ export async function fetchQuotationsServerSide(
     if (isWorkflowStatus) {
       countQuery = countQuery.eq('status', statusUpper);
     } else {
-      countQuery = countQuery.or(`status.eq.${statusLower},status.eq.${statusUpper}`);
+      // IDOR-safe: .or() を .in() で回避（外側の .eq('user_id') と AND 結合・or 短絡リスクなし）
+      countQuery = countQuery.in('status', [statusLower, statusUpper]);
     }
   }
 
@@ -148,7 +149,8 @@ export async function fetchQuotationsServerSide(
       query = query.eq('status', statusUpper);
     } else {
       // Check both lowercase and uppercase for legacy statuses
-      query = query.or(`status.eq.${statusLower},status.eq.${statusUpper}`);
+      // IDOR-safe: .or() を .in() で回避（外側の .eq('user_id') と AND 結合・or 短絡リスクなし）
+      query = query.in('status', [statusLower, statusUpper]);
     }
   }
 

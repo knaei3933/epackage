@@ -13,13 +13,7 @@ import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { shipmentTrackingService } from '@/lib/shipment-tracking-service';
 import { withMemberAuth } from '@/lib/api-auth';
-import { UserRole } from '@/types/auth';
-
-const SHIPMENTS_ALLOWED_ROLES: UserRole[] = [
-  UserRole.ADMIN,
-  UserRole.OPERATOR,
-  UserRole.SALES,
-];
+import { SHIPMENTS_ALLOWED_ROLES } from '@/lib/shipments-constants';
 
 // =====================================================
 // GET /api/shipments/tracking

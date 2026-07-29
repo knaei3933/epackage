@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 // ============================================================
 // GET - Fetch contracts list
@@ -47,10 +48,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(`
-        contract_number.ilike.%${search}%,
-        title.ilike.%${search}%
-      `);
+      // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+      const contractPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      query = query.or(`contract_number.ilike.${contractPattern},title.ilike.${contractPattern}`);
     }
 
     // Apply pagination

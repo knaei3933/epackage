@@ -483,8 +483,12 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // ステータスフィルターを適用 - check both lowercase and uppercase status
+    // IDOR-safe: .or() ではなく .in() を使い、user_id 制約（外側の .eq('user_id')）が
+    // or 短絡評価で無効化されるリスクを根本から回避。.in() は .eq('user_id') と AND 結合
+    // されるため、他人の quotation が status 一致で漏洩することはない。
     if (status) {
-      query = query.or(`status.eq.${status.toLowerCase()},status.eq.${status.toUpperCase()}`);
+      const statusValues = [status.toLowerCase(), status.toUpperCase()];
+      query = query.in('status', statusValues);
     }
 
     const { data: quotations, error } = await query;
@@ -523,8 +527,10 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
+    // IDOR-safe: .or() を .in() で回避（L487 と同様・count クエリも user_id 制約維持）
     if (status) {
-      countQuery = countQuery.or(`status.eq.${status.toLowerCase()},status.eq.${status.toUpperCase()}`);
+      const statusValues = [status.toLowerCase(), status.toUpperCase()];
+      countQuery = countQuery.in('status', statusValues);
     }
 
     const { count } = await countQuery;

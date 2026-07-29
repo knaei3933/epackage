@@ -15,6 +15,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createClient } from '@supabase/supabase-js';
 import { notifyQuoteApproved } from '@/lib/email/order-status-emails';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 // ============================================================
 // Types
@@ -122,7 +123,9 @@ export async function GET(request: NextRequest) {
       query = query.eq('user_id', userId);
     }
     if (search) {
-      query = query.or(`quotation_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_email.ilike.%${search}%`);
+      // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+      const quotePattern = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      query = query.or(`quotation_number.ilike.${quotePattern},customer_name.ilike.${quotePattern},customer_email.ilike.${quotePattern}`);
     }
     if (dateFrom) {
       query = query.gte('created_at', dateFrom);
