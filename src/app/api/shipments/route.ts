@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 import { withMemberAuth } from '@/lib/api-auth';
 import { SHIPMENTS_ALLOWED_ROLES } from '@/lib/shipments-constants';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 import { ShipmentFilters, ShipmentStatus, CarrierType } from '@/types/shipment';
 
 export const runtime = 'nodejs';
@@ -67,7 +68,8 @@ export const GET = withMemberAuth<any>(
       }
 
       if (filters.tracking_number) {
-        query = query.like('tracking_number', `%${filters.tracking_number}%`);
+        // tracking_number は自由テキスト（query param）→ %/_ リテラル化（.like は or 区切りなし・quote 不要）
+        query = query.like('tracking_number', `%${escapeIlikePattern(filters.tracking_number)}%`);
       }
 
       if (filters.order_id) {
@@ -83,12 +85,10 @@ export const GET = withMemberAuth<any>(
       }
 
       if (filters.search) {
-        // PostgREST の or フィルタで value をダブルクォートで囲み、
-        // search に含まれる , や .（合法追跡番号の国際フォーマット含む）が
-        // フィルタ区切り / 演算子区切りとして誤認されるのを防ぐ。
-        // 合法追跡番号の . を破壊しない（strip ではなくクォートで保護）。
-        const sanitizedSearch = filters.search.replace(/"/g, '\\"');
-        query = query.or(`shipment_number.ilike."%${sanitizedSearch}%",tracking_number.ilike."%${sanitizedSearch}%"`);
+        // search は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+        // （手動 quote を廃止し共通ヘルパに統一・\ のエスケープも完全化）
+        const shipmentSearchPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(filters.search)}%`);
+        query = query.or(`shipment_number.ilike.${shipmentSearchPattern},tracking_number.ilike.${shipmentSearchPattern}`);
       }
 
       // Apply pagination and sorting

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { Database } from '@/types/database';
+import type { UserRole } from '@/types/enums';
 import { getRBACContext, hasPermission, type Permission, type RBACContext } from '@/lib/rbac/rbac-helpers';
 
 /**
@@ -19,7 +20,7 @@ import { getRBACContext, hasPermission, type Permission, type RBACContext } from
  */
 export interface AdminAuthResult {
   userId: string;
-  role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES';
+  role: UserRole;
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
 }
 

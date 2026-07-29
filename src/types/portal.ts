@@ -5,6 +5,7 @@
 
 import { Order, OrderStatus, Quotation, Address } from './database';
 import { Json } from './database';
+import type { BusinessType } from '@/types/enums';
 
 // Re-export commonly used types
 export type { Order, OrderStatus, Quotation, Address } from './database';
@@ -275,7 +276,7 @@ export interface ProfileData {
     kana_first_name: string;
     corporate_phone: string | null;
     personal_phone: string | null;
-    business_type: 'INDIVIDUAL' | 'CORPORATION';
+    business_type: BusinessType;
     user_type: 'B2C' | 'B2B' | null;
     company_name: string | null;
     position: string | null;
