@@ -12,6 +12,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import ExcelJS from 'exceljs';
 import type { Database } from '@/types/database';
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -58,16 +59,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (filters?.search) {
-      query = query.or(`
-        email.ilike.%${filters.search}%,
-        kanji_last_name.ilike.%${filters.search}%,
-        kanji_first_name.ilike.%${filters.search}%,
-        kana_last_name.ilike.%${filters.search}%,
-        kana_first_name.ilike.%${filters.search}%,
-        company_name.ilike.%${filters.search}%,
-        corporate_phone.ilike.%${filters.search}%,
-        personal_phone.ilike.%${filters.search}%
-      `);
+      // エスケープ: ilike ワイルドカード %/_（escapeIlikePattern）と PostgREST 区切り文字
+      // ,/./"（escapePostgrestFilterValue で値全体をダブルクォート保護）をリテラル化。
+      // admin 専用 route のため user_id 制約不要（admin blog route Task 3 と同一パターン）。
+      const escaped = escapePostgrestFilterValue(`%${escapeIlikePattern(filters.search)}%`);
+      query = query.or(
+        `email.ilike.${escaped},` +
+          `kanji_last_name.ilike.${escaped},` +
+          `kanji_first_name.ilike.${escaped},` +
+          `kana_last_name.ilike.${escaped},` +
+          `kana_first_name.ilike.${escaped},` +
+          `company_name.ilike.${escaped},` +
+          `corporate_phone.ilike.${escaped},` +
+          `personal_phone.ilike.${escaped}`
+      );
     }
 
     if (customerIds && Array.isArray(customerIds) && customerIds.length > 0) {

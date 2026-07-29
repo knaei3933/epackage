@@ -61,10 +61,13 @@ export const GET = withApiHandler(
     // inline ローカル関数から Task 1 ヘルパへ統一（admin blog route Task 3 パターンと同一）。
     if (search) {
       const escaped = escapePostgrestFilterValue(`%${escapeIlikePattern(search)}%`);
+      // userId も防御的観点でエスケープ（UUID 固定形式で実害ゼロだが、PostgREST 区切り文字
+      // ,/./" が万が一含まれた場合の短絡評価を防ぐ・LOW-1）。
+      const userIdEscaped = escapePostgrestFilterValue(userId);
       query = query.or(
-        `and(user_id.eq.${userId},invoice_number.ilike.${escaped}),` +
-          `and(user_id.eq.${userId},customer_name.ilike.${escaped}),` +
-          `and(user_id.eq.${userId},company_name.ilike.${escaped})`
+        `and(user_id.eq.${userIdEscaped},invoice_number.ilike.${escaped}),` +
+          `and(user_id.eq.${userIdEscaped},customer_name.ilike.${escaped}),` +
+          `and(user_id.eq.${userIdEscaped},company_name.ilike.${escaped})`
       );
     }
 

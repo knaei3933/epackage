@@ -124,8 +124,6 @@ Quotation system endpoints.
 - **`/api/shipments`** - Shipment CRUD operations
 - **`/api/shipments/[id]/track`** - Track individual shipment
 - **`/api/shipments/[id]/label`** - Generate shipping labels
-- **`/api/shipments/[id]/schedule-pickup`** - Schedule carrier pickup
-- **`/api/shipments/bulk-create`** - Bulk shipment creation
 
 ### `/api/signature/*`
 
