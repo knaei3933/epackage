@@ -11,6 +11,7 @@ import { Suspense } from 'react';
 import { getAdminAuth } from '../loader';
 import AdminApprovalsClient from './AdminApprovalsClientLazy';
 import { FullPageSpinner } from '@/components/ui';
+import type { BusinessType } from '@/types/enums';
 
 // ============================================================
 // Types
@@ -20,7 +21,7 @@ interface PendingMember {
   id: string;
   email: string;
   user_type: 'B2C' | 'B2B' | null;
-  business_type: 'INDIVIDUAL' | 'CORPORATION' | null;
+  business_type: BusinessType | null;
   company_name: string | null;
   legal_entity_number: string | null;
   kanji_last_name: string;

@@ -22,6 +22,7 @@ import { withAdminAuth } from '@/lib/api-auth';
 import { handleApiError, ValidationError } from '@/lib/api-error-handler';
 import { uuidSchema } from '@/lib/validation-schemas';
 import { Database } from '@/types/database';
+import type { BusinessType } from '@/types/enums';
 import { headers } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
@@ -35,7 +36,7 @@ interface PendingMember {
   id: string;
   email: string;
   user_type: 'B2C' | 'B2B' | null;
-  business_type: 'INDIVIDUAL' | 'CORPORATION' | null;
+  business_type: BusinessType | null;
   company_name: string | null;
   legal_entity_number: string | null;
   kanji_last_name: string;

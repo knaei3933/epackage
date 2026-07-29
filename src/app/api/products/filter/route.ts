@@ -1,6 +1,7 @@
 export const revalidate = 3600; // Cache for 1 hour - products rarely change
 
 import { NextRequest, NextResponse } from 'next/server'
+import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers'
 
 /**
  * Filter options interface
@@ -230,8 +231,10 @@ async function executeSQL(query: string, params: (string | number)[]): Promise<a
   // Apply search query (text search)
   if (filters.searchQuery && filters.searchQuery.trim()) {
     const searchTerm = filters.searchQuery.trim()
+    // searchTerm は自由テキスト（query param）→ %/_ リテラル化 + 区切り文字保護
+    const productPattern = escapePostgrestFilterValue(`%${escapeIlikePattern(searchTerm)}%`)
     queryBuilder = queryBuilder.or(
-      `name_ja.ilike.%${searchTerm}%,name_en.ilike.%${searchTerm}%,description_ja.ilike.%${searchTerm}%,description_en.ilike.%${searchTerm}%`
+      `name_ja.ilike.${productPattern},name_en.ilike.${productPattern},description_ja.ilike.${productPattern},description_en.ilike.${productPattern}`
     )
   }
 

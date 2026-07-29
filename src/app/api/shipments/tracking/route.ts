@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { shipmentTrackingService } from '@/lib/shipment-tracking-service';
 import { withMemberAuth } from '@/lib/api-auth';
+import { escapePostgrestFilterValue } from '@/lib/sql-helpers';
 import { SHIPMENTS_ALLOWED_ROLES } from '@/lib/shipments-constants';
 
 // =====================================================
@@ -42,14 +43,10 @@ export const GET = withMemberAuth<any>(
       let targetShipmentId = shipmentId;
 
       if (!targetShipmentId && (shipmentNumber || trackingNumber)) {
-        // PostgREST の or フィルタで value をダブルクォートで囲み、
-        // shipmentNumber / trackingNumber に含まれる , や .（合法追跡番号の国際フォーマット含む）が
-        // フィルタ区切り / 演算子区切りとして誤認されるのを防ぐ。
-        // 合法追跡番号の . を破壊しない（strip ではなくクォートで保護）。
-        const quoteValue = (v: string) => `"${v.replace(/"/g, '\\"')}"`;
+        // eq フィルタ値は共通ヘルパで保護（手動 quote を廃止・\ のエスケープも完全化）
         const filters: string[] = [];
-        if (shipmentNumber) filters.push(`shipment_number.eq.${quoteValue(shipmentNumber)}`);
-        if (trackingNumber) filters.push(`tracking_number.eq.${quoteValue(trackingNumber)}`);
+        if (shipmentNumber) filters.push(`shipment_number.eq.${escapePostgrestFilterValue(shipmentNumber)}`);
+        if (trackingNumber) filters.push(`tracking_number.eq.${escapePostgrestFilterValue(trackingNumber)}`);
 
         const { data: shipment, error } = await supabase
           .from('shipments')

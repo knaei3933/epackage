@@ -3,6 +3,7 @@
  */
 
 import type { UserStatus, UserRole } from '@/types/auth';
+import type { BusinessType } from '@/types/enums';
 
 export interface Profile {
   id: string;
@@ -13,7 +14,7 @@ export interface Profile {
   kana_first_name: string;
   corporate_phone: string | null;
   personal_phone: string | null;
-  business_type: 'INDIVIDUAL' | 'CORPORATION';
+  business_type: BusinessType;
   company_name: string | null;
   legal_entity_number: string | null;
   position: string | null;
