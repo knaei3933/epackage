@@ -16,7 +16,7 @@ interface MobileCustomerListProps {
   selectedCustomers: Set<string>;
   toggleCustomerSelection: (customerId: string) => void;
   handleSendEmail: (customer?: Profile) => void;
-  openCustomerDetail: (customer: Profile) => void;
+  onOpenCustomerDetail: (customer: Profile) => void;
 }
 
 export function MobileCustomerList({
@@ -24,7 +24,7 @@ export function MobileCustomerList({
   selectedCustomers,
   toggleCustomerSelection,
   handleSendEmail,
-  openCustomerDetail,
+  onOpenCustomerDetail,
 }: MobileCustomerListProps) {
   return (
     <div className="md:hidden space-y-3">
@@ -128,7 +128,7 @@ export function MobileCustomerList({
                 メール
               </button>
               <button
-                onClick={() => openCustomerDetail(customer)}
+                onClick={() => onOpenCustomerDetail(customer)}
                 className="flex-1 py-2.5 px-3 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-lg transition-colors flex items-center justify-center gap-1.5"
               >
                 <Eye className="w-4 h-4" />

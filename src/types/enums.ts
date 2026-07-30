@@ -41,3 +41,84 @@ export type UserRole = (typeof USER_ROLES)[number];
 export const BUSINESS_TYPES = ['INDIVIDUAL', 'CORPORATION'] as const;
 
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
+
+/**
+ * ユーザーステータス（実DB profiles.status の真正値・source of truth）
+ *
+ * 実DB status 型の全 5 値:
+ *   PENDING（承認待ち）/ ACTIVE（アクティブ）/ SUSPENDED（停止）
+ *   / DELETED（削除）/ INVITED（招待中・管理者招待）
+ *
+ * ※ INVITED は型には含めるが、管理者編集UI（adminEditProfileSchema）の
+ *   選択肢からは除外する（招待中は管理者が直接 ACTIVE 等に切替不可）。
+ *   除外は UI 側の責務（タスク#3）。型自体は 5 値すべて含める。
+ */
+export const USER_STATUSES = [
+  'PENDING',
+  'ACTIVE',
+  'SUSPENDED',
+  'DELETED',
+  'INVITED',
+] as const;
+
+export type UserStatus = (typeof USER_STATUSES)[number];
+
+/**
+ * 業種カテゴリ（実DB profiles.product_category の真正値・source of truth）
+ *
+ * 実DB product_category 型の全 6 値:
+ *   COSMETICS（化粧品）/ CLOTHING（衣類）/ ELECTRONICS（家電製品）
+ *   / KITCHEN（台所用品）/ FURNITURE（家具）/ OTHER（その他）
+ */
+export const PRODUCT_CATEGORIES = [
+  'COSMETICS',
+  'CLOTHING',
+  'ELECTRONICS',
+  'KITCHEN',
+  'FURNITURE',
+  'OTHER',
+] as const;
+
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
+
+// =====================================================
+// 表示用ラベル（日本語）
+// 会員登録・プロフィール・顧客管理の各 UI で重複定義されていた
+// ProductCategory → 日本語ラベルを一元化（task #17 コード品質）。
+// 値とラベルのズレを防ぐため、真正値 PRODUCT_CATEGORIES から機械生成する。
+// =====================================================
+
+/**
+ * ProductCategory の日本語ラベル（表示用）。
+ * key アクセスでラベル取得（例: PRODUCT_CATEGORY_LABELS['COSMETICS'] → '化粧品'）。
+ */
+export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
+  COSMETICS: '化粧品',
+  CLOTHING: '衣類',
+  ELECTRONICS: '家電製品',
+  KITCHEN: '台所用品',
+  FURNITURE: '家具',
+  OTHER: 'その他',
+};
+
+/**
+ * ProductCategory の選択肢配列（フォーム <select> / FormField options 用）。
+ * { value, label } 形式で .map して描画する。
+ */
+export const PRODUCT_CATEGORY_OPTIONS: ReadonlyArray<{
+  value: ProductCategory;
+  label: string;
+}> = PRODUCT_CATEGORIES.map((value) => ({
+  value,
+  label: PRODUCT_CATEGORY_LABELS[value],
+}));
+
+/**
+ * ProductCategory 値（DB 由来の string）から日本語ラベルへ変換。
+ * 不正値・空文字は空文字を返す（呼び出し側でフォールバック表示を付ける）。
+ * string → ProductCategory のキャストを本関数に局所化し、各 UI での散発キャストを排除。
+ */
+export function getProductCategoryLabel(value: string | null | undefined): string {
+  if (!value) return '';
+  return PRODUCT_CATEGORY_LABELS[value as ProductCategory] ?? value;
+}

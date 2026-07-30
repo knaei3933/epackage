@@ -147,17 +147,25 @@ export async function GET(request: NextRequest) {
 
     // Fetch order statistics for each customer
     const customerIds = (customers || []).map((c: Profile) => c.id);
-    const { data: orderStats } = await supabase
+    // 統計取得の error を可視化（サイレント失敗予防）
+    const { data: orderStats, error: orderStatsError } = await supabase
       .from('orders')
       .select('user_id, total_amount, created_at')
       .in('user_id', customerIds);
+    if (orderStatsError) {
+      console.error('[Customer Management API] Order stats query error:', orderStatsError);
+    }
 
     // Fetch quotations for each customer
-    const { data: quotationStats } = await supabase
+    // 見積統計取得の error を可視化（サイレント失敗予防）
+    const { data: quotationStats, error: quotationStatsError } = await supabase
       .from('quotations')
       .select('id, user_id, quotation_number, status, total_amount, created_at')
       .in('user_id', customerIds)
       .order('created_at', { ascending: false });
+    if (quotationStatsError) {
+      console.error('[Customer Management API] Quotation stats query error:', quotationStatsError);
+    }
 
     // Aggregate statistics by customer
     const statsMap = new Map<string, {
@@ -281,11 +289,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists in profiles
-    const { data: existingProfile } = await supabase
+    // 重複チェックの error を可視化（サイレント失敗予防）
+    const { data: existingProfile, error: profileCheckError } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', email)
       .maybeSingle();
+    if (profileCheckError) {
+      console.error('[Customer Management API] Profile duplicate check error:', profileCheckError);
+    }
 
     if (existingProfile) {
       return NextResponse.json(

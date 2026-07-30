@@ -538,14 +538,22 @@ export type Database = {
                     quotation_id: string  // FK to quotations
                     product_id: string | null  // FK to products (if available)
                     product_name: string  // Product name
-                    category: string | null  // Product category
                     quantity: number  // Order quantity
                     unit_price: number  // Price per unit
                     total_price: number  // Auto-calculated (quantity * unit_price)
                     specifications: Json | null  // Product specs in JSON format
-                    notes: string | null  // Item-specific notes
-                    display_order: number  // Display order in quotation
                     created_at: string
+                    // B2B拡張（実DBスキーマ準拠・2026-07-30 に information_schema で確認）
+                    // 注意: 従来 category/notes/display_order が定義されていたが実DBに存在せず、
+                    // PostgREST select で 42703 → HTTP 400（見積履歴サイレント失敗バグの原因）。
+                    // 実DBの order_id/sku_index/*_meters/cost_breakdown を正しく反映。
+                    order_id: string | null  // FK to orders（見積から受注生成時の紐付け）
+                    sku_index: number | null  // SKU インデックス（1見積内の複数SKU 区分）
+                    theoretical_meters: number | null  // 理論必要メートル
+                    secured_meters: number | null  // 確保メートル（ロス余裕込み）
+                    loss_meters: number | null  // ロスメートル
+                    total_meters: number | null  // 合計メートル
+                    cost_breakdown: Json | null  // 原価内訳（JSON）
                 }
                 Insert: Omit<Database['public']['Tables']['quotation_items']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['quotation_items']['Row']>
@@ -839,6 +847,31 @@ export type Database = {
                 }
                 Insert: Omit<Database['public']['Tables']['customer_file_submissions']['Row'], 'id' | 'uploaded_at'>
                 Update: Partial<Database['public']['Tables']['customer_file_submissions']['Row']>
+                Relationships: []
+            }
+
+            // Customer Contacts table - 顧客コンタクト履歴（email/call/note）
+            // admin 顧客管理機能のコンタクト履歴タブで記録・参照。
+            // migration 20260730000001_create_customer_contacts_table で作成（2026-07-30）。
+            // contact-history/route.ts は service client（RLS bypass）で動作。
+            customer_contacts: {
+                Row: {
+                    id: string
+                    customer_id: string  // FK to profiles
+                    type: 'email' | 'call' | 'note'  // コンタクト種別
+                    subject: string | null  // 件名（任意）
+                    content: string  // 内容
+                    created_by: string  // 記録者名（既定 'System'）
+                    created_at: string  // 記録日時 (default now())
+                    updated_at: string  // 更新日時 (default now())
+                }
+                // created_at は contact-history/route.ts POST が明示挿入するため optional で残す。
+                // id/updated_at は DB デフォルト（gen_random_uuid / now）で自動生成。
+                Insert: Omit<Database['public']['Tables']['customer_contacts']['Row'], 'id' | 'updated_at'> & {
+                    created_at?: string
+                }
+                // created_at（不変）・customer_id（移動不可）は更新対象外。
+                Update: Partial<Omit<Database['public']['Tables']['customer_contacts']['Row'], 'id' | 'created_at' | 'customer_id'>>
                 Relationships: []
             }
 

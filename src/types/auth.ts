@@ -11,7 +11,15 @@
 import { z } from 'zod';
 
 // =====================================================
-// Enums
+// Enums（真正は enums.ts・本 enum は値同期エクスポート）
+// -----------------------------------------------------
+// 真正値（source of truth）は src/types/enums.ts（as const 配列）。
+// 本ファイルの enum は以下の既存コードが「値」として参照するため維持:
+//   - zod z.nativeEnum（下記 registrationSchema が BusinessType / ProductCategory を使用）
+//   - 値参照 BusinessType.CORPORATION / ProductCategory.COSMETICS / UserRole.ADMIN 等
+//     （RegistrationForm / ProfileClient / shipments-constants / dev-mode）
+// 値は enums.ts と完全同期させること（ズレ禁止）。UserStatus は DB profiles.status
+// と整合する 5 値（INVITED 含む）。
 // =====================================================
 
 export enum BusinessType {
@@ -41,6 +49,7 @@ export enum UserStatus {
   ACTIVE = 'ACTIVE', // アクティブ
   SUSPENDED = 'SUSPENDED', // 停止
   DELETED = 'DELETED', // 削除
+  INVITED = 'INVITED', // 招待中（管理者招待・編集UI選択肢から除外・型には含む）
 }
 
 // =====================================================

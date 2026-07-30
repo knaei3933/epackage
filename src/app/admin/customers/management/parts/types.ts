@@ -4,6 +4,7 @@
 
 import type { UserStatus, UserRole } from '@/types/auth';
 import type { BusinessType } from '@/types/enums';
+import type { OrderStatus } from '@/types/order-status';
 
 export interface Profile {
   id: string;
@@ -29,6 +30,9 @@ export interface Profile {
   building: string | null;
   role: UserRole;
   status: UserStatus;
+  // 運用項目（database.ts:387-388・詳細ページ編集UI で使用）
+  markup_rate: number; // default 0.5 = 50%
+  markup_rate_note: string | null;
   created_at: string;
   updated_at: string;
   last_login_at: string | null;
@@ -80,7 +84,6 @@ export interface QuotationItem {
   unit_price: number;
   total_price: number;
   specifications: Record<string, unknown>;
-  notes: string | null;
 }
 
 export interface CustomerQuotation {
@@ -104,6 +107,22 @@ export interface CustomerQuotation {
   items?: QuotationItem[];
 }
 
+/**
+ * 注文履歴（顧客詳細レスポンスの orders・database.ts orders Row の部分集合）
+ *
+ * - total_amount は orders.total_amount（database.ts:408・「total」ではない）
+ * - quotation_id は元見積への FK（database.ts:424・Step 8 の注文明細→見積紐付け表示に使用）
+ * - status は OrderStatus（database.ts:407・正規ソースは @/types/order-status）
+ */
+export interface CustomerOrder {
+  id: string;
+  order_number: string;
+  status: OrderStatus;
+  total_amount: number;
+  created_at: string;
+  quotation_id: string | null;
+}
+
 export interface CustomerDetailResponse {
   success: boolean;
   data?: {
@@ -115,7 +134,7 @@ export interface CustomerDetailResponse {
       totalQuotations: number;
       pendingQuotations: number;
     };
-    recentOrders: Record<string, unknown>[];
+    orders: CustomerOrder[];
     quotations: CustomerQuotation[];
     contactHistory: ContactHistory[];
   };

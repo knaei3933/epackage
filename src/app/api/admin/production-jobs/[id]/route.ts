@@ -81,11 +81,15 @@ export async function GET(
     } : null;
 
     // Fetch stage action history
-    const { data: stageHistory } = await db
+    // 履歴取得の error を可視化（サイレント失敗予防）
+    const { data: stageHistory, error: stageHistoryError } = await db
       .from('stage_action_history')
       .select('*')
       .eq('production_order_id', id)
       .order('performed_at', { ascending: false });
+    if (stageHistoryError) {
+      console.error('[Production Jobs API] Stage history query error:', stageHistoryError);
+    }
 
     return NextResponse.json({
       productionJob,

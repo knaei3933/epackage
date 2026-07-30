@@ -11,63 +11,25 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { unauthorizedResponse, authenticateAdminAction } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
+import {
+  profileEditSchema,
+  mapProfileEditToSnakeCase,
+  adminEditProfileSchema,
+} from '@/lib/validations/profile-edit';
+import type {
+  CustomerOrder,
+  CustomerQuotation,
+  CustomerDetailResponse,
+  ContactHistory,
+} from '@/app/admin/customers/management/parts/types';
 
 interface RouteContext {
   params: Promise<{
     id: string;
   }>;
-}
-
-interface QuotationWithItems {
-  id: string;
-  quotation_number: string;
-  status: string;
-  customer_name: string;
-  customer_email: string;
-  subtotal_amount: number;
-  tax_amount: number;
-  total_amount: number;
-  valid_until: string | null;
-  pdf_url: string | null;
-  created_at: string;
-  updated_at: string;
-  sent_at: string | null;
-  approved_at: string | null;
-  rejected_at: string | null;
-  notes: string | null;
-  admin_notes: string | null;
-  items?: Array<{
-    id: string;
-    product_name: string;
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-    specifications: any;
-    notes: string | null;
-  }>;
-}
-
-interface CustomerDetailResponse {
-  success: boolean;
-  data?: {
-    customer: Profile;
-    statistics: {
-      totalOrders: number;
-      totalSpent: number;
-      lastOrderDate: string | null;
-      totalQuotations: number;
-      pendingQuotations: number;
-    };
-    recentOrders: any[];
-    quotations: QuotationWithItems[];
-    contactHistory: any[];
-  };
-  error?: string;
 }
 
 // ============================================================
@@ -79,9 +41,11 @@ export async function GET(
   { params }: RouteContext
 ) {
   try {
-    // Verify admin authentication
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
+    // 権限検査: user:read（詳細ページ page.tsx の requireAdminAuth(['user:read']) と認可整合）
+    // 従来の verifyAdminAuth（ロール検査のみ）から authenticateAdminAction（権限検査あり）へ移行。
+    // ページ側と同じ user:read 基準で認可し、operator/sales が詳細ページを開けるようにする。
+    const context = await authenticateAdminAction(['user:read']);
+    if (!context) {
       return unauthorizedResponse();
     }
 
@@ -110,16 +74,24 @@ export async function GET(
       );
     }
 
-    // Fetch customer's orders
-    const { data: orders } = await supabase
+    // Fetch customer's orders — CustomerOrder 必要フィールドのみ明示 select
+    // （quotation_id 含む・Step 8 の注文明細→見積紐付け表示に使用・created_at 降順・直近10件）
+    const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select('*')
+      .select('id, order_number, status, total_amount, created_at, quotation_id')
       .eq('user_id', id)
       .order('created_at', { ascending: false })
       .limit(10);
 
+    if (ordersError) {
+      console.error('[Customer Detail API] Orders query error:', ordersError);
+    }
+
     // Fetch customer's quotations with items
-    const { data: quotations } = await supabase
+    // 注意: quotation_items.notes 列は実DBに存在しない。select に含めると PostgREST が
+    // 42703 (undefined_column) を返し HTTP 400 になり、quotations 全体が取得できなくなる
+    // （一覧APIはこの列を参照しないため正常に取得でき、一覧/詳細の乖離が起きていた）。
+    const { data: quotations, error: quotationsError } = await supabase
       .from('quotations')
       .select(`
         id,
@@ -145,13 +117,16 @@ export async function GET(
           quantity,
           unit_price,
           total_price,
-          specifications,
-          notes
+          specifications
         )
       `)
       .eq('user_id', id)
       .order('created_at', { ascending: false })
       .limit(20);
+
+    if (quotationsError) {
+      console.error('[Customer Detail API] Quotations query error:', quotationsError);
+    }
 
     // Calculate statistics
     const totalOrders = orders?.length || 0;
@@ -161,12 +136,17 @@ export async function GET(
     const pendingQuotations = quotations?.filter((q: { status: string }) => q.status === 'QUOTATION_PENDING' || q.status === 'draft' || q.status === 'sent').length || 0;
 
     // Fetch contact history (if table exists)
-    const { data: contactHistory } = await supabase
+    // 注意: customer_contacts テーブルが未作成の場合は PostgREST 404 になる（error を可視化）
+    const { data: contactHistory, error: contactHistoryError } = await supabase
       .from('customer_contacts')
       .select('*')
       .eq('customer_id', id)
       .order('created_at', { ascending: false })
       .limit(20);
+
+    if (contactHistoryError) {
+      console.error('[Customer Detail API] Contact history query error:', contactHistoryError);
+    }
 
     const response: CustomerDetailResponse = {
       success: true,
@@ -179,9 +159,9 @@ export async function GET(
           totalQuotations,
           pendingQuotations,
         },
-        recentOrders: orders || [],
-        quotations: (quotations as any) || [],
-        contactHistory: contactHistory || [],
+        orders: (orders as CustomerOrder[] | null) || [],
+        quotations: (quotations as CustomerQuotation[] | null) || [],
+        contactHistory: (contactHistory as ContactHistory[] | null) || [],
       },
     };
 
@@ -204,9 +184,11 @@ export async function PATCH(
   { params }: RouteContext
 ) {
   try {
-    // Verify admin authentication
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
+    // 権限検査: user:write（認証 + ロール[admin/operator/sales] + ACTIVE + 権限を統合検査）
+    // 従来の verifyAdminAuth（ロール検査のみ）から authenticateAdminAction（権限検査あり）へ強化。
+    // 未保有（member 等）・非ACTIVE・未認証は null → 401 で拒否。
+    const context = await authenticateAdminAction(['user:write']);
+    if (!context) {
       return unauthorizedResponse();
     }
 
@@ -214,14 +196,84 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    // Remove fields that shouldn't be updated directly
-    const { id: _, role: __, created_at: ___, updated_at: ____, ...updates } = body;
+    // --- 基本情報（camelCase → snake_case 変換・検証） ---
+    // profileEditSchema で基本情報を検証し、mapProfileEditToSnakeCase で profiles UPDATE 用へ変換。
+    // ※ email/password/status はスキーマに含まれないため構造的に保護される。
+    const basicResult = profileEditSchema.safeParse(body);
+    if (!basicResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '入力内容が不正です。',
+          details: basicResult.error.flatten(),
+        },
+        { status: 400 }
+      );
+    }
+
+    const sanitizedUpdates: Record<string, unknown> = {
+      ...mapProfileEditToSnakeCase(basicResult.data),
+    };
+
+    // --- mass-assignment 防御（C-12・management/route.ts と統一） ---
+    // 認証・権限系フィールド（email/password/status/role 等）を除外。
+    // リクエスト偽装による role 昇格・email 乗っ取り・任意 status 変更を防ぐ最終防衛。
+    const FORBIDDEN_UPDATE_FIELDS = new Set([
+      'id', 'role', 'status', 'email', 'password', 'hashed_password',
+      'created_at', 'updated_at', 'auth_id', 'user_id',
+    ]);
+    for (const forbidden of FORBIDDEN_UPDATE_FIELDS) {
+      delete sanitizedUpdates[forbidden];
+    }
+
+    // --- 運用項目（status・markup_rate・markup_rate_note） ---
+    // status は上記 FORBIDDEN_UPDATE_FIELDS で一旦除外した上で、
+    // adminEditProfileSchema が検証・許可した status（INVITED 除く4値）のみ sanitizedUpdates へ再追加する。
+    // これで (A) 任意 status の mass-assignment 防止 + (B) 管理者による正当な status 切替 を両立。
+    const hasAdminFields =
+      body?.status !== undefined ||
+      body?.markup_rate !== undefined ||
+      body?.markup_rate_note !== undefined;
+
+    if (hasAdminFields) {
+      const adminResult = adminEditProfileSchema.safeParse({
+        status: body?.status,
+        markup_rate: body?.markup_rate,
+        markup_rate_note: body?.markup_rate_note,
+      });
+      if (!adminResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: '運用項目の入力内容が不正です。',
+            details: adminResult.error.flatten(),
+          },
+          { status: 400 }
+        );
+      }
+      // 検証済み status のみ再追加（ホワイトリスト方式・INVITED は弾かれる）
+      sanitizedUpdates.status = adminResult.data.status;
+      if (adminResult.data.markup_rate !== undefined) {
+        sanitizedUpdates.markup_rate = adminResult.data.markup_rate;
+      }
+      if (adminResult.data.markup_rate_note !== undefined) {
+        sanitizedUpdates.markup_rate_note = adminResult.data.markup_rate_note;
+      }
+    }
+
+    // 更新対象フィールドが無い場合は拒否
+    if (Object.keys(sanitizedUpdates).length === 0) {
+      return NextResponse.json(
+        { success: false, error: '更新可能なフィールドがありません。' },
+        { status: 400 }
+      );
+    }
 
     // Update customer in profiles
     const { data: updatedCustomer, error } = await supabase
       .from('profiles')
       .update({
-        ...updates,
+        ...sanitizedUpdates,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -269,9 +321,10 @@ export async function DELETE(
   { params }: RouteContext
 ) {
   try {
-    // Verify admin authentication
-    const auth = await verifyAdminAuth(request);
-    if (!auth) {
+    // 権限検査: user:delete（認証 + ロール[admin/operator/sales] + ACTIVE + 権限を統合検査）
+    // 従来の verifyAdminAuth（ロール検査のみ）から authenticateAdminAction（権限検査あり）へ強化。
+    const context = await authenticateAdminAction(['user:delete']);
+    if (!context) {
       return unauthorizedResponse();
     }
 

@@ -98,10 +98,14 @@ export async function POST(request: NextRequest) {
 
     // Get order statistics for each customer
     const customerIdsList = customers.map((c: Profile) => c.id);
-    const { data: orderStats } = await supabase
+    // 統計取得の error を可視化（サイレント失敗予防）
+    const { data: orderStats, error: orderStatsError } = await supabase
       .from('orders')
       .select('user_id, total_amount, created_at')
       .in('user_id', customerIdsList);
+    if (orderStatsError) {
+      console.error('[Customer Export API] Order stats query error:', orderStatsError);
+    }
 
     const statsMap = new Map<string, { totalOrders: number; totalSpent: number; lastOrderDate: string | null }>();
     orderStats?.forEach((order: any) => {

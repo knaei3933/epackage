@@ -24,6 +24,7 @@ import {
   getUploadFolderId
 } from '@/lib/google-drive';
 import { generateUploadToken } from '@/lib/designer-tokens';
+import { buildSkuName } from '@/lib/sku-name';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 
 export const dynamic = 'force-dynamic';
@@ -291,6 +292,8 @@ export async function POST(
     // Declare variables outside try block for proper scope
     let driveFileName: string;
     let googleDriveFile: { id: string; webViewLink: string; webContentLink: string; name: string };
+    // order_items.product_name 更新対象の order_item.id（try 内の driveOrderItem から受け渡し）
+    let driveOrderItemId: string | null = null;
 
     try {
       // Get admin's access token for Google Drive
@@ -329,6 +332,7 @@ export async function POST(
         // .single() はエラー時に throw せず { data: null, error } を返す
         if (!orderItemResult.error) {
           driveOrderItem = orderItemResult.data;
+          driveOrderItemId = driveOrderItem?.id ?? null;
         }
       } catch {
         // ネットワークエラー等の例外的失敗時も null にフォールバック
@@ -395,6 +399,66 @@ export async function POST(
         },
         { status: 500 }
       );
+    }
+
+    // ============================================================
+    // 6.5 order_items.product_name を顧客入力値で更新
+    // （service_role で実行。unit_price / quantity / specifications は触らない。
+    //   失敗時はログ出力のみでアップロードは継続＝ファイル入稿を止めない）
+    // ============================================================
+    if (driveOrderItemId && productName) {
+      const trimmedName = (productName as string).trim();
+      try {
+        const { error: itemNameError } = await adminClient
+          .from('order_items')
+          .update({ product_name: trimmedName })
+          .eq('id', driveOrderItemId)
+          .eq('order_id', orderId); // 二重防御: 別注文の item は絶対に更新しない
+        if (itemNameError) {
+          console.error('[Data Receipt Upload] order_items.product_name update error:', itemNameError);
+        } else {
+          console.log('[Data Receipt Upload] order_items.product_name updated:', { itemId: driveOrderItemId, name: trimmedName });
+        }
+      } catch (e) {
+        console.error('[Data Receipt Upload] product_name update exception:', e);
+      }
+    }
+
+    // ============================================================
+    // 6.6 order_items.sku_name を計算・保存（trigger 伝播の源）
+    //   動的計算した sku_name を order_items.sku_name に保存すると、直後の files 挿入で
+    //   trigger（BEFORE INSERT OF order_item_id）が files.sku_name snapshot へ伝播する。
+    //   失敗時はログのみでアップロード継続（6.5 product_name 更新と同じ方針）。
+    // ============================================================
+    if (driveOrderItemId) {
+      try {
+        // 6.5 の product_name 更新後の最新値を再取得して計算（driveOrderItem はスコープ外のため再 SELECT）
+        const { data: skuItem } = await adminClient
+          .from('order_items')
+          .select('id, product_name, quantity, specifications')
+          .eq('id', driveOrderItemId)
+          .eq('order_id', orderId) // 二重防御: 別注文の item は絶対に取得しない
+          .maybeSingle();
+        if (skuItem) {
+          const computedSku = buildSkuName({
+            product_name: skuItem.product_name,
+            quantity: skuItem.quantity,
+            specifications: (skuItem.specifications ?? {}) as Record<string, unknown>,
+          });
+          const { error: skuNameError } = await adminClient
+            .from('order_items')
+            .update({ sku_name: computedSku })
+            .eq('id', driveOrderItemId)
+            .eq('order_id', orderId); // 二重防御: 別注文の item は絶対に更新しない
+          if (skuNameError) {
+            console.error('[Data Receipt Upload] order_items.sku_name update error:', skuNameError);
+          } else {
+            console.log('[Data Receipt Upload] order_items.sku_name persisted:', { itemId: driveOrderItemId, sku: computedSku });
+          }
+        }
+      } catch (e) {
+        console.error('[Data Receipt Upload] sku_name persist exception:', e);
+      }
     }
 
     // ============================================================
@@ -992,37 +1056,8 @@ export async function GET(
       if (file.order_item_id) {
         const item = orderItemsMap.get(file.order_item_id);
         if (item) {
-          // Issue 1 fix: format = SKU番号_製品名_数量_サイズ
-          // 例: SKU1_三方シール平袋_5000枚_100×120
-          const skuMatch = (item.product_name || '').match(/SKU\s*(\d+)/i);
-          const skuNumber = skuMatch ? skuMatch[1] : '1';
-          // 製品名: bagTypeId -> 日本語の袋タイプ。フォールバックは product_name の先頭語。
-          const bagTypeId = item.specifications?.bagTypeId;
-          const bagTypeJa: Record<string, string> = {
-            'flat_3_side': '三方シール平袋',
-            'three_side_seal': '三方シール平袋',
-            'stand_up': 'スタンドパウチ',
-            'standup_pouch': 'スタンドパウチ',
-            'gusset_pouch': 'ガゼットパウチ',
-            'zipper_pouch': 'ジッパーパウチ',
-            'spout_pouch': 'スパウトパウチ',
-            'roll_film': 'ロールフィルム',
-            'lap_seal': '合掌袋',
-          };
-          const productLabel = (bagTypeId && bagTypeJa[bagTypeId]) || (item.product_name || '製品').split(/\s+-|\s+[(（]SKU/i)[0].trim();
-          // サイズ: width×height（depth/sideWidth があれば追加）
-          const specs = item.specifications || {};
-          const width = specs.width ?? '';
-          const height = specs.height ?? '';
-          const depth = specs.depth;
-          const sideWidth = specs.sideWidth;
-          let sizeLabel = '';
-          if (width && height) {
-            sizeLabel = `${width}×${height}`;
-            if (depth && Number(depth) > 0) sizeLabel += `×${depth}`;
-            if (sideWidth) sizeLabel += `×側面${sideWidth}`;
-          }
-          skuName = `SKU${skuNumber}_${productLabel}_${item.quantity.toLocaleString()}枚${sizeLabel ? `_${sizeLabel}` : ''}`;
+          // sku_name 構築は buildSkuName ヘルパーに一元化（POST 保存と同一ロジック・形式: SKU番号_製品名_数量_サイズ）
+          skuName = buildSkuName(item);
         }
       }
 
